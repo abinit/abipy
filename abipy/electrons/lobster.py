@@ -1,4 +1,5 @@
-"Tools to analyze output files produced by lobster code."""
+# coding: utf-8
+"""Tools to analyze output files produced by lobster code."""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
@@ -42,24 +43,24 @@ class _LobsterFile(BaseFile, NotebookWriter):
 
     # TODOL ls
     params_orbs = {
-      "s":  {"style": dict(color="red", ls="-", lw=1)},
+      "s":  {"style": dict(color="red", ls="-", lw=1), "latex": "s"},
       #
-      "p_x": {"style": dict(color="blue", ls="-", lw=1)},
-      "p_y": {"style": dict(color="blue", ls="-", lw=1)},
-      "p_z": {"style": dict(color="blue", ls="-", lw=1)},
+      "p_x": {"style": dict(color="blue", ls="-", lw=1), "latex": "p_x"},
+      "p_y": {"style": dict(color="blue", ls="-", lw=1), "latex": "p_y"},
+      "p_z": {"style": dict(color="blue", ls="-", lw=1), "latex": "p_z"},
       #
-      "d_xy":  {"style": dict(color="green", ls="-", lw=1)},
-      "d_yz":  {"style": dict(color="green", ls="-", lw=1)},
-      "d_z^2": {"style": dict(color="green", ls="-", lw=1)},
-      "d_xz":  {"style": dict(color="green", ls="-", lw=1)},
-      "d_x^2-y^2": {"style": dict(color="green", ls="-", lw=1)},
+      "d_xy":  {"style": dict(color="green", ls="-", lw=1), "latex": "d_{xy}"},
+      "d_yz":  {"style": dict(color="green", ls="-", lw=1), "latex": "d_{yz}"},
+      "d_z^2": {"style": dict(color="green", ls="-", lw=1), "latex": "d_{z^2}"},
+      "d_xz":  {"style": dict(color="green", ls="-", lw=1), "latex": "d_{xz}"},
+      "d_x^2-y^2": {"style": dict(color="green", ls="-", lw=1), "latex": "d_{x^2-y^2}"},
       #
-      "4f_y(3x^2-y^2)": {"style": dict(color="orange", ls="-", lw=1)},
-      "4f_xyz": {"style": dict(color="orange", ls="-", lw=1)},
-      "4f_yz^2": {"style": dict(color="orange", ls="-", lw=1)},
-      "4f_z^3": {"style": dict(color="orange", ls="-", lw=1)},
-      "4f_xz^2": {"style": dict(color="orange", ls="-", lw=1)},
-      "4f_z(x^2-y^2)": {"style": dict(color="orange", ls="-", lw=1)},
+      "4f_y(3x^2-y^2)": {"style": dict(color="orange", ls="-", lw=1), "latex": "4f_{y(3x^2-y^2)}"},
+      "4f_xyz": {"style": dict(color="orange", ls="-", lw=1), "latex": "4f_{xyz}"},
+      "4f_yz^2": {"style": dict(color="orange", ls="-", lw=1), "latex": "4f_{yz^2}"},
+      "4f_z^3": {"style": dict(color="orange", ls="-", lw=1), "latex": "4f_{z^3}"},
+      "4f_xz^2": {"style": dict(color="orange", ls="-", lw=1), "latex": "4f_{xz^2}"},
+      "4f_z(x^2-y^2)": {"style": dict(color="orange", ls="-", lw=1), "latex": "4f_{z(x^2-y^2)}"},
     }
 
     def __str__(self):
@@ -68,48 +69,48 @@ class _LobsterFile(BaseFile, NotebookWriter):
     def close(self):
         """Needed by ABC."""
 
-    @add_fig_kwargs
-    def plot_with_ebands(self, ebands, fontsize=12, **kwargs):
-        """
-        Plot bands + (COHP|COOP|DOSCAR) depending on the content of the file.
+    #@add_fig_kwargs
+    #def plot_with_ebands(self, ebands, fontsize=12, **kwargs):
+    #    """
+    #    Plot bands + (COHP|COOP|DOSCAR) depending on the content of the file.
 
-        Args:
-            ebands: Path to ncfile with ebands or |ElectronBands| object.
-            fontsize: fontsize for legends and titles
+    #    Args:
+    #        ebands: Path to ncfile with ebands or |ElectronBands| object.
+    #        fontsize: fontsize for legends and titles
 
-        Returns: |matplotlib-Figure|
-        """
-        ebands = ElectronBands.as_ebands(ebands)
+    #    Returns: |matplotlib-Figure|
+    #    """
+    #    ebands = ElectronBands.as_ebands(ebands)
 
-        import matplotlib.pyplot as plt
-        from matplotlib.gridspec import GridSpec
-        fig = plt.figure()
+    #    import matplotlib.pyplot as plt
+    #    from matplotlib.gridspec import GridSpec
+    #    fig = plt.figure()
 
-        # Build grid.
-        nrows, ncols = 1, 2
-        gspec = GridSpec(nrows=nrows, ncols=ncols, width_ratios=(2, 1), wspace=0.05)
+    #    # Build grid.
+    #    nrows, ncols = 1, 2
+    #    gspec = GridSpec(nrows=nrows, ncols=ncols, width_ratios=(2, 1), wspace=0.05)
 
-        # Bands and DOS will share the y-axis
-        axmat = np.array((nrows, ncols), dtype=object)
-        for icol in range(ncols):
-            for irow in range(nrows):
-                axmat[irow, icol] = plt.subplot(gspec[irow, icol], sharey=None if irow == 0 else axmat[irow, icol-1])
+    #    # Bands and DOS will share the y-axis
+    #    axmat = np.array((nrows, ncols), dtype=object)
+    #    for icol in range(ncols):
+    #        for irow in range(nrows):
+    #            axmat[irow, icol] = plt.subplot(gspec[irow, icol], sharey=None if irow == 0 else axmat[irow, icol-1])
 
-        #axmat, fig, plt = get_axarray_fig_plt(None, nrows=self.nsppol, ncols=len(entries) + 1,
-        #                                        sharex=False, sharey=True, squeeze=False)
+    #    #axmat, fig, plt = get_axarray_fig_plt(None, nrows=self.nsppol, ncols=len(entries) + 1,
+    #    #                                        sharex=False, sharey=True, squeeze=False)
 
-        for ix, ax in enumerate(axmat.ravel()):
-            if ix == 0:
-                ebands.plot(e0="fermie", ax=ax, show=False)
-            else:
-                self.plot(ax=ax, exchange_xy=True, show=False)
+    #    for ix, ax in enumerate(axmat.ravel()):
+    #        if ix == 0:
+    #            ebands.plot(e0="fermie", ax=ax, show=False)
+    #        else:
+    #            self.plot(ax=ax, exchange_xy=True, show=False)
 
-            #if ix != 0:
-            #    set_visible(ax, False, "ylabel")
-            #if self.nsppol == 2 and spin == 0:
-            #    set_visible(ax, False, "xlabel")
+    #        #if ix != 0:
+    #        #    set_visible(ax, False, "ylabel")
+    #        #if self.nsppol == 2 and spin == 0:
+    #        #    set_visible(ax, False, "xlabel")
 
-        return fig
+    #    return fig
 
 
 class CoxpFile(_LobsterFile):
@@ -188,7 +189,7 @@ class CoxpFile(_LobsterFile):
         # From lobster documentation
         # COHPCAR.lobster:
         # File that contains the pCOHPs as requested in the lobsterin file.
-        # It resembles the format of TB-LMTO-ASA’s COPL file, which is organized as follows:
+        # It resembles the format of TB-LMTO-ASA's COPL file, which is organized as follows:
         # - Starting in line 3, the labels for the interactions are presented, followed by the
         # actual data.
         # - Column 1: energy axis, shifted such that the Fermi level lies at zero eV.
@@ -209,7 +210,7 @@ class CoxpFile(_LobsterFile):
         new = cls(filepath)
 
         with zopen(filepath, "rt") as f:
-            # find the header
+            # Find the header
             for line in f:
                 match = header_patt.match(line.rstrip())
                 if match:
@@ -228,11 +229,11 @@ class CoxpFile(_LobsterFile):
             count_pairs = 0
             pairs_data = []
             new.type_of_index = {}
-            # parse the pairs considered
+            # Parse the pairs considered
             for line in f:
                 match = pair_patt.match(line.rstrip())
                 if match:
-                    # adds a tuple: [type1, index1, orbital1, type2, index2, orbital2]
+                    # Adds a tuple: [type1, index1, orbital1, type2, index2, orbital2]
                     # with orbital1, orbital2 = None if the pair is not orbitalwise
                     type1, index1, orbital1, type2, index2, orbital2 = match.groups()
                     # 0-based indexing
@@ -260,14 +261,13 @@ class CoxpFile(_LobsterFile):
             for i, s in enumerate(spins):
                 base_index = 1+i*n_column_groups*2
                 new.averaged[s]['single'] = data[:, base_index].copy()
-                #print(data[:, base_index])
-                #raise ValueError()
                 new.averaged[s]['integrated'] = data[:, base_index+1].copy()
+                # NB (i, j) --> (j, i) symmetry is enforced to make API easier.
                 for j, p in enumerate(pairs_data):
                     index1 = p[1]
                     index2 = p[4]
-                    # partial or total
                     if p[2] is not None:
+                        # Partial
                         single = data[:, base_index+2*(j+1)].copy()
                         integrated = data[:, base_index+2*(j+1)+1].copy()
                         new.partial[(index1, index2)][(p[2], p[5])][s]['single'] = single
@@ -275,6 +275,7 @@ class CoxpFile(_LobsterFile):
                         new.partial[(index1, index2)][(p[2], p[5])][s]['integrated'] = integrated
                         new.partial[(index2, index1)][(p[5], p[2])][s]['integrated'] = integrated
                     else:
+                        # Total
                         single = data[:, base_index+2*(j+1)].copy()
                         integrated = data[:, base_index+2*(j+1)+1].copy()
                         new.total[(index1, index2)][s]['single'] = single
@@ -300,13 +301,13 @@ class CoxpFile(_LobsterFile):
 
         results = tree()
         for pair, pair_data in self.partial.items():
-            #check if the symmetric has already been calculated
+            # Check if the symmetric has already been calculated
             if (pair[1], pair[0]) in results:
                 for orbs, orbs_data in results[(pair[1], pair[0])].items():
                     results[pair][(orbs[1], orbs[0])] = orbs_data
                 continue
 
-            #for each look at all orbital possibilities
+            # For each look at all orbital possibilities
             for orbs, orbs_data in pair_data.items():
                 k = (orbs[0].split("_")[0], orbs[1].split("_")[0])
                 if k in results[pair]:
@@ -632,8 +633,7 @@ class CoxpFile(_LobsterFile):
         for pair in pairs:
             for orbs, d in self.partial[pair].items():
                 for spin in range(self.nsppol):
-                    xs = self.energies
-                    ys = ysign * d[spin][what]
+                    xs, ys = self.energies, ysign * d[spin][what]
                     if exchange_xy: xs, ys = ys, xs
                     label, style = self.get_labelstyle_from_spin_pair_orbs(spin, pair, orbs)
                     ax.plot(xs, ys, label=label, **style)
@@ -675,6 +675,7 @@ class CoxpFile(_LobsterFile):
             nbv.new_code_cell("coxpfile.plot(what='i');"),
             nbv.new_code_cell("coxpfile.plot_site_pairs_total(from_site_index=[0,]);"),
             nbv.new_code_cell("coxpfile.plot_site_pairs_partial(from_site_index=[0,]);"),
+            nbv.new_code_cell("#coxpfile.plot_with_ebands(ebands='filepath');"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
@@ -907,8 +908,8 @@ class LobsterDoscarFile(_LobsterFile):
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         """
         yield self.plot(show=False)
-        #for site_index in range(self.nsites):
-        #    yield self.plot_pdos(site_index, show=False)
+        for site_index in range(self.nsites):
+            yield self.plot_pdos_site(site_index, show=False)
 
     @add_fig_kwargs
     def plot(self, spin=None, ax=None, exchange_xy=False, fontsize=12, **kwargs):
@@ -931,8 +932,8 @@ class LobsterDoscarFile(_LobsterFile):
             opts = {"color": "black", "linewidth": 2.0, "ls": "-"} if spin == 0 else \
                    {"color": "red", "linewidth": 2.0, "ls": "--"}
             opts.update(kwargs)
-
-            xs, ys = self.energies, self.total_dos[spin]
+            spin_sign = +1 if spin == 0 else -1
+            xs, ys = self.energies, spin_sign * self.total_dos[spin]
             if exchange_xy: xs, ys = ys, xs
             ax.plot(xs, ys, label=self.spin2tex[spin] if self.nsppol == 2 else None,
                     **opts)
@@ -983,10 +984,10 @@ class LobsterDoscarFile(_LobsterFile):
                 spin_sign = +1 if spin == 0 else -1
                 xs, ys = self.energies, spin_sign * d[spin]
                 if exchange_xy: xs, ys = ys, xs
-                label = "$%s_{%s}@%s$" % (self.type_of_index[site_index], site_index, orb)
                 n, lm = orb[0], orb[1:]
-                style = self.params_orbs[lm]["style"]
-                ax.plot(xs, ys, label=label, **style)
+                params = self.params_orbs[lm]
+                label = "$%s@%s_{%s}$" % (self.type_of_index[site_index], site_index, params["latex"])
+                ax.plot(xs, ys, label=label, **params["style"])
 
         xlabel, ylabel = r"$E - E_f\;(eV)$", "PDOS"
         if exchange_xy: xlabel, ylabel = ylabel, xlabel
@@ -1387,55 +1388,55 @@ class LobsterAnalyzer(NotebookWriter):
 
         return fig
 
-    @add_fig_kwargs
-    def plot_with_ebands(self, ebands, entries=("coop", "cohp", "doscar"), **kwargs):
-        """
-        Plot bands + COHP, COOP, DOSCAR.
+    #@add_fig_kwargs
+    #def plot_with_ebands(self, ebands, entries=("coop", "cohp", "doscar"), **kwargs):
+    #    """
+    #    Plot bands + COHP, COOP, DOSCAR.
 
-        Args:
-            ebands:
-            entries: "cohp" to plot COHP, "coop" for COOP
-            fontsize: fontsize for legends and titles
+    #    Args:
+    #        ebands:
+    #        entries: "cohp" to plot COHP, "coop" for COOP
+    #        fontsize: fontsize for legends and titles
 
-        Returns: |matplotlib-Figure|
-        """
-        ebands = ElectronBands.as_ebands(ebands)
+    #    Returns: |matplotlib-Figure|
+    #    """
+    #    ebands = ElectronBands.as_ebands(ebands)
 
-        entries = [e for e in entries if getattr(self, e, None)]
-        if not entries: return None
+    #    entries = [e for e in entries if getattr(self, e, None)]
+    #    if not entries: return None
 
-        import matplotlib.pyplot as plt
-        from matplotlib.gridspec import GridSpec
-        fig = plt.figure()
+    #    import matplotlib.pyplot as plt
+    #    from matplotlib.gridspec import GridSpec
+    #    fig = plt.figure()
 
-        # Build grid.
-        nrows, ncols = self.nsppol, len(entries) + 1
-        width_ratios = [2] + [1] * len(entries)
-        gspec = GridSpec(nrows=nrows, ncols=ncols, width_ratios=width_ratios, wspace=0.05)
+    #    # Build grid.
+    #    nrows, ncols = self.nsppol, len(entries) + 1
+    #    width_ratios = [2] + [1] * len(entries)
+    #    gspec = GridSpec(nrows=nrows, ncols=ncols, width_ratios=width_ratios, wspace=0.05)
 
-        # Bands and DOS will share the y-axis
-        axmat = np.array((nrows, ncols), dtype=object)
-        for icol in range(ncols):
-            for irow in range(nrows):
-                axmat[irow, icol] = plt.subplot(gspec[irow, icol], sharey=None if irow == 0 else axmat[irow, icol-1])
+    #    # Bands and DOS will share the y-axis
+    #    axmat = np.array((nrows, ncols), dtype=object)
+    #    for icol in range(ncols):
+    #        for irow in range(nrows):
+    #            axmat[irow, icol] = plt.subplot(gspec[irow, icol], sharey=None if irow == 0 else axmat[irow, icol-1])
 
-        #axmat, fig, plt = get_axarray_fig_plt(None, nrows=self.nsppol, ncols=len(entries) + 1,
-        #                                        sharex=False, sharey=True, squeeze=False)
+    #    #axmat, fig, plt = get_axarray_fig_plt(None, nrows=self.nsppol, ncols=len(entries) + 1,
+    #    #                                        sharex=False, sharey=True, squeeze=False)
 
-        for spin in range(self.nsppol):
-            for ix, (label, ax) in enumerate(zip(entries, axmat[spin, :])):
-                if ix == 0:
-                    ebands.plot(spin=spin, e0="fermie", ax=ax, show=False)
-                else:
-                    obj = getattr(self, label)
-                    obj.plot(ax=ax, spin=spin, exchange_xy=True, show=False)
+    #    for spin in range(self.nsppol):
+    #        for ix, (label, ax) in enumerate(zip(entries, axmat[spin, :])):
+    #            if ix == 0:
+    #                ebands.plot(spin=spin, e0="fermie", ax=ax, show=False)
+    #            else:
+    #                obj = getattr(self, label)
+    #                obj.plot(ax=ax, spin=spin, exchange_xy=True, show=False)
 
-                if ix != 0:
-                    set_visible(ax, False, "ylabel")
-                if self.nsppol == 2 and spin == 0:
-                    set_visible(ax, False, "xlabel")
+    #            if ix != 0:
+    #                set_visible(ax, False, "ylabel")
+    #            if self.nsppol == 2 and spin == 0:
+    #                set_visible(ax, False, "xlabel")
 
-        return fig
+    #    return fig
 
     def write_notebook(self, nbpath=None):
         """

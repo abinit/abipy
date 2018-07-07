@@ -162,7 +162,7 @@ def abifile_subclass_from_filename(filename):
         for ext, cls in abiext2ncfile.items():
             if filename.endswith(ext): return cls
 
-    msg = ("No class has been registered for file:\n\t%s\n\nFile extensions supported:\n%s" %
+    msg = ("No class has been registered for file:\n\t%s\n\nFile extensions supported:\n\n%s" %
         (filename, abiopen_ext2class_table()))
     raise ValueError(msg)
 

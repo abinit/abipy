@@ -24,17 +24,15 @@ install:
   - env
   #- set -ev  # exit on first error, print each command
 
-  # pip-based installation.
   - |
+      # pip-based installation.
       if [ "${ABIPY_INSTALLER}" == "pip" ]; then
         travis_wait pip install -r requirements.txt
         travis_wait pip install -r requirements-optional.txt
         travis_wait pip uninstall -y pymatgen
-      fi
 
-  # Install conda https://conda.io/docs/travis.html
-  - |
-      if [ "${ABIPY_INSTALLER}" == "conda" ]; then
+      # Install conda https://conda.io/docs/travis.html
+      elif [ "${ABIPY_INSTALLER}" == "conda" ]; then
         source dev_scripts/conda_get.sh
         source dev_scripts/conda_install.sh
         conda uninstall -y pymatgen
