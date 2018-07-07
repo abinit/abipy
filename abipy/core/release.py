@@ -56,6 +56,12 @@ author = 'M. Giantomassi and the AbiPy group'
 author_email = 'matteo.giantomassi@uclouvain.be'
 maintainer = "Matteo Giantomassi"
 maintainer_email = author_email
+authors = OrderedDict([
+    ('Matteo', ('M. Giantomassi', 'nobody@nowhere')),
+    ('Michiel', ('M. J. van Setten', 'nobody@nowhere')),
+    ('Guido', ('G. Petretto', 'nobody@nowhere')),
+    ('Henrique', ('H. Miranda', 'nobody@nowhere')),
+])
 
 url = "https://github.com/abinit/abipy"
 download_url = "https://github.com/abinit/abipy"
