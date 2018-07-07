@@ -102,6 +102,15 @@ def set_axlims(ax, lims, axname):
     return left, right
 
 
+def set_ax_xylabels(ax, xlabel, ylabel, exchange_xy):
+    """
+    Set the x- and the y-label of axis ax, exchanging x and y if exchange_xy
+    """
+    if exchange_xy: xlabel, ylabel = ylabel, xlabel
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+
+
 def set_visible(ax, boolean, *args):
     """
     Hide/Show the artists of axis ax listed in args.

@@ -31,6 +31,13 @@ install:
   - |
       # pip-based installation.
       if [ "${ABIPY_INSTALLER}" == "pip" ]; then
+        source dev_scripts/conda_get.sh  # Needed for Abinit
+        conda install abinit
+        echo "Installing abinit from abinit channel ..."
+        #conda install -y -c gmatteo abinit=${ABINIT_VERSION}
+        conda install -y -c abinit abinit=${ABINIT_VERSION}
+        abinit --version
+        abinit --build
         travis_wait pip install -r requirements.txt
         travis_wait pip install -r requirements-optional.txt
         travis_wait pip uninstall -y pymatgen
@@ -81,7 +88,7 @@ branches:
     - develop
 
 after_success:
-    - if [[ "${ABIPY_COVERALLS}" == "yes"]]; then coveralls; fi
+    - if [[ "${ABIPY_COVERALLS}" == "yes" ]]; then coveralls; fi
 
 notifications:
   email:
