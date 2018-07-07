@@ -63,7 +63,7 @@ from abipy.waves import WfkFile
 from abipy.eph.a2f import A2fFile, A2fRobot
 from abipy.eph.sigeph import SigEPhFile, SigEPhRobot
 from abipy.wannier90 import WoutFile, AbiwanFile, AbiwanRobot
-from abipy.electrons.lobster import Coxp, ICoxp, LobsterDos, LobsterInput, LobsterAnalyzer
+from abipy.electrons.lobster import CoxpFile, ICoxpFile, LobsterDoscarFile, LobsterInput, LobsterAnalyzer
 
 # Abinit Documentation.
 from abipy.abio.abivars_db import get_abinit_variables, abinit_help, docvar
@@ -93,10 +93,10 @@ ext2file = collections.OrderedDict([
     ("JTH.xml", Pseudo),
     (".wout", WoutFile),
     # Lobster files.
-    ("COHPCAR.lobster", Coxp),
-    ("COOPCAR.lobster", Coxp),
-    ("ICOHPLIST.lobster", ICoxp),
-    ("DOSCAR.lobster", LobsterDos),
+    ("COHPCAR.lobster", CoxpFile),
+    ("COOPCAR.lobster", CoxpFile),
+    ("ICOHPLIST.lobster", ICoxpFile),
+    ("DOSCAR.lobster", LobsterDoscarFile),
 ])
 
 # Abinit files require a special treatment.
@@ -163,7 +163,7 @@ def abifile_subclass_from_filename(filename):
         for ext, cls in abiext2ncfile.items():
             if filename.endswith(ext): return cls
 
-    msg = ("No class has been registered for file:\n\t%s\n\nFile extensions supported:\n%s" %
+    msg = ("No class has been registered for file:\n\t%s\n\nFile extensions supported:\n\n%s" %
         (filename, abiopen_ext2class_table()))
     raise ValueError(msg)
 

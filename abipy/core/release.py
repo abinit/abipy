@@ -1,5 +1,5 @@
 # coding: utf-8
-"""Release data for the abipy project."""
+"""Release data for the AbiPy project."""
 from __future__ import print_function, division, unicode_literals
 
 from collections import OrderedDict
@@ -57,9 +57,10 @@ author_email = 'matteo.giantomassi@uclouvain.be'
 maintainer = "Matteo Giantomassi"
 maintainer_email = author_email
 authors = OrderedDict([
-    ('Matteo', ('M. Giantomassi', 'matteo.giantomassi@uclouvain.be')),
-    ('Michiel', ('M. J. van Setten', 'mjvansetten@gmail.com')),
-    ('Guido', ('G. Petretto', 'guido.petretto@gmail.com')),
+    ('Matteo', ('M. Giantomassi', 'nobody@nowhere')),
+    ('Michiel', ('M. J. van Setten', 'nobody@nowhere')),
+    ('Guido', ('G. Petretto', 'nobody@nowhere')),
+    ('Henrique', ('H. Miranda', 'nobody@nowhere')),
 ])
 
 url = "https://github.com/abinit/abipy"
@@ -71,6 +72,7 @@ classifiers=[
     "Programming Language :: Python :: 2.7",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",

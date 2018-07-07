@@ -30,5 +30,5 @@ fi
 # Generate documentation
 if [[ "${TRAVIS_PYTHON_VERSION}" == "2.7" && "${TRAVIS_OS_NAME}" == "linux" ]]; then
     pip install -r ./docs/requirements.txt
-    cd ./docs && export READTHEDOCS=1 && make && unset READTHEDOCS && cd ..;
+    cd ./docs && export READTHEDOCS=1 && make && unset READTHEDOCS && cd ..
 fi
