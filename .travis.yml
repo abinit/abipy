@@ -1,5 +1,5 @@
 language: python
-#cache: true
+#cache: pip
 
 # We don't actually use the Travis Python but conda
 matrix:
@@ -12,6 +12,10 @@ matrix:
       python: 3.6
       env: 
         - ABINIT_VERSION=8.8.2 ABIPY_INSTALLER=conda ABIPY_COVERALLS=yes
+    - os: linux
+      python: 3.6
+      env: 
+        - ABINIT_VERSION=8.8.2 ABIPY_INSTALLER=pip
 #    - os: linux
 #      python: 3.7
 #      env: 
@@ -77,8 +81,7 @@ branches:
     - develop
 
 after_success:
-  - if [[ "${ABIPY_COVERALLS}" == "yes"]]; then coveralls; fi
-    #- if [[ "${TRAVIS_PYTHON_VERSION}" == "3.6" && "${TRAVIS_OS_NAME}" == "linux" ]]; then coveralls; fi
+    - if [[ "${ABIPY_COVERALLS}" == "yes"]]; then coveralls; fi
 
 notifications:
   email:
