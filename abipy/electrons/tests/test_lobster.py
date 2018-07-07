@@ -77,16 +77,15 @@ class CoxpTest(AbipyTest):
     def check_average(self, coxp):
         # averaged should contain the average over all atom pairs.
         # pair data is stored in total[pair][spin][what]
-        #for what in ("single", "integrated")
-        what = "single"
-        sum_all = np.zeros((coxp.nsppol, len(coxp.energies)))
-        for pair, pair_data in coxp.total.items():
-            for spin in range(coxp.nsppol):
-                sum_all[spin] += pair_data[spin][what]
-        #assert len(coxp.total) == 2
-        npairs = len(coxp.total)
-        sum_all /= (npairs)
-        #sum_all /= (2.0 * npairs)
+        for what in ("single",): #, "integrated")
+            sum_all = np.zeros((coxp.nsppol, len(coxp.energies)))
+            for pair, pair_data in coxp.total.items():
+                for spin in range(coxp.nsppol):
+                    sum_all[spin] += pair_data[spin][what]
+            #assert len(coxp.total) == 2
+            npairs = len(coxp.total)
+            sum_all /= (npairs)
+            #sum_all /= (2.0 * npairs)
 
         for spin in range(coxp.nsppol):
             ref_values = coxp.averaged[spin][what] #* len(coxp.total)
@@ -103,6 +102,7 @@ class CoxpTest(AbipyTest):
 class ICoxpTest(AbipyTest):
 
     def test_icoxp(self):
+        """Testing ICOHPLIST files."""
         with abiopen(os.path.join(lobster_gaas_dir, "GaAs_ICOHPLIST.lobster.gz")) as icohp:
             repr(icohp); str(icohp)
             assert icohp.to_string(verbose=2)
@@ -125,6 +125,7 @@ class ICoxpTest(AbipyTest):
 class LobsterDosTest(AbipyTest):
 
     def test_lobsterdos(self):
+        """Testing Lobster DOSCAR files."""
         with abiopen(os.path.join(lobster_gaas_dir, "GaAs_DOSCAR.lobster.gz")) as ldos:
             repr(ldos); str(ldos)
             assert ldos.to_string(verbose=2)
@@ -172,6 +173,7 @@ class LobsterDosTest(AbipyTest):
 class LobsterAnalyzerTest(AbipyTest):
 
     def test_lobster_analyzer(self):
+        """Testing lobster analyzer."""
         lobana = LobsterAnalyzer.from_dir(lobster_gaas_dir, prefix="GaAs_")
         repr(lobana); str(lobana)
         assert lobana.nsppol == 1
@@ -194,9 +196,6 @@ class LobsterInputTest(AbipyTest):
         repr(lin); str(lin)
         assert lin.to_string(verbose=2)
         lin.set_basis_functions_from_abinit_pseudos([abidata.pseudo("Al.GGA_PBE-JTH.xml")])
-        if sys.version[0:3] < '2.7':
-            # py2 portability issue with dictionaries.
-            assert sorted(lin.basis_functions[0].split()) == sorted("Al 3s  3p".split())
-        else:
-            assert lin.basis_functions[0] == "Al 3s  3p"
+        # XML parser does not guarantee order.
+        assert sorted(lin.basis_functions[0].split()) == sorted("Al 3s 3p".split())
         lin.write(self.mkdtemp())

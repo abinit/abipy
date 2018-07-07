@@ -6,10 +6,20 @@ matrix:
   include:
     - os: linux
       python: 2.7
-      env: ABINIT_VERSION=8.8.2
+      env: 
+        - ABINIT_VERSION=8.8.2
+        - ABIPY_INSTALLER=conda
     - os: linux
       python: 3.6
-      env: ABINIT_VERSION=8.8.2
+      env: 
+        - ABINIT_VERSION=8.8.2
+        - ABIPY_INSTALLER=conda
+        - ABIPY_COVERALLS=yes
+    - os: linux
+      python: 3.7
+      env: 
+        - ABINIT_VERSION=8.8.2
+        - ABIPY_INSTALLER=pip
 
 #dist: precise
 sudo: false
@@ -19,13 +29,20 @@ install:
   #- set -ev  # exit on first error, print each command
 
   # pip-based installation.
-  #- travis_wait pip install -r requirements.txt
-  #- travis_wait pip install -r requirements-optional.txt
+  - |
+  if [ "${ABIPY_INSTALLER}" == "pip" ]; then
+    travis_wait pip install -r requirements.txt
+    travis_wait pip install -r requirements-optional.txt
+    travis_wait pip uninstall -y pymatgen
+  fi
 
   # Install conda https://conda.io/docs/travis.html
-  - source dev_scripts/conda_get.sh
-  - source dev_scripts/conda_install.sh
-  - conda uninstall -y pymatgen
+  - |
+  if [ "${ABIPY_INSTALLER}" == "conda" ]; then
+    source dev_scripts/conda_get.sh
+    source dev_scripts/conda_install.sh
+    conda uninstall -y pymatgen
+  fi
 
   - if [[ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]]; then conda install mock; fi
   #- pip install graphviz
@@ -66,7 +83,8 @@ branches:
     - develop
 
 after_success:
-  - if [[ "${TRAVIS_PYTHON_VERSION}" == "3.6" && "${TRAVIS_OS_NAME}" == "linux" ]]; then coveralls; fi
+  - if [[ "${ABIPY_COVERALLS}" == "yes"]]; then coveralls; fi
+    #- if [[ "${TRAVIS_PYTHON_VERSION}" == "3.6" && "${TRAVIS_OS_NAME}" == "linux" ]]; then coveralls; fi
 
 notifications:
   email:
