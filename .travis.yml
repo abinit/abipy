@@ -7,19 +7,15 @@ matrix:
     - os: linux
       python: 2.7
       env: 
-        - ABINIT_VERSION=8.8.2
-        - ABIPY_INSTALLER=conda
+        - ABINIT_VERSION=8.8.2 ABIPY_INSTALLER=conda
     - os: linux
       python: 3.6
       env: 
-        - ABINIT_VERSION=8.8.2
-        - ABIPY_INSTALLER=conda
-        - ABIPY_COVERALLS=yes
+        - ABINIT_VERSION=8.8.2 ABIPY_INSTALLER=conda ABIPY_COVERALLS=yes
     - os: linux
       python: 3.7
       env: 
-        - ABINIT_VERSION=8.8.2
-        - ABIPY_INSTALLER=pip
+        - ABINIT_VERSION=8.8.2 ABIPY_INSTALLER=pip
 
 #dist: precise
 sudo: false
@@ -30,19 +26,19 @@ install:
 
   # pip-based installation.
   - |
-  if [ "${ABIPY_INSTALLER}" == "pip" ]; then
-    travis_wait pip install -r requirements.txt
-    travis_wait pip install -r requirements-optional.txt
-    travis_wait pip uninstall -y pymatgen
-  fi
+      if [ "${ABIPY_INSTALLER}" == "pip" ]; then
+        travis_wait pip install -r requirements.txt
+        travis_wait pip install -r requirements-optional.txt
+        travis_wait pip uninstall -y pymatgen
+      fi
 
   # Install conda https://conda.io/docs/travis.html
   - |
-  if [ "${ABIPY_INSTALLER}" == "conda" ]; then
-    source dev_scripts/conda_get.sh
-    source dev_scripts/conda_install.sh
-    conda uninstall -y pymatgen
-  fi
+      if [ "${ABIPY_INSTALLER}" == "conda" ]; then
+        source dev_scripts/conda_get.sh
+        source dev_scripts/conda_install.sh
+        conda uninstall -y pymatgen
+      fi
 
   - if [[ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]]; then conda install mock; fi
   #- pip install graphviz
