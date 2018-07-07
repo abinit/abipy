@@ -10,7 +10,7 @@ pandas
 numpy
 scipy
 spglib
-pymatgen==2018.6.27
+pymatgen==2018.6.11
 netCDF4
 matplotlib
 seaborn
