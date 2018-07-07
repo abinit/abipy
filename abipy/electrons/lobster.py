@@ -1,5 +1,5 @@
 # coding: utf-8
-"""Tools to analyze output files produced by lobster code."""
+"""Tools to analyze the output files produced by Lobster."""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
@@ -21,7 +21,7 @@ from pymatgen.io.abinit.pseudos import Pseudo
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import BaseFile, NotebookWriter
 from abipy.electrons.gsr import GsrFile
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible, set_ax_xylabels
 from abipy.tools import duck
 
 
@@ -252,7 +252,7 @@ class CoxpFile(_LobsterFile):
 
             data = np.fromstring(f.read(), dtype=np.float, sep=' ').reshape([n_en_steps, 1+n_spin*n_column_groups*2])
 
-            # initialize and fill results
+            # Initialize and fill results
             new.energies = data[:, 0]
             new.averaged = defaultdict(dict)
             new.total = tree()
@@ -396,7 +396,7 @@ class CoxpFile(_LobsterFile):
             ysign = -1
             ylabel = {"d": "-COHP", "i": "-ICOHP"}[what]
         else:
-            raise ValueError("Wrong cop_type: `%s`" % self.cop_type)
+            raise ValueError("Wrong cop_type: `%s`" % str(self.cop_type))
 
         spins = range(self.nsppol) if spin is None else [spin]
         for spin in spins:
@@ -410,14 +410,12 @@ class CoxpFile(_LobsterFile):
                     **opts)
 
         if exchange_xy:
-            xlabel, ylabel = ylabel, xlabel
             # Add vertical line to signal the zero.
             ax.axvline(c="k", ls=":", lw=1)
         else:
             ax.axhline(c="k", ls=":", lw=1)
 
-        ax.set_xlabel(xlabel)
-        ax.set_ylabel(ylabel)
+        set_ax_xylabels(ax, xlabel, ylabel, exchange_xy)
 
         if self.nsppol == 2:
             ax.legend(loc="best", shadow=True, fontsize=fontsize)
@@ -462,8 +460,6 @@ class CoxpFile(_LobsterFile):
         xlabel, ylabel, ysign = r"$E - E_f\;(eV)$", "COOP", +1
         if self.cop_type == "cohp":
             ylabel, ysign = "-COHP", -1
-        if exchange_xy:
-            xlabel, ylabel = ylabel, xlabel
 
         # self.total[pair][spin][what]
         for spin, ax in enumerate(ax_list.ravel()):
@@ -503,8 +499,7 @@ class CoxpFile(_LobsterFile):
                 ax.axhline(c="k", ls=":", lw=1)
 
             if self.nsppol == 2: ax.set_title(self.spin2tex[spin])
-            ax.set_xlabel(xlabel)
-            ax.set_ylabel(ylabel)
+            set_ax_xylabels(ax, xlabel, ylabel, exchange_xy)
             ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
         return fig
@@ -560,15 +555,12 @@ class CoxpFile(_LobsterFile):
                 ax.plot(xs, ys, label=label, **style)
 
         if exchange_xy:
-            xlabel, ylabel = ylabel, xlabel
             # Add vertical line to signal the zero.
             ax.axvline(c="k", ls=":", lw=1)
         else:
             ax.axhline(c="k", ls=":", lw=1)
 
-        ax.set_xlabel(xlabel)
-        ax.set_ylabel(ylabel)
-
+        set_ax_xylabels(ax, xlabel, ylabel, exchange_xy)
         ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
         return fig
@@ -639,15 +631,12 @@ class CoxpFile(_LobsterFile):
                     ax.plot(xs, ys, label=label, **style)
 
         if exchange_xy:
-            xlabel, ylabel = ylabel, xlabel
             # Add vertical line to signal the zero.
             ax.axvline(c="k", ls=":", lw=2)
         else:
             ax.axhline(c="k", ls=":", lw=2)
 
-        ax.set_xlabel(xlabel)
-        ax.set_ylabel(ylabel)
-
+        set_ax_xylabels(ax, xlabel, ylabel, exchange_xy)
         ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
         return fig
@@ -878,8 +867,6 @@ class LobsterDoscarFile(_LobsterFile):
             el = Element.from_Z(Z)
             new.type_of_index[i_site] = el.symbol
 
-            #orbitals = dos_data[i_first_line].rsplit(';', 1)[-1].split()
-
             # extract np array for partial dos
             pdos_data = np.fromiter((d for l in dos_data[i_first_line+1:i_first_line+1+n_energies] for d in l.split()),
                 dtype=np.float).reshape((n_energies, 1+n_spin*len(orbitals)))
@@ -939,9 +926,7 @@ class LobsterDoscarFile(_LobsterFile):
                     **opts)
 
         xlabel, ylabel = r"$E - E_f\;(eV)$", "DOS"
-        if exchange_xy: xlabel, ylabel = ylabel, xlabel
-        ax.set_xlabel(xlabel)
-        ax.set_ylabel(ylabel)
+        set_ax_xylabels(ax, xlabel, ylabel, exchange_xy)
 
         if self.nsppol == 2:
             ax.legend(loc="best", shadow=True, fontsize=fontsize)
@@ -990,9 +975,7 @@ class LobsterDoscarFile(_LobsterFile):
                 ax.plot(xs, ys, label=label, **params["style"])
 
         xlabel, ylabel = r"$E - E_f\;(eV)$", "PDOS"
-        if exchange_xy: xlabel, ylabel = ylabel, xlabel
-        ax.set_xlabel(xlabel)
-        ax.set_ylabel(ylabel)
+        set_ax_xylabels(ax, xlabel, ylabel, exchange_xy)
 
         ax.legend(loc="best", shadow=True, fontsize=fontsize)
 

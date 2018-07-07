@@ -1,5 +1,5 @@
 language: python
-#cache: true
+cache: pip
 
 # We don't actually use the Travis Python but conda
 matrix:
@@ -12,10 +12,17 @@ matrix:
       python: 3.6
       env: 
         - ABINIT_VERSION=8.8.2 ABIPY_INSTALLER=conda ABIPY_COVERALLS=yes
-#    - os: linux
-#      python: 3.7
-#      env: 
-#        - ABINIT_VERSION=8.8.2 ABIPY_INSTALLER=pip
+    - os: linux
+      python: 3.6
+      env: 
+        - ABINIT_VERSION=8.8.2 ABIPY_INSTALLER=pip
+    - os: linux
+      python: 3.7
+      # https://github.com/travis-ci/travis-ci/issues/9815
+      dist: xenial
+      sudo: true
+      env: 
+        - ABINIT_VERSION=8.8.2 ABIPY_INSTALLER=pip
 
 #dist: precise
 sudo: false
@@ -27,9 +34,16 @@ install:
   - |
       # pip-based installation.
       if [ "${ABIPY_INSTALLER}" == "pip" ]; then
+        source dev_scripts/conda_get.sh  # Needed for Abinit
+        echo "Installing abinit from abinit channel ..."
+        conda config --add channels conda-forge
+        conda install -y -c abinit abinit=${ABINIT_VERSION}
+        abinit --version
+        abinit --build
+        sed -i '/pymatgen/d' requirements.txt
         travis_wait pip install -r requirements.txt
         travis_wait pip install -r requirements-optional.txt
-        travis_wait pip uninstall -y pymatgen
+        #travis_wait pip uninstall -y pymatgen
 
       # Install conda https://conda.io/docs/travis.html
       elif [ "${ABIPY_INSTALLER}" == "conda" ]; then
@@ -77,8 +91,7 @@ branches:
     - develop
 
 after_success:
-  - if [[ "${ABIPY_COVERALLS}" == "yes"]]; then coveralls; fi
-    #- if [[ "${TRAVIS_PYTHON_VERSION}" == "3.6" && "${TRAVIS_OS_NAME}" == "linux" ]]; then coveralls; fi
+    - if [[ "${ABIPY_COVERALLS}" == "yes" ]]; then coveralls; fi
 
 notifications:
   email:
