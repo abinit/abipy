@@ -716,6 +716,7 @@ class Kpoint(SlotPickleMixin):
         """Return the star of the kpoint (tuple of |Kpoint| objects)."""
         frac_coords = [self.frac_coords]
 
+        # TODO: This part becomes a bottleneck for large nk!
         for sym in symmops:
             sk_coords = sym.rotate_k(self.frac_coords, wrap_tows=wrap_tows)
 
@@ -1101,9 +1102,24 @@ class Kpath(KpointList):
     """
 
     @classmethod
+    def from_names(cls, structure, knames, line_density=20):
+        """
+        Generate normalized K-path from the list of k-point labels.
+
+        Args:
+            structure: |Structure| object.
+            knames: List of strings with the k-point labels.
+            line_density: Number of points used to sample the smallest segment of the path
+        """
+        kfrac_coords = structure.get_kcoords_from_names(knames)
+        vertices_names = list(zip(kfrac_coords, knames))
+
+        return cls.from_vertices_and_names(structure, vertices_names, line_density=line_density)
+
+    @classmethod
     def from_vertices_and_names(cls, structure, vertices_names, line_density=20):
         """
-        Generate K-path from a list of vertices and the corresponding labels.
+        Generate normalized K-path from a list of vertices and the corresponding labels.
 
         Args:
             structure: |Structure| object.
@@ -1806,19 +1822,21 @@ def find_points_along_path(cart_bounds, cart_coords, dist_tol):
             # k-point is on the cart_bounds
             A = x0 - k
             #A = k - x0
-            x = np.dot(A,B)/dk
+            x = np.dot(A, B)/dk
             #print("k-x0", A, "B", B)
             #print(frac_coords[ik], x, x > 0 and x < dist_tol + dk)
             if dist_tol + dk >= x >= 0:
                 # k-point is within the cart_bounds range
-                # append k-point coordinate along the cart_bounds
+                # append k-point coordinate along the cart_bounds while avoing duplicate entries.
+                if ikfound and ik == ikfound[-1]: continue
                 ikfound.append(ik)
                 dist_list.append(x + dl)
 
         dl = dl + dk
 
-    return dict2namedtuple(
-            ikfound=np.array(ikfound),
-            dist_list=np.array(dist_list),
-            path_ticks=np.array(path_ticks),
-           )
+    # Sort dist_list and ikfound by cumulative length while removing possible duplicated entries.
+    dist_list, isort = np.unique(np.array(dist_list).round(decimals=5), return_index=True)
+
+    return dict2namedtuple(ikfound=np.array(ikfound)[isort],
+                           dist_list=dist_list,
+                           path_ticks=np.array(path_ticks))

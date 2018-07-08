@@ -643,11 +643,27 @@ class ElectronBands(Has_Structure):
 
     def with_points_along_path(self, frac_bounds=None, knames=None, dist_tol=1e-12):
         """
+        Build new |ElectronBands| object containing the k-points along the
+        input k-path specified by `frac_bounds`. Useful to extract energies along a path
+        from calculation performed in the IBZ.
+
+        Args:
+            frac_bounds: [M, 3] array  with the vertexes of the k-path in reduced coordinates.
+                If None, the k-path is automatically selected from the structure.
+            knames: List of strings with the k-point labels defining the k-path. It has precedence over frac_bounds.
+            dist_tol: A point is considered to be on the path if its distance from the line
+                is less than dist_tol.
+
+        Return: namedtuple with:
+                ebands: |ElectronBands| object.
+                ik_new2prev: Correspondence between the k-points in the new ebands and the kpoint
+                    of the previous band structure (self).
         """
         # Construct the stars of the k-points for all k-points in self.
         # In principle, the input k-path is arbitrary and not necessarily in the IBZ used for self
         # so we have to build the k-stars and find the k-points lying along the path and keep
         # track of the mapping kpt --> star --> kgw
+        # TODO: This part becomes a bottleneck for large nk!
         stars = [kpoint.compute_star(self.structure.abi_spacegroup.fm_symmops) for kpoint in self.kpoints]
         cart_coords, back2istar = [], []
         for istar, star in enumerate(stars):
@@ -655,11 +671,16 @@ class ElectronBands(Has_Structure):
             back2istar.extend([istar] * len(star))
         cart_coords = np.reshape(cart_coords, (-1, 3))
 
+        if knames is not None:
+            assert frac_bounds is None
+            frac_bounds = self.structure.get_kcoords_from_names(knames)
+            #print("frac_bounds", frac_bounds)
+        else:
+            if frac_bounds is None:
+                frac_bounds = self.structure.calc_kptbounds()
+
         # Find (star) k-points on the path.
-        if frac_bounds is None:
-            frac_bounds = self.structure.calc_kptbounds()
         cart_bounds = self.structure.reciprocal_lattice.get_cartesian_coords(frac_bounds)
-        assert len(cart_bounds) == len(frac_bounds)
         from abipy.core.kpoints import find_points_along_path
         p = find_points_along_path(cart_bounds, cart_coords, dist_tol=dist_tol)
         if len(p.ikfound) == 0:
@@ -679,6 +700,7 @@ class ElectronBands(Has_Structure):
             ik_self = back2istar[ik_new]
             ik_new2prev.append(ik_self)
             fcs = self.structure.reciprocal_lattice.get_fractional_coords(cart_coords[ik_new])
+            #print("fcs", fcs, "dist", p.dist_list[ik])
             new_frac_coords.append(fcs)
             for spin in range(self.nsppol):
                 new_eigens[spin, ik] = self.eigens[spin, ik_self]
@@ -688,11 +710,11 @@ class ElectronBands(Has_Structure):
 
         new_kpoints = Kpath(self.structure.reciprocal_lattice, new_frac_coords, weights=None, names=None)
 
-        new = self.__class__(self.structure, new_kpoints, new_eigens, self.fermie, new_occfacts,
+        new_ebands = self.__class__(self.structure, new_kpoints, new_eigens, self.fermie, new_occfacts,
                              self.nelect, self.nspinor, self.nspden,
                              smearing=self.smearing, linewidths=new_linewidths)
 
-        return dict2namedtuple(ebands=snew, ik_new2prev=ik_new2prev)
+        return dict2namedtuple(ebands=new_ebands, ik_new2prev=ik_new2prev)
 
     #def new_from_bandslice(self, band_slice):
     #    """Build new ElectronBands object by selecting bands via band_slice (slice object)."""

@@ -238,6 +238,11 @@ class ElectronBandsTest(AbipyTest):
         with self.assertRaises(ValueError):
             si_ebands_kmesh.get_e0("foo")
 
+        r = si_ebands_kmesh.with_points_along_path(knames=["G", "X", "L", "G"])
+        assert r.ebands.kpoints.is_path
+        assert r.ebands.kpoints[0].is_gamma
+        assert r.ebands.kpoints[0] == r.ebands.kpoints[-1]
+
         # Serialization
         self.serialize_with_pickle(si_ebands_kmesh, test_eq=False)
         self.assertMSONable(si_ebands_kmesh, test_if_subclass=False)

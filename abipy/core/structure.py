@@ -18,7 +18,7 @@ from warnings import warn
 from collections import OrderedDict
 from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
-from monty.string import is_string, marquee
+from monty.string import is_string, marquee, list_strings
 from monty.termcolor import cprint
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.lattice import Lattice
@@ -931,6 +931,32 @@ class Structure(pymatgen.Structure, NotebookWriter):
         # Build KpointList instance.
         from .kpoints import KpointList
         return KpointList(self.reciprocal_lattice, frac_coords, weights=None, names=names)
+
+    def get_kcoords_from_names(self, knames, cart_coords=False):
+        """
+        Return numpy array with the fractional coordinates of the high-symmetry k-points listed in `knames`.
+
+        Args:
+            knames: List of strings with the k-point labels.
+            cart_coords: True if the ``coords`` dataframe should contain Cartesian cordinates
+                instead of Reduced coordinates.
+        """
+        kname2frac = {k.name: k.frac_coords for k in self.hsym_kpoints}
+        # Add aliases for Gamma.
+        if r"$\Gamma$" in kname2frac:
+            kname2frac["G"] = kname2frac[r"$\Gamma$"]
+            kname2frac["Gamma"] = kname2frac[r"$\Gamma$"]
+
+        try:
+            kcoords = np.reshape([kname2frac[name] for name in list_strings(knames)], (-1, 3))
+        except KeyError:
+            cprint("Internal list of high-symmetry k-points:\n" % str(self.hsym_kpoints))
+            raise
+
+        if cart_coords:
+            kcoords = self.reciprocal_lattice.get_cartesian_coords(kcoords)
+
+        return kcoords
 
     @lazy_property
     def hsym_stars(self):

@@ -28,7 +28,7 @@ class TestStructure(AbipyTest):
             assert structure.has_abi_spacegroup
 
             # Call pymatgen machinery to get the high-symmetry stars.
-            print(structure.hsym_stars)
+            str(structure.hsym_stars)
 
             geodict = structure.get_dict4pandas()
             assert geodict["abispg_num"] is not None
@@ -53,6 +53,9 @@ class TestStructure(AbipyTest):
         assert spgroup is not None
         assert si.has_abi_spacegroup
         assert si.abi_spacegroup.spgid == 227
+        kfrac_coords = si.get_kcoords_from_names(["G", "X", "L", "Gamma"])
+        self.assert_equal(kfrac_coords,
+            ([[0. , 0. , 0. ], [0.5, 0. , 0.5], [0.5, 0.5, 0.5], [0. , 0. , 0. ]]))
 
         with self.assertRaises(TypeError):
             Structure.as_structure({})
