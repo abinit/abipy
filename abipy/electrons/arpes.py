@@ -7,12 +7,11 @@ import numpy as np
 
 #from collections import OrderedDict
 from scipy.interpolate import UnivariateSpline
-#from monty.string import marquee # is_string, list_strings,
+#from monty.string import marquee # is_string, list_strings
 #from monty.functools import lazy_property
 from monty.collections import dict2namedtuple
 #from monty.termcolor import cprint
 from abipy.core.mixins import Has_Structure, Has_ElectronBands, NotebookWriter
-#from abipy.core.kpoints import KpointList, find_points_along_path
 from abipy.electrons import ElectronBands
 from abipy.tools.plotting import set_axlims, add_fig_kwargs, get_ax_fig_plt, get_ax3d_fig_plt, get_axarray_fig_plt
 
@@ -81,7 +80,7 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
 
             The treatment of bands if complicated by the fact that we can have
             different nband(k) whose indices are not necessarily aligned.
-            Consider, for example. what happes if we use symsigma or arbitrary gw.
+            Consider, for example. what happes if we use symsigma or arbitrary bdgw.
             Use MaskedArray?
         """
         self._ebands = ebands
@@ -119,10 +118,20 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
         return "\n".join(lines)
 
     def with_points_along_path(self, frac_bounds=None, knames=None, dist_tol=1e-12):
-        p = self.ebands.with_points_along_path()
-        # Transfer data using p.ik_new2prev table.
-        p.ik_new2prev
-        return self.__class__(p.new_ebands, aw, aw_meshes, self.tmesh)
+        """
+        Args:
+            frac_bounds: [M, 3] array  with the vertexes of the k-path in reduced coordinates.
+                If None, the k-path is automatically selected from the structure.
+            knames: List of strings with the k-point labels defining the k-path. It has precedence over frac_bounds.
+            dist_tol: A point is considered to be on the path if its distance from the line
+                is less than dist_tol.
+        """
+        r = self.ebands.with_points_along_path(frac_bounds=frac_coords, knames=knames, dist_tol=dist_tol)
+        # Transfer data using r.ik_new2prev table.
+        return self.__class__(r.ebands,
+                              aw=self.aw[:, :, :, r.ik_new2prev, :].copy(),
+                              aw_meshes=self.aw_meshes[:, r.ik_new2prev, :].copy(),
+                              tmesh=self.tmesh)
 
     def interpolate(self):
         new_ebands = self.ebands.interpolate(lpratio=5, vertices_names=None, line_density=20,

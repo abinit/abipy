@@ -346,7 +346,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         ebands = ElectronBands.as_ebands(ebands)
         wan_ebands = self.interpolate_ebands(kpoints=ebands.kpoints)
 
-        return ElectronBandsPlotter(key_ebands=[("Ab-initio", ebands), ("Interpolated", wan_ebands)])
+        return ElectronBandsPlotter(key_ebands=[("Ab-initio", ebands), ("Wannier Interpolated", wan_ebands)])
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
