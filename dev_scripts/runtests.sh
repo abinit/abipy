@@ -23,12 +23,12 @@ fi
 
 # This is to run the integration tests (append results)
 # integration_tests are excluded in setup.cfg
-if [[ "${TRAVIS_PYTHON_VERSION}" == "3.6" && "${TRAVIS_OS_NAME}" == "linux" ]]; then 
+if [[ "${ABIPY_COVERALLS}" == "yes" ]]; then 
     pytest -n 2 --cov-config=.coveragerc --cov=abipy --cov-append -v abipy/integration_tests 
 fi
 
 # Generate documentation
-if [[ "${TRAVIS_PYTHON_VERSION}" == "2.7" && "${TRAVIS_OS_NAME}" == "linux" ]]; then
+if [[ "${ABIPY_SPHINX}" == "yes" ]]; then
     pip install -r ./docs/requirements.txt
     cd ./docs && export READTHEDOCS=1 && make && unset READTHEDOCS && cd ..
 fi
