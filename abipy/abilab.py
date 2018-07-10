@@ -220,6 +220,10 @@ def abiopen(filepath):
     if outnum.match(filepath) or abonum.match(filepath):
         return AbinitOutputFile.from_file(filepath)
 
+    if os.path.basename(filepath) == "log":
+        # Assume Abinit log file.
+        return AbinitLogFile.from_file(filepath)
+
     cls = abifile_subclass_from_filename(filepath)
     return cls.from_file(filepath)
 
