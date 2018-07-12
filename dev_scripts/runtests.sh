@@ -16,19 +16,21 @@ if [[ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]]; then
 	--ignore=abipy/integration_tests --ignore=abipy/data/refs --ignore=abipy/scripts/ \
 	--ignore=abipy/examples/plot --ignore=abipy/examples/flows --ignore=abipy/gui 
 else
-    pytest -n 2 --cov-config=.coveragerc --cov=abipy -v --doctest-modules abipy \
+    #pytest -n 1 --cov-config=.coveragerc --cov=abipy -v --doctest-modules abipy \
+    pytest --cov-config=.coveragerc --cov=abipy -v --doctest-modules abipy \
 	--ignore=abipy/integration_tests --ignore=abipy/data/refs --ignore=abipy/scripts/ \
 	--ignore=abipy/examples/plot --ignore=abipy/examples/flows --ignore=abipy/gui 
 fi
 
 # This is to run the integration tests (append results)
 # integration_tests are excluded in setup.cfg
-if [[ "${TRAVIS_PYTHON_VERSION}" == "3.6" && "${TRAVIS_OS_NAME}" == "linux" ]]; then 
-    pytest -n 2 --cov-config=.coveragerc --cov=abipy --cov-append -v abipy/integration_tests 
+if [[ "${ABIPY_COVERALLS}" == "yes" ]]; then 
+    #pytest -n 2 --cov-config=.coveragerc --cov=abipy --cov-append -v abipy/integration_tests 
+    pytest --cov-config=.coveragerc --cov=abipy --cov-append -v abipy/integration_tests 
 fi
 
 # Generate documentation
-if [[ "${TRAVIS_PYTHON_VERSION}" == "2.7" && "${TRAVIS_OS_NAME}" == "linux" ]]; then
+if [[ "${ABIPY_SPHINX}" == "yes" ]]; then
     pip install -r ./docs/requirements.txt
     cd ./docs && export READTHEDOCS=1 && make && unset READTHEDOCS && cd ..
 fi
