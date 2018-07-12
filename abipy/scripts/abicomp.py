@@ -655,6 +655,7 @@ def abicomp_time(options):
     from abipy.abio.timer import AbinitTimerParser
 
     if len(options.paths) == 1 and os.path.isdir(paths[0]):
+        # Scan directory tree
         top = options.paths[0]
         print("Walking directory tree from top:", top, "Looking for file extension:", options.ext)
         parser, paths_found, okfiles = AbinitTimerParser.walk(top=top, ext=options.ext)
@@ -670,6 +671,7 @@ def abicomp_time(options):
             for bad in badfiles: print(bad)
 
     else:
+        # Parse list of files.
         parser = AbinitTimerParser()
         okfiles = parser.parse(options.paths)
 
