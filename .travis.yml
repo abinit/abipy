@@ -30,6 +30,7 @@ install:
   #- sudo apt-get update
   - env
   #- set -ev  # exit on first error, print each command
+  - ulimit -s unlimited
 
   - |
       # pip-based installation.
