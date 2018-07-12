@@ -57,6 +57,7 @@ install:
       # Install conda https://conda.io/docs/travis.html
       elif [ "${ABIPY_INSTALLER}" == "conda" ]; then
         source dev_scripts/conda_get.sh
+        #sed -i '/pymatgen/d' requirements.txt
         source dev_scripts/conda_install.sh
         conda uninstall -y pymatgen
       fi
