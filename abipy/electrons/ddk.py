@@ -248,6 +248,14 @@ class DdkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         """Close the file."""
         self.reader.close()
 
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        Used in abiview.py to get a quick look at the results.
+        """
+        yield self.structure.plot(show=False)
+        #yield self.ebands.plot(show=False)
+
     def write_notebook(self, nbpath=None, title=None):
         """
         Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current

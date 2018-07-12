@@ -603,12 +603,12 @@ abilab.enable_notebook(with_seaborn=True)
             return filepath
 
     # TODO: Activate this
-    #@abc.abstractmethod
-    #def yield_figs(self, **kwargs)
-    #    """
-    #    This function *generates* a predefined list of matplotlib figures with minimal input from the user.
-    #    Used in abiview.py to get a quick look at the results.
-    #    """
+    @abc.abstractmethod
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        Used in abiview.py to get a quick look at the results.
+        """
 
     def expose(self, slide_mode=False, slide_timeout=None, **kwargs):
         """

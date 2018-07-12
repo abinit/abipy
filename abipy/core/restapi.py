@@ -246,6 +246,10 @@ class DatabaseStructures(NotebookWriter):
             print("\n# Found %s structures in %s database (use `verbose` to get further info)\n"
                     % (len(self.structures), self.dbname), file=file)
 
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """NOP required by NotebookWriter protocol."""
+        yield None
+
     def write_notebook(self, nbpath=None, title=None):
         """
         Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current

@@ -97,7 +97,8 @@ def set_axlims(ax, lims, axname):
             left = lims[0]
 
     set_lim = getattr(ax, {"x": "set_xlim", "y": "set_ylim"}[axname])
-    set_lim(left, right)
+    if left != right:
+        set_lim(left, right)
 
     return left, right
 
