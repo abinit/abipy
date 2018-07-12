@@ -1,28 +1,36 @@
 language: python
 cache: pip
 
+
+env:
+  global:
+    - ABINIT_VERSION=8.8.2
+    - ABIPY_PYTEST=yes
+    - OPENBLAS_NUM_THREADS=1
+    - OMP_NUM_THREADS=1
+
 # We don't actually use the Travis Python but conda
 matrix:
   include:
     - os: linux
       python: 2.7
       env: 
-        - ABINIT_VERSION=8.8.2 ABIPY_INSTALLER=conda
+        - ABIPY_INSTALLER=conda
     - os: linux
       python: 3.6
       env: 
-        - ABINIT_VERSION=8.8.2 ABIPY_INSTALLER=conda ABIPY_COVERALLS=yes
+        - ABIPY_INSTALLER=conda ABIPY_COVERALLS=yes
     - os: linux
       python: 3.6
       env: 
-        - ABINIT_VERSION=8.8.2 ABIPY_INSTALLER=pip ABIPY_SPHINX=yes
+        - ABIPY_INSTALLER=pip ABIPY_SPHINX=yes ABIPY_PYTEST=no
     - os: linux
       python: 3.7
       # https://github.com/travis-ci/travis-ci/issues/9815
       dist: xenial
       sudo: true
       env: 
-        - ABINIT_VERSION=8.8.2 ABIPY_INSTALLER=pip
+        - ABIPY_INSTALLER=pip
 
 #dist: precise
 sudo: false
@@ -30,6 +38,7 @@ install:
   #- sudo apt-get update
   - env
   #- set -ev  # exit on first error, print each command
+  - ulimit -s unlimited
 
   - |
       # pip-based installation.
@@ -48,6 +57,7 @@ install:
       # Install conda https://conda.io/docs/travis.html
       elif [ "${ABIPY_INSTALLER}" == "conda" ]; then
         source dev_scripts/conda_get.sh
+        #sed -i '/pymatgen/d' requirements.txt
         source dev_scripts/conda_install.sh
         conda uninstall -y pymatgen
       fi
