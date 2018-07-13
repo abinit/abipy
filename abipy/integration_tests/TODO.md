@@ -169,7 +169,7 @@ TODO list:
 
 * integrate improvements in skw by Nicholas.
 
-* lobster interface from Guido
+* ALMOST DONE lobster interface from Guido
 
 * interface abistruct with marylin
 
@@ -181,4 +181,6 @@ TODO list:
 
 * Replace SIGRES with new fileformat based on SIGEPH (long-term)
 
-* [eV] --> (ev) in title
+* DONE [eV] --> (ev) in title
+
+* Update spack recipe, add support for EasyBuild, revamp homebrew (?)
