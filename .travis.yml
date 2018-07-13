@@ -1,7 +1,6 @@
 language: python
 cache: pip
 
-
 env:
   global:
     - ABINIT_VERSION=8.8.2
@@ -9,7 +8,6 @@ env:
     - OPENBLAS_NUM_THREADS=1
     - OMP_NUM_THREADS=1
 
-# We don't actually use the Travis Python but conda
 matrix:
   include:
     - os: linux
@@ -41,8 +39,8 @@ install:
   - ulimit -s unlimited
 
   - |
-      # pip-based installation.
       if [ "${ABIPY_INSTALLER}" == "pip" ]; then
+        # pip-based installation.
         source dev_scripts/conda_get.sh  # Needed for Abinit
         echo "Installing abinit from abinit channel ..."
         conda config --add channels conda-forge
@@ -54,8 +52,8 @@ install:
         travis_wait pip install -r requirements-optional.txt
         #travis_wait pip uninstall -y pymatgen
 
-      # Install conda https://conda.io/docs/travis.html
       elif [ "${ABIPY_INSTALLER}" == "conda" ]; then
+        # Install conda https://conda.io/docs/travis.html
         source dev_scripts/conda_get.sh
         #sed -i '/pymatgen/d' requirements.txt
         source dev_scripts/conda_install.sh
