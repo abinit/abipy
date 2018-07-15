@@ -779,6 +779,15 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     def get_sigeph_skb(self, spin, kpoint, band):
         return self.reader.read_sigeph_skb(spin, kpoint, band)
 
+    #def get_arpes_plotter(self):
+    #    from abipy.electrons.arpes import ArpesPlotter
+    #    kinds
+    #    minb, maxb
+    #    aw: [nwr, ntemp, max_nbcalc, nkcalc, nsppol] array
+    #    aw_meshes: [max_nbcalc, nkcalc, nsppol] array with energy mesh in eV
+    #    arpes_ebands = self.ebands.select_bands(range(minb, maxb), kinds=kinds)
+    #    return ArpesPlotter(arpes_ebands, aw, aw_meshes, self.tmesh)
+
     def get_dataframe(self, with_params=True, ignore_imag=False):
         """
         Returns |pandas-Dataframe| with QP results for all k-points, bands and spins

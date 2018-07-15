@@ -21,7 +21,7 @@ print(abiwan)
 # Plot the matrix elements of the KS Hamiltonian in real space in the Wannier Gauge.
 abiwan.hwan.plot(title="Matrix elements in real space")
 
-# Interpolate bands with Wannier using an automatically selected k-path
+# Interpolate bands with Wannier functions using an automatically selected k-path
 # with 5 points for the smallest segment.
 ebands_wan_kpath = abiwan.interpolate_ebands(line_density=5)
 ebands_wan_kpath.plot(title="Wannier-interpolated")

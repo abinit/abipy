@@ -65,16 +65,12 @@ class Electron(namedtuple("Electron", "spin kpoint band eig occ kidx")):
 
         Energies are in eV.
     """
-    #def __eq__(self, other):
-    #    return (self.spin = other.spin and
-    #            self.kpoint == other.kpoint and
-    #            self.band == other.band and  # ??
-    #            self.eig == other.eig
-                 # and self.occ == other.occ
-    #            )
+    def __eq__(self, other):
+        if other is None: return False
+        return self.spin == other.spin and self.kpoint == other.kpoint and self.band == other.band
 
-    #def __ne__(self, other):
-    #    return not (self == other)
+    def __ne__(self, other):
+        return not (self == other)
 
     def __str__(self):
         return "spin=%d, kpt=%s, band=%d, eig=%.3f, occ=%.3f" % (
@@ -577,7 +573,7 @@ class ElectronBands(Has_Structure):
             return self._nband
         except AttributeError:
             assert np.all(self.nband_sk == self.nband_sk[0])
-            self._nband = self.nband_sk[0,0]
+            self._nband = self.nband_sk[0, 0]
             return self._nband
 
     @property
@@ -674,7 +670,6 @@ class ElectronBands(Has_Structure):
         if knames is not None:
             assert frac_bounds is None
             frac_bounds = self.structure.get_kcoords_from_names(knames)
-            #print("frac_bounds", frac_bounds)
         else:
             if frac_bounds is None:
                 frac_bounds = self.structure.calc_kptbounds()
@@ -716,13 +711,17 @@ class ElectronBands(Has_Structure):
 
         return dict2namedtuple(ebands=new_ebands, ik_new2prev=ik_new2prev)
 
-    #def new_from_bandslice(self, band_slice):
+    #def select_bands(self, bands, kinds=None):
     #    """Build new ElectronBands object by selecting bands via band_slice (slice object)."""
-    #    new_eigens = self.eigens[:, :, band_slice].copy()
-    #    new_occfacts = self.occupation[:, :, band_slice].copy()
-    #    new_linewidths = None if not self.linewidths else self.linewidths[:, :, band_slice].copy()
+    #    bands = np.array(bands)
+    #    kinds = np.array(kinds) if kinds is not None else np.array(range(self.nkpt))
+    #    # This won't work because I need a KpointList object.
+    #    new_kpoints = self.kpoints[kinds]
+    #    new_eigens = self.eigens[:, kinds, bands].copy()
+    #    new_occfacts = self.occupation[:, kinds, bands].copy()
+    #    new_linewidths = None if not self.linewidths else self.linewidths[:, kinds, bands].copy()
 
-    #    return self.__class__(self.structure, self.kpoints, new_eigens, self.fermie, new_occfacts,
+    #    return self.__class__(self.structure, new_kpoints, new_eigens, self.fermie, new_occfacts,
     #                          self.nelect, self.nspinor, self.nspden,
     #                          smearing=self.smearing, linewidths=new_linewidths)
 
@@ -1511,6 +1510,7 @@ class ElectronBands(Has_Structure):
         for spin in self.spins:
             cachek = {}
             arrow_opts = {"color": "k"} if spin == 0 else {"color": "red"}
+            arrow_opts.update(dict(lw=2, arrowstyle="-|>",))
             for ik, (ikq, g0) in k2kqg.items():
                 dx = ikq - ik
                 ek = self.eigens[spin, ik]
@@ -1732,7 +1732,7 @@ class ElectronBands(Has_Structure):
 
     @add_fig_kwargs
     def plot(self, spin=None, band_range=None, klabels=None, e0="fermie", ax=None, ylims=None,
-	     points=None, **kwargs):
+	     points=None, with_gaps="", **kwargs):
         r"""
         Plot the electronic band structure.
 
@@ -1749,7 +1749,9 @@ class ElectronBands(Has_Structure):
             ax: |matplotlib-Axes| or None if a new figure should be created.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
-            points:
+            points: Marker object with the position and the size of the marker.
+                Used for plotting purpose e.g. QP energies, energy derivatives...
+            with_gaps: "f" to highlight fundamental gap, "d" for direct gap. "fd" for both. Empty to disable.
 
         Returns: |matplotlib-Figure|
         """
@@ -1764,6 +1766,8 @@ class ElectronBands(Has_Structure):
             #if not isinstance(band_range, range):
             #    band_list = list(band_range)
             band_list = list(range(band_range[0], band_range[1], 1))
+
+        e0 = self.get_e0(e0)
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
@@ -1785,9 +1789,32 @@ class ElectronBands(Has_Structure):
                 self.plot_ax(ax, e0, spin=spin, band=band, **opts)
 
         if points is not None:
-            e0 = self.get_e0(e0)
             ax.scatter(points.x, np.array(points.y) - e0, s=np.abs(points.s),
                        marker="o", c="b")
+
+        if with_gaps and (self.mband > self.nspinor * self.nelect // 2):
+            from matplotlib.patches import FancyArrowPatch
+            for spin in self.spins:
+                arrow_opts = {"color": "k"} if spin == 0 else {"color": "red"}
+                arrow_opts.update(dict(lw=2, arrowstyle="-|>",))
+                if "f" in with_gaps:
+                    # Show fundamental gap.
+                    fgap = self.fundamental_gaps[spin]
+                    p = FancyArrowPatch(posA=(fgap.in_state.kidx, fgap.in_state.eig - e0),
+                                        posB=(fgap.out_state.kidx, fgap.out_state.eig - e0),
+                                        connectionstyle='arc3', mutation_scale=20,
+                                        alpha=0.4, **arrow_opts)
+                    ax.add_patch(p)
+
+                if "d" in with_gaps:
+                    # Show direct gap.
+                    dir_gap = self.direct_gaps[spin]
+                    if "f" not in with_gaps or (dir_gap.in_state != fgap.in_state or dir_gap.out_state != fgap.out_state):
+                        p = FancyArrowPatch((dir_gap.in_state.kidx, dir_gap.in_state.eig - e0),
+                                            (dir_gap.out_state.kidx, dir_gap.out_state.eig - e0),
+                                            connectionstyle='arc3', mutation_scale=20,
+                                            alpha=0.4, **arrow_opts)
+                        ax.add_patch(p)
 
         return fig
 
@@ -1940,7 +1967,8 @@ class ElectronBands(Has_Structure):
         return list(d.keys()), list(d.values())
 
     @add_fig_kwargs
-    def plot_with_edos(self, edos, klabels=None, ax_list=None, e0="fermie", ylims=None, width_ratios=(2, 1), **kwargs):
+    def plot_with_edos(self, edos, klabels=None, ax_list=None, e0="fermie", points=None, with_gaps="",
+                       ylims=None, width_ratios=(2, 1), **kwargs):
         r"""
         Plot the band structure and the DOS.
 
@@ -1964,6 +1992,9 @@ class ElectronBands(Has_Structure):
                 *  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
                 *  None: Don't shift energies, equivalent to ``e0 = 0``
 
+            points: Marker object with the position and the size of the marker.
+                Used for plotting purpose e.g. QP energies, energy derivatives...
+            with_gaps: "f" to highlight fundamental gap, "d" for direct gap. "fd" for both. Empty to disable.
             width_ratios: Defines the ratio between the band structure plot and the dos plot.
 
         Return: |matplotlib-Figure|
@@ -1986,18 +2017,20 @@ class ElectronBands(Has_Structure):
         e0 = self.get_e0(e0) if e0 != "edos_fermie" else edos.fermie
         #if not kwargs: kwargs = {"color": "black", "linewidth": 2.0}
 
+        self.plot(e0=e0, ax=ax0, ylims=ylims, klabels=klabels, points=points, with_gaps=with_gaps, show=False)
+
         # Plot the band structure
-        for spin in self.spins:
-            if spin == 0:
-                opts = {"color": "black", "linewidth": 2.0}
-            else:
-                opts = {"color": "red", "linewidth": 2.0}
+        #for spin in self.spins:
+        #    if spin == 0:
+        #        opts = {"color": "black", "linewidth": 2.0}
+        #    else:
+        #        opts = {"color": "red", "linewidth": 2.0}
 
-            for band in range(self.mband):
-                self.plot_ax(ax0, e0, spin=spin, band=band, **opts)
+        #    for band in range(self.mband):
+        #        self.plot_ax(ax0, e0, spin=spin, band=band, **opts)
 
-        self.decorate_ax(ax0, klabels=klabels)
-        set_axlims(ax0, ylims, "y")
+        #self.decorate_ax(ax0, klabels=klabels)
+        #set_axlims(ax0, ylims, "y")
 
         # Plot the DOS
         if self.nsppol == 1:

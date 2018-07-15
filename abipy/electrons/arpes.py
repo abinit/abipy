@@ -69,19 +69,20 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
             ebands: |ElectronBands| object
             aw: [nwr, ntemp, max_nbcalc, nkcalc, nsppol] array
             aw_meshes: [max_nbcalc, nkcalc, nsppol] array with energy mesh in eV
+            tmesh: Temperature mesh in Kelvin.
 
         .. note::
 
-            Each (spin, k-point, band) can have different frequency meshes
-            (usually centered on the initial KS energy).
-            The plotter will spline the data.
+            - Each (spin, k-point, band) can have different frequency meshes
+              (usually centered on the initial KS energy).
+              The plotter will spline the data.
 
-            The order of the k-points in ebands and aw should be the same.
+            - The order of the k-points in ebands and aw should be the same.
 
-            The treatment of bands if complicated by the fact that we can have
-            different nband(k) whose indices are not necessarily aligned.
-            Consider, for example. what happes if we use symsigma or arbitrary bdgw.
-            Use MaskedArray?
+            - The treatment of bands if complicated by the fact that we can have
+              different nband(k) whose indices are not necessarily aligned.
+              Consider, for example. what happes if we use symsigma or arbitrary bdgw.
+              Use MaskedArray or metadata with start, stop?
         """
         self._ebands = ebands
         self.aw = aw
@@ -91,9 +92,7 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
         #assert
 
         # Options passed to UnivariateSpline
-        self.ext = "zeros"
-        self.k = 3
-        self.s = 0
+        self.ext, self.k, self.s = "zeros", 3, 0
 
     @property
     def structure(self):

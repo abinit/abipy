@@ -470,7 +470,7 @@ class HWanR(object):
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
         ax.set_xlabel(r"$|R|$ (Ang)")
-        ax.set_ylabel(r"$Max_{ij} |H^W_{ij}(R)|$")
+        ax.set_ylabel(r"$Max |H^W_{ij}(R)|$")
 
         marker_spin = {0: "^", 1: "v"}
         needs_legend = False

@@ -242,6 +242,7 @@ class ElectronBandsTest(AbipyTest):
         assert r.ebands.kpoints.is_path
         assert r.ebands.kpoints[0].is_gamma
         assert r.ebands.kpoints[0] == r.ebands.kpoints[-1]
+        assert si_ebands_kmesh.kpoints[r.ik_new2prev[0]].is_gamma
 
         # Serialization
         self.serialize_with_pickle(si_ebands_kmesh, test_eq=False)
@@ -306,7 +307,7 @@ class ElectronBandsTest(AbipyTest):
             assert si_edos.plot(show=False)
             assert si_edos.plot_dos_idos(show=False)
             assert si_edos.plot_up_minus_down(show=False)
-            assert si_ebands_kmesh.plot_with_edos(edos=si_edos, klabels=klabels, show=False)
+            assert si_ebands_kmesh.plot_with_edos(edos=si_edos, klabels=klabels, with_gaps="fd", show=False)
             assert si_ebands_kmesh.kpoints.plot(show=False)
 
             vrange, crange = range(0, 4), range(4, 5)
@@ -353,11 +354,13 @@ class ElectronBandsTest(AbipyTest):
         repr(homo); str(homo)
         assert homo.spin == 0 and homo.occ == 2.0 and homo.band == 3
         assert homo.kpoint == [0, 0, 0]
+        assert homo == homo
         assert si_ebands_kpath.kpoints[homo.kidx] == homo.kpoint
         self.assert_almost_equal(homo.eig, 5.5983129712050665)
         assert "eig" in homo.__class__.get_fields()
 
         lumo = si_ebands_kpath.lumos[0]
+        assert homo != lumo
         assert lumo.spin == 0 and lumo.occ == 0.0 and lumo.band == 4
         self.assert_almost_equal(lumo.kpoint.frac_coords, [0.,  0.4285714, 0.4285714])
         assert si_ebands_kpath.kpoints[lumo.kidx] == lumo.kpoint
@@ -405,6 +408,9 @@ class ElectronBandsTest(AbipyTest):
         # JDOS requires a homogeneous sampling.
         with self.assertRaises(ValueError):
             si_ebands_kpath.get_ejdos(spin, 0, 4)
+
+        if self.has_matplotlib():
+            assert si_ebands_kpath.plot(spin=0, e0=0, with_gaps="fs", show=False)
 
     def test_ebands_skw_interpolation(self):
         """Testing SKW interpolation."""
