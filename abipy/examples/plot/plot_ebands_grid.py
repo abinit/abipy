@@ -33,6 +33,6 @@ edos_objects = 2 * [ref_file("si_scf_GSR.nc")]
 
 # sphinx_gallery_thumbnail_number = 2
 plotter = ElectronBandsPlotter()
-plotter.add_ebands("Si", ref_file("si_nscf_GSR.nc"), dos=ref_file("si_scf_GSR.nc"))
-plotter.add_ebands("Same data", ref_file("si_nscf_GSR.nc"), dos=ref_file("si_scf_GSR.nc"))
+plotter.add_ebands("Si", ref_file("si_nscf_GSR.nc"), edos=ref_file("si_scf_GSR.nc"))
+plotter.add_ebands("Same data", ref_file("si_nscf_GSR.nc"), edos=ref_file("si_scf_GSR.nc"))
 plotter.gridplot()

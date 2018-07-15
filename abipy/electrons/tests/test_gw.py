@@ -215,8 +215,8 @@ class TestSigresFile(AbipyTest):
 
         # Plot the LDA and the QPState band structure with matplotlib.
         plotter = abilab.ElectronBandsPlotter()
-        plotter.add_ebands("LDA", r.ks_ebands_kpath, dos=ks_edos)
-        plotter.add_ebands("GW (interpolated)", r.qp_ebands_kpath, dos=qp_edos)
+        plotter.add_ebands("LDA", r.ks_ebands_kpath, edos=ks_edos)
+        plotter.add_ebands("GW (interpolated)", r.qp_ebands_kpath, edos=qp_edos)
 
         if self.has_matplotlib():
             assert plotter.combiplot(title="Silicon band structure", show=False)

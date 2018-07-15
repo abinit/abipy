@@ -2517,7 +2517,7 @@ class ElectronBandsPlotter(NotebookWriter):
         for o in itertools.product( self._LINE_WIDTHS,  self._LINE_STYLES, self._LINE_COLORS):
             yield {"linewidth": o[0], "linestyle": o[1], "color": o[2]}
 
-    def add_ebands(self, label, bands, edos=None, dos=None, edos_kwargs=None):
+    def add_ebands(self, label, bands, edos=None, edos_kwargs=None):
         """
         Adds a band structure and optionally a edos to the plotter.
 
@@ -2528,11 +2528,6 @@ class ElectronBandsPlotter(NotebookWriter):
             edos_kwargs: optional dictionary with the options passed to ``get_edos`` to compute the electron DOS.
                 Used only if ``edos`` is not None and it's not an |ElectronDos| instance.
         """
-        if dos is not None:
-            warnings.warn("dos has been replaced by edos! This argument will be removed in v0.4")
-            assert edos is None
-            edos = dos
-
         if label in self.ebands_dict:
             raise ValueError("label %s is already in %s" % (label, list(self.ebands_dict.keys())))
 

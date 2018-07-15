@@ -107,6 +107,11 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         """[nsppol, mwan] array with spreads in Ang^2"""
         return self.reader.read_value("wann_spreads")
 
+    #@lazy_property
+    #def spread_spin(self):
+    #    """[nsppol, 3] array with spread in Ang^2"""
+    #    return self.reader.read_value("spread")
+
     @lazy_property
     def irvec(self):
         """
@@ -214,6 +219,9 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         # Init datastructures needed by HWanR
         spin_rmn = [None] * self.nsppol
         spin_vmatrix = np.empty((self.nsppol, num_kpts), dtype=object)
+
+        #kptopt = self.read.read_value("kptopt")
+        #has_timrev =
 
         # Read unitary matrices from file.
         # Here be very careful with F --> C because we have to transpose.
@@ -346,7 +354,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         ebands = ElectronBands.as_ebands(ebands)
         wan_ebands = self.interpolate_ebands(kpoints=ebands.kpoints)
 
-        return ElectronBandsPlotter(key_ebands=[("Ab-initio", ebands), ("Wannier Interpolated", wan_ebands)])
+        return ElectronBandsPlotter(key_ebands=[("Ab-initio", ebands), ("Interpolated", wan_ebands)])
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
@@ -383,8 +391,8 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         return self._write_nb_nbpath(nb, nbpath)
 
 
-# TODO: Interface with ElectronsInterpolator
-class HWanR(object):
+from abipy.core.skw import ElectronInterpolator
+class HWanR(ElectronInterpolator):
     """
     This object represents the KS Hamiltonian in the wannier-gauge representation.
     It provides low-level methods to interpolate the KS eigenvalues, and a high-level API
@@ -406,6 +414,13 @@ class HWanR(object):
         assert len(self.irvec) == self.nrpts
         for spin in range(self.nsppol):
             assert len(self.spin_rmn[spin]) == self.nrpts
+
+        # To call spglib
+        self.cell = (self.structure.lattice.matrix, self.structure.frac_coords, self.structure.atomic_numbers)
+        self.has_timrev = True
+        self.verbose = 0
+        self.nband = nwan_spin[0]
+        #self.nelect
 
     def eval_sk(self, spin, kpt, der1=None, der2=None):
         """
