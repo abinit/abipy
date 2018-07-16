@@ -1104,7 +1104,7 @@ class Kpath(KpointList):
     @classmethod
     def from_names(cls, structure, knames, line_density=20):
         """
-        Generate normalized K-path from the list of k-point labels.
+        Generate normalized K-path from list of k-point labels.
 
         Args:
             structure: |Structure| object.
@@ -1211,7 +1211,7 @@ class Kpath(KpointList):
     @lazy_property
     def versors(self):
         """
-        Tuple of len(self)-1 elements with the versors connecting k[i] to k[i+1].
+        Tuple of len(self) - 1 elements with the versors connecting k[i] to k[i+1].
         """
         versors = (len(self) - 1) * [None, ]
         for i, kpt in enumerate(self[:-1]):

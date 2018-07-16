@@ -115,10 +115,10 @@ def map_bz2ibz(structure, ibz, ngkpt, has_timrev):
     return bz2ibz
 
 
-class EDOS(object):
-    def __init__(self, mesh, values, integral, is_shift, method, step, width):
-        self.mesh, self.values, self.integral = mesh, values, integral
-        self.is_shift, self.method, self.step, self.width = is_shift, method, step, width
+#class EDOS(object):
+#    def __init__(self, mesh, values, integral, is_shift, method, step, width):
+#        self.mesh, self.values, self.integral = mesh, values, integral
+#        self.is_shift, self.method, self.step, self.width = is_shift, method, step, width
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -452,30 +452,6 @@ class ElectronInterpolator(object):
         nest_sq *= 1. / k.nbz
         return nest_sq
 
-    #def get_unitcell_vals(self, kmesh):
-    #    is_shift = None
-    #    k = self.get_sampling(kmesh, is_shift=is_shift)
-
-    #    # Interpolate eigenvalues in the IBZ.
-    #    eigens_ibz = self._get_cached_eigens(kmesh, is_shift, "ibz")
-    #    if eigens_ibz is None:
-    #        eigens_ibz = self.interp_kpts(k.ibz).eigens
-    #        self._cache_eigens(kmesh, is_shift, eigens_ibz, "ibz")
-
-    #    egrid_sbuc = np.empty((self.nsppol, self.nband) + tuple(kmesh))
-    #    egrid_sbuc[...] = np.inf
-    #    print("shape eigens_ibz", eigens_ibz.shape)
-    #    print("shape egrid_sbuc", egrid_sbuc.shape)
-    #    print("nkibz: ", k.nibz, "nbz: ", k.nbz)
-    #    for gp, ik_ibz in zip(k.grid, k.bz2ibz):
-    #        ucgp = np.where(gp >= 0, gp, gp + k.mesh)
-    #        print("gp", gp, "ucgp", ucgp, "ik_ibz", ik_ibz)
-    #        egrid_sbuc[:, :, ucgp[0], ucgp[1], ucgp[2]] = eigens_ibz[:, ik_ibz, :]
-    #    print(np.any(egrid_sbuc == np.inf))
-    #    #print(egrid_sbuc[0, 0, ...])
-
-    #    return egrid_sbuc
-
     def _get_wmesh_step(self, eigens, wmesh, step):
         if wmesh is not None:
             return wesh, wmesh[1] - wmesh[0]
@@ -803,7 +779,7 @@ class ElectronInterpolator(object):
                 new_eigens[spin, ik] = self.eval_sk(spin, newk, der1=der1, der2=der2)
 
         if self.verbose:
-            print("Interpolation completed in %.3f (s)", (time.time() - start))
+            print("Interpolation completed in %.3f (s)" % (time.time() - start))
 
         return dict2namedtuple(eigens=new_eigens, dedk=dedk, dedk2=dedk2)
 
@@ -828,10 +804,10 @@ class ElectronInterpolator(object):
 
         return dict2namedtuple(eigens=new_eigens, dedk=None, dedk2=None)
 
-    #def get_ebands3d(self):
-    #    self.get_sampling(self, mesh, is_shift)
+    #def get_ebands3d(self, mesh, is_shift):
+    #    k = self.get_sampling(self, mesh, is_shift)
+    #    ibz_eigens = self.interp_kpts(k.ibz).eigens
     #    ibz_kpoints
-    #    ibz_eigens = self.interp_kpts(kfrac_coords).eigens
     #    return ElectronBands3D(self.structure, ibz_kpoints, self.has_timrev, ibz_eigens, self.fermie)
 
 
@@ -1009,7 +985,7 @@ class SkwInterpolator(ElectronInterpolator):
             raise RuntimeError("Interpolation went bananas! mae = %s" % mae)
 
         warn = mae > 10.0
-        cprint("FIT vs input data: Mean Absolute Error= %.3f (meV)" % mae, color="red" if warn else "green")
+        cprint("FIT vs input data: Mean Absolute Error= %.3e (meV)" % mae, color="red" if warn else "green")
         if warn:
             # Issue warning if error too large.
             cprint("Large error in SKW interpolation!", "red")

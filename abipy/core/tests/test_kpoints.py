@@ -251,21 +251,26 @@ class TestKpath(AbipyTest):
         """Testing Kpath API."""
         structure = abilab.Structure.as_structure(abidata.cif_file("si.cif"))
 
-        kpath = Kpath.from_names(structure, ["G", "X", "L", "G"], line_density=5)
+        knames = ["G", "X", "L", "G"]
+        kpath = Kpath.from_names(structure, knames, line_density=5)
         repr(kpath); str(kpath)
         assert kpath.to_string(verbose=2, title="Kpath")
         assert not kpath.is_ibz and kpath.is_path
         assert kpath[0].is_gamma and kpath[-1].is_gamma
-        #assert len(kpath) == 8
+        #assert len(kpath.ds) == len(self) - 1
         #assert kpath.ksampling.kptopt == 1
         #self.assert_equal(kpath.ksampling.mpdivs, [4, 4, 4])
 
-        #kpath.ds
-        #kpath.versors
-        #kpath.lines
-        #kpath.frac_bounds
-        #kpath.cart_bounds
-        #kpath.find_points_along_path(cart_coords)
+        assert len(kpath.ds) == len(kpath) - 1
+        assert len(kpath.versors) == len(kpath) - 1
+        assert len(kpath.lines) == len(knames) - 1
+        self.assert_almost_equal(kpath.frac_bounds, structure.get_kcoords_from_names(knames))
+        self.assert_almost_equal(kpath.cart_bounds, structure.get_kcoords_from_names(knames, cart_coords=True))
+
+        r = kpath.find_points_along_path(kpath.get_cart_coords())
+        assert len(r.ikfound) == len(kpath)
+        self.assert_equal(r.ikfound,
+            [ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,  0])
 
         #kpath = IrredZone.from_kppa(structure, kppa=1000, shiftk=[0.5, 0.5, 0.5], kptopt=1, verbose=1)
         #assert not kpath.is_ibz and kpath.is_path

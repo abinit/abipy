@@ -102,9 +102,6 @@ class GSphere(collections.Sequence):
         s = name + ": kpoint: %(kpoint)s, ecut: %(ecut)f, npw: %(npw)d, istwfk: %(istwfk)d" % self.__dict__
         return s
 
-    # TODO: Alias To be removed in 0.4
-    #tostring = to_string
-
     def _new_array(self, dtype=np.float, zero=True, extra_dims=()):
         """Returns a numpy array defined on the sphere."""
         shape = (self.npw,)

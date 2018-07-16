@@ -2289,7 +2289,7 @@ class ElectronBands(Has_Structure):
 
         return evals_on_line, h, self.kpoints.versors[line[0]]
 
-    def interpolate(self, lpratio=5, vertices_names=None, line_density=20,
+    def interpolate(self, lpratio=5, knames=None, vertices_names=None, line_density=20,
                     kmesh=None, is_shift=None, filter_params=None, verbose=0):
         """
         Interpolate energies in k-space along a k-path and, optionally, in the IBZ for DOS calculations.
@@ -2299,6 +2299,7 @@ class ElectronBands(Has_Structure):
         Args:
             lpratio: Ratio between the number of star functions and the number of ab-initio k-points.
                 The default should be OK in many systems, larger values may be required for accurate derivatives.
+            knames: List of strings with the k-point labels for the k-path. Has precedence over vertices_names.
             vertices_names: Used to specify the k-path for the interpolated band structure
                 It's a list of tuple, each tuple is of the form (kfrac_coords, kname) where
                 kfrac_coords are the reduced coordinates of the k-point and kname is a string with the name of
@@ -2330,29 +2331,27 @@ class ElectronBands(Has_Structure):
 
         # Build interpolator.
         from abipy.core.skw import SkwInterpolator
-        my_kcoords = [k.frac_coords for k in self.kpoints]
         cell = (self.structure.lattice.matrix, self.structure.frac_coords,
                 self.structure.atomic_numbers)
 
-        skw = SkwInterpolator(lpratio, my_kcoords, self.eigens, self.fermie, self.nelect,
+        skw = SkwInterpolator(lpratio, self.kpoints.frac_coords, self.eigens, self.fermie, self.nelect,
                               cell, fm_symrel, self.has_timrev,
                               filter_params=filter_params, verbose=verbose)
 
         # Generate k-points for interpolation.
-        if vertices_names is None:
-            vertices_names = [(k.frac_coords, k.name) for k in self.structure.hsym_kpoints]
-
-        kpath = Kpath.from_vertices_and_names(self.structure, vertices_names, line_density=line_density)
-        kfrac_coords, knames = kpath.frac_coords, kpath.names
+        if knames is not None:
+            kpath = Kpath.from_names(self.structure, knames, line_density=line_density)
+        else:
+            if vertices_names is None:
+                vertices_names = [(k.frac_coords, k.name) for k in self.structure.hsym_kpoints]
+            kpath = Kpath.from_vertices_and_names(self.structure, vertices_names, line_density=line_density)
 
         # Interpolate energies.
-        eigens_kpath = skw.interp_kpts(kfrac_coords).eigens
+        eigens_kpath = skw.interp_kpts(kpath.frac_coords).eigens
 
         # Build new ebands object.
-        kpts_kpath = Kpath(self.reciprocal_lattice, kfrac_coords, weights=None, names=knames)
-        occfacts_kpath = np.zeros(eigens_kpath.shape)
-
-        ebands_kpath = self.__class__(self.structure, kpts_kpath, eigens_kpath, self.fermie, occfacts_kpath,
+        occfacts_kpath = np.zeros_like(eigens_kpath)
+        ebands_kpath = self.__class__(self.structure, kpath, eigens_kpath, self.fermie, occfacts_kpath,
                                       self.nelect, self.nspinor, self.nspden)
         ebands_kmesh = None
         if kmesh is not None:
@@ -2365,7 +2364,7 @@ class ElectronBands(Has_Structure):
             ksampling = KSamplingInfo.from_mpdivs(mpdivs=kmesh, shifts=[0, 0, 0], kptopt=1)
             kpts_kmesh = IrredZone(self.structure.reciprocal_lattice, kdos.ibz, weights=kdos.weights,
                                    names=None, ksampling=ksampling)
-            occfacts_kmesh = np.zeros(eigens_kmesh.shape)
+            occfacts_kmesh = np.zeros_like(eigens_kmesh)
 
             ebands_kmesh = self.__class__(self.structure, kpts_kmesh, eigens_kmesh, self.fermie, occfacts_kmesh,
                                           self.nelect, self.nspinor, self.nspden)
@@ -2439,7 +2438,7 @@ class ElectronBandsPlotter(NotebookWriter):
     """
     # Used in iter_lineopt to generate matplotlib linestyles.
     _LINE_COLORS = ["b", "r", "g", "m", "y", "k"]
-    _LINE_STYLES = ["-",":","--","-.",]
+    _LINE_STYLES = ["-", ":", "--", "-.",]
     _LINE_WIDTHS = [2,]
 
     def __init__(self, key_ebands=None, key_edos=None, edos_kwargs=None):
