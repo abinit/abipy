@@ -23,7 +23,8 @@ with abiopen(filename) as ncfile:
 # Plot the band energies. Note that the labels for the k-points
 # are found automatically in an internal database.
 # Show fundamental and direct gaps.
-ebands.plot(with_gaps="fd", title="Silicon band structure")
+#ebands.plot(with_gaps="fd", title="Silicon band structure")
+ebands.plot(with_gaps=True, title="Silicon band structure")
 
 # Plot the BZ and the k-point path.
 ebands.kpoints.plot()

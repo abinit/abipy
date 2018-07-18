@@ -570,6 +570,11 @@ class Structure(pymatgen.Structure, NotebookWriter):
         return structure_to_abivars(self, **kwargs)
 
     @property
+    def latex_formula(self):
+        from pymatgen.util.string import latexify
+        return latexify(self.formula)
+
+    @property
     def abi_string(self):
         """Return a string with the ABINIT input associated to this structure."""
         from abipy.abio.variable import InputVariable

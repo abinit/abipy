@@ -188,29 +188,24 @@ class ElectronTransition(object):
 
         return "\n".join(lines)
 
-    #def __eq__(self, other):
-    #    if other is None: return False
-    #    if not isinstance(other, self.__class__): return False
-    #    return self.in_state == other.in_state and
-    #           self.out_state == other.out_state
+    def __eq__(self, other):
+        if other is None: return False
+        return self.in_state == other.in_state and self.out_state == other.out_state
 
-    #def __ne__(self, other):
-    #    return not (self == other)
+    def __ne__(self, other):
+        return not (self == other)
 
-    #def __ge__(self, other):
-    #    return self.energy >= other.energy
-
-    @property
+    @lazy_property
     def energy(self):
         """Transition energy in eV."""
         return self.out_state.eig - self.in_state.eig
 
-    @property
+    @lazy_property
     def qpoint(self):
         """k_final - k_initial"""
         return self.out_state.kpoint - self.in_state.kpoint
 
-    @property
+    @lazy_property
     def is_direct(self):
         """True if direct transition."""
         return self.in_state.kpoint == self.out_state.kpoint
@@ -290,7 +285,7 @@ class ElectronBandsError(Exception):
 
 class ElectronBands(Has_Structure):
     """
-    This object stores the electronic band structure.
+    Immutable object storing the electron band structure.
 
     .. attribute:: fermie
 
@@ -623,6 +618,13 @@ class ElectronBands(Has_Structure):
         """True if we are using a metallic scheme for occupancies."""
         return self.smearing.has_metallic_scheme
 
+    #@lazy_property
+    #def likely_semiconductor(self):
+    #    """
+    #    True if energy gap is present in the band structure,
+    #    independently on the use of metallic scheme for accupancies
+    #    """
+
     #def recalc_fermie(self, nelect=None, method="gaussian", step=0.001, width=0.002):
     #    """
     #    Recompute the Fermi level.
@@ -765,22 +767,19 @@ class ElectronBands(Has_Structure):
 
         enough_bands = (self.mband > self.nspinor * self.nelect // 2)
         if enough_bands:
-            fundamental_gaps = self.fundamental_gaps
             for spin in self.spins:
-                odict["fundgap_spin%d" % spin] = fundamental_gaps[spin].energy
-
-            direct_gaps = self.direct_gaps
+                odict["fundgap_spin%d" % spin] = self.fundamental_gaps[spin].energy
             for spin in self.spins:
-                odict["dirgap_spin%d" % spin] = direct_gaps[spin].energy
+                odict["dirgap_spin%d" % spin] = self.direct_gaps[spin].energy
 
         return odict
 
-    @property
+    @lazy_property
     def has_bzmesh(self):
         """True if the k-point sampling is homogeneous."""
         return isinstance(self.kpoints, IrredZone)
 
-    @property
+    @lazy_property
     def has_bzpath(self):
         """True if the bands are computed on a k-path."""
         return isinstance(self.kpoints, Kpath)
@@ -1148,7 +1147,7 @@ class ElectronBands(Has_Structure):
                         #fermie=self.fermie
                         )
 
-    @property
+    @lazy_property
     def lomos(self):
         """lomo states for each spin channel as a list of nsppol :class:`Electron`."""
         lomos = self.nsppol * [None]
@@ -1194,7 +1193,7 @@ class ElectronBands(Has_Structure):
         b = find_gt(self.eigens[spin,k,:], self.fermie + self.pad_fermie)
         return self._electron_state(spin, k, b)
 
-    @property
+    @lazy_property
     def homos(self):
         """
         homo states for each spin channel as a list of nsppol :class:`Electron`.
@@ -1217,7 +1216,7 @@ class ElectronBands(Has_Structure):
 
         return homos
 
-    @property
+    @lazy_property
     def lumos(self):
         """
         lumo states for each spin channel as a list of nsppol :class:`Electron`.
@@ -1286,6 +1285,26 @@ class ElectronBands(Has_Structure):
 
         return dirgaps
 
+    def get_gaps_string(self):
+        """
+        Return string with info about fundamental and direct gap (if not metallic scheme)
+        """
+        enough_bands = (self.mband > self.nspinor * self.nelect // 2)
+        if enough_bands and not self.has_metallic_scheme:
+            if self.nsppol == 1:
+                s = "%s: direct gap = %.2f, fundamental gap = %.2f (eV)" % (
+                    self.structure.latex_formula,
+                    self.direct_gaps[0].energy, self.fundamental_gaps[0].energy)
+            else:
+                dgs = [t.energy for t in self.direct_gaps]
+                fgs = [t.energy for t in self.fundamental_gaps]
+                s = "%s: direct gap = %.2f (%.2f), fundamental gap = %.2f (%.2f) (eV)" % (
+                    self.structure.latex_formula, dgs[0], dgs[1], fgs[0], fgs[1])
+        else:
+            s = ""
+
+        return s
+
     def to_string(self, title=None, with_structure=True, with_kpoints=False, verbose=0):
         """
         Human-readable string with useful info such as band gaps, position of HOMO, LOMO...
@@ -1313,8 +1332,7 @@ class ElectronBands(Has_Structure):
         if not self.has_metallic_scheme:
             enough_bands = (self.mband > self.nspinor * self.nelect // 2)
             for spin in self.spins:
-                if self.nsppol == 2:
-                    app(">>> For spin %s" % spin)
+                if self.nsppol == 2: app(">>> For spin %s" % spin)
                 if enough_bands:
                     # This can fail so we have to catch the exception.
                     try:
@@ -1732,7 +1750,7 @@ class ElectronBands(Has_Structure):
 
     @add_fig_kwargs
     def plot(self, spin=None, band_range=None, klabels=None, e0="fermie", ax=None, ylims=None,
-	     points=None, with_gaps="", **kwargs):
+	     points=None, with_gaps=False, fontsize=8, **kwargs):
         r"""
         Plot the electronic band structure.
 
@@ -1751,7 +1769,8 @@ class ElectronBands(Has_Structure):
                    or scalar e.g. ``left``. If left (right) is None, default values are used
             points: Marker object with the position and the size of the marker.
                 Used for plotting purpose e.g. QP energies, energy derivatives...
-            with_gaps: "f" to highlight fundamental gap, "d" for direct gap. "fd" for both. Empty to disable.
+            with_gaps: True to add marker and arrows showing the fundamental and the direct gap.
+            fontsize: fontsize for legends and titles
 
         Returns: |matplotlib-Figure|
         """
@@ -1789,32 +1808,42 @@ class ElectronBands(Has_Structure):
                 self.plot_ax(ax, e0, spin=spin, band=band, **opts)
 
         if points is not None:
-            ax.scatter(points.x, np.array(points.y) - e0, s=np.abs(points.s),
-                       marker="o", c="b")
+            ax.scatter(points.x, np.array(points.y) - e0, s=np.abs(points.s), marker="o", c="b")
 
         if with_gaps and (self.mband > self.nspinor * self.nelect // 2):
+            # Show fundamental and direct gaps for each spin.
             from matplotlib.patches import FancyArrowPatch
             for spin in self.spins:
-                arrow_opts = {"color": "k"} if spin == 0 else {"color": "red"}
-                arrow_opts.update(dict(lw=2, arrowstyle="-|>",))
-                if "f" in with_gaps:
-                    # Show fundamental gap.
-                    fgap = self.fundamental_gaps[spin]
-                    p = FancyArrowPatch(posA=(fgap.in_state.kidx, fgap.in_state.eig - e0),
-                                        posB=(fgap.out_state.kidx, fgap.out_state.eig - e0),
-                                        connectionstyle='arc3', mutation_scale=20,
-                                        alpha=0.4, **arrow_opts)
-                    ax.add_patch(p)
+                fgap = self.fundamental_gaps[spin]
+                dir_gap = self.direct_gaps[spin]
+                # Need arrows only if fundamental and direct gaps for this spin are different.
+                need_arrows = fgap != dir_gap
 
-                if "d" in with_gaps:
-                    # Show direct gap.
-                    dir_gap = self.direct_gaps[spin]
-                    if "f" not in with_gaps or (dir_gap.in_state != fgap.in_state or dir_gap.out_state != fgap.out_state):
-                        p = FancyArrowPatch((dir_gap.in_state.kidx, dir_gap.in_state.eig - e0),
-                                            (dir_gap.out_state.kidx, dir_gap.out_state.eig - e0),
-                                            connectionstyle='arc3', mutation_scale=20,
-                                            alpha=0.4, **arrow_opts)
-                        ax.add_patch(p)
+                arrow_opts = {"color": "k"} if spin == 0 else {"color": "red"}
+                arrow_opts.update(dict(lw=2, alpha=0.6, arrowstyle="-|>", connectionstyle='arc3', mutation_scale=20))
+                scatter_opts = {"color": "blue"} if spin == 0 else {"color": "green"}
+                scatter_opts.update(dict(marker="o", alpha=0.6, s=100))
+
+                # Fundamental gap.
+                posA = (fgap.in_state.kidx, fgap.in_state.eig - e0)
+                posB = (fgap.out_state.kidx, fgap.out_state.eig - e0)
+                ax.scatter(posA[0], posA[1], **scatter_opts)
+                ax.scatter(posB[0], posB[1], **scatter_opts)
+                if need_arrows:
+                    ax.add_patch(FancyArrowPatch(posA=posA, posB=posB, **arrow_opts))
+
+                # Direct gap.
+                if (dir_gap != fgap):
+                    posA = (dir_gap.in_state.kidx, dir_gap.in_state.eig - e0)
+                    posB = (dir_gap.out_state.kidx, dir_gap.out_state.eig - e0)
+                    ax.scatter(posA[0], posA[1], **scatter_opts)
+                    ax.scatter(posB[0], posB[1], **scatter_opts)
+                    if need_arrows:
+                        ax.add_patch(FancyArrowPatch(posA=posA, posB=posB, **arrow_opts))
+
+            gaps_string = self.get_gaps_string()
+            if gaps_string:
+                ax.set_title(gaps_string, fontsize=fontsize)
 
         return fig
 
@@ -1967,7 +1996,7 @@ class ElectronBands(Has_Structure):
         return list(d.keys()), list(d.values())
 
     @add_fig_kwargs
-    def plot_with_edos(self, edos, klabels=None, ax_list=None, e0="fermie", points=None, with_gaps="",
+    def plot_with_edos(self, edos, klabels=None, ax_list=None, e0="fermie", points=None, with_gaps=False,
                        ylims=None, width_ratios=(2, 1), **kwargs):
         r"""
         Plot the band structure and the DOS.
@@ -1994,7 +2023,7 @@ class ElectronBands(Has_Structure):
 
             points: Marker object with the position and the size of the marker.
                 Used for plotting purpose e.g. QP energies, energy derivatives...
-            with_gaps: "f" to highlight fundamental gap, "d" for direct gap. "fd" for both. Empty to disable.
+            with_gaps: True to add marker and arrows showing the fundamental and the direct gap.
             width_ratios: Defines the ratio between the band structure plot and the dos plot.
 
         Return: |matplotlib-Figure|

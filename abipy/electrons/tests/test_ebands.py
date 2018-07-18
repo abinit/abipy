@@ -91,6 +91,7 @@ class ElectronBandsTest(AbipyTest):
         assert smearing.occopt == 7
         self.assert_almost_equal(smearing.tsmear_ev.to("Ha"), 0.0075)
         assert smearing.scheme == "gaussian"
+        assert not ni_ebands_kmesh.get_gaps_string()
 
         ni_ebands_kmesh.copy()
         ni_ebands_kmesh.deepcopy()
@@ -170,7 +171,7 @@ class ElectronBandsTest(AbipyTest):
             elims = [-10, 2]
             assert ni_ebands_kmesh.plot(show=False)
             assert ni_ebands_kmesh.plot_bz(show=False)
-            assert ni_ebands_kpath.plot(ylims=elims, show=False)
+            assert ni_ebands_kpath.plot(ylims=elims, with_gaps=True, show=False)
             assert ni_ebands_kpath.plot_with_edos(ni_edos, ylims=elims, show=False)
             assert ni_ebands_kpath.plot_bz(show=False)
             assert ni_ebands_kpath.plot_transitions(4.4, qpt=(0, 0, 0), atol_ev=0.1, atol_kdiff=1e-4, show=False)
@@ -371,6 +372,9 @@ class ElectronBandsTest(AbipyTest):
         assert fun_gap.energy <= dir_gap.energy
         assert dir_gap.qpoint == [0, 0, 0]
         assert dir_gap.is_direct
+        assert dir_gap == dir_gap
+        assert dir_gap != fun_gap
+        assert si_ebands_kpath.get_gaps_string()
         #print("repr_fun_gap", repr(fun_gap), id(fun_gap), id(fun_gap.qpoint))
         #print("repr_dir_gap", repr(dir_gap), id(dir_gap), id(dir_gap.qpoint))
         self.assert_almost_equal(dir_gap.energy, 2.5318279814319133)
