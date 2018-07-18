@@ -1,6 +1,9 @@
 language: python
 cache: pip
 
+#dist: precise
+sudo: false
+
 env:
   global:
     - ABINIT_VERSION=8.8.2
@@ -30,12 +33,9 @@ matrix:
       env: 
         - ABIPY_INSTALLER=pip
 
-#dist: precise
-sudo: false
 install:
-  #- sudo apt-get update
-  - env
   #- set -ev  # exit on first error, print each command
+  - env
   - ulimit -s unlimited
 
   - |

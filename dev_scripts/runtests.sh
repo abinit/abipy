@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e  # exit on first error, print each command
+set -e  # exit on first error
 #set -ev  # exit on first error, print each command
 
 echo "PMG_MAPI_KEY: 8pkvwRLQSCVbW2Fe" > ${HOME}/.pmgrc.yaml
