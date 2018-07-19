@@ -101,8 +101,8 @@ class TestAbiwanFile(AbipyTest):
         """Testing abiwan file with DISENTANGLE."""
         #return
         filepaths = [
-            "/Users/gmatteo/git_repos/abinit_wannier/_build/tests/W90_REFS/tutoplugs_tw90_1/tw90_1o_DS2_ABIWAN.nc",
-            "/Users/gmatteo/git_repos/abinit_wannier/_build/tests/W90_REFS/tutoplugs_tw90_4/tw90_4o_DS3_ABIWAN.nc",
+            os.path.join(abidata.dirpath, "refs", "wannier90", "tutoplugs_tw90_1", "tw90_1o_DS2_ABIWAN.nc"),
+            os.path.join(abidata.dirpath, "refs", "wannier90", "tutoplugs_tw90_4", "tw90_4o_DS3_ABIWAN.nc"),
         ]
 
         #filepaths = [os.path.join(abidata.dirpath, "refs", "wannier90", "foo_ABIWAN.nc")]

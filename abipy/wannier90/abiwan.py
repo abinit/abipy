@@ -257,9 +257,11 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
                     # TODO: Test if bands_in?
                     mask = self.lwindow[spin, ik]
                     hks = np.diag(eigs_k[mask])
-                    v_matrix = u_matrix_opt[spin, ik][:num_wan, mask].transpose() @ uk
+                    #v_matrix = u_matrix_opt[spin, ik][:num_wan, mask].transpose() @ uk
+                    v_matrix = np.matmul(u_matrix_opt[spin, ik][:num_wan, mask].transpose(), uk)
 
-                HH_q[ik] = v_matrix.transpose().conjugate() @ hks @ v_matrix
+                #HH_q[ik] = v_matrix.transpose().conjugate() @ hks @ v_matrix
+                HH_q[ik] = np.matmul(v_matrix.transpose().conjugate(), np.matmul(hks, v_matrix))
                 spin_vmatrix[spin, ik] = v_matrix
 
             # Fourier transform Hamiltonian in the wannier-gauge representation.

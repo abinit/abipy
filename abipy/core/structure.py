@@ -1685,7 +1685,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             app(" kptopt %d" % -(len(self.hsym_kpoints) - 1))
             app(" kptbounds")
             for k in self.hsym_kpoints:
-                app("    %+.5f  %+.5f  %+.5f  # %s" % (*k.frac_coords, k.name))
+                app("    {:+.5f}  {:+.5f}  {:+.5f}  # {kname}".format(*k.frac_coords, kname=k.name))
 
         elif fmt in ("wannier90", "w90"):
             app("# Wannier90 structure")
@@ -1706,7 +1706,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             for ik, k in enumerate(kpath):
                 if not k.name: continue
                 n = ik - prev_ik
-                app("%d  %+.5f  %+.5f  %+.5f  # %s" % (n if n else 1, *k.frac_coords, k.name))
+                app("{}  {:+.5f}  {:+.5f}  {:+.5f}  # {kname}".format(n if n else 1, *k.frac_coords, kname=k.name))
                 prev_ik = ik
             app("%endblock BandLines")
 
