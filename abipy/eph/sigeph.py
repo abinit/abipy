@@ -779,6 +779,15 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     def get_sigeph_skb(self, spin, kpoint, band):
         return self.reader.read_sigeph_skb(spin, kpoint, band)
 
+    #def get_arpes_plotter(self):
+    #    from abipy.electrons.arpes import ArpesPlotter
+    #    kinds
+    #    minb, maxb
+    #    aw: [nwr, ntemp, max_nbcalc, nkcalc, nsppol] array
+    #    aw_meshes: [max_nbcalc, nkcalc, nsppol] array with energy mesh in eV
+    #    arpes_ebands = self.ebands.select_bands(range(minb, maxb), kinds=kinds)
+    #    return ArpesPlotter(arpes_ebands, aw, aw_meshes, self.tmesh)
+
     def get_dataframe(self, with_params=True, ignore_imag=False):
         """
         Returns |pandas-Dataframe| with QP results for all k-points, bands and spins
@@ -972,7 +981,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
             newt = ElectronBands(self.structure, kpts_kpath, eigens_kpath, qp_fermie, occfacts_kpath,
                                  self.ebands.nelect, self.ebands.nspinor, self.ebands.nspden,
-                                 linewidths=lw_kpath)
+                                 smearing=self.ebands.smearing, linewidths=lw_kpath)
             qp_ebands_kpath_t.append(newt)
 
         # TODO
@@ -1003,7 +1012,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             linewidths_kmesh = np.ones(eigens_kmesh.shape) * 0.2
             newt = ElectronBands(self.structure, kpts_kmesh, eigens_kmesh, qp_fermie, occfacts_kmesh,
                                  self.ebands.nelect, self.ebands.nspinor, self.ebands.nspden,
-                                 linewidths=linewidths_kmesh)
+                                 smearing=self.ebands.smearing, linewidths=linewidths_kmesh)
             qp_ebands_kmesh_t.append(newt)
 
         return TdepElectronBands(self.tmesh[itemp_list], ks_ebands_kpath, qp_ebands_kpath_t,

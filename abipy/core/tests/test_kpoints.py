@@ -9,10 +9,10 @@ import abipy.data as abidata
 
 from pymatgen.core.lattice import Lattice
 from abipy import abilab
-from abipy.core.kpoints import (wrap_to_ws, wrap_to_bz, issamek, Kpoint, KpointList, KpointsReader, has_timrev_from_kptopt,
-    KSamplingInfo, as_kpoints, rc_list, kmesh_from_mpdivs, Ktables, map_grid2ibz, set_atol_kdiff, set_spglib_tols)
+from abipy.core.kpoints import (wrap_to_ws, wrap_to_bz, issamek, Kpoint, KpointList, IrredZone, Kpath, KpointsReader,
+    has_timrev_from_kptopt, KSamplingInfo, as_kpoints, rc_list, kmesh_from_mpdivs, map_grid2ibz,
+    set_atol_kdiff, set_spglib_tols)  #Ktables,
 from abipy.core.testing import AbipyTest
-
 
 
 class TestWrapWS(AbipyTest):
@@ -56,6 +56,12 @@ class TestHelperFunctions(AbipyTest):
         assert has_timrev_from_kptopt(1)
         assert not has_timrev_from_kptopt(4)
         assert has_timrev_from_kptopt(-7)
+
+    def test_kptopt2str(self):
+        """Testing kptopt2str."""
+        from abipy.core.kpoints import kptopt2str
+        for kptopt in [-5, 0, 1, 2, 3, 4]:
+            assert kptopt2str(kptopt, verbose=1 if kptopt != 1 else 0)
 
 
 class TestKpoint(AbipyTest):
@@ -218,15 +224,64 @@ class TestKpointList(AbipyTest):
         assert len(add_klist) == 4
         assert add_klist == add_klist.remove_duplicated()
 
-#class TestIrredZone(AbipyTest):
-#class TestKpath(AbipyTest):
+
+class TestIrredZone(AbipyTest):
+
+    def test_irredzone_api(self):
+        """Testing IrredZone API."""
+        structure = abilab.Structure.as_structure(abidata.cif_file("si.cif"))
+
+        ibz = IrredZone.from_ngkpt(structure, ngkpt=[4, 4, 4], shiftk=[0.0, 0.0, 0.0], verbose=2)
+        repr(ibz); str(ibz)
+        assert ibz.to_string(verbose=2)
+        assert ibz.is_ibz
+        assert len(ibz) == 8
+        assert ibz.ksampling.kptopt == 1
+        self.assert_equal(ibz.ksampling.mpdivs, [4, 4, 4])
+
+        ibz = IrredZone.from_kppa(structure, kppa=1000, shiftk=[0.5, 0.5, 0.5], kptopt=1, verbose=1)
+        assert ibz.is_ibz
+        assert len(ibz) == 60
+        self.assert_equal(ibz.ksampling.mpdivs, [8, 8, 8])
+
+
+class TestKpath(AbipyTest):
+
+    def test_kpath_api(self):
+        """Testing Kpath API."""
+        structure = abilab.Structure.as_structure(abidata.cif_file("si.cif"))
+
+        knames = ["G", "X", "L", "G"]
+        kpath = Kpath.from_names(structure, knames, line_density=5)
+        repr(kpath); str(kpath)
+        assert kpath.to_string(verbose=2, title="Kpath")
+        assert not kpath.is_ibz and kpath.is_path
+        assert kpath[0].is_gamma and kpath[-1].is_gamma
+        #assert len(kpath.ds) == len(self) - 1
+        #assert kpath.ksampling.kptopt == 1
+        #self.assert_equal(kpath.ksampling.mpdivs, [4, 4, 4])
+
+        assert len(kpath.ds) == len(kpath) - 1
+        assert len(kpath.versors) == len(kpath) - 1
+        assert len(kpath.lines) == len(knames) - 1
+        self.assert_almost_equal(kpath.frac_bounds, structure.get_kcoords_from_names(knames))
+        self.assert_almost_equal(kpath.cart_bounds, structure.get_kcoords_from_names(knames, cart_coords=True))
+
+        r = kpath.find_points_along_path(kpath.get_cart_coords())
+        assert len(r.ikfound) == len(kpath)
+        self.assert_equal(r.ikfound,
+            [ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,  0])
+
+        #kpath = IrredZone.from_kppa(structure, kppa=1000, shiftk=[0.5, 0.5, 0.5], kptopt=1, verbose=1)
+        #assert not kpath.is_ibz and kpath.is_path
+        #assert len(kpath) == 60
+        #self.assert_equal(kpath.ksampling.mpdivs, [8, 8, 8])
 
 
 class TestKpointsReader(AbipyTest):
 
     def test_reading(self):
         """Test the reading of Kpoints from netcdf files."""
-
         filenames = [
             "si_scf_GSR.nc",
             "si_nscf_GSR.nc",
