@@ -13,6 +13,22 @@ wannier90 Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`abiwan` Module
+--------------------
+
+.. automodule:: abipy.wannier90.abiwan
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`win` Module
+-----------------
+
+.. automodule:: abipy.wannier90.win
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`wout` Module
 ------------------
 

@@ -42,8 +42,8 @@ class TestScissors(AbipyTest):
         # Plot the LDA and the QPState band structure with matplotlib.
         if self.has_matplotlib():
             plotter = abilab.ElectronBandsPlotter()
-            plotter.add_ebands("LDA", ks_bands, dos=ks_dos)
-            plotter.add_ebands("LDA+scissors(e)", qp_bands, dos=qp_dos)
+            plotter.add_ebands("LDA", ks_bands, edos=ks_dos)
+            plotter.add_ebands("LDA+scissors(e)", qp_bands, edos=qp_dos)
 
             # By default, the two band energies are shifted wrt to *their* fermi level.
             # Use e=0 if you don't want to shift the eigenvalus

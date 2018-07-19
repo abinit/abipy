@@ -47,6 +47,7 @@ install:
         conda install -y -c abinit abinit=${ABINIT_VERSION}
         abinit --version
         abinit --build
+
         sed -i '/pymatgen/d' requirements.txt
         travis_wait pip install -r requirements.txt
         travis_wait pip install -r requirements-optional.txt

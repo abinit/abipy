@@ -62,7 +62,7 @@ from abipy.dynamics.hist import HistFile, HistRobot
 from abipy.waves import WfkFile
 from abipy.eph.a2f import A2fFile, A2fRobot
 from abipy.eph.sigeph import SigEPhFile, SigEPhRobot
-from abipy.wannier90 import WoutFile
+from abipy.wannier90 import WoutFile, AbiwanFile, AbiwanRobot
 from abipy.electrons.lobster import CoxpFile, ICoxpFile, LobsterDoscarFile, LobsterInput, LobsterAnalyzer
 
 # Abinit Documentation.
@@ -125,6 +125,7 @@ abiext2ncfile = collections.OrderedDict([
     ("OPTIC.nc", OpticNcFile),
     ("A2F.nc", A2fFile),
     ("SIGEPH.nc", SigEPhFile),
+    ("ABIWAN.nc", AbiwanFile),
 ])
 
 

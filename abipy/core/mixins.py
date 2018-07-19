@@ -337,12 +337,13 @@ class Has_ElectronBands(object):
 
     def yield_ebands_figs(self, **kwargs):
         """*Generates* a predefined list of matplotlib figures with minimal input from the user."""
+        with_gaps = not self.ebands.has_metallic_scheme
         if self.ebands.kpoints.is_path:
-            yield self.ebands.plot(show=False)
+            yield self.ebands.plot(with_gaps=with_gaps, show=False)
             yield self.ebands.kpoints.plot(show=False)
         else:
             edos = self.ebands.get_edos()
-            yield self.ebands.plot_with_edos(edos, show=False)
+            yield self.ebands.plot_with_edos(edos, with_gaps=with_gaps, show=False)
             yield edos.plot(show=False)
 
     def expose_ebands(self, slide_mode=False, slide_timeout=None, **kwargs):
@@ -378,7 +379,6 @@ class Has_PhononBands(object):
 
     #def plot_phbands_with_phdos(self, phdos, **kwargs):
     #    return self.phbands.plot_with_phdos(phdos, **kwargs)
-
 
     def yield_phbands_figs(self, **kwargs):  # pragma: no cover
         """

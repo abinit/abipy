@@ -5,13 +5,16 @@ For the theoretical background see :cite:`Euwema1969,Koelling1986,Pickett1988,Ma
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
 
+import abc
 import itertools
 import pickle
+import six
 import numpy as np
 import scipy
 import time
 
 from collections import deque, OrderedDict
+from monty.termcolor import cprint
 from monty.collections import dict2namedtuple
 from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.tools import gaussian
@@ -112,12 +115,13 @@ def map_bz2ibz(structure, ibz, ngkpt, has_timrev):
     return bz2ibz
 
 
-class EDOS(object):
-    def __init__(self, mesh, values, integral, is_shift, method, step, width):
-        self.mesh, self.values, self.integral = mesh, values, integral
-        self.is_shift, self.method, self.step, self.width = is_shift, method, step, width
+#class EDOS(object):
+#    def __init__(self, mesh, values, integral, is_shift, method, step, width):
+#        self.mesh, self.values, self.integral = mesh, values, integral
+#        self.is_shift, self.method, self.step, self.width = is_shift, method, step, width
 
 
+@six.add_metaclass(abc.ABCMeta)
 class ElectronInterpolator(object):
     """
     """
@@ -264,7 +268,7 @@ class ElectronInterpolator(object):
 
     #def set_charge_per_ucell(self, charge, kmesh, is_shift=None):
 
-    def calc_occfacts(self, eigens, temp):
+    def get_occfacts(self, eigens, temp):
         """
         Compute occupation factors from the eigenvalues `eigens` and
         the temperature `temp` in K. occfacts in [0, 1].
@@ -361,7 +365,6 @@ class ElectronInterpolator(object):
                             for icv in range(self.val_ib):
                                 ev = eigens[spin, ik, icv]
                                 values[spin] += wtk * gaussian(wmesh, width, center=ec-ev)
-
             else:
                 raise ValueError("Method %s is not supported" % method)
 
@@ -378,7 +381,6 @@ class ElectronInterpolator(object):
                                 fv = occfacts[spin, ik, icv]
                                 fact = wtk * fv * fc
                                 values[spin] += fact * gaussian(wmesh, width, center=ec-ev)
-
             else:
                 raise ValueError("Method %s is not supported" % method)
 
@@ -435,7 +437,7 @@ class ElectronInterpolator(object):
             eigens_kbz = self.interp_kpts(k.bz).eigens
             self._cache_eigens(kmesh, is_shift, eigens_kbz, "bz")
 
-        eigens_kbz -= e0
+        eigens_kbz = eigens_kbz - e0
         g_skb = gaussian(eigens_kbz, width)
 
         # TODO: One could reduce the sum to IBZ(q) with appropriate weight.
@@ -449,30 +451,6 @@ class ElectronInterpolator(object):
 
         nest_sq *= 1. / k.nbz
         return nest_sq
-
-    #def get_unitcell_vals(self, kmesh):
-    #    is_shift = None
-    #    k = self.get_sampling(kmesh, is_shift=is_shift)
-
-    #    # Interpolate eigenvalues in the IBZ.
-    #    eigens_ibz = self._get_cached_eigens(kmesh, is_shift, "ibz")
-    #    if eigens_ibz is None:
-    #        eigens_ibz = self.interp_kpts(k.ibz).eigens
-    #        self._cache_eigens(kmesh, is_shift, eigens_ibz, "ibz")
-
-    #    egrid_sbuc = np.empty((self.nsppol, self.nband) + tuple(kmesh))
-    #    egrid_sbuc[...] = np.inf
-    #    print("shape eigens_ibz", eigens_ibz.shape)
-    #    print("shape egrid_sbuc", egrid_sbuc.shape)
-    #    print("nkibz: ", k.nibz, "nbz: ", k.nbz)
-    #    for gp, ik_ibz in zip(k.grid, k.bz2ibz):
-    #        ucgp = np.where(gp >= 0, gp, gp + k.mesh)
-    #        print("gp", gp, "ucgp", ucgp, "ik_ibz", ik_ibz)
-    #        egrid_sbuc[:, :, ucgp[0], ucgp[1], ucgp[2]] = eigens_ibz[:, ik_ibz, :]
-    #    print(np.any(egrid_sbuc == np.inf))
-    #    #print(egrid_sbuc[0, 0, ...])
-
-    #    return egrid_sbuc
 
     def _get_wmesh_step(self, eigens, wmesh, step):
         if wmesh is not None:
@@ -609,11 +587,10 @@ class ElectronInterpolator(object):
             method: String defining the method for the computation of the DOS.
             step: Energy step (eV) of the linear mesh.
             width: Standard deviation (eV) of the gaussian.
-            ax: matplotlib `Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: Legend and title fontsize.
 
-        Returns:
-            matplotlib figure.
+        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         kmeshes = np.reshape(np.asarray(kmeshes, dtype=np.int), (-1, 3))
@@ -645,11 +622,10 @@ class ElectronInterpolator(object):
             line_density:
             is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along
                 the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: Legend and title fontsize.
 
-        Returns:
-            matplotlib figure.
+        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         qpoints = self._get_kpts_kticks_klabels(ax, qvertices_names, line_density)
@@ -682,11 +658,10 @@ class ElectronInterpolator(object):
             line_density:
             is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along
                 the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: legend and title fontsize.
 
-        Returns:
-            matplotlib figure.
+        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         qpoints = self._get_kpts_kticks_klabels(ax, qvertices_names, line_density)
@@ -713,10 +688,9 @@ class ElectronInterpolator(object):
         Args:
             vertices_names
             line_density:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
 
-        Returns:
-            matplotlib figure.
+        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         kfrac_coords = self._get_kpts_kticks_klabels(ax, vertices_names, line_density)
@@ -741,6 +715,100 @@ class ElectronInterpolator(object):
 
         #self._axset_ticks_labels(ax, xticks, xlabels)
         return kpath.frac_coords, list(range(len(kpath))), kpath.names
+
+    #@abc.abstractproperty
+    #def structure(self):
+    #    """Returns the |Structure| object."""
+
+    #nsppol
+    #nkpt
+    #nband
+    #original_fermie
+    #fermie
+    #verbose
+    #has_timrev
+
+    @abc.abstractmethod
+    def eval_sk(self, spin, kpt, der1=None, der2=None):
+        """
+        Interpolate eigenvalues for all bands at a given (spin, k-point).
+        Optionally compute gradients and Hessian matrices.
+
+        Args:
+            spin: Spin index.
+            kpt: K-point in reduced coordinates.
+            der1: If not None, ouput gradient is stored in der1[nband, 3].
+            der2: If not None, output Hessian is der2[nband, 3, 3].
+
+        Return:
+            oeigs[nband]
+        """
+
+    def interp_kpts(self, kfrac_coords, dk1=False, dk2=False):
+        """
+        Interpolate energies on an arbitrary set of k-points. Optionally, compute
+        gradients and Hessian matrices.
+
+        Args:
+            kfrac_coords: K-points in reduced coordinates.
+            dk1 (bool): True if gradient is wanted.
+            dk2 (bool): True to compute 2nd order derivatives.
+
+        Return:
+            namedtuple with:
+            interpolated energies in eigens[nsppol, len(kfrac_coords), nband]
+            gradient in dedk[self.nsppol, len(kfrac_coords), self.nband, 3))
+            hessian in dedk2[self.nsppol, len(kfrac_coords), self.nband, 3, 3))
+
+            gradient and hessian are set to None if not computed.
+        """
+        start = time.time()
+
+        kfrac_coords = np.reshape(kfrac_coords, (-1, 3))
+        new_nkpt = len(kfrac_coords)
+        new_eigens = np.empty((self.nsppol, new_nkpt, self.nband))
+
+        dedk = None if not dk1 else np.empty((self.nsppol, new_nkpt, self.nband, 3))
+        dedk2 = None if not dk2 else np.empty((self.nsppol, new_nkpt, self.nband, 3, 3))
+
+        der1, der2 = None, None
+        for spin in range(self.nsppol):
+            for ik, newk in enumerate(kfrac_coords):
+                if dk1: der1 = dedk[spin, ik]
+                if dk2: der2 = dedk2[spin, ik]
+                new_eigens[spin, ik] = self.eval_sk(spin, newk, der1=der1, der2=der2)
+
+        if self.verbose:
+            print("Interpolation completed in %.3f (s)" % (time.time() - start))
+
+        return dict2namedtuple(eigens=new_eigens, dedk=dedk, dedk2=dedk2)
+
+    def interp_kpts_and_enforce_degs(self, kfrac_coords, ref_eigens, atol=1e-4):
+        """
+        Interpolate energies on an arbitrary set of k-points. Use `ref_eigens`
+        to detect degeneracies and average the interpolated values in the degenerate subspace.
+        """
+        kfrac_coords = np.reshape(kfrac_coords, (-1, 3))
+        new_nkpt = len(kfrac_coords)
+        ref_eigens = np.reshape(ref_eigens, (self.nsppol, new_nkpt, self.nband))
+
+        # Interpolate eigenvales.
+        new_eigens = self.interp_kpts(kfrac_coords).eigens
+
+        # Average interpolated values over degenerates bands.
+        for spin in range(self.nsppol):
+            for ik in range(new_nkpt):
+                for dgbs in find_degs_sk(ref_eigens[spin, ik], atol):
+                    if len(dgbs) == 1: continue
+                    new_eigens[spin, ik, dgbs] = new_eigens[spin, ik, dgbs].sum() / len(dgbs)
+
+        return dict2namedtuple(eigens=new_eigens, dedk=None, dedk2=None)
+
+    #def get_ebands3d(self, mesh, is_shift):
+    #    k = self.get_sampling(self, mesh, is_shift)
+    #    ibz_eigens = self.interp_kpts(k.ibz).eigens
+    #    ibz_kpoints
+    #    return ElectronBands3D(self.structure, ibz_kpoints, self.has_timrev, ibz_eigens, self.fermie)
 
 
 class SkwInterpolator(ElectronInterpolator):
@@ -794,7 +862,6 @@ class SkwInterpolator(ElectronInterpolator):
             raise ValueError("Interpolation algorithm requires nkpt > 1")
 
         rprimd = np.asarray(lattice).T
-        #print("rprimd", rprimd)
         self.rmet = np.matmul(rprimd.T, rprimd)
 
         # Find point group operations.
@@ -824,7 +891,7 @@ class SkwInterpolator(ElectronInterpolator):
                 rmax *= 2
                 print("Will try again with enlarged rmax:", rmax)
 
-        print("Will use:", self.nr, "star-functions. nstars/nk:", self.nr / self.nkpt)
+        print("Using:", self.nr, "star-functions. nstars/nk:", self.nr / self.nkpt)
 
         # Compute (inverse) roughness function.
         c1, c2 = 0.25, 0.25
@@ -914,21 +981,22 @@ class SkwInterpolator(ElectronInterpolator):
                         print("spin", spin, "band", band, "ikpt", ik, "e0", e0, "eskw", eskw, "diff", e0 - eskw)
 
         mae *= 1e3 / (nsppol * nkpt * nband)
-        print("FIT vs input data: Mean Absolute Error=", mae, " [meV]")
-        if mae > 10.0:
-            # Issue warning if error too large.
-            print("Large error in SKW interpolation!")
-            print("MAE:", mae, "[meV]")
-
         if np.isnan(mae) or np.isinf(mae):
             raise RuntimeError("Interpolation went bananas! mae = %s" % mae)
+
+        warn = mae > 10.0
+        cprint("FIT vs input data: Mean Absolute Error= %.3e (meV)" % mae, color="red" if warn else "green")
+        if warn:
+            # Issue warning if error too large.
+            cprint("Large error in SKW interpolation!", "red")
+            cprint("MAE:", mae, "[meV]", "red")
 
         self.mae = mae
 
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, **kwargs):
+    def to_string(self, verbose=0):
         """String representation."""
         lines = []
         app = lines.append
@@ -941,65 +1009,6 @@ class SkwInterpolator(ElectronInterpolator):
         app("Comparison between ab-initio data and fit gave Mean Absolute Error: %s [meV]" % self.mae)
 
         return "\n".join(lines)
-
-    def interp_kpts(self, kfrac_coords, dk1=False, dk2=False):
-        """
-        Interpolate energies on an arbitrary set of k-points. Optionally, compute
-        gradients and Hessian matrices.
-
-        Args:
-            kfrac_coords: K-points in reduced coordinates.
-            dk1 (bool): True if gradient is wanted.
-            dk2 (bool): True to compute 2nd order derivatives.
-
-        Return:
-            namedtuple with:
-            interpolated energies in eigens[nsppol, len(kfrac_coords), nband]
-            gradient in dedk[self.nsppol, len(kfrac_coords), self.nband, 3))
-            hessian in dedk2[self.nsppol, len(kfrac_coords), self.nband, 3, 3))
-
-            gradient and hessian are set to None if not computed.
-        """
-        start = time.time()
-
-        kfrac_coords = np.reshape(kfrac_coords, (-1, 3))
-        new_nkpt = len(kfrac_coords)
-        new_eigens = np.empty((self.nsppol, new_nkpt, self.nband))
-
-        dedk = None if not dk1 else np.empty((self.nsppol, new_nkpt, self.nband, 3))
-        dedk2 = None if not dk2 else np.empty((self.nsppol, new_nkpt, self.nband, 3, 3))
-
-        der1, der2 = None, None
-        for spin in range(self.nsppol):
-            for ik, newk in enumerate(kfrac_coords):
-                if dk1: der1 = dedk[spin, ik]
-                if dk2: der2 = dedk2[spin, ik]
-                new_eigens[spin, ik] = self.eval_sk(spin, newk, der1=der1, der2=der2)
-
-        if self.verbose:
-            print("Interpolation completed", time.time() - start)
-        return dict2namedtuple(eigens=new_eigens, dedk=dedk, dedk2=dedk2)
-
-    def interp_kpts_and_enforce_degs(self, kfrac_coords, ref_eigens, atol=1e-4):
-        """
-        Interpolate energies on an arbitrary set of k-points. Use `ref_eigens`
-        to detect degeneracies and average the interpolated values in the degenerate subspace.
-        """
-        kfrac_coords = np.reshape(kfrac_coords, (-1, 3))
-        new_nkpt = len(kfrac_coords)
-        ref_eigens = np.reshape(ref_eigens, (self.nsppol, new_nkpt, self.nband))
-
-        # Interpolate eigenvales.
-        new_eigens = self.interp_kpts(kfrac_coords).eigens
-
-        # Average interpolated values over degenerates bands.
-        for spin in range(self.nsppol):
-            for ik in range(new_nkpt):
-                for dgbs in find_degs_sk(ref_eigens[spin, ik], atol):
-                    if len(dgbs) == 1: continue
-                    new_eigens[spin, ik, dgbs] = new_eigens[spin, ik, dgbs].sum() / len(dgbs)
-
-        return dict2namedtuple(eigens=new_eigens, dedk=None, dedk2=None)
 
     def eval_sk(self, spin, kpt, der1=None, der2=None):
         """

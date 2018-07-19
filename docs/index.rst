@@ -45,7 +45,7 @@ Workflows
    workflows/taskmanager
    workflows/manager_examples
    flow_gallery/index
-.. flows_howto
+   flows_howto
 
 API
 ===
