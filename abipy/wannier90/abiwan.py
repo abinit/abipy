@@ -269,13 +269,11 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
             rmn = np.zeros((nrpts, num_wan, num_wan), dtype=np.complex)
             j2pi = 2.0j * np.pi
 
-            """
-            for ir in range(nrpts):
-               for ik, kfcs in enumerate(kfrac_coords):
-                  jqr = j2pi * np.dot(kfcs, self.irvec[ir])
-                  rmn[ir] += np.exp(-jqr) * HH_q[ik]
-            rmn *= (1.0 / num_kpts)
-            """
+            #for ir in range(nrpts):
+            #   for ik, kfcs in enumerate(kfrac_coords):
+            #      jqr = j2pi * np.dot(kfcs, self.irvec[ir])
+            #      rmn[ir] += np.exp(-jqr) * HH_q[ik]
+            #rmn *= (1.0 / num_kpts)
 
             for ik, kfcs in enumerate(kfrac_coords):
                 jqr = j2pi * np.dot(self.irvec, kfcs)

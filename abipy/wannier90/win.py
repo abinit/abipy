@@ -3,10 +3,8 @@
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
-#import pandas as pd
 
 from collections import OrderedDict
-#from monty.string import marquee
 from abipy.core.mixins import Has_Structure
 from abipy.abio.variable import InputVariable
 from abipy.abio.inputs import AbstractInput
@@ -129,17 +127,17 @@ class Wannier90Input(AbstractInput, Has_Structure):
             return False
 
     def _check_varname(self, key):
-        # TODO
         return
-        if not is_wannier90_var(key) and self.spell_check:
-            raise ValueError("%s is not a registered Wannier90 variable\n"
-                             "If you are sure the name is correct, please contact the abipy developers\n"
-                             "or use input.set_spell_check(False)\n" % key)
+        # TODO
+        #if not is_wannier90_var(key) and self.spell_check:
+        #    raise ValueError("%s is not a registered Wannier90 variable\n"
+        #                     "If you are sure the name is correct, please contact the abipy developers\n"
+        #                     "or use input.set_spell_check(False)\n" % key)
 
     @property
     def structure(self):
-       """|Structure| object."""
-       return self._structure
+        """|Structure| object."""
+        return self._structure
 
     def to_string(self, sortmode=None, mode="text", verbose=0):
         """

@@ -1,8 +1,9 @@
 # coding: utf-8
-""""""
+"""
+Arpese Plotter (still under development)
+"""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
-import os
 import numpy as np
 
 #from collections import OrderedDict
@@ -13,7 +14,7 @@ from monty.collections import dict2namedtuple
 #from monty.termcolor import cprint
 from abipy.core.mixins import Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.electrons import ElectronBands
-from abipy.tools.plotting import set_axlims, add_fig_kwargs, get_ax_fig_plt, get_ax3d_fig_plt, get_axarray_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_ax3d_fig_plt, get_axarray_fig_plt #set_axlims,
 
 
 class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):

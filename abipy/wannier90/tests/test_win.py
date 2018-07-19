@@ -2,10 +2,8 @@
 from __future__ import print_function, division, absolute_import, unicode_literals
 
 import os
-import numpy as np
 import abipy.data as abidata
 
-from abipy import abilab
 from abipy.core.testing import AbipyTest
 from abipy.wannier90 import Wannier90Input
 

@@ -97,7 +97,6 @@ branches:
   only:
     - master
     - develop
-    - wannier
 
 after_success:
     - if [[ "${ABIPY_COVERALLS}" == "yes" ]]; then coveralls; fi
