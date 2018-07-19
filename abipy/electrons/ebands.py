@@ -616,16 +616,20 @@ class ElectronBands(Has_Structure):
     @property
     def has_metallic_scheme(self):
         """True if we are using a metallic scheme for occupancies."""
-        return self.smearing.has_metallic_scheme
+        if self.smearing:
+            return self.smearing.has_metallic_scheme
+        else:
+            cprint("ebands.smearing is not defined, assuming has_metallic_scheme = False", "red")
+            return False
 
     #@lazy_property
     #def likely_semiconductor(self):
     #    """
     #    True if energy gap is present in the band structure,
-    #    independently on the use of metallic scheme for accupancies
+    #    independently on the use of metallic scheme for occupancies
     #    """
 
-    #def recalc_fermie(self, nelect=None, method="gaussian", step=0.001, width=0.002):
+    #def new_with_fermie(self, nelect=None, method="gaussian", step=0.001, width=0.002):
     #    """
     #    Recompute the Fermi level.
     #    """
@@ -633,11 +637,8 @@ class ElectronBands(Has_Structure):
     #    edos = self.get_edos(method=method, step=step, width=width)
     #    ef = edos.find_mu(nelect)
     #    self.set_fermie(ef)
-    #    return ef
-
-    #def set_fermie(self, fermie):
-    #    self.fermie = fermie
     #    # TODO: Recalculate occupations.
+    #    return ef
 
     def with_points_along_path(self, frac_bounds=None, knames=None, dist_tol=1e-12):
         """
@@ -821,13 +822,13 @@ class ElectronBands(Has_Structure):
                 for band in range(self.nband_sk[spin, ik]):
                     yield spin, ik, band
 
-    def copy(self):
-        """Shallow copy of self."""
-        return copy.copy(self)
+    #def copy(self):
+    #    """Shallow copy of self."""
+    #    return copy.copy(self)
 
-    def deepcopy(self):
-        """Deep copy of self."""
-        return copy.deepcopy(self)
+    #def deepcopy(self):
+    #    """Deep copy of self."""
+    #    return copy.deepcopy(self)
 
     def degeneracies(self, spin, kpoint, bands_range, tol_ediff=1.e-3):
         """
@@ -1693,8 +1694,7 @@ class ElectronBands(Has_Structure):
                 num_plots, i = len(jdos_vc), 0
                 for (v, c), jdos in jdos_vc.items():
                     color = cmap(float(i) / num_plots)
-                    jdos.plot_ax(ax, color=color, lw=lw,
-                        label=r"$v=%s \rightarrow c=%s, \sigma=%s$" % (v, c, s))
+                    jdos.plot_ax(ax, color=color, lw=lw, label=r"$v=%s \rightarrow c=%s, \sigma=%s$" % (v, c, s))
                     i += 1
 
             tot_jdos.plot_ax(ax, color="k", lw=lw, label=r"Total JDOS, $\sigma=%s$" % s)
@@ -2046,20 +2046,8 @@ class ElectronBands(Has_Structure):
         e0 = self.get_e0(e0) if e0 != "edos_fermie" else edos.fermie
         #if not kwargs: kwargs = {"color": "black", "linewidth": 2.0}
 
-        self.plot(e0=e0, ax=ax0, ylims=ylims, klabels=klabels, points=points, with_gaps=with_gaps, show=False)
-
         # Plot the band structure
-        #for spin in self.spins:
-        #    if spin == 0:
-        #        opts = {"color": "black", "linewidth": 2.0}
-        #    else:
-        #        opts = {"color": "red", "linewidth": 2.0}
-
-        #    for band in range(self.mband):
-        #        self.plot_ax(ax0, e0, spin=spin, band=band, **opts)
-
-        #self.decorate_ax(ax0, klabels=klabels)
-        #set_axlims(ax0, ylims, "y")
+        self.plot(e0=e0, ax=ax0, ylims=ylims, klabels=klabels, points=points, with_gaps=with_gaps, show=False)
 
         # Plot the DOS
         if self.nsppol == 1:
@@ -2693,7 +2681,7 @@ class ElectronBandsPlotter(NotebookWriter):
         return self.combiplot(*args, **kwargs)
 
     @add_fig_kwargs
-    def gridplot(self, e0="fermie", with_dos=True, ylims=None, fontsize=8, **kwargs):
+    def gridplot(self, e0="fermie", with_dos=True, with_gaps=False, ylims=None, fontsize=8, **kwargs):
         """
         Plot multiple electron bandstructures and optionally DOSes on a grid.
 
@@ -2718,6 +2706,7 @@ class ElectronBandsPlotter(NotebookWriter):
                 -  None: Don't shift energies, equivalent to e0=0
 
             with_dos: True if DOS should be printed.
+            with_gaps: True to add marker and arrows showing the fundamental and the direct gap.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ```(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
             fontsize: fontsize for titles and legend.
@@ -2743,9 +2732,11 @@ class ElectronBandsPlotter(NotebookWriter):
 
             for i, (ebands, ax) in enumerate(zip(ebands_list, ax_list)):
                 irow, icol = divmod(i, ncols)
-                ebands.plot(ax=ax, e0=e0, show=False)
+                ebands.plot(ax=ax, e0=e0, with_gaps=with_gaps, show=False)
                 set_axlims(ax, ylims, "y")
-                if titles is not None: ax.set_title(titles[i], fontsize=fontsize)
+                # This to handle with_gaps = True
+                title = ax.get_title()
+                if not title: ax.set_title(titles[i], fontsize=fontsize, loc=loc)
                 if (irow, icol) != (0, 0):
                     set_visible(ax, False, "ylabel")
 
@@ -2765,9 +2756,11 @@ class ElectronBandsPlotter(NotebookWriter):
 
                 # Define the zero of energy and plot
                 mye0 = ebands.get_e0(e0) if e0 != "edos_fermie" else edos.fermie
-                ebands.plot_with_edos(edos, e0=mye0, ax_list=(ax0, ax1), show=False)
+                ebands.plot_with_edos(edos, e0=mye0, ax_list=(ax0, ax1), with_gaps=with_gaps, show=False)
 
-                if titles is not None: ax0.set_title(titles[i], fontsize=fontsize)
+                # This to handle with_gaps = True
+                title = ax0.get_title()
+                if not title: ax0.set_title(titles[i], fontsize=fontsize)
                 if i % ncols != 0:
                     for ax in (ax0, ax1):
                         ax.set_ylabel("")
@@ -4221,7 +4214,6 @@ class RobotWithEbands(object):
                 if sortby is None: rotate_ticklabels(ax, 15)
             if i == 0:
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
-                #ax.legend(loc='best', fontsize=fontsize, shadow=True, fancybox=True, framealpha=0.5)
 
         return fig
 

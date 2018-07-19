@@ -22,7 +22,7 @@ plotter.add_ebands("k-path", ref_file("si_nscf_GSR.nc"))
 frame = plotter.get_ebands_frame()
 print(frame)
 
-plotter.gridplot()
+plotter.gridplot(with_gaps=True)
 #plotter.animate()
 
 # To plot a grid with band structures + DOS, use the optional argument `edos_objects`

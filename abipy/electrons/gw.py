@@ -1269,7 +1269,8 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         #qp_fermie = 0.0
 
         qp_ebands_kpath = ElectronBands(self.structure, kpts_kpath, eigens_kpath, qp_fermie, occfacts_kpath,
-                                        self.ebands.nelect, self.ebands.nspinor, self.ebands.nspden)
+                                        self.ebands.nelect, self.ebands.nspinor, self.ebands.nspden,
+                                        smearing=self.ebands.smearing)
 
         qp_ebands_kmesh = None
         if ks_ebands_kmesh is not None:
@@ -1296,7 +1297,8 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                                    names=None, ksampling=ks_ebands_kmesh.kpoints.ksampling)
             occfacts_kmesh = np.zeros(eigens_kmesh.shape)
             qp_ebands_kmesh = ElectronBands(self.structure, kpts_kmesh, eigens_kmesh, qp_fermie, occfacts_kmesh,
-                                            self.ebands.nelect, self.ebands.nspinor, self.ebands.nspden)
+                                            self.ebands.nelect, self.ebands.nspinor, self.ebands.nspden,
+                                            smearing=self.ebands.smearing)
 
         return dict2namedtuple(qp_ebands_kpath=qp_ebands_kpath,
                                qp_ebands_kmesh=qp_ebands_kmesh,

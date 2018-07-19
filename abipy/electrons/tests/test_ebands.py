@@ -93,8 +93,8 @@ class ElectronBandsTest(AbipyTest):
         assert smearing.scheme == "gaussian"
         assert not ni_ebands_kmesh.get_gaps_string()
 
-        ni_ebands_kmesh.copy()
-        ni_ebands_kmesh.deepcopy()
+        #ni_ebands_kmesh.copy()
+        #ni_ebands_kmesh.deepcopy()
 
         ni_edos = ni_ebands_kmesh.get_edos()
         repr(ni_edos); str(ni_edos)
@@ -552,7 +552,7 @@ class ElectronBandsPlotterTest(AbipyTest):
             assert plotter.plot(e0=2, width_ratios=(3, 1), fontsize=12, show=False)
             if self.has_seaborn():
                 plotter.combiboxplot(title="Silicon band structure", swarm=True, show=False)
-            assert plotter.gridplot(title="Silicon band structure", show=False)
+            assert plotter.gridplot(title="Silicon band structure", with_gaps=True, show=False)
             assert plotter.boxplot(title="Silicon band structure", swarm=True, show=False)
             assert plotter.animate(show=False)
 

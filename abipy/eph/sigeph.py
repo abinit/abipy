@@ -981,7 +981,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
             newt = ElectronBands(self.structure, kpts_kpath, eigens_kpath, qp_fermie, occfacts_kpath,
                                  self.ebands.nelect, self.ebands.nspinor, self.ebands.nspden,
-                                 linewidths=lw_kpath)
+                                 smearing=self.ebands.smearing, linewidths=lw_kpath)
             qp_ebands_kpath_t.append(newt)
 
         # TODO
@@ -1012,7 +1012,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             linewidths_kmesh = np.ones(eigens_kmesh.shape) * 0.2
             newt = ElectronBands(self.structure, kpts_kmesh, eigens_kmesh, qp_fermie, occfacts_kmesh,
                                  self.ebands.nelect, self.ebands.nspinor, self.ebands.nspden,
-                                 linewidths=linewidths_kmesh)
+                                 smearing=self.ebands.smearing, linewidths=linewidths_kmesh)
             qp_ebands_kmesh_t.append(newt)
 
         return TdepElectronBands(self.tmesh[itemp_list], ks_ebands_kpath, qp_ebands_kpath_t,

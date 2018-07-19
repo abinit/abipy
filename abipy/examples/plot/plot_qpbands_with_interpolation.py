@@ -41,7 +41,7 @@ qp_edos = r.qp_ebands_kmesh.get_edos()
 # we can plot the interpolate interpolated QP band structure with the first principles results.
 # This part is optional
 points = sigres.get_points_from_ebands(r.qp_ebands_kpath, size=24)
-r.qp_ebands_kpath.plot(points=points)
+r.qp_ebands_kpath.plot(points=points, with_gaps=True)
 #raise ValueError()
 
 # Shortcut: pass the name of the GSR files directly.
@@ -66,6 +66,6 @@ plotter.combiplot(title="Combiplot")
 plotter.boxplot(swarm=True, title="Boxplot")
 plotter.combiboxplot(swarm=True, title="Combiboxplot")
 # sphinx_gallery_thumbnail_number = 4
-plotter.gridplot(title="Gridplot")
+plotter.gridplot(title="Gridplot", with_gaps=True)
 
 sigres.close()

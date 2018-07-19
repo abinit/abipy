@@ -221,7 +221,7 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_ekmap_itemp(self, itemp=0, spins=None, estep=0.02, ax=None, ylims=None, **kwargs):
+    def plot_ekmap_itemp(self, itemp=0, spins=None, estep=0.02, ax=None, ylims=None, with_colorbar=False, **kwargs):
         """
         Plot (k, e) color map for given temperature.
 
@@ -234,28 +234,39 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
             ax: |matplotlib-Axes| or None if a new figure should be created.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
                 or scalar e.g. ``left``. If left (right) is None, default values are used
+            with_colorbar: True to add color bar.
             kwargs: options passed to ``ax.imshow``.
 
         Return: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
-
         a = self.get_data_nmtuple(itemp, estep, spins=spins)
 
-        ax.imshow(a.data.T, origin="lower", extent=[0, a.nkpt, a.emin, a.emax],
-                  cmap="jet",
+        cmap = "jet"
+        img = ax.imshow(a.data.T, origin="lower", extent=[0, a.nkpt, a.emin, a.emax],
+                  cmap=cmap,
                   interpolation="bilinear",
                   #interpolation="spline36",
                   #interpolation="bicubic",
                   #vmin=0, vmax=np.abs(data).max()
                   )
-        self.ebands.decorate_ax(ax)
+        self.ebands.plot(ax=ax, e0=0, show=False, color="w", lw=1, ls="--")
+
         #ax.set_zlabel(r"$A(\omega)$")
         #self.ebands.plot(ax=ax, e0=0, color="r", lw=1)
-
         #ax.imshow(data, cmap=None, norm=None, aspect=None, interpolation=None, alpha=None, vmin=None, vmax=None,
         #       origin=None, extent=None, shape=None, filternorm=1, filterrad=4.0, imlim=None, resample=None,
         #       url=None, hold=None, data=None, **kwargs)
+
+        if with_colorbar:
+            # Make a color bar
+            plt.colorbar(img, cmap=cmap)
+            # https://stackoverflow.com/questions/13310594/positioning-the-colorbar
+            #from mpl_toolkits.axes_grid1 import make_axes_locatable
+            #divider = make_axes_locatable(ax)
+            #cax = divider.new_vertical(size="5%", pad=0.7, pack_start=True)
+            #fig.add_axes(cax)
+            #fig.colorbar(img, cax=cax, orientation="horizontal")
 
         return fig
 
@@ -485,9 +496,9 @@ if __name__ == "__main__":
     import sys
     plotter = ArpesPlotter.model_from_ebands(sys.argv[1]) #, aw, aw_meshes, tmesh)
     print(plotter.to_string(verbose=2))
-    #plotter.plot_ekmap_itemp(itemp=0, estep=0.05)
+    plotter.plot_ekmap_itemp(itemp=0, estep=0.05, with_colorbar=True)
     #plotter.plot_ekmap_temps(estep=0.05)
     #plotter.plot_3dlines(itemp=0, estep=0.05, band_inds=[1, 2, 3])
-    plotter.plot_ak()
+    #plotter.plot_ak()
     #plotter.plot_ak_vs_temp()
     #plotter.plot_surface(istep=0, estep=0.05)
