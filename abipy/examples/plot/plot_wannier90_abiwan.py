@@ -14,7 +14,7 @@ import abipy.data as abidata
 from abipy.abilab import abiopen
 
 # Open the ABIWAN file
-filepath = "/Users/gmatteo/git_repos/abinit_wannier/_build/tests/W90_REFS/tutoplugs_tw90_4/tw90_4o_DS3_ABIWAN.nc"
+filepath = os.path.join(abidata.dirpath, "refs", "wannier90", "tutoplugs_tw90_4", "tw90_4o_DS3_ABIWAN.nc")
 abiwan = abiopen(filepath)
 print(abiwan)
 

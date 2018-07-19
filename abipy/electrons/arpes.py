@@ -191,7 +191,8 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
         return atw
 
     @add_fig_kwargs
-    def plot_ekmap_temps(self, temp_inds=None, spins=None, estep=0.02, ylims=None, fontsize=8, **kwargs):
+    def plot_ekmap_temps(self, temp_inds=None, spins=None, estep=0.02, with_colorbar=True,
+                        ylims=None, fontsize=8, **kwargs):
         """
         Plot (k, e) color maps for different temperatures.
 
@@ -215,13 +216,14 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
         if num_plots % ncols != 0: ax_list[-1].axis("off")
 
         for itemp, ax in zip(temp_inds, ax_list):
-            self.plot_ekmap_itemp(itemp=itemp, spins=spins, estep=estep, ax=ax, ylims=ylims, show=False, **kwargs)
+            self.plot_ekmap_itemp(itemp=itemp, spins=spins, estep=estep, ax=ax, ylims=ylims,
+                    with_colorbar=with_colorbar, show=False, **kwargs)
             ax.set_title("T = %.1f K" % self.tmesh[itemp], fontsize=fontsize)
 
         return fig
 
     @add_fig_kwargs
-    def plot_ekmap_itemp(self, itemp=0, spins=None, estep=0.02, ax=None, ylims=None, with_colorbar=False, **kwargs):
+    def plot_ekmap_itemp(self, itemp=0, spins=None, estep=0.02, ax=None, ylims=None, with_colorbar=True, **kwargs):
         """
         Plot (k, e) color map for given temperature.
 
@@ -260,13 +262,21 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
 
         if with_colorbar:
             # Make a color bar
-            plt.colorbar(img, cmap=cmap)
+            #plt.colorbar(img, cmap=cmap)
             # https://stackoverflow.com/questions/13310594/positioning-the-colorbar
-            #from mpl_toolkits.axes_grid1 import make_axes_locatable
-            #divider = make_axes_locatable(ax)
-            #cax = divider.new_vertical(size="5%", pad=0.7, pack_start=True)
+            from mpl_toolkits.axes_grid1 import make_axes_locatable
+            divider = make_axes_locatable(ax)
+            #cax = divider.new_vertical(size="5%", pad=0.1, pack_start=True)
+            #cax = divider.new_horizontal(size="5%", pad=0.1, pack_start=True)
+
+            # create an axes on the right side of ax. The width of cax will be 5%
+            # of ax and the padding between cax and ax will be fixed at 0.05 inch.
+            # https://matplotlib.org/2.0.2/mpl_toolkits/axes_grid/users/overview.html#axesdivider
+            cax = divider.append_axes("right", size="5%", pad=0.05)
+
             #fig.add_axes(cax)
-            #fig.colorbar(img, cax=cax, orientation="horizontal")
+            #fig.colorbar(img, cax=cax, ax=ax, orientation="horizontal")
+            fig.colorbar(img, cax=cax, ax=ax)
 
         return fig
 
@@ -468,6 +478,7 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         """
+        yield None
         # TODO
         #yield self.combiplot(show=False)
         #yield self.gridplot(show=False)
@@ -496,8 +507,8 @@ if __name__ == "__main__":
     import sys
     plotter = ArpesPlotter.model_from_ebands(sys.argv[1]) #, aw, aw_meshes, tmesh)
     print(plotter.to_string(verbose=2))
-    plotter.plot_ekmap_itemp(itemp=0, estep=0.05, with_colorbar=True)
-    #plotter.plot_ekmap_temps(estep=0.05)
+    #plotter.plot_ekmap_itemp(itemp=0, estep=0.05, with_colorbar=True)
+    plotter.plot_ekmap_temps(estep=0.05, with_colorbar=True)
     #plotter.plot_3dlines(itemp=0, estep=0.05, band_inds=[1, 2, 3])
     #plotter.plot_ak()
     #plotter.plot_ak_vs_temp()

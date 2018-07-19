@@ -46,6 +46,7 @@ class TestStructure(AbipyTest):
         # Test as_structure and from/to abivars
         si = Structure.as_structure(abidata.cif_file("si.cif"))
         assert si.formula == "Si2"
+        assert si.latex_formula == "Si$_2$"
         assert si.abi_spacegroup is None and not si.has_abi_spacegroup
         assert "ntypat" in si.to(fmt="abivars")
 

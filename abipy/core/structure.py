@@ -571,6 +571,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
     @property
     def latex_formula(self):
+        """LaTeX formatted formula. E.g., Fe2O3 is transformed to Fe$_{2}$O$_{3}$."""
         from pymatgen.util.string import latexify
         return latexify(self.formula)
 

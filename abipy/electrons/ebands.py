@@ -1822,7 +1822,7 @@ class ElectronBands(Has_Structure):
                 arrow_opts = {"color": "k"} if spin == 0 else {"color": "red"}
                 arrow_opts.update(dict(lw=2, alpha=0.6, arrowstyle="-|>", connectionstyle='arc3', mutation_scale=20))
                 scatter_opts = {"color": "blue"} if spin == 0 else {"color": "green"}
-                scatter_opts.update(dict(marker="o", alpha=0.6, s=100))
+                scatter_opts.update(dict(marker="o", alpha=0.6, s=80))
 
                 # Fundamental gap.
                 posA = (fgap.in_state.kidx, fgap.in_state.eig - e0)
@@ -1832,8 +1832,8 @@ class ElectronBands(Has_Structure):
                 if need_arrows:
                     ax.add_patch(FancyArrowPatch(posA=posA, posB=posB, **arrow_opts))
 
-                # Direct gap.
-                if (dir_gap != fgap):
+                if dir_gap != fgap:
+                    # Direct gap.
                     posA = (dir_gap.in_state.kidx, dir_gap.in_state.eig - e0)
                     posB = (dir_gap.out_state.kidx, dir_gap.out_state.eig - e0)
                     ax.scatter(posA[0], posA[1], **scatter_opts)
@@ -2736,7 +2736,7 @@ class ElectronBandsPlotter(NotebookWriter):
                 set_axlims(ax, ylims, "y")
                 # This to handle with_gaps = True
                 title = ax.get_title()
-                if not title: ax.set_title(titles[i], fontsize=fontsize, loc=loc)
+                if not title: ax.set_title(titles[i], fontsize=fontsize)
                 if (irow, icol) != (0, 0):
                     set_visible(ax, False, "ylabel")
 

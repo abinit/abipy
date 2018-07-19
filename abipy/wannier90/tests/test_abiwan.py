@@ -12,9 +12,8 @@ from abipy.core.testing import AbipyTest
 class TestAbiwanFile(AbipyTest):
 
     def test_abiwan_without_dis(self):
-        """Testing abiwan file without DISENTANGLE."""
-        #filepath = os.path.join(abidata.dirpath, "refs", "wannier90", "foo_ABIWAN.nc")
-        filepath = "/Users/gmatteo/git_repos/abinit_wannier/_build/tests/W90_REFS/tutoplugs_tw90_1/tw90_1o_DS2_ABIWAN.nc"
+        """Testing ABIWAN file without DISENTANGLE procedure."""
+        filepath = os.path.join(abidata.dirpath, "refs", "wannier90", "tutoplugs_tw90_1", "tw90_1o_DS2_ABIWAN.nc")
         with abilab.abiopen(filepath) as abiwan:
             repr(abiwan); str(abiwan)
             assert abiwan.to_string(verbose=2)
@@ -44,7 +43,7 @@ class TestAbiwanFile(AbipyTest):
             ebands_kmesh = abiwan.interpolate_ebands(ngkpt=(4, 4, 4))
             assert ebands_kmesh.kpoints.is_ibz
 
-            ebands_wan = abiwan.interpolate_ebands(line_density=10)
+            ebands_wan = abiwan.interpolate_ebands(line_density=5)
             assert ebands_wan.kpoints.is_path
             plotter = abiwan.get_plotter_from_ebands(ebands_wan)
 
@@ -57,9 +56,8 @@ class TestAbiwanFile(AbipyTest):
                 assert abiwan.write_notebook(nbpath=self.get_tmpname(text=True))
 
     def test_abiwan_with_dis(self):
-        """Testing abiwan file with DISENTANGLE."""
-        filepath = "/Users/gmatteo/git_repos/abinit_wannier/_build/tests/W90_REFS/tutoplugs_tw90_4/tw90_4o_DS3_ABIWAN.nc"
-        #filepath = os.path.join(abidata.dirpath, "refs", "wannier90", "foo_ABIWAN.nc")
+        """Testing ABIWAN file with DISENTANGLE."""
+        filepath = os.path.join(abidata.dirpath, "refs", "wannier90", "tutoplugs_tw90_4", "tw90_4o_DS3_ABIWAN.nc")
         with abilab.abiopen(filepath) as abiwan:
             repr(abiwan); str(abiwan)
             assert abiwan.to_string(verbose=2)
@@ -99,7 +97,6 @@ class TestAbiwanFile(AbipyTest):
             if self.has_nbformat():
                 assert abiwan.write_notebook(nbpath=self.get_tmpname(text=True))
 
-
     def test_abiwan_robot(self):
         """Testing abiwan file with DISENTANGLE."""
         #return
@@ -119,7 +116,7 @@ class TestAbiwanFile(AbipyTest):
         df = robot.get_dataframe()
         #self.assert_equal(df["ecut"].values, 6.0)
 
-        plotter = robot.get_interpolated_ebands_plotter(line_density=5)
+        plotter = robot.get_interpolated_ebands_plotter(line_density=3)
 
         if self.has_matplotlib():
             assert robot.plot_hwanr(show=False)

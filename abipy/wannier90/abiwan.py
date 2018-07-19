@@ -343,7 +343,8 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         occfacts = np.zeros_like(eigens)
 
         return ElectronBands(self.structure, kpoints, eigens, self.ebands.fermie,
-                             occfacts, self.ebands.nelect, self.nspinor, self.nspden)
+                             occfacts, self.ebands.nelect, self.nspinor, self.nspden,
+                             smearing=self.ebands.smearing)
 
     def get_plotter_from_ebands(self, ebands):
         """
@@ -600,7 +601,7 @@ class AbiwanRobot(Robot, RobotWithEbands):
 
         return fig
 
-    def get_interpolated_ebands_plotter(self, vertices_names=None, line_density=20,
+    def get_interpolated_ebands_plotter(self, vertices_names=None, knames=None, line_density=20,
             ngkpt=None, shiftk=(0, 0, 0), kpoints=None, **kwargs):
         """
         Args:
