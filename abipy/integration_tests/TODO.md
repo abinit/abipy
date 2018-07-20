@@ -2,9 +2,10 @@ TODO list:
 
 ## High priority
 
-* Add ebands.method to fix the fermi level in semiconductors
+* Remove all the abiview commands that are now implemented in abiopen. 
 
-* Send PR to phononwebsite with phonon band structures for tutorials.
+* Add ebands.method to fix the fermi level in semiconductors
+  Remember that ebands is immutable
 
 * Use angdeg instead of rprimd in structure_to_abivars if hex or rhomboedral lattice 
   (tricky because input settings should be preserved)
@@ -31,13 +32,13 @@ TODO list:
 
 * DONE Add support for DVDV, DDB in plot_networkx (but graphviz is much better)
 
-* Check Positive gw_qprange in EPH
+* Check Positive gw_qprange in EPH (Fixed by Henrique)
 
 * DONE Fix problem with get_edos if we don't have enough bands 
 
 * abicomp should accept tolsym args
 
-* Remove all the abiview commands that are now implemented in abiopen. 
+* Add support for PSML/UPF format
 
 ## Medium priority
 
@@ -53,7 +54,7 @@ TODO list:
 
 * Refactor/improve Visualizer
 
-* Read LO-TO data from PHBST.nc instead of anaddb.nc (postponed to v0.4)
+* Read LO-TO data from PHBST.nc instead of anaddb.nc (not easy as directions should be computed by AbiPy)
 
 * add possibility of changing amu in anaddb/abinit and API to "mix" DDB files
   phonon group velocities (requires extension in netcdf files).
@@ -85,9 +86,9 @@ TODO list:
 
 * Add iscf to GSR.nc so that we know if we have SCF|NSCF run.
 
-* Had to increase fermie again to get correct gap in diamond treated if FD smearing
+* Add input file to NC files (?)
 
-* Create git repo for Abipy website to facilitate integration with binder + sphinx-gallery?
+* Had to increase fermie again to get correct gap in diamond treated if FD smearing
 
 ## Low priority
 
@@ -98,14 +99,12 @@ TODO list:
   parse log file and make sure that all scripts write log files in "abinit" format
   that can be read with EventsParser.
 
-* Add support for PSML/UPF format
-
 * Refactor PyLauncher logic
 
 * Add python API to support discontinuous paths (Abinit is not able to handle that
   but python code should be agnostic
 
-* Finalize DDK.nc 
+* Finalize DDK.nc  (EVK.nc)
 
 * Remove abipy.core.mixis.AbinitOutNcFile (deprecated, will be removed in 0.4)
 
@@ -170,12 +169,11 @@ TODO list:
 * fatbands with SOC (waiting for Matthieu's refactoring)
 
 * integrate improvements in skw by Nicholas.
+  Finalize baseclass for ElectronInterpolator
 
 * ALMOST DONE lobster interface from Guido
 
-* interface abistruct with marylin
-
-* Remove Prettytable
+* DONE Remove Prettytable
 
 * context manager to change variables (e.g. autoparal)
 

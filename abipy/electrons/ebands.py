@@ -1820,9 +1820,9 @@ class ElectronBands(Has_Structure):
                 need_arrows = fgap != dir_gap
 
                 arrow_opts = {"color": "k"} if spin == 0 else {"color": "red"}
-                arrow_opts.update(dict(lw=2, alpha=0.6, arrowstyle="-|>", connectionstyle='arc3', mutation_scale=20))
+                arrow_opts.update(lw=2, alpha=0.6, arrowstyle="-|>", connectionstyle='arc3', mutation_scale=20)
                 scatter_opts = {"color": "blue"} if spin == 0 else {"color": "green"}
-                scatter_opts.update(dict(marker="o", alpha=0.6, s=80))
+                scatter_opts.update(marker="o", alpha=0.6, s=80)
 
                 # Fundamental gap.
                 posA = (fgap.in_state.kidx, fgap.in_state.eig - e0)
@@ -2490,7 +2490,7 @@ class ElectronBandsPlotter(NotebookWriter):
     def add_plotter(self, other):
         """Merge two plotters, return new plotter."""
         if not isinstance(other, self.__class__):
-            raise TypeError("Don't know to to add %s to %s" % (other.__class__, self.__class__))
+            raise TypeError("Don't know to add %s to %s" % (other.__class__, self.__class__))
 
         key_ebands = list(self.ebands_dict.items()) + list(other.ebands_dict.items())
         key_edos = list(self.edoses_dict.items()) + list(other.edoses_dict.items())
@@ -2535,7 +2535,7 @@ class ElectronBandsPlotter(NotebookWriter):
 
     def add_ebands(self, label, bands, edos=None, edos_kwargs=None):
         """
-        Adds a band structure and optionally a edos to the plotter.
+        Adds a band structure and optionally an edos to the plotter.
 
         Args:
             label: label for the bands. Must be unique.
