@@ -11,6 +11,7 @@ conda config --add channels abinit
 echo "Installing requirements listed requirements.txt and requirements-optional.txt ..."
 # https://github.com/ContinuumIO/anaconda-issues/issues/542
 conda install -y -c anaconda setuptools
+conda install nomkl
 conda install -y --file ./requirements.txt
 conda install -y --file ./requirements-optional.txt
 
@@ -20,7 +21,8 @@ echo "Installing bader executable (http://theory.cm.utexas.edu/henkelman/code/ba
 conda install -y -c matsci bader
 
 echo "Installing abinit from abinit channel ..."
-conda install -y -c gmatteo abinit=${ABINIT_VERSION}
+#conda install -y -c gmatteo abinit=${ABINIT_VERSION}
+conda install -y -c abinit abinit=${ABINIT_VERSION}
 abinit --version
 abinit --build
 

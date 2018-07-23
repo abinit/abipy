@@ -3,6 +3,7 @@
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
+import os
 import abipy.core.abinit_units as abu
 import scipy.constants as const
 
@@ -13,11 +14,15 @@ from monty.collections import AttrDict
 from monty.functools import lazy_property
 from abipy.core.kpoints import Kpath, IrredZone, KSamplingInfo
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.dfpt.phonons import PhononBands, PhononBandsPlotter
+from abipy.abio.inputs import AnaddbInput
+from abipy.dfpt.phonons import PhononBands, PhononBandsPlotter, PhononDos
+from abipy.dfpt.ddb import DdbFile
 from abipy.iotools import ETSF_Reader
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims
+from abipy.flowtk import AnaddbTask
 #from abipy.tools import duck
 from abipy.core.func1d import Function1D
+from pymatgen.core.units import amu_to_kg, bohr_to_ang
 
 
 # DOS name --> meta-data
@@ -28,20 +33,6 @@ _ALL_DOS_NAMES = OrderedDict([
     ("gruns_vdos", dict(latex=r"$DOS_v$")),
     ("gruns_v2dos", dict(latex=r"$DOS_{v^2}$")),
 ])
-
-
-def get_cv_per_mode(t, w):
-    """
-    Returns the contribution to the constant-volume specific heat, in eV/K at temperature t for a mode with
-    frequency w
-
-    Args:
-        t: temperature in K
-        w: frequency in eV
-
-    """
-
-
 
 
 class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
@@ -217,7 +208,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
                 other_ax.set_ylabel(_ALL_DOS_NAMES[name]["latex"].replace("DOS", "IDOS"))
 
             if i == len(dos_names) - 1:
-                ax.set_xlabel(r"$\omega$ [eV]")
+                ax.set_xlabel(r"$\omega$ (eV)")
             #ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
@@ -236,7 +227,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     @add_fig_kwargs
     def plot_phbands_with_gruns(self, fill_with="gruns", gamma_fact=1, alpha=0.6, with_doses="all", units="eV",
-                                ylims=None, match_bands=False, **kwargs):
+                                ylims=None, match_bands=False, qlabels=None, branch_range=None, **kwargs):
         """
         Plot the phonon bands corresponding to ``V0`` (the central point) with markers
         showing the value and the sign of the Grunesein parameters.
@@ -253,6 +244,9 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             ylims: Set the data limits for the y-axis in eV. Accept tuple e.g. ``(left, right)``
                 or scalar e.g. ``left``. If left (right) is None, default values are used
             match_bands: if True tries to follow the band along the path based on the scalar product of the eigenvectors.
+            qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
+                The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
+            branch_range: Tuple specifying the minimum and maximum branch index to plot (default: all branches are plotted).
 
         Returns: |matplotlib-Figure|.
         """
@@ -278,7 +272,8 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
                 ax_doses.append(plt.subplot(gspec[i + 1], sharey=ax_bands))
 
         # Plot phonon bands.
-        phbands.plot(ax=ax_bands, units=units, match_bands=match_bands, show=False)
+        phbands.plot(ax=ax_bands, units=units, match_bands=match_bands, show=False, qlabels=qlabels,
+                     branch_range=branch_range)
 
         if fill_with == "gruns":
             max_gamma = np.abs(phbands.grun_vals).max()
@@ -294,7 +289,13 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         xvals = np.arange(len(phbands.phfreqs))
         max_omega = np.abs(phbands.phfreqs).max()
 
-        for nu in phbands.branches:
+        # Select the band range.
+        if branch_range is None:
+            branch_range = range(phbands.num_branches)
+        else:
+            branch_range = range(branch_range[0], branch_range[1], 1)
+
+        for nu in branch_range:
             omegas = phbands.phfreqs[:, nu].copy() * factor
 
             if fill_with == "gruns":
@@ -323,11 +324,11 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             set_axlims(ax, ylims, "x")
             ax.grid(True)
             ax.set_ylabel("")
-            ax.tick_params(labelbottom='off')
+            ax.tick_params(labelbottom=False)
             if i == len(dos_names) - 1:
                 ax.yaxis.set_ticks_position("right")
             else:
-                ax.tick_params(labelleft='off')
+                ax.tick_params(labelleft=False)
             ax.set_title(_ALL_DOS_NAMES[name]["latex"])
 
         return fig
@@ -339,6 +340,153 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         yield self.plot_phbands_with_gruns(show=False)
         yield self.plot_doses(show=False)
+
+    @add_fig_kwargs
+    def plot_gruns_scatter(self, values="gruns", ax=None, units="eV", **kwargs):
+        """
+        A scatter plot of the values of the Gruneisen parameters or group velocities as a function
+        of the phonon frequencies.
+
+        Args:
+            values:  Define the plotted quantity. "gruns" for Grunesein parameters,
+                "groupv" for phonon group velocities.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            units: Units for phonon frequencies. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
+            **kwargs: kwargs passed to the matplotlib function 'scatter'. Size defaults to 10.
+
+        Returns: |matplotlib-Figure|
+        """
+
+        if values == "gruns":
+            y = self.gvals_qibz
+        elif values == "groupv":
+            # TODO: units?
+            y = np.linalg.norm(self.reader.read_value("gruns_dwdq_qibz"), axis=-1)
+        else:
+            raise ValueError("Unsupported values: `%s`" % values)
+
+        w = self.wvols_qibz[:, self.iv0, :] * abu.phfactor_ev2units(units)
+
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+
+        if 's' not in kwargs:
+            kwargs['s'] = 10
+
+        ax.scatter(w.flatten(), y.flatten(), **kwargs)
+        ax.set_xlabel('Frequency %s' % abu.phunit_tag(units))
+        if values == "gruns":
+            ax.set_ylabel('Gruneisen')
+        elif values == "groupv":
+            ax.set_ylabel('|v|')
+
+        return fig
+
+    @lazy_property
+    def split_gruns(self):
+        """
+        Splits the values of the gruneisen along a path like for the phonon bands
+        """
+
+        try:
+            return self._split_gruns
+        except AttributeError:
+            # trigger the generation of the split in the phbands
+            self.phbands_qpath_vol[self.iv0].split_phfreqs
+
+            indices = self.phbands_qpath_vol[self.iv0]._split_indices
+            g = self.phbands_qpath_vol[self.iv0].grun_vals
+            self._split_gruns = [np.array(g[indices[i]:indices[i + 1] + 1]) for i in range(len(indices) - 1)]
+            return self._split_gruns
+
+    @lazy_property
+    def split_dwdq(self):
+        """
+        Splits the values of the group velocities along a path like for the phonon bands
+        """
+
+        try:
+            return self._split_dwdq
+        except AttributeError:
+            # trigger the generation of the split in the phbands
+            self.phbands_qpath_vol[self.iv0].split_phfreqs
+
+            indices = self.phbands_qpath_vol[self.iv0]._split_indices
+            v = self.reader.read_value("gruns_dwdq_qpath")
+            self._split_dwdq = [np.array(v[indices[i]:indices[i + 1] + 1]) for i in range(len(indices) - 1)]
+            return self._split_dwdq
+
+    @add_fig_kwargs
+    def plot_gruns_bs(self, values="gruns", ax=None, branch_range=None, qlabels=None, match_bands=False, **kwargs):
+        """
+        A plot of the values of the Gruneisen parameters or group velocities along the
+        high symmetry path.
+        By default only the calculated points will be displayed. If lines are required set a positive value for lw
+        and match_bands=True to obtained reasonable paths.
+
+        Args:
+            values:  Define the plotted quantity. "gruns" for Grunesein parameters,
+                "groupv" for phonon group velocities.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            branch_range: Tuple specifying the minimum and maximum branch index to plot (default: all
+                branches are plotted).
+            qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
+                The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
+            match_bands: if True the bands will be matched based on the scalar product between the eigenvectors.
+            **kwargs: kwargs passed to the matplotlib function 'plot'. Marker size defaults to 4, line width to 0,
+                marker to 'o', color to black.
+
+        Returns: |matplotlib-Figure|
+        """
+
+        if values == "gruns":
+            y = self.split_gruns
+        elif values == "groupv":
+            # TODO: units?
+            y = np.linalg.norm(self.split_dwdq, axis=-1)
+        else:
+            raise ValueError("Unsupported values: `%s`" % values)
+
+        phbands = self.phbands_qpath_vol[self.iv0]
+
+        # Select the band range.
+        if branch_range is None:
+            branch_range = range(phbands.num_branches)
+        else:
+            branch_range = range(branch_range[0], branch_range[1], 1)
+
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+
+        phbands.decorate_ax(ax, units=None, qlabels=qlabels)
+        if values == "gruns":
+            ax.set_ylabel('Gruneisen')
+        elif values == "groupv":
+            ax.set_ylabel('|v|')
+
+        if 'marker' not in kwargs and 'm' not in kwargs:
+            kwargs['marker'] = 'o'
+
+        if 'markersize' not in kwargs and 'ms' not in kwargs:
+            kwargs['markersize'] = 4
+
+        if 'linewidth' not in kwargs and 'lw' not in kwargs:
+            kwargs['linewidth'] = 0
+
+        if "color" not in kwargs:
+            kwargs["color"] = "black"
+
+        first_xx = 0
+
+        for i, yy in enumerate(y):
+            if match_bands:
+                ind = phbands.split_matched_indices[i]
+                yy = yy[np.arange(len(yy))[:, None], ind]
+            xx = list(range(first_xx, first_xx + len(yy)))
+            for branch in branch_range:
+                ax.plot(xx, yy[:, branch], **kwargs)
+            first_xx = xx[-1]
+
+        return fig
 
     def write_notebook(self, nbpath=None):
         """
@@ -367,6 +515,198 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
+
+    @property
+    def phdos(self):
+        """
+        The |PhononDos| corresponsing to iv0, if present in the file, None otherwise.
+        """
+
+        if not self.doses:
+            return None
+
+        return PhononDos(self.doses['wmesh'], self.doses['gruns_wdos'][0])
+
+    def average_gruneisen(self, t=None, squared=True, limit_frequencies=None):
+        """
+        Calculates the average of the Gruneisen based on the values on the regular grid.
+        If squared is True the average will use the squared value of the Gruneisen and a squared root
+        is performed on the final result.
+        Values associated to negative frequencies will be ignored.
+        See Scripta Materialia 129, 88 for definitions.
+
+        Args:
+            t: the temperature at which the average Gruneisen will be evaluated. If None the acoustic Debye
+                temparature is used (see acoustic_debye_temp)
+            squared: if True the average is performed on the squared values of the Gruenisen
+            limit_frequencies: if None (default) no limit on the frequencies will be applied.
+                Possible values are "debye" (only modes with frequencies lower than the acoustic Debye
+                temperature) and "acoustic" (only the acoustic modes, i.e. the first three modes).
+
+        Returns:
+            The average Gruneisen parameter
+        """
+
+        if t is None:
+            t = self.acoustic_debye_temp
+
+        w = self.wvols_qibz[:,self.iv0,:]
+        wdkt = w / (abu.kb_eVK * t)
+
+        # if w=0 set cv=0
+        cv = np.choose(w > 0, (0, abu.kb_eVK * wdkt ** 2 * np.exp(wdkt) / (np.exp(wdkt) - 1) ** 2))
+
+        gamma = self.gvals_qibz
+
+        if squared:
+            gamma = gamma ** 2
+
+        if limit_frequencies == "debye":
+            adt = self.acoustic_debye_temp
+            ind = np.where((0<=w) & (w <= adt * abu.kb_eVK))
+        elif limit_frequencies == "acoustic":
+            w_acoustic = w[:, :3]
+            ind = np.where(w_acoustic >= 0)
+        elif limit_frequencies is None:
+            ind = np.where(w>=0)
+        else:
+            raise ValueError("{} is not an accepted value for limit_frequencies".format(limit_frequencies))
+
+        weights = self.doses['qpoints'].weights
+        g = np.dot(weights[ind[0]], np.multiply(cv, gamma)[ind]).sum()/ np.dot(weights[ind[0]], cv[ind]).sum()
+
+        if squared:
+            g = np.sqrt(g)
+
+        return g
+
+    def thermal_conductivity_slack(self, squared=True, limit_frequencies=None):
+        """
+        Calculates the thermal conductivity at the acoustic Debye temperature wit the Slack formula,
+        using the average Gruneisen.
+
+        Args:
+            squared: if True the average is performed on the squared values of the Gruenisen
+            limit_frequencies: if None (default) no limit on the frequencies will be applied.
+                Possible values are "debye" (only modes with frequencies lower than the acoustic Debye
+                temperature) and "acoustic" (only the acoustic modes, i.e. the first three modes).
+
+        Returns:
+            The value of the thermal conductivity in W/(m*K)
+        """
+
+        average_mass = np.mean([s.specie.atomic_mass for s in self.structure]) * amu_to_kg
+        mean_g = self.average_gruneisen(t=None, squared=squared, limit_frequencies=limit_frequencies)
+        theta_d = self.acoustic_debye_temp
+        factor1 = 0.849 * 3 * (4) ** (1. / 3.) / ( 20 * np.pi ** 3 * (1 - 0.514 * mean_g ** -1 + 0.228 * mean_g ** -2))
+        factor2 = (const.k * theta_d / const.hbar) ** 2
+        factor3 = const.k * average_mass * self.structure.volume ** (1. / 3.) * 1e-10 / (const.hbar * mean_g ** 2)
+        return factor1 * factor2 * factor3
+
+    @property
+    def debye_temp(self):
+        """
+        Debye temperature in K obtained from the phonon DOS
+        """
+
+        if not self.phdos:
+            raise ValueError('Debye temperature requires the phonon dos!')
+
+        return self.phdos.debye_temp
+
+    @property
+    def acoustic_debye_temp(self):
+        """
+        Acoustic Debye temperature in K, i.e. the Debye temperature divided by nsites**(1/3).
+        Obtained from the phonon DOS
+        """
+
+        if not self.phdos:
+            raise ValueError('Debye temperature requires the phonon dos!')
+
+        return self.phdos.get_acoustic_debye_temp(len(self.structure))
+
+    @classmethod
+    def from_ddb_list(cls, ddb_list, nqsmall=10, qppa=None, ndivsm=20, line_density=None, asr=2, chneut=1, dipdip=1,
+                     dos_method="tetra", lo_to_splitting="automatic", ngqpt=None, qptbounds=None, anaddb_kwargs=None,
+                     verbose=0, mpi_procs=1, workdir=None, manager=None):
+        """
+        Execute anaddb to compute generate the object from a list of ddbs.
+
+        Args:
+            ddb_list: A list with the paths to the ddb_files at different volumes. There should be an odd number of
+                DDB files and the volume increment must be constant. The DDB files will be ordered according to the
+                volume of the unit cell and the middle one will be considered as the DDB at the relaxed volume.
+            nqsmall: Defines the homogeneous q-mesh used for the DOS. Gives the number of divisions
+                used to sample the smallest lattice vector. If 0, DOS is not computed and
+                (phbst, None) is returned.
+            qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per reciproval atom.
+                Overrides nqsmall.
+            ndivsm: Number of division used for the smallest segment of the q-path.
+            line_density: Defines the a density of k-points per reciprocal atom to plot the phonon dispersion.
+                Overrides ndivsm.
+            asr, chneut, dipdip: Anaddb input variable. See official documentation.
+            dos_method: Technique for DOS computation in  Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
+                In the later case, the value 0.001 eV is used as gaussian broadening.
+            lo_to_splitting: Allowed values are [True, False, "automatic"]. Defaults to "automatic"
+                If True the LO-TO splitting will be calculated and the non_anal_directions
+                and the non_anal_phfreqs attributes will be addeded to the phonon band structure.
+                "automatic" activates LO-TO if the DDB file contains the dielectric tensor and Born effective charges.
+            ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default).
+            qptbounds: Boundaries of the path. If None, the path is generated from an internal database
+                depending on the input structure.
+            anaddb_kwargs: additional kwargs for anaddb.
+            verbose: verbosity level. Set it to a value > 0 to get more information.
+            mpi_procs: Number of MPI processes to use.
+            workdir: Working directory. If None, a temporary directory is created.
+            manager: |TaskManager| object. If None, the object is initialized from the configuration file.
+
+        Returns:
+            A GrunsNcFile object.
+        """
+
+        if len(ddb_list) % 2 != 1:
+            raise ValueError("An odd number of ddb file paths should be provided")
+
+        ddbs = [DdbFile(d) for d in ddb_list]
+        ddbs = sorted(ddbs, key=lambda d: d.structure.volume)
+        iv0 = int((len(ddbs) - 1) / 2)
+        ddb0 = ddbs[iv0]
+        # update list of paths with absolute paths in the correct order
+        ddb_list = [d.filepath for d in ddbs]
+
+        if ngqpt is None: ngqpt = ddb0.guessed_ngqpt
+
+        if lo_to_splitting == "automatic":
+            lo_to_splitting = ddb0.has_lo_to_data() and dipdip != 0
+
+        if lo_to_splitting and not ddb0.has_lo_to_data():
+            cprint("lo_to_splitting is True but Emacro and Becs are not available in DDB: %s" % ddb0.filepath, "yellow")
+
+        inp = AnaddbInput.phbands_and_dos(
+            ddb0.structure, ngqpt=ngqpt, ndivsm=ndivsm, nqsmall=nqsmall, qppa=qppa, line_density=line_density,
+            q1shft=(0, 0, 0), qptbounds=qptbounds, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method,
+            lo_to_splitting=lo_to_splitting, anaddb_kwargs=anaddb_kwargs)
+
+        inp["gruns_ddbs"] = ['"'+p+'"\n' for p in ddb_list]
+        inp["gruns_nddbs"] = len(ddb_list)
+
+        task = AnaddbTask.temp_shell_task(inp, ddb_node=ddb0.filepath, workdir=workdir, manager=manager, mpi_procs=mpi_procs)
+
+        if verbose:
+            print("ANADDB INPUT:\n", inp)
+            print("workdir:", task.workdir)
+
+        # Run the task here.
+        task.start_and_wait(autoparal=False)
+
+        report = task.get_event_report()
+        if not report.run_completed:
+            raise ddb0.AnaddbError(task=task, report=report)
+
+        gruns = cls.from_file(os.path.join(task.workdir, "run.abo_GRUNS.nc"))
+
+        return gruns
 
 
 class GrunsReader(ETSF_Reader):

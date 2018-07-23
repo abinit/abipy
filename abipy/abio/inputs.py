@@ -34,6 +34,8 @@ from abipy.abio.input_tags import *
 from abipy.flowtk import PseudoTable, Pseudo, AbinitTask, AnaddbTask, ParalHintsParser, NetcdfReader
 from abipy.flowtk.abiinspect import yaml_read_irred_perts
 from abipy.flowtk import abiobjects as aobj
+from pymatgen.symmetry.bandstructure import HighSymmKpath
+from pymatgen.io.abinit.abiobjects import KSampling
 
 import logging
 logger = logging.getLogger(__file__)
@@ -139,7 +141,7 @@ class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
         """
         Write the input file to file to ``filepath``.
         """
-        dirname = os.path.dirname(filepath)
+        dirname = os.path.dirname(os.path.abspath(filepath))
         if not os.path.exists(dirname): os.makedirs(dirname)
 
         # Write the input file.
@@ -180,18 +182,6 @@ class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
                 self[varname] = varvalue
                 added[varname] = varvalue
         return added
-
-    def add_abiobjects(self, *abi_objects):
-        """
-        This function receive a list of ``AbiVarable`` objects and add
-        the corresponding variables to the input.
-        """
-        d = {}
-        for aobj in abi_objects:
-            if not hasattr(aobj, "to_abivars"):
-                raise TypeError("type %s: %s does not have `to_abivars` method" % (type(aobj), repr(aobj)))
-            d.update(self.set_vars(aobj.to_abivars()))
-        return d
 
     def pop_vars(self, keys):
         """
@@ -237,28 +227,6 @@ class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
     def to_string(self):
         """Returns a string with the input."""
 
-    @abc.abstractmethod
-    def abivalidate(self, workdir=None, manager=None):
-        """
-        This method should invoke the executable associated to the input object.
-        to test whether the input variables are correct and consistent.
-        The executable is supposed to implemente some sort of `--dry-run` option
-        that invokes the parser to validate the input and exits.
-
-        Args:
-            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
-            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
-
-        Return:
-            ``namedtuple`` with the following attributes:
-
-                retcode: Return code. 0 if OK.
-                output_file: output file of the run.
-                log_file:  log file of the Abinit run, use log_file.read() to access its content.
-                stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.
-                task: Task object
-        """
-
     def generate(self, **kwargs):
         """
         This function generates new inputs by replacing the variables specified in kwargs.
@@ -286,11 +254,52 @@ class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
             yield new_inp
 
 
+class AbiAbstractInput(AbstractInput):
+    """
+    Abstract class defining the methods that must be implemented by Input objects.
+    associated to Abinit executables.
+    """
+
+    def add_abiobjects(self, *abi_objects):
+        """
+        This function receive a list of ``AbiVarable`` objects and add
+        the corresponding variables to the input.
+        """
+        d = {}
+        for aobj in abi_objects:
+            if not hasattr(aobj, "to_abivars"):
+                raise TypeError("type %s: %s does not have `to_abivars` method" % (type(aobj), repr(aobj)))
+            d.update(self.set_vars(aobj.to_abivars()))
+        return d
+
+    @abc.abstractmethod
+    def abivalidate(self, workdir=None, manager=None):
+        """
+        This method should invoke the executable associated to the input object.
+        to test whether the input variables are correct and consistent.
+        The executable is supposed to implemente some sort of `--dry-run` option
+        that invokes the parser to validate the input and exits.
+
+        Args:
+            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
+            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
+
+        Return:
+            ``namedtuple`` with the following attributes:
+
+                retcode: Return code. 0 if OK.
+                output_file: output file of the run.
+                log_file:  log file of the Abinit run, use log_file.read() to access its content.
+                stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.
+                task: Task object
+        """
+
+
 class AbinitInputError(Exception):
     """Base error class for exceptions raised by ``AbinitInput``."""
 
 
-class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_Structure, object)):
+class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Has_Structure, object)):
     """
     This object stores the ABINIT variables for a single dataset.
 
@@ -438,7 +447,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             raise self.Error("You cannot set the value of a variable associated to the structure.\n"
                              "Use Structure objects to prepare the input file.")
 
-        if not is_abivar(key) and self.spell_check:
+        if self.spell_check and not is_abivar(key):
             raise self.Error("%s is not a valid ABINIT variable.\n" % key +
                              "If the name is correct, try to remove ~/.abinit/abipy/abinit_vars.pickle\n"
                              "and rerun the code. If the problems persists, contact the abipy developers\n"
@@ -737,7 +746,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         Args:
             nqsmall: Number of k-points used to sample the smallest lattice vector.
             method: gaussian or tetra.
-            ph_qshift:
+            ph_qshift: Shift for the mesh.
         """
         # q-mesh for Fourier interpolatation of IFC and a2F(w)
         ph_ngqpt = self.structure.calc_ngkpt(nqsmall)
@@ -1524,7 +1533,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         except Exception as exc:
             self._handle_task_exception(task, exc)
 
-    def abiget_ibz(self, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
+    def abiget_ibz(self, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None, verbose=0):
         """
         This function computes the list of points in the IBZ and the corresponding weights.
         It should be called with an input file that contains all the mandatory variables required by ABINIT.
@@ -1535,6 +1544,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             kptopt: Option for k-point generation. If None, the value in self is used.
             workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
+            verbose: verbosity level.
 
         Returns:
             `namedtuple` with attributes:
@@ -1557,7 +1567,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             inp.set_vars(shiftk=shiftk, nshiftk=len(shiftk))
 
         if kptopt is not None: inp["kptopt"] = kptopt
-        #print("Computing ibz with input:\n", str(inp))
+        if verbose:
+            print("Computing ibz with input:\n", str(inp))
 
         # Build a Task to run Abinit in a shell subprocess
         task = AbinitTask.temp_shell_task(inp, workdir=workdir, manager=manager)
@@ -2184,6 +2195,22 @@ class MultiDataset(object):
         """Integration with jupyter_ notebooks."""
         return self.to_string(mode="html")
 
+    def get_vars_dataframe(self, *varnames):
+        """
+        Return pandas DataFrame with the value of the variables specified in `varnames`.
+
+        .. example:
+
+            df = multi.get_vars_dataframe("ecut", "ngkpt")
+        """
+        import pandas as pd
+        frames = []
+        for i, inp in enumerate(self):
+            df = pd.DataFrame([{v: inp.get(v, None) for v in varnames}],
+                              index=["dataset %d" % i], columns=varnames)
+            frames.append(df)
+        return pd.concat(frames)
+
     def filter_by_tags(self, tags=None, exclude_tags=None):
         """
         Filters the input according to the tags
@@ -2265,7 +2292,7 @@ class AnaddbInputError(Exception):
     """Base error class for exceptions raised by `AnaddbInput`"""
 
 
-class AnaddbInput(AbstractInput, Has_Structure):
+class AnaddbInput(AbiAbstractInput, Has_Structure):
     """
     This object stores the anaddb variables.
 
@@ -2276,15 +2303,17 @@ class AnaddbInput(AbstractInput, Has_Structure):
 
     Error = AnaddbInputError
 
-    def __init__(self, structure, comment="", anaddb_args=None, anaddb_kwargs=None):
+    def __init__(self, structure, comment="", anaddb_args=None, anaddb_kwargs=None, spell_check=True):
+
         """
         Args:
             structure: |Structure| object
             comment: Optional string with a comment that will be placed at the beginning of the file.
             anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
+            spell_check: False to disable spell checking for input variables.
         """
-        self._spell_check = True
+        self.set_spell_check(spell_check)
         self._structure = structure
         self.comment = comment
 
@@ -2318,7 +2347,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
             return False
 
     def _check_varname(self, key):
-        if not is_anaddb_var(key) and self.spell_check:
+        if self.spell_check and not is_anaddb_var(key):
             raise self.Error("%s is not a registered Anaddb variable\n"
                              "If you are sure the name is correct, please contact the abipy developers\n"
                              "or use input.set_spell_check(False)\n"
@@ -2326,7 +2355,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
 
     @classmethod
     def modes_at_qpoint(cls, structure, qpoint, asr=2, chneut=1, dipdip=1, ifcflag=0, lo_to_splitting=False,
-                        directions=None, anaddb_args=None, anaddb_kwargs=None):
+                        directions=None, anaddb_args=None, anaddb_kwargs=None, spell_check=False):
         """
         Input file for the calculation of the phonon frequencies at a given q-point.
 
@@ -2339,6 +2368,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
                 cartesian direction will be used
             anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
+            spell_check: False to disable spell checking for input variables.
         """
         new = cls(structure, comment="ANADB input for phonon frequencies at one q-point",
                   anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
@@ -2400,9 +2430,9 @@ class AnaddbInput(AbstractInput, Has_Structure):
         return new
 
     @classmethod
-    def phbands_and_dos(cls, structure, ngqpt, nqsmall, ndivsm=20, q1shft=(0, 0, 0),
+    def phbands_and_dos(cls, structure, ngqpt, nqsmall, qppa=None, ndivsm=20, line_density=None, q1shft=(0, 0, 0),
                         qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method="tetra", lo_to_splitting=False,
-                        anaddb_args=None, anaddb_kwargs=None):
+                        anaddb_args=None, anaddb_kwargs=None, spell_check=False):
         """
         Build an anaddb input file for the computation of phonon bands and phonon DOS.
 
@@ -2411,6 +2441,10 @@ class AnaddbInput(AbstractInput, Has_Structure):
             ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
             nqsmall: Used to generate the (dense) mesh for the DOS.
                 It defines the number of q-points used to sample the smallest lattice vector.
+            qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per reciproval atom.
+                Overrides nqsmall.
+            line_density: Defines the a density of k-points per reciprocal atom to plot the phonon dispersion.
+                Overrides ndivsm.
             ndivsm: Used to generate a normalized path for the phonon bands.
                 If gives the number of divisions for the smallest segment of the path.
             q1shft: Shifts used for the coarse Q-mesh
@@ -2422,6 +2456,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
             lo_to_splitting: if True calculation of the LO-TO splitting will be included
             anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
+            spell_check: False to disable spell checking for input variables.
         """
         dosdeltae, dossmear = None, None
 
@@ -2437,20 +2472,38 @@ class AnaddbInput(AbstractInput, Has_Structure):
             raise NotImplementedError("Wrong value for dos_method: %s" % str(dos_method))
 
         new = cls(structure, comment="ANADB input for phonon bands and DOS",
-                  anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
+                  anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs, spell_check=spell_check)
 
-        # Parameters for the dos.
-        new.set_autoqmesh(nqsmall)
-        new.set_vars(prtdos=prtdos, dosdeltae=dosdeltae, dossmear=dossmear)
+        # Parameters for the DOS
+        if qppa:
+            ng2qpt = KSampling.automatic_density(structure, kppa=qppa).kpts[0]
+            #set new variables
+            new.set_vars(ng2qpt=ng2qpt,prtdos=prtdos,dossmear=dossmear)
+        else:
+            new.set_autoqmesh(nqsmall)
+            new.set_vars(prtdos=prtdos, dosdeltae=dosdeltae, dossmear=dossmear)
+            if nqsmall == 0:
+                new["prtdos"] = 0
 
-        # Disable DOS computation.
-        if nqsmall == 0:
-            new["prtdos"] = 0
+        # Parameters for the BS
+        if line_density:
+            hs = HighSymmKpath(structure, symprec=1e-2)
+            qpts, labels_list = hs.get_kpoints(line_density=line_density, coords_are_cartesian=False)
+            # remove repeated q-points since those do
+            # interfere with _set_split_vals in the phonon plotter
+            qph1l = [qpts[0]]
+            for qpt in qpts[1:]:
+                if not np.array_equal(qpt,qph1l[-1]):
+                    qph1l.append(qpt)
+            #set new variables
+            new['qph1l'] = [q.tolist()+[1] for q in qph1l]
+            new['nph1l'] = len(qph1l)
+            qptbounds = structure.calc_kptbounds()
+        else:
+            new.set_qpath(ndivsm, qptbounds=qptbounds)
+            qptbounds = new['qpath']
 
-        new.set_qpath(ndivsm, qptbounds=qptbounds)
-        qptbounds = new['qpath']
         q1shft = np.reshape(q1shft, (-1, 3))
-
         new.set_vars(
             ifcflag=1,
             ngqpt=np.array(ngqpt),
@@ -2770,7 +2823,7 @@ class OpticError(Exception):
     """Error class raised by OpticInput."""
 
 
-class OpticInput(AbstractInput, MSONable):
+class OpticInput(AbiAbstractInput, MSONable):
     """
     Input file for optic executable
     """

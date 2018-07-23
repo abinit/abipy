@@ -10,13 +10,15 @@ import os
 import six
 import inspect
 import itertools
+import numpy as np
 
 from collections import OrderedDict, deque
 from functools import wraps
 from monty.string import is_string, list_strings
 from monty.termcolor import cprint
+#from monty.functools import lazy_property
 from abipy.core.mixins import NotebookWriter
-from abipy.tools import sort_and_groupby, getattrd, hasattrd
+from abipy.tools import sort_and_groupby, getattrd, hasattrd #, duck
 from abipy.tools.plotting import (plot_xy_with_hue, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
     rotate_ticklabels, set_visible)
 
@@ -333,7 +335,6 @@ class Robot(NotebookWriter):
     #            except Exception as exc:
     #                print("Exception while closing: ", abifile.filepath)
     #                print(exc)
-    #                #raise
 
     def iter_lineopt(self):
         """Generates matplotlib linestyles."""
@@ -505,6 +506,27 @@ class Robot(NotebookWriter):
     def abifiles(self):
         """List of netcdf files."""
         return list(self._abifiles.values())
+
+    def has_different_structures(self, rtol=1e-05, atol=1e-08):
+        """
+        Check if structures are equivalent,
+        return string with info about differences (if any).
+        """
+        if len(self) <= 1: return ""
+        formulas = set([af.structure.composition.formula for af in self.abifiles])
+        if len(formulas) != 1:
+            return "Found structures with different full formulas: %s" % str(formulas)
+
+        lines = []
+        s0 = self.abifiles[0].structure
+        for abifile in self.abifiles[1:]:
+            s1 = abifile.structure
+            if not np.allclose(s0.lattice.matrix, s1.lattice.matrix, rtol=rtol, atol=atol):
+                lines.append("Structures have different lattice:")
+            if not np.allclose(s0.frac_coords, s1.frac_coords, rtol=rtol, atol=atol):
+                lines.append("Structures have different atomic positions:")
+
+        return "\n".join(lines)
 
     #def apply(self, func_or_string, args=(), **kwargs):
     #    """
@@ -725,7 +747,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
     @staticmethod
     def sortby_label(sortby, param):
         """Return the label to be used when files are sorted with ``sortby``."""
-        return "%s %s" % (sortby, param) if not callable(sortby) else str(param)
+        return "%s %s" % (sortby, param) if not (callable(sortby) or sortby is None) else str(param)
 
     def get_structure_dataframes(self, abspath=False, filter_abifile=None, **kwargs):
         """
@@ -823,6 +845,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
                 If callable, the output of hue(abifile) is used.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: legend and label fontsize.
+            kwargs: keyword arguments passed to matplotlib plot method.
 
         Returns: |matplotlib-Figure|
 
@@ -835,6 +858,8 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
              robot.plot_convergence("pressure", sortby="nkpt", hue="tsmear")
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
+        if "marker" not in kwargs:
+            kwargs["marker"] = "o"
 
         def get_yvalues(abifiles):
             if callable(item):
@@ -910,7 +935,15 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
                     yvals = [float(item(gsr)) for gsr in self.abifiles]
                 else:
                     yvals = [getattrd(gsr, item) for gsr in self.abifiles]
-                ax.plot(params, yvals, marker=marker, **kwargs)
+
+                if not is_string(params[0]):
+                    ax.plot(params, yvals, marker=marker, **kwargs)
+                else:
+                    # Must handle list of strings in a different way.
+                    xn = range(len(params))
+                    ax.plot(xn, yvals, marker=marker, **kwargs)
+                    ax.set_xticks(xn)
+                    ax.set_xticklabels(params, fontsize=fontsize)
             else:
                 for g in groups:
                     # Extract data.
@@ -981,13 +1014,13 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
 
         # Define callbacks. docstrings will be used as ylabels.
         def a(afile):
-            "a [Ang]"
+            "a (Ang)"
             return getattr(afile, key).lattice.a
         def b(afile):
-            "b [Ang]"
+            "b (Ang)"
             return getattr(afile, key).lattice.b
         def c(afile):
-            "c [Ang]"
+            "c (Ang)"
             return getattr(afile, key).lattice.c
         def volume(afile):
             r"$V$"
@@ -1065,3 +1098,14 @@ class HueGroup(object):
     def __iter__(self):
         """Iterate over (label, abifile, xvalue)."""
         return six.moves.zip(self.labels, self.abifiles, self.xvalues)
+
+    #@lazy_property
+    #def pretty_hvalue(self):
+    #    """Return pretty string with hvalue."""
+    #    if duck.is_intlike(self.hvalue):
+    #        return "%d" % self.havalue
+    #    else:
+    #        try:
+    #            return "%.3f" % self.hvalue
+    #        except:
+    #            return str(self.hvalue)

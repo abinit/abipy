@@ -44,7 +44,7 @@ from abipy.electrons.ebands import (ElectronBands, ElectronBandsPlotter, Electro
 from abipy.electrons.gsr import GsrFile, GsrRobot
 from abipy.electrons.psps import PspsFile
 from abipy.electrons.ddk import DdkFile
-from abipy.electrons.gw import SigresFile, SigresPlotter, SigresRobot
+from abipy.electrons.gw import SigresFile, SigresRobot
 from abipy.electrons.bse import MdfFile, MdfRobot
 from abipy.electrons.scissors import ScissorsBuilder
 from abipy.electrons.scr import ScrFile
@@ -60,9 +60,10 @@ from abipy.dfpt.anaddbnc import AnaddbNcFile
 from abipy.dfpt.gruneisen import GrunsNcFile
 from abipy.dynamics.hist import HistFile, HistRobot
 from abipy.waves import WfkFile
-# TODO Change name. A2f?
-from abipy.eph.eph import EphFile, EphRobot
+from abipy.eph.a2f import A2fFile, A2fRobot
 from abipy.eph.sigeph import SigEPhFile, SigEPhRobot
+from abipy.wannier90 import WoutFile, AbiwanFile, AbiwanRobot
+from abipy.electrons.lobster import CoxpFile, ICoxpFile, LobsterDoscarFile, LobsterInput, LobsterAnalyzer
 
 # Abinit Documentation.
 from abipy.abio.abivars_db import get_abinit_variables, abinit_help, docvar
@@ -90,6 +91,12 @@ ext2file = collections.OrderedDict([
     (".pspnc", Pseudo),
     (".fhi", Pseudo),
     ("JTH.xml", Pseudo),
+    (".wout", WoutFile),
+    # Lobster files.
+    ("COHPCAR.lobster", CoxpFile),
+    ("COOPCAR.lobster", CoxpFile),
+    ("ICOHPLIST.lobster", ICoxpFile),
+    ("DOSCAR.lobster", LobsterDoscarFile),
 ])
 
 # Abinit files require a special treatment.
@@ -116,8 +123,9 @@ abiext2ncfile = collections.OrderedDict([
     ("FOLD2BLOCH.nc", Fold2BlochNcfile),
     ("CUT3DDENPOT.nc", Cut3dDenPotNcFile),
     ("OPTIC.nc", OpticNcFile),
-    ("EPH.nc", EphFile),
+    ("A2F.nc", A2fFile),
     ("SIGEPH.nc", SigEPhFile),
+    ("ABIWAN.nc", AbiwanFile),
 ])
 
 
@@ -142,7 +150,10 @@ def abifile_subclass_from_filename(filename):
     if os.path.basename(filename) == Flow.PICKLE_FNAME:
         return Flow
 
+    from abipy.tools.text import rreplace
     for ext, cls in ext2file.items():
+        # This to support gzipped files.
+        if filename.endswith(".gz"): filename = rreplace(filename, ".gz", "", occurrence=1)
         if filename.endswith(ext): return cls
 
     ext = filename.split("_")[-1]
@@ -152,7 +163,7 @@ def abifile_subclass_from_filename(filename):
         for ext, cls in abiext2ncfile.items():
             if filename.endswith(ext): return cls
 
-    msg = ("No class has been registered for file:\n\t%s\n\nFile extensions supported:\n%s" %
+    msg = ("No class has been registered for file:\n\t%s\n\nFile extensions supported:\n\n%s" %
         (filename, abiopen_ext2class_table()))
     raise ValueError(msg)
 
@@ -209,6 +220,10 @@ def abiopen(filepath):
     abonum = re.compile(r".+\.abo[\d]+")
     if outnum.match(filepath) or abonum.match(filepath):
         return AbinitOutputFile.from_file(filepath)
+
+    if os.path.basename(filepath) == "log":
+        # Assume Abinit log file.
+        return AbinitLogFile.from_file(filepath)
 
     cls = abifile_subclass_from_filename(filepath)
     return cls.from_file(filepath)

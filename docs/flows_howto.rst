@@ -4,14 +4,14 @@
 Flows How-To
 ************
 
-This is a list of Frequently Asked Questions about the AbiPy flows and the :ref:`abirun.py` script. 
+This is a list of FAQs about the AbiPy flows and the :ref:`abirun.py` script. 
 Feel free to suggest new entries!
 
 .. important::
 
     The execution of the flows require the proper configuration of ``manager.yml`` and,
     optionally, ``scheduler.yml``.
-    Please consult the documentation at ....
+    Please consult the documentation available via the abidoc.py script. See FAQ below.
 
 Suggestions:
 
@@ -32,8 +32,8 @@ Do not:
 .. contents::
    :backlinks: top
 
-Get all the TaskManager options
--------------------------------
+How to get all the TaskManager options
+--------------------------------------
 
 The :ref:`abidoc.py` script provides three commands to get the documentation
 for the options supported in ``manager.yml`` and ``scheduler.yml``.
@@ -71,11 +71,24 @@ At this point, you can try to run a small flow for testing purpose with::
 
     abicheck.py --with-flow
 
-Reduce the number of files produced by the Flow 
------------------------------------------------
+How to limit the number of cores used by the scheduler
+------------------------------------------------------
+
+Add the following options to scheduler.yml
+
+.. code-block:: yaml
+
+    # Limit on the number of jobs that can be present in the queue. (DEFAULT: 200)
+    max_njobs_inqueue: 2
+
+    # Maximum number of cores that can be used by the scheduler.
+    max_ncores_used: 4
+
+How to reduce the number of files produced by the Flow 
+------------------------------------------------------
 
 When running many calculations, 
-Use ``prtwf -1`` to tell Abinit to produce the wavefunction file, only
+Use ``prtwf -1`` to tell Abinit to produce the wavefunction file only
 if SCF cycle didn't converged so that AbiPy can reuse the file to restart the calculation.
 
 Note that it's possibile to use::
@@ -85,8 +98,8 @@ Note that it's possibile to use::
 to activate this mode for all tasks that are not supposed to produce WFK files
 for their children.
 
-Extend tasks/works with specialized code
-----------------------------------------
+How to extend tasks/works with specialized code
+-----------------------------------------------
 
 Remember that pickle_ does not support classes defined inside scripts. 
 If you need to subclass one of the AbiPy Tasks/Works/Flows, define the subclass 
@@ -107,7 +120,7 @@ Compare multiple output files
 The :ref:`abicomp.py` script
 
 Try to understand why a task failed
-------------------------------------
+-----------------------------------
 
 There are several reasons why a task could fail.
 Some of these reasons could be related to hardaware failure, disk quota, 

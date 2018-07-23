@@ -18,7 +18,7 @@ from monty.termcolor import cprint
 from pymatgen.io.vasp.outputs import Xdatcar
 from abipy import abilab
 from abipy.core.symmetries import AbinitSpaceGroup
-from abipy.core.kpoints import Ktables, Kpoint
+from abipy.core.kpoints import Ktables, Kpoint, IrredZone
 from abipy.core.structure import diff_structures
 from abipy.iotools.visualizer import Visualizer
 from abipy.iotools.xsf import xsf_write_structure
@@ -183,15 +183,16 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
         group.add_argument('--primitive-standard', default=False, action='store_true',
             help="Enforce primitive standard cell.")
 
-    supported_formats = "(abivars, cif, xsf, poscar, qe, cssr, json, None)"
-    def add_format_arg(parser, default, option=True):
+    supported_formats = "(abivars, cif, xsf, poscar, qe, siesta, wannier90, cssr, json, None)"
+    def add_format_arg(parser, default, option=True, formats=None):
         """Add --format option to a parser with default value `default`."""
+        formats = supported_formats if formats is None else formats
         if option:
             parser.add_argument("-f", "--format", default=default, type=str,
-                help="Output format. Default: %s. Accept: %s" % (default, supported_formats))
+                help="Output format. Default: %s. Accept: %s" % (default, formats))
         else:
             parser.add_argument('format', nargs="?", default=default, type=str,
-                help="Output format. Default: %s. Accept: %s" % (default, supported_formats))
+                help="Output format. Default: %s. Accept: %s" % (default, formats))
 
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help',
@@ -297,6 +298,7 @@ closest points in this particular structure. This is usually what you want in a 
     # Subparser for kpath.
     p_kpath = subparsers.add_parser('kpath', parents=[copts_parser, path_selector],
         help="Read structure from file, generate k-path for band-structure calculations.")
+    add_format_arg(p_kpath, default="abinit", formats=["abinit", "wannier90", "siesta"])
     # Subparser for bz.
     p_bz = subparsers.add_parser('bz', parents=[copts_parser, path_selector],
         help="Read structure from file, plot Brillouin zone with matplotlib.")
@@ -322,10 +324,14 @@ closest points in this particular structure. This is usually what you want in a 
     p_abikmesh = subparsers.add_parser('abikmesh', parents=[copts_parser, path_selector],
         help=("Read structure from file, call Abinit to sample the BZ with ngkpt, shiftk, and kptopt. "
               "Print k-points in the IBZ with weights."))
-    p_abikmesh.add_argument("--ngkpt", nargs=3, required=True, type=int, help="Mesh divisions e.g. 2 3 4")
+    p_abikmesh.add_argument("--kppa", default=None, type=int,
+            help="Number of k-points per reciprocal atom. Mutually exclusive with ngkpt.")
+    p_abikmesh.add_argument("--ngkpt", nargs=3, default=None, type=int,
+            help="Mesh divisions e.g. 2 3 4")
     p_abikmesh.add_argument("--shiftk", nargs="+", default=(0.5, 0.5, 0.5), type=float,
        help="Kmesh shifts. Default: 0.5 0.5 0.5")
-    p_abikmesh.add_argument("--kptopt", default=1, type=int, help="Kptopt input variable. Default: 1")
+    p_abikmesh.add_argument("--kptopt", default=1, type=int,
+            help="Kptopt input variable. Default: 1")
 
     # Subparser for kmesh_jhu.
     #p_kmesh_jhu = subparsers.add_parser('kmesh_jhu', parents=[copts_parser, path_selector], help="Foobar ")
@@ -354,6 +360,8 @@ closest points in this particular structure. This is usually what you want in a 
     mp_rest_parser.add_argument("--mapi-key", default=None,
         help="Pymatgen MAPI_KEY. Use value in .pmgrc.yaml if not specified.")
     mp_rest_parser.add_argument("--endpoint", help="Pymatgen database.", default="https://www.materialsproject.org/rest/v2")
+    mp_rest_parser.add_argument("-b", "--browser", default=False, action='store_true',
+        help="Open materials-project webpages in browser")
 
     # Subparser for mp_id command.
     p_mpid = subparsers.add_parser('mp_id', parents=[copts_parser, mp_rest_parser],
@@ -627,15 +635,7 @@ def main():
 
     elif options.command == "kpath":
         structure = abilab.Structure.from_file(options.filepath)
-        print("# Abinit Structure")
-        print(structure.abi_string)
-        print("\n# K-path in reduced coordinates:")
-        print("# tolwfr 1e-20 iscf -2 getden ??")
-        print(" ndivsm 10")
-        print(" kptopt", -(len(structure.hsym_kpoints) - 1))
-        print(" kptbounds")
-        for k in structure.hsym_kpoints:
-            print("    %+.5f  %+.5f  %+.5f" % tuple(k.frac_coords), "#", k.name)
+        print(structure.get_kpath_input_string(fmt=options.format, line_density=10))
 
     elif options.command == "bz":
         abilab.Structure.from_file(options.filepath).plot_bz()
@@ -663,11 +663,19 @@ def main():
 
     elif options.command == "abikmesh":
         structure = abilab.Structure.from_file(options.filepath)
-        from abipy.data.hgh_pseudos import HGH_TABLE
-        gsinp = factories.gs_input(structure, HGH_TABLE, spin_mode="unpolarized")
-        ibz = gsinp.abiget_ibz(ngkpt=options.ngkpt, shiftk=options.shiftk, kptopt=options.kptopt)
-        for i, (k, w) in enumerate(zip(ibz.points, ibz.weights)):
-            print("%6d) [%+.3f, %+.3f, %+.3f]  weight=%.3f" % (i, k[0], k[1], k[2], w))
+        if options.kppa is None and options.ngkpt is None:
+            raise ValueError("Either ngkpt or kppa must be provided")
+
+        if options.kppa is not None:
+            print("Calling Abinit to compute the IBZ with kppa:", options.kppa, "and shiftk:", options.shiftk)
+            ibz = IrredZone.from_kppa(structure, options.kppa, options.shiftk,
+                                      kptopt=options.kptopt, verbose=options.verbose)
+        else:
+            print("Calling Abinit to compute the IBZ with ngkpt:", options.ngkpt, "and shiftk:", options.shiftk)
+            ibz = IrredZone.from_ngkpt(structure, options.ngkpt, options.shiftk,
+                                       kptopt=options.kptopt, verbose=options.verbose)
+
+        print(ibz.to_string(verbose=options.verbose))
 
     #elif options.command == "kmesh_jhu":
     #    structure = abilab.Structure.from_file(options.filepath)
@@ -694,6 +702,10 @@ def main():
 
     elif options.command == "kstar":
         structure = abilab.Structure.from_file(options.filepath)
+
+        # TODO
+        #kstar = structure.get_star_kpoint(options.kpoint, has_timerev=not options.no_time_reversal)
+
         # Call spglib to get spacegroup if Abinit spacegroup is not available.
         if structure.abi_spacegroup is None:
             structure.spgset_abi_spacegroup(has_timerev=not options.no_time_reversal)
@@ -722,6 +734,9 @@ def main():
         else:
             mp.print_results(fmt=options.format, verbose=options.verbose)
 
+        if options.browser:
+            mp.open_browser(limit=None if options.verbose == 2 else 10)
+
     elif options.command == "mp_search":
         mp = abilab.mp_search(options.chemsys_formula_id)
         if not mp.structures:
@@ -733,6 +748,9 @@ def main():
             return mp.make_and_open_notebook(foreground=options.foreground)
         else:
             mp.print_results(fmt=options.format, verbose=options.verbose)
+
+        if options.browser:
+            mp.open_browser(limit=None if options.verbose == 2 else 10)
 
     elif options.command == "mp_pd":
         if os.path.exists(options.file_or_elements):

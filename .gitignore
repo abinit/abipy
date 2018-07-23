@@ -64,6 +64,7 @@ coverage_html
 .cache
 nosetests.xml
 _integration_tests_
+.pytest_cache
 
 # ipython notebooks
 .ipynb*

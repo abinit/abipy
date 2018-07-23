@@ -15,7 +15,6 @@ from monty.string import marquee, list_strings
 from monty.collections import AttrDict, dict2namedtuple, tree
 from monty.functools import lazy_property
 from monty.termcolor import cprint
-from monty.dev import get_ncpus, deprecated
 from abipy.flowtk import NetcdfReader, AnaddbTask
 from abipy.core.mixins import TextFile, Has_Structure, NotebookWriter
 from abipy.core.symmetries import AbinitSpaceGroup
@@ -555,8 +554,17 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return phbands.view_phononwebsite(browser=browser, verbose=verbose, dryrun=dryrun)
 
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        yield self.structure.plot(show=False)
+        yield self.qpoints.plot(show=False)
+        yield self.structure.plot_bz(show=False)
+
     def anaget_phmodes_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, workdir=None, mpi_procs=1,
-                                 manager=None, verbose=0, lo_to_splitting=False, directions=None, anaddb_kwargs=None):
+                                 manager=None, verbose=0, lo_to_splitting=False, spell_check=True,
+                                 directions=None, anaddb_kwargs=None):
         """
         Execute anaddb to compute phonon modes at the given q-point (without LO-TO splitting)
 
@@ -600,7 +608,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         inp = AnaddbInput.modes_at_qpoint(self.structure, qpoint, asr=asr, chneut=chneut, dipdip=dipdip,
                                           lo_to_splitting=lo_to_splitting, directions=directions,
-                                          anaddb_kwargs=anaddb_kwargs)
+                                          anaddb_kwargs=anaddb_kwargs, spell_check=spell_check)
 
         task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir,
                                           manager=manager, mpi_procs=mpi_procs)
@@ -620,8 +628,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
             return ncfile.phbands
 
-    def anaget_phbst_and_phdos_files(self, nqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, dos_method="tetra",
-                                     lo_to_splitting="automatic", ngqpt=None, qptbounds=None, anaddb_kwargs=None, verbose=0,
+    def anaget_phbst_and_phdos_files(self, nqsmall=10, qppa=None, ndivsm=20, line_density=None, asr=2, chneut=1, dipdip=1, 
+                                     dos_method="tetra", lo_to_splitting="automatic", ngqpt=None, qptbounds=None, 
+                                     anaddb_kwargs=None, verbose=0, spell_check=True,
                                      mpi_procs=1, workdir=None, manager=None):
         """
         Execute anaddb to compute the phonon band structure and the phonon DOS
@@ -630,7 +639,11 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             nqsmall: Defines the homogeneous q-mesh used for the DOS. Gives the number of divisions
                 used to sample the smallest lattice vector. If 0, DOS is not computed and
                 (phbst, None) is returned.
+            qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per reciproval atom.
+                Overrides nqsmall.
             ndivsm: Number of division used for the smallest segment of the q-path.
+            line_density: Defines the a density of k-points per reciprocal atom to plot the phonon dispersion.
+                Overrides ndivsm.
             asr, chneut, dipdip: Anaddb input variable. See official documentation.
             dos_method: Technique for DOS computation in  Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
                 In the later case, the value 0.001 eV is used as gaussian broadening.
@@ -660,10 +673,12 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             cprint("lo_to_splitting is True but Emacro and Becs are not available in DDB: %s" % self.filepath, "yellow")
 
         inp = AnaddbInput.phbands_and_dos(
-            self.structure, ngqpt=ngqpt, ndivsm=ndivsm, nqsmall=nqsmall, q1shft=(0, 0, 0), qptbounds=qptbounds,
+            self.structure, ngqpt=ngqpt, ndivsm=ndivsm, line_density=line_density,
+            nqsmall=nqsmall, qppa=qppa, q1shft=(0, 0, 0), qptbounds=qptbounds,
             asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, lo_to_splitting=lo_to_splitting,
-            anaddb_kwargs=anaddb_kwargs)
+            anaddb_kwargs=anaddb_kwargs, spell_check=spell_check)
 
+        #work as usual
         task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager, mpi_procs=mpi_procs)
 
         if verbose:
@@ -689,13 +704,43 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return phbst_file, phdos_file
 
+    def get_coarse(self, filepath, ngqpt_coarse):
+        """
+        Get a version of this file on a coarse mesh
+
+        Args:
+            ngqpt: list of ngqpt indexes that must be a sub-mesh of the original ngqpt
+        """
+        #check if ngqpt is a sub-mesh of ngqpt
+        ngqpt_fine = self.guessed_ngqpt
+        if any([a%b for a,b in zip(ngqpt_fine,ngqpt_coarse)]):
+            raise ValueError('Coarse q-mesh is not a sub-mesh of the current q-mesh')
+
+        #get the points in the fine mesh
+        fine_qpoints = [q.frac_coords for q in self.qpoints]
+
+        #generate the points of the coarse mesh
+        map_fine_to_coarse = []
+        nx,ny,nz = ngqpt_coarse
+        for i,j,k in itertools.product(range(-int(nx/2), int(nx/2) + 1),
+                                       range(-int(ny/2), int(ny/2) + 1),
+                                       range(-int(nz/2), int(nz/2) + 1)):
+            coarse_qpt = np.array([i, j, k]) / np.array(ngqpt_coarse)
+            for n,fine_qpt in enumerate(fine_qpoints):
+                if np.allclose(coarse_qpt,fine_qpt):
+                    map_fine_to_coarse.append(n)
+
+        #write the file with a subset of q-points
+        self.write(filepath,map_fine_to_coarse)
+        return DdbFile(filepath)
+
     def anacompare_asr(self, asr_list=(0, 2), chneut_list=(1,), dipdip=1, lo_to_splitting="automatic",
                        nqsmall=10, ndivsm=20, dos_method="tetra", ngqpt=None,
                        verbose=0, mpi_procs=1):
         """
         Invoke anaddb to compute the phonon band structure and the phonon DOS with different
         values of the ``asr`` input variable (acoustic sum rule treatment).
-        Build and return |PhononDosPlotter| object.
+        Build and return |PhononBandsPlotter| object.
 
         Args:
             asr_list: List of ``asr`` values to test.
@@ -716,7 +761,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             mpi_procs: Number of MPI processes used by anaddb.
 
         Return:
-            |PhononDosPlotter| object.
+            |PhononBandsPlotter| object.
 
             Client code can use ``plotter.combiplot()`` or ``plotter.gridplot()``
             to visualize the results.
@@ -998,26 +1043,30 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return DielectricTensorGenerator.from_files(os.path.join(task.workdir, "run.abo_PHBST.nc"),
                                                     os.path.join(task.workdir, "anaddb.nc"))
 
-
-    def write(self, filepath):
+    def write(self, filepath, filter_blocks=None):
         """
         Writes the DDB file in filepath. Requires the blocks data.
         Only the information stored in self.header.lines and in self.blocks will be used to produce the file
         """
         lines = list(self.header.lines)
 
+        if filter_blocks is None:
+            blocks = self.blocks
+        else:
+            blocks = [self.blocks[i] for i in filter_blocks]
+
         lines.append(" **** Database of total energy derivatives ****")
-        lines.append(" Number of data blocks={0:5}".format(len(self.blocks)))
+        lines.append(" Number of data blocks={0:5}".format(len(blocks)))
         lines.append(" ")
 
-        for b in self.blocks:
+        for b in blocks:
             lines.extend(b["data"])
             lines.append(" ")
 
         lines.append(" List of bloks and their characteristics")
         lines.append(" ")
 
-        for b in self.blocks:
+        for b in blocks:
             lines.extend(b["data"][:2])
             lines.append(" ")
 
@@ -1159,11 +1208,6 @@ class Becs(Has_Structure):
             mat = becs_arr[i]
             if order.lower() == "f": mat = mat.T
             self.values[i] = mat
-
-    @property
-    @deprecated(message="becs  has been renamed values. Will be removed in abipy 0.4.")
-    def becs(self):
-        return self.values
 
     @property
     def structure(self):
@@ -1547,7 +1591,8 @@ class DdbRobot(Robot):
             #d.update({"qpgap": mdf.get_qpgap(spin, kpoint)})
 
             # Call anaddb to get the phonon frequencies. Note lo_to_splitting set to False.
-            phbands = ddb.anaget_phmodes_at_qpoint(qpoint=qpoint, asr=asr, chneut=chneut, dipdip=dipdip, lo_to_splitting=False)
+            phbands = ddb.anaget_phmodes_at_qpoint(qpoint=qpoint, asr=asr, chneut=chneut,
+               dipdip=dipdip, lo_to_splitting=False)
             # [nq, nmodes] array
             freqs = phbands.phfreqs[0, :] * phfactor_ev2units(units)
 
@@ -1575,6 +1620,7 @@ class DdbRobot(Robot):
             phbands_plotter: |PhononBandsPlotter| object.
             phdos_plotter: |PhononDosPlotter| object.
         """
+	# TODO: Multiprocessing?
         if "workdir" in kwargs:
             raise ValueError("Cannot specify `workdir` when multiple DDB file are executed.")
 
@@ -1598,6 +1644,15 @@ class DdbRobot(Robot):
                 phdos_file.close()
 
         return dict2namedtuple(phbands_plotter=phbands_plotter, phdos_plotter=phdos_plotter)
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        print("Invoking anaddb through anaget_phonon_plotters...")
+        r = self.anaget_phonon_plotters()
+        for fig in r.phbands_plotter.yield_figs(): yield fig
+        for fig in r.phdos_plotter.yield_figs(): yield fig
 
     def write_notebook(self, nbpath=None):
         """

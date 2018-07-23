@@ -188,7 +188,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
 
         set_axlims(ax, xlims, "x")
         ax.grid(True)
-        ax.set_xlabel(r"$\omega$ [eV]")
+        ax.set_xlabel(r"$\omega$ (eV)")
         ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
         return fig
@@ -215,7 +215,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
 
         set_axlims(ax, xlims, "x")
         ax.grid(True)
-        ax.set_xlabel(r"$\omega$ [eV]")
+        ax.set_xlabel(r"$\omega$ (eV)")
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
@@ -502,9 +502,9 @@ class _AwggMatrix(object):
         app("  Number of G-vectors: %d" % self.ng)
         app("  Total number of frequencies: %d (real: %s, imaginary: %s)" % (self.nw, self.nrew, self.nimw))
         if self.nrew:
-            app("  Real frequencies up to %.2f [eV]" % self.real_wpoints[-1].real)
+            app("  Real frequencies up to %.2f (eV)" % self.real_wpoints[-1].real)
         if self.nimw:
-            app("  Imaginary frequencies up to %.2f [eV]" % self.imag_wpoints[-1].imag)
+            app("  Imaginary frequencies up to %.2f (eV)" % self.imag_wpoints[-1].imag)
 
         return "\n".join(lines)
 
@@ -623,7 +623,7 @@ class _AwggMatrix(object):
             lines.append(l)
 
         ax.grid(True)
-        ax.set_xlabel(r"$\omega$ [eV]")
+        ax.set_xlabel(r"$\omega$ (eV)")
         ax.set_title("%s, kpoint: %s" % (self.netcdf_name, self.kpoint), fontsize=fontsize)
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 

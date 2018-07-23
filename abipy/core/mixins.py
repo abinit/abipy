@@ -28,7 +28,7 @@ __all__ = [
 ]
 
 @six.add_metaclass(abc.ABCMeta)
-class _File(object):
+class BaseFile(object):
     """
     Abstract base class defining the methods that must be implemented
     by the concrete classes representing the different files produced by ABINIT.
@@ -105,10 +105,10 @@ class _File(object):
     #    try:
     #        self.close()
     #    finally:
-    #        super(_File, self).__close__(self)
+    #        super(BaseFile, self).__close__(self)
 
 
-class TextFile(_File):
+class TextFile(BaseFile):
 
     #@classmethood
     #def from_string(cls, s):
@@ -155,7 +155,7 @@ class AbinitOutNcFile(NetcdfReader):
 
 
 @six.add_metaclass(abc.ABCMeta)
-class AbinitNcFile(_File):
+class AbinitNcFile(BaseFile):
     """
     Abstract class representing a Netcdf file with data saved
     according to the ETSF-IO specifications (when available).
@@ -179,7 +179,7 @@ class AbinitNcFile(_File):
 
 
 @six.add_metaclass(abc.ABCMeta)
-class AbinitFortranFile(_File):
+class AbinitFortranFile(BaseFile):
     """
     Abstract class representing a fortran file containing output data from abinit.
     """
@@ -187,7 +187,7 @@ class AbinitFortranFile(_File):
         pass
 
 
-class CubeFile(_File):
+class CubeFile(BaseFile):
     """
 
     .. attribute:: structure
@@ -337,12 +337,13 @@ class Has_ElectronBands(object):
 
     def yield_ebands_figs(self, **kwargs):
         """*Generates* a predefined list of matplotlib figures with minimal input from the user."""
+        with_gaps = not self.ebands.has_metallic_scheme
         if self.ebands.kpoints.is_path:
-            yield self.ebands.plot(show=False)
+            yield self.ebands.plot(with_gaps=with_gaps, show=False)
             yield self.ebands.kpoints.plot(show=False)
         else:
             edos = self.ebands.get_edos()
-            yield self.ebands.plot_with_edos(edos, show=False)
+            yield self.ebands.plot_with_edos(edos, with_gaps=with_gaps, show=False)
             yield edos.plot(show=False)
 
     def expose_ebands(self, slide_mode=False, slide_timeout=None, **kwargs):
@@ -378,7 +379,6 @@ class Has_PhononBands(object):
 
     #def plot_phbands_with_phdos(self, phdos, **kwargs):
     #    return self.phbands.plot_with_phdos(phdos, **kwargs)
-
 
     def yield_phbands_figs(self, **kwargs):  # pragma: no cover
         """
@@ -602,12 +602,13 @@ abilab.enable_notebook(with_seaborn=True)
             pickle.dump(self, fh)
             return filepath
 
-    #@abc.abstractmethod
-    #def yield_figs(self, **kwargs)
-    #    """
-    #    This function *generates* a predefined list of matplotlib figures with minimal input from the user.
-    #    Used in abiview.py to get a quick look at the results.
-    #    """
+    # TODO: Activate this
+    @abc.abstractmethod
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        Used in abiview.py to get a quick look at the results.
+        """
 
     def expose(self, slide_mode=False, slide_timeout=None, **kwargs):
         """

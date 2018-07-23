@@ -61,7 +61,7 @@ that can be installed with::
 Note that you may need to install pymatgen and other critical dependencies manually.
 In this case, please consult the detailed installation instructions provided by the
 `pymatgen howto <http://pymatgen.org/index.html#standard-install>`_ to install pymatgen 
-and then follow the instructions in `our howto <http://pythonhosted.org/abipy/installation.html>`_.
+and then follow the instructions in `our howto <http://abinit.github.io/abipy/installation>`_.
 
 The installation process is greatly simplified if you install the required 
 python packages through `Anaconda <https://continuum.io/downloads>`_.
@@ -73,19 +73,23 @@ in the form of pre-compiled packages that can be easily installed with e.g.::
 
 To install AbiPy with conda, download the `miniconda installer <https://conda.io/miniconda.html>`_
 (select python3.6 and the version corresponding to your operating system).
-Create a new conda_ environment (``abipy3.6``) based on python3.6 with::
+Create a new conda_ environment (let's call it ``abipy3.6``) based on python3.6 with::
 
-    conda create -n abipy3.6 python=3.6
+    conda create --name abipy3.6 python=3.6
 
 and activate it with::
 
     source activate abipy3.6
 
-Add ``conda-forge``, ``matsci`` and ``abinit`` to your channels with::
+You should see the name of the conda environment in the shell prompt.
+
+Now add ``conda-forge``, ``matsci`` and ``abinit`` to your conda channels with::
 
     conda config --add channels conda-forge
     conda config --add channels matsci
     conda config --add channels abinit
+
+These are the channels from which we will download pymatgen, abipy and abinit.
 
 Finally, install AbiPy from the abinit-channel_ with::
 
@@ -99,16 +103,16 @@ For example, one can easily install abinit inside the conda environment with::
     abinit --version
 
 Additional information on the steps required to install AbiPy with anaconda are available
-in the `anaconda howto <http://pythonhosted.org/abipy/installation.html>`_.
+in the `anaconda howto <http://abinit.github.io/abipy/installation#anaconda-howto>`_.
 
-We are also working with the spack_ community
+We are also collaborating with the spack_ community
 to provide packages for AbiPy and Abinit in order to facilitate the installation on large supercomputing centers.
 
 Developmental version
 ---------------------
 
 Getting the developmental version of AbiPy is easy. 
-You can clone the `github repository <https://github.com/abinit/abipy>`_ with::
+Clone the `github repository <https://github.com/abinit/abipy>`_ with::
 
     git clone https://github.com/abinit/abipy
 
@@ -162,7 +166,7 @@ abinit-channel_ with::
     conda install abinit -c abinit
 
 For further information on the syntax of the configuration file, please consult the 
-`workflows <http://pythonhosted.org/abipy/workflows.html>`_ section.
+`workflows <http://abinit.github.io/abipy/workflows/taskmanager.html>`_ section.
 
 Contributing to AbiPy is relatively easy.
 Just send us a `pull request <https://help.github.com/articles/using-pull-requests/>`_.
@@ -180,36 +184,36 @@ Basic usage
 There are a variety of ways to use AbiPy, and most of them are illustrated in the ``abipy/examples`` directory.
 Below is a brief description of the different directories found there:
 
-  * `plot <http://pythonhosted.org/abipy/examples/plot/index.html>`_
+  * `examples/plot <http://abinit.github.io/abipy/gallery/index.html>`_
 
-    scripts showing how to produce plots with matplotlib_
+    Scripts showing how to read data from netcdf files and produce plots with matplotlib_
 
-  * `notebooks <http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/index.ipynb>`_
+  * `examples/flows <http://abinit.github.io/abipy/flow_gallery/index.html>`_.
 
-    jupyter notebooks
-    (use ``jupyter notebook FILE`` to open the notebook in your browser,
-    use ``conda install jupyter`` to install the package)
+    Scripts showing how to generate an AbiPy flow, run the calculation and use ipython to analyze the data.
 
-The directory ``abipy/examples/flows`` contains python scripts that can be used 
-to automate typical ab-initio calculations.
+Additional jupyter notebooks with the Abinit tutorials written with AbiPy are available in the
+`abitutorial repository <https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/index.ipynb>`_
 
-Users are strongly encouraged to explore the detailed `API docs <http://pythonhosted.org/abipy/api/index.html>`_.
+Users are strongly encouraged to explore the detailed `API docs <http://abinit.github.io/abipy/api/index.html>`_.
 
 Command line tools
 ------------------
 
 The following scripts can be invoked directly from the terminal:
 
-* ``abicheck.py``
-* ``abidoc.py``
-* ``abiopen.py``
-* ``abistruct.py``
-* ``abicomp.py``
-* ``abinp.py``
-* ``abirun.py``
-* ``abiview.py``
+* ``abiopen.py``    Open file inside ipython.
+* ``abistruct.py``  Swiss knife to operate on structures.
+* ``abiview.py``    Visualize results from file.
+* ``abicomp.py``    Compare results extracted from multiple files.
+* ``abicheck.py``   Validate integration between AbiPy and Abinit
+* ``abirun.py``     Execute AbiPy flow from terminal.
+* ``abidoc.py``     Document Abinit input variables and Abipy configuration files.
+* ``abinp.py``      Build input files (simplified interface for the AbiPy factory functions).
 
-For further information, please consult the `official documentation <http://pythonhosted.org/abipy/scripts.html>`_.
+Use ``SCRIPT --help`` to get the list of supported commands and 
+``SCRIPT COMMAND --help`` to get the documentation for ``COMMAND``.
+For further information, please consult the `official documentation <http://abinit.github.io/abipy/scripts/index.html>`_.
 
 License
 =======

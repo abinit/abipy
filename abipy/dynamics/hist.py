@@ -285,7 +285,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
             marker = kwargs.pop("marker", "o")
             label = kwargs.pop("label", "Energy")
             ax.plot(self.steps, self.etotals, label=label, marker=marker, **kwargs)
-            ax.set_ylabel('Energy [eV]')
+            ax.set_ylabel('Energy (eV)')
 
         elif what == "abc":
             # Lattice parameters.
@@ -294,7 +294,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
             for i, label in enumerate(["a", "b", "c"]):
                 ax.plot(self.steps, [s.lattice.abc[i] for s in self.structures], label=label,
                         marker=markers[i], **kwargs)
-            ax.set_ylabel("abc [A]")
+            ax.set_ylabel("abc (A)")
 
         elif what in ("a", "b", "c"):
             i =  ("a", "b", "c").index(what)
@@ -304,7 +304,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
             label = kwargs.pop("label", what)
             ax.plot(self.steps, [s.lattice.abc[i] for s in self.structures], label=label,
                     marker=marker, **kwargs)
-            ax.set_ylabel('%s [A]' % what)
+            ax.set_ylabel('%s (A)' % what)
 
         elif what == "angles":
             # Lattice Angles
@@ -313,7 +313,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
             for i, label in enumerate(["alpha", "beta", "gamma"]):
                 ax.plot(self.steps, [s.lattice.angles[i] for s in self.structures], label=label,
                         marker=markers[i], **kwargs)
-            ax.set_ylabel(r"$\alpha\beta\gamma$ [degree]")
+            ax.set_ylabel(r"$\alpha\beta\gamma$ (degree)")
 
         elif what in ("alpha", "beta", "gamma"):
             i =  ("alpha", "beta", "gamma").index(what)
@@ -324,19 +324,19 @@ class HistFile(AbinitNcFile, NotebookWriter):
             label = kwargs.pop("label", what)
             ax.plot(self.steps, [s.lattice.angles[i] for s in self.structures], label=label,
                     marker=marker, **kwargs)
-            ax.set_ylabel(r"$\%s$ [degree]" % what)
+            ax.set_ylabel(r"$\%s$ (degree)" % what)
 
         elif what == "volume":
             marker = kwargs.pop("marker", "o")
             ax.plot(self.steps, [s.lattice.volume for s in self.structures], marker=marker, **kwargs)
-            ax.set_ylabel(r'$V\, [A^3]$')
+            ax.set_ylabel(r'$V\, (A^3)$')
 
         elif what == "pressure":
             stress_cart_tensors, pressures = self.reader.read_cart_stress_tensors()
             marker = kwargs.pop("marker", "o")
             label = kwargs.pop("label", "P")
             ax.plot(self.steps, pressures, label=label, marker=marker, **kwargs)
-            ax.set_ylabel('P [GPa]')
+            ax.set_ylabel('P (GPa)')
 
         elif what == "forces":
             forces_hist = self.reader.read_cart_forces()
@@ -356,7 +356,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
             ax.plot(self.steps, fmean_steps, label="mean |F|", marker=markers[2], **kwargs)
             ax.plot(self.steps, fstd_steps, label="std |F|", marker=markers[3], **kwargs)
             label = "std |F"
-            ax.set_ylabel('F stats [eV/A]')
+            ax.set_ylabel('F stats (eV/A)')
 
         else:
             raise ValueError("Invalid value for what: `%s`" % str(what))
@@ -411,11 +411,18 @@ class HistFile(AbinitNcFile, NotebookWriter):
             ax.plot(self.steps, values, marker="o", label=key)
 
         ax.set_xlabel('Step')
-        ax.set_ylabel('Energies [eV]')
+        ax.set_ylabel('Energies (eV)')
         ax.grid(True)
         ax.legend(loc='best', fontsize=fontsize, shadow=True)
 
         return fig
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        yield self.plot(show=False)
+        yield self.plot_energies(show=False)
 
     def mvplot_trajectories(self, colormap="hot", sampling=1, figure=None, show=True,
                             with_forces=True, **kwargs):  # pragma: no cover
@@ -670,6 +677,13 @@ class HistRobot(Robot):
         if num_plots % ncols != 0: ax_list[-1].axis('off')
 
         return fig
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        yield self.gridplot(show=False)
+        yield self.combiplot(show=False)
 
     def write_notebook(self, nbpath=None):
         """

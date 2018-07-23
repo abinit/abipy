@@ -14,7 +14,7 @@ from monty.functools import prof_main
 from monty.termcolor import cprint
 from abipy import abilab
 from abipy.iotools.visualizer import Visualizer
-from abipy.tools.plotting import MplExpose
+from abipy.tools.plotting import MplExpose, GenericDataFilePlotter
 
 
 def handle_overwrite(path, options):
@@ -56,6 +56,20 @@ def abiview_hist(options):
             hist.plot()
 
         return 0
+
+
+def abiview_data(options):
+    """
+    Extract data from a generic text file with results
+    in tabular format and plot data with matplotlib.
+    Multiple datasets are supported.
+    No attempt is made to handle metadata (e.g. column name)
+    """
+    plotter = GenericDataFilePlotter(options.filepath)
+    print(plotter.to_string(verbose=options.verbose))
+    plotter.plot(use_index=options.use_index)
+
+    return 0
 
 
 def abiview_abo(options):
@@ -109,6 +123,40 @@ def abiview_ebands(options):
             print(abifile.to_string(verbose=options.verbose))
             abifile.expose_ebands(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
                                   verbose=options.verbose)
+
+        return 0
+
+
+def abiview_skw(options):
+    """
+    Interpolate energies in k-space along a k-path with star-function methods
+    Note that the interpolation will likely fail if there are symmetrical k-points in the input set of k-points
+    so it's recommended to call this method with energies obtained in the IBZ.
+    Accept any file with ElectronBands e.g. GSR.nc, WFK.nc, ...
+    """
+    ebands = abilab.ElectronBands.as_ebands(options.filepath)
+    if not ebands.kpoints.is_ibz:
+        cprint("SKW interpolator should be called with energies in the IBZ", "yellow")
+    r = ebands.interpolate(lpratio=options.lpratio, line_density=options.line_density, verbose=options.verbose)
+    r.ebands_kpath.plot()
+    return 0
+
+
+def abiview_fs(options):
+    """
+    Extract eigenvaleus in the IBZ from file and visualize Fermi surface with --appname
+    """
+    with abilab.abiopen(options.filepath) as abifile:
+        eb3d = abifile.ebands.get_ebands3d()
+
+        if options.appname == "mpl":
+            eb3d.plot_isosurfaces()
+        elif options.appname == "xsf":
+            eb3d.xcrysden_view()
+        elif options.appname == "mayavi":
+            eb3d.mvplot_isosurfaces()
+        else:
+            raise ValueError("Unsupported value for --appname: %s" % str(options.appname))
 
         return 0
 
@@ -289,8 +337,8 @@ def abiview_gruns(options):
     return 0
 
 
-def abiview_eph(options):
-    """Plot Eliashberg function. Requires EPH.nc file."""
+def abiview_a2f(options):
+    """Plot Eliashberg function. Requires A2F.nc file."""
     with abilab.abiopen(options.filepath) as abifile:
         print(abifile.to_string(verbose=options.verbose))
         abifile.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
@@ -305,6 +353,28 @@ def abiview_sigeph(options):
         print(abifile.to_string(verbose=options.verbose))
         abifile.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
                        verbose=options.verbose)
+
+    return 0
+
+
+def abiview_lobster(options):
+    """Analyze lobster output files in directory."""
+    from abipy.electrons.lobster import LobsterAnalyzer
+    lobana = LobsterAnalyzer.from_dir(os.path.dirname(options.filepath), prefix=options.prefix)
+    print(lobana.to_string(verbose=options.verbose))
+
+    if options.ipython:
+        # Start ipython shell with namespace
+        # Use embed because I don't know how to show a header with start_ipython.
+        import IPython
+        IPython.embed(header="The LobsterAnalyzer is bound to the `lobana` variable.\nTry `print(lobana)`")
+
+    elif options.notebook:
+        return lobana.make_and_open_notebook(foreground=options.foreground)
+
+    else:
+        lobana.plot()
+        #lobana.plot_coxp_with_dos(from_site_index=[0, 1])
 
     return 0
 
@@ -329,6 +399,7 @@ Usage example:
 
     abiview.py abo run.abo   ==> Plot SCF iterations extracted from Abinit output file.
     abiview.py log run.log   ==> Print warnings/comments/errors found in Abinit log file.
+    abiview.py data FILE     ==> Parse text FILE with data in tabular format and plot arrays.
 
 ###########
 # Electrons
@@ -337,7 +408,11 @@ Usage example:
     abiview.py ebands out_WFK.nc              ==>  Plot electrons bands (or DOS) with matplotlib.
     abiview.py ebands out_GSR.nc --xmgrace    ==>  Generate xmgrace file with electron bands.
     abiview.py fatbands out_FATBANDS.nc       ==>  Plot electron fatbands or PJDOS depending on k-sampling.
+    abiview.py fs FILE_WITH_KMESH.nc          ==>  Visualize Fermi surface from netcdf file with electron energies
+                                                   on a k-mesh. Use -a xsf to change application e.g. Xcrysden.
     abiview.py optic out_OPTIC.nc             ==>  Plot optical properties computed by optic code.
+    abiview.py skw out_GSR.nc                 ==> Interpolate IBZ energies with star-functions and plot
+                                                  interpolated bands.
 
 #########
 # Phonons
@@ -351,7 +426,7 @@ Usage example:
 # E-PH
 #######
 
-  abiview.py eph out_EPH.nc              ==> Plot EPH results.
+  abiview.py a2f out_A2F.nc              ==> Plot Eliashberg results.
   abiview.py sigeph out_SIGEPH.nc        ==> Plot E-PH self-energy.
 
 ########
@@ -368,6 +443,8 @@ Usage example:
 ###############
 
   abiview.py dirviz DIRECTORY            ==> Visualize directory tree with graphviz.
+
+  abiview.py lobster DIRECTORY           ==> Visualize Lobster results.
 
 Use `abiview.py --help` for help and `abiview.py COMMAND --help` to get the documentation for `COMMAND`.
 Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
@@ -387,7 +464,8 @@ def get_parser(with_epilog=False):
         help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
     copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
         help='verbose, can be supplied multiple times to increase verbosity.')
-    copts_parser.add_argument('--seaborn', action="store_true", help="Use seaborn settings.")
+    copts_parser.add_argument('-sns', "--seaborn", const="paper", default=None, action='store', nargs='?', type=str,
+        help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster"). Default: paper')
     copts_parser.add_argument('-mpl', "--mpl-backend", default=None,
         help=("Set matplotlib interactive backend. "
               "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
@@ -400,12 +478,31 @@ def get_parser(with_epilog=False):
     slide_parser.add_argument("-t", "--slide-timeout", type=int, default=None,
             help="Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.")
 
+    # Parent parser for commands supporting ipython
+    ipy_parser = argparse.ArgumentParser(add_help=False)
+    ipy_parser.add_argument('-ipy', '--ipython', default=False, action="store_true", help='Invoke ipython terminal.')
+
+    # Parent parser for commands supporting (jupyter notebooks)
+    nb_parser = argparse.ArgumentParser(add_help=False)
+    nb_parser.add_argument('-nb', '--notebook', default=False, action="store_true", help='Generate jupyter notebook.')
+    nb_parser.add_argument('--foreground', action='store_true', default=False,
+        help="Run jupyter notebook in the foreground.")
+
+    # Parent parser for commands supporting expose.
+    #expose_parser = argparse.ArgumentParser(add_help=False)
+    #expose_parser.add_argument("-e", '--expose', default=False, action="store_true",
+    #        help='Execute robot.expose to produce a pre-defined list of matplotlib figures.')
+    #expose_parser.add_argument("-s", "--slide-mode", default=False, action="store_true",
+    #        help="Used if --expose to iterate over figures. Expose all figures at once if not given on the CLI.")
+    #expose_parser.add_argument("-t", "--slide-timeout", type=int, default=None,
+    #        help="Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.")
+
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
 
-    # Create the parsers for the sub-commands
+    # Create the parsers for the sub-command
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
     def add_args(p, *args):
@@ -446,6 +543,11 @@ def get_parser(with_epilog=False):
     p_hist.add_argument("--xdatcar", default=False, action="store_true", help="Convert HIST file into XDATCAR format.")
     add_args(p_hist, "force")
 
+    # Subparser for data command.
+    p_data = subparsers.add_parser('data', parents=[copts_parser], help=abiview_data.__doc__)
+    p_data.add_argument("-i", "--use-index", default=False, action="store_true",
+        help="Use the row index as x-value in the plot. By default the plotter uses the first column as x-values")
+
     # Subparser for abo command.
     p_abo = subparsers.add_parser('abo', parents=[copts_parser], help=abiview_abo.__doc__)
 
@@ -459,11 +561,24 @@ def get_parser(with_epilog=False):
             "See http://www.graphviz.org/pdf/dot.1.pdf "
             "Use `conda install python-graphviz` or `pip install graphviz` to install the python package"))
 
-    # Subparser for ebands commands.
+    # Subparser for ebands command.
     p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, slide_parser], help=abiview_ebands.__doc__)
     add_args(p_ebands, "xmgrace", "bxsf", "force")
 
-    # Subparser for fatbands commands.
+    # Subparser for ebands command.
+    p_skw = subparsers.add_parser('skw', parents=[copts_parser], help=abiview_skw.__doc__)
+    p_skw.add_argument("-lp", "--lpratio", type=int, default=5,
+        help=("Ratio between the number of star functions and the number of ab-initio k-points. "
+              "The default should be OK in many systems, larger values may be required for accurate derivatives."))
+    p_skw.add_argument("-ld", "--line-density", type=int, default=20,
+        help ="Number of points in the smallest segment of the k-path.")
+
+    # Subparser for fs command.
+    p_fs = subparsers.add_parser('fs', parents=[copts_parser], help=abiview_fs.__doc__)
+    p_fs.add_argument("-a", "--appname", type=str, default="mpl",
+        help="Application name. Possible options: mpl (matplotlib, default), xsf (xcrysden), mayavi.")
+
+    # Subparser for fatbands command.
     p_fatbands = subparsers.add_parser('fatbands', parents=[copts_parser, slide_parser], help=abiview_fatbands.__doc__)
 
     # Subparser for ddb command.
@@ -492,11 +607,16 @@ def get_parser(with_epilog=False):
     # Subparser for optic command.
     p_optic = subparsers.add_parser('optic', parents=[copts_parser, slide_parser], help=abiview_optic.__doc__)
 
-    # Subparser for eph command.
-    p_eph = subparsers.add_parser('eph', parents=[copts_parser, slide_parser], help=abiview_eph.__doc__)
+    # Subparser for a2f command.
+    p_a2f = subparsers.add_parser('a2f', parents=[copts_parser, slide_parser], help=abiview_a2f.__doc__)
 
     # Subparser for sigeph command.
     p_sigeph = subparsers.add_parser('sigeph', parents=[copts_parser, slide_parser], help=abiview_sigeph.__doc__)
+
+    # Subparser for lobster command.
+    p_lobster = subparsers.add_parser('lobster', parents=[copts_parser, ipy_parser, nb_parser],
+        help=abiview_lobster.__doc__)
+    p_lobster.add_argument("--prefix", type=str, default="", help="Prefix for lobster output files. Default: ''")
 
     # Subparser for denpot command.
     #p_denpot = subparsers.add_parser('denpot', parents=[copts_parser], help=abiview_denpot.__doc__)
@@ -549,7 +669,7 @@ def main():
     if options.seaborn:
         # Use seaborn settings.
         import seaborn as sns
-        sns.set(context='article', style='darkgrid', palette='deep',
+        sns.set(context=options.seaborn, style='darkgrid', palette='deep',
                 font='sans-serif', font_scale=1, color_codes=False, rc=None)
 
     # Dispatch

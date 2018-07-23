@@ -15,7 +15,7 @@ from monty.functools import lazy_property
 from pymatgen.core.units import EnergyArray, ArrayWithUnit
 from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt
 from abipy.abio.robots import Robot
 from abipy.electrons.ebands import ElectronsReader, RobotWithEbands
 
@@ -26,6 +26,8 @@ logger = logging.getLogger(__name__)
 __all__ = [
     "GsrFile",
 ]
+
+_INVALID_STRESS_TENSOR = 9999999999e+99
 
 
 class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
@@ -75,8 +77,8 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         if self.is_scf_run:
             app("")
             app("Stress tensor (Cartesian coordinates in Ha/Bohr**3):\n%s" % self.cart_stress_tensor)
-            app("Pressure: %.3f [GPa]" % self.pressure)
-            app("Energy: %.8f [eV]" % self.energy)
+            app("Pressure: %.3f (GPa)" % self.pressure)
+            app("Energy: %.8f (eV)" % self.energy)
         app("")
         app(self.ebands.to_string(with_structure=False, verbose=verbose, title="Electronic Bands"))
 
@@ -97,7 +99,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         # NOTE: We use kptopt to understand if we have a SCF/NSCF run
         # In principle one should use iscf but it's not available in the GSR.
         #return int(self.reader.read_value("kptopt")) >= 0
-        return abs(self.cart_stress_tensor[0, 0] - 9.9999999999e+99) > 0.1
+        return abs(self.cart_stress_tensor[0, 0] - _INVALID_STRESS_TENSOR) > 0.1
 
     @lazy_property
     def ecut(self):
@@ -373,15 +375,21 @@ class GsrReader(ElectronsReader):
     def read_cart_stress_tensor(self):
         """
         Return the stress tensor (3x3 matrix) in cartesian coordinates (Hartree/Bohr^3)
+        If MaskedArray (i.e. tensor was not computed  e.g. Nscf run) set it to
         """
         # Abinit stores 6 unique components of this symmetric 3x3 tensor:
         # Given in order (1,1), (2,2), (3,3), (3,2), (3,1), (2,1).
         c = self.read_value("cartesian_stress_tensor")
         tensor = np.empty((3, 3), dtype=np.float)
-        for i in range(3): tensor[i, i] = c[i]
-        for p, (i, j) in enumerate(((2, 1), (2, 0), (1, 0))):
-            tensor[i, j] = c[3 + p]
-            tensor[j, i] = c[3 + p]
+
+        if np.ma.is_masked(c[()]):
+            # NSCF
+            tensor.fill(_INVALID_STRESS_TENSOR)
+        else:
+            for i in range(3): tensor[i, i] = c[i]
+            for p, (i, j) in enumerate(((2, 1), (2, 0), (1, 0))):
+                tensor[i, j] = c[3 + p]
+                tensor[j, i] = c[3 + p]
 
         return tensor
 
@@ -606,7 +614,7 @@ class GsrRobot(Robot, RobotWithEbands):
         """
         yield self.plot_lattice_convergence(show=False)
         yield self.plot_gsr_convergence(show=False)
-        #for fig in self.get_ebands_plotter.yield_figs(): yield fig
+        for fig in self.get_ebands_plotter().yield_figs(): yield fig
 
     def write_notebook(self, nbpath=None):
         """

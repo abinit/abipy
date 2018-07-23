@@ -78,8 +78,8 @@ def phunit_tag(units):
     """
     Return latex string from ``units`` (used for phonons)
     """
-    d = {"ev": "[eV]", "mev": "[meV]", "ha": '[Ha]',
-         "cm-1": "[cm$^{-1}$]", 'cm^-1': "[cm$^{-1}$]", "thz": '[Thz]',
+    d = {"ev": "(eV)", "mev": "(meV)", "ha": '(Ha)',
+         "cm-1": "(cm$^{-1}$)", 'cm^-1': "(cm$^{-1}$)", "thz": '(Thz)',
          }
     try:
         return d[units.lower().strip()]
@@ -91,10 +91,10 @@ def wlabel_from_units(units):
     """
     Return latex string for phonon frequencies in ``units``.
     """
-    d = {'ev': 'Energy [eV]', 'mev': 'Energy [meV]', 'ha': 'Energy [Ha]',
-        'cm-1': r'Frequency [cm$^{-1}$]',
-        'cm^-1': r'Frequency [cm$^{-1}$]',
-        'thz': r'Frequency [Thz]',
+    d = {'ev': 'Energy (eV)', 'mev': 'Energy (meV)', 'ha': 'Energy (Ha)',
+        'cm-1': r'Frequency (cm$^{-1}$)',
+        'cm^-1': r'Frequency (cm$^{-1}$)',
+        'thz': r'Frequency (Thz)',
     }
     try:
         return d[units.lower().strip()]
@@ -106,9 +106,9 @@ def phdos_label_from_units(units):
     """
     Return latex string for phonon DOS values in ``units``.
     """
-    d = {"ev": "[states/eV]", "mev": "[states/meV]", "ha": '[states/Ha]',
-         "cm-1": "[states/cm$^{-1}$]", 'cm^-1': "[states/cm$^{-1}$]",
-         "thz": '[states/Thz]',
+    d = {"ev": "(states/eV)", "mev": "(states/meV)", "ha": '(states/Ha)',
+         "cm-1": "(states/cm$^{-1}$)", 'cm^-1': "(states/cm$^{-1}$)",
+         "thz": '(states/Thz)',
          }
     try:
         return d[units.lower().strip()]

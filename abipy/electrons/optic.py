@@ -154,11 +154,11 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
 
         app(marquee("Optic calculation", mark="="))
         # Show Optic variables.
-        app("broadening: %s [Ha], %.3f [eV]" % (self.broadening, self.broadening * abu.Ha_eV))
-        app("scissor: %s [Ha], %.3f [eV]" % (self.scissor, self.scissor * abu.Ha_eV))
-        app("tolerance: %s [Ha], %.3f [eV]" % (self.tolerance, self.tolerance * abu.Ha_eV))
-        app("maxomega: %s [Ha], %.3f [eV]" % (self.maxomega, self.maxomega * abu.Ha_eV))
-        app("domega: %s [Ha], %.3f [eV]" % (self.domega, self.domega * abu.Ha_eV))
+        app("broadening: %s [Ha], %.3f (eV)" % (self.broadening, self.broadening * abu.Ha_eV))
+        app("scissor: %s [Ha], %.3f (eV)" % (self.scissor, self.scissor * abu.Ha_eV))
+        app("tolerance: %s [Ha], %.3f (eV)" % (self.tolerance, self.tolerance * abu.Ha_eV))
+        app("maxomega: %s [Ha], %.3f (eV)" % (self.maxomega, self.maxomega * abu.Ha_eV))
+        app("domega: %s [Ha], %.3f (eV)" % (self.domega, self.domega * abu.Ha_eV))
         app("do_antiresonant %s, do_ep_renorm %s" % (self.do_antiresonant, self.do_ep_renorm))
         app("Number of temperatures: %d" % self.reader.ntemp)
 
@@ -272,7 +272,7 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
                     label=self.get_linopt_latex_label(what, comp) if label is None else label)
 
         ax.grid(True)
-        if with_xlabel: ax.set_xlabel('Photon Energy [eV]')
+        if with_xlabel: ax.set_xlabel('Photon Energy (eV)')
         set_axlims(ax, xlims, "x")
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
@@ -342,7 +342,7 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
                 )
 
         ax.grid(True)
-        if with_xlabel: ax.set_xlabel('Photon Energy [eV]')
+        if with_xlabel: ax.set_xlabel('Photon Energy (eV)')
         set_axlims(ax, xlims, "x")
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
@@ -618,6 +618,16 @@ class OpticRobot(Robot, RobotWithEbands):
                     ax.legend().set_visible(False)
 
         return fig
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        Used in abiview.py to get a quick look at the results.
+        """
+        for key, comps in self.computed_components_intersection.items():
+            if not comps: continue
+            plot_fig = getattr(self, "plot_%s_convergence" % key)
+            yield plot_fig(show=False)
 
     def write_notebook(self, nbpath=None):
         """

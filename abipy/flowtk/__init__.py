@@ -1,6 +1,7 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import os
+import tempfile
 
 from monty.termcolor import cprint
 from pymatgen.io.abinit.abiobjects import *
@@ -18,6 +19,7 @@ except ImportError:
     pass
 from pymatgen.io.abinit.nodes import Status
 from pymatgen.io.abinit.tasks import *
+from pymatgen.io.abinit.tasks import EphTask
 from pymatgen.io.abinit.works import *
 from pymatgen.io.abinit.flows import (Flow, G0W0WithQptdmFlow, bandstructure_flow, PhononFlow,
     g0w0_flow, phonon_flow, phonon_conv_flow, NonLinearCoeffFlow)
@@ -61,7 +63,6 @@ def flow_main(main):  # pragma: no cover
         options.manager = TaskManager.as_manager(options.manager)
 
         if options.tempdir:
-            import tempfile
             options.workdir = tempfile.mkdtemp()
             print("Working in temporary directory", options.workdir)
 
@@ -71,6 +72,12 @@ def flow_main(main):  # pragma: no cover
 
             if options.plot:
                 flow.plot_networkx(tight_layout=True, with_edge_labels=True)
+
+            if options.graphviz:
+                graph = flow.get_graphviz() #engine=options.engine)
+                directory = tempfile.mkdtemp()
+                print("Producing source files in:", directory)
+                graph.view(directory=directory, cleanup=False)
 
             if options.abivalidate:
                 print("Validating flow input files...")
@@ -139,6 +146,7 @@ def build_flow_main_parser():
     parser.add_argument("-b", '--batch', action="store_true", default=False, help="Run the flow in batch mode")
     parser.add_argument("-r", "--remove", default=False, action="store_true", help="Remove old flow workdir")
     parser.add_argument("-p", "--plot", default=False, action="store_true", help="Plot flow with networkx.")
+    parser.add_argument("-g", "--graphviz", default=False, action="store_true", help="Plot flow with graphviz.")
     parser.add_argument("-d", "--dry-run", default=False, action="store_true", help="Don't write directory with flow.")
     parser.add_argument("-a", "--abivalidate", default=False, action="store_true", help="Call Abinit to validate input files.")
     parser.add_argument("-t", "--tempdir", default=False, action="store_true", help="Execute flow in temporary directory.")

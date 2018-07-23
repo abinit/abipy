@@ -9,6 +9,7 @@ from collections import OrderedDict
 from monty.string import marquee # is_string, list_strings,
 from monty.functools import lazy_property
 from monty.collections import dict2namedtuple
+from monty.termcolor import cprint
 import pymatgen.core.units as units
 from pymatgen.core.lattice import Lattice
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
@@ -205,11 +206,13 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
                        for c in np.reshape(kbounds, (-1, 3))]
         uf_cart = self.uf_kpoints.get_cart_coords()
 
-        klines, xs, ticks = find_points_along_path(cart_bounds, uf_cart, dist_tol)
-        if len(klines) == 0: return None
+        p = find_points_along_path(cart_bounds, uf_cart, dist_tol)
+        if len(p.ikfound) == 0:
+            cprint("Warning: find_points_along_path returned zero points along the path. Try to increase dist_tol.", "yellow")
+            return None
         if verbose:
             uf_frac_coords = np.reshape([k.frac_coords for k in self.uf_kpoints], (-1, 3))
-            fcoords = uf_frac_coords[klines]
+            fcoords = uf_frac_coords[p.ikfound]
             print("Found %d points along input k-path" % len(fcoords))
             print("k-points of path in reduced coordinates:")
             print(fcoords)
@@ -219,24 +222,31 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.set_facecolor(facecolor)
 
-        xs = np.tile(xs, self.nband)
+        xs = np.tile(p.dist_list, self.nband)
         marker_spin = {0: "^", 1: "v"} if self.nss == 2 else {0: "o"}
         for spin in range(self.nss):
-            ys = self.uf_eigens[spin, klines, :] - e0
-            ws = self.uf_weights[spin, klines, :]
+            ys = self.uf_eigens[spin, p.ikfound, :] - e0
+            ws = self.uf_weights[spin, p.ikfound, :]
             s = ax.scatter(xs, ys.T, s=fact * ws.T, c=ws.T,
                            marker=marker_spin[spin], label=None if self.nss == 1 else "spin %s" % spin,
                            linewidth=1, edgecolors='none', cmap=plt.get_cmap(colormap))
             plt.colorbar(s, ax=ax, orientation='vertical')
 
-        ax.set_xticks(ticks, minor=False)
+        ax.set_xticks(p.path_ticks, minor=False)
         ax.set_xticklabels(klabels, fontdict=None, minor=False, size=kwargs.pop("klabel_size", "large"))
         ax.grid(True)
-        ax.set_ylabel('Energy [eV]')
+        ax.set_ylabel('Energy (eV)')
         set_axlims(ax, ylims, "y")
         if self.nss == 2: ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        print("TODO: Add call to plot_unfolded")
+        yield self.ebands.plot(show=False)
 
     def write_notebook(self, nbpath=None):
         """
@@ -252,7 +262,7 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
             nbv.new_code_cell("#f2b.unfolded_kpoints.plot();"),
             nbv.new_code_cell(r"""\
 # kbounds = [0, 1/2, 0, 0, 0, 0, 0, 0, 1/2]
-# klabels = ["Y", "$Gamma$", "X"]
+# klabels = ["Y", "$\Gamma$", "X"]
 # f2b.plot_unfolded(kbounds, klabels);"""),
         ])
 

@@ -12,10 +12,10 @@ eph Package
    :undoc-members:
    :show-inheritance:
 
-:mod:`eph` Module
+:mod:`a2f` Module
 -----------------
 
-.. automodule:: abipy.eph.eph
+.. automodule:: abipy.eph.a2f
    :members:
    :undoc-members:
    :show-inheritance:

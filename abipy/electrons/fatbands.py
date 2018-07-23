@@ -883,8 +883,8 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     #    Note that this is a very crude estimate of the charge density distribution.
 
     #    Args:
-    #        start_energy: PJDOS is integrated from this energy [eV]. If None, the lower bound in used.
-    #        stop_energy: PJDOS is integrated up to this energy [eV]. If None, the Fermi level is used.
+    #        start_energy: PJDOS is integrated from this energy (eV). If None, the lower bound in used.
+    #        stop_energy: PJDOS is integrated up to this energy (eV). If None, the Fermi level is used.
     #        method: String defining the method for the computation of the DOS.
     #        step: Energy step (eV) of the linear mesh.
     #        width: Standard deviation (eV) of the gaussian.
@@ -1066,14 +1066,14 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
                 # Display yticklabels on the first plot and last plot only.
                 # and display the legend only on the first plot.
-                ax.set_xlabel("Energy [eV]")
+                ax.set_xlabel("Energy (eV)")
                 if l == 0:
                     if with_info:
                         ax.legend(loc="best", fontsize=fontsize, shadow=True)
                         if exchange_xy:
-                            ax.set_xlabel('DOS [states/eV]')
+                            ax.set_xlabel('DOS (states/eV)')
                         else:
-                            ax.set_ylabel('DOS [states/eV]')
+                            ax.set_ylabel('DOS (states/eV)')
                 elif l == mylsize - 1:
                     ax.yaxis.set_ticks_position("right")
                     ax.yaxis.set_label_position("right")
@@ -1221,14 +1221,14 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
                 # Display yticklabels on the first plot and last plot only.
                 # and display the legend only on the first plot.
-                ax.set_xlabel("Energy [eV]")
+                ax.set_xlabel("Energy (eV)")
                 if itype == 0:
                     if with_info:
                         ax.legend(loc="best", fontsize=fontsize, shadow=True)
                         if exchange_xy:
-                            ax.set_xlabel('DOS [states/eV]')
+                            ax.set_xlabel('DOS (states/eV)')
                         else:
-                            ax.set_ylabel('DOS [states/eV]')
+                            ax.set_ylabel('DOS (states/eV)')
                 elif itype == self.ntypat - 1:
                     ax.yaxis.set_ticks_position("right")
                     ax.yaxis.set_label_position("right")
@@ -1440,7 +1440,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                             label="PS-onsite" if (irow, l, spin) == (0, 0, 0) else None)
 
         for ax in ax_mat[-1, :]:
-            ax.set_xlabel('Energy [eV]')
+            ax.set_xlabel('Energy (eV)')
             set_axlims(ax, xlims, "x")
 
     # TODO: THIS CODE IS STILL UNDER DEVELOPMENT
@@ -1519,7 +1519,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     #        ax.plot(mesh, yvals, color=self.spinors2color[term], label=self.spinors2tex[term])
 
     #    ax.grid(True)
-    #    ax.set_xlabel("Energy [eV]")
+    #    ax.set_xlabel("Energy (eV)")
     #    set_axlims(ax, xlims, "x")
     #    ax.legend(loc="best", fontsize=fontsize, shadow=True)
 

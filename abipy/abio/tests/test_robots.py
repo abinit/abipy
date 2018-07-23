@@ -20,6 +20,8 @@ class RobotTest(AbipyTest):
             EXT = "FOOBAR.nc"
             def write_notebook(self, nbpath=None):
                 raise NotImplementedError()
+            def yield_figs(self, **kwargs):  # pragma: no cover
+                raise NotImplementedError()
 
         # With context.
         with MyRobot() as robot:

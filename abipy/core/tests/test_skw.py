@@ -75,19 +75,18 @@ class TestSkwInterpolator(AbipyTest):
         # Test plotting API.
         if self.has_matplotlib():
             kmeshes = [[2, 2, 2], [4, 4, 4]]
+            widths = [0.2, 0.3]
             is_shift = None
+            assert skw.plot_dos_vs_kmeshes(kmeshes, is_shift=is_shift, show=False)
+            assert skw.plot_jdosq0_vs_kmeshes(kmeshes, is_shift=is_shift, show=False)
 
-            skw.plot_dos_vs_kmeshes(kmeshes, is_shift=is_shift, show=False)
+            #assert skw.plot_nesting_vs_widths(widths=widths, kmesh=[4, 4, 4], e0=None, qvertices_names=None,
+            #                                  line_density=5, is_shift=is_shift, show=False)
 
-            skw.plot_jdosq0_vs_kmeshes(kmeshes, is_shift=is_shift, show=False)
+            #assert skw.plot_nesting_vs_kmeshes(width=0.2, kmeshes=kmeshes, e0=None, qvertices_names=None, line_density=20,
+            #                                   is_shift=is_shift, show=False):
 
-            #skw.plot_nesting_vs_widths(widths, kmesh, e0=None, qvertices_names=None,
-            #                            line_density=20, is_shift=is_shift, show=False)
+            #assert skw.plot_nesting_vs_kmeshes(width=0.2, kmeshes=kmesh, e0=None, qvertices_names=None, line_density=20,
+            #                                   is_shift=is_shift, show=False):
 
-            #skw.plot_nesting_vs_kmeshes(width, kmeshes, e0=None, qvertices_names=None, line_density=20,
-            #                             is_shift=is_shift, show=False):
-
-            #skw.plot_nesting_vs_kmeshes(width, kmeshes, e0=None, qvertices_names=None, line_density=20,
-            #                             is_shift=is_shift, show=False):
-
-            #skw.plot_group_velocites(kvertices_names=None, line_density=20, ax=None, show=False)
+            #assert skw.plot_group_velocites(kvertices_names=None, line_density=20, ax=None, show=False)

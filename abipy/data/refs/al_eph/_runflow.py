@@ -92,8 +92,8 @@ def build_flow(options):
     flow.allocate()
 
     # EPH does not support autoparal (yet)
-    for eph_task in eph_work:
-        eph_task.with_fixed_mpi_omp(1, 1)
+    #for eph_task in eph_work:
+    #    eph_task.with_fixed_mpi_omp(1, 1)
 
     return flow
 
@@ -109,8 +109,8 @@ if __name__ == "__main__":
 
     rename_table = [
         #  src, dest
-        ("_runflow/w2/t0/outdata/out_EPH.nc", "al_888k_161616q_EPH.nc"),
-        ("_runflow/w2/t1/outdata/out_EPH.nc", "al_888k_161616q_vinterp_EPH.nc"),
+        ("_runflow/w2/t0/outdata/out_A2F.nc", "al_888k_161616q_A2F.nc"),
+        ("_runflow/w2/t1/outdata/out_A2F.nc", "al_888k_161616q_vinterp_A2F.nc"),
 	("_runflow/w2/t2/outdata/out_PHDOS.nc", "al_161616q_PHDOS.nc"),
     ]
     import shutil

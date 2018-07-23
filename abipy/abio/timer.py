@@ -10,6 +10,15 @@ from abipy.flowtk import AbinitTimerParser as _Parser
 
 class AbinitTimerParser(_Parser, NotebookWriter):
 
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        yield self.plot_stacked_hist(show=False)
+        yield self.plot_efficiency(show=False)
+        yield self.plot_efficiency(show=False)
+        yield self.plot_pie(show=False)
+
     def write_notebook(self, nbpath=None):
         """
         Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current

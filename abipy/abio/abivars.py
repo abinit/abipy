@@ -286,6 +286,11 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
 
         return "\n".join(lines)
 
+    @lazy_property
+    def has_multi_structures(self):
+        """True if input defines multiple structures."""
+        return self.structure is None
+
     def _repr_html_(self):
         """Integration with jupyter notebooks."""
         from abipy.abio.abivars_db import repr_html_from_abinit_string
@@ -313,9 +318,22 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
             if dt.structure != self.datasets[0].structure:
                 warnings.warn("Datasets have different structures. Returning None. Use input.datasets[i].structure")
                 return None
+
         return self.datasets[0].structure
 
     #def to_abinit_input(self):
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        if not self.has_multi_structures:
+            yield self.structure.plot(show=False)
+            yield self.structure.plot_bz(show=False)
+        else:
+            for dt in self.datasets:
+                yield dt.structure.plot(show=False)
+                yield dt.structure.plot_bz(show=False)
 
     def write_notebook(self, nbpath=None):
         """
@@ -329,8 +347,7 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
             nbv.new_code_cell("print(abinp)"),
         ])
 
-        has_multi_structures = self.structure is None
-        if has_multi_structures:
+        if self.has_multi_structures:
             nb.cells.extend([
                 nbv.new_code_cell("""\
 for dataset in inp.datasets:

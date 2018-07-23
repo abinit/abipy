@@ -282,6 +282,32 @@ def has_timrev_from_kptopt(kptopt):
     return int(kptopt) not in (3, 4)
 
 
+def kptopt2str(kptopt, verbose=0):
+    """
+    Return human-readable string with meaning of kptopt.
+    """
+    if kptopt < 0:
+        t = ("Band structure run. Use kptbounds, and ndivk (ndivsm)"
+             "The absolute value of kptopt gives the number of segments of the band structure." +
+             "Weights are usually irrelevant with this option")
+    else:
+        t = {
+            0: ("Manual mode",
+                "User-provided nkpt, kpt, kptnrm and wtk"),
+            1: ("Use space group symmetries and TR symmetry",
+                "Usual mode for GS calculations (ngkpt or kptrlatt, nshiftk and shiftk)"),
+            2: ("Only TR symmetry",
+                "This is to be used for DFPT at Gamma (ngkpt or kptrlatt, nshiftk and shiftk)"),
+            3: ("Do not take into account any symmetry",
+                "This is to be used for DFPT at non-zero q (ngkpt or kptrlatt, nshiftk and shiftk)."),
+            4: ("Spatial symmetries, NO TR symmetry",
+                "This has to be used for PAW calculations with SOC (pawspnorb/=0) " +
+                "from ngkpt or kptrlatt, nshiftk and shiftk."),
+        }[kptopt]
+
+    return t[0] if verbose == 0 else t[0] + "\n" + t[1]
+
+
 def map_kpoints(other_kpoints, other_lattice, ref_lattice, ref_kpoints, ref_symrecs, has_timrev):
     """
     Build mapping between a list of k-points in reduced coordinates (``other_kpoints``)
@@ -690,6 +716,7 @@ class Kpoint(SlotPickleMixin):
         """Return the star of the kpoint (tuple of |Kpoint| objects)."""
         frac_coords = [self.frac_coords]
 
+        # TODO: This part becomes a bottleneck for large nk!
         for sym in symmops:
             sk_coords = sym.rotate_k(self.frac_coords, wrap_tows=wrap_tows)
 
@@ -708,6 +735,7 @@ class KpointList(collections.Sequence):
     of base methods implementing the sequence protocol and helper functions.
     The subclasses |Kpath| and |IrredZone| provide specialized methods to operate
     on k-points representing a path or list of points in the IBZ, respectively.
+    This object is immutable.
 
     .. Note:
 
@@ -1074,9 +1102,24 @@ class Kpath(KpointList):
     """
 
     @classmethod
+    def from_names(cls, structure, knames, line_density=20):
+        """
+        Generate normalized K-path from list of k-point labels.
+
+        Args:
+            structure: |Structure| object.
+            knames: List of strings with the k-point labels.
+            line_density: Number of points used to sample the smallest segment of the path
+        """
+        kfrac_coords = structure.get_kcoords_from_names(knames)
+        vertices_names = list(zip(kfrac_coords, knames))
+
+        return cls.from_vertices_and_names(structure, vertices_names, line_density=line_density)
+
+    @classmethod
     def from_vertices_and_names(cls, structure, vertices_names, line_density=20):
         """
-        Generate K-path from a list of vertices and the corresponding labels.
+        Generate normalized K-path from a list of vertices and the corresponding labels.
 
         Args:
             structure: |Structure| object.
@@ -1133,8 +1176,9 @@ class Kpath(KpointList):
         if title is not None: app(marquee(title, mark="="))
         app("K-path contains %s lines. Number of k-points in each line: %s" % (
             len(self.lines), [len(l) for l in self.lines]))
-        #for i, line in enumerate(self.lines):
-        #    app("line %d: %s" % (i, line))
+        if verbose:
+            for i, line in enumerate(self.lines):
+                app("line %d: %s" % (i, line))
         header = "\n".join(lines)
 
         vids = {line[0] for line in self.lines}
@@ -1167,7 +1211,7 @@ class Kpath(KpointList):
     @lazy_property
     def versors(self):
         """
-        Tuple of len(self)-1 elements with the versors connecting k[i] to k[i+1].
+        Tuple of len(self) - 1 elements with the versors connecting k[i] to k[i+1].
         """
         versors = (len(self) - 1) * [None, ]
         for i, kpt in enumerate(self[:-1]):
@@ -1200,6 +1244,27 @@ class Kpath(KpointList):
 
         lines[-1].append(len(self)-1)
         return tuple(lines)
+
+    @lazy_property
+    def frac_bounds(self):
+        """Numpy array of shape [M, 3] with the vertexes of the path in frac coords."""
+        frac_bounds = [self[line[0]].frac_coords for line in self.lines]
+        frac_bounds.append(self[self.lines[-1][-1]].frac_coords)
+        return np.reshape(frac_bounds, (-1, 3))
+
+    @lazy_property
+    def cart_bounds(self):
+        """Numpy array of shape [M, 3] with the vertexes of the path in frac coords."""
+        cart_bounds = [self[line[0]].cart_coords for line in self.lines]
+        cart_bounds.append(self[self.lines[-1][-1]].cart_coords)
+        return np.reshape(cart_bounds, (-1, 3))
+
+    def find_points_along_path(self, cart_coords, dist_tol=1e-12):
+        """
+        Find points in ``cart_coords`` lying on the path with distance less than `dist_tol`.
+        See find_points_along_path function for API.
+        """
+        return find_points_along_path(self.cart_bounds, cart_coords, dist_tol=dist_tol)
 
     def finite_diff(self, values, order=1, acc=4):
         """
@@ -1259,6 +1324,44 @@ class IrredZone(KpointList):
 
     .. inheritance-diagram:: IrredZone
     """
+    #@classmethod
+    #def from_ngkpt_or_kppa(cls, structure, ngkpt, shiftk, kptopt=1, verbose=0):
+    #    from abipy.tools import duck
+    #    if duck.is_listlike(ngkpt):
+    #        return cls.from_ngkpt(structure, ngkpt, shiftk, kptopt=kptopt, verbose=verbose)
+    #    else:
+    #        return cls.from_kppa(structure, kppa, shiftk, kptopt=kptopt, verbose=verbose)
+
+    @classmethod
+    def from_ngkpt(cls, structure, ngkpt, shiftk, kptopt=1, verbose=0):
+        """
+        Build an IrredZone object from (ngkpt, shift) by calling Abinit
+        to get the list of irreducible k-points.
+        """
+        from abipy.abio.factories import gs_input
+        from abipy.data.hgh_pseudos import HGH_TABLE
+        gsinp = gs_input(structure, HGH_TABLE, spin_mode="unpolarized")
+        ibz = gsinp.abiget_ibz(ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt, verbose=verbose)
+        ksampling = KSamplingInfo.from_mpdivs(ngkpt, shiftk, kptopt)
+
+        return cls(structure.reciprocal_lattice, ibz.points, weights=ibz.weights,
+                   names=None, ksampling=ksampling)
+
+    @classmethod
+    def from_kppa(cls, structure, kppa, shiftk, kptopt=1, verbose=0):
+        """
+        Build an IrredZone object from (kppa, shift) by calling Abinit
+        to get the list of irreducible k-points.
+        """
+        from abipy.abio.factories import gs_input
+        from abipy.data.hgh_pseudos import HGH_TABLE
+        gsinp = gs_input(structure, HGH_TABLE, spin_mode="unpolarized", kppa=kppa)
+        ibz = gsinp.abiget_ibz(ngkpt=None, shiftk=shiftk, kptopt=kptopt, verbose=verbose)
+        ksampling = KSamplingInfo.from_mpdivs(gsinp["ngkpt"], shiftk, kptopt)
+
+        return cls(structure.reciprocal_lattice, ibz.points, weights=ibz.weights,
+                   names=None, ksampling=ksampling)
+
     def __init__(self, reciprocal_lattice, frac_coords, weights=None, names=None, ksampling=None):
         """
         Args:
@@ -1291,10 +1394,18 @@ class IrredZone(KpointList):
             mpdivs, shifts = self.mpdivs_shifts
             d = "[%d, %d, %d]" % tuple(mpdivs)
             s = ", ".join("[%.1f, %.1f, %.1f]" % tuple(s) for s in shifts)
-            app("K-mesh with divisions: %s, shifts: %s, kptopt: %s" % (d, s, self.ksampling.kptopt))
+            app("K-mesh with divisions: %s, shifts: %s" % (d, s))
+            app("kptopt: %s (%s)" % (self.ksampling.kptopt, kptopt2str(self.ksampling.kptopt)))
         else:
             app("nkpt: %d" % len(self))
             app(self.ksampling.to_string(verbose=verbose))
+
+        app("Number of points in the IBZ: %s" % len(self))
+        for i, k in enumerate(self):
+            if i > 10 and verbose == 0:
+                app(4 * " " + "... (More than 10 k-points)")
+                break
+            app("%6d) [%+.3f, %+.3f, %+.3f],  weight=%.3f" % (i, k[0], k[1], k[2], k.weight))
 
         return "\n".join(lines)
 
@@ -1358,7 +1469,7 @@ class KSamplingInfo(AttrDict):
 
     KNOWN_KEYS = set([
         "mpdivs",          # Mesh divisions. Defined only if we have a sampling with diagonal kptrlatt else None.
-        "kptrlatt",        # [3,3] matrix defined only if we have a sampling else None.
+        "kptrlatt",        # [3, 3] matrix defined only if we have a sampling else None.
         "kptrlatt_orig",   # Original set of shifts. Defined only if we have a sampling else None.
         "shifts",          # Actual shifts (Usually one). Defined only if we have a sampling else None.
         "shifts_orig",     # Original shifts specified by the user. Defined only if we have a sampling else None.
@@ -1439,13 +1550,14 @@ class KSamplingInfo(AttrDict):
                 if np.all(self.kptrlatt_orig == self.kptrlatt) and is_diagonal(self.kptrlatt):
                     self["mpdivs"] = np.diag(self.kptrlatt)
                 else:
-                    import warnings
-                    warnings.warn("""
-monkhorst_pack_folding variables has not been written to netcdf file.
-Received {mpdivs}
-Setting mpdivs to None, this may create problems in post-processing tools.
-If needed, use python netcdf to change the value of `monkhorst_pack_folding`""".format(mpdivs=self["mpdivs"]))
                     self["mpdivs"] = None
+#                    import warnings
+#                    warnings.warn("""
+#monkhorst_pack_folding variables has not been written to netcdf file.
+#Received {mpdivs}
+#Setting mpdivs to None, this may create problems in post-processing tools.
+#If needed, use python netcdf to change the value of `monkhorst_pack_folding`""".format(mpdivs=self["mpdivs"]))
+
 
     def __str__(self):
         return self.to_string()
@@ -1454,18 +1566,27 @@ If needed, use python netcdf to change the value of `monkhorst_pack_folding`""".
         """String representation."""
         lines = []; app = lines.append
         if title is not None: app(marquee(title, mark="="))
-        app("kptopt:\n  %s" % str(self.kptopt))
-        app("mpdivs: %s" % str(self.mpdivs))
-        app("kptrlatt:\n %s" % str(self.kptrlatt))
-        app("shifts:\n %s" % str(self.shifts))
-        app("kptrlatt_orig:\n %s" % str(self.kptrlatt_orig))
-        app("shifts_orig:\n %s" % str(self.shifts_orig))
+
+        if self.is_mesh:
+            if self.has_diagonal_kptrlatt:
+                app("mpdivs: %s with shifts %s and kptopt: %s" % (str(self.mpdivs), str(self.shifts), self.kptopt))
+            else:
+                app("kptrlatt: %s" % str(self.kptrlatt))
+                app("shifts: %s" % str(self.shifts))
+                app("kptrlatt_orig: %s" % str(self.kptrlatt_orig))
+                app("shifts_orig: %s" % str(self.shifts_orig))
+                app("kptopt: %s (%s)" % (str(self.kptopt), kptopt2str(self.kptopt)))
+
+        elif self.is_path:
+            app("Path with kptopt: %s" % self.kptopt)
+        else:
+            app("Neither mesh or path!")
 
         return "\n".join(lines)
 
     @property
     def is_mesh(self):
-        """True if we have a path in the BZ."""
+        """True if we have a mesh in the BZ."""
         return self.kptopt > 0 and (self.mpdivs is not None or self.kptrlatt is not None)
 
     @property
@@ -1555,7 +1676,8 @@ class KpointsReaderMixin(object):
 
     def read_kmpdivs(self):
         """Returns the Monkhorst-Pack divisions defining the mesh. None if not found."""
-        return self.read_value("monkhorst_pack_folding")
+        #return self.read_value("monkhorst_pack_folding")
+        return self.none_if_masked_array(self.read_value("monkhorst_pack_folding"))
 
     def read_kptrlatt(self):
         """Returns ABINIT variable kptrlatt. None if not found."""
@@ -1675,14 +1797,15 @@ def find_points_along_path(cart_bounds, cart_coords, dist_tol):
         dist_tol: A point is considered to be on the path if its distance from the line
             is less than dist_tol.
 
-    Return:
-        (klines, dist_list, ticks)
+    Return: namedtuple with the following attributes:
 
-        klines is a numpy array with the indices of the points lying on the path. Empty if no point is found.
+        (ikfound, dist_list, path_ticks)
+
+        ikfound is a numpy array with the indices of the points lying on the path. Empty if no point is found.
         dist_list: numpy array with the distance of the points along the line.
-        ticks:
+        path_ticks: numpy array with the ticks associated to the input k-path.
     """
-    klines, dist_list, ticks = [], [], [0]
+    ikfound, dist_list, path_ticks = [], [], [0]
 
     dl = 0  # cumulative length of the path
     for ibound, x0 in enumerate(cart_bounds[:-1]):
@@ -1691,7 +1814,7 @@ def find_points_along_path(cart_bounds, cart_coords, dist_tol):
         #B = x1 - x0
         dk = np.sqrt(np.dot(B,B))
         #print("x0", x0, "x1", x1)
-        ticks.append(ticks[ibound] + dk)
+        path_ticks.append(path_ticks[ibound] + dk)
         for ik, k in enumerate(cart_coords):
             dist = dist_point_from_line(k, x0, x1)
             #print(frac_coords[ik], dist)
@@ -1699,15 +1822,21 @@ def find_points_along_path(cart_bounds, cart_coords, dist_tol):
             # k-point is on the cart_bounds
             A = x0 - k
             #A = k - x0
-            x = np.dot(A,B)/dk
+            x = np.dot(A, B)/dk
             #print("k-x0", A, "B", B)
             #print(frac_coords[ik], x, x > 0 and x < dist_tol + dk)
             if dist_tol + dk >= x >= 0:
                 # k-point is within the cart_bounds range
-                # append k-point coordinate along the cart_bounds
-                klines.append(ik)
+                # append k-point coordinate along the cart_bounds while avoing duplicate entries.
+                if ikfound and ik == ikfound[-1]: continue
+                ikfound.append(ik)
                 dist_list.append(x + dl)
 
         dl = dl + dk
 
-    return np.array(klines), np.array(dist_list), np.array(ticks)
+    # Sort dist_list and ikfound by cumulative length while removing possible duplicated entries.
+    dist_list, isort = np.unique(np.array(dist_list).round(decimals=5), return_index=True)
+
+    return dict2namedtuple(ikfound=np.array(ikfound)[isort],
+                           dist_list=dist_list,
+                           path_ticks=np.array(path_ticks))

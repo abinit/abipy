@@ -1,34 +1,67 @@
 language: python
-#cache: true
+cache: pip
 
-# We don't actually use the Travis Python but conda
+#dist: precise
+sudo: false
+
+env:
+  global:
+    - ABINIT_VERSION=8.8.2
+    - ABIPY_PYTEST=yes
+    - OPENBLAS_NUM_THREADS=1
+    - OMP_NUM_THREADS=1
+
 matrix:
   include:
     - os: linux
       python: 2.7
-      env: ABINIT_VERSION=8.6.1
+      env: 
+        - ABIPY_INSTALLER=conda
     - os: linux
       python: 3.6
-      env: ABINIT_VERSION=8.6.1
+      env: 
+        - ABIPY_INSTALLER=conda ABIPY_COVERALLS=yes
+    - os: linux
+      python: 3.6
+      env: 
+        - ABIPY_INSTALLER=pip ABIPY_SPHINX=yes ABIPY_PYTEST=no
+    - os: linux
+      python: 3.7
+      # https://github.com/travis-ci/travis-ci/issues/9815
+      dist: xenial
+      sudo: true
+      env: 
+        - ABIPY_INSTALLER=pip
 
-#dist: precise
-sudo: false
 install:
-  #- sudo apt-get update
-  - env
   #- set -ev  # exit on first error, print each command
+  - env
+  - ulimit -s unlimited
 
-  # pip-based installation.
-  #- travis_wait pip install -r requirements.txt
-  #- travis_wait pip install -r requirements-optional.txt
+  - |
+      if [ "${ABIPY_INSTALLER}" == "pip" ]; then
+        # pip-based installation.
+        source dev_scripts/conda_get.sh  # Needed for Abinit
+        echo "Installing abinit from abinit channel ..."
+        conda config --add channels conda-forge
+        conda install -y -c abinit abinit=${ABINIT_VERSION}
+        abinit --version
+        abinit --build
 
-  # Install conda https://conda.io/docs/travis.html
-  - source dev_scripts/conda_get.sh
-  - source dev_scripts/conda_install.sh
-  - conda uninstall -y pymatgen
+        sed -i '/pymatgen/d' requirements.txt
+        travis_wait pip install -r requirements.txt
+        travis_wait pip install -r requirements-optional.txt
+        #travis_wait pip uninstall -y pymatgen
+
+      elif [ "${ABIPY_INSTALLER}" == "conda" ]; then
+        # Install conda https://conda.io/docs/travis.html
+        source dev_scripts/conda_get.sh
+        #sed -i '/pymatgen/d' requirements.txt
+        source dev_scripts/conda_install.sh
+        conda uninstall -y pymatgen
+      fi
 
   - if [[ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]]; then conda install mock; fi
-  - pip install nose nose-exclude
   #- pip install graphviz
 
   # Mayavi (optional requirement)
@@ -57,7 +90,6 @@ before_script:
     - sleep 3 # give xvfb some time to start
     # https://github.com/travis-ci/travis-ci/issues/6307
     - if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then rvm get head; fi 
-    - rm abipy/gui/__init__.py 
 
 # command to run tests
 script: ./dev_scripts/runtests.sh
@@ -68,7 +100,7 @@ branches:
     - develop
 
 after_success:
-  - if [[ "${TRAVIS_PYTHON_VERSION}" == "3.6" && "${TRAVIS_OS_NAME}" == "linux" ]]; then coveralls; fi
+    - if [[ "${ABIPY_COVERALLS}" == "yes" ]]; then coveralls; fi
 
 notifications:
   email:

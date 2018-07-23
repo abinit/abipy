@@ -55,7 +55,6 @@ class Cut3dDenPotNcFile(AbinitNcFile, Has_Structure):
         return {}
 
 
-
 class _DenPotNcReader(ElectronsReader, FieldReader):
     """Object used to read data from density/potential files in netcdf format."""
 
@@ -134,6 +133,14 @@ class _NcFileWithField(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
             app(self.hdr.to_string(verbose=verbose, title="Abinit Header"))
 
         return "\n".join(lines)
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        Used in abiview.py to get a quick look at the results.
+        """
+        yield self.structure.plot(show=False)
+        yield self.ebands.plot(show=False)
 
     def write_notebook(self, nbpath=None):
         """

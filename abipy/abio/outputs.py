@@ -5,9 +5,11 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import os
 import numpy as np
+import pandas as pd
 
 from collections import OrderedDict
-from monty.string import is_string
+from six.moves import cStringIO
+from monty.string import is_string, marquee
 from monty.functools import lazy_property
 from monty.termcolor import cprint
 from pymatgen.core.units import bohr_to_ang
@@ -59,6 +61,12 @@ class AbinitLogFile(AbinitTextFile, NotebookWriter):
     def plot(self, **kwargs):
         """Empty placeholder."""
         return None
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        yield None
 
     def write_notebook(self, nbpath=None):
         """
@@ -477,6 +485,26 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                 app("Atomic coordinates:")
                 app(str(df.coords))
 
+        # Print dataframe with dimensions.
+        dims_dataset, spginfo_dataset = self.get_dims_spginfo_dataset(verbose=verbose)
+        rows = []
+        for dtind, dims in dims_dataset.items():
+            d = OrderedDict()
+            d["dataset"] = dtind
+            d.update(dims)
+            d.update(spginfo_dataset[dtind])
+            rows.append(d)
+
+        from abipy.tools.printing import print_dataframe
+        df = pd.DataFrame(rows, columns=list(rows[0].keys()) if rows else None)
+        df = df.set_index('dataset')
+        strio = cStringIO()
+        print_dataframe(df, file=strio)
+        strio.seek(0)
+        app("")
+        app(marquee("Dimensions of calculation", mark="="))
+        app("".join(strio))
+
         return "\n".join(lines)
 
     def get_dims_spginfo_dataset(self, verbose=0):
@@ -550,7 +578,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         with open(self.filepath, "rt") as fh:
             for line in fh:
                 line = line.strip()
-                if verbose: print("inblock:", inblock, " at line:", line)
+                if verbose > 1: print("inblock:", inblock, " at line:", line)
 
                 if line.startswith(magic_exit):
                     break
@@ -592,7 +620,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                     else:
                         if line and line[0] == "-": line = line[1:]
                         tokens = grouper(2, line.replace("=", "").split())
-                        if verbose: print("tokens:", tokens)
+                        if verbose > 1: print("tokens:", tokens)
                         dims.update([(t[0], int(t[1])) for t in tokens])
 
             return dims_dataset, spginfo_dataset
@@ -609,7 +637,6 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         """
         return D2DEScfCycle.from_stream(self)
 
-    # TODO: Use header and vars to understand if we have SCF/DFFT/Relaxation
     def plot(self, tight_layout=True, with_timer=False, show=True):
         """
         Plot GS/DFPT SCF cycles and timer data found in the output file.
@@ -617,13 +644,25 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         Args:
             with_timer: True if timer section should be plotted
         """
+        from abipy.tools.plotting import MplExpose
+        with MplExpose(slide_mode=False, slide_timeout=5.0) as e:
+            e(self.yield_figs(tight_layout=tight_layout, with_timer=with_timer))
+
+    # TODO: Use header and vars to understand if we have SCF/DFPT/Relaxation
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        tight_layout = kwargs.pop("tight_layout", True)
+        with_timer = kwargs.pop("with_timer", True)
+
         self.seek(0)
         icycle = -1
         while True:
             gs_cycle = self.next_gs_scf_cycle()
             if gs_cycle is None: break
             icycle += 1
-            gs_cycle.plot(title="SCF cycle no %d" % icycle, tight_layout=tight_layout, show=show)
+            yield gs_cycle.plot(title="SCF cycle #%d" % icycle, tight_layout=tight_layout, show=False)
 
         self.seek(0)
         icycle = -1
@@ -631,11 +670,15 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             d2de_cycle = self.next_d2de_scf_cycle()
             if d2de_cycle is None: break
             icycle += 1
-            d2de_cycle.plot(title="DFPT cycle no %d" % icycle, tight_layout=tight_layout, show=show)
+            yield d2de_cycle.plot(title="DFPT cycle #%d" % icycle, tight_layout=tight_layout, show=False)
 
         if with_timer:
             self.seek(0)
-            self.get_timer().plot_all(tight_layout=tight_layout, show=show)
+            try:
+                yield self.get_timer().plot_all(tight_layout=tight_layout, show=False)
+            except Exception:
+                print("Abinit output files does not contain timopt data")
+
 
     def compare_gs_scf_cycles(self, others, show=True):
         """
@@ -844,7 +887,6 @@ class AboRobot(Robot):
                 rows.append(dims)
                 my_index.append(abo.relpath if index is None else index[i])
 
-        import pandas as pd
         return pd.DataFrame(rows, index=my_index, columns=list(rows[0].keys()))
 
     def get_dataframe(self, with_geo=True, with_dims=True, abspath=False, funcs=None):
@@ -878,7 +920,6 @@ class AboRobot(Robot):
             if funcs is not None: d.update(self._exec_funcs(funcs, abo))
             rows.append(d)
 
-        import pandas as pd
         row_names = row_names if not abspath else self._to_relpaths(row_names)
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
@@ -894,11 +935,16 @@ class AboRobot(Robot):
                 ("overall_cputime", "proc0_cputime", "overall_walltime", "proc0_walltime")])
             rows.append(d)
 
-        import pandas as pd
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
     # TODO
     #def gridplot_timer(self)
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        yield None
 
     def write_notebook(self, nbpath=None):
         """

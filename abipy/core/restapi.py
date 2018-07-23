@@ -246,6 +246,10 @@ class DatabaseStructures(NotebookWriter):
             print("\n# Found %s structures in %s database (use `verbose` to get further info)\n"
                     % (len(self.structures), self.dbname), file=file)
 
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """NOP required by NotebookWriter protocol."""
+        yield None
+
     def write_notebook(self, nbpath=None, title=None):
         """
         Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
@@ -292,6 +296,22 @@ class MpStructures(DatabaseStructures):
             rows.append(d)
 
         return pd.DataFrame(rows, index=self.ids, columns=list(rows[0].keys()))
+
+    def open_browser(self, browser=None, limit=10):
+        """
+        Args:
+            browser: Open webpage in ``browser``. Use default if $BROWSER if None.
+            limit: Max number of tabs opened in browser. None for no limit.
+        """
+        import webbrowser
+        import cgi
+        for i, mpid in enumerate(self.ids):
+            if limit is not None and i >= limit:
+                print("Found %d structures found. Won't open more than %d tabs" % (len(self.ids), limit))
+                break
+            # https://materialsproject.org/materials/mp-2172/
+            url = "https://materialsproject.org/materials/%s/" % mpid
+            webbrowser.get(browser).open_new_tab(cgi.escape(url))
 
 
 class CodStructures(DatabaseStructures):

@@ -21,7 +21,7 @@ export PATH="${HOME}/miniconda/bin:${PATH}"
 
 hash -r
 
-conda config --set always_yes yes --set changeps1 no
+conda config --set always_yes yes --set changeps1 yes
 conda update -q conda
 # Useful for debugging any issues with conda
 conda info -a

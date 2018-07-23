@@ -11,18 +11,21 @@ import abipy.data as abidata
 
 phdos_path = abidata.ref_file("al_161616q_PHDOS.nc")
 
-with abilab.abiopen(abidata.ref_file("al_888k_161616q_EPH.nc")) as eph:
-    print(eph)
-    #eph.phbands.plot()
-
-    #eph.a2f_qintp.plot()
+with abilab.abiopen(abidata.ref_file("al_888k_161616q_A2F.nc")) as ncfile:
+    print(ncfile)
+    #ncfile.phbands.plot()
+    #ncfile.a2f_qintp.plot()
     #with_lambda = False
-    #fig = eph.a2f_qcoarse.plot_nuterms(with_lambda=with_lambda, show=False)
-    #eph.a2f_qintp.plot_nuterms(axmat=fig.axes, with_lambda=with_lambda)
+    #fig = ncfile.a2f_qcoarse.plot_nuterms(with_lambda=with_lambda, show=False)
+    #ncfile.a2f_qintp.plot_nuterms(axmat=fig.axes, with_lambda=with_lambda)
 
-    #eph.plot()
-    #eph.plot_eph_strength(what="lambda")
-    eph.plot_with_a2f(phdos=phdos_path)
+    #ncfile.plot()
+    ncfile.plot_with_a2f(phdos=phdos_path)
+
+    ncfile.plot_eph_strength(what="gamma")
+    #ncfile.plot_eph_strength(what="lambda")
+
+    ncfile.plot_a2f_interpol()
 
     # Grid with 3 plots (a2F, F, a2F) with F taken from PHDOS file.
-    #eph.a2f_qintp.plot_a2(phdos_path)
+    #ncfile.a2f_qintp.plot_a2(phdos_path)
