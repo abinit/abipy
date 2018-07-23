@@ -94,7 +94,7 @@ before_script:
     - "sh -e /etc/init.d/xvfb start"
     - sleep 3 # give xvfb some time to start
     # https://github.com/travis-ci/travis-ci/issues/6307
-    #- if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then rvm get head; fi 
+    - if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then rvm get head || true; fi 
 
 # command to run tests
 script: ./dev_scripts/runtests.sh
