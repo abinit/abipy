@@ -71,7 +71,7 @@ in the form of pre-compiled packages that can be easily installed with e.g.::
 
     conda install numpy scipy netcdf4
 
-To install AbiPy with conda, download the `minconda installer <https://conda.io/miniconda.html>`_
+To install AbiPy with conda, download the `miniconda installer <https://conda.io/miniconda.html>`_
 (select python3.6 and the version corresponding to your operating system).
 Create a new conda_ environment (``abipy3.6``) based on python3.6 with::
 
