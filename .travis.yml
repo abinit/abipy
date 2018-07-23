@@ -41,7 +41,7 @@ matrix:
 install:
   #- set -ev  # exit on first error, print each command
   - env
-  - ulimit -s unlimited
+  #- ulimit -s unlimited
 
   - |
       if [ "${ABIPY_INSTALLER}" == "pip" ]; then
