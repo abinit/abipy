@@ -1779,8 +1779,10 @@ class ElectronBands(Has_Structure):
                 Used for plotting purpose e.g. QP energies, energy derivatives...
             with_gaps: True to add marker and arrows showing the fundamental and the direct gap.
             max_phfreq: Max phonon frequency in eV to activate the scatterplot showing
-                the phonon absorptions/emission processes for the states defining the
-                fundamental and the direct gap.
+                the phonon absorptions/emission processes. All final states whose energy
+                is within +- max_phfreq of the initial state are included.
+                By default, the four electronic states defining the fundamental and the direct gap
+                are treated as initial state (not available for metals).
             fontsize: fontsize for legends and titles
 
         Returns: |matplotlib-Figure|
@@ -1831,9 +1833,10 @@ class ElectronBands(Has_Structure):
                 need_arrows = f_gap != d_gap
 
                 arrow_opts = {"color": "k"} if spin == 0 else {"color": "red"}
-                arrow_opts.update(lw=2, alpha=0.6, arrowstyle="->", connectionstyle='arc3', mutation_scale=20)
-                scatter_opts = {"color": "lime"} if spin == 0 else {"color": "blue"}
-                scatter_opts.update(marker="o", alpha=0.6, s=70)
+                arrow_opts.update(lw=2, alpha=0.6, arrowstyle="->", connectionstyle='arc3',
+                                  mutation_scale=20, zorder=1000)
+                scatter_opts = {"color": "blue"} if spin == 0 else {"color": "green"}
+                scatter_opts.update(marker="o", alpha=1.0, s=80, zorder=100)
 
                 # Fundamental gap.
                 posA = (f_gap.in_state.kidx, f_gap.in_state.eig - e0)
@@ -1856,16 +1859,16 @@ class ElectronBands(Has_Structure):
             if gaps_string:
                 ax.set_title(gaps_string, fontsize=fontsize)
 
-        if max_phfreq:
+        if max_phfreq is not None and (self.mband > self.nspinor * self.nelect // 2):
             #f_gap = self.fundamental_gaps[spin]
             #d_gap = self.direct_gaps[spin]
             #if d_gap != f_gap:
 
             for spin in self.spins:
-                scatter_opts = {"color": "lime"} if spin == 0 else {"color": "blue"}
-                scatter_opts.update(alpha=0.6, s=20)
+                scatter_opts = {"color": "steelblue"} if spin == 0 else {"color": "teal"}
+                scatter_opts.update(alpha=0.6, s=40, zorder=10)
                 items = (["fundamental_gaps", "direct_gaps"], ["in_state", "out_state"])
-                for i, (gap_name, state_name) in enumerate(itertools.product(items))
+                for i, (gap_name, state_name) in enumerate(itertools.product(*items)):
                     # Use getattr to extract gaps, equivalent to
                     #gap = self.fundamental_gaps[spin]
                     #e_start = gap.out_state.eig
@@ -1879,16 +1882,6 @@ class ElectronBands(Has_Structure):
                         where = np.where(np.abs(e_start - eks) <= max_phfreq)[0]
                         if not np.any(where): continue
                         ax.scatter(where, eks[where] - e0, **scatter_opts)
-                        #where = np.abs(e_start - eks) <= max_phfreq
-                        #xs = np.arange(self.nkpt)
-                        #y1 = eks - e0 - phfact * max_phfreq
-                        #y2 = eks - e0 + phfact * max_phfreq
-                        #ax.fill_between(xs, y1, y2=y2, where=where, alpha=0.6, facecolor="r",
-                        #               interpolate=True, step=None)
-                        #ax.fill_between(xs, eks-e0, y2=y2, where=where, alpha=0.6, facecolor="r")
-                                       #interpolate=False, step=None)
-                        #ax.fill_between(xs, y1, y2=eks-e0, where=where, alpha=0.6, facecolor="r")
-                                       #interpolate=False, step=None)
 
         return fig
 
