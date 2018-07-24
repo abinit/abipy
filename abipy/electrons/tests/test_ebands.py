@@ -308,7 +308,7 @@ class ElectronBandsTest(AbipyTest):
             assert si_edos.plot(show=False)
             assert si_edos.plot_dos_idos(show=False)
             assert si_edos.plot_up_minus_down(show=False)
-            assert si_ebands_kmesh.plot_with_edos(edos=si_edos, klabels=klabels, with_gaps="fd", show=False)
+            assert si_ebands_kmesh.plot_with_edos(edos=si_edos, klabels=klabels, with_gaps=True, show=False)
             assert si_ebands_kmesh.kpoints.plot(show=False)
 
             vrange, crange = range(0, 4), range(4, 5)
@@ -414,7 +414,7 @@ class ElectronBandsTest(AbipyTest):
             si_ebands_kpath.get_ejdos(spin, 0, 4)
 
         if self.has_matplotlib():
-            assert si_ebands_kpath.plot(spin=0, e0=0, with_gaps="fs", show=False)
+            assert si_ebands_kpath.plot(spin=0, e0=0, with_gaps=True, max_phfreq=0.1, show=False)
 
     def test_ebands_skw_interpolation(self):
         """Testing SKW interpolation."""

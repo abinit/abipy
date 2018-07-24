@@ -1758,7 +1758,7 @@ class ElectronBands(Has_Structure):
 
     @add_fig_kwargs
     def plot(self, spin=None, band_range=None, klabels=None, e0="fermie", ax=None, ylims=None,
-	     points=None, with_gaps=False, max_phfreq=None, phfact=10, fontsize=8, **kwargs):
+	     points=None, with_gaps=False, max_phfreq=None, fontsize=8, **kwargs):
         r"""
         Plot the electronic band structure.
 
@@ -1778,6 +1778,9 @@ class ElectronBands(Has_Structure):
             points: Marker object with the position and the size of the marker.
                 Used for plotting purpose e.g. QP energies, energy derivatives...
             with_gaps: True to add marker and arrows showing the fundamental and the direct gap.
+            max_phfreq: Max phonon frequency in eV to activate the scatterplot showing
+                the phonon absorptions/emission processes for the states defining the
+                fundamental and the direct gap.
             fontsize: fontsize for legends and titles
 
         Returns: |matplotlib-Figure|
@@ -1822,28 +1825,28 @@ class ElectronBands(Has_Structure):
             # Show fundamental and direct gaps for each spin.
             from matplotlib.patches import FancyArrowPatch
             for spin in self.spins:
-                fgap = self.fundamental_gaps[spin]
-                dir_gap = self.direct_gaps[spin]
+                f_gap = self.fundamental_gaps[spin]
+                d_gap = self.direct_gaps[spin]
                 # Need arrows only if fundamental and direct gaps for this spin are different.
-                need_arrows = fgap != dir_gap
+                need_arrows = f_gap != d_gap
 
                 arrow_opts = {"color": "k"} if spin == 0 else {"color": "red"}
                 arrow_opts.update(lw=2, alpha=0.6, arrowstyle="->", connectionstyle='arc3', mutation_scale=20)
-                scatter_opts = {"color": "blue"} if spin == 0 else {"color": "green"}
+                scatter_opts = {"color": "lime"} if spin == 0 else {"color": "blue"}
                 scatter_opts.update(marker="o", alpha=0.6, s=70)
 
                 # Fundamental gap.
-                posA = (fgap.in_state.kidx, fgap.in_state.eig - e0)
-                posB = (fgap.out_state.kidx, fgap.out_state.eig - e0)
+                posA = (f_gap.in_state.kidx, f_gap.in_state.eig - e0)
+                posB = (f_gap.out_state.kidx, f_gap.out_state.eig - e0)
                 ax.scatter(posA[0], posA[1], **scatter_opts)
                 ax.scatter(posB[0], posB[1], **scatter_opts)
                 if need_arrows:
                     ax.add_patch(FancyArrowPatch(posA=posA, posB=posB, **arrow_opts))
 
-                if dir_gap != fgap:
+                if d_gap != f_gap:
                     # Direct gap.
-                    posA = (dir_gap.in_state.kidx, dir_gap.in_state.eig - e0)
-                    posB = (dir_gap.out_state.kidx, dir_gap.out_state.eig - e0)
+                    posA = (d_gap.in_state.kidx, d_gap.in_state.eig - e0)
+                    posB = (d_gap.out_state.kidx, d_gap.out_state.eig - e0)
                     ax.scatter(posA[0], posA[1], **scatter_opts)
                     ax.scatter(posB[0], posB[1], **scatter_opts)
                     if need_arrows:
@@ -1854,23 +1857,38 @@ class ElectronBands(Has_Structure):
                 ax.set_title(gaps_string, fontsize=fontsize)
 
         if max_phfreq:
-            xs = np.arange(self.nkpt)
+            #f_gap = self.fundamental_gaps[spin]
+            #d_gap = self.direct_gaps[spin]
+            #if d_gap != f_gap:
+
             for spin in self.spins:
-                #dir_gap = self.direct_gaps[spin]
-                fgap = self.fundamental_gaps[spin]
-                #posA = (fgap.in_state.kidx, fgap.in_state.eig - e0)
-                #posB = (fgap.out_state.kidx, fgap.out_state.eig - e0)
-                #e_start = fgap.in_state.eig
-                e_start = fgap.out_state.eig
-                for band in range(self.mband):
-                    eks = self.eigens[spin, :, band]
-                    #emin, emax = my_eigens[:, band].min(), my_eigens[:, band].max()
-                    where = np.abs(e_start - eks) <= max_phfreq
-                    if not np.any(where): continue
-                    y1 = eks - e0 - phfact * max_phfreq
-                    y2 = eks - e0 + phfact * max_phfreq
-                    ax.fill_between(xs, y1, y2=y2, where=where, alpha=0.6, facecolor="r")
-                                   #interpolate=False, step=None, hold=None, data=None)
+                scatter_opts = {"color": "lime"} if spin == 0 else {"color": "blue"}
+                scatter_opts.update(alpha=0.6, s=20)
+                items = (["fundamental_gaps", "direct_gaps"], ["in_state", "out_state"])
+                for i, (gap_name, state_name) in enumerate(itertools.product(items))
+                    # Use getattr to extract gaps, equivalent to
+                    #gap = self.fundamental_gaps[spin]
+                    #e_start = gap.out_state.eig
+                    gap = getattr(self, gap_name)[spin]
+                    e_start = getattr(gap, state_name).eig
+                    #scatter_opts["marker"] = ["^", "v", "<", ">"][i]
+                    scatter_opts["marker"] = "h"
+
+                    for band in range(self.mband):
+                        eks = self.eigens[spin, :, band]
+                        where = np.where(np.abs(e_start - eks) <= max_phfreq)[0]
+                        if not np.any(where): continue
+                        ax.scatter(where, eks[where] - e0, **scatter_opts)
+                        #where = np.abs(e_start - eks) <= max_phfreq
+                        #xs = np.arange(self.nkpt)
+                        #y1 = eks - e0 - phfact * max_phfreq
+                        #y2 = eks - e0 + phfact * max_phfreq
+                        #ax.fill_between(xs, y1, y2=y2, where=where, alpha=0.6, facecolor="r",
+                        #               interpolate=True, step=None)
+                        #ax.fill_between(xs, eks-e0, y2=y2, where=where, alpha=0.6, facecolor="r")
+                                       #interpolate=False, step=None)
+                        #ax.fill_between(xs, y1, y2=eks-e0, where=where, alpha=0.6, facecolor="r")
+                                       #interpolate=False, step=None)
 
         return fig
 
