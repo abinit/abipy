@@ -1209,11 +1209,10 @@ class ElectronBands(Has_Structure):
                 blist.append(b)
                 enes.append(self.eigens[spin,k,b])
 
-            enes = np.array(enes)
-            kinds = np.where(enes == enes.max())[0]
-            homo_kidx = kinds[len(kinds) // 2]
-            #print("kinds", kinds)
-            #homo_kidx = np.array(enes).argmax()
+            #enes = np.array(enes)
+            #kinds = np.where(enes == enes.max())[0]
+            #homo_kidx = kinds[len(kinds) // 2]
+            homo_kidx = np.array(enes).argmax()
             homo_band = blist[homo_kidx]
 
             # Build Electron instance.
@@ -1236,10 +1235,10 @@ class ElectronBands(Has_Structure):
                 blist.append(b)
                 enes.append(self.eigens[spin, k, b])
 
-            enes = np.array(enes)
-            kinds = np.where(enes == enes.min())[0]
-            lumo_kidx = np.asscalar(kinds[len(kinds) // 2])
-            #lumo_kidx = np.array(enes).argmin()
+            #enes = np.array(enes)
+            #kinds = np.where(enes == enes.min())[0]
+            #lumo_kidx = np.asscalar(kinds[len(kinds) // 2])
+            lumo_kidx = np.array(enes).argmin()
             lumo_band = blist[lumo_kidx]
 
             # Build Electron instance.
@@ -1284,10 +1283,13 @@ class ElectronBands(Has_Structure):
                 gaps.append(lumo_sk.eig - homo_sk.eig)
 
             # Find the index of the k-point where the direct gap is located.
-            gaps = np.array(gaps)
-            kinds = np.where(gaps == gaps.min())[0]
-            kdir = kinds[len(kinds) // 2]
-            #kdir = gaps.argmin()
+            # If there multiple k-points along the path, prefer the one in the center
+            # If not possible e.g. direct at G with G-X-L-G path avoid points on
+            # the right border of the graph
+            #gaps = np.array(gaps)
+            #kinds = np.where(gaps == gaps.min())[0]
+            #kdir = kinds[len(kinds) // 2]
+            kdir = np.array(gaps).argmin()
             dirgaps[spin] = ElectronTransition(self.homo_sk(spin, kdir), self.lumo_sk(spin, kdir))
 
         return dirgaps
@@ -1756,7 +1758,7 @@ class ElectronBands(Has_Structure):
 
     @add_fig_kwargs
     def plot(self, spin=None, band_range=None, klabels=None, e0="fermie", ax=None, ylims=None,
-	     points=None, with_gaps=False, fontsize=8, **kwargs):
+	     points=None, with_gaps=False, max_phfreq=None, phfact=10, fontsize=8, **kwargs):
         r"""
         Plot the electronic band structure.
 
@@ -1826,9 +1828,9 @@ class ElectronBands(Has_Structure):
                 need_arrows = fgap != dir_gap
 
                 arrow_opts = {"color": "k"} if spin == 0 else {"color": "red"}
-                arrow_opts.update(lw=1, alpha=0.6, arrowstyle="->", connectionstyle='arc3', mutation_scale=20)
+                arrow_opts.update(lw=2, alpha=0.6, arrowstyle="->", connectionstyle='arc3', mutation_scale=20)
                 scatter_opts = {"color": "blue"} if spin == 0 else {"color": "green"}
-                scatter_opts.update(marker="o", alpha=0.6, s=50)
+                scatter_opts.update(marker="o", alpha=0.6, s=70)
 
                 # Fundamental gap.
                 posA = (fgap.in_state.kidx, fgap.in_state.eig - e0)
@@ -1850,6 +1852,25 @@ class ElectronBands(Has_Structure):
             gaps_string = self.get_gaps_string()
             if gaps_string:
                 ax.set_title(gaps_string, fontsize=fontsize)
+
+        if max_phfreq:
+            xs = np.arange(self.nkpt)
+            for spin in self.spins:
+                #dir_gap = self.direct_gaps[spin]
+                fgap = self.fundamental_gaps[spin]
+                #posA = (fgap.in_state.kidx, fgap.in_state.eig - e0)
+                #posB = (fgap.out_state.kidx, fgap.out_state.eig - e0)
+                #e_start = fgap.in_state.eig
+                e_start = fgap.out_state.eig
+                for band in range(self.mband):
+                    eks = self.eigens[spin, :, band]
+                    #emin, emax = my_eigens[:, band].min(), my_eigens[:, band].max()
+                    where = np.abs(e_start - eks) <= max_phfreq
+                    if not np.any(where): continue
+                    y1 = eks - e0 - phfact * max_phfreq
+                    y2 = eks - e0 + phfact * max_phfreq
+                    ax.fill_between(xs, y1, y2=y2, where=where, alpha=0.6, facecolor="r")
+                                   #interpolate=False, step=None, hold=None, data=None)
 
         return fig
 
