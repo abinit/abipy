@@ -1209,7 +1209,11 @@ class ElectronBands(Has_Structure):
                 blist.append(b)
                 enes.append(self.eigens[spin,k,b])
 
-            homo_kidx = np.array(enes).argmax()
+            enes = np.array(enes)
+            kinds = np.where(enes == enes.max())[0]
+            homo_kidx = kinds[len(kinds) // 2]
+            #print("kinds", kinds)
+            #homo_kidx = np.array(enes).argmax()
             homo_band = blist[homo_kidx]
 
             # Build Electron instance.
@@ -1232,12 +1236,11 @@ class ElectronBands(Has_Structure):
                 blist.append(b)
                 enes.append(self.eigens[spin, k, b])
 
-            #print("enes", enes)
-            lumo_kidx = np.array(enes).argmin()
-            #print("blist:", blist)
+            enes = np.array(enes)
+            kinds = np.where(enes == enes.min())[0]
+            lumo_kidx = np.asscalar(kinds[len(kinds) // 2])
+            #lumo_kidx = np.array(enes).argmin()
             lumo_band = blist[lumo_kidx]
-            #print("lumo_band:", lumo_band)
-            #print("type: lumo_kidx", type(lumo_kidx))
 
             # Build Electron instance.
             lumos[spin] = self._electron_state(spin, lumo_kidx, lumo_band)
@@ -1281,7 +1284,10 @@ class ElectronBands(Has_Structure):
                 gaps.append(lumo_sk.eig - homo_sk.eig)
 
             # Find the index of the k-point where the direct gap is located.
-            kdir = np.array(gaps).argmin()
+            gaps = np.array(gaps)
+            kinds = np.where(gaps == gaps.min())[0]
+            kdir = kinds[len(kinds) // 2]
+            #kdir = gaps.argmin()
             dirgaps[spin] = ElectronTransition(self.homo_sk(spin, kdir), self.lumo_sk(spin, kdir))
 
         return dirgaps
@@ -1820,9 +1826,9 @@ class ElectronBands(Has_Structure):
                 need_arrows = fgap != dir_gap
 
                 arrow_opts = {"color": "k"} if spin == 0 else {"color": "red"}
-                arrow_opts.update(lw=2, alpha=0.6, arrowstyle="-|>", connectionstyle='arc3', mutation_scale=20)
+                arrow_opts.update(lw=1, alpha=0.6, arrowstyle="->", connectionstyle='arc3', mutation_scale=20)
                 scatter_opts = {"color": "blue"} if spin == 0 else {"color": "green"}
-                scatter_opts.update(marker="o", alpha=0.6, s=80)
+                scatter_opts.update(marker="o", alpha=0.6, s=50)
 
                 # Fundamental gap.
                 posA = (fgap.in_state.kidx, fgap.in_state.eig - e0)
