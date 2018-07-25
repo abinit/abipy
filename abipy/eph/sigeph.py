@@ -35,7 +35,6 @@ from abipy.eph.common import BaseEphReader
 __all__ = [
     "QpTempState",
     "QpTempList",
-    "EphLifetimes",
     "EphSelfEnergy",
     "SigEPhFile",
     "SigEPhRobot",
@@ -264,7 +263,7 @@ class QpTempList(list):
         lines = []; app = lines.append
         app(marquee("QpTempList",mark="="))
         app("nqps: %d"%len(self))
-        app("ntemps: %d"%self.ntemp) 
+        app("ntemps: %d"%self.ntemp)
         return "\n".join(lines)
 
     #def copy(self):
@@ -319,7 +318,7 @@ class QpTempList(list):
 
     # TODO: Linewidths
     @add_fig_kwargs
-    def plot_vs_e0(self, itemp_list=None, with_fields="all", reim="real", function=lambda x: x, 
+    def plot_vs_e0(self, itemp_list=None, with_fields="all", reim="real", function=lambda x: x,
                    exclude_fields=None, fermie=None,
                    colormap="jet", ax_list=None, xlims=None, fontsize=12, **kwargs):
         """
@@ -345,7 +344,7 @@ class QpTempList(list):
         """
         fields = QpTempState.get_fields_for_plot("e0", with_fields, exclude_fields)
         if not fields: return None
-        
+
         if   reim == "real": ylabel_mask = "Re(%s)"
         elif reim == "imag": ylabel_mask = "Im(%s)"
         else: return ValueError("Invalid option for reim, should be 'real' or 'imag'")
@@ -711,7 +710,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     @lazy_property
     def kcalc2ibz(self):
         """Return a mapping of the kpoints at which the self energy was calculated and the ibz"""
-        if (len(self.sigma_kpoints) == len(self.ebands.kpoints) and 
+        if (len(self.sigma_kpoints) == len(self.ebands.kpoints) and
             all(k1 == k2 for (k1, k2) in zip(self.sigma_kpoints, self.ebands.kpoints))):
             return np.arange(len(self.sigma_kpoints))
 
@@ -905,7 +904,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             raise NotImplementedError("Method %s is not supported" % method)
 
         return [ElectronDos(mesh, dos_t, nelect, fermie=fermie) for dos_t in dos]
-    
+
     #def get_dirgaps_dataframe(self):
 
     def interpolate(self, itemp_list=None, lpratio=5, mode="qp", ks_ebands_kpath=None, ks_ebands_kmesh=None, ks_degatol=1e-4,
@@ -1002,7 +1001,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         elif mode == "ks+lifetimes":
             qpes_im = self.reader.read_value("vals_e0ks", cmode="c").imag * units.Ha_to_eV
             qpes_re = self.reader.read_value("ks_enes") * units.Ha_to_eV
-            qpes = qpes_re[:,:,:,np.newaxis] + 1j*qpes_im        
+            qpes = qpes_re[:,:,:,np.newaxis] + 1j*qpes_im
         else:
             raise ValueError("Invalid interpolation mode: %s can be either 'qp' or 'ks+lifetimes'")
 
@@ -1059,7 +1058,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                     else:
                         lw_kpath = qp_corrs
 
-                if ks_ebands_kmesh is None: 
+                if ks_ebands_kmesh is None:
                     #interpolate QP energies
                     if reim == "real":
                         eigens_kmesh = skw.interp_kpts(dos_kcoords).eigens
@@ -1308,7 +1307,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         Used in abiview.py to get a quick look at the results.
         """
         verbose = kwargs.pop("verbose", 0)
-        
+
         yield self.plot_qpbands_ibzt(show=False)
         #yield self.plot_qpgaps_t(qp_kpoints=0, show=False)
         for i, qp_kpt in enumerate(self.sigma_kpoints):
@@ -1776,7 +1775,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
                 if sortby is not None:
                     label = "%s: %s" % (self._get_label(sortby), param)
                 fig = ncfile.plot_qps_vs_e0(itemp_list=[itemp], with_fields=list_strings(field),
-                    reim=reim, function=function, e0=e0, ax_list=ax_list, 
+                    reim=reim, function=function, e0=e0, ax_list=ax_list,
                     color=cmap(i / len(lnp_list)), fontsize=fontsize,
                     label=label, show=False)
                 ax_list = fig.axes
@@ -1939,7 +1938,7 @@ class TdepElectronBands(object): # pragma: no cover
                                   function=lambda x: x, fact=10.0, **kwargs):
         """
         Plot bandstructure with linewidth at temperature ``itemp`` and linewidth vs the KS energies.
-        
+
         Args:
             itemp: Temperature index
             ax_list: The axes for the bandstructure plot and the DOS plot. If ax_list is None, a new figure
@@ -1949,7 +1948,7 @@ class TdepElectronBands(object): # pragma: no cover
 
         Return: |matplotlib-Figure|
         """
-        import matplotlib.pyplot as plt 
+        import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec
         if ax_list is None:
             # Build axes and align bands and DOS.
@@ -1973,7 +1972,7 @@ class TdepElectronBands(object): # pragma: no cover
 
         ax1.grid(True)
         ax1.yaxis.set_ticks_position("right")
-        ax1.yaxis.set_label_position("right") 
+        ax1.yaxis.set_label_position("right")
         return fig
 
     @add_fig_kwargs

@@ -342,7 +342,7 @@ class PhononBands(object):
 
     @property
     def maxfreq(self):
-        """Maximum phonon frequency."""
+        """Maximum phonon frequency in eV."""
         return self.get_maxfreq_mode()
 
     def get_minfreq_mode(self, mode=None):
