@@ -182,6 +182,9 @@ class SigEPhFileTest(AbipyTest):
         if self.has_matplotlib():
             assert sigeph.plot_qps_vs_e0(show=False)
 
+        print(sigeph.kcalc2ibz)
+        dos = sigeph.get_linewidth_dos()
+
         sigeph.close()
 
     # TODO: Need new files with IBZ.

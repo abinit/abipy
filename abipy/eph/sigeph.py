@@ -862,7 +862,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         if itemp is not None: df = df[df["tmesh"] == self.tmesh[itemp]]
         return df
 
-    def get_linewidth_dos(self,method="gaussian",step=0.1,width=0.2):
+    def get_linewidth_dos(self,method="gaussian",e0="fermie",step=0.1,width=0.2):
         """
         Calculate linewidth density of states
 
@@ -880,7 +880,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         #Compute linear mesh
         nelect = ebands.nelect
-        fermie = ebands.get_e0("fermie")
+        fermie = ebands.get_e0(e0)
         epad = 3.0 * width
         min_band = np.min(self.bstart_sk)
         max_band = np.max(self.bstop_sk)
@@ -893,10 +893,10 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         if method == "gaussian":
             dos = np.zeros((ntemp,self.nsppol,nw))
             for spin in range(self.nsppol):
-                for ik in self.kcalc2ibz:
+                for i,ik in enumerate(self.kcalc2ibz):
                     weight = ebands.kpoints.weights[ik]
-                    for band in range(self.bstart_sk[spin, ik], self.bstop_sk[spin, ik]):
-                        qp = self.reader.read_qp(spin,ik,band)
+                    for band in range(self.bstart_sk[spin, i], self.bstop_sk[spin, i]):
+                        qp = self.reader.read_qp(spin,i,band)
                         e0 = qp.e0
                         for it in range(ntemp):
                             linewidth = abs(qp.fan0.imag[it])
@@ -1004,7 +1004,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             qpes_re = self.reader.read_value("ks_enes") * units.Ha_to_eV
             qpes = qpes_re[:,:,:,np.newaxis] + 1j*qpes_im        
         else:
-            ValueError("Invalid interpolation mode: %s can be either 'qp' or 'ks+lifetimes'")
+            raise ValueError("Invalid interpolation mode: %s can be either 'qp' or 'ks+lifetimes'")
 
         if ks_ebands_kpath is not None:
             if ks_ebands_kpath.structure != self.structure:
@@ -1016,14 +1016,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         # Note there's no guarantee that the sigma_kpoints and the corrections have the same k-point index.
         # Be careful because the order of the k-points and the band range stored in the SIGRES file may differ ...
-        # FIXME: This part is not clear to me now !
-        #qpdata = np.empty(qpes.shape)
-        #for gwk in self.sigma_kpoints:
-        #    ik_ibz = self.reader.kpt2fileindex(gwk)
-        #    for spin in range(self.nsppol):
-        #        qpdata[spin, ik_ibz, :] = egw_rarr[spin, ik_ibz, :]
-
-        #HM: This seems to do the trick
+        # HM: Map the bands from sigeph to the electronic bandstructure
         nkpoints = len(self.sigma_kpoints)
         nbands = self.reader.bstop_sk.max()
         qpes_new = np.zeros((self.nsppol,nkpoints,nbands,self.ntemp),dtype=np.complex)
@@ -1108,9 +1101,10 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 kpts_kmesh = IrredZone(self.structure.reciprocal_lattice, dos_kcoords, weights=dos_weights,
                                        names=None, ksampling=ks_ebands_kmesh.kpoints.ksampling)
                 occfacts_kmesh = np.zeros(eigens_kmesh.shape)
+
                 newt = ElectronBands(self.structure, kpts_kmesh, eigens_kmesh, qp_fermie, occfacts_kmesh,
                                      self.ebands.nelect, self.ebands.nspinor, self.ebands.nspden,
-                                     linewidths=linewidths_kmesh)
+                                     smearing=self.ebands.smearing,linewidths=linewidths_kmesh)
                 qp_ebands_kmesh_t.append(newt)
 
         return TdepElectronBands(self.tmesh[itemp_list], ks_ebands_kpath, qp_ebands_kpath_t,
