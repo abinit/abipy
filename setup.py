@@ -153,7 +153,6 @@ def cleanup():
 
 install_requires = [
 "six",
-"prettytable",
 "tabulate",
 "apscheduler==2.1.0",
 "pydispatcher>=2.0.5",

@@ -1209,6 +1209,9 @@ class ElectronBands(Has_Structure):
                 blist.append(b)
                 enes.append(self.eigens[spin,k,b])
 
+            #enes = np.array(enes)
+            #kinds = np.where(enes == enes.max())[0]
+            #homo_kidx = kinds[len(kinds) // 2]
             homo_kidx = np.array(enes).argmax()
             homo_band = blist[homo_kidx]
 
@@ -1232,12 +1235,11 @@ class ElectronBands(Has_Structure):
                 blist.append(b)
                 enes.append(self.eigens[spin, k, b])
 
-            #print("enes", enes)
+            #enes = np.array(enes)
+            #kinds = np.where(enes == enes.min())[0]
+            #lumo_kidx = np.asscalar(kinds[len(kinds) // 2])
             lumo_kidx = np.array(enes).argmin()
-            #print("blist:", blist)
             lumo_band = blist[lumo_kidx]
-            #print("lumo_band:", lumo_band)
-            #print("type: lumo_kidx", type(lumo_kidx))
 
             # Build Electron instance.
             lumos[spin] = self._electron_state(spin, lumo_kidx, lumo_band)
@@ -1281,6 +1283,12 @@ class ElectronBands(Has_Structure):
                 gaps.append(lumo_sk.eig - homo_sk.eig)
 
             # Find the index of the k-point where the direct gap is located.
+            # If there multiple k-points along the path, prefer the one in the center
+            # If not possible e.g. direct at G with G-X-L-G path avoid points on
+            # the right border of the graph
+            #gaps = np.array(gaps)
+            #kinds = np.where(gaps == gaps.min())[0]
+            #kdir = kinds[len(kinds) // 2]
             kdir = np.array(gaps).argmin()
             dirgaps[spin] = ElectronTransition(self.homo_sk(spin, kdir), self.lumo_sk(spin, kdir))
 
@@ -1750,7 +1758,7 @@ class ElectronBands(Has_Structure):
 
     @add_fig_kwargs
     def plot(self, spin=None, band_range=None, klabels=None, e0="fermie", ax=None, ylims=None,
-	     points=None, with_gaps=False, fontsize=8, **kwargs):
+	     points=None, with_gaps=False, max_phfreq=None, fontsize=8, **kwargs):
         r"""
         Plot the electronic band structure.
 
@@ -1770,6 +1778,11 @@ class ElectronBands(Has_Structure):
             points: Marker object with the position and the size of the marker.
                 Used for plotting purpose e.g. QP energies, energy derivatives...
             with_gaps: True to add marker and arrows showing the fundamental and the direct gap.
+            max_phfreq: Max phonon frequency in eV to activate the scatterplot showing
+                the phonon absorptions/emission processes. All final states whose energy
+                is within +- max_phfreq of the initial state are included.
+                By default, the four electronic states defining the fundamental and the direct gap
+                are treated as initial state (not available for metals).
             fontsize: fontsize for legends and titles
 
         Returns: |matplotlib-Figure|
@@ -1814,28 +1827,29 @@ class ElectronBands(Has_Structure):
             # Show fundamental and direct gaps for each spin.
             from matplotlib.patches import FancyArrowPatch
             for spin in self.spins:
-                fgap = self.fundamental_gaps[spin]
-                dir_gap = self.direct_gaps[spin]
+                f_gap = self.fundamental_gaps[spin]
+                d_gap = self.direct_gaps[spin]
                 # Need arrows only if fundamental and direct gaps for this spin are different.
-                need_arrows = fgap != dir_gap
+                need_arrows = f_gap != d_gap
 
                 arrow_opts = {"color": "k"} if spin == 0 else {"color": "red"}
-                arrow_opts.update(dict(lw=2, alpha=0.6, arrowstyle="-|>", connectionstyle='arc3', mutation_scale=20))
+                arrow_opts.update(lw=2, alpha=0.6, arrowstyle="->", connectionstyle='arc3',
+                                  mutation_scale=20, zorder=1000)
                 scatter_opts = {"color": "blue"} if spin == 0 else {"color": "green"}
-                scatter_opts.update(dict(marker="o", alpha=0.6, s=80))
+                scatter_opts.update(marker="o", alpha=1.0, s=80, zorder=100)
 
                 # Fundamental gap.
-                posA = (fgap.in_state.kidx, fgap.in_state.eig - e0)
-                posB = (fgap.out_state.kidx, fgap.out_state.eig - e0)
+                posA = (f_gap.in_state.kidx, f_gap.in_state.eig - e0)
+                posB = (f_gap.out_state.kidx, f_gap.out_state.eig - e0)
                 ax.scatter(posA[0], posA[1], **scatter_opts)
                 ax.scatter(posB[0], posB[1], **scatter_opts)
                 if need_arrows:
                     ax.add_patch(FancyArrowPatch(posA=posA, posB=posB, **arrow_opts))
 
-                if dir_gap != fgap:
+                if d_gap != f_gap:
                     # Direct gap.
-                    posA = (dir_gap.in_state.kidx, dir_gap.in_state.eig - e0)
-                    posB = (dir_gap.out_state.kidx, dir_gap.out_state.eig - e0)
+                    posA = (d_gap.in_state.kidx, d_gap.in_state.eig - e0)
+                    posB = (d_gap.out_state.kidx, d_gap.out_state.eig - e0)
                     ax.scatter(posA[0], posA[1], **scatter_opts)
                     ax.scatter(posB[0], posB[1], **scatter_opts)
                     if need_arrows:
@@ -1844,6 +1858,30 @@ class ElectronBands(Has_Structure):
             gaps_string = self.get_gaps_string()
             if gaps_string:
                 ax.set_title(gaps_string, fontsize=fontsize)
+
+        if max_phfreq is not None and (self.mband > self.nspinor * self.nelect // 2):
+            #f_gap = self.fundamental_gaps[spin]
+            #d_gap = self.direct_gaps[spin]
+            #if d_gap != f_gap:
+
+            for spin in self.spins:
+                scatter_opts = {"color": "steelblue"} if spin == 0 else {"color": "teal"}
+                scatter_opts.update(alpha=0.6, s=40, zorder=10)
+                items = (["fundamental_gaps", "direct_gaps"], ["in_state", "out_state"])
+                for i, (gap_name, state_name) in enumerate(itertools.product(*items)):
+                    # Use getattr to extract gaps, equivalent to
+                    #gap = self.fundamental_gaps[spin]
+                    #e_start = gap.out_state.eig
+                    gap = getattr(self, gap_name)[spin]
+                    e_start = getattr(gap, state_name).eig
+                    #scatter_opts["marker"] = ["^", "v", "<", ">"][i]
+                    scatter_opts["marker"] = "h"
+
+                    for band in range(self.mband):
+                        eks = self.eigens[spin, :, band]
+                        where = np.where(np.abs(e_start - eks) <= max_phfreq)[0]
+                        if not np.any(where): continue
+                        ax.scatter(where, eks[where] - e0, **scatter_opts)
 
         return fig
 
@@ -2490,7 +2528,7 @@ class ElectronBandsPlotter(NotebookWriter):
     def add_plotter(self, other):
         """Merge two plotters, return new plotter."""
         if not isinstance(other, self.__class__):
-            raise TypeError("Don't know to to add %s to %s" % (other.__class__, self.__class__))
+            raise TypeError("Don't know to add %s to %s" % (other.__class__, self.__class__))
 
         key_ebands = list(self.ebands_dict.items()) + list(other.ebands_dict.items())
         key_edos = list(self.edoses_dict.items()) + list(other.edoses_dict.items())
@@ -2535,7 +2573,7 @@ class ElectronBandsPlotter(NotebookWriter):
 
     def add_ebands(self, label, bands, edos=None, edos_kwargs=None):
         """
-        Adds a band structure and optionally a edos to the plotter.
+        Adds a band structure and optionally an edos to the plotter.
 
         Args:
             label: label for the bands. Must be unique.

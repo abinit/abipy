@@ -98,13 +98,11 @@ class TestAbiwanFile(AbipyTest):
 
     def test_abiwan_robot(self):
         """Testing abiwan file with DISENTANGLE."""
-        #return
         filepaths = [
             os.path.join(abidata.dirpath, "refs", "wannier90", "tutoplugs_tw90_1", "tw90_1o_DS2_ABIWAN.nc"),
             os.path.join(abidata.dirpath, "refs", "wannier90", "tutoplugs_tw90_4", "tw90_4o_DS3_ABIWAN.nc"),
         ]
 
-        #filepaths = [os.path.join(abidata.dirpath, "refs", "wannier90", "foo_ABIWAN.nc")]
         robot = abilab.AbiwanRobot.from_files(filepaths)
         assert repr(robot); assert str(robot)
         assert robot.to_string(verbose=2)

@@ -10,6 +10,7 @@ import pandas as pd
 
 from collections import namedtuple, OrderedDict, Iterable, defaultdict
 from six.moves import cStringIO
+from tabulate import tabulate
 from monty.string import list_strings, is_string, marquee
 from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
@@ -225,25 +226,16 @@ class QPList(list):
     def to_table(self):
         """Return a table (list of list of strings)."""
         header = QPState.get_fields(exclude=["spin", "kpoint"])
-        # TODO: Use tabulate or pd
-        from prettytable import PrettyTable
-        table = PrettyTable(header)
-
+        table = [header]
         for qp in self:
             d = qp.to_strdict(fmt=None)
-            table.add_row([d[k] for k in header])
+            table.append([d[k] for k in header])
 
-        return table
+        return tabulate(table, tablefmt="plain")
 
     def to_string(self, verbose=0):
         """String representation."""
-        table = self.to_table()
-        strio = cStringIO()
-        print(table, file=strio)
-        strio.write("\n")
-        strio.seek(0)
-
-        return "".join(strio)
+        return self.to_table()
 
     def copy(self):
         """Copy of self."""

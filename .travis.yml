@@ -25,6 +25,11 @@ matrix:
       python: 3.6
       env: 
         - ABIPY_INSTALLER=pip ABIPY_SPHINX=yes ABIPY_PYTEST=no
+    #- os: osx
+    #  python: 3.6
+    #  language: generic
+    #  env: 
+    #    - ABIPY_INSTALLER=conda ABIPY_PYTEST=no
     - os: linux
       python: 3.7
       # https://github.com/travis-ci/travis-ci/issues/9815
@@ -36,7 +41,7 @@ matrix:
 install:
   #- set -ev  # exit on first error, print each command
   - env
-  - ulimit -s unlimited
+  #- ulimit -s unlimited
 
   - |
       if [ "${ABIPY_INSTALLER}" == "pip" ]; then
@@ -89,7 +94,7 @@ before_script:
     - "sh -e /etc/init.d/xvfb start"
     - sleep 3 # give xvfb some time to start
     # https://github.com/travis-ci/travis-ci/issues/6307
-    - if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then rvm get head; fi 
+    - if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then rvm get head || true; fi 
 
 # command to run tests
 script: ./dev_scripts/runtests.sh
