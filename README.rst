@@ -161,6 +161,8 @@ To solve the problem, use conda to update scipy to a version >= 1.0.1 with::
 
     conda install "scipy>=1.0.1"
 
+then issue again python setup.py develop.
+
 Use::
 
     conda info pymatgen
