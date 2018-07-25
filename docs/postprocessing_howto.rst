@@ -232,7 +232,6 @@ to generate a template with the input variables defining the k-path
         +0.62500  +0.25000  +0.62500 # U
         +0.50000  +0.00000  +0.50000 # X
 
-
 Get neighbors for each atom in the unit cell out to a distance radius
 ---------------------------------------------------------------------
 
@@ -438,6 +437,26 @@ and visualize the crystalline structure with ovito_::
 
     The XDATCAR format assumes a fixed unit cell so you won't be able
     to visualize the modifications of the unit cell lattice vectors in ovito.
+
+
+Plot results stored in a text file in tabular format
+----------------------------------------------------
+
+Use::
+
+    abiview.py data FILE_WITH_COLUMNS
+
+to plot with matplotlib_ all the columns given in the file.
+By default, the first column is assumed to contain the values for the x-axis
+but it is possible to change this behaviour and use the row index with the `--use-index` option.
+Multiple datasets i.e. multiple sets of data separated by blank lines are supported.
+
+To compare multiple files use::
+
+    abicomp.py data FILE1 FILE2
+
+Obviously one can use standard tools such as gnuplot_ and xmgrace_ but
+the AbiPy scripts are quite handy for a quick analysis of the results.
 
 Compare multiple files
 ----------------------

@@ -277,6 +277,13 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
                 appname=[v.name for v in Visualizer.get_available()],
             )
 
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        Used in abiview.py to get a quick look at the results.
+        """
+        yield self.ebands.plot(show=False)
+
     def write_notebook(self, nbpath=None):
         """
         Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
@@ -287,7 +294,6 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         nb.cells.extend([
             nbv.new_code_cell("wfk = abilab.abiopen('%s')" % self.filepath),
             nbv.new_code_cell("print(wfk)"),
-            nbv.new_code_cell("wfk.ebands.plot();"),
             nbv.new_code_cell("wfk.ebands.kpoints.plot();"),
             nbv.new_code_cell("wfk.ebands.plot();"),
             nbv.new_code_cell("""\

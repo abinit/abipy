@@ -36,6 +36,12 @@ class TestScripts(AbipyTest):
             count += 1
             s = "abipy.examples.flows." + fname.replace(".py", "")
             module = importlib.import_module(s)
+
+            if hasattr(module, "exclude_py_versions"):
+                if sys.version[0:3] in module.exclude_py_versions:
+                    warnings.warn("%s excludes python versions %s" % (s, str(module.exclude_py_versions)))
+                    continue
+
             # flow will be produced in a temporary workdir.
             workdir = tempfile.mkdtemp(prefix='flow_' + os.path.basename(fname))
             options = parser.parse_args(["--workdir", workdir])

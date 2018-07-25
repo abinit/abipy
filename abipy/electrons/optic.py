@@ -619,6 +619,16 @@ class OpticRobot(Robot, RobotWithEbands):
 
         return fig
 
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        Used in abiview.py to get a quick look at the results.
+        """
+        for key, comps in self.computed_components_intersection.items():
+            if not comps: continue
+            plot_fig = getattr(self, "plot_%s_convergence" % key)
+            yield plot_fig(show=False)
+
     def write_notebook(self, nbpath=None):
         """
         Write a jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporay file in the current

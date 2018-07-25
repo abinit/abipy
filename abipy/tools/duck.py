@@ -26,9 +26,13 @@ def is_intlike(obj):
         if np.iscomplexobj(obj) and np.isreal(obj):
             return int(obj.real) == obj
         else:
-            return int(obj) == obj
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                return int(obj) == obj
+
     except (ValueError, TypeError):
         return False
+
     return False
 
 

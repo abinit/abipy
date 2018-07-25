@@ -183,18 +183,6 @@ class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
                 added[varname] = varvalue
         return added
 
-    def add_abiobjects(self, *abi_objects):
-        """
-        This function receive a list of ``AbiVarable`` objects and add
-        the corresponding variables to the input.
-        """
-        d = {}
-        for aobj in abi_objects:
-            if not hasattr(aobj, "to_abivars"):
-                raise TypeError("type %s: %s does not have `to_abivars` method" % (type(aobj), repr(aobj)))
-            d.update(self.set_vars(aobj.to_abivars()))
-        return d
-
     def pop_vars(self, keys):
         """
         Remove the variables listed in keys.
@@ -239,28 +227,6 @@ class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
     def to_string(self):
         """Returns a string with the input."""
 
-    @abc.abstractmethod
-    def abivalidate(self, workdir=None, manager=None):
-        """
-        This method should invoke the executable associated to the input object.
-        to test whether the input variables are correct and consistent.
-        The executable is supposed to implemente some sort of `--dry-run` option
-        that invokes the parser to validate the input and exits.
-
-        Args:
-            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
-            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
-
-        Return:
-            ``namedtuple`` with the following attributes:
-
-                retcode: Return code. 0 if OK.
-                output_file: output file of the run.
-                log_file:  log file of the Abinit run, use log_file.read() to access its content.
-                stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.
-                task: Task object
-        """
-
     def generate(self, **kwargs):
         """
         This function generates new inputs by replacing the variables specified in kwargs.
@@ -288,11 +254,52 @@ class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
             yield new_inp
 
 
+class AbiAbstractInput(AbstractInput):
+    """
+    Abstract class defining the methods that must be implemented by Input objects.
+    associated to Abinit executables.
+    """
+
+    def add_abiobjects(self, *abi_objects):
+        """
+        This function receive a list of ``AbiVarable`` objects and add
+        the corresponding variables to the input.
+        """
+        d = {}
+        for aobj in abi_objects:
+            if not hasattr(aobj, "to_abivars"):
+                raise TypeError("type %s: %s does not have `to_abivars` method" % (type(aobj), repr(aobj)))
+            d.update(self.set_vars(aobj.to_abivars()))
+        return d
+
+    @abc.abstractmethod
+    def abivalidate(self, workdir=None, manager=None):
+        """
+        This method should invoke the executable associated to the input object.
+        to test whether the input variables are correct and consistent.
+        The executable is supposed to implemente some sort of `--dry-run` option
+        that invokes the parser to validate the input and exits.
+
+        Args:
+            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
+            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
+
+        Return:
+            ``namedtuple`` with the following attributes:
+
+                retcode: Return code. 0 if OK.
+                output_file: output file of the run.
+                log_file:  log file of the Abinit run, use log_file.read() to access its content.
+                stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.
+                task: Task object
+        """
+
+
 class AbinitInputError(Exception):
     """Base error class for exceptions raised by ``AbinitInput``."""
 
 
-class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_Structure, object)):
+class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Has_Structure, object)):
     """
     This object stores the ABINIT variables for a single dataset.
 
@@ -440,7 +447,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             raise self.Error("You cannot set the value of a variable associated to the structure.\n"
                              "Use Structure objects to prepare the input file.")
 
-        if not is_abivar(key) and self.spell_check:
+        if self.spell_check and not is_abivar(key):
             raise self.Error("%s is not a valid ABINIT variable.\n" % key +
                              "If the name is correct, try to remove ~/.abinit/abipy/abinit_vars.pickle\n"
                              "and rerun the code. If the problems persists, contact the abipy developers\n"
@@ -1526,7 +1533,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         except Exception as exc:
             self._handle_task_exception(task, exc)
 
-    def abiget_ibz(self, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
+    def abiget_ibz(self, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None, verbose=0):
         """
         This function computes the list of points in the IBZ and the corresponding weights.
         It should be called with an input file that contains all the mandatory variables required by ABINIT.
@@ -1537,6 +1544,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             kptopt: Option for k-point generation. If None, the value in self is used.
             workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
+            verbose: verbosity level.
 
         Returns:
             `namedtuple` with attributes:
@@ -1559,7 +1567,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             inp.set_vars(shiftk=shiftk, nshiftk=len(shiftk))
 
         if kptopt is not None: inp["kptopt"] = kptopt
-        #print("Computing ibz with input:\n", str(inp))
+        if verbose:
+            print("Computing ibz with input:\n", str(inp))
 
         # Build a Task to run Abinit in a shell subprocess
         task = AbinitTask.temp_shell_task(inp, workdir=workdir, manager=manager)
@@ -2283,7 +2292,7 @@ class AnaddbInputError(Exception):
     """Base error class for exceptions raised by `AnaddbInput`"""
 
 
-class AnaddbInput(AbstractInput, Has_Structure):
+class AnaddbInput(AbiAbstractInput, Has_Structure):
     """
     This object stores the anaddb variables.
 
@@ -2338,7 +2347,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
             return False
 
     def _check_varname(self, key):
-        if not is_anaddb_var(key) and self.spell_check:
+        if self.spell_check and not is_anaddb_var(key):
             raise self.Error("%s is not a registered Anaddb variable\n"
                              "If you are sure the name is correct, please contact the abipy developers\n"
                              "or use input.set_spell_check(False)\n"
@@ -2814,7 +2823,7 @@ class OpticError(Exception):
     """Error class raised by OpticInput."""
 
 
-class OpticInput(AbstractInput, MSONable):
+class OpticInput(AbiAbstractInput, MSONable):
     """
     Input file for optic executable
     """
