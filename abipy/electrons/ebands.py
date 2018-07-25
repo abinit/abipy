@@ -168,13 +168,20 @@ class ElectronTransition(object):
     """
     This object describes an electronic transition between two single-particle states.
     """
-    def __init__(self, in_state, out_state):
+    def __init__(self, in_state, out_state, all_kinds=None):
         """
         Args:
             in_state, out_state: Initial and finale state (:class:`Electron` instances).
+            all_kinds: List of tuple. Each tuple gives the index of the k-point of the (initial, final) state.
+                Used to plot e.g. all the optical gaps when there are equivalent k-points along the path.
         """
         self.in_state = in_state
         self.out_state = out_state
+        if all_kinds is None:
+            self.all_kinds = [(self.in_state.kidx, self.out_state.kidx)]
+        else:
+            # Provide default.
+            self.all_kinds = all_kinds
 
     def __str__(self):
         return self.to_string()
@@ -1137,12 +1144,10 @@ class ElectronBands(Has_Structure):
         Build an instance of :class:`Electron` from the spin, kpoint and band index
         """
         kidx = self.kindex(kpoint)
-        #print("kidx", kidx)
-        eig = self.eigens[spin, kidx, band]
         return Electron(spin=spin,
                         kpoint=self.kpoints[kidx],
                         band=band,
-                        eig=eig,
+                        eig=self.eigens[spin, kidx, band],
                         occ=self.occfacts[spin, kidx, band],
                         kidx=kidx,
                         #fermie=self.fermie
@@ -1209,9 +1214,6 @@ class ElectronBands(Has_Structure):
                 blist.append(b)
                 enes.append(self.eigens[spin,k,b])
 
-            #enes = np.array(enes)
-            #kinds = np.where(enes == enes.max())[0]
-            #homo_kidx = kinds[len(kinds) // 2]
             homo_kidx = np.array(enes).argmax()
             homo_band = blist[homo_kidx]
 
@@ -1273,7 +1275,7 @@ class ElectronBands(Has_Structure):
 
     @lazy_property
     def direct_gaps(self):
-        """List of :class:`ElectronTransition` with info on the direct gaps for each spin."""
+        """List of `nsppol` :class:`ElectronTransition` with info on the direct gaps for each spin."""
         dirgaps = self.nsppol * [None]
         for spin in self.spins:
             gaps = []
@@ -1286,11 +1288,13 @@ class ElectronBands(Has_Structure):
             # If there multiple k-points along the path, prefer the one in the center
             # If not possible e.g. direct at G with G-X-L-G path avoid points on
             # the right border of the graph
-            #gaps = np.array(gaps)
-            #kinds = np.where(gaps == gaps.min())[0]
+            gaps = np.array(gaps)
+            kinds = np.where(gaps == gaps.min())[0]
+            kdir = kinds[0]
+            all_kinds = list(zip(kinds, kinds))
             #kdir = kinds[len(kinds) // 2]
-            kdir = np.array(gaps).argmin()
-            dirgaps[spin] = ElectronTransition(self.homo_sk(spin, kdir), self.lumo_sk(spin, kdir))
+            #kdir = np.array(gaps).argmin()
+            dirgaps[spin] = ElectronTransition(self.homo_sk(spin, kdir), self.lumo_sk(spin, kdir), all_kinds=all_kinds)
 
         return dirgaps
 
@@ -1777,12 +1781,12 @@ class ElectronBands(Has_Structure):
                    or scalar e.g. ``left``. If left (right) is None, default values are used
             points: Marker object with the position and the size of the marker.
                 Used for plotting purpose e.g. QP energies, energy derivatives...
-            with_gaps: True to add marker and arrows showing the fundamental and the direct gap.
-            max_phfreq: Max phonon frequency in eV to activate the scatterplot showing
-                the phonon absorptions/emission processes. All final states whose energy
-                is within +- max_phfreq of the initial state are included.
-                By default, the four electronic states defining the fundamental and the direct gap
-                are treated as initial state (not available for metals).
+            with_gaps: True to add markers and arrows showing the fundamental and the direct gap.
+            max_phfreq: Max phonon frequency in eV to activate scatterplot showing
+                possible phonon absorption/emission processes based on energy-conservation alone.
+                All final states whose energy is within +- max_phfreq of the initial state are included.
+                By default, the four electronic states defining the fundamental and the direct gaps
+                are considered as initial state (not available for metals).
             fontsize: fontsize for legends and titles
 
         Returns: |matplotlib-Figure|
@@ -1809,10 +1813,8 @@ class ElectronBands(Has_Structure):
 
         # Plot the band energies.
         for spin in spin_list:
-            if spin == 0:
-                opts = {"color": "black", "linewidth": 2.0}
-            else:
-                opts = {"color": "red", "linewidth": 2.0}
+            opts = {"color": "black", "linewidth": 2.0} if spin == 0 else \
+                   {"color": "red", "linewidth": 2.0}
             # This to pass kwargs to plot_ax and avoid both lw and linewidth in opts
             if "lw" in kwargs: opts.pop("linewidth")
             opts.update(kwargs)
@@ -1836,46 +1838,46 @@ class ElectronBands(Has_Structure):
                 arrow_opts.update(lw=2, alpha=0.6, arrowstyle="->", connectionstyle='arc3',
                                   mutation_scale=20, zorder=1000)
                 scatter_opts = {"color": "blue"} if spin == 0 else {"color": "green"}
-                scatter_opts.update(marker="o", alpha=1.0, s=80, zorder=100)
+                scatter_opts.update(marker="o", alpha=1.0, s=80, zorder=100, edgecolor='black')
 
                 # Fundamental gap.
-                posA = (f_gap.in_state.kidx, f_gap.in_state.eig - e0)
-                posB = (f_gap.out_state.kidx, f_gap.out_state.eig - e0)
-                ax.scatter(posA[0], posA[1], **scatter_opts)
-                ax.scatter(posB[0], posB[1], **scatter_opts)
-                if need_arrows:
-                    ax.add_patch(FancyArrowPatch(posA=posA, posB=posB, **arrow_opts))
-
-                if d_gap != f_gap:
-                    # Direct gap.
-                    posA = (d_gap.in_state.kidx, d_gap.in_state.eig - e0)
-                    posB = (d_gap.out_state.kidx, d_gap.out_state.eig - e0)
+                for ik1, ik2 in f_gap.all_kinds:
+                    posA = (ik1, f_gap.in_state.eig - e0)
+                    posB = (ik2, f_gap.out_state.eig - e0)
                     ax.scatter(posA[0], posA[1], **scatter_opts)
                     ax.scatter(posB[0], posB[1], **scatter_opts)
                     if need_arrows:
                         ax.add_patch(FancyArrowPatch(posA=posA, posB=posB, **arrow_opts))
+
+                if d_gap != f_gap:
+                    # Direct gap.
+                    for ik1, ik2 in d_gap.all_kinds:
+                        posA = (ik1, d_gap.in_state.eig - e0)
+                        posB = (ik2, d_gap.out_state.eig - e0)
+                        ax.scatter(posA[0], posA[1], **scatter_opts)
+                        ax.scatter(posB[0], posB[1], **scatter_opts)
+                        if need_arrows:
+                            ax.add_patch(FancyArrowPatch(posA=posA, posB=posB, **arrow_opts))
 
             gaps_string = self.get_gaps_string()
             if gaps_string:
                 ax.set_title(gaps_string, fontsize=fontsize)
 
         if max_phfreq is not None and (self.mband > self.nspinor * self.nelect // 2):
-            #f_gap = self.fundamental_gaps[spin]
-            #d_gap = self.direct_gaps[spin]
-            #if d_gap != f_gap:
-
+            # Add markers showing phonon absorption/emission processes.
             for spin in self.spins:
-                scatter_opts = {"color": "steelblue"} if spin == 0 else {"color": "teal"}
-                scatter_opts.update(alpha=0.6, s=40, zorder=10)
+                #scatter_opts = {"color": "steelblue"} if spin == 0 else {"color": "teal"}
+                scatter_opts = dict(alpha=0.4, s=40, zorder=10)
                 items = (["fundamental_gaps", "direct_gaps"], ["in_state", "out_state"])
-                for i, (gap_name, state_name) in enumerate(itertools.product(*items)):
-                    # Use getattr to extract gaps, equivalent to
-                    #gap = self.fundamental_gaps[spin]
-                    #e_start = gap.out_state.eig
+                items = list(enumerate(itertools.product(*items)))
+                for i, (gap_name, state_name) in items:
+                    # Use getattr to extract gaps, equivalent to:
+                    #   gap = self.fundamental_gaps[spin]
+                    #   e_start = gap.out_state.eig
                     gap = getattr(self, gap_name)[spin]
                     e_start = getattr(gap, state_name).eig
-                    #scatter_opts["marker"] = ["^", "v", "<", ">"][i]
-                    scatter_opts["marker"] = "h"
+                    scatter_opts["marker"] = "o"
+                    scatter_opts["color"] = plt.get_cmap("cool" if spin == 0 else "summer")(i/len(items))
 
                     for band in range(self.mband):
                         eks = self.eigens[spin, :, band]
@@ -2034,8 +2036,8 @@ class ElectronBands(Has_Structure):
         return list(d.keys()), list(d.values())
 
     @add_fig_kwargs
-    def plot_with_edos(self, edos, klabels=None, ax_list=None, e0="fermie", points=None, with_gaps=False,
-                       ylims=None, width_ratios=(2, 1), **kwargs):
+    def plot_with_edos(self, edos, klabels=None, ax_list=None, e0="fermie", points=None,
+                       with_gaps=False, max_phfreq=None, ylims=None, width_ratios=(2, 1), **kwargs):
         r"""
         Plot the band structure and the DOS.
 
@@ -2061,7 +2063,12 @@ class ElectronBands(Has_Structure):
 
             points: Marker object with the position and the size of the marker.
                 Used for plotting purpose e.g. QP energies, energy derivatives...
-            with_gaps: True to add marker and arrows showing the fundamental and the direct gap.
+            with_gaps: True to add markers and arrows showing the fundamental and the direct gap.
+            max_phfreq: Max phonon frequency in eV to activate scatterplot showing
+                possible phonon absorption/emission processes based on energy-conservation alone.
+                All final states whose energy is within +- max_phfreq of the initial state are included.
+                By default, the four electronic states defining the fundamental and the direct gaps
+                are considered as initial state (not available for metals).
             width_ratios: Defines the ratio between the band structure plot and the dos plot.
 
         Return: |matplotlib-Figure|
@@ -2085,7 +2092,8 @@ class ElectronBands(Has_Structure):
         #if not kwargs: kwargs = {"color": "black", "linewidth": 2.0}
 
         # Plot the band structure
-        self.plot(e0=e0, ax=ax0, ylims=ylims, klabels=klabels, points=points, with_gaps=with_gaps, show=False)
+        self.plot(e0=e0, ax=ax0, ylims=ylims, klabels=klabels, points=points,
+                  with_gaps=with_gaps, max_phfreq=max_phfreq, show=False)
 
         # Plot the DOS
         if self.nsppol == 1:
@@ -2093,10 +2101,8 @@ class ElectronBands(Has_Structure):
             edos.plot_ax(ax1, e0, exchange_xy=True, **opts)
         else:
             for spin in self.spins:
-                if spin == 0:
-                    opts = {"color": "black", "linewidth": 2.0}
-                else:
-                    opts = {"color": "red", "linewidth": 2.0}
+                opts = {"color": "black", "linewidth": 2.0} if spin == 0 else \
+                       {"color": "red", "linewidth": 2.0}
                 edos.plot_ax(ax1, e0, spin=spin, exchange_xy=True, **opts)
 
         ax1.grid(True)
@@ -2744,7 +2750,12 @@ class ElectronBandsPlotter(NotebookWriter):
                 -  None: Don't shift energies, equivalent to e0=0
 
             with_dos: True if DOS should be printed.
-            with_gaps: True to add marker and arrows showing the fundamental and the direct gap.
+            with_gaps: True to add markesr and arrows showing the fundamental and the direct gap.
+            max_phfreq: Max phonon frequency in eV to activate scatterplot showing
+                possible phonon absorptions/emission processes based on energy-conservation alone.
+                All final states whose energy is within +- max_phfreq of the initial state are included.
+                By default, the four electronic states defining the fundamental and the direct gaps
+                are considered as initial state (not available for metals).
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ```(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
             fontsize: fontsize for titles and legend.
@@ -2770,7 +2781,7 @@ class ElectronBandsPlotter(NotebookWriter):
 
             for i, (ebands, ax) in enumerate(zip(ebands_list, ax_list)):
                 irow, icol = divmod(i, ncols)
-                ebands.plot(ax=ax, e0=e0, with_gaps=with_gaps, show=False)
+                ebands.plot(ax=ax, e0=e0, with_gaps=with_gaps, max_phfreq=max_phfreq, show=False)
                 set_axlims(ax, ylims, "y")
                 # This to handle with_gaps = True
                 title = ax.get_title()
@@ -2794,7 +2805,8 @@ class ElectronBandsPlotter(NotebookWriter):
 
                 # Define the zero of energy and plot
                 mye0 = ebands.get_e0(e0) if e0 != "edos_fermie" else edos.fermie
-                ebands.plot_with_edos(edos, e0=mye0, ax_list=(ax0, ax1), with_gaps=with_gaps, show=False)
+                ebands.plot_with_edos(edos, e0=mye0, ax_list=(ax0, ax1), with_gaps=with_gaps,
+                                      max_phfreq=max_phfreq, show=False)
 
                 # This to handle with_gaps = True
                 title = ax0.get_title()
@@ -3332,10 +3344,8 @@ class ElectronDos(object):
         e0 = self.get_e0(e0)
 
         for spin in range(self.nsppol):
-            if spin == 0:
-                opts = {"color": "black", "linewidth": 1.0}
-            else:
-                opts = {"color": "red", "linewidth": 1.0}
+            opts = {"color": "black", "linewidth": 1.0} if spin == 0 else \
+                   {"color": "red", "linewidth": 1.0}
             opts.update(kwargs)
             spin_sign = +1 if spin == 0 else -1
             x, y = self.spin_dos[spin].mesh - e0, spin_sign * self.spin_dos[spin].values
@@ -3388,10 +3398,8 @@ class ElectronDos(object):
             fig = ax_list[0].get_figure()
 
         for spin in range(self.nsppol):
-            if spin == 0:
-                opts = {"color": "black", "linewidth": 1.0}
-            else:
-                opts = {"color": "red", "linewidth": 1.0}
+            opts = {"color": "black", "linewidth": 1.0} if spin == 0 else \
+                   {"color": "red", "linewidth": 1.0}
             # Plot Total dos if unpolarized.
             if self.nsppol == 1: spin = None
             self.plot_ax(ax_list[0], e0, spin=spin, what="idos", **opts)
