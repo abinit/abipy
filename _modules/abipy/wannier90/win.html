@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>abipy.wannier90.win &#8212; abipy 0.6.0.dev documentation</title>
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.6.0.dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.6.0.dev</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <h1>Source code for abipy.wannier90.win</h1><div class="highlight"><pre>
+<span></span><span class="c1"># coding: utf-8</span>
+<span class="sd">&quot;&quot;&quot;Interface to the win input file used by Wannier90.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">Has_Structure</span>
+<span class="kn">from</span> <span class="nn">abipy.abio.variable</span> <span class="k">import</span> <span class="n">InputVariable</span>
+<span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="k">import</span> <span class="n">AbstractInput</span>
+
+
+<div class="viewcode-block" id="structure2wannier90"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.win.structure2wannier90">[docs]</a><span class="k">def</span> <span class="nf">structure2wannier90</span><span class="p">(</span><span class="n">structure</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return string with stucture in wannier90 format.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">structure</span><span class="o">.</span><span class="n">is_ordered</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">Received disordered structure with partial occupancies that cannot be converted into a Wannier90 input</span>
+<span class="s2">Please use OrderDisorderedStructureTransformation or EnumerateStructureTransformation</span>
+<span class="s2">to build an appropriate supercell from partial occupancies or alternatively use the Virtual Crystal Approximation.&quot;&quot;&quot;</span><span class="p">)</span>
+
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+
+    <span class="c1"># Write lattice vectors.</span>
+    <span class="c1"># Set small values to zero. This usually happens when the CIF file</span>
+    <span class="c1"># does not give structure parameters with enough digits.</span>
+    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;begin unit_cell_cart</span><span class="se">\n</span><span class="s2">Ang&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">matrix</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-8</span><span class="p">,</span> <span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">matrix</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">):</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;    </span><span class="si">%.10f</span><span class="s2"> </span><span class="si">%.10f</span><span class="s2"> </span><span class="si">%.10f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;end unit_cell_cart</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;begin atoms_frac&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="n">structure</span><span class="p">:</span>
+        <span class="n">fc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">site</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-8</span><span class="p">,</span> <span class="n">site</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">    </span><span class="si">%.10f</span><span class="s2"> </span><span class="si">%.10f</span><span class="s2"> </span><span class="si">%.10f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">site</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span> <span class="n">fc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">fc</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">fc</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;end atoms_frac</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Wannier90Input"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.win.Wannier90Input">[docs]</a><span class="k">class</span> <span class="nc">Wannier90Input</span><span class="p">(</span><span class="n">AbstractInput</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This object stores the wannier90 input variables.</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: Wannier90Input</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="Wannier90Input.from_abinit_file"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.win.Wannier90Input.from_abinit_file">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_abinit_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build wannier90 template input file from Abinit input/output file.</span>
+<span class="sd">        Possibly with electron bands.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">abipy</span> <span class="k">import</span> <span class="n">abilab</span>
+        <span class="k">with</span> <span class="n">abilab</span><span class="o">.</span><span class="n">abiopen</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">abifile</span><span class="p">:</span>
+            <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">abifile</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;Automatically generated by AbiPy </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">abilab</span><span class="o">.</span><span class="n">__version__</span><span class="p">)</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">num_wann</span><span class="o">=</span><span class="s2">&quot;??&quot;</span><span class="p">,</span> <span class="n">num_bands</span><span class="o">=</span><span class="s2">&quot;??&quot;</span><span class="p">,</span> <span class="n">mp_grid</span><span class="o">=</span><span class="s2">&quot;?? ?? ??&quot;</span><span class="p">,</span> <span class="n">_kpoints</span><span class="o">=</span><span class="s2">&quot;?? ?? ??</span><span class="se">\n</span><span class="s2">?? ?? ??&quot;</span><span class="p">)</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">exclude_bands_</span><span class="o">=</span><span class="s2">&quot;2, 6-8, 12&quot;</span><span class="p">,</span>
+                <span class="n">dis_win_min_</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">dis_win_max_</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">dis_froz_min_</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">dis_froz_max_</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+
+            <span class="n">ebands</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">abifile</span><span class="p">,</span> <span class="s2">&quot;ebands&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ebands</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># If the file has an ebands attributes we can fill some important variables.</span>
+                <span class="n">kpoints</span> <span class="o">=</span> <span class="n">abifile</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">kpoints</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">kpoints</span><span class="o">.</span><span class="n">ksampling</span><span class="o">.</span><span class="n">is_mesh</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;wannier90 requires k-point mesh&quot;</span><span class="p">)</span>
+                <span class="n">mp_divs</span><span class="p">,</span> <span class="n">shifts</span> <span class="o">=</span> <span class="n">kpoints</span><span class="o">.</span><span class="n">mpdivs_shifts</span>
+                <span class="k">if</span> <span class="n">mp_divs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;wannier90 cannot handle kptrlatt with non-zero off-diagonal elements&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">shifts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Multiple shifts are not supported by wannier90&quot;</span><span class="p">)</span>
+                <span class="c1"># TODO: shifts, check abinit tests.</span>
+                <span class="c1">#for ($x=0; $x&lt;$ARGV[0]; $x++) {</span>
+                <span class="c1">#    for ($y=0; $y&lt;$ARGV[1]; $y++) {</span>
+                <span class="c1">#        for ($z=0; $z&lt;$ARGV[2]; $z++) {</span>
+                <span class="c1">#            printf (&quot;%12.8f%12.8f%12.8f%14.6e \n&quot;, $x/$ARGV[0],$y/$ARGV[1],$z/$ARGV[2],1/$totpts);</span>
+
+                <span class="n">new</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">num_bands</span><span class="o">=</span><span class="n">ebands</span><span class="o">.</span><span class="n">mband</span><span class="p">,</span> <span class="n">mp_grid</span><span class="o">=</span><span class="n">mp_divs</span><span class="p">,</span>
+                             <span class="n">_kpoints</span><span class="o">=</span><span class="s2">&quot;?? ?? ??</span><span class="se">\n</span><span class="s2">?? ?? ??&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">ebands</span><span class="o">.</span><span class="n">nsppol</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span> <span class="n">new</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">spin</span><span class="o">=</span><span class="s2">&quot;up&quot;</span><span class="p">)</span>
+
+            <span class="n">new</span><span class="o">.</span><span class="n">set_kpath</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">new</span></div>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">win_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">win_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">spell_check</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            structure: |Structure| object</span>
+<span class="sd">            comment: Optional string with a comment that will be placed at the beginning of the file.</span>
+<span class="sd">            win_args: List of tuples (key, value) with wannier90 input variables (default: empty)</span>
+<span class="sd">            win_kwargs: Dictionary with wannier90 input variables (default: empty)</span>
+<span class="sd">            spell_check: False to disable spell checking for input variables.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_spell_check</span><span class="p">(</span><span class="n">spell_check</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span> <span class="o">=</span> <span class="n">structure</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comment</span> <span class="o">=</span> <span class="n">comment</span>
+
+        <span class="n">win_args</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">win_args</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">win_args</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">win_args</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_check_varname</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+        <span class="n">win_kwargs</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">win_kwargs</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">win_kwargs</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">win_kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_check_varname</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+        <span class="n">args</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">win_args</span><span class="p">)[:]</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">win_kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vars</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vars</span>
+
+    <span class="c1"># This stufff should be moved to the ABC</span>
+<div class="viewcode-block" id="Wannier90Input.set_spell_check"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.win.Wannier90Input.set_spell_check">[docs]</a>    <span class="k">def</span> <span class="nf">set_spell_check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">false_or_true</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Activate/Deactivate spell-checking&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_spell_check</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">false_or_true</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">spell_check</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;True if spell checking is activated.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_spell_check</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span> <span class="c1"># This is to maintain compatibility with pickle</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">_check_varname</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">return</span>
+        <span class="c1"># TODO</span>
+        <span class="c1">#if not is_wannier90_var(key) and self.spell_check:</span>
+        <span class="c1">#    raise ValueError(&quot;%s is not a registered Wannier90 variable\n&quot;</span>
+        <span class="c1">#                     &quot;If you are sure the name is correct, please contact the abipy developers\n&quot;</span>
+        <span class="c1">#                     &quot;or use input.set_spell_check(False)\n&quot; % key)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;|Structure| object.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span>
+
+<div class="viewcode-block" id="Wannier90Input.to_string"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.win.Wannier90Input.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sortmode</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        String representation.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sortmode: &quot;a&quot; for alphabetical order, None if no sorting is wanted</span>
+<span class="sd">            mode: Either `text` or `html` if HTML output with links is wanted.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">comment</span><span class="p">:</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;# &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">comment</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">#&quot;</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">sortmode</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># no sorting.</span>
+            <span class="n">keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">sortmode</span> <span class="o">==</span> <span class="s2">&quot;a&quot;</span><span class="p">:</span>
+            <span class="c1"># alphabetical order.</span>
+            <span class="n">keys</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported value for sortmode </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">sortmode</span><span class="p">))</span>
+
+        <span class="n">app</span><span class="p">(</span><span class="n">structure2wannier90</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">))</span>
+
+        <span class="c1">#root = &quot;https://www.abinit.org/doc/helpfiles/for-v8.4/users/anaddb_help.html&quot;</span>
+        <span class="k">for</span> <span class="n">varname</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">varname</span><span class="p">]</span>
+            <span class="c1">#if mode == &quot;html&quot;: varname = root + &quot;#%s&quot; % varname</span>
+            <span class="n">pre</span> <span class="o">=</span> <span class="n">varname</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)</span>
+            <span class="n">post</span> <span class="o">=</span> <span class="n">varname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">pre</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">post</span><span class="p">:</span>
+                <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">InputVariable</span><span class="p">(</span><span class="n">varname</span><span class="p">,</span> <span class="n">value</span><span class="p">)))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Special treatment required by arrays (starting with _) and/or</span>
+                <span class="c1"># commented variables (ending with _)</span>
+                <span class="k">if</span> <span class="n">pre</span><span class="p">:</span> <span class="n">varname</span> <span class="o">=</span> <span class="n">varname</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+                <span class="k">if</span> <span class="n">post</span><span class="p">:</span> <span class="n">varname</span> <span class="o">=</span> <span class="n">varname</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">c</span> <span class="o">=</span> <span class="s2">&quot;#&quot;</span> <span class="k">if</span> <span class="n">post</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+                <span class="k">if</span> <span class="n">pre</span><span class="p">:</span> <span class="n">app</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">begin </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">varname</span><span class="p">))</span>
+                <span class="n">svar</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">InputVariable</span><span class="p">(</span><span class="s2">&quot;&quot;</span> <span class="k">if</span> <span class="n">pre</span> <span class="k">else</span> <span class="s2">&quot;#</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">varname</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">post</span><span class="p">:</span> <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;#</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">svar</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
+                <span class="n">app</span><span class="p">(</span><span class="n">svar</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">pre</span><span class="p">:</span> <span class="n">app</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">end </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">varname</span><span class="p">))</span>
+
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;text&quot;</span> <span class="k">else</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;br&gt;&quot;</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_repr_html_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Integration with jupyter_ notebooks.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;html&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Wannier90Input.set_kpath"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.win.Wannier90Input.set_kpath">[docs]</a>    <span class="k">def</span> <span class="nf">set_kpath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bands_num_points</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">qptbounds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the variables for the computation of the electronic band structure.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            bands_num_points: The number of points along the first section of the bandstructure plot</span>
+<span class="sd">                given by kpoint_path. Other sections will have the same density of k-points</span>
+<span class="sd">            qptbounds: q-points defining the path in k-space.</span>
+<span class="sd">                If None, we use the default high-symmetry k-path defined in the pymatgen database.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#if qptbounds is None: qptbounds = self.structure.calc_kptbounds()</span>
+        <span class="c1">#qptbounds = np.reshape(qptbounds, (-1, 3))</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">kstart</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">hsym_kpoints</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">kstop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">hsym_kpoints</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%.5f</span><span class="s2"> </span><span class="si">%.5f</span><span class="s2"> </span><span class="si">%.5f</span><span class="s2">   </span><span class="si">%s</span><span class="s2"> </span><span class="si">%.5f</span><span class="s2"> </span><span class="si">%.5f</span><span class="s2"> </span><span class="si">%.5f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">kstart</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">kstart</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">kstart</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">kstart</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                <span class="n">kstop</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">kstop</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">kstop</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">kstop</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">bands_plot_</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">_kpoint_path</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">),</span> <span class="n">bands_num_points</span><span class="o">=</span><span class="n">bands_num_points</span><span class="p">)</span></div></div>
+
+
+<span class="c1"># Based on the official documentation at &lt;http://www.wannier.org/doc/user_guide.pdf&gt;</span>
+<span class="c1"># Section_name : {(varname, type, docstring), (...)}</span>
+<span class="c1">#_VARS_DATABASE = {</span>
+<span class="c1">#&quot;System&quot;: {</span>
+<span class="c1">#integer ::</span>
+<span class="c1">#(&quot;num_wann&quot;</span>
+<span class="c1">#&quot;Number of WF to be found. No default.&quot;</span>
+<span class="c1">#</span>
+<span class="c1">#&quot;num_bands&quot;</span>
+<span class="c1">#integer ::</span>
+<span class="c1">#&quot;Total number of bands passed to the code in the seedname.mmn file. Default num_bands=num_wann&quot;</span>
+<span class="c1">#</span>
+<span class="c1">#&quot;unit_cell_cart&quot;</span>
+<span class="c1">#&quot;&quot;&quot;</span>
+<span class="c1">#The cell lattice vectors should be specified in Cartesian coordinates.</span>
+<span class="c1">#begin unit_cell_cart</span>
+<span class="c1">#[units]</span>
+<span class="c1">#    A1x A1y A1z</span>
+<span class="c1">#    A2x A2y A2z</span>
+<span class="c1">#    A3x A3y A3z</span>
+<span class="c1">#end unit_cell_cart</span>
+<span class="c1">#</span>
+<span class="c1">#Here A1x is the x-component of the first lattice vector A1, A2y is the y-component of the second lattice vector A2, etc.</span>
+<span class="c1">#[units] specifies the units in which the lattice vectors are defined: either Bohr or Ang.</span>
+<span class="c1">#The default value is Ang.</span>
+<span class="c1">#&quot;&quot;&quot;</span>
+<span class="c1">#</span>
+<span class="c1">#&quot;atoms_cart&quot;</span>
+<span class="c1">#</span>
+<span class="c1">#The ionic positions may be specified in fractional coordinates relative to the lattice vectors of the unit</span>
+<span class="c1">#cell, or in absolute Cartesian coordinates. Only one of atoms_cart and atoms_frac may be given in the input file.</span>
+<span class="c1">#Cartesian coordinates</span>
+<span class="c1">#begin atoms_cart</span>
+<span class="c1">#[units]</span>
+<span class="c1">#end atoms_cart</span>
+<span class="c1">#</span>
+<span class="c1">#Fractional coordinates</span>
+<span class="c1">#begin atoms_frac</span>
+<span class="c1">#P F P</span>
+<span class="c1">#1 F</span>
+<span class="c1">#P</span>
+<span class="c1">#2 F</span>
+<span class="c1">#P</span>
+<span class="c1">#3</span>
+<span class="c1">#Q F Q</span>
+<span class="c1">#1 F</span>
+<span class="c1">#Q</span>
+<span class="c1">#2 F</span>
+<span class="c1">#Q</span>
+<span class="c1">#3</span>
+<span class="c1">#.</span>
+<span class="c1">#.</span>
+<span class="c1">#.</span>
+<span class="c1">#end atoms_frac</span>
+<span class="c1">#The first entry on a line is the atomic symbol. The next three entries are the atom’s position in</span>
+<span class="c1">#fractional coordinates F = F1A1 + F2A2 + F3A3 relative to the cell lattice vectors Ai , i ∈ [1, 3].</span>
+<span class="c1">#2.4.5 integer, dimension :: mp_grid(3)</span>
+<span class="c1">#Dimensions of the regular (Monkhorst-Pack) k-point mesh.</span>
+<span class="c1">#For example, for a 2 × 2 × 2 grid:</span>
+<span class="c1">#</span>
+<span class="c1">#    mp_grid : 2 2 2</span>
+<span class="c1">#</span>
+<span class="c1">#No default.</span>
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
+      Last updated on Jul 26, 2018.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

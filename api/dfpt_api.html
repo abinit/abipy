@@ -79,6 +79,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a></li>
@@ -301,9 +302,16 @@ None if the file does not contain this information.</p>
 <dl class="attribute">
 <dt id="abipy.dfpt.anaddbnc.AnaddbNcFile.oscillator_strength">
 <code class="descname">oscillator_strength</code><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcFile.oscillator_strength"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcFile.oscillator_strength" title="Permalink to this definition">¶</a></dt>
-<dd><p>A complex <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.14)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> containing the oscillator strengths with shape (number of phonon modes, 3, 3),
+<dd><p>A complex <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.15)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> containing the oscillator strengths with shape (number of phonon modes, 3, 3),
 in a.u. (1 a.u.=253.2638413 m3/s2).
 None if the file does not contain this information.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.anaddbnc.AnaddbNcFile.yield_figs">
+<code class="descname">yield_figs</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcFile.yield_figs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcFile.yield_figs" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function <em>generates</em> a predefined list of matplotlib figures with minimal input from the user.
+Used in abiview.py to get a quick look at the results.</p>
 </dd></dl>
 
 <dl class="method">
@@ -444,7 +452,7 @@ Use e.g. <code class="docutils literal"><span class="pre">ddb.header.ecut</span>
 <dt id="abipy.dfpt.ddb.DdbFile.computed_dynmat">
 <code class="descname">computed_dynmat</code><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.computed_dynmat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.computed_dynmat" title="Permalink to this definition">¶</a></dt>
 <dd><p><code class="xref py py-class docutils literal"><span class="pre">OrderedDict</span></code> mapping q-point object to –&gt; pandas Dataframe.
-The <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> contains the columns: “idir1”, “ipert1”, “idir2”, “ipert2”, “cvalue”
+The <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> contains the columns: “idir1”, “ipert1”, “idir2”, “ipert2”, “cvalue”
 and (idir1, ipert1, idir2, ipert2) as index.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -578,7 +586,7 @@ Produce <a class="reference external" href="https://en.wikipedia.org/wiki/JSON">
 <li><strong>chneut</strong><strong>, </strong><strong>dipdip</strong> (<em>asr</em><em>,</em>) – Anaddb input variable. See official documentation.</li>
 <li><strong>workdir</strong> – Working directory. If None, a temporary directory is created.</li>
 <li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
 <li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information.</li>
 <li><strong>lo_to_splitting</strong> – Allowed values are [True, False, “automatic”]. Defaults to False
 If True the LO-TO splitting will be calculated if qpoint == Gamma and the non_anal_directions
@@ -626,7 +634,7 @@ depending on the input structure.</li>
 <li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information.</li>
 <li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
 <li><strong>workdir</strong> – Working directory. If None, a temporary directory is created.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file.</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file.</li>
 </ul>
 </td>
 </tr>
@@ -776,7 +784,7 @@ plotter: |PhononDosPlotter| object.
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>chneut</strong> – Anaddb input variable. See official documentation.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
 <li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
 <li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information</li>
 </ul>
@@ -803,7 +811,7 @@ plotter: |PhononDosPlotter| object.
 <li><strong>ngqpt</strong> – Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)</li>
 <li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
 <li><strong>workdir</strong> – Working directory. If None, a temporary directory is created.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
 <li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information</li>
 <li><strong>anaddb_kwargs</strong> – additional kwargs for anaddb</li>
 </ul>
@@ -829,7 +837,7 @@ Requires phonon perturbations at Gamma and static electric field perturbations.<
 <li><strong>chneut</strong><strong>, </strong><strong>dipdip</strong> (<em>asr</em><em>,</em>) – Anaddb input variable. See official documentation.</li>
 <li><strong>workdir</strong> – Working directory. If None, a temporary directory is created.</li>
 <li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
 <li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information</li>
 <li><strong>anaddb_kwargs</strong> – additional kwargs for anaddb</li>
 </ul>
@@ -1113,7 +1121,7 @@ Defaults to the standard Materials Project REST address</li>
 <code class="descname">get_dataframe_at_qpoint</code><span class="sig-paren">(</span><em>qpoint=None</em>, <em>units='eV'</em>, <em>asr=2</em>, <em>chneut=1</em>, <em>dipdip=1</em>, <em>with_geo=True</em>, <em>abspath=False</em>, <em>funcs=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbRobot.get_dataframe_at_qpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbRobot.get_dataframe_at_qpoint" title="Permalink to this definition">¶</a></dt>
 <dd><p>Call anaddb to compute the phonon frequencies at a single q-point using the DDB files treated
 by the robot and the given anaddb input arguments. LO-TO splitting is not included.
-Build and return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with results</p>
+Build and return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with results</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1131,7 +1139,7 @@ where key is a string with the name of column and value is the value to be inser
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a></p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a></p>
 </td>
 </tr>
 </tbody>
@@ -1496,7 +1504,7 @@ This file contains Grunesein parameters computed via finite difference.</p>
 <dl class="method">
 <dt id="abipy.dfpt.gruneisen.GrunsNcFile.to_dataframe">
 <code class="descname">to_dataframe</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.to_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.to_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the following columns:</p>
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the following columns:</p>
 <blockquote>
 <div>[‘qidx’, ‘mode’, ‘freq’, ‘qpoint’]</div></blockquote>
 <p>where:</p>
@@ -1912,7 +1920,7 @@ depending on the input structure.</li>
 <li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information.</li>
 <li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
 <li><strong>workdir</strong> – Working directory. If None, a temporary directory is created.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file.</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file.</li>
 </ul>
 </td>
 </tr>
@@ -2048,7 +2056,7 @@ specified and adds them to the object.</p>
 <dl class="attribute">
 <dt id="abipy.dfpt.phonons.PhononBands.maxfreq">
 <code class="descname">maxfreq</code><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.maxfreq" title="Permalink to this definition">¶</a></dt>
-<dd><p>Maximum phonon frequency.</p>
+<dd><p>Maximum phonon frequency in eV.</p>
 </dd></dl>
 
 <dl class="method">
@@ -2072,7 +2080,7 @@ specified and adds them to the object.</p>
 <dl class="attribute">
 <dt id="abipy.dfpt.phonons.PhononBands.linewidths">
 <code class="descname">linewidths</code><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.linewidths" title="Permalink to this definition">¶</a></dt>
-<dd><p>linewidths in eV. <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.14)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> with shape [nqpt, num_branches].</p>
+<dd><p>linewidths in eV. <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.15)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> with shape [nqpt, num_branches].</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -2762,7 +2770,7 @@ Default: None i.e. fig is left unchanged.</td>
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhononBands.get_dataframe">
 <code class="descname">get_dataframe</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the following columns:</p>
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the following columns:</p>
 <blockquote>
 <div>[‘qidx’, ‘mode’, ‘freq’, ‘qpoint’]</div></blockquote>
 <p>where:</p>
@@ -3020,7 +3028,7 @@ Accepts integer, vector with reduced coordinates or <a class="reference internal
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhbstFile.get_phframe">
 <code class="descname">get_phframe</code><span class="sig-paren">(</span><em>qpoint</em>, <em>with_structure=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhbstFile.get_phframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhbstFile.get_phframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the phonon frequencies at the given q-point and
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the phonon frequencies at the given q-point and
 information on the crystal structure (used for convergence studies).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -3460,7 +3468,7 @@ Provides helper function to visualize/extract data.</p>
 <dt id="abipy.dfpt.phonons.PhdosFile.params">
 <code class="descname">params</code><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhdosFile.params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhdosFile.params" title="Permalink to this definition">¶</a></dt>
 <dd><p><code class="xref py py-class docutils literal"><span class="pre">OrderedDict</span></code> with the convergence parameters
-Used to construct <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a>.</p>
+Used to construct <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -3741,7 +3749,7 @@ Supports plots on the same graph or separated plots.</p>
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhononBandsPlotter.get_phbands_frame">
 <code class="descname">get_phbands_frame</code><span class="sig-paren">(</span><em>with_spglib=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBandsPlotter.get_phbands_frame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBandsPlotter.get_phbands_frame" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important results available in the band structures.</p>
+<dd><p>Build a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important results available in the band structures.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -3803,7 +3811,7 @@ Used only if <code class="docutils literal"><span class="pre">phdos</span></code
 
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhononBandsPlotter.combiplot">
-<code class="descname">combiplot</code><span class="sig-paren">(</span><em>qlabels=None</em>, <em>units='eV'</em>, <em>ylims=None</em>, <em>width_ratios=(2</em>, <em>1)</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBandsPlotter.combiplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBandsPlotter.combiplot" title="Permalink to this definition">¶</a></dt>
+<code class="descname">combiplot</code><span class="sig-paren">(</span><em>qlabels=None</em>, <em>units='eV'</em>, <em>ylims=None</em>, <em>width_ratios=(2</em>, <em>1)</em>, <em>fontsize=8</em>, <em>linestyle_dict=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBandsPlotter.combiplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBandsPlotter.combiplot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot the band structure and the DOS on the same figure.
 Use <code class="docutils literal"><span class="pre">gridplot</span></code> to plot band structures on different figures.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -3818,6 +3826,8 @@ The values are the labels e.g. <code class="docutils literal"><span class="pre">
 or scalar e.g. <code class="docutils literal"><span class="pre">left</span></code>. If left (right) is None, default values are used</li>
 <li><strong>width_ratios</strong> – Ratio between the width of the phonon bands plots and the DOS plots.
 Used if plotter has DOSes.</li>
+<li><strong>fontsize</strong> – fontsize for titles and legend.</li>
+<li><strong>linestyle_dict</strong> – Dictionary mapping labels to matplotlib linestyle options.</li>
 </ul>
 </td>
 </tr>
@@ -4886,8 +4896,8 @@ in the list. Choose the values of tstart, tstop and num to satisfy this conditio
 <dl class="class">
 <dt id="abipy.dfpt.tensors.NLOpticalSusceptibilityTensor">
 <em class="property">class </em><code class="descclassname">abipy.dfpt.tensors.</code><code class="descname">NLOpticalSusceptibilityTensor</code><a class="reference internal" href="../_modules/abipy/dfpt/tensors.html#NLOpticalSusceptibilityTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.tensors.NLOpticalSusceptibilityTensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.Tensor" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.Tensor</span></code></a></p>
-<p>Subclass of <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.Tensor" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.Tensor</span></code></a> containing the
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.Tensor" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.Tensor</span></code></a></p>
+<p>Subclass of <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.Tensor" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.Tensor</span></code></a> containing the
 non-linear optical susceptibility tensor.</p>
 <dl class="classmethod">
 <dt id="abipy.dfpt.tensors.NLOpticalSusceptibilityTensor.from_file">
@@ -4901,8 +4911,8 @@ This requires to run anaddb with <code class="docutils literal"><span class="pre
 <dl class="class">
 <dt id="abipy.dfpt.tensors.DielectricTensor">
 <em class="property">class </em><code class="descclassname">abipy.dfpt.tensors.</code><code class="descname">DielectricTensor</code><a class="reference internal" href="../_modules/abipy/dfpt/tensors.html#DielectricTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.tensors.DielectricTensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.SquareTensor" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.SquareTensor</span></code></a></p>
-<p>Subclass of <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.SquareTensor" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.SquareTensor</span></code></a>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.SquareTensor" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.SquareTensor</span></code></a></p>
+<p>Subclass of <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.SquareTensor" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.SquareTensor</span></code></a>
 describing a dielectric tensor.</p>
 <dl class="method">
 <dt id="abipy.dfpt.tensors.DielectricTensor.reflectivity">
@@ -4929,7 +4939,7 @@ returns the three components of the reflectivity.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 01, 2018.<br/>
+      Last updated on Jul 26, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

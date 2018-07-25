@@ -79,6 +79,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a></li>
@@ -203,7 +204,7 @@ obtained from the dielectric functions for different q-directions.</p>
 <dl class="method">
 <dt id="abipy.electrons.bse.DielectricTensor.to_array">
 <code class="descname">to_array</code><span class="sig-paren">(</span><em>red_coords=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/bse.html#DielectricTensor.to_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.bse.DielectricTensor.to_array" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.14)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> with a copy of the data.</p>
+<dd><p>Return <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.15)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> with a copy of the data.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -361,7 +362,7 @@ computed for different q-directions in reciprocal space.</p>
 <dl class="attribute">
 <dt id="abipy.electrons.bse.DielectricFunction.qfrac_coords">
 <code class="descname">qfrac_coords</code><a class="headerlink" href="#abipy.electrons.bse.DielectricFunction.qfrac_coords" title="Permalink to this definition">¶</a></dt>
-<dd><p><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.14)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> with the fractional coordinates of the q-points.</p>
+<dd><p><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.15)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> with the fractional coordinates of the q-points.</p>
 </dd></dl>
 
 <dl class="method">
@@ -533,7 +534,7 @@ Possible choices are<blockquote>
 <dl class="attribute">
 <dt id="abipy.electrons.bse.MdfFile.qfrac_coords">
 <code class="descname">qfrac_coords</code><a class="headerlink" href="#abipy.electrons.bse.MdfFile.qfrac_coords" title="Permalink to this definition">¶</a></dt>
-<dd><p><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.14)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> with the fractional coordinates of the q-points.</p>
+<dd><p><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.15)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> with the fractional coordinates of the q-points.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1196,6 +1197,13 @@ Default: None i.e. fig is left unchanged.</td>
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.electrons.ddk.DdkFile.yield_figs">
+<code class="descname">yield_figs</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ddk.html#DdkFile.yield_figs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ddk.DdkFile.yield_figs" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function <em>generates</em> a predefined list of matplotlib figures with minimal input from the user.
+Used in abiview.py to get a quick look at the results.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.electrons.ddk.DdkFile.write_notebook">
 <code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em>, <em>title=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ddk.html#DdkFile.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ddk.DdkFile.write_notebook" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write a <a class="reference external" href="http://jupyter.org/">jupyter</a> notebook to <code class="docutils literal"><span class="pre">nbpath</span></code>. If nbpath is None, a temporay file in the current
@@ -1214,7 +1222,7 @@ It provides helper function to access the most important quantities.</p>
 <dt id="abipy.electrons.ddk.DdkReader.read_ddk_diagonal">
 <code class="descname">read_ddk_diagonal</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ddk.html#DdkReader.read_ddk_diagonal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ddk.DdkReader.read_ddk_diagonal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read the group velocities i.e the diagonal matrix elements.
-Return (nsppol, nkpt) <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.14)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> of real numbers.</p>
+Return (nsppol, nkpt) <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.15)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> of real numbers.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1377,7 +1385,7 @@ Return (nsppol, nkpt) <a class="reference external" href="https://docs.scipy.org
 <dt id="abipy.electrons.ebands.ElectronBands">
 <em class="property">class </em><code class="descclassname">abipy.electrons.ebands.</code><code class="descname">ElectronBands</code><span class="sig-paren">(</span><em>structure</em>, <em>kpoints</em>, <em>eigens</em>, <em>fermie</em>, <em>occfacts</em>, <em>nelect</em>, <em>nspinor</em>, <em>nspden</em>, <em>nband_sk=None</em>, <em>smearing=None</em>, <em>linewidths=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a></p>
-<p>This object stores the electronic band structure.</p>
+<p>Immutable object storing the electron band structure.</p>
 <dl class="attribute">
 <dt id="abipy.electrons.ebands.ElectronBands.fermie">
 <code class="descname">fermie</code><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.fermie" title="Permalink to this definition">¶</a></dt>
@@ -1387,10 +1395,10 @@ in the SCF run that produced the density used for the band structure calculation
 </dd></dl>
 
 <p class="rubric">Inheritance Diagram</p>
-<img src="../_images/inheritance-d509352fa1f95d184ae023614dea6ade598bd474.png" alt="Inheritance diagram of ElectronBands" usemap="#inheritance5d51cbb43e" class="inheritance"/>
+<img src="../_images/inheritance-962a7506b105ae9e2806ef54fdfb2281d484c980.png" alt="Inheritance diagram of ElectronBands" usemap="#inheritance5d51cbb43e" class="inheritance"/>
 <map id="inheritance5d51cbb43e" name="inheritance5d51cbb43e">
 <area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for :class:`AbinitNcFile` containing crystallographic data." alt="" coords="5,5,218,29"/>
-<area shape="rect" id="node2" href="#abipy.electrons.ebands.ElectronBands" target="_top" title="This object stores the electronic band structure." alt="" coords="266,5,514,29"/>
+<area shape="rect" id="node2" href="#abipy.electrons.ebands.ElectronBands" target="_top" title="Immutable object storing the electron band structure." alt="" coords="266,5,514,29"/>
 </map>
 <dl class="attribute">
 <dt id="abipy.electrons.ebands.ElectronBands.Error">
@@ -1497,13 +1505,13 @@ can be changed to other urls implementing a similar interface.</li>
 <dl class="attribute">
 <dt id="abipy.electrons.ebands.ElectronBands.eigens">
 <code class="descname">eigens</code><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.eigens" title="Permalink to this definition">¶</a></dt>
-<dd><p>Eigenvalues in eV. <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.14)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> with shape [nspin, nkpt, mband].</p>
+<dd><p>Eigenvalues in eV. <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.15)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> with shape [nspin, nkpt, mband].</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="abipy.electrons.ebands.ElectronBands.linewidths">
 <code class="descname">linewidths</code><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.linewidths" title="Permalink to this definition">¶</a></dt>
-<dd><p>linewidths in eV. <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.14)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> with shape [nspin, nkpt, mband].</p>
+<dd><p>linewidths in eV. <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.15)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> with shape [nspin, nkpt, mband].</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1515,13 +1523,13 @@ can be changed to other urls implementing a similar interface.</li>
 <dl class="attribute">
 <dt id="abipy.electrons.ebands.ElectronBands.occfacts">
 <code class="descname">occfacts</code><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.occfacts" title="Permalink to this definition">¶</a></dt>
-<dd><p>Occupation factors. <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.14)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> with shape [nspin, nkpt, mband].</p>
+<dd><p>Occupation factors. <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.15)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> with shape [nspin, nkpt, mband].</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="abipy.electrons.ebands.ElectronBands.reciprocal_lattice">
 <code class="descname">reciprocal_lattice</code><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.reciprocal_lattice" title="Permalink to this definition">¶</a></dt>
-<dd><p><a class="reference external" href="http://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> with the reciprocal lattice vectors in Angstrom.</p>
+<dd><p><a class="reference external" href="http://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> with the reciprocal lattice vectors in Angstrom.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1534,6 +1542,37 @@ can be changed to other urls implementing a similar interface.</li>
 <dt id="abipy.electrons.ebands.ElectronBands.has_metallic_scheme">
 <code class="descname">has_metallic_scheme</code><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.has_metallic_scheme" title="Permalink to this definition">¶</a></dt>
 <dd><p>True if we are using a metallic scheme for occupancies.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.electrons.ebands.ElectronBands.with_points_along_path">
+<code class="descname">with_points_along_path</code><span class="sig-paren">(</span><em>frac_bounds=None</em>, <em>knames=None</em>, <em>dist_tol=1e-12</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.with_points_along_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.with_points_along_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build new <a class="reference internal" href="#abipy.electrons.ebands.ElectronBands" title="abipy.electrons.ebands.ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.ebands.ElectronBands</span></code></a> object containing the k-points along the
+input k-path specified by <cite>frac_bounds</cite>. Useful to extract energies along a path
+from calculation performed in the IBZ.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>frac_bounds</strong> – [M, 3] array  with the vertexes of the k-path in reduced coordinates.
+If None, the k-path is automatically selected from the structure.</li>
+<li><strong>knames</strong> – List of strings with the k-point labels defining the k-path. It has precedence over frac_bounds.</li>
+<li><strong>dist_tol</strong> – A point is considered to be on the path if its distance from the line
+is less than dist_tol.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Return: namedtuple with:</dt>
+<dd><p class="first">ebands: <a class="reference internal" href="#abipy.electrons.ebands.ElectronBands" title="abipy.electrons.ebands.ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.ebands.ElectronBands</span></code></a> object.
+ik_new2prev: Correspondence between the k-points in the new ebands and the kpoint</p>
+<blockquote class="last">
+<div>of the previous band structure (self).</div></blockquote>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
@@ -1561,13 +1600,13 @@ can be changed to other urls implementing a similar interface.</li>
 
 <dl class="attribute">
 <dt id="abipy.electrons.ebands.ElectronBands.has_bzmesh">
-<code class="descname">has_bzmesh</code><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.has_bzmesh" title="Permalink to this definition">¶</a></dt>
+<code class="descname">has_bzmesh</code><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.has_bzmesh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.has_bzmesh" title="Permalink to this definition">¶</a></dt>
 <dd><p>True if the k-point sampling is homogeneous.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="abipy.electrons.ebands.ElectronBands.has_bzpath">
-<code class="descname">has_bzpath</code><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.has_bzpath" title="Permalink to this definition">¶</a></dt>
+<code class="descname">has_bzpath</code><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.has_bzpath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.has_bzpath" title="Permalink to this definition">¶</a></dt>
 <dd><p>True if the bands are computed on a k-path.</p>
 </dd></dl>
 
@@ -1594,18 +1633,6 @@ Accepts: <a class="reference internal" href="core_api.html#abipy.core.kpoints.Kp
 <dt id="abipy.electrons.ebands.ElectronBands.skb_iter">
 <code class="descname">skb_iter</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.skb_iter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.skb_iter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Iterator over (spin, k, band) indices.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.electrons.ebands.ElectronBands.copy">
-<code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.copy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Shallow copy of self.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.electrons.ebands.ElectronBands.deepcopy">
-<code class="descname">deepcopy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.deepcopy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.deepcopy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Deep copy of self.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1674,7 +1701,7 @@ the energy, the occupation and the location of the dispersionless band.</p>
 <dl class="method">
 <dt id="abipy.electrons.ebands.ElectronBands.get_dataframe">
 <code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>e0='fermie'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the following columns:</p>
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the following columns:</p>
 <blockquote>
 <div>[‘spin’, ‘kidx’, ‘band’, ‘eig’, ‘occ’, ‘kpoint’]</div></blockquote>
 <p>where:</p>
@@ -1826,7 +1853,7 @@ additional data required by Abipy if you need a complete conversion.</p>
 
 <dl class="attribute">
 <dt id="abipy.electrons.ebands.ElectronBands.lomos">
-<code class="descname">lomos</code><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.lomos" title="Permalink to this definition">¶</a></dt>
+<code class="descname">lomos</code><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.lomos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.lomos" title="Permalink to this definition">¶</a></dt>
 <dd><p>lomo states for each spin channel as a list of nsppol <code class="xref py py-class docutils literal"><span class="pre">Electron</span></code>.</p>
 </dd></dl>
 
@@ -1886,13 +1913,13 @@ additional data required by Abipy if you need a complete conversion.</p>
 
 <dl class="attribute">
 <dt id="abipy.electrons.ebands.ElectronBands.homos">
-<code class="descname">homos</code><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.homos" title="Permalink to this definition">¶</a></dt>
+<code class="descname">homos</code><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.homos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.homos" title="Permalink to this definition">¶</a></dt>
 <dd><p>homo states for each spin channel as a list of nsppol <code class="xref py py-class docutils literal"><span class="pre">Electron</span></code>.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="abipy.electrons.ebands.ElectronBands.lumos">
-<code class="descname">lumos</code><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.lumos" title="Permalink to this definition">¶</a></dt>
+<code class="descname">lumos</code><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.lumos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.lumos" title="Permalink to this definition">¶</a></dt>
 <dd><p>lumo states for each spin channel as a list of nsppol <code class="xref py py-class docutils literal"><span class="pre">Electron</span></code>.</p>
 </dd></dl>
 
@@ -1911,7 +1938,13 @@ additional data required by Abipy if you need a complete conversion.</p>
 <dl class="attribute">
 <dt id="abipy.electrons.ebands.ElectronBands.direct_gaps">
 <code class="descname">direct_gaps</code><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.direct_gaps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.direct_gaps" title="Permalink to this definition">¶</a></dt>
-<dd><p>List of <code class="xref py py-class docutils literal"><span class="pre">ElectronTransition</span></code> with info on the direct gaps for each spin.</p>
+<dd><p>List of <cite>nsppol</cite> <code class="xref py py-class docutils literal"><span class="pre">ElectronTransition</span></code> with info on the direct gaps for each spin.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.electrons.ebands.ElectronBands.get_gaps_string">
+<code class="descname">get_gaps_string</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.get_gaps_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.get_gaps_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return string with info about fundamental and direct gap (if not metallic scheme)</p>
 </dd></dl>
 
 <dl class="method">
@@ -2213,7 +2246,7 @@ Default: None i.e. fig is left unchanged.</td>
 
 <dl class="method">
 <dt id="abipy.electrons.ebands.ElectronBands.plot">
-<code class="descname">plot</code><span class="sig-paren">(</span><em>spin=None</em>, <em>band_range=None</em>, <em>klabels=None</em>, <em>e0='fermie'</em>, <em>ax=None</em>, <em>ylims=None</em>, <em>points=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.plot" title="Permalink to this definition">¶</a></dt>
+<code class="descname">plot</code><span class="sig-paren">(</span><em>spin=None</em>, <em>band_range=None</em>, <em>klabels=None</em>, <em>e0='fermie'</em>, <em>ax=None</em>, <em>ylims=None</em>, <em>points=None</em>, <em>with_gaps=False</em>, <em>max_phfreq=None</em>, <em>fontsize=8</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot the electronic band structure.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2232,7 +2265,15 @@ coordinates of the k-points. The values are the labels. e.g.
 <li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>ylims</strong> – Set the data limits for the y-axis. Accept tuple e.g. <code class="docutils literal"><span class="pre">(left,</span> <span class="pre">right)</span></code>
 or scalar e.g. <code class="docutils literal"><span class="pre">left</span></code>. If left (right) is None, default values are used</li>
-<li><strong>points</strong> – </li>
+<li><strong>points</strong> – Marker object with the position and the size of the marker.
+Used for plotting purpose e.g. QP energies, energy derivatives…</li>
+<li><strong>with_gaps</strong> – True to add markers and arrows showing the fundamental and the direct gap.</li>
+<li><strong>max_phfreq</strong> – Max phonon frequency in eV to activate scatterplot showing
+possible phonon absorption/emission processes based on energy-conservation alone.
+All final states whose energy is within +- max_phfreq of the initial state are included.
+By default, the four electronic states defining the fundamental and the direct gaps
+are considered as initial state (not available for metals).</li>
+<li><strong>fontsize</strong> – fontsize for legends and titles</li>
 </ul>
 </td>
 </tr>
@@ -2393,7 +2434,7 @@ Default: None i.e. fig is left unchanged.</td>
 
 <dl class="method">
 <dt id="abipy.electrons.ebands.ElectronBands.plot_with_edos">
-<code class="descname">plot_with_edos</code><span class="sig-paren">(</span><em>edos</em>, <em>klabels=None</em>, <em>ax_list=None</em>, <em>e0='fermie'</em>, <em>ylims=None</em>, <em>width_ratios=(2</em>, <em>1)</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.plot_with_edos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.plot_with_edos" title="Permalink to this definition">¶</a></dt>
+<code class="descname">plot_with_edos</code><span class="sig-paren">(</span><em>edos</em>, <em>klabels=None</em>, <em>ax_list=None</em>, <em>e0='fermie'</em>, <em>points=None</em>, <em>with_gaps=False</em>, <em>max_phfreq=None</em>, <em>ylims=None</em>, <em>width_ratios=(2</em>, <em>1)</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.plot_with_edos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.plot_with_edos" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot the band structure and the DOS.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2420,6 +2461,14 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 </pre></div>
 </div>
 </li>
+<li><strong>points</strong> – Marker object with the position and the size of the marker.
+Used for plotting purpose e.g. QP energies, energy derivatives…</li>
+<li><strong>with_gaps</strong> – True to add markers and arrows showing the fundamental and the direct gap.</li>
+<li><strong>max_phfreq</strong> – Max phonon frequency in eV to activate scatterplot showing
+possible phonon absorption/emission processes based on energy-conservation alone.
+All final states whose energy is within +- max_phfreq of the initial state are included.
+By default, the four electronic states defining the fundamental and the direct gaps
+are considered as initial state (not available for metals).</li>
 <li><strong>width_ratios</strong> – Defines the ratio between the band structure plot and the dos plot.</li>
 </ul>
 </td>
@@ -2465,7 +2514,7 @@ Default: None i.e. fig is left unchanged.</td>
 
 <dl class="method">
 <dt id="abipy.electrons.ebands.ElectronBands.plot_lws_vs_e0">
-<code class="descname">plot_lws_vs_e0</code><span class="sig-paren">(</span><em>ax=None</em>, <em>e0='fermie'</em>, <em>exchange_xy=False</em>, <em>xlims=None</em>, <em>ylims=None</em>, <em>fontsize=12</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.plot_lws_vs_e0"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.plot_lws_vs_e0" title="Permalink to this definition">¶</a></dt>
+<code class="descname">plot_lws_vs_e0</code><span class="sig-paren">(</span><em>ax=None</em>, <em>e0='fermie'</em>, <em>function=&lt;function ElectronBands.&lt;lambda&gt;&gt;</em>, <em>exchange_xy=False</em>, <em>xlims=None</em>, <em>ylims=None</em>, <em>fontsize=12</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.plot_lws_vs_e0"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.plot_lws_vs_e0" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot the electronic linewidths vs KS energy.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2477,6 +2526,7 @@ Default: None i.e. fig is left unchanged.</td>
 - <code class="docutils literal"><span class="pre">fermie</span></code>: shift all eigenvalues to have zero energy at the Fermi energy (<code class="docutils literal"><span class="pre">self.fermie</span></code>).
 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
 -  None: Don’t shift energies, equivalent to e0=0</li>
+<li><strong>function</strong> – Apply this function to the values before plotting</li>
 <li><strong>exchange_xy</strong> – True to exchange x-y axis.</li>
 <li><strong>ylims</strong> (<em>xlims</em><em>,</em>) – Set the data limits for the x-axis or the y-axis. Accept tuple e.g. <code class="docutils literal"><span class="pre">(left,</span> <span class="pre">right)</span></code>
 or scalar e.g. <code class="docutils literal"><span class="pre">left</span></code>. If left (right) is None, default values are used</li>
@@ -2580,7 +2630,7 @@ Use finite difference with accuracy <code class="docutils literal"><span class="
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.14)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> of size self.nkpt with effective masses.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.15)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> of size self.nkpt with effective masses.</td>
 </tr>
 </tbody>
 </table>
@@ -2609,10 +2659,10 @@ and the path contains duplicated k-points, the first k-point is selected.</li>
 
 <dl class="method">
 <dt id="abipy.electrons.ebands.ElectronBands.interpolate">
-<code class="descname">interpolate</code><span class="sig-paren">(</span><em>lpratio=5</em>, <em>vertices_names=None</em>, <em>line_density=20</em>, <em>kmesh=None</em>, <em>is_shift=None</em>, <em>filter_params=None</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.interpolate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.interpolate" title="Permalink to this definition">¶</a></dt>
+<code class="descname">interpolate</code><span class="sig-paren">(</span><em>lpratio=5</em>, <em>knames=None</em>, <em>vertices_names=None</em>, <em>line_density=20</em>, <em>kmesh=None</em>, <em>is_shift=None</em>, <em>bstart=0</em>, <em>bstop=None</em>, <em>filter_params=None</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.interpolate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.interpolate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Interpolate energies in k-space along a k-path and, optionally, in the IBZ for DOS calculations.
 Note that the interpolation will likely fail if there are symmetrical k-points in the input set of k-points
-so it’s recommended to call this method with band structure obtained in the IBZ.</p>
+so it’s recommended to call this method with energies obtained in the IBZ.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -2620,17 +2670,19 @@ so it’s recommended to call this method with band structure obtained in the IB
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>lpratio</strong> – Ratio between the number of star functions and the number of ab-initio k-points.
 The default should be OK in many systems, larger values may be required for accurate derivatives.</li>
+<li><strong>knames</strong> – List of strings with the k-point labels for the k-path. Has precedence over vertices_names.</li>
 <li><strong>vertices_names</strong> – Used to specify the k-path for the interpolated band structure
 It’s a list of tuple, each tuple is of the form (kfrac_coords, kname) where
 kfrac_coords are the reduced coordinates of the k-point and kname is a string with the name of
 the k-point. Each point represents a vertex of the k-path. <code class="docutils literal"><span class="pre">line_density</span></code> defines
 the density of the sampling. If None, the k-path is automatically generated according
 to the point group of the system.</li>
-<li><strong>line_density</strong> – Number of points in the smallest segment of the k-path. Used with <code class="docutils literal"><span class="pre">vertices_names</span></code>.</li>
+<li><strong>line_density</strong> – Number of points in the smallest segment of the k-path.</li>
 <li><strong>kmesh</strong> – Used to activate the interpolation on the homogeneous mesh for DOS (uses <a class="reference external" href="https://atztogo.github.io/spglib/">spglib</a> API).
 kmesh is given by three integers and specifies mesh numbers along reciprocal primitive axis.</li>
 <li><strong>is_shift</strong> – three integers (<a class="reference external" href="https://atztogo.github.io/spglib/">spglib</a> API). When is_shift is not None, the kmesh is shifted along
 the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.</li>
+<li><strong>bstop</strong> (<em>bstart</em><em>,</em>) – Select the range of band to be used in the interpolation</li>
 <li><strong>filter_params</strong> – TO BE described.</li>
 <li><strong>verbose</strong> – Verbosity level</li>
 </ul>
@@ -2671,7 +2723,7 @@ See <code class="docutils literal"><span class="pre">ElectronBands.as_ebands</sp
 </tr>
 </tbody>
 </table>
-<p>Return: <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a></p>
+<p>Return: <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a></p>
 </dd></dl>
 
 <dl class="class">
@@ -2709,7 +2761,7 @@ Supports plots on the same graph or separated plots.</p>
 <dl class="method">
 <dt id="abipy.electrons.ebands.ElectronBandsPlotter.get_ebands_frame">
 <code class="descname">get_ebands_frame</code><span class="sig-paren">(</span><em>with_spglib=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBandsPlotter.get_ebands_frame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBandsPlotter.get_ebands_frame" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important results available in the band structures.
+<dd><p>Build a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important results available in the band structures.
 Useful to analyze band-gaps.</p>
 </dd></dl>
 
@@ -2733,8 +2785,8 @@ Useful to analyze band-gaps.</p>
 
 <dl class="method">
 <dt id="abipy.electrons.ebands.ElectronBandsPlotter.add_ebands">
-<code class="descname">add_ebands</code><span class="sig-paren">(</span><em>label</em>, <em>bands</em>, <em>edos=None</em>, <em>dos=None</em>, <em>edos_kwargs=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBandsPlotter.add_ebands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBandsPlotter.add_ebands" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds a band structure and optionally a edos to the plotter.</p>
+<code class="descname">add_ebands</code><span class="sig-paren">(</span><em>label</em>, <em>bands</em>, <em>edos=None</em>, <em>edos_kwargs=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBandsPlotter.add_ebands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBandsPlotter.add_ebands" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a band structure and optionally an edos to the plotter.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -2766,7 +2818,7 @@ Used only if <code class="docutils literal"><span class="pre">edos</span></code>
 
 <dl class="method">
 <dt id="abipy.electrons.ebands.ElectronBandsPlotter.combiplot">
-<code class="descname">combiplot</code><span class="sig-paren">(</span><em>e0='fermie'</em>, <em>ylims=None</em>, <em>width_ratios=(2</em>, <em>1)</em>, <em>fontsize=8</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBandsPlotter.combiplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBandsPlotter.combiplot" title="Permalink to this definition">¶</a></dt>
+<code class="descname">combiplot</code><span class="sig-paren">(</span><em>e0='fermie'</em>, <em>ylims=None</em>, <em>width_ratios=(2</em>, <em>1)</em>, <em>fontsize=8</em>, <em>linestyle_dict=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBandsPlotter.combiplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBandsPlotter.combiplot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot the band structure and the DOS on the same figure.
 Use <code class="docutils literal"><span class="pre">gridplot</span></code> to plot band structures on different figures.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -2793,6 +2845,7 @@ or scalar e.g. <cite>left</cite>. If left (right) is None, default values are us
 <li><strong>width_ratios</strong> – Defines the ratio between the band structure plot and the dos plot.
 Used when there are DOS stored in the plotter.</li>
 <li><strong>fontsize</strong> – fontsize for titles and legend.</li>
+<li><strong>linestyle_dict</strong> – Dictionary mapping labels to matplotlib linestyle options.</li>
 </ul>
 </td>
 </tr>
@@ -2843,7 +2896,7 @@ Default: None i.e. fig is left unchanged.</td>
 
 <dl class="method">
 <dt id="abipy.electrons.ebands.ElectronBandsPlotter.gridplot">
-<code class="descname">gridplot</code><span class="sig-paren">(</span><em>e0='fermie'</em>, <em>with_dos=True</em>, <em>ylims=None</em>, <em>fontsize=8</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBandsPlotter.gridplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBandsPlotter.gridplot" title="Permalink to this definition">¶</a></dt>
+<code class="descname">gridplot</code><span class="sig-paren">(</span><em>e0='fermie'</em>, <em>with_dos=True</em>, <em>with_gaps=False</em>, <em>max_phfreq=None</em>, <em>ylims=None</em>, <em>fontsize=8</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBandsPlotter.gridplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBandsPlotter.gridplot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot multiple electron bandstructures and optionally DOSes on a grid.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2871,6 +2924,12 @@ each subplot in the grid contains a band structure with DOS else a simple bandst
 </div>
 </li>
 <li><strong>with_dos</strong> – True if DOS should be printed.</li>
+<li><strong>with_gaps</strong> – True to add markesr and arrows showing the fundamental and the direct gap.</li>
+<li><strong>max_phfreq</strong> – Max phonon frequency in eV to activate scatterplot showing
+possible phonon absorptions/emission processes based on energy-conservation alone.
+All final states whose energy is within +- max_phfreq of the initial state are included.
+By default, the four electronic states defining the fundamental and the direct gaps
+are considered as initial state (not available for metals).</li>
 <li><strong>ylims</strong> – Set the data limits for the y-axis. Accept tuple e.g. <code class="docutils literal"><span class="pre">`(left,</span> <span class="pre">right)</span></code>
 or scalar e.g. <code class="docutils literal"><span class="pre">left</span></code>. If left (right) is None, default values are used</li>
 <li><strong>fontsize</strong> – fontsize for titles and legend.</li>
@@ -3715,14 +3774,14 @@ working directory is created. Return path to the notebook.</p>
 <dl class="attribute">
 <dt id="abipy.electrons.fatbands.FatBandsFile.wal_sbk">
 <code class="descname">wal_sbk</code><a class="reference internal" href="../_modules/abipy/electrons/fatbands.html#FatBandsFile.wal_sbk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.fatbands.FatBandsFile.wal_sbk" title="Permalink to this definition">¶</a></dt>
-<dd><p><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.14)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> of shape [natom, mbesslang, nsppol, mband, nkpt]
+<dd><p><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.15)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> of shape [natom, mbesslang, nsppol, mband, nkpt]
 with the L-contributions. Present only if prtdos == 3.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="abipy.electrons.fatbands.FatBandsFile.walm_sbk">
 <code class="descname">walm_sbk</code><a class="reference internal" href="../_modules/abipy/electrons/fatbands.html#FatBandsFile.walm_sbk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.fatbands.FatBandsFile.walm_sbk" title="Permalink to this definition">¶</a></dt>
-<dd><p><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.14)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> of shape [natom, mbesslang**2, nsppol, mband, nkpt]
+<dd><p><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.15)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> of shape [natom, mbesslang**2, nsppol, mband, nkpt]
 with the LM-contribution. Present only if prtdos == 3 and prtdosm != 0</p>
 </dd></dl>
 
@@ -4469,7 +4528,7 @@ working directory is created. Return path to the notebook.</p>
 <dl class="attribute">
 <dt id="abipy.electrons.fold2bloch.Fold2BlochNcfile.uf_eigens">
 <code class="descname">uf_eigens</code><a class="reference internal" href="../_modules/abipy/electrons/fold2bloch.html#Fold2BlochNcfile.uf_eigens"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.fold2bloch.Fold2BlochNcfile.uf_eigens" title="Permalink to this definition">¶</a></dt>
-<dd><p>[nsppol, nk_unfolded, nband] <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.14)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> with unfolded eigenvalues in eV.</p>
+<dd><p>[nsppol, nk_unfolded, nband] <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.15)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> with unfolded eigenvalues in eV.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -4950,7 +5009,7 @@ Used to prepare plots of KS bands with markers.</p>
 <dl class="attribute">
 <dt id="abipy.electrons.gw.SigresFile.qpgaps">
 <code class="descname">qpgaps</code><a class="reference internal" href="../_modules/abipy/electrons/gw.html#SigresFile.qpgaps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.gw.SigresFile.qpgaps" title="Permalink to this definition">¶</a></dt>
-<dd><p><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.14)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> of shape [nsppol, nkibz] with the QP direct gaps in eV.</p>
+<dd><p><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.15)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> of shape [nsppol, nkibz] with the QP direct gaps in eV.</p>
 </dd></dl>
 
 <dl class="method">
@@ -5364,7 +5423,7 @@ Default: None i.e. fig is left unchanged.</td>
 <dl class="method">
 <dt id="abipy.electrons.gw.SigresFile.get_dataframe">
 <code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>ignore_imag=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/gw.html#SigresFile.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.gw.SigresFile.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for all k-points included in the GW calculation</p>
+<dd><p>Returns <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for all k-points included in the GW calculation</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -5378,7 +5437,7 @@ Default: None i.e. fig is left unchanged.</td>
 <dl class="method">
 <dt id="abipy.electrons.gw.SigresFile.to_dataframe">
 <code class="descname">to_dataframe</code><span class="sig-paren">(</span><em>ignore_imag=False</em><span class="sig-paren">)</span><a class="headerlink" href="#abipy.electrons.gw.SigresFile.to_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for all k-points included in the GW calculation</p>
+<dd><p>Returns <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for all k-points included in the GW calculation</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -5392,7 +5451,7 @@ Default: None i.e. fig is left unchanged.</td>
 <dl class="method">
 <dt id="abipy.electrons.gw.SigresFile.get_dataframe_sk">
 <code class="descname">get_dataframe_sk</code><span class="sig-paren">(</span><em>spin</em>, <em>kpoint</em>, <em>index=None</em>, <em>ignore_imag=False</em>, <em>with_params=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/gw.html#SigresFile.get_dataframe_sk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.gw.SigresFile.get_dataframe_sk" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for the given (spin, k-point).</p>
+<dd><p>Returns <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for the given (spin, k-point).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -5505,7 +5564,7 @@ working directory is created. Return path to the notebook.</p>
 <dl class="method">
 <dt id="abipy.electrons.gw.SigresRobot.get_qpgaps_dataframe">
 <code class="descname">get_qpgaps_dataframe</code><span class="sig-paren">(</span><em>spin=None</em>, <em>kpoint=None</em>, <em>with_geo=False</em>, <em>abspath=False</em>, <em>funcs=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/gw.html#SigresRobot.get_qpgaps_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.gw.SigresRobot.get_qpgaps_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the QP gaps for all files in the robot.</p>
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the QP gaps for all files in the robot.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -5528,7 +5587,7 @@ where key is a string with the name of column and value is the value to be inser
 <dl class="method">
 <dt id="abipy.electrons.gw.SigresRobot.get_dataframe">
 <code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>spin=None</em>, <em>kpoint=None</em>, <em>with_geo=False</em>, <em>abspath=False</em>, <em>funcs=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#abipy.electrons.gw.SigresRobot.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the QP gaps for all files in the robot.</p>
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the QP gaps for all files in the robot.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -5820,35 +5879,35 @@ working directory is created. Return path to the notebook.</p>
 </div>
 <div class="section" id="module-abipy.electrons.lobster">
 <span id="lobster-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">lobster</span></code> Module</a><a class="headerlink" href="#module-abipy.electrons.lobster" title="Permalink to this headline">¶</a></h2>
-<p>Tools to analyze output files produced by lobster code.</p>
+<p>Tools to analyze the output files produced by Lobster.</p>
 <dl class="class">
-<dt id="abipy.electrons.lobster.Coxp">
-<em class="property">class </em><code class="descclassname">abipy.electrons.lobster.</code><code class="descname">Coxp</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#Coxp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.Coxp" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.CoxpFile">
+<em class="property">class </em><code class="descclassname">abipy.electrons.lobster.</code><code class="descname">CoxpFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#CoxpFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.CoxpFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.lobster._LobsterFile</span></code></p>
 <p>Wrapper class for the crystal orbital projections produced by Lobster.
 Wraps both a COOP and a COHP.
 Can contain both the total and orbitalwise projections.</p>
 <dl class="attribute">
-<dt id="abipy.electrons.lobster.Coxp.cop_type">
-<code class="descname">cop_type</code><a class="headerlink" href="#abipy.electrons.lobster.Coxp.cop_type" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.CoxpFile.cop_type">
+<code class="descname">cop_type</code><a class="headerlink" href="#abipy.electrons.lobster.CoxpFile.cop_type" title="Permalink to this definition">¶</a></dt>
 <dd><p>String. Either “coop” or “cohp”.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="abipy.electrons.lobster.Coxp.type_of_index">
-<code class="descname">type_of_index</code><a class="headerlink" href="#abipy.electrons.lobster.Coxp.type_of_index" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.CoxpFile.type_of_index">
+<code class="descname">type_of_index</code><a class="headerlink" href="#abipy.electrons.lobster.CoxpFile.type_of_index" title="Permalink to this definition">¶</a></dt>
 <dd><p>Dictionary mappping site index to element string.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="abipy.electrons.lobster.Coxp.energies">
-<code class="descname">energies</code><a class="headerlink" href="#abipy.electrons.lobster.Coxp.energies" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.CoxpFile.energies">
+<code class="descname">energies</code><a class="headerlink" href="#abipy.electrons.lobster.CoxpFile.energies" title="Permalink to this definition">¶</a></dt>
 <dd><p>List of energies. Shifted such that the Fermi level lies at 0 eV.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="abipy.electrons.lobster.Coxp.total">
-<code class="descname">total</code><a class="headerlink" href="#abipy.electrons.lobster.Coxp.total" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.CoxpFile.total">
+<code class="descname">total</code><a class="headerlink" href="#abipy.electrons.lobster.CoxpFile.total" title="Permalink to this definition">¶</a></dt>
 <dd><p>A dictionary with the values of the total overlap, not projected over orbitals.
 The dictionary should have the following nested keys: a tuple with the index of the sites
 considered as a pair (0-based, e.g. (0, 1)), the spin (i.e. 0 or 1), a “single”
@@ -5857,8 +5916,8 @@ the energy or to the integrated value up to that energy.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="abipy.electrons.lobster.Coxp.partial">
-<code class="descname">partial</code><a class="headerlink" href="#abipy.electrons.lobster.Coxp.partial" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.CoxpFile.partial">
+<code class="descname">partial</code><a class="headerlink" href="#abipy.electrons.lobster.CoxpFile.partial" title="Permalink to this definition">¶</a></dt>
 <dd><p>A dictionary with the values of the partial crystal orbital projections.
 The dictionary should have the following nested keys: a tuple with the index of the sites
 considered as a pair (0-based, e.g. (0, 1)), a tuple with the string representing the
@@ -5869,35 +5928,35 @@ numpy array with a list of COP values with the same size as energies.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="abipy.electrons.lobster.Coxp.averaged">
-<code class="descname">averaged</code><a class="headerlink" href="#abipy.electrons.lobster.Coxp.averaged" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.CoxpFile.averaged">
+<code class="descname">averaged</code><a class="headerlink" href="#abipy.electrons.lobster.CoxpFile.averaged" title="Permalink to this definition">¶</a></dt>
 <dd><p>A dictionary with the values of the partial crystal orbital projections
 averaged over all atom pairs specified. The main key should indicate the spin (0 or 1)
 and the nested dictionary should have “single” and “integrated” as keys.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="abipy.electrons.lobster.Coxp.fermie">
-<code class="descname">fermie</code><a class="headerlink" href="#abipy.electrons.lobster.Coxp.fermie" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.CoxpFile.fermie">
+<code class="descname">fermie</code><a class="headerlink" href="#abipy.electrons.lobster.CoxpFile.fermie" title="Permalink to this definition">¶</a></dt>
 <dd><p>value of the fermi energy in eV.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="abipy.electrons.lobster.Coxp.site_pairs_total">
-<code class="descname">site_pairs_total</code><a class="headerlink" href="#abipy.electrons.lobster.Coxp.site_pairs_total" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.CoxpFile.site_pairs_total">
+<code class="descname">site_pairs_total</code><a class="headerlink" href="#abipy.electrons.lobster.CoxpFile.site_pairs_total" title="Permalink to this definition">¶</a></dt>
 <dd><p>List of site pairs available for the total COP</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="abipy.electrons.lobster.Coxp.site_pairs_partial">
-<code class="descname">site_pairs_partial</code><a class="headerlink" href="#abipy.electrons.lobster.Coxp.site_pairs_partial" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.CoxpFile.site_pairs_partial">
+<code class="descname">site_pairs_partial</code><a class="headerlink" href="#abipy.electrons.lobster.CoxpFile.site_pairs_partial" title="Permalink to this definition">¶</a></dt>
 <dd><p>List of site pairs available for the partial COP</p>
 </dd></dl>
 
 <dl class="classmethod">
-<dt id="abipy.electrons.lobster.Coxp.from_file">
-<em class="property">classmethod </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#Coxp.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.Coxp.from_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generates an instance of Coxp from the files produce by Lobster.
+<dt id="abipy.electrons.lobster.CoxpFile.from_file">
+<em class="property">classmethod </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#CoxpFile.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.CoxpFile.from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates an instance of CoxpFile from the files produce by Lobster.
 Accepts gzipped files.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -5905,47 +5964,47 @@ Accepts gzipped files.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filepath</strong> – path to the COHPCAR.lobster or COOPCAR.lobster.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A Coxp.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A CoxpFile.</td>
 </tr>
 </tbody>
 </table>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="abipy.electrons.lobster.Coxp.functions_pair_lorbitals">
-<code class="descname">functions_pair_lorbitals</code><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#Coxp.functions_pair_lorbitals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.Coxp.functions_pair_lorbitals" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.CoxpFile.functions_pair_lorbitals">
+<code class="descname">functions_pair_lorbitals</code><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#CoxpFile.functions_pair_lorbitals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.CoxpFile.functions_pair_lorbitals" title="Permalink to this definition">¶</a></dt>
 <dd><p>Extracts a dictionary with keys pair, orbital, spin and containing a <a class="reference internal" href="core_api.html#abipy.core.func1d.Function1D" title="abipy.core.func1d.Function1D"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.func1d.Function1D</span></code></a> object resolved
 for l orbitals.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="abipy.electrons.lobster.Coxp.functions_pair_morbitals">
-<code class="descname">functions_pair_morbitals</code><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#Coxp.functions_pair_morbitals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.Coxp.functions_pair_morbitals" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.CoxpFile.functions_pair_morbitals">
+<code class="descname">functions_pair_morbitals</code><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#CoxpFile.functions_pair_morbitals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.CoxpFile.functions_pair_morbitals" title="Permalink to this definition">¶</a></dt>
 <dd><p>Extracts a dictionary with keys pair, orbital, spin and containing a <a class="reference internal" href="core_api.html#abipy.core.func1d.Function1D" title="abipy.core.func1d.Function1D"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.func1d.Function1D</span></code></a> object resolved
 for l and m orbitals.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="abipy.electrons.lobster.Coxp.functions_pair">
-<code class="descname">functions_pair</code><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#Coxp.functions_pair"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.Coxp.functions_pair" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.CoxpFile.functions_pair">
+<code class="descname">functions_pair</code><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#CoxpFile.functions_pair"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.CoxpFile.functions_pair" title="Permalink to this definition">¶</a></dt>
 <dd><p>Extracts a dictionary with keys pair, spin and containing a <a class="reference internal" href="core_api.html#abipy.core.func1d.Function1D" title="abipy.core.func1d.Function1D"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.func1d.Function1D</span></code></a> object for the total COP.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.electrons.lobster.Coxp.to_string">
-<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#Coxp.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.Coxp.to_string" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.CoxpFile.to_string">
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#CoxpFile.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.CoxpFile.to_string" title="Permalink to this definition">¶</a></dt>
 <dd><p>String representation with verbosity level <cite>verbose</cite>.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.electrons.lobster.Coxp.yield_figs">
-<code class="descname">yield_figs</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#Coxp.yield_figs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.Coxp.yield_figs" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.CoxpFile.yield_figs">
+<code class="descname">yield_figs</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#CoxpFile.yield_figs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.CoxpFile.yield_figs" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function <em>generates</em> a predefined list of matplotlib figures with minimal input from the user.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.electrons.lobster.Coxp.plot">
-<code class="descname">plot</code><span class="sig-paren">(</span><em>what='d'</em>, <em>spin=None</em>, <em>ax=None</em>, <em>exchange_xy=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#Coxp.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.Coxp.plot" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.CoxpFile.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>what='d'</em>, <em>spin=None</em>, <em>ax=None</em>, <em>exchange_xy=False</em>, <em>fontsize=12</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#CoxpFile.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.CoxpFile.plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot COXP averaged values (DOS or IDOS depending on what).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -5956,6 +6015,7 @@ for l and m orbitals.</p>
 <li><strong>spin</strong> – Select spin index if not None.</li>
 <li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>exchange_xy</strong> – True to exchange x-y axis.</li>
+<li><strong>fontsize</strong> – fontsize for legends and titles</li>
 </ul>
 </td>
 </tr>
@@ -5999,8 +6059,64 @@ Default: None i.e. fig is left unchanged.</td>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.electrons.lobster.Coxp.plot_site_pairs_total">
-<code class="descname">plot_site_pairs_total</code><span class="sig-paren">(</span><em>from_site_index</em>, <em>what='single'</em>, <em>exchange_xy=False</em>, <em>ax=None</em>, <em>fontsize=8</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#Coxp.plot_site_pairs_total"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.Coxp.plot_site_pairs_total" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.CoxpFile.plot_average_pairs">
+<code class="descname">plot_average_pairs</code><span class="sig-paren">(</span><em>with_site_index</em>, <em>what='single'</em>, <em>exchange_xy=False</em>, <em>fontsize=8</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#CoxpFile.plot_average_pairs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.CoxpFile.plot_average_pairs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot COXP total overlap for all sites containg <cite>with_site_index</cite> and average sum
+(multiplied by the number of pairs)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>with_site_index</strong> – int of list of integers selecting the site index to be included.</li>
+<li><strong>what</strong> – “single” for COXP DOS, “integrated” for IDOS.</li>
+<li><strong>exchange_xy</strong> – True to exchange x-y axis.</li>
+<li><strong>fontsize</strong> – fontsize for legends and titles</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>“abc.png” or “abc.eps” to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+e.g. size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
+<td>True to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.electrons.lobster.CoxpFile.plot_site_pairs_total">
+<code class="descname">plot_site_pairs_total</code><span class="sig-paren">(</span><em>from_site_index</em>, <em>what='single'</em>, <em>exchange_xy=False</em>, <em>ax=None</em>, <em>fontsize=8</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#CoxpFile.plot_site_pairs_total"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.CoxpFile.plot_site_pairs_total" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot COXP total overlap (DOS or IDOS) for all sites listed in <cite>from_site_index</cite></p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -6055,14 +6171,14 @@ Default: None i.e. fig is left unchanged.</td>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.electrons.lobster.Coxp.get_labelstyle_from_spin_pair">
-<code class="descname">get_labelstyle_from_spin_pair</code><span class="sig-paren">(</span><em>spin</em>, <em>pair</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#Coxp.get_labelstyle_from_spin_pair"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.Coxp.get_labelstyle_from_spin_pair" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.CoxpFile.get_labelstyle_from_spin_pair">
+<code class="descname">get_labelstyle_from_spin_pair</code><span class="sig-paren">(</span><em>spin</em>, <em>pair</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#CoxpFile.get_labelstyle_from_spin_pair"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.CoxpFile.get_labelstyle_from_spin_pair" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return label and linestyle for spin and pair indices</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.electrons.lobster.Coxp.plot_site_pairs_partial">
-<code class="descname">plot_site_pairs_partial</code><span class="sig-paren">(</span><em>from_site_index</em>, <em>what='single'</em>, <em>exchange_xy=False</em>, <em>ax=None</em>, <em>fontsize=8</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#Coxp.plot_site_pairs_partial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.Coxp.plot_site_pairs_partial" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.CoxpFile.plot_site_pairs_partial">
+<code class="descname">plot_site_pairs_partial</code><span class="sig-paren">(</span><em>from_site_index</em>, <em>what='single'</em>, <em>exchange_xy=True</em>, <em>ax=None</em>, <em>fontsize=8</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#CoxpFile.plot_site_pairs_partial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.CoxpFile.plot_site_pairs_partial" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot partial crystal orbital projections (DOS or IDOS) for all sites listed in <cite>from_site_index</cite></p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -6117,14 +6233,14 @@ Default: None i.e. fig is left unchanged.</td>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.electrons.lobster.Coxp.get_labelstyle_from_spin_pair_orbs">
-<code class="descname">get_labelstyle_from_spin_pair_orbs</code><span class="sig-paren">(</span><em>spin</em>, <em>pair</em>, <em>orbs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#Coxp.get_labelstyle_from_spin_pair_orbs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.Coxp.get_labelstyle_from_spin_pair_orbs" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.CoxpFile.get_labelstyle_from_spin_pair_orbs">
+<code class="descname">get_labelstyle_from_spin_pair_orbs</code><span class="sig-paren">(</span><em>spin</em>, <em>pair</em>, <em>orbs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#CoxpFile.get_labelstyle_from_spin_pair_orbs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.CoxpFile.get_labelstyle_from_spin_pair_orbs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return label and linestyle for spin, pair indices and orbs tuple.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.electrons.lobster.Coxp.write_notebook">
-<code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#Coxp.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.Coxp.write_notebook" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.CoxpFile.write_notebook">
+<code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#CoxpFile.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.CoxpFile.write_notebook" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write a <a class="reference external" href="http://jupyter.org/">jupyter</a> notebook to <code class="docutils literal"><span class="pre">nbpath</span></code>. If nbpath is None, a temporay file in the current
 working directory is created. Return path to the notebook.</p>
 </dd></dl>
@@ -6132,35 +6248,35 @@ working directory is created. Return path to the notebook.</p>
 </dd></dl>
 
 <dl class="class">
-<dt id="abipy.electrons.lobster.ICoxp">
-<em class="property">class </em><code class="descclassname">abipy.electrons.lobster.</code><code class="descname">ICoxp</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#ICoxp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.ICoxp" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.ICoxpFile">
+<em class="property">class </em><code class="descclassname">abipy.electrons.lobster.</code><code class="descname">ICoxpFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#ICoxpFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.ICoxpFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.lobster._LobsterFile</span></code></p>
 <p>Wrapper class for the integrated crystal orbital projections up to the Fermi energy
 produced from Lobster.
 May contain the output stored in ICOHPLIST.lobster and ICOOPLIST.lobster</p>
 <dl class="attribute">
-<dt id="abipy.electrons.lobster.ICoxp.cop_type">
-<code class="descname">cop_type</code><a class="headerlink" href="#abipy.electrons.lobster.ICoxp.cop_type" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.ICoxpFile.cop_type">
+<code class="descname">cop_type</code><a class="headerlink" href="#abipy.electrons.lobster.ICoxpFile.cop_type" title="Permalink to this definition">¶</a></dt>
 <dd><p>String. Either “coop” or “cohp”.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="abipy.electrons.lobster.ICoxp.values">
-<code class="descname">values</code><a class="headerlink" href="#abipy.electrons.lobster.ICoxp.values" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.ICoxpFile.values">
+<code class="descname">values</code><a class="headerlink" href="#abipy.electrons.lobster.ICoxpFile.values" title="Permalink to this definition">¶</a></dt>
 <dd><p>A dictionary with the following keys: a tuple with the index of the sites
 considered as a pair (0-based, e.g. (0,1)), the spin (i.e. 0 or 1)</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="abipy.electrons.lobster.ICoxp.type_of_index">
-<code class="descname">type_of_index</code><a class="headerlink" href="#abipy.electrons.lobster.ICoxp.type_of_index" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.ICoxpFile.type_of_index">
+<code class="descname">type_of_index</code><a class="headerlink" href="#abipy.electrons.lobster.ICoxpFile.type_of_index" title="Permalink to this definition">¶</a></dt>
 <dd><p>Dictionary mappping site index to element string.</p>
 </dd></dl>
 
 <dl class="classmethod">
-<dt id="abipy.electrons.lobster.ICoxp.from_file">
-<em class="property">classmethod </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#ICoxp.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.ICoxp.from_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generates an instance of ICoxp from the files produce by Lobster.
+<dt id="abipy.electrons.lobster.ICoxpFile.from_file">
+<em class="property">classmethod </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#ICoxpFile.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.ICoxpFile.from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates an instance of ICoxpFile from the files produce by Lobster.
 Accepts gzipped files.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -6168,27 +6284,73 @@ Accepts gzipped files.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filepath</strong> – path to the ICOHPLIST.lobster or ICOOPLIST.lobster.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A ICoxp.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A ICoxpFile.</td>
 </tr>
 </tbody>
 </table>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.electrons.lobster.ICoxp.to_string">
-<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#ICoxp.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.ICoxp.to_string" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.ICoxpFile.to_string">
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#ICoxpFile.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.ICoxpFile.to_string" title="Permalink to this definition">¶</a></dt>
 <dd><p>String representation with verbosity level <cite>verbose</cite>.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="abipy.electrons.lobster.ICoxp.dataframe">
-<code class="descname">dataframe</code><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#ICoxp.dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.ICoxp.dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p><a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with results.</p>
+<dt id="abipy.electrons.lobster.ICoxpFile.dataframe">
+<code class="descname">dataframe</code><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#ICoxpFile.dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.ICoxpFile.dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with results.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.electrons.lobster.ICoxp.write_notebook">
-<code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#ICoxp.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.ICoxp.write_notebook" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.ICoxpFile.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#ICoxpFile.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.ICoxpFile.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Barplot with average values.</p>
+<p>Keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>“abc.png” or “abc.eps” to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+e.g. size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
+<td>True to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.electrons.lobster.ICoxpFile.yield_figs">
+<code class="descname">yield_figs</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#ICoxpFile.yield_figs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.ICoxpFile.yield_figs" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function <em>generates</em> a predefined list of matplotlib figures with minimal input from the user.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.electrons.lobster.ICoxpFile.write_notebook">
+<code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#ICoxpFile.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.ICoxpFile.write_notebook" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write a <a class="reference external" href="http://jupyter.org/">jupyter</a> notebook to <code class="docutils literal"><span class="pre">nbpath</span></code>. If nbpath is None, a temporay file in the current
 working directory is created. Return path to the notebook.</p>
 </dd></dl>
@@ -6196,27 +6358,27 @@ working directory is created. Return path to the notebook.</p>
 </dd></dl>
 
 <dl class="class">
-<dt id="abipy.electrons.lobster.LobsterDos">
-<em class="property">class </em><code class="descclassname">abipy.electrons.lobster.</code><code class="descname">LobsterDos</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#LobsterDos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.LobsterDos" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.LobsterDoscarFile">
+<em class="property">class </em><code class="descclassname">abipy.electrons.lobster.</code><code class="descname">LobsterDoscarFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#LobsterDoscarFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.LobsterDoscarFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.lobster._LobsterFile</span></code></p>
 <p>Total and partial dos extracted from lobster DOSCAR.
 The fermi energy is always at the zero value.</p>
 <dl class="attribute">
-<dt id="abipy.electrons.lobster.LobsterDos.energies">
-<code class="descname">energies</code><a class="headerlink" href="#abipy.electrons.lobster.LobsterDos.energies" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.LobsterDoscarFile.energies">
+<code class="descname">energies</code><a class="headerlink" href="#abipy.electrons.lobster.LobsterDoscarFile.energies" title="Permalink to this definition">¶</a></dt>
 <dd><p>List of energies. Shifted such that the Fermi level lies at 0 eV.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="abipy.electrons.lobster.LobsterDos.total_dos">
-<code class="descname">total_dos</code><a class="headerlink" href="#abipy.electrons.lobster.LobsterDos.total_dos" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.LobsterDoscarFile.total_dos">
+<code class="descname">total_dos</code><a class="headerlink" href="#abipy.electrons.lobster.LobsterDoscarFile.total_dos" title="Permalink to this definition">¶</a></dt>
 <dd><p>A dictionary with spin as a key (i.e. 0 or 1) and containing the values of the total DOS.
 Should have the same size as energies.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="abipy.electrons.lobster.LobsterDos.pdos">
-<code class="descname">pdos</code><a class="headerlink" href="#abipy.electrons.lobster.LobsterDos.pdos" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.LobsterDoscarFile.pdos">
+<code class="descname">pdos</code><a class="headerlink" href="#abipy.electrons.lobster.LobsterDoscarFile.pdos" title="Permalink to this definition">¶</a></dt>
 <dd><p>A dictionary with the values of the projected DOS.
 The dictionary should have the following nested keys: the index of the site (0-based),
 the string representing the projected orbital (e.g. “4p_x”), the spin (i.e. 0 or 1).
@@ -6225,8 +6387,8 @@ same size as energies.</p>
 </dd></dl>
 
 <dl class="classmethod">
-<dt id="abipy.electrons.lobster.LobsterDos.from_file">
-<em class="property">classmethod </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#LobsterDos.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.LobsterDos.from_file" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.LobsterDoscarFile.from_file">
+<em class="property">classmethod </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#LobsterDoscarFile.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.LobsterDoscarFile.from_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates an instance from the DOSCAR.lobster file.
 Accepts gzipped files.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -6235,27 +6397,27 @@ Accepts gzipped files.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filepath</strong> – path to the DOSCAR.lobster.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A LobsterDos.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A LobsterDoscarFile.</td>
 </tr>
 </tbody>
 </table>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.electrons.lobster.LobsterDos.to_string">
-<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#LobsterDos.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.LobsterDos.to_string" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.LobsterDoscarFile.to_string">
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#LobsterDoscarFile.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.LobsterDoscarFile.to_string" title="Permalink to this definition">¶</a></dt>
 <dd><p>String representation with Verbosity level <cite>verbose</cite>.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.electrons.lobster.LobsterDos.yield_figs">
-<code class="descname">yield_figs</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#LobsterDos.yield_figs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.LobsterDos.yield_figs" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.LobsterDoscarFile.yield_figs">
+<code class="descname">yield_figs</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#LobsterDoscarFile.yield_figs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.LobsterDoscarFile.yield_figs" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function <em>generates</em> a predefined list of matplotlib figures with minimal input from the user.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.electrons.lobster.LobsterDos.plot">
-<code class="descname">plot</code><span class="sig-paren">(</span><em>spin=None</em>, <em>ax=None</em>, <em>exchange_xy=False</em>, <em>fontsize=12</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#LobsterDos.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.LobsterDos.plot" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.LobsterDoscarFile.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>spin=None</em>, <em>ax=None</em>, <em>exchange_xy=False</em>, <em>fontsize=12</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#LobsterDoscarFile.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.LobsterDoscarFile.plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot DOS.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -6265,6 +6427,7 @@ Accepts gzipped files.</p>
 <li><strong>spin</strong> – </li>
 <li><strong>exchange_xy</strong> – True to exchange x-y axis.</li>
 <li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>fontsize</strong> – fontsize for legends and titles</li>
 </ul>
 </td>
 </tr>
@@ -6308,8 +6471,8 @@ Default: None i.e. fig is left unchanged.</td>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.electrons.lobster.LobsterDos.plot_pdos">
-<code class="descname">plot_pdos</code><span class="sig-paren">(</span><em>site_index</em>, <em>ax=None</em>, <em>exchange_xy=False</em>, <em>fontsize=8</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#LobsterDos.plot_pdos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.LobsterDos.plot_pdos" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.LobsterDoscarFile.plot_pdos_site">
+<code class="descname">plot_pdos_site</code><span class="sig-paren">(</span><em>site_index</em>, <em>ax=None</em>, <em>exchange_xy=False</em>, <em>fontsize=8</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#LobsterDoscarFile.plot_pdos_site"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.LobsterDoscarFile.plot_pdos_site" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot projected DOS</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -6363,8 +6526,8 @@ Default: None i.e. fig is left unchanged.</td>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.electrons.lobster.LobsterDos.write_notebook">
-<code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#LobsterDos.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.LobsterDos.write_notebook" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.lobster.LobsterDoscarFile.write_notebook">
+<code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#LobsterDoscarFile.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.LobsterDoscarFile.write_notebook" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write a <a class="reference external" href="http://jupyter.org/">jupyter</a> notebook to <code class="docutils literal"><span class="pre">nbpath</span></code>. If nbpath is None, a temporay file in the current
 working directory is created. Return path to the notebook.</p>
 </dd></dl>
@@ -6378,12 +6541,12 @@ working directory is created. Return path to the notebook.</p>
 <p>This object stores the basic variables for a Lobster input and generates the lobsterin file.</p>
 <dl class="attribute">
 <dt id="abipy.electrons.lobster.LobsterInput.accepted_basis_sets">
-<code class="descname">accepted_basis_sets</code><em class="property"> = {'pbevaspfit2015', 'bunge', 'koga'}</em><a class="headerlink" href="#abipy.electrons.lobster.LobsterInput.accepted_basis_sets" title="Permalink to this definition">¶</a></dt>
+<code class="descname">accepted_basis_sets</code><em class="property"> = {'koga', 'bunge', 'pbevaspfit2015'}</em><a class="headerlink" href="#abipy.electrons.lobster.LobsterInput.accepted_basis_sets" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="abipy.electrons.lobster.LobsterInput.available_advanced_options">
-<code class="descname">available_advanced_options</code><em class="property"> = {'skipPAWOrthonormalityTest', 'doNotOrthogonalizeBasis', 'skipReOrthonormalization', 'forceV1HMatrix', 'forceEnergyRange', 'useDecimalPlaces', 'noMemoryMappedFiles', 'writeBasisFunctions', 'doNotUseAbsoluteSpilling', 'symmetryDetectionPrecision', 'noSymmetryCorrection', 'useOriginalTetrahedronMethod', 'onlyReadVasprun.xml', 'doNotIgnoreExcessiveBands', 'basisRotation'}</em><a class="headerlink" href="#abipy.electrons.lobster.LobsterInput.available_advanced_options" title="Permalink to this definition">¶</a></dt>
+<code class="descname">available_advanced_options</code><em class="property"> = {'onlyReadVasprun.xml', 'writeBasisFunctions', 'skipReOrthonormalization', 'doNotUseAbsoluteSpilling', 'symmetryDetectionPrecision', 'doNotIgnoreExcessiveBands', 'useOriginalTetrahedronMethod', 'forceEnergyRange', 'skipPAWOrthonormalityTest', 'forceV1HMatrix', 'doNotOrthogonalizeBasis', 'noSymmetryCorrection', 'useDecimalPlaces', 'basisRotation', 'noMemoryMappedFiles'}</em><a class="headerlink" href="#abipy.electrons.lobster.LobsterInput.available_advanced_options" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -6486,8 +6649,8 @@ end_en and en_steps.</li>
 
 <dl class="method">
 <dt id="abipy.electrons.lobster.LobsterAnalyzer.plot">
-<code class="descname">plot</code><span class="sig-paren">(</span><em>entries=('coop'</em>, <em>'cohp'</em>, <em>'dos')</em>, <em>spin=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#LobsterAnalyzer.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.LobsterAnalyzer.plot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plot COOP + COHP + DOS.</p>
+<code class="descname">plot</code><span class="sig-paren">(</span><em>entries=('coop'</em>, <em>'cohp'</em>, <em>'doscar')</em>, <em>spin=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#LobsterAnalyzer.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.LobsterAnalyzer.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot COOP + COHP + DOSCAR.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -6550,60 +6713,6 @@ Default: None i.e. fig is left unchanged.</td>
 <li><strong>what</strong> – “cohp” to plot COHP, “coop” for COOP</li>
 <li><strong>with_orbitals</strong> – True if orbital projections are wanted.</li>
 <li><strong>exchange_xy</strong> – True to exchange x-y axis. By default, use x-axis for DOS-like quantities.</li>
-<li><strong>fontsize</strong> – fontsize for legends and titles</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
-<p>Keyword arguments controlling the display of the figure:</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="23%" />
-<col width="77%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">kwargs</th>
-<th class="head">Meaning</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>title</td>
-<td>Title of the plot (Default: None).</td>
-</tr>
-<tr class="row-odd"><td>show</td>
-<td>True to show the figure (default: True).</td>
-</tr>
-<tr class="row-even"><td>savefig</td>
-<td>“abc.png” or “abc.eps” to save the figure to a file.</td>
-</tr>
-<tr class="row-odd"><td>size_kwargs</td>
-<td>Dictionary with options passed to fig.set_size_inches
-e.g. size_kwargs=dict(w=3, h=4)</td>
-</tr>
-<tr class="row-even"><td>ax_grid</td>
-<td>True (False) to add (remove) grid from all axes in fig.
-Default: None i.e. fig is left unchanged.</td>
-</tr>
-<tr class="row-odd"><td>tight_layout</td>
-<td>True to call fig.tight_layout (default: False)</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.electrons.lobster.LobsterAnalyzer.plot_with_ebands">
-<code class="descname">plot_with_ebands</code><span class="sig-paren">(</span><em>ebands</em>, <em>entries=('coop'</em>, <em>'cohp'</em>, <em>'dos')</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#LobsterAnalyzer.plot_with_ebands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.LobsterAnalyzer.plot_with_ebands" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plot bands + COHP, COOP, DOS.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ebands</strong> – </li>
-<li><strong>entries</strong> – “cohp” to plot COHP, “coop” for COOP</li>
 <li><strong>fontsize</strong> – fontsize for legends and titles</li>
 </ul>
 </td>
@@ -7338,6 +7447,13 @@ Default: None i.e. fig is left unchanged.</td>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.electrons.optic.OpticRobot.yield_figs">
+<code class="descname">yield_figs</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/optic.html#OpticRobot.yield_figs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.optic.OpticRobot.yield_figs" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function <em>generates</em> a predefined list of matplotlib figures with minimal input from the user.
+Used in abiview.py to get a quick look at the results.</p>
 </dd></dl>
 
 <dl class="method">
@@ -8460,7 +8576,7 @@ Accepts <a class="reference internal" href="core_api.html#abipy.core.kpoints.Kpo
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 01, 2018.<br/>
+      Last updated on Jul 26, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

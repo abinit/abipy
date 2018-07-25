@@ -79,6 +79,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
@@ -151,8 +152,12 @@
 <li><a class="reference internal" href="#Named Arguments_repeat10">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#lobster">lobster</a><ul>
+<li><a class="reference internal" href="#wannier90">wannier90</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat10">Positional Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#lobster">lobster</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat11">Positional Arguments</a></li>
 </ul>
 </li>
 </ul>
@@ -216,7 +221,7 @@ file providing the crystalline structure of the system and then customize the ge
 <p>There are also commands operating on input files directly.
 These options could be useful to get data directly from Abinit.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">abinp</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">V</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span>
-                <span class="p">{</span><span class="n">validate</span><span class="p">,</span><span class="n">autoparal</span><span class="p">,</span><span class="n">abispg</span><span class="p">,</span><span class="n">ibz</span><span class="p">,</span><span class="n">phperts</span><span class="p">,</span><span class="n">gs</span><span class="p">,</span><span class="n">ebands</span><span class="p">,</span><span class="n">phonons</span><span class="p">,</span><span class="n">g0w0</span><span class="p">,</span><span class="n">anaph</span><span class="p">,</span><span class="n">lobster</span><span class="p">}</span>
+                <span class="p">{</span><span class="n">validate</span><span class="p">,</span><span class="n">autoparal</span><span class="p">,</span><span class="n">abispg</span><span class="p">,</span><span class="n">ibz</span><span class="p">,</span><span class="n">phperts</span><span class="p">,</span><span class="n">gs</span><span class="p">,</span><span class="n">ebands</span><span class="p">,</span><span class="n">phonons</span><span class="p">,</span><span class="n">g0w0</span><span class="p">,</span><span class="n">anaph</span><span class="p">,</span><span class="n">wannier90</span><span class="p">,</span><span class="n">lobster</span><span class="p">}</span>
                 <span class="o">...</span>
 </pre></div>
 </div>
@@ -251,7 +256,7 @@ These options could be useful to get data directly from Abinit.</p>
 <tbody valign="top">
 <tr><td class="option-group">
 <kbd>command</kbd></td>
-<td><p class="first">Possible choices: validate, autoparal, abispg, ibz, phperts, gs, ebands, phonons, g0w0, anaph, lobster</p>
+<td><p class="first">Possible choices: validate, autoparal, abispg, ibz, phperts, gs, ebands, phonons, g0w0, anaph, wannier90, lobster</p>
 <p class="last">sub-command help</p>
 </td></tr>
 </tbody>
@@ -955,6 +960,27 @@ Use value in .pmgrc.yaml if not specified.</td></tr>
 </table>
 </div>
 </div>
+<div class="section" id="wannier90">
+<h3>wannier90<a class="headerlink" href="#wannier90" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Build wannier90 template input file from Abinit input/output file.
+possibly with electron bands</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abinp</span><span class="o">.</span><span class="n">py</span> <span class="n">wannier90</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="n">filepath</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat10">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat10" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (netcdf, cif, POSCAR, input files …)</td></tr>
+</tbody>
+</table>
+</div>
+</div>
 <div class="section" id="lobster">
 <h3>lobster<a class="headerlink" href="#lobster" title="Permalink to this headline">¶</a></h3>
 <blockquote>
@@ -964,8 +990,8 @@ Supports also directory with vasprun.xml and POTCAR file.</div></blockquote>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abinp</span><span class="o">.</span><span class="n">py</span> <span class="n">lobster</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="n">dirpath</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments_repeat10">
-<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat10" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Positional Arguments_repeat11">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat11" title="Permalink to this headline">¶</a></h4>
 <table class="docutils option-list" frame="void" rules="none">
 <col class="option" />
 <col class="description" />
@@ -993,7 +1019,7 @@ Supports also directory with vasprun.xml and POTCAR file.</div></blockquote>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 01, 2018.<br/>
+      Last updated on Jul 26, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

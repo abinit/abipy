@@ -77,6 +77,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../api/index.html">API documentation</a></li>
@@ -169,6 +170,7 @@
 <span class="kn">from</span> <span class="nn">abipy.abio.outputs</span> <span class="k">import</span> <span class="n">AbinitLogFile</span><span class="p">,</span> <span class="n">AbinitOutputFile</span><span class="p">,</span> <span class="n">OutNcFile</span><span class="p">,</span> <span class="n">AboRobot</span> <span class="c1">#, CubeFile</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.printing</span> <span class="k">import</span> <span class="n">print_dataframe</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.notebooks</span> <span class="k">import</span> <span class="n">print_source</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">get_ax_fig_plt</span><span class="p">,</span> <span class="n">get_axarray_fig_plt</span><span class="p">,</span> <span class="n">get_ax3d_fig_plt</span> <span class="c1">#, plot_array, ArrayPlotter</span>
 <span class="kn">from</span> <span class="nn">abipy.abio.factories</span> <span class="k">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">abipy.electrons.ebands</span> <span class="k">import</span> <span class="p">(</span><span class="n">ElectronBands</span><span class="p">,</span> <span class="n">ElectronBandsPlotter</span><span class="p">,</span> <span class="n">ElectronDos</span><span class="p">,</span> <span class="n">ElectronDosPlotter</span><span class="p">,</span>
     <span class="n">dataframe_from_ebands</span><span class="p">)</span>
@@ -193,8 +195,8 @@
 <span class="kn">from</span> <span class="nn">abipy.waves</span> <span class="k">import</span> <span class="n">WfkFile</span>
 <span class="kn">from</span> <span class="nn">abipy.eph.a2f</span> <span class="k">import</span> <span class="n">A2fFile</span><span class="p">,</span> <span class="n">A2fRobot</span>
 <span class="kn">from</span> <span class="nn">abipy.eph.sigeph</span> <span class="k">import</span> <span class="n">SigEPhFile</span><span class="p">,</span> <span class="n">SigEPhRobot</span>
-<span class="kn">from</span> <span class="nn">abipy.wannier90</span> <span class="k">import</span> <span class="n">WoutFile</span>
-<span class="kn">from</span> <span class="nn">abipy.electrons.lobster</span> <span class="k">import</span> <span class="n">Coxp</span><span class="p">,</span> <span class="n">ICoxp</span><span class="p">,</span> <span class="n">LobsterDos</span><span class="p">,</span> <span class="n">LobsterInput</span><span class="p">,</span> <span class="n">LobsterAnalyzer</span>
+<span class="kn">from</span> <span class="nn">abipy.wannier90</span> <span class="k">import</span> <span class="n">WoutFile</span><span class="p">,</span> <span class="n">AbiwanFile</span><span class="p">,</span> <span class="n">AbiwanRobot</span>
+<span class="kn">from</span> <span class="nn">abipy.electrons.lobster</span> <span class="k">import</span> <span class="n">CoxpFile</span><span class="p">,</span> <span class="n">ICoxpFile</span><span class="p">,</span> <span class="n">LobsterDoscarFile</span><span class="p">,</span> <span class="n">LobsterInput</span><span class="p">,</span> <span class="n">LobsterAnalyzer</span>
 
 <span class="c1"># Abinit Documentation.</span>
 <span class="kn">from</span> <span class="nn">abipy.abio.abivars_db</span> <span class="k">import</span> <span class="n">get_abinit_variables</span><span class="p">,</span> <span class="n">abinit_help</span><span class="p">,</span> <span class="n">docvar</span>
@@ -224,10 +226,10 @@
     <span class="p">(</span><span class="s2">&quot;JTH.xml&quot;</span><span class="p">,</span> <span class="n">Pseudo</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">&quot;.wout&quot;</span><span class="p">,</span> <span class="n">WoutFile</span><span class="p">),</span>
     <span class="c1"># Lobster files.</span>
-    <span class="p">(</span><span class="s2">&quot;COHPCAR.lobster&quot;</span><span class="p">,</span> <span class="n">Coxp</span><span class="p">),</span>
-    <span class="p">(</span><span class="s2">&quot;COOPCAR.lobster&quot;</span><span class="p">,</span> <span class="n">Coxp</span><span class="p">),</span>
-    <span class="p">(</span><span class="s2">&quot;ICOHPLIST.lobster&quot;</span><span class="p">,</span> <span class="n">ICoxp</span><span class="p">),</span>
-    <span class="p">(</span><span class="s2">&quot;DOSCAR.lobster&quot;</span><span class="p">,</span> <span class="n">LobsterDos</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;COHPCAR.lobster&quot;</span><span class="p">,</span> <span class="n">CoxpFile</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;COOPCAR.lobster&quot;</span><span class="p">,</span> <span class="n">CoxpFile</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;ICOHPLIST.lobster&quot;</span><span class="p">,</span> <span class="n">ICoxpFile</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;DOSCAR.lobster&quot;</span><span class="p">,</span> <span class="n">LobsterDoscarFile</span><span class="p">),</span>
 <span class="p">])</span>
 
 <span class="c1"># Abinit files require a special treatment.</span>
@@ -256,6 +258,7 @@
     <span class="p">(</span><span class="s2">&quot;OPTIC.nc&quot;</span><span class="p">,</span> <span class="n">OpticNcFile</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">&quot;A2F.nc&quot;</span><span class="p">,</span> <span class="n">A2fFile</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">&quot;SIGEPH.nc&quot;</span><span class="p">,</span> <span class="n">SigEPhFile</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;ABIWAN.nc&quot;</span><span class="p">,</span> <span class="n">AbiwanFile</span><span class="p">),</span>
 <span class="p">])</span>
 
 
@@ -293,7 +296,7 @@
         <span class="k">for</span> <span class="n">ext</span><span class="p">,</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="n">abiext2ncfile</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">ext</span><span class="p">):</span> <span class="k">return</span> <span class="bp">cls</span>
 
-    <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;No class has been registered for file:</span><span class="se">\n\t</span><span class="si">%s</span><span class="se">\n\n</span><span class="s2">File extensions supported:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;No class has been registered for file:</span><span class="se">\n\t</span><span class="si">%s</span><span class="se">\n\n</span><span class="s2">File extensions supported:</span><span class="se">\n\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
         <span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">abiopen_ext2class_table</span><span class="p">()))</span>
     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
 
@@ -350,6 +353,10 @@
     <span class="n">abonum</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;.+\.abo[\d]+&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">outnum</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="ow">or</span> <span class="n">abonum</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">AbinitOutputFile</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;log&quot;</span><span class="p">:</span>
+        <span class="c1"># Assume Abinit log file.</span>
+        <span class="k">return</span> <span class="n">AbinitLogFile</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
 
     <span class="bp">cls</span> <span class="o">=</span> <span class="n">abifile_subclass_from_filename</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
     <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span></div>
@@ -521,7 +528,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 01, 2018.<br/>
+      Last updated on Jul 26, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

@@ -79,6 +79,7 @@
 <li class="toctree-l1"><a class="reference internal" href="workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api/index.html">API documentation</a></li>
@@ -114,6 +115,7 @@
 <li><a class="reference internal" href="#visualize-the-fermi-surface">Visualize the Fermi surface</a></li>
 <li><a class="reference internal" href="#visualize-phonon-displacements">Visualize phonon displacements</a></li>
 <li><a class="reference internal" href="#visualize-the-results-of-a-structural-relaxation">Visualize the results of a structural relaxation</a></li>
+<li><a class="reference internal" href="#plot-results-stored-in-a-text-file-in-tabular-format">Plot results stored in a text file in tabular format</a></li>
 <li><a class="reference internal" href="#compare-multiple-files">Compare multiple files</a></li>
 <li><a class="reference internal" href="#profile-the-scripts">Profile the scripts</a></li>
 <li><a class="reference internal" href="#get-the-description-of-a-variable">Get the description of a variable</a></li>
@@ -190,9 +192,10 @@ Feel free to suggest new entries!</p>
 <li><a class="reference internal" href="#visualize-the-fermi-surface" id="id15">Visualize the Fermi surface</a></li>
 <li><a class="reference internal" href="#visualize-phonon-displacements" id="id16">Visualize phonon displacements</a></li>
 <li><a class="reference internal" href="#visualize-the-results-of-a-structural-relaxation" id="id17">Visualize the results of a structural relaxation</a></li>
-<li><a class="reference internal" href="#compare-multiple-files" id="id18">Compare multiple files</a></li>
-<li><a class="reference internal" href="#profile-the-scripts" id="id19">Profile the scripts</a></li>
-<li><a class="reference internal" href="#get-the-description-of-a-variable" id="id20">Get the description of a variable</a></li>
+<li><a class="reference internal" href="#plot-results-stored-in-a-text-file-in-tabular-format" id="id18">Plot results stored in a text file in tabular format</a></li>
+<li><a class="reference internal" href="#compare-multiple-files" id="id19">Compare multiple files</a></li>
+<li><a class="reference internal" href="#profile-the-scripts" id="id20">Profile the scripts</a></li>
+<li><a class="reference internal" href="#get-the-description-of-a-variable" id="id21">Get the description of a variable</a></li>
 </ul>
 </li>
 </ul>
@@ -299,10 +302,10 @@ DEN                &lt;class &#39;abipy.electrons.denpot.DensityFortranFile&#39;
 .fhi               &lt;class &#39;pymatgen.io.abinit.pseudos.Pseudo&#39;&gt;
 JTH.xml            &lt;class &#39;pymatgen.io.abinit.pseudos.Pseudo&#39;&gt;
 .wout              &lt;class &#39;abipy.wannier90.wout.WoutFile&#39;&gt;
-COHPCAR.lobster    &lt;class &#39;abipy.electrons.lobster.Coxp&#39;&gt;
-COOPCAR.lobster    &lt;class &#39;abipy.electrons.lobster.Coxp&#39;&gt;
-ICOHPLIST.lobster  &lt;class &#39;abipy.electrons.lobster.ICoxp&#39;&gt;
-DOSCAR.lobster     &lt;class &#39;abipy.electrons.lobster.LobsterDos&#39;&gt;
+COHPCAR.lobster    &lt;class &#39;abipy.electrons.lobster.CoxpFile&#39;&gt;
+COOPCAR.lobster    &lt;class &#39;abipy.electrons.lobster.CoxpFile&#39;&gt;
+ICOHPLIST.lobster  &lt;class &#39;abipy.electrons.lobster.ICoxpFile&#39;&gt;
+DOSCAR.lobster     &lt;class &#39;abipy.electrons.lobster.LobsterDoscarFile&#39;&gt;
 GSR.nc             &lt;class &#39;abipy.electrons.gsr.GsrFile&#39;&gt;
 DEN.nc             &lt;class &#39;abipy.electrons.denpot.DensityNcFile&#39;&gt;
 OUT.nc             &lt;class &#39;abipy.abio.outputs.OutNcFile&#39;&gt;
@@ -327,6 +330,7 @@ CUT3DDENPOT.nc     &lt;class &#39;abipy.electrons.denpot.Cut3dDenPotNcFile&#39;&
 OPTIC.nc           &lt;class &#39;abipy.electrons.optic.OpticNcFile&#39;&gt;
 A2F.nc             &lt;class &#39;abipy.eph.a2f.A2fFile&#39;&gt;
 SIGEPH.nc          &lt;class &#39;abipy.eph.sigeph.SigEPhFile&#39;&gt;
+ABIWAN.nc          &lt;class &#39;abipy.wannier90.abiwan.AbiwanFile&#39;&gt;
 </pre></div>
 </div>
 </div>
@@ -677,6 +681,23 @@ generated q-path and then start the webserver.</p>
 to visualize the modifications of the unit cell lattice vectors in ovito.</p>
 </div>
 </div>
+<div class="section" id="plot-results-stored-in-a-text-file-in-tabular-format">
+<h2><a class="toc-backref" href="#contents">Plot results stored in a text file in tabular format</a><a class="headerlink" href="#plot-results-stored-in-a-text-file-in-tabular-format" title="Permalink to this headline">¶</a></h2>
+<p>Use:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">data</span> <span class="n">FILE_WITH_COLUMNS</span>
+</pre></div>
+</div>
+<p>to plot with <a class="reference external" href="http://matplotlib.org">matplotlib</a> all the columns given in the file.
+By default, the first column is assumed to contain the values for the x-axis
+but it is possible to change this behaviour and use the row index with the <cite>–use-index</cite> option.
+Multiple datasets i.e. multiple sets of data separated by blank lines are supported.</p>
+<p>To compare multiple files use:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">data</span> <span class="n">FILE1</span> <span class="n">FILE2</span>
+</pre></div>
+</div>
+<p>Obviously one can use standard tools such as <a class="reference external" href="http://www.gnuplot.info/">gnuplot</a> and <a class="reference external" href="http://plasma-gate.weizmann.ac.il/Grace/">xmgrace</a> but
+the AbiPy scripts are quite handy for a quick analysis of the results.</p>
+</div>
 <div class="section" id="compare-multiple-files">
 <h2><a class="toc-backref" href="#contents">Compare multiple files</a><a class="headerlink" href="#compare-multiple-files" title="Permalink to this headline">¶</a></h2>
 <p>The <a class="reference internal" href="scripts/abicomp.html#abicomp-py"><span class="std std-ref">abicomp.py</span></a> script is explicitely designed for this kind of task.
@@ -757,7 +778,7 @@ This option could be useful if the script seems to be slow and you need to under
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 01, 2018.<br/>
+      Last updated on Jul 26, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

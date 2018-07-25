@@ -79,6 +79,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
@@ -526,8 +527,9 @@ Options that can be specified in scheduler.yml:
             use_dynamic_manager: &quot;yes&quot; if the :class:`TaskManager` must be re-initialized from
                 file before launching the jobs. (DEFAULT: &quot;no&quot;)
             max_njobs_inqueue: Limit on the number of jobs that can be present in the queue. (DEFAULT: 200)
-            remindme_s: The scheduler will send an email to the user specified by `mailto` every `remindme_s` seconds.
-                (int, DEFAULT: 1 day).
+            max_ncores_used: Maximum number of cores that can be used by the scheduler.
+            remindme_s: The scheduler will send an email to the user specified
+                by `mailto` every `remindme_s` seconds. (int, DEFAULT: 1 day).
             max_num_pyexcs: The scheduler will exit if the number of python exceptions is &gt; max_num_pyexcs
                 (int, DEFAULT: 0)
             max_num_abierrs: The scheduler will exit if the number of errored tasks is &gt; max_num_abierrs
@@ -648,7 +650,7 @@ qtype supported: [&#39;bluegene&#39;, &#39;moab&#39;, &#39;pbspro&#39;, &#39;sge
 Use `abirun.py . manager slurm` to have the list of qparams for slurm.
 </pre></div>
 </div>
-<p>At the time of writing (Jul 01, 2018), AbiPy supports the following resource managers:</p>
+<p>At the time of writing (Jul 26, 2018), AbiPy supports the following resource managers:</p>
 <ul class="simple">
 <li><code class="docutils literal"><span class="pre">shell</span></code></li>
 <li><a class="reference external" href="http://pbspro.org/">pbspro</a></li>
@@ -1746,7 +1748,7 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 <tbody valign="top">
 <tr><td class="option-group">
 <kbd>robot_ext</kbd></td>
-<td><p class="first">The file extension of the output file (case insensitive). Must be in: [‘A2F’, ‘DDB’, ‘GSR’, ‘HIST’, ‘MDF’, ‘OPTIC’, ‘PHBST’, ‘SIGEPH’, ‘SIGRES’, ‘abo’]</p>
+<td><p class="first">The file extension of the output file (case insensitive). Must be in: [‘A2F’, ‘ABIWAN’, ‘DDB’, ‘GSR’, ‘HIST’, ‘MDF’, ‘OPTIC’, ‘PHBST’, ‘SIGEPH’, ‘SIGRES’, ‘abo’]</p>
 <p class="last">Default: “GSR”</p>
 </td></tr>
 </tbody>
@@ -3316,7 +3318,7 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 01, 2018.<br/>
+      Last updated on Jul 26, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

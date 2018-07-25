@@ -82,26 +82,6 @@ Use ``--help`` to further information on the available options.
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Flow to compute the equation of state by fitting E(V) at T = 0. ">
-
-.. only:: html
-
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_eos_thumb.png
-
-        :ref:`sphx_glr_flow_gallery_run_eos.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /flow_gallery/run_eos
-
-.. raw:: html
-
     <div class="sphx-glr-thumbcontainer" tooltip="G0W0 corrections with the HT interface. ">
 
 .. only:: html
@@ -119,6 +99,26 @@ Use ``--help`` to further information on the available options.
    :hidden:
 
    /flow_gallery/run_ht_si_g0w0ppm
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Flow to compute the equation of state by fitting E(V) at T = 0. ">
+
+.. only:: html
+
+    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_eos_thumb.png
+
+        :ref:`sphx_glr_flow_gallery_run_eos.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_eos
 
 .. raw:: html
 

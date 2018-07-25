@@ -79,6 +79,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
@@ -250,10 +251,10 @@ DEN                &lt;class &#39;abipy.electrons.denpot.DensityFortranFile&#39;
 .fhi               &lt;class &#39;pymatgen.io.abinit.pseudos.Pseudo&#39;&gt;
 JTH.xml            &lt;class &#39;pymatgen.io.abinit.pseudos.Pseudo&#39;&gt;
 .wout              &lt;class &#39;abipy.wannier90.wout.WoutFile&#39;&gt;
-COHPCAR.lobster    &lt;class &#39;abipy.electrons.lobster.Coxp&#39;&gt;
-COOPCAR.lobster    &lt;class &#39;abipy.electrons.lobster.Coxp&#39;&gt;
-ICOHPLIST.lobster  &lt;class &#39;abipy.electrons.lobster.ICoxp&#39;&gt;
-DOSCAR.lobster     &lt;class &#39;abipy.electrons.lobster.LobsterDos&#39;&gt;
+COHPCAR.lobster    &lt;class &#39;abipy.electrons.lobster.CoxpFile&#39;&gt;
+COOPCAR.lobster    &lt;class &#39;abipy.electrons.lobster.CoxpFile&#39;&gt;
+ICOHPLIST.lobster  &lt;class &#39;abipy.electrons.lobster.ICoxpFile&#39;&gt;
+DOSCAR.lobster     &lt;class &#39;abipy.electrons.lobster.LobsterDoscarFile&#39;&gt;
 GSR.nc             &lt;class &#39;abipy.electrons.gsr.GsrFile&#39;&gt;
 DEN.nc             &lt;class &#39;abipy.electrons.denpot.DensityNcFile&#39;&gt;
 OUT.nc             &lt;class &#39;abipy.abio.outputs.OutNcFile&#39;&gt;
@@ -278,6 +279,7 @@ CUT3DDENPOT.nc     &lt;class &#39;abipy.electrons.denpot.Cut3dDenPotNcFile&#39;&
 OPTIC.nc           &lt;class &#39;abipy.electrons.optic.OpticNcFile&#39;&gt;
 A2F.nc             &lt;class &#39;abipy.eph.a2f.A2fFile&#39;&gt;
 SIGEPH.nc          &lt;class &#39;abipy.eph.sigeph.SigEPhFile&#39;&gt;
+ABIWAN.nc          &lt;class &#39;abipy.wannier90.abiwan.AbiwanFile&#39;&gt;
 </pre></div>
 </div>
 <div class="admonition warning">
@@ -380,7 +382,7 @@ Please follow this convention to facilitate the integration with AbiPy.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 01, 2018.<br/>
+      Last updated on Jul 26, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

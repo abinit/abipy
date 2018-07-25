@@ -81,7 +81,7 @@ stored in the SIGRES produced by the GW code (sigma run)
 
     sigres.close()
 
-**Total running time of the script:** ( 0 minutes  3.761 seconds)
+**Total running time of the script:** ( 0 minutes  1.896 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_qps.py:

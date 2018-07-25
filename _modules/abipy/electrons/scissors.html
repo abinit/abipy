@@ -77,6 +77,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -489,8 +490,8 @@
         <span class="n">plotter</span> <span class="o">=</span> <span class="n">ElectronBandsPlotter</span><span class="p">()</span>
 
         <span class="n">bands_label</span> <span class="o">=</span> <span class="n">bands_label</span> <span class="k">if</span> <span class="n">bands_label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">bands_filepath</span><span class="p">)</span>
-        <span class="n">plotter</span><span class="o">.</span><span class="n">add_ebands</span><span class="p">(</span><span class="n">bands_label</span><span class="p">,</span> <span class="n">ks_bands</span><span class="p">,</span> <span class="n">dos</span><span class="o">=</span><span class="n">ks_dos</span><span class="p">)</span>
-        <span class="n">plotter</span><span class="o">.</span><span class="n">add_ebands</span><span class="p">(</span><span class="n">bands_label</span> <span class="o">+</span> <span class="s2">&quot; + scissors&quot;</span><span class="p">,</span> <span class="n">qp_bands</span><span class="p">,</span> <span class="n">dos</span><span class="o">=</span><span class="n">qp_dos</span><span class="p">)</span>
+        <span class="n">plotter</span><span class="o">.</span><span class="n">add_ebands</span><span class="p">(</span><span class="n">bands_label</span><span class="p">,</span> <span class="n">ks_bands</span><span class="p">,</span> <span class="n">edos</span><span class="o">=</span><span class="n">ks_dos</span><span class="p">)</span>
+        <span class="n">plotter</span><span class="o">.</span><span class="n">add_ebands</span><span class="p">(</span><span class="n">bands_label</span> <span class="o">+</span> <span class="s2">&quot; + scissors&quot;</span><span class="p">,</span> <span class="n">qp_bands</span><span class="p">,</span> <span class="n">edos</span><span class="o">=</span><span class="n">qp_dos</span><span class="p">)</span>
 
         <span class="c1">#qp_marker: if int &gt; 0, markers for the ab-initio QP energies are displayed. e.g qp_marker=50</span>
         <span class="c1">#qp_marker = 50</span>
@@ -526,7 +527,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 01, 2018.<br/>
+      Last updated on Jul 26, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

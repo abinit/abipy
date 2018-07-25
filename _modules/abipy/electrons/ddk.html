@@ -77,6 +77,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -364,11 +365,6 @@
         <span class="sd">&quot;&quot;&quot;|Structure| object.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">structure</span>
 
-    <span class="c1">#@lazy_property</span>
-    <span class="c1">#def xc(self):</span>
-    <span class="c1">#    &quot;&quot;&quot;:class:`XcFunc object with info on the exchange-correlation functional.&quot;&quot;&quot;</span>
-    <span class="c1">#    return self.reader.read_abinit_xcfunc()</span>
-
 <div class="viewcode-block" id="DdkFile.params"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ddk.DdkFile.params">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;:class:`OrderedDict` with parameters that might be subject to convergence studies.&quot;&quot;&quot;</span>
@@ -378,6 +374,14 @@
 <div class="viewcode-block" id="DdkFile.close"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ddk.DdkFile.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Close the file.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="DdkFile.yield_figs"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ddk.DdkFile.yield_figs">[docs]</a>    <span class="k">def</span> <span class="nf">yield_figs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function *generates* a predefined list of matplotlib figures with minimal input from the user.</span>
+<span class="sd">        Used in abiview.py to get a quick look at the results.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+        <span class="c1">#yield self.ebands.plot(show=False)</span>
 
 <div class="viewcode-block" id="DdkFile.write_notebook"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ddk.DdkFile.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -438,7 +442,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 01, 2018.<br/>
+      Last updated on Jul 26, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

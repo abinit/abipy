@@ -1,0 +1,8 @@
+<map id="inheritance2fdd3fd955" name="inheritance2fdd3fd955">
+<area shape="rect" id="node1" title="Mixin class that provides methods for reading k&#45;point data from a netcdf" alt="" coords="319,3,449,15"/>
+<area shape="rect" id="node2" title="This object reads band structure data from a netcdf_ file." alt="" coords="474,15,609,28"/>
+<area shape="rect" id="node5" href="#abipy.wannier90.abiwan.AbiwanReader" target="_top" title="This object reads the results stored in the ABIWAN file produced by ABINIT after having" alt="" coords="633,15,765,28"/>
+<area shape="rect" id="node3" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="336,28,431,40"/>
+<area shape="rect" id="node4" title="This object reads data from a file written according to the ETSF&#45;IO specifications." alt="" coords="160,28,294,40"/>
+<area shape="rect" id="node6" title="Wraps and extends netCDF4.Dataset. Read only mode. Supports with statements." alt="" coords="3,28,135,40"/>
+</map>

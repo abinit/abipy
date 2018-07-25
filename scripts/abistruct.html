@@ -79,6 +79,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
@@ -677,7 +678,7 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
 </td></tr>
 <tr><td class="option-group">
 <kbd>-f, --format</kbd></td>
-<td><p class="first">Output format. Default: cif. Accept: (abivars, cif, xsf, poscar, qe, cssr, json, None)</p>
+<td><p class="first">Output format. Default: cif. Accept: (abivars, cif, xsf, poscar, qe, siesta, wannier90, cssr, json, None)</p>
 <p class="last">Default: “cif”</p>
 </td></tr>
 </tbody>
@@ -738,7 +739,7 @@ have dimensions 2a x b x c.</li>
 </td></tr>
 <tr><td class="option-group">
 <kbd>-f, --format</kbd></td>
-<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, qe, cssr, json, None)</p>
+<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, qe, siesta, wannier90, cssr, json, None)</p>
 <p class="last">Default: “abivars”</p>
 </td></tr>
 </tbody>
@@ -1077,7 +1078,7 @@ closest points in this particular structure. This is usually what you want in a 
 </td></tr>
 <tr><td class="option-group">
 <kbd>-f, --format</kbd></td>
-<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, qe, cssr, json, None)</p>
+<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, qe, siesta, wannier90, cssr, json, None)</p>
 <p class="last">Default: “abivars”</p>
 </td></tr>
 </tbody>
@@ -1270,7 +1271,7 @@ closest points in this particular structure. This is usually what you want in a 
 <div class="section" id="kpath">
 <h3>kpath<a class="headerlink" href="#kpath" title="Permalink to this headline">¶</a></h3>
 <p>Read structure from file, generate k-path for band-structure calculations.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">kpath</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="n">filepath</span><span class="p">]</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">kpath</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">FORMAT</span><span class="p">]</span> <span class="p">[</span><span class="n">filepath</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat13">
@@ -1300,6 +1301,11 @@ closest points in this particular structure. This is usually what you want in a 
 <kbd>--loglevel</kbd></td>
 <td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
 <p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-f, --format</kbd></td>
+<td><p class="first">Output format. Default: abinit. Accept: [‘abinit’, ‘wannier90’, ‘siesta’]</p>
+<p class="last">Default: “abinit”</p>
 </td></tr>
 </tbody>
 </table>
@@ -1715,7 +1721,7 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
 </td></tr>
 <tr><td class="option-group">
 <kbd>-f, --format</kbd></td>
-<td><p class="first">Output format. Default: cif. Accept: (abivars, cif, xsf, poscar, qe, cssr, json, None)</p>
+<td><p class="first">Output format. Default: cif. Accept: (abivars, cif, xsf, poscar, qe, siesta, wannier90, cssr, json, None)</p>
 <p class="last">Default: “cif”</p>
 </td></tr>
 </tbody>
@@ -1785,7 +1791,7 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
 </td></tr>
 <tr><td class="option-group">
 <kbd>-f, --format</kbd></td>
-<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, qe, cssr, json, None)</p>
+<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, qe, siesta, wannier90, cssr, json, None)</p>
 <p class="last">Default: “abivars”</p>
 </td></tr>
 </tbody>
@@ -1860,7 +1866,7 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
 <tr><td>&#160;</td><td>Select structures with this space group number.</td></tr>
 <tr><td class="option-group">
 <kbd>-f, --format</kbd></td>
-<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, qe, cssr, json, None)</p>
+<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, qe, siesta, wannier90, cssr, json, None)</p>
 <p class="last">Default: “abivars”</p>
 </td></tr>
 </tbody>
@@ -1987,7 +1993,7 @@ ehull &lt; show_unstable will be shown.</p>
 </td></tr>
 <tr><td class="option-group">
 <kbd>-f, --format</kbd></td>
-<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, qe, cssr, json, None)</p>
+<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, qe, siesta, wannier90, cssr, json, None)</p>
 <p class="last">Default: “abivars”</p>
 </td></tr>
 </tbody>
@@ -2036,7 +2042,7 @@ ehull &lt; show_unstable will be shown.</p>
 </td></tr>
 <tr><td class="option-group">
 <kbd>-f, --format</kbd></td>
-<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, qe, cssr, json, None)</p>
+<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, qe, siesta, wannier90, cssr, json, None)</p>
 <p class="last">Default: “abivars”</p>
 </td></tr>
 </tbody>
@@ -2097,7 +2103,7 @@ ehull &lt; show_unstable will be shown.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 01, 2018.<br/>
+      Last updated on Jul 26, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

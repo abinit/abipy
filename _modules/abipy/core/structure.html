@@ -77,6 +77,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -149,7 +150,7 @@
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">AttrDict</span><span class="p">,</span> <span class="n">dict2namedtuple</span>
 <span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
-<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">is_string</span><span class="p">,</span> <span class="n">marquee</span>
+<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">is_string</span><span class="p">,</span> <span class="n">marquee</span><span class="p">,</span> <span class="n">list_strings</span>
 <span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
 <span class="kn">from</span> <span class="nn">pymatgen.core.sites</span> <span class="k">import</span> <span class="n">PeriodicSite</span>
 <span class="kn">from</span> <span class="nn">pymatgen.core.lattice</span> <span class="k">import</span> <span class="n">Lattice</span>
@@ -343,7 +344,7 @@
 
 <span class="sd">        Returns: |Structure| object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">filepath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;_HIST&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">filepath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;_HIST.nc&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">filepath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;_HIST.nc&quot;</span><span class="p">):</span>
             <span class="c1"># Abinit history file. In this case we return the last structure!</span>
             <span class="c1"># Note that HIST does not follow the etsf-io conventions.</span>
             <span class="kn">from</span> <span class="nn">abipy.dynamics.hist</span> <span class="k">import</span> <span class="n">HistFile</span>
@@ -699,6 +700,12 @@
 <div class="viewcode-block" id="Structure.to_abivars"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.to_abivars">[docs]</a>    <span class="k">def</span> <span class="nf">to_abivars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns a dictionary with the ABINIT variables.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">structure_to_abivars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">latex_formula</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;LaTeX formatted formula. E.g., Fe2O3 is transformed to Fe$_{2}$O$_{3}$.&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">pymatgen.util.string</span> <span class="k">import</span> <span class="n">latexify</span>
+        <span class="k">return</span> <span class="n">latexify</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">formula</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">abi_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1063,6 +1070,32 @@
         <span class="kn">from</span> <span class="nn">.kpoints</span> <span class="k">import</span> <span class="n">KpointList</span>
         <span class="k">return</span> <span class="n">KpointList</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="p">,</span> <span class="n">frac_coords</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="n">names</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="Structure.get_kcoords_from_names"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.get_kcoords_from_names">[docs]</a>    <span class="k">def</span> <span class="nf">get_kcoords_from_names</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">knames</span><span class="p">,</span> <span class="n">cart_coords</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return numpy array with the fractional coordinates of the high-symmetry k-points listed in `knames`.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            knames: List of strings with the k-point labels.</span>
+<span class="sd">            cart_coords: True if the ``coords`` dataframe should contain Cartesian cordinates</span>
+<span class="sd">                instead of Reduced coordinates.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">kname2frac</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">k</span><span class="o">.</span><span class="n">frac_coords</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hsym_kpoints</span><span class="p">}</span>
+        <span class="c1"># Add aliases for Gamma.</span>
+        <span class="k">if</span> <span class="sa">r</span><span class="s2">&quot;$\Gamma$&quot;</span> <span class="ow">in</span> <span class="n">kname2frac</span><span class="p">:</span>
+            <span class="n">kname2frac</span><span class="p">[</span><span class="s2">&quot;G&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kname2frac</span><span class="p">[</span><span class="sa">r</span><span class="s2">&quot;$\Gamma$&quot;</span><span class="p">]</span>
+            <span class="n">kname2frac</span><span class="p">[</span><span class="s2">&quot;Gamma&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kname2frac</span><span class="p">[</span><span class="sa">r</span><span class="s2">&quot;$\Gamma$&quot;</span><span class="p">]</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">kcoords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">([</span><span class="n">kname2frac</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">list_strings</span><span class="p">(</span><span class="n">knames</span><span class="p">)],</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Internal list of high-symmetry k-points:</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hsym_kpoints</span><span class="p">))</span>
+            <span class="k">raise</span>
+
+        <span class="k">if</span> <span class="n">cart_coords</span><span class="p">:</span>
+            <span class="n">kcoords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">(</span><span class="n">kcoords</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">kcoords</span></div>
+
 <div class="viewcode-block" id="Structure.hsym_stars"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.hsym_stars">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">hsym_stars</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1369,13 +1402,18 @@
 <div class="viewcode-block" id="Structure.convert"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.convert">[docs]</a>    <span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;cif&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return string with the structure in the given format `fmt`</span>
-<span class="sd">        Options include &quot;abivars&quot;, &quot;cif&quot;, &quot;xsf&quot;, &quot;poscar&quot;, &quot;cssr&quot;, &quot;json&quot;.</span>
+<span class="sd">        Options include &quot;abivars&quot;, &quot;cif&quot;, &quot;xsf&quot;, &quot;poscar&quot;, &quot;siesta&quot;, &quot;wannier90&quot;, &quot;cssr&quot;, &quot;json&quot;.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s2">&quot;abivars&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">fmt</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;abivars&quot;</span><span class="p">,</span> <span class="s2">&quot;abinit&quot;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">abi_string</span>
         <span class="k">elif</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s2">&quot;qe&quot;</span><span class="p">:</span>
             <span class="kn">from</span> <span class="nn">pymatgen.io.pwscf</span> <span class="k">import</span> <span class="n">PWInput</span>
             <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">PWInput</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pseudo</span><span class="o">=</span><span class="p">{</span><span class="n">s</span><span class="p">:</span> <span class="n">s</span> <span class="o">+</span> <span class="s2">&quot;.pseudo&quot;</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol_set</span><span class="p">}))</span>
+        <span class="k">elif</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s2">&quot;siesta&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">structure2siesta</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">fmt</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;wannier90&quot;</span><span class="p">,</span> <span class="s2">&quot;w90&quot;</span><span class="p">):</span>
+            <span class="kn">from</span> <span class="nn">abipy.wannier90.win</span> <span class="k">import</span> <span class="n">structure2wannier90</span>
+            <span class="k">return</span> <span class="n">structure2wannier90</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Structure</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">fmt</span><span class="o">=</span><span class="n">fmt</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
@@ -1763,6 +1801,52 @@
         <span class="n">kptbounds</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">frac_coords</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hsym_kpoints</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">kptbounds</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span></div>
 
+<div class="viewcode-block" id="Structure.get_kpath_input_string"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.get_kpath_input_string">[docs]</a>    <span class="k">def</span> <span class="nf">get_kpath_input_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;abinit&quot;</span><span class="p">,</span> <span class="n">line_density</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return string with input variables for band-structure calculations</span>
+<span class="sd">        in the format used by code `fmt`.</span>
+<span class="sd">        Use `line_density` points for the smallest segment (if supported by code).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+        <span class="k">if</span> <span class="n">fmt</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;abinit&quot;</span><span class="p">,</span> <span class="s2">&quot;abivars&quot;</span><span class="p">):</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;# Abinit Structure&quot;</span><span class="p">)</span>
+            <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">fmt</span><span class="o">=</span><span class="n">fmt</span><span class="p">))</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"># K-path in reduced coordinates:&quot;</span><span class="p">)</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;# tolwfr 1e-20 iscf -2 getden ??&quot;</span><span class="p">)</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot; ndivsm </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">line_density</span><span class="p">)</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot; kptopt </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="o">-</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hsym_kpoints</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot; kptbounds&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hsym_kpoints</span><span class="p">:</span>
+                <span class="n">app</span><span class="p">(</span><span class="s2">&quot;    </span><span class="si">{:+.5f}</span><span class="s2">  </span><span class="si">{:+.5f}</span><span class="s2">  </span><span class="si">{:+.5f}</span><span class="s2">  # </span><span class="si">{kname}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">k</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span> <span class="n">kname</span><span class="o">=</span><span class="n">k</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+
+        <span class="k">elif</span> <span class="n">fmt</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;wannier90&quot;</span><span class="p">,</span> <span class="s2">&quot;w90&quot;</span><span class="p">):</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;# Wannier90 structure&quot;</span><span class="p">)</span>
+            <span class="kn">from</span> <span class="nn">abipy.wannier90.win</span> <span class="k">import</span> <span class="n">Wannier90Input</span>
+            <span class="n">win</span> <span class="o">=</span> <span class="n">Wannier90Input</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="n">win</span><span class="o">.</span><span class="n">set_kpath</span><span class="p">()</span>
+            <span class="n">app</span><span class="p">(</span><span class="n">win</span><span class="o">.</span><span class="n">to_string</span><span class="p">())</span>
+
+        <span class="k">elif</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s2">&quot;siesta&quot;</span><span class="p">:</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;# Siesta structure&quot;</span><span class="p">)</span>
+            <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">fmt</span><span class="o">=</span><span class="n">fmt</span><span class="p">))</span>
+            <span class="c1"># Build normalized k-path.</span>
+            <span class="kn">from</span> <span class="nn">.kpoints</span> <span class="k">import</span> <span class="n">Kpath</span>
+            <span class="n">vertices_names</span> <span class="o">=</span> <span class="p">[(</span><span class="n">k</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span> <span class="n">k</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hsym_kpoints</span><span class="p">]</span>
+            <span class="n">kpath</span> <span class="o">=</span> <span class="n">Kpath</span><span class="o">.</span><span class="n">from_vertices_and_names</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vertices_names</span><span class="p">,</span> <span class="n">line_density</span><span class="o">=</span><span class="n">line_density</span><span class="p">)</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;%block BandLines&quot;</span><span class="p">)</span>
+            <span class="n">prev_ik</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">ik</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">kpath</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">k</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="k">continue</span>
+                <span class="n">n</span> <span class="o">=</span> <span class="n">ik</span> <span class="o">-</span> <span class="n">prev_ik</span>
+                <span class="n">app</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">  </span><span class="si">{:+.5f}</span><span class="s2">  </span><span class="si">{:+.5f}</span><span class="s2">  </span><span class="si">{:+.5f}</span><span class="s2">  # </span><span class="si">{kname}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span> <span class="k">if</span> <span class="n">n</span> <span class="k">else</span> <span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="n">k</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span> <span class="n">kname</span><span class="o">=</span><span class="n">k</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+                <span class="n">prev_ik</span> <span class="o">=</span> <span class="n">ik</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%e</span><span class="s2">ndblock BandLines&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to generate string for code: `</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">fmt</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+
     <span class="c1">#def ksampling_from_jhudb(self, **kwargs):</span>
     <span class="c1">#    from pymatgen.ext.jhu import get_kpoints</span>
     <span class="c1">#    __doc__ = get_kpoints.__doc__</span>
@@ -1801,7 +1885,8 @@
 
 <div class="viewcode-block" id="Structure.calc_ngkpt"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.calc_ngkpt">[docs]</a>    <span class="k">def</span> <span class="nf">calc_ngkpt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nksmall</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Compute the ABINIT variable ``ngkpt`` from the number of divisions used for the smallest lattice vector.</span>
+<span class="sd">        Compute the ABINIT variable ``ngkpt`` from the number of divisions used</span>
+<span class="sd">        for the smallest lattice vector.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            nksmall (int): Number of division for the smallest lattice vector.</span>
@@ -2168,6 +2253,61 @@
 
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported mode: `</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">mode</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">structure2siesta</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return string with structural information in Siesta format from pymatgen structure</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        structure: pymatgen structure.</span>
+<span class="sd">        verbose: Verbosity level.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">structure</span><span class="o">.</span><span class="n">is_ordered</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">Received disordered structure with partial occupancies that cannot be converted into a Siesta input</span>
+<span class="s2">Please use OrderDisorderedStructureTransformation or EnumerateStructureTransformation</span>
+<span class="s2">to build an appropriate supercell from partial occupancies or alternatively use the Virtual Crystal Approximation.&quot;&quot;&quot;</span><span class="p">)</span>
+
+    <span class="n">types_of_specie</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">types_of_specie</span>
+
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;NumberOfAtoms </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="p">))</span>
+    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;NumberOfSpecies </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">structure</span><span class="o">.</span><span class="n">ntypesp</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;# The species number followed by the atomic number, and then by the desired label&quot;</span><span class="p">)</span>
+    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;%block ChemicalSpeciesLabel&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">itype</span><span class="p">,</span> <span class="n">specie</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">types_of_specie</span><span class="p">):</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;    </span><span class="si">%d</span><span class="s2"> </span><span class="si">%d</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">itype</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">specie</span><span class="o">.</span><span class="n">number</span><span class="p">,</span> <span class="n">specie</span><span class="o">.</span><span class="n">symbol</span><span class="p">))</span>
+    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%e</span><span class="s2">ndblock ChemicalSpeciesLabel&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Write lattice vectors.</span>
+    <span class="c1"># Set small values to zero. This usually happens when the CIF file</span>
+    <span class="c1"># does not give structure parameters with enough digits.</span>
+    <span class="n">lvectors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">matrix</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-8</span><span class="p">,</span> <span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">matrix</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;LatticeConstant 1.0 Ang&quot;</span><span class="p">)</span>
+    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;%block LatticeVectors&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">lvectors</span><span class="p">:</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;    </span><span class="si">%.10f</span><span class="s2"> </span><span class="si">%.10f</span><span class="s2"> </span><span class="si">%.10f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%e</span><span class="s2">ndblock LatticeVectors&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Write atomic coordinates</span>
+    <span class="c1">#% block AtomicCoordinatesAndAtomicSpecies</span>
+    <span class="c1">#4.5000 5.0000 5.0000 1</span>
+    <span class="c1">#5.5000 5.0000 5.0000 1</span>
+    <span class="c1">#% endblock AtomicCoordinatesAndAtomicSpecies</span>
+    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;AtomicCoordinatesFormat Fractional&quot;</span><span class="p">)</span>
+    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;%block AtomicCoordinatesAndAtomicSpecies&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">site</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">structure</span><span class="p">):</span>
+        <span class="n">itype</span> <span class="o">=</span> <span class="n">types_of_specie</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">site</span><span class="o">.</span><span class="n">specie</span><span class="p">)</span>
+        <span class="n">fc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">site</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-8</span><span class="p">,</span> <span class="n">site</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;    </span><span class="si">%.10f</span><span class="s2"> </span><span class="si">%.10f</span><span class="s2"> </span><span class="si">%.10f</span><span class="s2"> </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">fc</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">fc</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">itype</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%e</span><span class="s2">ndblock AtomicCoordinatesAndAtomicSpecies&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
 </pre></div>
 
     </div>
@@ -2182,7 +2322,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 01, 2018.<br/>
+      Last updated on Jul 26, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

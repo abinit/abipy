@@ -77,6 +77,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -232,9 +233,6 @@
         <span class="n">name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">)</span>
         <span class="n">s</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;: kpoint: </span><span class="si">%(kpoint)s</span><span class="s2">, ecut: </span><span class="si">%(ecut)f</span><span class="s2">, npw: </span><span class="si">%(npw)d</span><span class="s2">, istwfk: </span><span class="si">%(istwfk)d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span>
         <span class="k">return</span> <span class="n">s</span></div>
-
-    <span class="c1"># TODO: Alias To be removed in 0.4</span>
-    <span class="c1">#tostring = to_string</span>
 
     <span class="k">def</span> <span class="nf">_new_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">zero</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="p">()):</span>
         <span class="sd">&quot;&quot;&quot;Returns a numpy array defined on the sphere.&quot;&quot;&quot;</span>
@@ -452,7 +450,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 01, 2018.<br/>
+      Last updated on Jul 26, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

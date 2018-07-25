@@ -11,7 +11,8 @@ Lobster COHP/COP/DOS
 ====================
 
 This example shows how to analyze the output files
-produced by Lobster code <http://schmeling.ac.rwth-aachen.de/cohp/index.php?menuID=1>
+produced by Lobster code <<http://schmeling.ac.rwth-aachen.de/cohp/>
+
 Use `abiview.py lobster DIRPATH` for a command line interface.
 
 
@@ -43,24 +44,29 @@ Use `abiview.py lobster DIRPATH` for a command line interface.
  .. code-block:: none
 
     ================================= COOP File =================================
-    COOP: Number of energies: 401, from -14.035 to 6.015 (eV) with E_Fermi = 0
+
+    COOP: Number of energies: 401, from -14.035 to 6.015 (eV) with E_fermi set 0 (was 2.298)
     has_partial_projections: True, nsppol: 1
     Number of pairs: 2
     [0] Ga@0 --> As@1
     [1] As@1 --> Ga@0
+
     ================================= COHP File =================================
-    COHP: Number of energies: 401, from -14.035 to 6.015 (eV) with E_Fermi = 0
+
+    COHP: Number of energies: 401, from -14.035 to 6.015 (eV) with E_fermi set 0 (was 2.298)
     has_partial_projections: True, nsppol: 1
     Number of pairs: 2
     [0] Ga@0 --> As@1
     [1] As@1 --> Ga@0
+
     ============================== ICHOHPLIST File ==============================
     Number of pairs: 2
-    index0  index1 type0 type1  spin  average distance n_bonds  pair_spin
-         0       1    Ga    As     0 -4.36062  2.49546    None  (0, 1, 0)
-         1       0    As    Ga     0 -4.36062  2.49546    None  (1, 0, 0)
+    index0  index1 type0 type1  spin  average distance n_bonds    pair
+         0       1    Ga    As     0 -4.36062  2.49546    None  (0, 1)
+         1       0    As    Ga     0 -4.36062  2.49546    None  (1, 0)
+
     =============================== Lobster DOSCAR ===============================
-    Number of energies: 401, from -14.035 to 6.015 (eV) with E_Fermi = 0
+    Number of energies: 401, from -14.035 to 6.015 (eV) with E_fermi set to 0 (was 2.298)
     nsppol: 1
     Number of sites in projected DOS: 2
     0 --> {4s, 4p_y, 4p_z, 4p_x}
@@ -97,7 +103,7 @@ Use `abiview.py lobster DIRPATH` for a command line interface.
 
     #lobana.plot_with_ebands(ebands="out_GSR.nc")
 
-**Total running time of the script:** ( 0 minutes  0.346 seconds)
+**Total running time of the script:** ( 0 minutes  0.248 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_lobster_files.py:

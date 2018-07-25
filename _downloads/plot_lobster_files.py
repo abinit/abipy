@@ -4,7 +4,8 @@ Lobster COHP/COP/DOS
 ====================
 
 This example shows how to analyze the output files
-produced by Lobster code <http://schmeling.ac.rwth-aachen.de/cohp/index.php?menuID=1>
+produced by Lobster code <<http://schmeling.ac.rwth-aachen.de/cohp/>
+
 Use `abiview.py lobster DIRPATH` for a command line interface.
 """
 import os

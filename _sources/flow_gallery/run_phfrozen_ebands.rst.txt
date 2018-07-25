@@ -191,7 +191,7 @@ to analyze the input/output structures including the atomic positions:
 
 
 
-**Total running time of the script:** ( 0 minutes  0.255 seconds)
+**Total running time of the script:** ( 0 minutes  0.111 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_phfrozen_ebands.py:

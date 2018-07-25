@@ -77,6 +77,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -473,7 +474,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">maxfreq</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Maximum phonon frequency.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Maximum phonon frequency in eV.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_maxfreq_mode</span><span class="p">()</span>
 
 <div class="viewcode-block" id="PhononBands.get_minfreq_mode"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.get_minfreq_mode">[docs]</a>    <span class="k">def</span> <span class="nf">get_minfreq_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -1023,7 +1024,7 @@
         <span class="k">if</span> <span class="n">units</span><span class="p">:</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">abu</span><span class="o">.</span><span class="n">wlabel_from_units</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
 
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Wave vector&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Wave Vector&quot;</span><span class="p">)</span>
 
         <span class="c1"># Set ticks and labels.</span>
         <span class="n">ticks</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_ticks_and_labels</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;qlabels&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
@@ -3102,7 +3103,8 @@
     <span class="c1">#    return &quot;\n\n&quot;.join(text)</span>
 
 <div class="viewcode-block" id="PhononBandsPlotter.combiplot"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBandsPlotter.combiplot">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
-    <span class="k">def</span> <span class="nf">combiplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qlabels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;eV&#39;</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">width_ratios</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">combiplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qlabels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;eV&#39;</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">width_ratios</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+                  <span class="n">linestyle_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the band structure and the DOS on the same figure.</span>
 <span class="sd">        Use ``gridplot`` to plot band structures on different figures.</span>
@@ -3115,6 +3117,8 @@
 <span class="sd">                   or scalar e.g. ``left``. If left (right) is None, default values are used</span>
 <span class="sd">            width_ratios: Ratio between the width of the phonon bands plots and the DOS plots.</span>
 <span class="sd">                Used if plotter has DOSes.</span>
+<span class="sd">            fontsize: fontsize for titles and legend.</span>
+<span class="sd">            linestyle_dict: Dictionary mapping labels to matplotlib linestyle options.</span>
 
 <span class="sd">        Returns: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -3151,7 +3155,10 @@
 
         <span class="k">for</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">phbands</span><span class="p">),</span> <span class="n">lineopt</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bands_dict</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter_lineopt</span><span class="p">()):</span>
             <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="n">my_kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">lineopt</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">linestyle_dict</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">linestyle_dict</span><span class="p">:</span>
+                <span class="n">my_kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">linestyle_dict</span><span class="p">[</span><span class="n">label</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">my_kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">lineopt</span><span class="p">)</span>
             <span class="n">opts_label</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">my_kwargs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
             <span class="n">l</span> <span class="o">=</span> <span class="n">phbands</span><span class="o">.</span><span class="n">plot_ax</span><span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">branch</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="o">**</span><span class="n">my_kwargs</span><span class="p">)</span>
@@ -3167,7 +3174,7 @@
             <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">phbands</span><span class="o">.</span><span class="n">decorate_ax</span><span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">qlabels</span><span class="o">=</span><span class="n">qlabels</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">)</span>
 
-        <span class="n">ax1</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="n">legends</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;best&#39;</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="n">legends</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;best&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="c1"># Add DOSes</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">phdoses_dict</span><span class="p">:</span>
@@ -4452,7 +4459,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 01, 2018.<br/>
+      Last updated on Jul 26, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

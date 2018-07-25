@@ -28,8 +28,8 @@
     <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Bands + DOS" href="plot_ebands_edos.html" />
-    <link rel="prev" title="Joint Density of States" href="plot_ejdos.html" />
+    <link rel="next" title="Projected phonon DOS" href="plot_phonon_pjdos.html" />
+    <link rel="prev" title="Bands + DOS" href="plot_ebands_edos.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
@@ -79,6 +79,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
@@ -107,11 +108,11 @@
               
                 
   <li>
-    <a href="plot_ejdos.html" title="Previous Chapter: Joint Density of States"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Joint Density...</span>
+    <a href="plot_ebands_edos.html" title="Previous Chapter: Bands + DOS"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Bands + DOS</span>
     </a>
   </li>
   <li>
-    <a href="plot_ebands_edos.html" title="Next Chapter: Bands + DOS"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Bands + DOS &raquo;</span>
+    <a href="plot_phonon_pjdos.html" title="Next Chapter: Projected phonon DOS"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Projected phonon DOS &raquo;</span>
     </a>
   </li>
               
@@ -152,8 +153,8 @@
 <div class="sphx-glr-example-title section" id="lobster-cohpcar">
 <span id="sphx-glr-gallery-plot-lobster-cohp-py"></span><h1>Lobster COHPCAR<a class="headerlink" href="#lobster-cohpcar" title="Permalink to this headline">¶</a></h1>
 <p>This example shows how to analyze the COHPCAR file
-produced by Lobster code &lt;<a class="reference external" href="http://schmeling.ac.rwth-aachen.de/cohp/index.php?menuID=1">http://schmeling.ac.rwth-aachen.de/cohp/index.php?menuID=1</a>&gt;
-Use <cite>abiopen.py FILE</cite> with –expose or –print for a command line interface
+produced by Lobster code &lt;<a class="reference external" href="http://schmeling.ac.rwth-aachen.de/cohp/">http://schmeling.ac.rwth-aachen.de/cohp/</a>&gt;</p>
+<p>Use <cite>abiopen.py FILE</cite> with –expose or –print for a command line interface
 and –notebook to generate a jupyter notebook.</p>
 <ul class="sphx-glr-horizontal">
 <li><img alt="../_images/sphx_glr_plot_lobster_cohp_001.png" class="sphx-glr-multi-img first" src="../_images/sphx_glr_plot_lobster_cohp_001.png" />
@@ -166,7 +167,7 @@ and –notebook to generate a jupyter notebook.</p>
 </li>
 </ul>
 <p class="sphx-glr-script-out">Out:</p>
-<div class="sphx-glr-script-out highlight-none"><div class="highlight"><pre><span></span>COHP: Number of energies: 401, from -14.035 to 6.015 (eV) with E_Fermi = 0
+<div class="sphx-glr-script-out highlight-none"><div class="highlight"><pre><span></span>COHP: Number of energies: 401, from -14.035 to 6.015 (eV) with E_fermi set 0 (was 2.298)
 has_partial_projections: True, nsppol: 1
 Number of pairs: 2
 [0] Ga@0 --&gt; As@1
@@ -185,23 +186,23 @@ Number of pairs: 2
 <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="s2">&quot;GaAs_COHPCAR.lobster.gz&quot;</span><span class="p">)</span>
 
 <span class="c1"># Open the COHPCAR.lobster file (same API for COOPCAR.lobster)</span>
-<span class="n">cohp</span> <span class="o">=</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">cohp</span><span class="p">)</span>
+<span class="n">cohp_file</span> <span class="o">=</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">cohp_file</span><span class="p">)</span>
 
 <span class="c1"># Plot COHP.</span>
-<span class="n">cohp</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;GaAs COHP&quot;</span><span class="p">)</span>
+<span class="n">cohp_file</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;GaAs COHP&quot;</span><span class="p">)</span>
 
 <span class="c1"># Plot integrated COHP.</span>
-<span class="n">cohp</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">what</span><span class="o">=</span><span class="s2">&quot;i&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;GaAs integrated COHP&quot;</span><span class="p">)</span>
+<span class="n">cohp_file</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">what</span><span class="o">=</span><span class="s2">&quot;i&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;GaAs integrated COHP&quot;</span><span class="p">)</span>
 
 <span class="c1"># Plot total overlap for all sites listed in `from_site_index`</span>
-<span class="n">cohp</span><span class="o">.</span><span class="n">plot_site_pairs_total</span><span class="p">(</span><span class="n">from_site_index</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;COHP total overlap for site index 0&quot;</span><span class="p">)</span>
+<span class="n">cohp_file</span><span class="o">.</span><span class="n">plot_site_pairs_total</span><span class="p">(</span><span class="n">from_site_index</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;COHP total overlap for site index 0&quot;</span><span class="p">)</span>
 
 <span class="c1"># Plot partial crystal orbital projections for all sites listed in `from_site_index`</span>
-<span class="n">cohp</span><span class="o">.</span><span class="n">plot_site_pairs_partial</span><span class="p">(</span><span class="n">from_site_index</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;COHP with orbital projections from site index 0&quot;</span><span class="p">)</span>
+<span class="n">cohp_file</span><span class="o">.</span><span class="n">plot_site_pairs_partial</span><span class="p">(</span><span class="n">from_site_index</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;COHP with orbital projections from site index 0&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p><strong>Total running time of the script:</strong> ( 0 minutes  0.228 seconds)</p>
+<p><strong>Total running time of the script:</strong> ( 0 minutes  0.148 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-lobster-cohp-py">
 <div class="sphx-glr-download docutils container">
 <a class="reference download internal" href="../_downloads/plot_lobster_cohp.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_lobster_cohp.py</span></code></a></div>
@@ -224,7 +225,7 @@ Number of pairs: 2
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 01, 2018.<br/>
+      Last updated on Jul 26, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

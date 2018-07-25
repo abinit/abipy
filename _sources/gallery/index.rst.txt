@@ -179,6 +179,26 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the convergence of the wannierization cycle using the .wout file...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_wannier90_wout_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_wannier90_wout.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_wannier90_wout
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot a phonon band structure with and without imposing the acoustic s...">
 
 .. only:: html
@@ -256,6 +276,26 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
    :hidden:
 
    /gallery/plot_edos
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to extract energies along a k-path from a calculation done with a (relat...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_kpath_from_ibz_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_kpath_from_ibz.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_kpath_from_ibz
 
 .. raw:: html
 
@@ -359,7 +399,7 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the output files produced by Lobster code &lt;http://schmeling.a...">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the output files produced by Lobster code &lt;&lt;http://schmeling....">
 
 .. only:: html
 
@@ -376,26 +416,6 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
    :hidden:
 
    /gallery/plot_lobster_files
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot a band structure using the eigenvalues stored in the GSR file pr...">
-
-.. only:: html
-
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_ebands_thumb.png
-
-        :ref:`sphx_glr_gallery_plot_ebands.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /gallery/plot_ebands
 
 .. raw:: html
 
@@ -479,13 +499,13 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the COHPCAR file produced by Lobster code &lt;http://schmeling.a...">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot a band structure using the eigenvalues stored in the GSR file pr...">
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_lobster_cohp_thumb.png
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_ebands_thumb.png
 
-        :ref:`sphx_glr_gallery_plot_lobster_cohp.py`
+        :ref:`sphx_glr_gallery_plot_ebands.py`
 
 .. raw:: html
 
@@ -495,7 +515,7 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
 .. toctree::
    :hidden:
 
-   /gallery/plot_lobster_cohp
+   /gallery/plot_ebands
 
 .. raw:: html
 
@@ -516,6 +536,26 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
    :hidden:
 
    /gallery/plot_ebands_edos
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the COHPCAR file produced by Lobster code &lt;http://schmeling.a...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_lobster_cohp_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_lobster_cohp.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_lobster_cohp
 
 .. raw:: html
 
@@ -819,6 +859,26 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the wannier90 results using the ABIWAN.nc netcdf file produce...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_wannier90_abiwan_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_wannier90_abiwan.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_wannier90_abiwan
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the optical properties computed by optic within the independent-...">
 
 .. only:: html
@@ -916,6 +976,26 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
    :hidden:
 
    /gallery/plot_ebands_spin
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to dowload the electronic band structure and the DDB file using the mp i...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_eph_from_mp_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_eph_from_mp.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_eph_from_mp
 
 .. raw:: html
 

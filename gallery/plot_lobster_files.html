@@ -28,7 +28,7 @@
     <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Band structure plot" href="plot_ebands.html" />
+    <link rel="next" title="Multiple Bethe-Salpeter calculations" href="plot_multiple_mdf.html" />
     <link rel="prev" title="Dielectric function with LFE" href="plot_scr.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
@@ -79,6 +79,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
@@ -111,7 +112,7 @@
     </a>
   </li>
   <li>
-    <a href="plot_ebands.html" title="Next Chapter: Band structure plot"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Band structure plot &raquo;</span>
+    <a href="plot_multiple_mdf.html" title="Next Chapter: Multiple Bethe-Salpeter calculations"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Multiple Beth... &raquo;</span>
     </a>
   </li>
               
@@ -152,8 +153,8 @@
 <div class="sphx-glr-example-title section" id="lobster-cohp-cop-dos">
 <span id="sphx-glr-gallery-plot-lobster-files-py"></span><h1>Lobster COHP/COP/DOS<a class="headerlink" href="#lobster-cohp-cop-dos" title="Permalink to this headline">¶</a></h1>
 <p>This example shows how to analyze the output files
-produced by Lobster code &lt;<a class="reference external" href="http://schmeling.ac.rwth-aachen.de/cohp/index.php?menuID=1">http://schmeling.ac.rwth-aachen.de/cohp/index.php?menuID=1</a>&gt;
-Use <cite>abiview.py lobster DIRPATH</cite> for a command line interface.</p>
+produced by Lobster code &lt;&lt;<a class="reference external" href="http://schmeling.ac.rwth-aachen.de/cohp/">http://schmeling.ac.rwth-aachen.de/cohp/</a>&gt;</p>
+<p>Use <cite>abiview.py lobster DIRPATH</cite> for a command line interface.</p>
 <ul class="sphx-glr-horizontal">
 <li><img alt="../_images/sphx_glr_plot_lobster_files_001.png" class="sphx-glr-multi-img first" src="../_images/sphx_glr_plot_lobster_files_001.png" />
 </li>
@@ -164,24 +165,29 @@ Use <cite>abiview.py lobster DIRPATH</cite> for a command line interface.</p>
 </ul>
 <p class="sphx-glr-script-out">Out:</p>
 <div class="sphx-glr-script-out highlight-none"><div class="highlight"><pre><span></span>================================= COOP File =================================
-COOP: Number of energies: 401, from -14.035 to 6.015 (eV) with E_Fermi = 0
+
+COOP: Number of energies: 401, from -14.035 to 6.015 (eV) with E_fermi set 0 (was 2.298)
 has_partial_projections: True, nsppol: 1
 Number of pairs: 2
 [0] Ga@0 --&gt; As@1
 [1] As@1 --&gt; Ga@0
+
 ================================= COHP File =================================
-COHP: Number of energies: 401, from -14.035 to 6.015 (eV) with E_Fermi = 0
+
+COHP: Number of energies: 401, from -14.035 to 6.015 (eV) with E_fermi set 0 (was 2.298)
 has_partial_projections: True, nsppol: 1
 Number of pairs: 2
 [0] Ga@0 --&gt; As@1
 [1] As@1 --&gt; Ga@0
+
 ============================== ICHOHPLIST File ==============================
 Number of pairs: 2
-index0  index1 type0 type1  spin  average distance n_bonds  pair_spin
-     0       1    Ga    As     0 -4.36062  2.49546    None  (0, 1, 0)
-     1       0    As    Ga     0 -4.36062  2.49546    None  (1, 0, 0)
+index0  index1 type0 type1  spin  average distance n_bonds    pair
+     0       1    Ga    As     0 -4.36062  2.49546    None  (0, 1)
+     1       0    As    Ga     0 -4.36062  2.49546    None  (1, 0)
+
 =============================== Lobster DOSCAR ===============================
-Number of energies: 401, from -14.035 to 6.015 (eV) with E_Fermi = 0
+Number of energies: 401, from -14.035 to 6.015 (eV) with E_fermi set to 0 (was 2.298)
 nsppol: 1
 Number of sites in projected DOS: 2
 0 --&gt; {4s, 4p_y, 4p_z, 4p_x}
@@ -215,7 +221,7 @@ Number of sites in projected DOS: 2
 <span class="c1">#lobana.plot_with_ebands(ebands=&quot;out_GSR.nc&quot;)</span>
 </pre></div>
 </div>
-<p><strong>Total running time of the script:</strong> ( 0 minutes  0.346 seconds)</p>
+<p><strong>Total running time of the script:</strong> ( 0 minutes  0.248 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-lobster-files-py">
 <div class="sphx-glr-download docutils container">
 <a class="reference download internal" href="../_downloads/plot_lobster_files.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_lobster_files.py</span></code></a></div>
@@ -238,7 +244,7 @@ Number of sites in projected DOS: 2
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 01, 2018.<br/>
+      Last updated on Jul 26, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

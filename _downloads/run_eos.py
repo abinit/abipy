@@ -13,6 +13,8 @@ import abipy.data as abidata
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk
 
+exclude_py_versions = ["2.7"]
+
 
 def build_flow(options):
     # Set working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")

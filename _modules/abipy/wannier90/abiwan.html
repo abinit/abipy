@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>abipy.wannier90.abiwan &#8212; abipy 0.6.0.dev documentation</title>
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.6.0.dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.6.0.dev</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <h1>Source code for abipy.wannier90.abiwan</h1><div class="highlight"><pre>
+<span></span><span class="c1"># coding: utf-8</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Interface to the ABIWAN netcdf file produced by abinit when calling wannier90 in library mode.</span>
+<span class="sd">Inspired to the Fortran version of wannier90.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">tabulate</span> <span class="k">import</span> <span class="n">tabulate</span>
+<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">marquee</span>
+<span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
+<span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
+<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Header</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_ElectronBands</span><span class="p">,</span> <span class="n">NotebookWriter</span>
+<span class="kn">from</span> <span class="nn">abipy.core.kpoints</span> <span class="k">import</span> <span class="n">Kpath</span><span class="p">,</span> <span class="n">IrredZone</span>
+<span class="kn">from</span> <span class="nn">abipy.abio.robots</span> <span class="k">import</span> <span class="n">Robot</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span> <span class="c1">#, get_axarray_fig_plt</span>
+<span class="kn">from</span> <span class="nn">abipy.electrons.ebands</span> <span class="k">import</span> <span class="n">ElectronBands</span><span class="p">,</span> <span class="n">ElectronsReader</span><span class="p">,</span> <span class="n">ElectronBandsPlotter</span><span class="p">,</span> <span class="n">RobotWithEbands</span>
+
+
+<div class="viewcode-block" id="AbiwanFile"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.abiwan.AbiwanFile">[docs]</a><span class="k">class</span> <span class="nc">AbiwanFile</span><span class="p">(</span><span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Header</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_ElectronBands</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    File produced by Abinit with the unitary matrices obtained by</span>
+<span class="sd">    calling wannier90 in library mode.</span>
+
+<span class="sd">    Usage example:</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        with abilab.abiopen(&quot;foo_ABIWAN.nc&quot;) as abiwan:</span>
+<span class="sd">            print(abiwan)</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: AbiwanFile</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="AbiwanFile.from_file"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.abiwan.AbiwanFile.from_file">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize the object from a netcdf_ file.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AbiwanFile</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">reader</span> <span class="o">=</span> <span class="n">AbiwanReader</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+
+        <span class="c1"># Number of bands actually used to construct the Wannier functions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_bands_spin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;num_bands&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="AbiwanFile.nwan_spin"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.abiwan.AbiwanFile.nwan_spin">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">nwan_spin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Number of Wannier functions for each spin.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;nwan&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AbiwanFile.mwan"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.abiwan.AbiwanFile.mwan">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">mwan</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Max number of Wannier functions over spins, i.e max(nwan_spin)</span>
+<span class="sd">        (used to dimension arrays).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_dimvalue</span><span class="p">(</span><span class="s2">&quot;mwan&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AbiwanFile.nntot"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.abiwan.AbiwanFile.nntot">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">nntot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Number of k-point neighbours.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;nntot&quot;</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="AbiwanFile.bands_in"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.abiwan.AbiwanFile.bands_in">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">bands_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        [nsppol, mband] logical array. Set to True if (spin, band) is included</span>
+<span class="sd">        in the calculation. Set by exclude_bands</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;band_in_int&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AbiwanFile.lwindow"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.abiwan.AbiwanFile.lwindow">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">lwindow</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        [nsppol, nkpt, max_num_bands] array. Only if disentanglement.</span>
+<span class="sd">        True if this band at this k-point lies within the outer window</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;lwindow_int&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span></div>
+
+    <span class="c1">#@lazy_property</span>
+    <span class="c1">#def ndimwin(self):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    [nsppol, nkpt] array giving the number of bands inside the outer window for each k-point and spin.</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    return self.reader.read_value(&quot;ndimwin&quot;)</span>
+
+<div class="viewcode-block" id="AbiwanFile.have_disentangled_spin"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.abiwan.AbiwanFile.have_disentangled_spin">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">have_disentangled_spin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;[nsppol] bool array. Whether disentanglement has been performed.&quot;&quot;&quot;</span>
+        <span class="c1">#return self.reader.read_value(&quot;have_disentangled_spin&quot;).astype(np.bool)</span>
+        <span class="c1"># TODO: Exclude bands</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nwan_spin</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_bands_spin</span></div>
+
+<div class="viewcode-block" id="AbiwanFile.wann_centers"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.abiwan.AbiwanFile.wann_centers">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">wann_centers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;[nsppol, mwan, 3] array with Wannier centers in Ang.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;wann_centres&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AbiwanFile.wann_spreads"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.abiwan.AbiwanFile.wann_spreads">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">wann_spreads</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;[nsppol, mwan] array with spreads in Ang^2&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;wann_spreads&quot;</span><span class="p">)</span></div>
+
+    <span class="c1">#@lazy_property</span>
+    <span class="c1">#def spread_spin(self):</span>
+    <span class="c1">#    &quot;&quot;&quot;[nsppol, 3] array with spread in Ang^2&quot;&quot;&quot;</span>
+    <span class="c1">#    return self.reader.read_value(&quot;spread&quot;)</span>
+
+<div class="viewcode-block" id="AbiwanFile.irvec"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.abiwan.AbiwanFile.irvec">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">irvec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        [nrpts, 3] array with the lattice vectors in the Wigner-Seitz cell</span>
+<span class="sd">        in the basis of the lattice vectors defining the unit cell</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;irvec&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AbiwanFile.ndegen"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.abiwan.AbiwanFile.ndegen">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">ndegen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        [nrpts] array with the degeneracy of each point.</span>
+<span class="sd">        It will be weighted using 1 / ndegen[ir]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;ndegen&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AbiwanFile.params"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.abiwan.AbiwanFile.params">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:class:`OrderedDict` with parameters that might be subject to convergence studies.&quot;&quot;&quot;</span>
+        <span class="n">od</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_ebands_params</span><span class="p">()</span>
+        <span class="c1"># TODO</span>
+        <span class="k">return</span> <span class="n">od</span></div>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
+
+<div class="viewcode-block" id="AbiwanFile.to_string"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.abiwan.AbiwanFile.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;String representation with verbosity level verbose.&quot;&quot;&quot;</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+
+        <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;File Info&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filestat</span><span class="p">(</span><span class="n">as_string</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Structure&quot;</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Electronic Bands&quot;</span><span class="p">,</span> <span class="n">with_structure</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_kpoints</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;Wannier90 Results&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span> <span class="n">app</span><span class="p">(</span><span class="s2">&quot;For spin: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">spin</span><span class="p">)</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;No of Wannier functions: </span><span class="si">%d</span><span class="s2">, No bands: </span><span class="si">%d</span><span class="s2">, Number of k-point neighbours: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span>
+                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nwan_spin</span><span class="p">[</span><span class="n">spin</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_bands_spin</span><span class="p">[</span><span class="n">spin</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">nntot</span><span class="p">))</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Disentanglement: </span><span class="si">%s</span><span class="s2">, exclude_bands: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
+                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">have_disentangled_spin</span><span class="p">[</span><span class="n">spin</span><span class="p">],</span> <span class="s2">&quot;no&quot;</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bands_in</span><span class="p">[</span><span class="n">spin</span><span class="p">])</span> <span class="k">else</span> <span class="s2">&quot;yes&quot;</span><span class="p">))</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">table</span> <span class="o">=</span> <span class="p">[[</span><span class="s2">&quot;WF_index&quot;</span><span class="p">,</span> <span class="s2">&quot;Center&quot;</span><span class="p">,</span> <span class="s2">&quot;Spread&quot;</span><span class="p">]]</span>
+            <span class="k">for</span> <span class="n">iwan</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nwan_spin</span><span class="p">[</span><span class="n">spin</span><span class="p">]):</span>
+                <span class="n">table</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">iwan</span><span class="p">,</span>
+                             <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">np</span><span class="o">.</span><span class="n">array2string</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wann_centers</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">iwan</span><span class="p">],</span> <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">),</span>
+                             <span class="s2">&quot;</span><span class="si">%.3f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">wann_spreads</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">iwan</span><span class="p">]])</span>
+            <span class="n">app</span><span class="p">(</span><span class="n">tabulate</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">&quot;plain&quot;</span><span class="p">))</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">verbose</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">have_disentangled_spin</span><span class="p">):</span>
+            <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;Lwindow&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;[nsppol, nkpt, max_num_bands] array. True if state lies within the outer window.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span> <span class="n">app</span><span class="p">(</span><span class="s2">&quot;For spin: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">spin</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">ik</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nkpt</span><span class="p">):</span>
+                    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;For ik: </span><span class="si">%d</span><span class="s2">, </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ik</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lwindow</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ik</span><span class="p">]))</span>
+                <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">verbose</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bands_in</span><span class="p">):</span>
+            <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;Bands_in&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;[nsppol, mband] array. True if (spin, band) is included in the calculation. Set by exclude_bands.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span> <span class="n">app</span><span class="p">(</span><span class="s2">&quot;For spin: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">spin</span><span class="p">)</span>
+                <span class="n">app</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bands_in</span><span class="p">[</span><span class="n">spin</span><span class="p">]))</span>
+                <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hdr</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Abinit Header&quot;</span><span class="p">))</span>
+            <span class="c1">#app(&quot;irvec and ndegen&quot;)</span>
+            <span class="c1">#for r, n in zip(self.irvec, self.ndegen):</span>
+            <span class="c1">#    app(&quot;%s %s&quot; % (r, n))</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AbiwanFile.close"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.abiwan.AbiwanFile.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Close file.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="AbiwanFile.ebands"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.abiwan.AbiwanFile.ebands">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">ebands</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;|ElectronBands| object.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_ebands</span><span class="p">()</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;|Structure| object.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">structure</span>
+
+<div class="viewcode-block" id="AbiwanFile.hwan"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.abiwan.AbiwanFile.hwan">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">hwan</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Construct the matrix elements of the KS Hamiltonian in real space</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="n">nrpts</span><span class="p">,</span> <span class="n">num_kpts</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">irvec</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">nkpt</span>
+        <span class="n">kfrac_coords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">kpoints</span><span class="o">.</span><span class="n">frac_coords</span>
+        <span class="c1"># Init datastructures needed by HWanR</span>
+        <span class="n">spin_rmn</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span>
+        <span class="n">spin_vmatrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="n">num_kpts</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+
+        <span class="c1">#kptopt = self.read.read_value(&quot;kptopt&quot;)</span>
+        <span class="c1">#has_timrev =</span>
+
+        <span class="c1"># Read unitary matrices from file.</span>
+        <span class="c1"># Here be very careful with F --&gt; C because we have to transpose.</span>
+        <span class="c1"># complex U_matrix[nsppol, nkpt, mwan, mwan]</span>
+        <span class="n">u_matrix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;U_matrix&quot;</span><span class="p">,</span> <span class="n">cmode</span><span class="o">=</span><span class="s2">&quot;c&quot;</span><span class="p">)</span>
+
+        <span class="c1"># complex U_matrix_opt[nsppol, mkpt, mwan, mband]</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">have_disentangled_spin</span><span class="p">):</span>
+            <span class="n">u_matrix_opt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;U_matrix_opt&quot;</span><span class="p">,</span> <span class="n">cmode</span><span class="o">=</span><span class="s2">&quot;c&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">):</span>
+            <span class="n">num_wan</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nwan_spin</span><span class="p">[</span><span class="n">spin</span><span class="p">]</span>
+
+            <span class="c1"># Real-space Hamiltonian H(R) is calculated by Fourier</span>
+            <span class="c1"># transforming H(q) defined on the ab-initio reciprocal mesh</span>
+            <span class="n">HH_q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">num_kpts</span><span class="p">,</span> <span class="n">num_wan</span><span class="p">,</span> <span class="n">num_wan</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">ik</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_kpts</span><span class="p">):</span>
+                <span class="n">eigs_k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">eigens</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ik</span><span class="p">]</span>
+                <span class="c1"># May have num_wan != mwan</span>
+                <span class="n">uk</span> <span class="o">=</span> <span class="n">u_matrix</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ik</span><span class="p">][:</span><span class="n">num_wan</span><span class="p">,</span> <span class="p">:</span><span class="n">num_wan</span><span class="p">]</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+                <span class="c1"># Calculate the matrix that describes the combined effect of</span>
+                <span class="c1"># disentanglement and maximal localization. This is the combination</span>
+                <span class="c1"># that is most often needed for interpolation purposes</span>
+                <span class="c1"># FIXME: problem with netcdf file</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">have_disentangled_spin</span><span class="p">[</span><span class="n">spin</span><span class="p">]:</span>
+                    <span class="c1"># [num_wann, num_wann] matrices, bands_in needed if exclude_bands</span>
+                    <span class="n">hks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">eigs_k</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">bands_in</span><span class="p">[</span><span class="n">spin</span><span class="p">]])</span>
+                    <span class="n">v_matrix</span> <span class="o">=</span> <span class="n">uk</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Select bands within the outer window</span>
+                    <span class="c1"># TODO: Test if bands_in?</span>
+                    <span class="n">mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lwindow</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ik</span><span class="p">]</span>
+                    <span class="n">hks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">eigs_k</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span>
+                    <span class="c1">#v_matrix = u_matrix_opt[spin, ik][:num_wan, mask].transpose() @ uk</span>
+                    <span class="n">v_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">u_matrix_opt</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ik</span><span class="p">][:</span><span class="n">num_wan</span><span class="p">,</span> <span class="n">mask</span><span class="p">]</span><span class="o">.</span><span class="n">transpose</span><span class="p">(),</span> <span class="n">uk</span><span class="p">)</span>
+
+                <span class="c1">#HH_q[ik] = v_matrix.transpose().conjugate() @ hks @ v_matrix</span>
+                <span class="n">HH_q</span><span class="p">[</span><span class="n">ik</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">v_matrix</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span><span class="o">.</span><span class="n">conjugate</span><span class="p">(),</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">hks</span><span class="p">,</span> <span class="n">v_matrix</span><span class="p">))</span>
+                <span class="n">spin_vmatrix</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ik</span><span class="p">]</span> <span class="o">=</span> <span class="n">v_matrix</span>
+
+            <span class="c1"># Fourier transform Hamiltonian in the wannier-gauge representation.</span>
+            <span class="c1"># O_ij(R) = (1/N_kpts) sum_q e^{-iqR} O_ij(q)</span>
+            <span class="n">rmn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nrpts</span><span class="p">,</span> <span class="n">num_wan</span><span class="p">,</span> <span class="n">num_wan</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex</span><span class="p">)</span>
+            <span class="n">j2pi</span> <span class="o">=</span> <span class="mf">2.0</span><span class="n">j</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+
+            <span class="c1">#for ir in range(nrpts):</span>
+            <span class="c1">#   for ik, kfcs in enumerate(kfrac_coords):</span>
+            <span class="c1">#      jqr = j2pi * np.dot(kfcs, self.irvec[ir])</span>
+            <span class="c1">#      rmn[ir] += np.exp(-jqr) * HH_q[ik]</span>
+            <span class="c1">#rmn *= (1.0 / num_kpts)</span>
+
+            <span class="k">for</span> <span class="n">ik</span><span class="p">,</span> <span class="n">kfcs</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">kfrac_coords</span><span class="p">):</span>
+                <span class="n">jqr</span> <span class="o">=</span> <span class="n">j2pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">irvec</span><span class="p">,</span> <span class="n">kfcs</span><span class="p">)</span>
+                <span class="n">phases</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">jqr</span><span class="p">)</span>
+                <span class="n">rmn</span> <span class="o">+=</span> <span class="n">phases</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">HH_q</span><span class="p">[</span><span class="n">ik</span><span class="p">]</span>
+            <span class="n">rmn</span> <span class="o">*=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">num_kpts</span><span class="p">)</span>
+
+            <span class="c1"># Save results</span>
+            <span class="n">spin_rmn</span><span class="p">[</span><span class="n">spin</span><span class="p">]</span> <span class="o">=</span> <span class="n">rmn</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;HWanR built in </span><span class="si">%.3f</span><span class="s2"> (s)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">HWanR</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nwan_spin</span><span class="p">,</span> <span class="n">spin_vmatrix</span><span class="p">,</span> <span class="n">spin_rmn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">irvec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndegen</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AbiwanFile.interpolate_ebands"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.abiwan.AbiwanFile.interpolate_ebands">[docs]</a>    <span class="k">def</span> <span class="nf">interpolate_ebands</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vertices_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">line_density</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">ngkpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shiftk</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">kpoints</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build new |ElectronBands| object by interpolating the KS Hamiltonian with Wannier functions.</span>
+<span class="sd">        Supports k-path via (vertices_names, line_density), IBZ mesh defined by ngkpt and shiftk</span>
+<span class="sd">        or input list of kpoints.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            vertices_names: Used to specify the k-path for the interpolated QP band structure</span>
+<span class="sd">                List of tuple, each tuple is of the form (kfrac_coords, kname) where</span>
+<span class="sd">                kfrac_coords are the reduced coordinates of the k-point and kname is a string with the name of</span>
+<span class="sd">                the k-point. Each point represents a vertex of the k-path. ``line_density`` defines</span>
+<span class="sd">                the density of the sampling. If None, the k-path is automatically generated according</span>
+<span class="sd">                to the point group of the system.</span>
+<span class="sd">            line_density: Number of points in the smallest segment of the k-path. Used with ``vertices_names``.</span>
+<span class="sd">            ngkpt: Mesh divisions. Used if bands should be interpolated in the IBZ.</span>
+<span class="sd">            shiftk: Shifts for k-meshs. Used with ngkpt.</span>
+<span class="sd">            kpoints: |KpointList| object taken e.g from a previous ElectronBands.</span>
+<span class="sd">                Has precedence over vertices_names and line_density.</span>
+
+<span class="sd">        Returns: |ElectronBands| object with Wannier-interpolated energies.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Need KpointList object.</span>
+        <span class="k">if</span> <span class="n">kpoints</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ngkpt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># IBZ sampling</span>
+                <span class="n">kpoints</span> <span class="o">=</span> <span class="n">IrredZone</span><span class="o">.</span><span class="n">from_ngkpt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">ngkpt</span><span class="p">,</span> <span class="n">shiftk</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># K-Path</span>
+                <span class="k">if</span> <span class="n">vertices_names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">vertices_names</span> <span class="o">=</span> <span class="p">[(</span><span class="n">k</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span> <span class="n">k</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">hsym_kpoints</span><span class="p">]</span>
+                <span class="n">kpoints</span> <span class="o">=</span> <span class="n">Kpath</span><span class="o">.</span><span class="n">from_vertices_and_names</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">vertices_names</span><span class="p">,</span> <span class="n">line_density</span><span class="o">=</span><span class="n">line_density</span><span class="p">)</span>
+
+        <span class="n">nk</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">kpoints</span><span class="p">)</span>
+        <span class="n">eigens</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="n">nk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mwan</span><span class="p">))</span>
+
+        <span class="c1"># Interpolate Hamiltonian for each kpoint and spin.</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">write_warning</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">):</span>
+            <span class="n">num_wan</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nwan_spin</span><span class="p">[</span><span class="n">spin</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">ik</span><span class="p">,</span> <span class="n">kpt</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">kpoints</span><span class="p">):</span>
+                <span class="n">oeigs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hwan</span><span class="o">.</span><span class="n">eval_sk</span><span class="p">(</span><span class="n">spin</span><span class="p">,</span> <span class="n">kpt</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">)</span>
+                <span class="n">eigens</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ik</span><span class="p">,</span> <span class="p">:</span><span class="n">num_wan</span><span class="p">]</span> <span class="o">=</span> <span class="n">oeigs</span>
+                <span class="k">if</span> <span class="n">num_wan</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">mwan</span><span class="p">:</span>
+                    <span class="c1"># May have different number of wannier functions if nsppol == 2.</span>
+                    <span class="c1"># Here I use the last value to fill eigens matrix (not very clean but oh well).</span>
+                    <span class="n">eigens</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ik</span><span class="p">,</span> <span class="n">num_wan</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">mwan</span><span class="p">]</span> <span class="o">=</span> <span class="n">oeigs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">write_warning</span><span class="p">:</span>
+                        <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Different number of wannier functions for spin. Filling last bands with oeigs[-1]&quot;</span><span class="p">,</span>
+                               <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
+                        <span class="n">write_warning</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Interpolation completed in </span><span class="si">%.3f</span><span class="s2"> [s]&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span><span class="p">))</span>
+        <span class="n">occfacts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">eigens</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">ElectronBands</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">kpoints</span><span class="p">,</span> <span class="n">eigens</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">fermie</span><span class="p">,</span>
+                             <span class="n">occfacts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">nelect</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspden</span><span class="p">,</span>
+                             <span class="n">smearing</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">smearing</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AbiwanFile.get_plotter_from_ebands"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.abiwan.AbiwanFile.get_plotter_from_ebands">[docs]</a>    <span class="k">def</span> <span class="nf">get_plotter_from_ebands</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ebands</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Interpolate energies using the k-points given in input |ElectronBands| ebands.</span>
+
+<span class="sd">        Return: |ElectronBandsPlotter| object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ebands</span> <span class="o">=</span> <span class="n">ElectronBands</span><span class="o">.</span><span class="n">as_ebands</span><span class="p">(</span><span class="n">ebands</span><span class="p">)</span>
+        <span class="n">wan_ebands</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">interpolate_ebands</span><span class="p">(</span><span class="n">kpoints</span><span class="o">=</span><span class="n">ebands</span><span class="o">.</span><span class="n">kpoints</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">ElectronBandsPlotter</span><span class="p">(</span><span class="n">key_ebands</span><span class="o">=</span><span class="p">[(</span><span class="s2">&quot;Ab-initio&quot;</span><span class="p">,</span> <span class="n">ebands</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;Interpolated&quot;</span><span class="p">,</span> <span class="n">wan_ebands</span><span class="p">)])</span></div>
+
+<div class="viewcode-block" id="AbiwanFile.yield_figs"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.abiwan.AbiwanFile.yield_figs">[docs]</a>    <span class="k">def</span> <span class="nf">yield_figs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function *generates* a predefined list of matplotlib figures with minimal input from the user.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">interpolate_ebands</span><span class="p">()</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">hwan</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;verbose&quot;</span><span class="p">):</span>
+            <span class="n">linestyle_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Interpolated&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">linewidth</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">)}</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_plotter_from_ebands</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="p">)</span><span class="o">.</span><span class="n">combiplot</span><span class="p">(</span><span class="n">linestyle_dict</span><span class="o">=</span><span class="n">linestyle_dict</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Use verbose option to compare ab-initio points with interpolated values&quot;</span><span class="p">,</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AbiwanFile.write_notebook"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.abiwan.AbiwanFile.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current</span>
+<span class="sd">        working directory is created. Return path to the notebook.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv_nb</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;abiwan = abilab.abiopen(&#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;print(abiwan.to_string(verbose=0))&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;abiwan.ebands.plot();&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;abiwan.ebands.kpoints.plot();&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;abiwan.hwan.plot();&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;#abiwan.get_plotter_from_ebands(;file_with_abinitio_ebands&#39;).combiplot();&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ebands_kpath = abiwan.interpolate_ebands()&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ebands_kpath.plot();&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ebands_kmesh = abiwan.interpolate_ebands(ngkpt=[8, 8, 8])&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ebands_kpath.plot_with_edos(ebands_kmesh.get_edos());&quot;</span><span class="p">),</span>
+        <span class="p">])</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div></div>
+
+
+<span class="kn">from</span> <span class="nn">abipy.core.skw</span> <span class="k">import</span> <span class="n">ElectronInterpolator</span>
+<div class="viewcode-block" id="HWanR"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.abiwan.HWanR">[docs]</a><span class="k">class</span> <span class="nc">HWanR</span><span class="p">(</span><span class="n">ElectronInterpolator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This object represents the KS Hamiltonian in the wannier-gauge representation.</span>
+<span class="sd">    It provides low-level methods to interpolate the KS eigenvalues, and a high-level API</span>
+<span class="sd">    to interpolate bandstructures and plot the decay of the matrix elements in real space.</span>
+
+<span class="sd">    # &lt;0n|H|Rm&gt;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">nwan_spin</span><span class="p">,</span> <span class="n">spin_vmatrix</span><span class="p">,</span> <span class="n">spin_rmn</span><span class="p">,</span> <span class="n">irvec</span><span class="p">,</span> <span class="n">ndegen</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">structure</span> <span class="o">=</span> <span class="n">structure</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nwan_spin</span> <span class="o">=</span> <span class="n">nwan_spin</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spin_vmatrix</span> <span class="o">=</span> <span class="n">spin_vmatrix</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spin_rmn</span> <span class="o">=</span> <span class="n">spin_rmn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">irvec</span> <span class="o">=</span> <span class="n">irvec</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ndegen</span> <span class="o">=</span> <span class="n">ndegen</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nrpts</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ndegen</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nwan_spin</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spin_rmn</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">irvec</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">nrpts</span>
+        <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">):</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spin_rmn</span><span class="p">[</span><span class="n">spin</span><span class="p">])</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">nrpts</span>
+
+        <span class="c1"># To call spglib</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cell</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">matrix</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">atomic_numbers</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_timrev</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nband</span> <span class="o">=</span> <span class="n">nwan_spin</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1">#self.nelect</span>
+
+<div class="viewcode-block" id="HWanR.eval_sk"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.abiwan.HWanR.eval_sk">[docs]</a>    <span class="k">def</span> <span class="nf">eval_sk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="n">kpt</span><span class="p">,</span> <span class="n">der1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">der2</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Interpolate eigenvalues for all bands at a given (spin, k-point).</span>
+<span class="sd">        Optionally compute gradients and Hessian matrices.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            spin: Spin index.</span>
+<span class="sd">            kpt: K-point in reduced coordinates.</span>
+<span class="sd">            der1: If not None, ouput gradient is stored in der1[nband, 3].</span>
+<span class="sd">            der2: If not None, output Hessian is der2[nband, 3, 3].</span>
+
+<span class="sd">        Return:</span>
+<span class="sd">            oeigs[nband]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">der1</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">der2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Derivatives&quot;</span><span class="p">)</span>
+
+        <span class="c1"># O_ij(k) = sum_R e^{+ik.R}*O_ij(R)</span>
+        <span class="n">j2pi</span> <span class="o">=</span> <span class="mf">2.0</span><span class="n">j</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        num_wan = self.nwan_spin[spin]</span>
+<span class="sd">        hk_ij = np.zeros((num_wan, num_wan), dtype=np.complex)</span>
+<span class="sd">        for ir in range(self.nrpts):</span>
+<span class="sd">            jrk = j2pi * np.dot(kpt, self.irvec[ir])</span>
+<span class="sd">            hk_ij += self.spin_rmn[spin][ir] * (np.exp(jrk) / self.ndegen[ir])</span>
+<span class="sd">        oeigs, _ = np.linalg.eigh(hk_ij)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># This is a bit faster.</span>
+        <span class="n">jrk</span> <span class="o">=</span> <span class="n">j2pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">irvec</span><span class="p">,</span> <span class="n">kpt</span><span class="p">)</span>
+        <span class="n">phases</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">jrk</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndegen</span>
+        <span class="n">hk_ij</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spin_rmn</span><span class="p">[</span><span class="n">spin</span><span class="p">]</span> <span class="o">*</span> <span class="n">phases</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">oeigs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eigh</span><span class="p">(</span><span class="n">hk_ij</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">oeigs</span></div>
+
+    <span class="c1"># TODO</span>
+    <span class="c1">#def interpolate_omat(self, omat, kpoints):</span>
+    <span class="c1">#def interpolate_sigres(self, sigres):</span>
+    <span class="c1">#def interpolate_sigeph(self, sigeph):</span>
+
+<div class="viewcode-block" id="HWanR.plot"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.abiwan.HWanR.plot">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">yscale</span><span class="o">=</span><span class="s2">&quot;log&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot the matrix elements of the KS Hamiltonian in real space in the Wannier Gauge.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ax: |matplotlib-Axes| or None if a new figure should be created.</span>
+<span class="sd">            fontsize: fontsize for legends and titles</span>
+<span class="sd">            yscale: Define scale for y-axis. Passed to ax.set_yscale</span>
+<span class="sd">            kwargs: options passed to ``ax.plot``.</span>
+
+<span class="sd">        Return: |matplotlib-Figure|</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Sort R-points by length and build sortmap.</span>
+        <span class="n">irs</span> <span class="o">=</span> <span class="p">[</span><span class="n">ir</span> <span class="k">for</span> <span class="n">ir</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">irvec</span><span class="p">))]</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">irs</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">sortmap</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">])</span>
+        <span class="n">rvals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">])</span>
+
+        <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$|R|$ (Ang)&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$Max |H^W_</span><span class="si">{ij}</span><span class="s2">(R)|$&quot;</span><span class="p">)</span>
+
+        <span class="n">marker_spin</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;^&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;v&quot;</span><span class="p">}</span>
+        <span class="n">needs_legend</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">):</span>
+            <span class="n">amax_r</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spin_rmn</span><span class="p">[</span><span class="n">spin</span><span class="p">][</span><span class="n">ir</span><span class="p">])</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="k">for</span> <span class="n">ir</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nrpts</span><span class="p">)]</span>
+            <span class="n">amax_r</span> <span class="o">=</span> <span class="p">[</span><span class="n">amax_r</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sortmap</span><span class="p">]</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;spin: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">spin</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">label</span><span class="p">:</span> <span class="n">needs_legend</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">rvals</span><span class="p">,</span> <span class="n">amax_r</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="n">marker_spin</span><span class="p">[</span><span class="n">spin</span><span class="p">],</span>
+                    <span class="n">lw</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;lw&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+                    <span class="n">color</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;color&quot;</span><span class="p">,</span> <span class="s2">&quot;k&quot;</span><span class="p">),</span>
+                    <span class="n">markeredgecolor</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">,</span>
+                    <span class="n">markerfacecolor</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">,</span>
+                    <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="n">yscale</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">needs_legend</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fig</span></div></div>
+
+
+<div class="viewcode-block" id="AbiwanReader"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.abiwan.AbiwanReader">[docs]</a><span class="k">class</span> <span class="nc">AbiwanReader</span><span class="p">(</span><span class="n">ElectronsReader</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This object reads the results stored in the ABIWAN file produced by ABINIT after having</span>
+<span class="sd">    called wannier90 in library mode.</span>
+<span class="sd">    It provides helper function to access the most important quantities.</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: AbiwanReader</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="AbiwanRobot"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.abiwan.AbiwanRobot">[docs]</a><span class="k">class</span> <span class="nc">AbiwanRobot</span><span class="p">(</span><span class="n">Robot</span><span class="p">,</span> <span class="n">RobotWithEbands</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This robot analyzes the results contained in multiple ABIWAN.nc_ files.</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: AbiwanRobot</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">EXT</span> <span class="o">=</span> <span class="s2">&quot;ABIWAN&quot;</span>
+
+<div class="viewcode-block" id="AbiwanRobot.get_dataframe"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.abiwan.AbiwanRobot.get_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">get_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_geo</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">abspath</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">funcs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a |pandas-DataFrame| with the most important Wannier90 results.</span>
+<span class="sd">        and the filenames as index.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            with_geo: True if structure info should be added to the dataframe</span>
+<span class="sd">            abspath: True if paths in index should be absolute. Default: Relative to getcwd().</span>
+
+<span class="sd">        kwargs:</span>
+<span class="sd">            attrs:</span>
+<span class="sd">                List of additional attributes of the |GsrFile| to add to the DataFrame.</span>
+<span class="sd">            funcs: Function or list of functions to execute to add more data to the DataFrame.</span>
+<span class="sd">                Each function receives a |GsrFile| object and returns a tuple (key, value)</span>
+<span class="sd">                where key is a string with the name of column and value is the value to be inserted.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># TODO</span>
+        <span class="c1"># Add attributes specified by the users</span>
+        <span class="c1">#attrs = [</span>
+        <span class="c1">#    &quot;energy&quot;, &quot;pressure&quot;, &quot;max_force&quot;,</span>
+        <span class="c1">#    &quot;ecut&quot;, &quot;pawecutdg&quot;,</span>
+        <span class="c1">#    &quot;tsmear&quot;, &quot;nkpt&quot;,</span>
+        <span class="c1">#    &quot;nsppol&quot;, &quot;nspinor&quot;, &quot;nspden&quot;,</span>
+        <span class="c1">#] + kwargs.pop(&quot;attrs&quot;, [])</span>
+
+        <span class="n">rows</span><span class="p">,</span> <span class="n">row_names</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">abiwan</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">row_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+
+            <span class="c1"># Add info on structure.</span>
+            <span class="k">if</span> <span class="n">with_geo</span><span class="p">:</span>
+                <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">abiwan</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">get_dict4pandas</span><span class="p">(</span><span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+
+            <span class="c1">#for aname in attrs:</span>
+            <span class="c1">#    if aname == &quot;nkpt&quot;:</span>
+            <span class="c1">#        value = len(abiwan.ebands.kpoints)</span>
+            <span class="c1">#    else:</span>
+            <span class="c1">#        value = getattr(abiwan, aname, None)</span>
+            <span class="c1">#        if value is None: value = getattr(abiwan.ebands, aname, None)</span>
+            <span class="c1">#    d[aname] = value</span>
+
+            <span class="c1"># Execute functions</span>
+            <span class="k">if</span> <span class="n">funcs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_exec_funcs</span><span class="p">(</span><span class="n">funcs</span><span class="p">,</span> <span class="n">abiwan</span><span class="p">))</span>
+            <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+
+        <span class="n">row_names</span> <span class="o">=</span> <span class="n">row_names</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">abspath</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_relpaths</span><span class="p">(</span><span class="n">row_names</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">row_names</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span></div>
+
+<div class="viewcode-block" id="AbiwanRobot.plot_hwanr"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.abiwan.AbiwanRobot.plot_hwanr">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_hwanr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="s2">&quot;jet&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot the matrix elements of the KS Hamiltonian in real space in the Wannier Gauge.</span>
+<span class="sd">        on the same Axes.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ax: |matplotlib-Axes| or None if a new figure should be created.</span>
+<span class="sd">            colormap: matplotlib color map.</span>
+<span class="sd">            fontsize: fontsize for legends and titles</span>
+
+<span class="sd">        Return: |matplotlib-Figure|</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+        <span class="n">cmap</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="n">colormap</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">abiwan</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">abifiles</span><span class="p">):</span>
+            <span class="n">abiwan</span><span class="o">.</span><span class="n">hwan</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">cmap</span><span class="p">(</span><span class="n">i</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)),</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fig</span></div>
+
+<div class="viewcode-block" id="AbiwanRobot.get_interpolated_ebands_plotter"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.abiwan.AbiwanRobot.get_interpolated_ebands_plotter">[docs]</a>    <span class="k">def</span> <span class="nf">get_interpolated_ebands_plotter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vertices_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">knames</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">line_density</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+            <span class="n">ngkpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shiftk</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">kpoints</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            vertices_names: Used to specify the k-path for the interpolated QP band structure</span>
+<span class="sd">                It&#39;s a list of tuple, each tuple is of the form (kfrac_coords, kname) where</span>
+<span class="sd">                kfrac_coords are the reduced coordinates of the k-point and kname is a string with the name of</span>
+<span class="sd">                the k-point. Each point represents a vertex of the k-path. ``line_density`` defines</span>
+<span class="sd">                the density of the sampling. If None, the k-path is automatically generated according</span>
+<span class="sd">                to the point group of the system.</span>
+<span class="sd">            knames: List of strings with the k-point labels defining the k-path. It has precedence over `vertices_names`.</span>
+<span class="sd">            line_density: Number of points in the smallest segment of the k-path. Used with ``vertices_names``.</span>
+<span class="sd">            ngkpt: Mesh divisions. Used if bands should be interpolated in the IBZ.</span>
+<span class="sd">            shiftk: Shifts for k-meshs. Used with ngkpt.</span>
+<span class="sd">            kpoints: |KpointList| object taken e.g from a previous ElectronBands.</span>
+<span class="sd">                Has precedence over vertices_names and line_density.</span>
+
+<span class="sd">        Return: |ElectronBandsPlotter| object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">diff_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_different_structures</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">diff_str</span><span class="p">:</span> <span class="n">cprint</span><span class="p">(</span><span class="n">diff_str</span><span class="p">,</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Need KpointList object (assume same structures in Robot)</span>
+        <span class="n">nc0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">abifiles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">kpoints</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ngkpt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># IBZ sampling</span>
+                <span class="n">kpoints</span> <span class="o">=</span> <span class="n">IrredZone</span><span class="o">.</span><span class="n">from_ngkpt</span><span class="p">(</span><span class="n">nc0</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">ngkpt</span><span class="p">,</span> <span class="n">shiftk</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># K-Path</span>
+                <span class="k">if</span> <span class="n">knames</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">kpoints</span> <span class="o">=</span> <span class="n">Kpath</span><span class="o">.</span><span class="n">from_names</span><span class="p">(</span><span class="n">nc0</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">knames</span><span class="p">,</span> <span class="n">line_density</span><span class="o">=</span><span class="n">line_density</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">vertices_names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">vertices_names</span> <span class="o">=</span> <span class="p">[(</span><span class="n">k</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span> <span class="n">k</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">nc0</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">hsym_kpoints</span><span class="p">]</span>
+                    <span class="n">kpoints</span> <span class="o">=</span> <span class="n">Kpath</span><span class="o">.</span><span class="n">from_vertices_and_names</span><span class="p">(</span><span class="n">nc0</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">vertices_names</span><span class="p">,</span> <span class="n">line_density</span><span class="o">=</span><span class="n">line_density</span><span class="p">)</span>
+
+        <span class="n">plotter</span> <span class="o">=</span> <span class="n">ElectronBandsPlotter</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">abiwan</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">plotter</span><span class="o">.</span><span class="n">add_ebands</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">abiwan</span><span class="o">.</span><span class="n">interpolate_ebands</span><span class="p">(</span><span class="n">kpoints</span><span class="o">=</span><span class="n">kpoints</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">plotter</span></div>
+
+<div class="viewcode-block" id="AbiwanRobot.yield_figs"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.abiwan.AbiwanRobot.yield_figs">[docs]</a>    <span class="k">def</span> <span class="nf">yield_figs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function *generates* a predefined list of matplotlib figures with minimal input from the user.</span>
+<span class="sd">        Used in abiview.py to get a quick look at the results.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_eband_plotter</span><span class="p">()</span>
+        <span class="k">yield</span> <span class="n">p</span><span class="o">.</span><span class="n">combiplot</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">p</span><span class="o">.</span><span class="n">gridplot</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_hwanr</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AbiwanRobot.write_notebook"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.abiwan.AbiwanRobot.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current</span>
+<span class="sd">        working directory is created. Return path to the notebook.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv_nb</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[(</span><span class="n">l</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+        <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+            <span class="c1">#nbv.new_markdown_cell(&quot;# This is a markdown cell&quot;),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;robot = abilab.AbiwanRobot(*</span><span class="si">%s</span><span class="s2">)</span><span class="se">\n</span><span class="s2">robot.trim_paths()</span><span class="se">\n</span><span class="s2">robot&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">)),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;robot.get_dataframe()&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;robot.plot_hwanr();&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ebands_plotter = robot.get_interpolated_ebands_plotter()&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ebands_plotter.ipw_select_plot()&quot;</span><span class="p">),</span>
+        <span class="p">])</span>
+
+        <span class="c1"># Mixins</span>
+        <span class="c1">#nb.cells.extend(self.get_baserobot_code_cells())</span>
+        <span class="c1">#nb.cells.extend(self.get_ebands_code_cells())</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div></div>
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
+      Last updated on Jul 26, 2018.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

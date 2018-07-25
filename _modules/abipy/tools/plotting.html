@@ -77,6 +77,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -167,21 +168,21 @@
 <span class="c1"># https://matplotlib.org/gallery/lines_bars_and_markers/linestyles.html</span>
 <span class="n">linestyles</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
     <span class="p">[(</span><span class="s1">&#39;solid&#39;</span><span class="p">,</span>               <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">())),</span>
-     <span class="p">(</span><span class="s1">&#39;loosely dotted&#39;</span><span class="p">,</span>      <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">))),</span>
+     <span class="p">(</span><span class="s1">&#39;loosely_dotted&#39;</span><span class="p">,</span>      <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">))),</span>
      <span class="p">(</span><span class="s1">&#39;dotted&#39;</span><span class="p">,</span>              <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">))),</span>
-     <span class="p">(</span><span class="s1">&#39;densely dotted&#39;</span><span class="p">,</span>      <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))),</span>
+     <span class="p">(</span><span class="s1">&#39;densely_dotted&#39;</span><span class="p">,</span>      <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))),</span>
 
-     <span class="p">(</span><span class="s1">&#39;loosely dashed&#39;</span><span class="p">,</span>      <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">))),</span>
+     <span class="p">(</span><span class="s1">&#39;loosely_dashed&#39;</span><span class="p">,</span>      <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">))),</span>
      <span class="p">(</span><span class="s1">&#39;dashed&#39;</span><span class="p">,</span>              <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">))),</span>
-     <span class="p">(</span><span class="s1">&#39;densely dashed&#39;</span><span class="p">,</span>      <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">))),</span>
+     <span class="p">(</span><span class="s1">&#39;densely_dashed&#39;</span><span class="p">,</span>      <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">))),</span>
 
-     <span class="p">(</span><span class="s1">&#39;loosely dashdotted&#39;</span><span class="p">,</span>  <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">))),</span>
+     <span class="p">(</span><span class="s1">&#39;loosely_dashdotted&#39;</span><span class="p">,</span>  <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">))),</span>
      <span class="p">(</span><span class="s1">&#39;dashdotted&#39;</span><span class="p">,</span>          <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">))),</span>
-     <span class="p">(</span><span class="s1">&#39;densely dashdotted&#39;</span><span class="p">,</span>  <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))),</span>
+     <span class="p">(</span><span class="s1">&#39;densely_dashdotted&#39;</span><span class="p">,</span>  <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))),</span>
 
-     <span class="p">(</span><span class="s1">&#39;loosely dashdotdotted&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">))),</span>
+     <span class="p">(</span><span class="s1">&#39;loosely_dashdotdotted&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">))),</span>
      <span class="p">(</span><span class="s1">&#39;dashdotdotted&#39;</span><span class="p">,</span>         <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">))),</span>
-     <span class="p">(</span><span class="s1">&#39;densely dashdotdotted&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))]</span>
+     <span class="p">(</span><span class="s1">&#39;densely_dashdotdotted&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))]</span>
 <span class="p">)</span>
 
 
@@ -228,9 +229,19 @@
             <span class="n">left</span> <span class="o">=</span> <span class="n">lims</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
     <span class="n">set_lim</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="s2">&quot;set_xlim&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="s2">&quot;set_ylim&quot;</span><span class="p">}[</span><span class="n">axname</span><span class="p">])</span>
-    <span class="n">set_lim</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">left</span> <span class="o">!=</span> <span class="n">right</span><span class="p">:</span>
+        <span class="n">set_lim</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span></div>
+
+
+<span class="k">def</span> <span class="nf">set_ax_xylabels</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">xlabel</span><span class="p">,</span> <span class="n">ylabel</span><span class="p">,</span> <span class="n">exchange_xy</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Set the x- and the y-label of axis ax, exchanging x and y if exchange_xy</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">exchange_xy</span><span class="p">:</span> <span class="n">xlabel</span><span class="p">,</span> <span class="n">ylabel</span> <span class="o">=</span> <span class="n">ylabel</span><span class="p">,</span> <span class="n">xlabel</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">xlabel</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">ylabel</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">set_visible</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">boolean</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
@@ -922,7 +933,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 01, 2018.<br/>
+      Last updated on Jul 26, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

@@ -79,6 +79,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a></li>
@@ -460,7 +461,7 @@ with its methods and then call the factory function without having to decorate a
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>structure</strong> – <a class="reference internal" href="core_api.html#abipy.core.structure.Structure" title="abipy.core.structure.Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.structure.Structure</span></code></a> object.</li>
-<li><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</li>
+<li><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</li>
 <li><strong>kppa</strong> – Defines the sampling used for the SCF run. Defaults to 1000 if not given.</li>
 <li><strong>ecut</strong> – cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)</li>
 <li><strong>pawecutdg</strong> – cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the pseudos
@@ -489,7 +490,7 @@ from the list of pseudos, the structure and the smearing option.</li>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>structure</strong> – <a class="reference internal" href="core_api.html#abipy.core.structure.Structure" title="abipy.core.structure.Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.structure.Structure</span></code></a> object.</li>
-<li><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</li>
+<li><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</li>
 <li><strong>kppa</strong> – Defines the sampling used for the SCF run. Defaults to 1000 if not given.</li>
 <li><strong>nscf_nband</strong> – Number of bands included in the NSCF run. Set to scf_nband + 10 if None.</li>
 <li><strong>ndivsm</strong> – Number of divisions used to sample the smallest segment of the k-path.
@@ -524,7 +525,7 @@ atomic positions at fixed unit cell. The second datasets optimizes both ions and
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>structure</strong> – <a class="reference internal" href="core_api.html#abipy.core.structure.Structure" title="abipy.core.structure.Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.structure.Structure</span></code></a> object.</li>
-<li><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</li>
+<li><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</li>
 <li><strong>kppa</strong> – Defines the sampling used for the Brillouin zone.</li>
 <li><strong>nband</strong> – Number of bands included in the SCF run.</li>
 <li><strong>accuracy</strong> – Accuracy of the calculation.</li>
@@ -557,7 +558,7 @@ second dataset to the inputs used for the band structure calculation.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>structure</strong> – <a class="reference internal" href="core_api.html#abipy.core.structure.Structure" title="abipy.core.structure.Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.structure.Structure</span></code></a> object.</li>
-<li><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</li>
+<li><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</li>
 <li><strong>kppa</strong> – Defines the sampling used for the Brillouin zone.</li>
 <li><strong>nband</strong> – Number of bands included in the SCF run.</li>
 <li><strong>accuracy</strong> – Accuracy of the calculation.</li>
@@ -583,7 +584,7 @@ second dataset to the inputs used for the band structure calculation.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>structure</strong> – <a class="reference internal" href="core_api.html#abipy.core.structure.Structure" title="abipy.core.structure.Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.structure.Structure</span></code></a> object.</li>
-<li><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</li>
+<li><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</li>
 <li><strong>kppa</strong> – Defines the sampling used for the SCF run.</li>
 <li><strong>nscf_nband</strong> – Number of bands included in the NSCF run.</li>
 <li><strong>ecuteps</strong> – Cutoff energy [Ha] for the screening matrix.</li>
@@ -622,7 +623,7 @@ See also <a class="reference internal" href="../zzbiblio.html#setten2017" id="id
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>structure</strong> – <a class="reference internal" href="core_api.html#abipy.core.structure.Structure" title="abipy.core.structure.Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.structure.Structure</span></code></a> object</li>
-<li><strong>pseudos</strong> – List of <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects.</li>
+<li><strong>pseudos</strong> – List of <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects.</li>
 <li><strong>kppa</strong> – k points per reciprocal atom.</li>
 <li><strong>scf_nband</strong> – number of scf bands</li>
 <li><strong>ecut</strong> – ecut for all calcs that that are not ecut convergence  cals at scf level</li>
@@ -662,7 +663,7 @@ The screening is modeled with the model dielectric function.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>structure</strong> – <a class="reference internal" href="core_api.html#abipy.core.structure.Structure" title="abipy.core.structure.Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.structure.Structure</span></code></a> object.</li>
-<li><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</li>
+<li><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</li>
 <li><strong>scf_kppa</strong> – Defines the sampling used for the SCF run.</li>
 <li><strong>nscf_nband</strong> – Number of bands included in the NSCF run.</li>
 <li><strong>nscf_ngkpt</strong> – Divisions of the k-mesh used for the NSCF and the BSE run.</li>
@@ -702,7 +703,7 @@ GS input + the input files for the phonon calculation.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>structure</strong> – <a class="reference internal" href="core_api.html#abipy.core.structure.Structure" title="abipy.core.structure.Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.structure.Structure</span></code></a> object.</li>
-<li><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</li>
+<li><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</li>
 <li><strong>kppa</strong> – Defines the sampling used for the SCF run.</li>
 <li><strong>ecut</strong> – cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)</li>
 <li><strong>pawecutdg</strong> – cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the
@@ -758,7 +759,7 @@ the WFQ and its value. Default {“tolwfr”: 1.0e-22}.</li>
 <li><strong>qpoints_to_skip</strong> – a list of coordinates of q points in reduced coordinates that will be skipped.
 Useful when calculating multiple grids for the same system to avoid duplicate calculations.
 If a DDB needs to be extended with more q points use e.g. ddb.qpoints.to_array().</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</li>
 </ul>
 </td>
 </tr>
@@ -781,7 +782,7 @@ GS input + the input files for the elastic and piezoelectric constants calculati
 <li><strong>rf_tol</strong> – Tolerance for the Strain RF calculations (i.e. {“tolvrs”: 1.0e-12}).</li>
 <li><strong>ddk_split</strong> – Whether to split the DDK calculations.</li>
 <li><strong>rf_split</strong> – whether to split the RF calculations.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</li>
 </ul>
 </td>
 </tr>
@@ -800,7 +801,7 @@ GS input + the input files for the elastic and piezoelectric constants calculati
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>structure</strong> – <a class="reference internal" href="core_api.html#abipy.core.structure.Structure" title="abipy.core.structure.Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.structure.Structure</span></code></a> object.</li>
-<li><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</li>
+<li><strong>pseudos</strong> – List of filenames or list of <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.PseudoTable" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.PseudoTable</span></code></a> object.</li>
 <li><strong>kppa</strong> – Defines the sampling used for the SCF run.</li>
 <li><strong>ecut</strong> – cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)</li>
 <li><strong>pawecutdg</strong> – cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the
@@ -851,7 +852,7 @@ its value. Default: {“tolvrs”: 1.0e-22}.</li>
 <li><strong>dte_tol</strong> – a dictionary with a single key defining the type of tolarence used for the DTE calculations and
 its value. Default: {“tolwfr”: 1.0e-20}.</li>
 <li><strong>skip_dte_permutations</strong> – </li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</li>
 </ul>
 </td>
 </tr>
@@ -904,13 +905,6 @@ Return dict with the variables added to the input.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.abio.inputs.AbstractInput.add_abiobjects">
-<code class="descname">add_abiobjects</code><span class="sig-paren">(</span><em>*abi_objects</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbstractInput.add_abiobjects"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbstractInput.add_abiobjects" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function receive a list of <code class="docutils literal"><span class="pre">AbiVarable</span></code> objects and add
-the corresponding variables to the input.</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="abipy.abio.inputs.AbstractInput.pop_vars">
 <code class="descname">pop_vars</code><span class="sig-paren">(</span><em>keys</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbstractInput.pop_vars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbstractInput.pop_vars" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove the variables listed in keys.
@@ -960,37 +954,6 @@ Return dictionary with the variables that have been removed.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.abio.inputs.AbstractInput.abivalidate">
-<code class="descname">abivalidate</code><span class="sig-paren">(</span><em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbstractInput.abivalidate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbstractInput.abivalidate" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method should invoke the executable associated to the input object.
-to test whether the input variables are correct and consistent.
-The executable is supposed to implemente some sort of <cite>–dry-run</cite> option
-that invokes the parser to validate the input and exits.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>workdir</strong> – Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">retcode: Return code. 0 if OK.
-output_file: output file of the run.
-log_file:  log file of the Abinit run, use log_file.read() to access its content.
-stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.
-task: Task object</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="docutils literal"><span class="pre">namedtuple</span></code> with the following attributes</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
 <dt id="abipy.abio.inputs.AbstractInput.generate">
 <code class="descname">generate</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbstractInput.generate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbstractInput.generate" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function generates new inputs by replacing the variables specified in kwargs.</p>
@@ -1017,6 +980,52 @@ task: Task object</p>
 
 </dd></dl>
 
+<dl class="class">
+<dt id="abipy.abio.inputs.AbiAbstractInput">
+<em class="property">class </em><code class="descclassname">abipy.abio.inputs.</code><code class="descname">AbiAbstractInput</code><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbiAbstractInput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbiAbstractInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#abipy.abio.inputs.AbstractInput" title="abipy.abio.inputs.AbstractInput"><code class="xref py py-class docutils literal"><span class="pre">abipy.abio.inputs.AbstractInput</span></code></a></p>
+<p>Abstract class defining the methods that must be implemented by Input objects.
+associated to Abinit executables.</p>
+<dl class="method">
+<dt id="abipy.abio.inputs.AbiAbstractInput.add_abiobjects">
+<code class="descname">add_abiobjects</code><span class="sig-paren">(</span><em>*abi_objects</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbiAbstractInput.add_abiobjects"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbiAbstractInput.add_abiobjects" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function receive a list of <code class="docutils literal"><span class="pre">AbiVarable</span></code> objects and add
+the corresponding variables to the input.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.abio.inputs.AbiAbstractInput.abivalidate">
+<code class="descname">abivalidate</code><span class="sig-paren">(</span><em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbiAbstractInput.abivalidate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbiAbstractInput.abivalidate" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method should invoke the executable associated to the input object.
+to test whether the input variables are correct and consistent.
+The executable is supposed to implemente some sort of <cite>–dry-run</cite> option
+that invokes the parser to validate the input and exits.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>workdir</strong> – Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">retcode: Return code. 0 if OK.
+output_file: output file of the run.
+log_file:  log file of the Abinit run, use log_file.read() to access its content.
+stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.
+task: Task object</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="docutils literal"><span class="pre">namedtuple</span></code> with the following attributes</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="exception">
 <dt id="abipy.abio.inputs.AbinitInputError">
 <em class="property">exception </em><code class="descclassname">abipy.abio.inputs.</code><code class="descname">AbinitInputError</code><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInputError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInputError" title="Permalink to this definition">¶</a></dt>
@@ -1027,15 +1036,16 @@ task: Task object</p>
 <dl class="class">
 <dt id="abipy.abio.inputs.AbinitInput">
 <em class="property">class </em><code class="descclassname">abipy.abio.inputs.</code><code class="descname">AbinitInput</code><span class="sig-paren">(</span><em>structure</em>, <em>pseudos</em>, <em>pseudo_dir=None</em>, <em>comment=None</em>, <em>decorators=None</em>, <em>abi_args=None</em>, <em>abi_kwargs=None</em>, <em>tags=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#abipy.abio.inputs.AbstractInput" title="abipy.abio.inputs.AbstractInput"><code class="xref py py-class docutils literal"><span class="pre">abipy.abio.inputs.AbstractInput</span></code></a>, <a class="reference external" href="https://pythonhosted.org/monty/monty.html#monty.json.MSONable" title="(in monty v1.0.0)"><code class="xref py py-class docutils literal"><span class="pre">monty.json.MSONable</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#abipy.abio.inputs.AbiAbstractInput" title="abipy.abio.inputs.AbiAbstractInput"><code class="xref py py-class docutils literal"><span class="pre">abipy.abio.inputs.AbiAbstractInput</span></code></a>, <a class="reference external" href="https://pythonhosted.org/monty/monty.html#monty.json.MSONable" title="(in monty v1.0.0)"><code class="xref py py-class docutils literal"><span class="pre">monty.json.MSONable</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
 <p>This object stores the ABINIT variables for a single dataset.</p>
 <p class="rubric">Inheritance Diagram</p>
-<img src="../_images/inheritance-e6d3594cfe1004c3eacbbf487bd0caf922b5e886.png" alt="Inheritance diagram of AbinitInput" usemap="#inheritancea477a00259" class="inheritance"/>
+<img src="../_images/inheritance-bef8d6dd969f7eb59102f412b80a3c08ed729516.png" alt="Inheritance diagram of AbinitInput" usemap="#inheritancea477a00259" class="inheritance"/>
 <map id="inheritancea477a00259" name="inheritancea477a00259">
-<area shape="rect" id="node1" href="#abipy.abio.inputs.AbinitInput" target="_top" title="This object stores the ABINIT variables for a single dataset." alt="" coords="660,57,765,70"/>
-<area shape="rect" id="node2" href="#abipy.abio.inputs.AbstractInput" target="_top" title="Abstract class defining the methods that must be implemented by Input objects." alt="" coords="516,30,630,43"/>
-<area shape="rect" id="node3" title="This is a mix&#45;in base class specifying an API for msonable objects. MSON" alt="" coords="530,57,616,70"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for :class:`AbinitNcFile` containing crystallographic data." alt="" coords="513,84,633,97"/>
+<area shape="rect" id="node1" href="#abipy.abio.inputs.AbiAbstractInput" target="_top" title="Abstract class defining the methods that must be implemented by Input objects." alt="" coords="550,48,654,59"/>
+<area shape="rect" id="node3" href="#abipy.abio.inputs.AbinitInput" target="_top" title="This object stores the ABINIT variables for a single dataset." alt="" coords="677,25,765,37"/>
+<area shape="rect" id="node2" href="#abipy.abio.inputs.AbstractInput" target="_top" title="Abstract class defining the methods that must be implemented by Input objects." alt="" coords="431,48,527,59"/>
+<area shape="rect" id="node4" title="This is a mix&#45;in base class specifying an API for msonable objects. MSON" alt="" coords="566,3,638,14"/>
+<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for :class:`AbinitNcFile` containing crystallographic data." alt="" coords="552,25,652,37"/>
 </map>
 <dl class="attribute">
 <dt id="abipy.abio.inputs.AbinitInput.Error">
@@ -1334,7 +1344,7 @@ is used, e.g., Mn3+ may have a different magmom than Mn4+.</li>
 <dl class="attribute">
 <dt id="abipy.abio.inputs.AbinitInput.pseudos">
 <code class="descname">pseudos</code><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.pseudos" title="Permalink to this definition">¶</a></dt>
-<dd><p>List of <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects.</p>
+<dd><p>List of <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1501,7 +1511,7 @@ It should be called with an input the represents a GS run.</p>
 <li><strong>qpt</strong> – q-point in reduced coordinates.</li>
 <li><strong>tolerance</strong> – dict {varname: value} with the tolerance to be used in the DFPT run.
 Defaults to {“tolvrs”: 1.0e-10}.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</li>
 </ul>
 </td>
 </tr>
@@ -1555,7 +1565,7 @@ This functions should be called with an input the represents a gs run.</p>
 Defaults to {“tolwfr”: 1.0e-22}.</li>
 <li><strong>use_symmetries</strong> – boolean that computes the irreducible components of the perturbation.
 Default to True. Should be set to False for nonlinear coefficients calculation.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</li>
 </ul>
 </td>
 </tr>
@@ -1580,7 +1590,7 @@ This functions should be called with an input that represents a GS run.</p>
 <li><strong>skip_permutations</strong> – Since the current version of abinit always performs all the permutations
 of the perturbations, even if only one is asked, if True avoids the creation of inputs that
 will produce duplicated outputs.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</li>
 </ul>
 </td>
 </tr>
@@ -1610,7 +1620,7 @@ will produce duplicated outputs.</li>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>workdir</strong> – Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</li>
 </ul>
 </td>
 </tr>
@@ -1640,7 +1650,7 @@ It should be called with an input file that contains all the mandatory variables
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>tolsym</strong> – Abinit tolsym input variable. None correspondes to the default value.</li>
 <li><strong>workdir</strong> – Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</li>
 </ul>
 </td>
 </tr>
@@ -1653,7 +1663,7 @@ It should be called with an input file that contains all the mandatory variables
 
 <dl class="method">
 <dt id="abipy.abio.inputs.AbinitInput.abiget_ibz">
-<code class="descname">abiget_ibz</code><span class="sig-paren">(</span><em>ngkpt=None</em>, <em>shiftk=None</em>, <em>kptopt=None</em>, <em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.abiget_ibz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.abiget_ibz" title="Permalink to this definition">¶</a></dt>
+<code class="descname">abiget_ibz</code><span class="sig-paren">(</span><em>ngkpt=None</em>, <em>shiftk=None</em>, <em>kptopt=None</em>, <em>workdir=None</em>, <em>manager=None</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.abiget_ibz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.abiget_ibz" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function computes the list of points in the IBZ and the corresponding weights.
 It should be called with an input file that contains all the mandatory variables required by ABINIT.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -1665,12 +1675,13 @@ It should be called with an input file that contains all the mandatory variables
 <li><strong>shiftk</strong> – List of shifts (default None i.e. use shiftk from self)</li>
 <li><strong>kptopt</strong> – Option for k-point generation. If None, the value in self is used.</li>
 <li><strong>workdir</strong> – Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</li>
+<li><strong>verbose</strong> – verbosity level.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">points: <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.14)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> with points in the IBZ in reduced coordinates.
-weights: <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.14)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> with weights of the points.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">points: <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.15)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> with points in the IBZ in reduced coordinates.
+weights: <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.15)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> with weights of the points.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><cite>namedtuple</cite> with attributes</p>
@@ -1696,7 +1707,7 @@ if qpt is not passed, self must already contain “qpt” otherwise an exception
 <li><strong>shiftk</strong> – Shiftks (default None i.e. use shiftk from self)</li>
 <li><strong>kptopt</strong> – Option for k-point generation. If None, the value in self is used.</li>
 <li><strong>workdir</strong> – Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</li>
 </ul>
 </td>
 </tr>
@@ -1726,7 +1737,7 @@ It should be called with an input file that contains all the mandatory variables
 <li><strong>shiftk</strong> – Shiftks (default None i.e. use shiftk from self)</li>
 <li><strong>kptopt</strong> – Option for k-point generation. If None, the value in self is used.</li>
 <li><strong>workdir</strong> – Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</li>
 </ul>
 </td>
 </tr>
@@ -1756,7 +1767,7 @@ It should be called with an input file that contains all the mandatory variables
 <li><strong>shiftk</strong> – Shiftks (default None i.e. use shiftk from self)</li>
 <li><strong>kptopt</strong> – Option for k-point generation. If None, the value in self is used.</li>
 <li><strong>workdir</strong> – Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</li>
 <li><strong>phonon_pert</strong> – if True also the phonon perturbations will be considered. Default False.</li>
 </ul>
 </td>
@@ -1787,7 +1798,7 @@ It should be called with an input file that contains all the mandatory variables
 <li><strong>shiftk</strong> – Shiftks (default None i.e. use shiftk from self)</li>
 <li><strong>kptopt</strong> – Option for k-point generation. If None, the value in self is used.</li>
 <li><strong>workdir</strong> – Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</li>
 </ul>
 </td>
 </tr>
@@ -2071,14 +2082,15 @@ is constructed from the dataset index e.g. run0.abi</p>
 <dl class="class">
 <dt id="abipy.abio.inputs.AnaddbInput">
 <em class="property">class </em><code class="descclassname">abipy.abio.inputs.</code><code class="descname">AnaddbInput</code><span class="sig-paren">(</span><em>structure</em>, <em>comment=''</em>, <em>anaddb_args=None</em>, <em>anaddb_kwargs=None</em>, <em>spell_check=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AnaddbInput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AnaddbInput" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#abipy.abio.inputs.AbstractInput" title="abipy.abio.inputs.AbstractInput"><code class="xref py py-class docutils literal"><span class="pre">abipy.abio.inputs.AbstractInput</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#abipy.abio.inputs.AbiAbstractInput" title="abipy.abio.inputs.AbiAbstractInput"><code class="xref py py-class docutils literal"><span class="pre">abipy.abio.inputs.AbiAbstractInput</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a></p>
 <p>This object stores the anaddb variables.</p>
 <p class="rubric">Inheritance Diagram</p>
-<img src="../_images/inheritance-f578ff5007cc4eb80e0f9c202d3890e23b7f8b96.png" alt="Inheritance diagram of AnaddbInput" usemap="#inheritance53ec35adff" class="inheritance"/>
+<img src="../_images/inheritance-e64c4d071db4e87d75745f41633ec5b857e89aed.png" alt="Inheritance diagram of AnaddbInput" usemap="#inheritance53ec35adff" class="inheritance"/>
 <map id="inheritance53ec35adff" name="inheritance53ec35adff">
-<area shape="rect" id="node1" href="#abipy.abio.inputs.AbstractInput" target="_top" title="Abstract class defining the methods that must be implemented by Input objects." alt="" coords="511,30,624,43"/>
-<area shape="rect" id="node3" href="#abipy.abio.inputs.AnaddbInput" target="_top" title="This object stores the anaddb variables." alt="" coords="654,16,765,30"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for :class:`AbinitNcFile` containing crystallographic data." alt="" coords="509,3,627,16"/>
+<area shape="rect" id="node1" href="#abipy.abio.inputs.AbiAbstractInput" target="_top" title="Abstract class defining the methods that must be implemented by Input objects." alt="" coords="545,25,649,36"/>
+<area shape="rect" id="node4" href="#abipy.abio.inputs.AnaddbInput" target="_top" title="This object stores the anaddb variables." alt="" coords="672,14,766,25"/>
+<area shape="rect" id="node2" href="#abipy.abio.inputs.AbstractInput" target="_top" title="Abstract class defining the methods that must be implemented by Input objects." alt="" coords="428,25,523,36"/>
+<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for :class:`AbinitNcFile` containing crystallographic data." alt="" coords="548,2,647,14"/>
 </map>
 <dl class="attribute">
 <dt id="abipy.abio.inputs.AnaddbInput.Error">
@@ -2360,7 +2372,7 @@ If None, we use the default high-symmetry k-path defined in the pymatgen databas
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>workdir</strong> – Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</li>
 </ul>
 </td>
 </tr>
@@ -2408,7 +2420,7 @@ task: Task object</p>
 <dl class="class">
 <dt id="abipy.abio.inputs.OpticInput">
 <em class="property">class </em><code class="descclassname">abipy.abio.inputs.</code><code class="descname">OpticInput</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#OpticInput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.OpticInput" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#abipy.abio.inputs.AbstractInput" title="abipy.abio.inputs.AbstractInput"><code class="xref py py-class docutils literal"><span class="pre">abipy.abio.inputs.AbstractInput</span></code></a>, <a class="reference external" href="https://pythonhosted.org/monty/monty.html#monty.json.MSONable" title="(in monty v1.0.0)"><code class="xref py py-class docutils literal"><span class="pre">monty.json.MSONable</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#abipy.abio.inputs.AbiAbstractInput" title="abipy.abio.inputs.AbiAbstractInput"><code class="xref py py-class docutils literal"><span class="pre">abipy.abio.inputs.AbiAbstractInput</span></code></a>, <a class="reference external" href="https://pythonhosted.org/monty/monty.html#monty.json.MSONable" title="(in monty v1.0.0)"><code class="xref py py-class docutils literal"><span class="pre">monty.json.MSONable</span></code></a></p>
 <p>Input file for optic executable</p>
 <dl class="attribute">
 <dt id="abipy.abio.inputs.OpticInput.Error">
@@ -2480,7 +2492,7 @@ Note: This method is a stub, it always return retcode 0</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>workdir</strong> – Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> of the task. If None, the manager is initialized from the config file.</li>
 </ul>
 </td>
 </tr>
@@ -2774,6 +2786,12 @@ and returns a list of dictionaries with the values that would be used inside the
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.abio.outputs.AbinitLogFile.yield_figs">
+<code class="descname">yield_figs</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/outputs.html#AbinitLogFile.yield_figs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.outputs.AbinitLogFile.yield_figs" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function <em>generates</em> a predefined list of matplotlib figures with minimal input from the user.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.abio.outputs.AbinitLogFile.write_notebook">
 <code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/outputs.html#AbinitLogFile.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.outputs.AbinitLogFile.write_notebook" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write a <a class="reference external" href="http://jupyter.org/">jupyter</a> notebook to <code class="docutils literal"><span class="pre">nbpath</span></code>. If nbpath is None, a temporay file in the current
@@ -2995,7 +3013,7 @@ Can compare dimensions, SCF cycles, analyze timers.</p>
 <dl class="method">
 <dt id="abipy.abio.outputs.AboRobot.get_dims_dataframe">
 <code class="descname">get_dims_dataframe</code><span class="sig-paren">(</span><em>with_time=True</em>, <em>index=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/outputs.html#AboRobot.get_dims_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.outputs.AboRobot.get_dims_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build and return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the dimensions of the calculation.</p>
+<dd><p>Build and return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the dimensions of the calculation.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -3013,7 +3031,7 @@ Can compare dimensions, SCF cycles, analyze timers.</p>
 <dl class="method">
 <dt id="abipy.abio.outputs.AboRobot.get_dataframe">
 <code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>with_geo=True</em>, <em>with_dims=True</em>, <em>abspath=False</em>, <em>funcs=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/outputs.html#AboRobot.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.outputs.AboRobot.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important results and the filenames as index.</p>
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important results and the filenames as index.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -3035,7 +3053,13 @@ where key is a string with the name of column and value is the value to be inser
 <dl class="method">
 <dt id="abipy.abio.outputs.AboRobot.get_time_dataframe">
 <code class="descname">get_time_dataframe</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/outputs.html#AboRobot.get_time_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.outputs.AboRobot.get_time_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the wall-time, cpu time in seconds and the filenames as index.</p>
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the wall-time, cpu time in seconds and the filenames as index.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.abio.outputs.AboRobot.yield_figs">
+<code class="descname">yield_figs</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/outputs.html#AboRobot.yield_figs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.outputs.AboRobot.yield_figs" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function <em>generates</em> a predefined list of matplotlib figures with minimal input from the user.</p>
 </dd></dl>
 
 <dl class="method">
@@ -3054,6 +3078,12 @@ working directory is created. Return path to the notebook.</p>
 <p>Class representing the _OUT.nc file containing the dataset results
 produced at the end of the run. The netcdf variables can be accessed
 via instance attribute e.g. <code class="docutils literal"><span class="pre">outfile.ecut</span></code>. Provides integration with <a class="reference external" href="https://ipython.org/index.html">ipython</a>.</p>
+<dl class="attribute">
+<dt id="abipy.abio.outputs.OutNcFile.params">
+<code class="descname">params</code><a class="reference internal" href="../_modules/abipy/abio/outputs.html#OutNcFile.params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.outputs.OutNcFile.params" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-class docutils literal"><span class="pre">OrderedDict</span></code> with parameters that might be subject to convergence studies.</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="abipy.abio.outputs.OutNcFile.close">
 <code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/outputs.html#OutNcFile.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.outputs.OutNcFile.close" title="Permalink to this definition">¶</a></dt>
@@ -3191,13 +3221,13 @@ if labels is None, labels are automatically generated from absolute paths.</p>
 <dl class="classmethod">
 <dt id="abipy.abio.robots.Robot.from_flow">
 <em class="property">classmethod </em><code class="descname">from_flow</code><span class="sig-paren">(</span><em>flow</em>, <em>outdirs='all'</em>, <em>nids=None</em>, <em>ext=None</em>, <em>task_class=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.from_flow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.from_flow" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build a robot from a <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.flows.html#pymatgen.io.abinit.flows.Flow" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.flows.Flow</span></code></a> object.</p>
+<dd><p>Build a robot from a <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.flows.html#pymatgen.io.abinit.flows.Flow" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.flows.Flow</span></code></a> object.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>flow</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.flows.html#pymatgen.io.abinit.flows.Flow" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.flows.Flow</span></code></a> object</li>
+<li><strong>flow</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.flows.html#pymatgen.io.abinit.flows.Flow" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.flows.Flow</span></code></a> object</li>
 <li><strong>outdirs</strong> – String used to select/ignore the files in the output directory of flow, works and tasks
 outdirs=”work” selects only the outdir of the Works,
 outdirs=”flow+task” selects the outdir of the Flow and the outdirs of the tasks
@@ -3241,7 +3271,7 @@ None implies no filtering.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>node</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.flows.html#pymatgen.io.abinit.flows.Flow" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.flows.Flow</span></code></a> or <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a> or <code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.Task</span></code> object.</li>
+<li><strong>node</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.flows.html#pymatgen.io.abinit.flows.Flow" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.flows.Flow</span></code></a> or <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a> or <code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.Task</span></code> object.</li>
 <li><strong>nids</strong> – List of node identifiers used to select particular nodes. Not used if None</li>
 <li><strong>task_class</strong> – Task class or string with class name used to select the tasks in the flow.
 None implies no filtering.</li>
@@ -3408,6 +3438,13 @@ If start is None, os.getcwd() is used. Set <code class="docutils literal"><span 
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.abio.robots.Robot.has_different_structures">
+<code class="descname">has_different_structures</code><span class="sig-paren">(</span><em>rtol=1e-05</em>, <em>atol=1e-08</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.has_different_structures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.has_different_structures" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if structures are equivalent,
+return string with info about differences (if any).</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.abio.robots.Robot.is_sortable">
 <code class="descname">is_sortable</code><span class="sig-paren">(</span><em>aname</em>, <em>raise_exc=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.is_sortable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.is_sortable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return True if <code class="docutils literal"><span class="pre">aname</span></code> is an attribute of the netcdf file
@@ -3500,19 +3537,19 @@ True if the file should be added to the plotter.</li>
 <dl class="method">
 <dt id="abipy.abio.robots.Robot.get_lattice_dataframe">
 <code class="descname">get_lattice_dataframe</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.get_lattice_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.get_lattice_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with lattice parameters.</p>
+<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with lattice parameters.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="abipy.abio.robots.Robot.get_coords_dataframe">
 <code class="descname">get_coords_dataframe</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.get_coords_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.get_coords_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with atomic positions.</p>
+<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with atomic positions.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="abipy.abio.robots.Robot.get_params_dataframe">
 <code class="descname">get_params_dataframe</code><span class="sig-paren">(</span><em>abspath=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.get_params_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.get_params_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important parameters.
+<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important parameters.
 that are usually subject to convergence studies.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -3534,7 +3571,7 @@ Useful for convergence tests done wrt to two parameters.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>data</strong> – <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> containing columns <cite>x</cite>, <cite>y</cite>, and <cite>hue</cite>.</li>
+<li><strong>data</strong> – <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> containing columns <cite>x</cite>, <cite>y</cite>, and <cite>hue</cite>.</li>
 <li><strong>x</strong> – Name of the column used as x-value</li>
 <li><strong>y</strong> – Name of the column used as y-value</li>
 <li><strong>hue</strong> – Variable that define subsets of the data, which will be drawn on separate lines</li>
@@ -3823,7 +3860,13 @@ It also provides tools to analye and to visualize the parallel efficiency.</p>
 <dl class="class">
 <dt id="abipy.abio.timer.AbinitTimerParser">
 <em class="property">class </em><code class="descclassname">abipy.abio.timer.</code><code class="descname">AbinitTimerParser</code><a class="reference internal" href="../_modules/abipy/abio/timer.html#AbinitTimerParser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.timer.AbinitTimerParser" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.abitimer.html#pymatgen.io.abinit.abitimer.AbinitTimerParser" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.abitimer.AbinitTimerParser</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.abitimer.html#pymatgen.io.abinit.abitimer.AbinitTimerParser" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.abitimer.AbinitTimerParser</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
+<dl class="method">
+<dt id="abipy.abio.timer.AbinitTimerParser.yield_figs">
+<code class="descname">yield_figs</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/timer.html#AbinitTimerParser.yield_figs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.timer.AbinitTimerParser.yield_figs" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function <em>generates</em> a predefined list of matplotlib figures with minimal input from the user.</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="abipy.abio.timer.AbinitTimerParser.write_notebook">
 <code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/timer.html#AbinitTimerParser.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.timer.AbinitTimerParser.write_notebook" title="Permalink to this definition">¶</a></dt>
@@ -3908,7 +3951,7 @@ The result might be spread among several lines.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 01, 2018.<br/>
+      Last updated on Jul 26, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

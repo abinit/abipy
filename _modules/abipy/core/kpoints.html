@@ -77,6 +77,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -411,6 +412,32 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># note: We assume TR if negative value i.e. band structure k-sampling.</span>
     <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">kptopt</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">kptopt2str</span><span class="p">(</span><span class="n">kptopt</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return human-readable string with meaning of kptopt.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">kptopt</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;Band structure run. Use kptbounds, and ndivk (ndivsm)&quot;</span>
+             <span class="s2">&quot;The absolute value of kptopt gives the number of segments of the band structure.&quot;</span> <span class="o">+</span>
+             <span class="s2">&quot;Weights are usually irrelevant with this option&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="mi">0</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Manual mode&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;User-provided nkpt, kpt, kptnrm and wtk&quot;</span><span class="p">),</span>
+            <span class="mi">1</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Use space group symmetries and TR symmetry&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Usual mode for GS calculations (ngkpt or kptrlatt, nshiftk and shiftk)&quot;</span><span class="p">),</span>
+            <span class="mi">2</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Only TR symmetry&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;This is to be used for DFPT at Gamma (ngkpt or kptrlatt, nshiftk and shiftk)&quot;</span><span class="p">),</span>
+            <span class="mi">3</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Do not take into account any symmetry&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;This is to be used for DFPT at non-zero q (ngkpt or kptrlatt, nshiftk and shiftk).&quot;</span><span class="p">),</span>
+            <span class="mi">4</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Spatial symmetries, NO TR symmetry&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;This has to be used for PAW calculations with SOC (pawspnorb/=0) &quot;</span> <span class="o">+</span>
+                <span class="s2">&quot;from ngkpt or kptrlatt, nshiftk and shiftk.&quot;</span><span class="p">),</span>
+        <span class="p">}[</span><span class="n">kptopt</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">verbose</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 
 
 <span class="k">def</span> <span class="nf">map_kpoints</span><span class="p">(</span><span class="n">other_kpoints</span><span class="p">,</span> <span class="n">other_lattice</span><span class="p">,</span> <span class="n">ref_lattice</span><span class="p">,</span> <span class="n">ref_kpoints</span><span class="p">,</span> <span class="n">ref_symrecs</span><span class="p">,</span> <span class="n">has_timrev</span><span class="p">):</span>
@@ -821,6 +848,7 @@
         <span class="sd">&quot;&quot;&quot;Return the star of the kpoint (tuple of |Kpoint| objects).&quot;&quot;&quot;</span>
         <span class="n">frac_coords</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">]</span>
 
+        <span class="c1"># TODO: This part becomes a bottleneck for large nk!</span>
         <span class="k">for</span> <span class="n">sym</span> <span class="ow">in</span> <span class="n">symmops</span><span class="p">:</span>
             <span class="n">sk_coords</span> <span class="o">=</span> <span class="n">sym</span><span class="o">.</span><span class="n">rotate_k</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span> <span class="n">wrap_tows</span><span class="o">=</span><span class="n">wrap_tows</span><span class="p">)</span>
 
@@ -1205,10 +1233,25 @@
 <span class="sd">    .. inheritance-diagram:: Kpath</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+<div class="viewcode-block" id="Kpath.from_names"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.Kpath.from_names">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_names</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">knames</span><span class="p">,</span> <span class="n">line_density</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate normalized K-path from list of k-point labels.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            structure: |Structure| object.</span>
+<span class="sd">            knames: List of strings with the k-point labels.</span>
+<span class="sd">            line_density: Number of points used to sample the smallest segment of the path</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">kfrac_coords</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">get_kcoords_from_names</span><span class="p">(</span><span class="n">knames</span><span class="p">)</span>
+        <span class="n">vertices_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">kfrac_coords</span><span class="p">,</span> <span class="n">knames</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_vertices_and_names</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">vertices_names</span><span class="p">,</span> <span class="n">line_density</span><span class="o">=</span><span class="n">line_density</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="Kpath.from_vertices_and_names"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.Kpath.from_vertices_and_names">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_vertices_and_names</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">vertices_names</span><span class="p">,</span> <span class="n">line_density</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Generate K-path from a list of vertices and the corresponding labels.</span>
+<span class="sd">        Generate normalized K-path from a list of vertices and the corresponding labels.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            structure: |Structure| object.</span>
@@ -1300,7 +1343,7 @@
 <div class="viewcode-block" id="Kpath.versors"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.Kpath.versors">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">versors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Tuple of len(self)-1 elements with the versors connecting k[i] to k[i+1].</span>
+<span class="sd">        Tuple of len(self) - 1 elements with the versors connecting k[i] to k[i+1].</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">versors</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">]</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">kpt</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
@@ -1413,6 +1456,44 @@
 
 <span class="sd">    .. inheritance-diagram:: IrredZone</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#@classmethod</span>
+    <span class="c1">#def from_ngkpt_or_kppa(cls, structure, ngkpt, shiftk, kptopt=1, verbose=0):</span>
+    <span class="c1">#    from abipy.tools import duck</span>
+    <span class="c1">#    if duck.is_listlike(ngkpt):</span>
+    <span class="c1">#        return cls.from_ngkpt(structure, ngkpt, shiftk, kptopt=kptopt, verbose=verbose)</span>
+    <span class="c1">#    else:</span>
+    <span class="c1">#        return cls.from_kppa(structure, kppa, shiftk, kptopt=kptopt, verbose=verbose)</span>
+
+<div class="viewcode-block" id="IrredZone.from_ngkpt"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.IrredZone.from_ngkpt">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_ngkpt</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">ngkpt</span><span class="p">,</span> <span class="n">shiftk</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build an IrredZone object from (ngkpt, shift) by calling Abinit</span>
+<span class="sd">        to get the list of irreducible k-points.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">abipy.abio.factories</span> <span class="k">import</span> <span class="n">gs_input</span>
+        <span class="kn">from</span> <span class="nn">abipy.data.hgh_pseudos</span> <span class="k">import</span> <span class="n">HGH_TABLE</span>
+        <span class="n">gsinp</span> <span class="o">=</span> <span class="n">gs_input</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">HGH_TABLE</span><span class="p">,</span> <span class="n">spin_mode</span><span class="o">=</span><span class="s2">&quot;unpolarized&quot;</span><span class="p">)</span>
+        <span class="n">ibz</span> <span class="o">=</span> <span class="n">gsinp</span><span class="o">.</span><span class="n">abiget_ibz</span><span class="p">(</span><span class="n">ngkpt</span><span class="o">=</span><span class="n">ngkpt</span><span class="p">,</span> <span class="n">shiftk</span><span class="o">=</span><span class="n">shiftk</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="n">kptopt</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="n">ksampling</span> <span class="o">=</span> <span class="n">KSamplingInfo</span><span class="o">.</span><span class="n">from_mpdivs</span><span class="p">(</span><span class="n">ngkpt</span><span class="p">,</span> <span class="n">shiftk</span><span class="p">,</span> <span class="n">kptopt</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="p">,</span> <span class="n">ibz</span><span class="o">.</span><span class="n">points</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">ibz</span><span class="o">.</span><span class="n">weights</span><span class="p">,</span>
+                   <span class="n">names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ksampling</span><span class="o">=</span><span class="n">ksampling</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="IrredZone.from_kppa"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.IrredZone.from_kppa">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_kppa</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">kppa</span><span class="p">,</span> <span class="n">shiftk</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build an IrredZone object from (kppa, shift) by calling Abinit</span>
+<span class="sd">        to get the list of irreducible k-points.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">abipy.abio.factories</span> <span class="k">import</span> <span class="n">gs_input</span>
+        <span class="kn">from</span> <span class="nn">abipy.data.hgh_pseudos</span> <span class="k">import</span> <span class="n">HGH_TABLE</span>
+        <span class="n">gsinp</span> <span class="o">=</span> <span class="n">gs_input</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">HGH_TABLE</span><span class="p">,</span> <span class="n">spin_mode</span><span class="o">=</span><span class="s2">&quot;unpolarized&quot;</span><span class="p">,</span> <span class="n">kppa</span><span class="o">=</span><span class="n">kppa</span><span class="p">)</span>
+        <span class="n">ibz</span> <span class="o">=</span> <span class="n">gsinp</span><span class="o">.</span><span class="n">abiget_ibz</span><span class="p">(</span><span class="n">ngkpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shiftk</span><span class="o">=</span><span class="n">shiftk</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="n">kptopt</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="n">ksampling</span> <span class="o">=</span> <span class="n">KSamplingInfo</span><span class="o">.</span><span class="n">from_mpdivs</span><span class="p">(</span><span class="n">gsinp</span><span class="p">[</span><span class="s2">&quot;ngkpt&quot;</span><span class="p">],</span> <span class="n">shiftk</span><span class="p">,</span> <span class="n">kptopt</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="p">,</span> <span class="n">ibz</span><span class="o">.</span><span class="n">points</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">ibz</span><span class="o">.</span><span class="n">weights</span><span class="p">,</span>
+                   <span class="n">names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ksampling</span><span class="o">=</span><span class="n">ksampling</span><span class="p">)</span></div>
+
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reciprocal_lattice</span><span class="p">,</span> <span class="n">frac_coords</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ksampling</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
@@ -1445,10 +1526,18 @@
             <span class="n">mpdivs</span><span class="p">,</span> <span class="n">shifts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mpdivs_shifts</span>
             <span class="n">d</span> <span class="o">=</span> <span class="s2">&quot;[</span><span class="si">%d</span><span class="s2">, </span><span class="si">%d</span><span class="s2">, </span><span class="si">%d</span><span class="s2">]&quot;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">mpdivs</span><span class="p">)</span>
             <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;[</span><span class="si">%.1f</span><span class="s2">, </span><span class="si">%.1f</span><span class="s2">, </span><span class="si">%.1f</span><span class="s2">]&quot;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">shifts</span><span class="p">)</span>
-            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;K-mesh with divisions: </span><span class="si">%s</span><span class="s2">, shifts: </span><span class="si">%s</span><span class="s2">, kptopt: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ksampling</span><span class="o">.</span><span class="n">kptopt</span><span class="p">))</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;K-mesh with divisions: </span><span class="si">%s</span><span class="s2">, shifts: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">s</span><span class="p">))</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;kptopt: </span><span class="si">%s</span><span class="s2"> (</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ksampling</span><span class="o">.</span><span class="n">kptopt</span><span class="p">,</span> <span class="n">kptopt2str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ksampling</span><span class="o">.</span><span class="n">kptopt</span><span class="p">)))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">app</span><span class="p">(</span><span class="s2">&quot;nkpt: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
             <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ksampling</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">))</span>
+
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Number of points in the IBZ: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">10</span> <span class="ow">and</span> <span class="n">verbose</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">app</span><span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="s2">&quot;... (More than 10 k-points)&quot;</span><span class="p">)</span>
+                <span class="k">break</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%6d</span><span class="s2">) [</span><span class="si">%+.3f</span><span class="s2">, </span><span class="si">%+.3f</span><span class="s2">, </span><span class="si">%+.3f</span><span class="s2">],  weight=</span><span class="si">%.3f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">k</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">k</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">k</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">k</span><span class="o">.</span><span class="n">weight</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div></div>
 
@@ -1618,7 +1707,7 @@
                 <span class="n">app</span><span class="p">(</span><span class="s2">&quot;shifts: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shifts</span><span class="p">))</span>
                 <span class="n">app</span><span class="p">(</span><span class="s2">&quot;kptrlatt_orig: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kptrlatt_orig</span><span class="p">))</span>
                 <span class="n">app</span><span class="p">(</span><span class="s2">&quot;shifts_orig: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shifts_orig</span><span class="p">))</span>
-                <span class="n">app</span><span class="p">(</span><span class="s2">&quot;kptopt: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kptopt</span><span class="p">))</span>
+                <span class="n">app</span><span class="p">(</span><span class="s2">&quot;kptopt: </span><span class="si">%s</span><span class="s2"> (</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kptopt</span><span class="p">),</span> <span class="n">kptopt2str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kptopt</span><span class="p">)))</span>
 
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_path</span><span class="p">:</span>
             <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Path with kptopt: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">kptopt</span><span class="p">)</span>
@@ -1629,7 +1718,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">is_mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;True if we have a path in the BZ.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;True if we have a mesh in the BZ.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">kptopt</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mpdivs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">kptrlatt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -1840,7 +1929,8 @@
 <span class="sd">        dist_tol: A point is considered to be on the path if its distance from the line</span>
 <span class="sd">            is less than dist_tol.</span>
 
-<span class="sd">    Return:</span>
+<span class="sd">    Return: namedtuple with the following attributes:</span>
+
 <span class="sd">        (ikfound, dist_list, path_ticks)</span>
 
 <span class="sd">        ikfound is a numpy array with the indices of the points lying on the path. Empty if no point is found.</span>
@@ -1864,22 +1954,24 @@
             <span class="c1"># k-point is on the cart_bounds</span>
             <span class="n">A</span> <span class="o">=</span> <span class="n">x0</span> <span class="o">-</span> <span class="n">k</span>
             <span class="c1">#A = k - x0</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="n">B</span><span class="p">)</span><span class="o">/</span><span class="n">dk</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span><span class="o">/</span><span class="n">dk</span>
             <span class="c1">#print(&quot;k-x0&quot;, A, &quot;B&quot;, B)</span>
             <span class="c1">#print(frac_coords[ik], x, x &gt; 0 and x &lt; dist_tol + dk)</span>
             <span class="k">if</span> <span class="n">dist_tol</span> <span class="o">+</span> <span class="n">dk</span> <span class="o">&gt;=</span> <span class="n">x</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="c1"># k-point is within the cart_bounds range</span>
-                <span class="c1"># append k-point coordinate along the cart_bounds</span>
+                <span class="c1"># append k-point coordinate along the cart_bounds while avoing duplicate entries.</span>
+                <span class="k">if</span> <span class="n">ikfound</span> <span class="ow">and</span> <span class="n">ik</span> <span class="o">==</span> <span class="n">ikfound</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span> <span class="k">continue</span>
                 <span class="n">ikfound</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ik</span><span class="p">)</span>
                 <span class="n">dist_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">dl</span><span class="p">)</span>
 
         <span class="n">dl</span> <span class="o">=</span> <span class="n">dl</span> <span class="o">+</span> <span class="n">dk</span>
 
-    <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span>
-            <span class="n">ikfound</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ikfound</span><span class="p">),</span>
-            <span class="n">dist_list</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dist_list</span><span class="p">),</span>
-            <span class="n">path_ticks</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">path_ticks</span><span class="p">),</span>
-           <span class="p">)</span></div>
+    <span class="c1"># Sort dist_list and ikfound by cumulative length while removing possible duplicated entries.</span>
+    <span class="n">dist_list</span><span class="p">,</span> <span class="n">isort</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dist_list</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">decimals</span><span class="o">=</span><span class="mi">5</span><span class="p">),</span> <span class="n">return_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">ikfound</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ikfound</span><span class="p">)[</span><span class="n">isort</span><span class="p">],</span>
+                           <span class="n">dist_list</span><span class="o">=</span><span class="n">dist_list</span><span class="p">,</span>
+                           <span class="n">path_ticks</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">path_ticks</span><span class="p">))</span></div>
 </pre></div>
 
     </div>
@@ -1894,7 +1986,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 01, 2018.<br/>
+      Last updated on Jul 26, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

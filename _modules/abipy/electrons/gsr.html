@@ -77,6 +77,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -472,17 +473,14 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">table</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;PrettyTable object with the results.&quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">prettytable</span> <span class="k">import</span> <span class="n">PrettyTable</span>
-        <span class="n">table</span> <span class="o">=</span> <span class="n">PrettyTable</span><span class="p">([</span><span class="s2">&quot;Term&quot;</span><span class="p">,</span> <span class="s2">&quot;Value&quot;</span><span class="p">])</span>
+        <span class="sd">&quot;&quot;&quot;string with results in tabular form.&quot;&quot;&quot;</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="p">[[</span><span class="s2">&quot;Term&quot;</span><span class="p">,</span> <span class="s2">&quot;Value&quot;</span><span class="p">]]</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">doc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_NAME2DOC</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">([</span><span class="n">k</span><span class="p">,</span> <span class="bp">self</span><span class="p">[</span><span class="n">k</span><span class="p">]])</span>
-        <span class="k">return</span> <span class="n">table</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">k</span><span class="p">,</span> <span class="bp">self</span><span class="p">[</span><span class="n">k</span><span class="p">]])</span>
+        <span class="k">return</span> <span class="n">tabulate</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">&quot;plain&quot;</span><span class="p">)</span>
 
     <span class="c1">#def get_dataframe(self):</span>
-    <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    Return a |pandas-DataFrame|</span>
-    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    &quot;&quot;&quot;Return a |pandas-DataFrame|&quot;&quot;&quot;</span>
     <span class="c1">#    d = {k: float(self[k]) for k in self}</span>
     <span class="c1">#    return pd.DataFrame(d, index=[None], columns=list(d.keys()))</span>
     <span class="c1">#    #return pd.DataFrame(d, columns=list(d.keys()))</span>
@@ -786,7 +784,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 01, 2018.<br/>
+      Last updated on Jul 26, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

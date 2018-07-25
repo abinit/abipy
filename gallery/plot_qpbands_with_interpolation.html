@@ -79,6 +79,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
@@ -167,8 +168,8 @@ the KS energies of a k-mesh. Finally, the KS and the GW results are plotted with
 </li>
 </ul>
 <p class="sphx-glr-script-out">Out:</p>
-<div class="sphx-glr-script-out highlight-none"><div class="highlight"><pre><span></span>Will use: 30 star-functions. nstars/nk: 5.0
-FIT vs input data: Mean Absolute Error= 1.194790794079026e-13  [meV]
+<div class="sphx-glr-script-out highlight-none"><div class="highlight"><pre><span></span>Using: 30 star-functions. nstars/nk: 5.0
+[32mFIT vs input data: Mean Absolute Error= 1.454e-13 (meV)[0m
 </pre></div>
 </div>
 <div class="line-block">
@@ -208,7 +209,7 @@ FIT vs input data: Mean Absolute Error= 1.194790794079026e-13  [meV]
 <span class="c1"># we can plot the interpolate interpolated QP band structure with the first principles results.</span>
 <span class="c1"># This part is optional</span>
 <span class="n">points</span> <span class="o">=</span> <span class="n">sigres</span><span class="o">.</span><span class="n">get_points_from_ebands</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">qp_ebands_kpath</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">24</span><span class="p">)</span>
-<span class="n">r</span><span class="o">.</span><span class="n">qp_ebands_kpath</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">points</span><span class="o">=</span><span class="n">points</span><span class="p">)</span>
+<span class="n">r</span><span class="o">.</span><span class="n">qp_ebands_kpath</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">points</span><span class="o">=</span><span class="n">points</span><span class="p">,</span> <span class="n">with_gaps</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="c1">#raise ValueError()</span>
 
 <span class="c1"># Shortcut: pass the name of the GSR files directly.</span>
@@ -233,12 +234,12 @@ FIT vs input data: Mean Absolute Error= 1.194790794079026e-13  [meV]
 <span class="n">plotter</span><span class="o">.</span><span class="n">boxplot</span><span class="p">(</span><span class="n">swarm</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Boxplot&quot;</span><span class="p">)</span>
 <span class="n">plotter</span><span class="o">.</span><span class="n">combiboxplot</span><span class="p">(</span><span class="n">swarm</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Combiboxplot&quot;</span><span class="p">)</span>
 <span class="c1"># sphinx_gallery_thumbnail_number = 4</span>
-<span class="n">plotter</span><span class="o">.</span><span class="n">gridplot</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Gridplot&quot;</span><span class="p">)</span>
+<span class="n">plotter</span><span class="o">.</span><span class="n">gridplot</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Gridplot&quot;</span><span class="p">,</span> <span class="n">with_gaps</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
 <span class="n">sigres</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </pre></div>
 </div>
-<p><strong>Total running time of the script:</strong> ( 0 minutes  5.682 seconds)</p>
+<p><strong>Total running time of the script:</strong> ( 0 minutes  4.653 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-qpbands-with-interpolation-py">
 <div class="sphx-glr-download docutils container">
 <a class="reference download internal" href="../_downloads/plot_qpbands_with_interpolation.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_qpbands_with_interpolation.py</span></code></a></div>
@@ -261,7 +262,7 @@ FIT vs input data: Mean Absolute Error= 1.194790794079026e-13  [meV]
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 01, 2018.<br/>
+      Last updated on Jul 26, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

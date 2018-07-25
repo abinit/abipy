@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Band structure interpolation with Wannier functions &#8212; abipy 0.6.0.dev documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.6.0.dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Optic results" href="plot_optic.html" />
+    <link rel="prev" title="Phonon fatbands" href="plot_phonon_fatbands.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.6.0.dev</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../zzbiblio.html">Bibliography</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../postprocessing_howto.html">Post-processing How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documenting AbiPy</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">Band structure interpolation with Wannier functions</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="plot_phonon_fatbands.html" title="Previous Chapter: Phonon fatbands"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Phonon fatbands</span>
+    </a>
+  </li>
+  <li>
+    <a href="plot_optic.html" title="Next Chapter: Optic results"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Optic results &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/gallery/plot_wannier90_abiwan.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="sphx-glr-download-link-note admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Click <a class="reference internal" href="#sphx-glr-download-gallery-plot-wannier90-abiwan-py"><span class="std std-ref">here</span></a> to download the full example code</p>
+</div>
+<div class="sphx-glr-example-title section" id="band-structure-interpolation-with-wannier-functions">
+<span id="sphx-glr-gallery-plot-wannier90-abiwan-py"></span><h1>Band structure interpolation with Wannier functions<a class="headerlink" href="#band-structure-interpolation-with-wannier-functions" title="Permalink to this headline">¶</a></h1>
+<p>This example shows how to analyze the wannier90 results using
+the ABIWAN.nc netcdf file produced by Abinit when calling wannier90 in library mode.
+Use <cite>abiopen FILE.wout</cite> for a command line interface and
+the <cite>–expose</cite> option to generate matplotlib figures automatically.</p>
+<ul class="sphx-glr-horizontal">
+<li><img alt="../_images/sphx_glr_plot_wannier90_abiwan_001.png" class="sphx-glr-multi-img first" src="../_images/sphx_glr_plot_wannier90_abiwan_001.png" />
+</li>
+<li><img alt="../_images/sphx_glr_plot_wannier90_abiwan_002.png" class="sphx-glr-multi-img first" src="../_images/sphx_glr_plot_wannier90_abiwan_002.png" />
+</li>
+<li><img alt="../_images/sphx_glr_plot_wannier90_abiwan_003.png" class="sphx-glr-multi-img first" src="../_images/sphx_glr_plot_wannier90_abiwan_003.png" />
+</li>
+</ul>
+<p class="sphx-glr-script-out">Out:</p>
+<div class="sphx-glr-script-out highlight-none"><div class="highlight"><pre><span></span>================================= File Info =================================
+Name: tw90_4o_DS3_ABIWAN.nc
+Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/wannier90/tutoplugs_tw90_4
+Size: 205.47 kb
+Access Time: Thu Jul 26 01:17:25 2018
+Modification Time: Fri Jul 20 00:04:24 2018
+Change Time: Fri Jul 20 00:04:24 2018
+
+================================= Structure =================================
+Full Formula (Si2)
+Reduced Formula: Si
+abc   :   3.840259   3.840259   3.840259
+angles:  60.000000  60.000000  60.000000
+Sites (2)
+  #  SP       a     b     c
+---  ----  ----  ----  ----
+  0  Si    0     0     0
+  1  Si    0.25  0.25  0.25
+
+Abinit Spacegroup: spgid: 227, num_spatial_symmetries: 24, has_timerev: False, symmorphic: False
+
+============================== Electronic Bands ==============================
+Number of electrons: 8.0, Fermi level: 5.861 (eV)
+nsppol: 1, nkpt: 64, mband: 14, nspinor: 1, nspden: 1
+smearing scheme: none, tsmear_eV: 0.272, occopt: 1
+Direct gap:
+    Energy: 2.519 (eV)
+    Initial state: spin=0, kpt=[+0.000, +0.000, +0.000], weight: 0.016, band=3, eig=5.861, occ=2.000
+    Final state:   spin=0, kpt=[+0.000, +0.000, +0.000], weight: 0.016, band=4, eig=8.380, occ=0.000
+Fundamental gap:
+    Energy: 0.635 (eV)
+    Initial state: spin=0, kpt=[+0.000, +0.000, +0.000], weight: 0.016, band=3, eig=5.861, occ=2.000
+    Final state:   spin=0, kpt=[+0.500, +0.500, +0.000], weight: 0.016, band=4, eig=6.496, occ=0.000
+Bandwidth: 11.953 (eV)
+Valence maximum located at:
+    spin=0, kpt=[+0.000, +0.000, +0.000], weight: 0.016, band=3, eig=5.861, occ=2.000
+Conduction minimum located at:
+    spin=0, kpt=[+0.500, +0.500, +0.000], weight: 0.016, band=4, eig=6.496, occ=0.000
+
+================================== K-points ==================================
+K-mesh with divisions: [4, 4, 4], shifts: [0.0, 0.0, 0.0]
+kptopt: 3 (Do not take into account any symmetry)
+Number of points in the IBZ: 64
+     0) [+0.000, +0.000, +0.000],  weight=0.016
+     1) [+0.250, +0.000, +0.000],  weight=0.016
+     2) [+0.500, +0.000, +0.000],  weight=0.016
+     3) [-0.250, +0.000, +0.000],  weight=0.016
+     4) [+0.000, +0.250, +0.000],  weight=0.016
+     5) [+0.250, +0.250, +0.000],  weight=0.016
+     6) [+0.500, +0.250, +0.000],  weight=0.016
+     7) [-0.250, +0.250, +0.000],  weight=0.016
+     8) [+0.000, +0.500, +0.000],  weight=0.016
+     9) [+0.250, +0.500, +0.000],  weight=0.016
+    10) [+0.500, +0.500, +0.000],  weight=0.016
+    ... (More than 10 k-points)
+
+============================= Wannier90 Results =============================
+No of Wannier functions: 8, No bands: 14, Number of k-point neighbours: 8
+Disentanglement: True, exclude_bands: no
+
+WF_index  Center                     Spread
+0         [1.12195 1.59353 1.59353]  2.767
+1         [1.59353 1.59353 1.12195]  2.767
+2         [1.12195 1.12195 1.12195]  2.767
+3         [1.59353 1.12195 1.59353]  2.767
+4         [0.23579 0.23579 0.23579]  2.767
+5         [0.23579 2.47968 2.47968]  2.767
+6         [2.47968 0.23579 2.47968]  2.767
+7         [2.47968 2.47968 0.23579]  2.767
+
+HWanR built in 0.017 (s)
+Interpolation completed in 0.053 [s]
+Interpolation completed in 0.005 [s]
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">abipy.data</span> <span class="kn">as</span> <span class="nn">abidata</span>
+
+<span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="kn">import</span> <span class="n">abiopen</span>
+
+<span class="c1"># Open the ABIWAN file</span>
+<span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">dirpath</span><span class="p">,</span> <span class="s2">&quot;refs&quot;</span><span class="p">,</span> <span class="s2">&quot;wannier90&quot;</span><span class="p">,</span> <span class="s2">&quot;tutoplugs_tw90_4&quot;</span><span class="p">,</span> <span class="s2">&quot;tw90_4o_DS3_ABIWAN.nc&quot;</span><span class="p">)</span>
+<span class="n">abiwan</span> <span class="o">=</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">abiwan</span><span class="p">)</span>
+
+<span class="c1"># Plot the matrix elements of the KS Hamiltonian in real space in the Wannier Gauge.</span>
+<span class="n">abiwan</span><span class="o">.</span><span class="n">hwan</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Matrix elements in real space&quot;</span><span class="p">)</span>
+
+<span class="c1"># Interpolate bands with Wannier functions using an automatically selected k-path</span>
+<span class="c1"># with 5 points for the smallest segment.</span>
+<span class="n">ebands_wan_kpath</span> <span class="o">=</span> <span class="n">abiwan</span><span class="o">.</span><span class="n">interpolate_ebands</span><span class="p">(</span><span class="n">line_density</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">ebands_wan_kpath</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Wannier-interpolated&quot;</span><span class="p">)</span>
+
+<span class="c1"># Interpolate bands in the IBZ defined by ngkpt</span>
+<span class="n">ebands_wan_kmesh</span> <span class="o">=</span> <span class="n">abiwan</span><span class="o">.</span><span class="n">interpolate_ebands</span><span class="p">(</span><span class="n">ngkpt</span><span class="o">=</span><span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">])</span>
+<span class="n">edos</span> <span class="o">=</span> <span class="n">ebands_wan_kmesh</span><span class="o">.</span><span class="n">get_edos</span><span class="p">()</span>
+<span class="n">ebands_wan_kpath</span><span class="o">.</span><span class="n">plot_with_edos</span><span class="p">(</span><span class="n">edos</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Wannier-interpolated bands and DOS&quot;</span><span class="p">)</span>
+
+<span class="c1"># To compare the interpolated bands with ab-initio results,</span>
+<span class="c1"># pass a file with the ab-initio bands to the get_plotter_from_ebands method</span>
+<span class="c1"># that will return an ElectronBandsPlotter object.</span>
+
+<span class="c1">#plotter = abiwan.get_plotter_from_ebands(&quot;out_GSR.nc&quot;)</span>
+<span class="c1">#plotter.combiplot()</span>
+</pre></div>
+</div>
+<p><strong>Total running time of the script:</strong> ( 0 minutes  0.669 seconds)</p>
+<div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-wannier90-abiwan-py">
+<div class="sphx-glr-download docutils container">
+<a class="reference download internal" href="../_downloads/plot_wannier90_abiwan.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_wannier90_abiwan.py</span></code></a></div>
+<div class="sphx-glr-download docutils container">
+<a class="reference download internal" href="../_downloads/plot_wannier90_abiwan.ipynb" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_wannier90_abiwan.ipynb</span></code></a></div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.readthedocs.io">Gallery generated by Sphinx-Gallery</a></p>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
+      Last updated on Jul 26, 2018.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

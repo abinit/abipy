@@ -86,7 +86,7 @@ structure relaxations with the HIST robot.
     # (meaningless in this case as we are using the same HIST file).
     robot.combiplot()
 
-**Total running time of the script:** ( 0 minutes  3.713 seconds)
+**Total running time of the script:** ( 0 minutes  0.615 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_multiple_hist.py:

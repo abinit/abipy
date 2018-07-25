@@ -24,6 +24,8 @@ Flow to compute the equation of state by fitting E(V) at T = 0.
     import abipy.abilab as abilab
     import abipy.flowtk as flowtk
 
+    exclude_py_versions = ["2.7"]
+
 
     def build_flow(options):
         # Set working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
@@ -181,7 +183,7 @@ to produce
 
 
 
-**Total running time of the script:** ( 0 minutes  0.244 seconds)
+**Total running time of the script:** ( 0 minutes  0.201 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_eos.py:

@@ -77,6 +77,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -141,6 +142,7 @@
 
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">namedtuple</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">defaultdict</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="n">cStringIO</span>
+<span class="kn">from</span> <span class="nn">tabulate</span> <span class="k">import</span> <span class="n">tabulate</span>
 <span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">list_strings</span><span class="p">,</span> <span class="n">is_string</span><span class="p">,</span> <span class="n">marquee</span>
 <span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">AttrDict</span><span class="p">,</span> <span class="n">dict2namedtuple</span>
 <span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
@@ -356,25 +358,16 @@
     <span class="k">def</span> <span class="nf">to_table</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return a table (list of list of strings).&quot;&quot;&quot;</span>
         <span class="n">header</span> <span class="o">=</span> <span class="n">QPState</span><span class="o">.</span><span class="n">get_fields</span><span class="p">(</span><span class="n">exclude</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;spin&quot;</span><span class="p">,</span> <span class="s2">&quot;kpoint&quot;</span><span class="p">])</span>
-        <span class="c1"># TODO: Use tabulate or pd</span>
-        <span class="kn">from</span> <span class="nn">prettytable</span> <span class="k">import</span> <span class="n">PrettyTable</span>
-        <span class="n">table</span> <span class="o">=</span> <span class="n">PrettyTable</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
-
+        <span class="n">table</span> <span class="o">=</span> <span class="p">[</span><span class="n">header</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">qp</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
             <span class="n">d</span> <span class="o">=</span> <span class="n">qp</span><span class="o">.</span><span class="n">to_strdict</span><span class="p">(</span><span class="n">fmt</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-            <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">([</span><span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">header</span><span class="p">])</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">header</span><span class="p">])</span>
 
-        <span class="k">return</span> <span class="n">table</span>
+        <span class="k">return</span> <span class="n">tabulate</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">&quot;plain&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
-        <span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_table</span><span class="p">()</span>
-        <span class="n">strio</span> <span class="o">=</span> <span class="n">cStringIO</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">strio</span><span class="p">)</span>
-        <span class="n">strio</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">strio</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">strio</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_table</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Copy of self.&quot;&quot;&quot;</span>
@@ -959,7 +952,7 @@
         <span class="c1"># Find (star) k-points on the path.</span>
         <span class="n">p</span> <span class="o">=</span> <span class="n">kpath</span><span class="o">.</span><span class="n">find_points_along_path</span><span class="p">(</span><span class="n">cart_coords</span><span class="p">,</span> <span class="n">dist_tol</span><span class="o">=</span><span class="n">dist_tol</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">ikfound</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Warning: find_points_along_path returned zero points along the path. Try to increase dist_tol.&quot;</span><span class="p">,</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
+            <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Warning: Found zero points lying on the input k-path. Try to increase dist_tol.&quot;</span><span class="p">,</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">Marker</span><span class="p">()</span>
 
         <span class="c1"># Read complex GW energies from file.</span>
@@ -1400,7 +1393,8 @@
         <span class="c1">#qp_fermie = 0.0</span>
 
         <span class="n">qp_ebands_kpath</span> <span class="o">=</span> <span class="n">ElectronBands</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">kpts_kpath</span><span class="p">,</span> <span class="n">eigens_kpath</span><span class="p">,</span> <span class="n">qp_fermie</span><span class="p">,</span> <span class="n">occfacts_kpath</span><span class="p">,</span>
-                                        <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">nelect</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">nspden</span><span class="p">)</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">nelect</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">nspden</span><span class="p">,</span>
+                                        <span class="n">smearing</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">smearing</span><span class="p">)</span>
 
         <span class="n">qp_ebands_kmesh</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">ks_ebands_kmesh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1427,7 +1421,8 @@
                                    <span class="n">names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ksampling</span><span class="o">=</span><span class="n">ks_ebands_kmesh</span><span class="o">.</span><span class="n">kpoints</span><span class="o">.</span><span class="n">ksampling</span><span class="p">)</span>
             <span class="n">occfacts_kmesh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">eigens_kmesh</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
             <span class="n">qp_ebands_kmesh</span> <span class="o">=</span> <span class="n">ElectronBands</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">kpts_kmesh</span><span class="p">,</span> <span class="n">eigens_kmesh</span><span class="p">,</span> <span class="n">qp_fermie</span><span class="p">,</span> <span class="n">occfacts_kmesh</span><span class="p">,</span>
-                                            <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">nelect</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">nspden</span><span class="p">)</span>
+                                            <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">nelect</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">nspden</span><span class="p">,</span>
+                                            <span class="n">smearing</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">smearing</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">qp_ebands_kpath</span><span class="o">=</span><span class="n">qp_ebands_kpath</span><span class="p">,</span>
                                <span class="n">qp_ebands_kmesh</span><span class="o">=</span><span class="n">qp_ebands_kmesh</span><span class="p">,</span>
@@ -2341,7 +2336,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 01, 2018.<br/>
+      Last updated on Jul 26, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

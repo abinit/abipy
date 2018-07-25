@@ -77,6 +77,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -314,18 +315,6 @@
                 <span class="n">added</span><span class="p">[</span><span class="n">varname</span><span class="p">]</span> <span class="o">=</span> <span class="n">varvalue</span>
         <span class="k">return</span> <span class="n">added</span></div>
 
-<div class="viewcode-block" id="AbstractInput.add_abiobjects"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbstractInput.add_abiobjects">[docs]</a>    <span class="k">def</span> <span class="nf">add_abiobjects</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">abi_objects</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        This function receive a list of ``AbiVarable`` objects and add</span>
-<span class="sd">        the corresponding variables to the input.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">aobj</span> <span class="ow">in</span> <span class="n">abi_objects</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">aobj</span><span class="p">,</span> <span class="s2">&quot;to_abivars&quot;</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;type </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2"> does not have `to_abivars` method&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">aobj</span><span class="p">),</span> <span class="nb">repr</span><span class="p">(</span><span class="n">aobj</span><span class="p">)))</span>
-            <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">aobj</span><span class="o">.</span><span class="n">to_abivars</span><span class="p">()))</span>
-        <span class="k">return</span> <span class="n">d</span></div>
-
 <div class="viewcode-block" id="AbstractInput.pop_vars"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbstractInput.pop_vars">[docs]</a>    <span class="k">def</span> <span class="nf">pop_vars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Remove the variables listed in keys.</span>
@@ -370,28 +359,6 @@
     <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns a string with the input.&quot;&quot;&quot;</span></div>
 
-<div class="viewcode-block" id="AbstractInput.abivalidate"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbstractInput.abivalidate">[docs]</a>    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
-    <span class="k">def</span> <span class="nf">abivalidate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        This method should invoke the executable associated to the input object.</span>
-<span class="sd">        to test whether the input variables are correct and consistent.</span>
-<span class="sd">        The executable is supposed to implemente some sort of `--dry-run` option</span>
-<span class="sd">        that invokes the parser to validate the input and exits.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.</span>
-<span class="sd">            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.</span>
-
-<span class="sd">        Return:</span>
-<span class="sd">            ``namedtuple`` with the following attributes:</span>
-
-<span class="sd">                retcode: Return code. 0 if OK.</span>
-<span class="sd">                output_file: output file of the run.</span>
-<span class="sd">                log_file:  log file of the Abinit run, use log_file.read() to access its content.</span>
-<span class="sd">                stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.</span>
-<span class="sd">                task: Task object</span>
-<span class="sd">        &quot;&quot;&quot;</span></div>
-
 <div class="viewcode-block" id="AbstractInput.generate"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbstractInput.generate">[docs]</a>    <span class="k">def</span> <span class="nf">generate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This function generates new inputs by replacing the variables specified in kwargs.</span>
@@ -419,11 +386,52 @@
             <span class="k">yield</span> <span class="n">new_inp</span></div></div>
 
 
+<div class="viewcode-block" id="AbiAbstractInput"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbiAbstractInput">[docs]</a><span class="k">class</span> <span class="nc">AbiAbstractInput</span><span class="p">(</span><span class="n">AbstractInput</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Abstract class defining the methods that must be implemented by Input objects.</span>
+<span class="sd">    associated to Abinit executables.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="AbiAbstractInput.add_abiobjects"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbiAbstractInput.add_abiobjects">[docs]</a>    <span class="k">def</span> <span class="nf">add_abiobjects</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">abi_objects</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function receive a list of ``AbiVarable`` objects and add</span>
+<span class="sd">        the corresponding variables to the input.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">aobj</span> <span class="ow">in</span> <span class="n">abi_objects</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">aobj</span><span class="p">,</span> <span class="s2">&quot;to_abivars&quot;</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;type </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2"> does not have `to_abivars` method&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">aobj</span><span class="p">),</span> <span class="nb">repr</span><span class="p">(</span><span class="n">aobj</span><span class="p">)))</span>
+            <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">aobj</span><span class="o">.</span><span class="n">to_abivars</span><span class="p">()))</span>
+        <span class="k">return</span> <span class="n">d</span></div>
+
+<div class="viewcode-block" id="AbiAbstractInput.abivalidate"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbiAbstractInput.abivalidate">[docs]</a>    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">abivalidate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method should invoke the executable associated to the input object.</span>
+<span class="sd">        to test whether the input variables are correct and consistent.</span>
+<span class="sd">        The executable is supposed to implemente some sort of `--dry-run` option</span>
+<span class="sd">        that invokes the parser to validate the input and exits.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.</span>
+<span class="sd">            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.</span>
+
+<span class="sd">        Return:</span>
+<span class="sd">            ``namedtuple`` with the following attributes:</span>
+
+<span class="sd">                retcode: Return code. 0 if OK.</span>
+<span class="sd">                output_file: output file of the run.</span>
+<span class="sd">                log_file:  log file of the Abinit run, use log_file.read() to access its content.</span>
+<span class="sd">                stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.</span>
+<span class="sd">                task: Task object</span>
+<span class="sd">        &quot;&quot;&quot;</span></div></div>
+
+
 <div class="viewcode-block" id="AbinitInputError"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInputError">[docs]</a><span class="k">class</span> <span class="nc">AbinitInputError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Base error class for exceptions raised by ``AbinitInput``.&quot;&quot;&quot;</span></div>
 
 
-<div class="viewcode-block" id="AbinitInput"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput">[docs]</a><span class="k">class</span> <span class="nc">AbinitInput</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">with_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">,</span> <span class="n">AbstractInput</span><span class="p">,</span> <span class="n">MSONable</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="nb">object</span><span class="p">)):</span>
+<div class="viewcode-block" id="AbinitInput"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput">[docs]</a><span class="k">class</span> <span class="nc">AbinitInput</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">with_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">,</span> <span class="n">AbiAbstractInput</span><span class="p">,</span> <span class="n">MSONable</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="nb">object</span><span class="p">)):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This object stores the ABINIT variables for a single dataset.</span>
 
@@ -571,7 +579,7 @@
             <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;You cannot set the value of a variable associated to the structure.</span><span class="se">\n</span><span class="s2">&quot;</span>
                              <span class="s2">&quot;Use Structure objects to prepare the input file.&quot;</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_abivar</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">spell_check</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spell_check</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_abivar</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
             <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is not a valid ABINIT variable.</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">key</span> <span class="o">+</span>
                              <span class="s2">&quot;If the name is correct, try to remove ~/.abinit/abipy/abinit_vars.pickle</span><span class="se">\n</span><span class="s2">&quot;</span>
                              <span class="s2">&quot;and rerun the code. If the problems persists, contact the abipy developers</span><span class="se">\n</span><span class="s2">&quot;</span>
@@ -1657,7 +1665,7 @@
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_handle_task_exception</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">exc</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="AbinitInput.abiget_ibz"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.abiget_ibz">[docs]</a>    <span class="k">def</span> <span class="nf">abiget_ibz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ngkpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shiftk</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="AbinitInput.abiget_ibz"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.abiget_ibz">[docs]</a>    <span class="k">def</span> <span class="nf">abiget_ibz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ngkpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shiftk</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This function computes the list of points in the IBZ and the corresponding weights.</span>
 <span class="sd">        It should be called with an input file that contains all the mandatory variables required by ABINIT.</span>
@@ -1668,6 +1676,7 @@
 <span class="sd">            kptopt: Option for k-point generation. If None, the value in self is used.</span>
 <span class="sd">            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.</span>
 <span class="sd">            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.</span>
+<span class="sd">            verbose: verbosity level.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            `namedtuple` with attributes:</span>
@@ -1690,7 +1699,8 @@
             <span class="n">inp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">shiftk</span><span class="o">=</span><span class="n">shiftk</span><span class="p">,</span> <span class="n">nshiftk</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">shiftk</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">kptopt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;kptopt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kptopt</span>
-        <span class="c1">#print(&quot;Computing ibz with input:\n&quot;, str(inp))</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Computing ibz with input:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">inp</span><span class="p">))</span>
 
         <span class="c1"># Build a Task to run Abinit in a shell subprocess</span>
         <span class="n">task</span> <span class="o">=</span> <span class="n">AbinitTask</span><span class="o">.</span><span class="n">temp_shell_task</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
@@ -2414,7 +2424,7 @@
     <span class="sd">&quot;&quot;&quot;Base error class for exceptions raised by `AnaddbInput`&quot;&quot;&quot;</span></div>
 
 
-<div class="viewcode-block" id="AnaddbInput"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput">[docs]</a><span class="k">class</span> <span class="nc">AnaddbInput</span><span class="p">(</span><span class="n">AbstractInput</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">):</span>
+<div class="viewcode-block" id="AnaddbInput"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput">[docs]</a><span class="k">class</span> <span class="nc">AnaddbInput</span><span class="p">(</span><span class="n">AbiAbstractInput</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This object stores the anaddb variables.</span>
 
@@ -2469,7 +2479,7 @@
             <span class="k">return</span> <span class="kc">False</span>
 
     <span class="k">def</span> <span class="nf">_check_varname</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_anaddb_var</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">spell_check</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spell_check</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_anaddb_var</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
             <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is not a registered Anaddb variable</span><span class="se">\n</span><span class="s2">&quot;</span>
                              <span class="s2">&quot;If you are sure the name is correct, please contact the abipy developers</span><span class="se">\n</span><span class="s2">&quot;</span>
                              <span class="s2">&quot;or use input.set_spell_check(False)</span><span class="se">\n</span><span class="s2">&quot;</span>
@@ -2945,7 +2955,7 @@
     <span class="sd">&quot;&quot;&quot;Error class raised by OpticInput.&quot;&quot;&quot;</span></div>
 
 
-<div class="viewcode-block" id="OpticInput"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.OpticInput">[docs]</a><span class="k">class</span> <span class="nc">OpticInput</span><span class="p">(</span><span class="n">AbstractInput</span><span class="p">,</span> <span class="n">MSONable</span><span class="p">):</span>
+<div class="viewcode-block" id="OpticInput"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.OpticInput">[docs]</a><span class="k">class</span> <span class="nc">OpticInput</span><span class="p">(</span><span class="n">AbiAbstractInput</span><span class="p">,</span> <span class="n">MSONable</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Input file for optic executable</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -3424,7 +3434,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 01, 2018.<br/>
+      Last updated on Jul 26, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

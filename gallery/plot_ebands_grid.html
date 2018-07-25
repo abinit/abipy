@@ -79,6 +79,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
@@ -197,7 +198,7 @@ k-path            0.524340     2.531828
 <span class="n">frame</span> <span class="o">=</span> <span class="n">plotter</span><span class="o">.</span><span class="n">get_ebands_frame</span><span class="p">()</span>
 <span class="k">print</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
 
-<span class="n">plotter</span><span class="o">.</span><span class="n">gridplot</span><span class="p">()</span>
+<span class="n">plotter</span><span class="o">.</span><span class="n">gridplot</span><span class="p">(</span><span class="n">with_gaps</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="c1">#plotter.animate()</span>
 
 <span class="c1"># To plot a grid with band structures + DOS, use the optional argument `edos_objects`</span>
@@ -208,12 +209,12 @@ k-path            0.524340     2.531828
 
 <span class="c1"># sphinx_gallery_thumbnail_number = 2</span>
 <span class="n">plotter</span> <span class="o">=</span> <span class="n">ElectronBandsPlotter</span><span class="p">()</span>
-<span class="n">plotter</span><span class="o">.</span><span class="n">add_ebands</span><span class="p">(</span><span class="s2">&quot;Si&quot;</span><span class="p">,</span> <span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;si_nscf_GSR.nc&quot;</span><span class="p">),</span> <span class="n">dos</span><span class="o">=</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;si_scf_GSR.nc&quot;</span><span class="p">))</span>
-<span class="n">plotter</span><span class="o">.</span><span class="n">add_ebands</span><span class="p">(</span><span class="s2">&quot;Same data&quot;</span><span class="p">,</span> <span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;si_nscf_GSR.nc&quot;</span><span class="p">),</span> <span class="n">dos</span><span class="o">=</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;si_scf_GSR.nc&quot;</span><span class="p">))</span>
+<span class="n">plotter</span><span class="o">.</span><span class="n">add_ebands</span><span class="p">(</span><span class="s2">&quot;Si&quot;</span><span class="p">,</span> <span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;si_nscf_GSR.nc&quot;</span><span class="p">),</span> <span class="n">edos</span><span class="o">=</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;si_scf_GSR.nc&quot;</span><span class="p">))</span>
+<span class="n">plotter</span><span class="o">.</span><span class="n">add_ebands</span><span class="p">(</span><span class="s2">&quot;Same data&quot;</span><span class="p">,</span> <span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;si_nscf_GSR.nc&quot;</span><span class="p">),</span> <span class="n">edos</span><span class="o">=</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;si_scf_GSR.nc&quot;</span><span class="p">))</span>
 <span class="n">plotter</span><span class="o">.</span><span class="n">gridplot</span><span class="p">()</span>
 </pre></div>
 </div>
-<p><strong>Total running time of the script:</strong> ( 0 minutes  14.317 seconds)</p>
+<p><strong>Total running time of the script:</strong> ( 0 minutes  4.706 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-ebands-grid-py">
 <div class="sphx-glr-download docutils container">
 <a class="reference download internal" href="../_downloads/plot_ebands_grid.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_ebands_grid.py</span></code></a></div>
@@ -236,7 +237,7 @@ k-path            0.524340     2.531828
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 01, 2018.<br/>
+      Last updated on Jul 26, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>
