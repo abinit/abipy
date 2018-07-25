@@ -660,7 +660,9 @@ class ElectronBands(Has_Structure):
             dist_tol: A point is considered to be on the path if its distance from the line
                 is less than dist_tol.
 
-        Return: namedtuple with:
+        Return:
+            namedtuple with the following attributes::
+
                 ebands: |ElectronBands| object.
                 ik_new2prev: Correspondence between the k-points in the new ebands and the kpoint
                     of the previous band structure (self).
