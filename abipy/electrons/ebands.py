@@ -1996,7 +1996,7 @@ class ElectronBands(Has_Structure):
 
         label = kwargs.pop("label", None)
         # Handle linewidths
-        with_linewidths = kwargs.pop("with_linewidths", False) and self.has_linewidths
+        with_linewidths = kwargs.pop("with_linewidths", True) and self.has_linewidths
         if with_linewidths:
             lw_opts = kwargs.pop("lw_opts", dict(alpha=0.6))
             lw_fact = lw_opts.pop("fact", 2.0)
@@ -2113,7 +2113,7 @@ class ElectronBands(Has_Structure):
         return fig
 
     @add_fig_kwargs
-    def plot_lws_vs_e0(self, ax=None, e0="fermie", exchange_xy=False,
+    def plot_lws_vs_e0(self, ax=None, e0="fermie", function=lambda x: x, exchange_xy=False,
                        xlims=None, ylims=None, fontsize=12, **kwargs):
         r"""
         Plot the electronic linewidths vs KS energy.
@@ -2124,6 +2124,7 @@ class ElectronBands(Has_Structure):
                 - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy (``self.fermie``).
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
+            function: Apply this function to the values before plotting
             exchange_xy: True to exchange x-y axis.
             xlims, ylims: Set the data limits for the x-axis or the y-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
@@ -2149,13 +2150,15 @@ class ElectronBands(Has_Structure):
         kw_color = kwargs.pop("color", "red")
         kw_label = kwargs.pop("label", None)
 
-        xx, yy = e0mesh, lws
+        xx, yy = e0mesh, tuple([function(lw) for lw in lws])
         if exchange_xy: xx, yy = yy, xx
         ax.plot(xx, yy, kw_linestyle, color=kw_color, label=kw_label, **kwargs)
         #ax.scatter(xx, yy)
 
         ax.grid(True)
-        ax.set_ylabel("Linewidth")
+        ylabel = "Linewidth (eV)"
+        if exchange_xy: xlabel, ylabel = ylabel, xlabel
+        ax.set_ylabel(ylabel)
         ax.set_xlabel(xlabel)
         set_axlims(ax, xlims, "x")
         set_axlims(ax, ylims, "y")
@@ -2351,7 +2354,7 @@ class ElectronBands(Has_Structure):
         return evals_on_line, h, self.kpoints.versors[line[0]]
 
     def interpolate(self, lpratio=5, knames=None, vertices_names=None, line_density=20,
-                    kmesh=None, is_shift=None, filter_params=None, verbose=0):
+                    kmesh=None, is_shift=None, bstart=0, bstop=None, filter_params=None, verbose=0):
         """
         Interpolate energies in k-space along a k-path and, optionally, in the IBZ for DOS calculations.
         Note that the interpolation will likely fail if there are symmetrical k-points in the input set of k-points
@@ -2372,6 +2375,7 @@ class ElectronBands(Has_Structure):
                 kmesh is given by three integers and specifies mesh numbers along reciprocal primitive axis.
             is_shift: three integers (spglib_ API). When is_shift is not None, the kmesh is shifted along
                 the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.
+            bstart, bstop: Select the range of band to be used in the interpolation
             filter_params: TO BE described.
             verbose: Verbosity level
 
@@ -2395,7 +2399,7 @@ class ElectronBands(Has_Structure):
         cell = (self.structure.lattice.matrix, self.structure.frac_coords,
                 self.structure.atomic_numbers)
 
-        skw = SkwInterpolator(lpratio, self.kpoints.frac_coords, self.eigens, self.fermie, self.nelect,
+        skw = SkwInterpolator(lpratio, self.kpoints.frac_coords, self.eigens[:,:,bstart:bstop], self.fermie, self.nelect,
                               cell, fm_symrel, self.has_timrev,
                               filter_params=filter_params, verbose=verbose)
 
