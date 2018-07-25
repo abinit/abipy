@@ -2725,7 +2725,8 @@ class ElectronBandsPlotter(NotebookWriter):
         return self.combiplot(*args, **kwargs)
 
     @add_fig_kwargs
-    def gridplot(self, e0="fermie", with_dos=True, with_gaps=False, ylims=None, fontsize=8, **kwargs):
+    def gridplot(self, e0="fermie", with_dos=True, with_gaps=False, max_phfreq=None,
+                 ylims=None, fontsize=8, **kwargs):
         """
         Plot multiple electron bandstructures and optionally DOSes on a grid.
 
