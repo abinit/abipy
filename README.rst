@@ -137,6 +137,7 @@ and install the AbiPy dependencies with::
     conda install --file ./requirements.txt
     conda install --file ./requirements-optional.txt
 
+The second command is needed for Jupyter only.
 Once the requirements have been installed (either with pip or conda), execute::
 
     python setup.py install
