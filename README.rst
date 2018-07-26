@@ -162,7 +162,7 @@ To solve the problem, use conda to update scipy to a version >= 1.0.1 with::
 
     conda install "scipy>=1.0.1"
 
-then issue again python setup.py develop.
+then issue again python setup.py develop. If this fails, supposing you were upgrading abipy inside an already existing conda environment, try to restart by creating from scratch a fresh conda environment, see above.
 
 Use::
 
@@ -188,10 +188,16 @@ To run the suite of unit tests, make sure you have pytest_ installed and then ty
 
     pytest
 
-in the AbiPy root directory.
+in the AbiPy root directory. A quicker check might be obtained with 
+
+    pytest abipy/core/tests -v
+
 Unit tests require ``scripttest`` that can be installed with::
 
     pip install scripttest
+
+Two tests rely on the availability of a PMG_MAPI_KEY, that you do not have if you are not a pymatgen developer.
+You can ignore the failure of these two tests (TestMpRestAPI and TestSymmetries) for most of the developments inside Abipy.
 
 Note that several unit tests check the integration between AbiPy and Abinit. 
 In order to run the tests, you need a working set of Abinit executables and  a ``manager.yml`` configuration file.
