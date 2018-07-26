@@ -13,7 +13,7 @@ from pymatgen.analysis.eos import EOS
 from abipy.core.func1d import Function1D
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.electrons.gsr import GsrFile
-from abipy.dfpt.phonons import PhdosFile, PhononBandsPlotter
+from abipy.dfpt.phonons import PhononBandsPlotter, PhononDos
 from abipy.dfpt.gruneisen import GrunsNcFile
 import abipy.core.abinit_units as abu
 
@@ -538,7 +538,7 @@ class QHA(AbstractQHA):
                 energies.append(g.energy)
                 structures.append(g.structure)
 
-        doses = [PhdosFile(dp).phdos for dp in phdos_files_paths]
+        doses = [PhononDos.as_phdos(dp) for dp in phdos_files_paths]
 
         return cls(structures, doses, energies)
 
@@ -678,7 +678,7 @@ class QHA3PF(AbstractQHA):
                 energies.append(g.energy)
                 structures.append(g.structure)
 
-        doses = [PhdosFile(dp).phdos for dp in phdos_files_paths]
+        doses = [PhononDos.as_phdos(dp) for dp in phdos_files_paths]
 
         return cls(structures, doses, energies, ind_doses)
 

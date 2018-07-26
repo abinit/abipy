@@ -1418,13 +1418,24 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         return multi
 
-    def make_strain_perts_inputs(self, tolerance=None, manager=None):
+    def make_strain_perts_inputs(self, tolerance=None, manager=None, phonon_pert=True, kptopt=3):
+        """
+        Return inputs for the strain perturbation calculation.
+        This functions should be called with an input that represents a GS run.
+
+        Args:
+            tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.
+                Defaults to {"tolvrs": 1.0e-12}.
+            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
+            phonon_pert: is True also the phonon perturbations will be considered. Default False.
+            kptopt: 2 to take into account time-reversal symmetry. Default 3 for backward compatibility.
+        """
         if tolerance is None:
             tolerance = {"tolvrs": 1.0e-12}
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
             raise self.Error("Invalid tolerance: {}".format(str(tolerance)))
 
-        perts = self.abiget_irred_strainperts(kptopt=2, manager=manager)
+        perts = self.abiget_irred_strainperts(kptopt=2, manager=manager, phonon_pert=phonon_pert)
 
         # Build list of datasets (one input per perturbation)
         multi = MultiDataset.replicate_input(input=self, ndtset=len(perts))
@@ -1438,7 +1449,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                              rfdir=rfdir,
                              nqpt=1,               # One wavevector is to be considered
                              qpt=(0, 0, 0),        # q-wavevector.
-                             kptopt=3,             # No symmetries
+                             kptopt=kptopt,        # No symmetries
                              iscf=7,
                              paral_kgb=0
                              )
@@ -1447,7 +1458,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                              rfdir=rfdir,
                              nqpt=1,               # One wavevector is to be considered
                              qpt=(0, 0, 0),        # q-wavevector.
-                             kptopt=3,             # No symmetries
+                             kptopt=kptopt,        # No symmetries
                              iscf=7,
                              paral_kgb=0
                              )
@@ -1456,7 +1467,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                              rfdir=rfdir,
                              nqpt=1,               # One wavevector is to be considered
                              qpt=(0, 0, 0),        # q-wavevector.
-                             kptopt=3,             # No symmetries
+                             kptopt=kptopt,        # No symmetries
                              iscf=7,
                              paral_kgb=0
                              )
@@ -1781,7 +1792,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         return self._abiget_irred_perts(dteperts_vars, qpt=(0, 0, 0), ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt,
                                         workdir=workdir, manager=manager)
 
-    def abiget_irred_strainperts(self, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
+    def abiget_irred_strainperts(self, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None,
+                                 phonon_pert=True):
         """
         This function, computes the list of irreducible perturbations for strain perturbations in DFPT.
         It should be called with an input file that contains all the mandatory variables required by ABINIT.
@@ -1792,6 +1804,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             kptopt: Option for k-point generation. If None, the value in self is used.
             workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
+            phonon_pert: if True the phonon perturbation at gamma will be included.
 
         Returns:
             List of dictionaries with the Abinit variables defining the irreducible perturbation
@@ -1801,15 +1814,17 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             [{'idir': 1, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]},
              {'idir': 2, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]}]
         """
-        strainperts_vars = dict(rfphon=1,                        # No phonon-type perturbation
-                                rfatpol=(1,len(self.structure)), # Perturbation of all atoms
-                                rfstrs=3,                        # Do the strain perturbations
+        strainperts_vars = dict(rfstrs=3,                        # Do the strain perturbations
                                 rfdir=(1,1,1),                   # All directions
                                 # nqpt=1,                        # One wavevector is to be considered
                                 # qpt=(0, 0, 0),                 # q-wavevector.
                                 kptopt=kptopt,                   # Take into account time-reversal symmetry.
                                 iscf=7                           # Just so that it works with PAW ... #TODO: check this
                              )
+
+        if phonon_pert:
+            strainperts_vars['rfphon'] = 1                        # No phonon-type perturbation
+            strainperts_vars['rfatpol'] = (1,len(self.structure)) # Perturbation of all atoms
 
         return self._abiget_irred_perts(strainperts_vars, qpt=(0, 0, 0), ngkpt=ngkpt, shiftk=shiftk,
                                         kptopt=kptopt,
@@ -2061,7 +2076,7 @@ class MultiDataset(object):
             new_mds.extend(other)
             return new_mds
         else:
-            return NotImplementedError("Operation not supported")
+            raise NotImplementedError("Operation not supported")
 
     def __radd__(self, other):
         if isinstance(other, AbinitInput):
@@ -2071,7 +2086,7 @@ class MultiDataset(object):
             new_mds = MultiDataset.from_inputs(other)
             new_mds.extend(self)
         else:
-            return NotImplementedError("Operation not supported")
+            raise NotImplementedError("Operation not supported")
 
     def append(self, abinit_input):
         """Add a |AbinitInput| to the list."""
@@ -2702,6 +2717,64 @@ class AnaddbInput(AbstractInput, Has_Structure):
         )
 
         return new
+
+    @classmethod
+    def dfpt(cls, structure, ngqpt=None, has_gamma_ph=False, dde=False, strain=False, dte=False, nqsmall=None,
+             qppa=None, ndivsm=20, line_density=None, q1shft=(0, 0, 0), qptbounds=None, asr=2, chneut=1, dipdip=1,
+             dos_method="tetra", anaddb_args=None, anaddb_kwargs=None):
+
+        # use the phonon BS and DOS input as starting point is required, otherwise
+        if ngqpt:
+            anaddb_input = cls.phbands_and_dos(structure=structure, ngqpt=ngqpt, ndivsm=ndivsm, nqsmall=nqsmall,
+                                               qppa=qppa, line_density=line_density, asr=asr, chneut=chneut,
+                                               dipdip=dipdip, qptbounds=qptbounds, dos_method=dos_method,
+                                               lo_to_splitting=dde, q1shft=q1shft)
+        else:
+            anaddb_input = AnaddbInput(structure)
+            anaddb_input.set_vars(asr=2, chneut=1)
+
+        # define a link between the different calculations available (in order: dde, strain, phonons at gamma) and
+        # the flags to set (dieflag, elaflag, peizoflag). Only meaningful cases are considered
+        flags_mapping = {(False, False, True): (0, 0, 0),
+                         (False, True, False): (0, 1, 0),
+                         (True, False, False): (2, 0, 0),
+                         (False, True, True): (0, 5, 0),
+                         (True, False, True): (3, 0, 0),
+                         (True, True, False): (0, 1, 1),
+                         (True, True, True): (3, 5, 7)}
+
+        dieflag, elaflag, piezoflag = flags_mapping[(dde, strain, has_gamma_ph)]
+
+        anaddb_input.set_vars(dieflag=dieflag,
+                              elaflag=elaflag,
+                              piezoflag=piezoflag)
+
+        if dieflag == 3 and 'nph2l' not in anaddb_input:
+            anaddb_input['nph2l'] = 1
+
+        if elaflag > 1:
+            anaddb_input["instrflag"] = 1
+
+        if dte:
+            anaddb_input.set_vars(nlflag=1,
+                                  ramansr=1,
+                                  alphon=1,
+                                  prtmbm=1)
+
+        anaddb_args = [] if anaddb_args is None else anaddb_args
+        for key, value in anaddb_args:
+            anaddb_input._check_varname(key)
+
+        anaddb_kwargs = {} if anaddb_kwargs is None else anaddb_kwargs
+        for key in anaddb_kwargs:
+            anaddb_input._check_varname(key)
+
+        args = list(anaddb_args)[:]
+        args.extend(list(anaddb_kwargs.items()))
+
+        anaddb_input.set_vars(args)
+
+        return anaddb_input
 
     @property
     def structure(self):

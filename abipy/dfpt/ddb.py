@@ -314,6 +314,11 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         dynmat = OrderedDict()
         for block in self.blocks:
+            # skip the blocks that are not related to second order derivatives
+            first_line = block["data"][0].strip()
+            if not first_line.startswith("2nd derivatives"):
+                continue
+
             # Build q-point object.
             qpt = Kpoint(frac_coords=block["qpt"], lattice=self.structure.reciprocal_lattice, weight=None, name=None)
 

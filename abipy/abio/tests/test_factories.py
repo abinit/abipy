@@ -425,3 +425,43 @@ class FactoryTest(AbipyTest):
         self.assert_input_equality('dte_from_gsinput_1.json', inp1)
         self.assert_input_equality('dte_from_gsinput_2.json', inp2)
 
+    def test_dfpt_from_gsinput(self):
+        """Testing phonons_from_gsinput"""
+        pseudos = [self.ga_pseudo.pseudo_with_symbol('Ga'), self.n_pseudo.pseudo_with_symbol('N')]
+        gs_inp = gs_input(self.gan_structure, pseudos, kppa=None, ecut=2,
+                          spin_mode="unpolarized", smearing=None)
+        # dte calculations only work with selected values of ixc
+        gs_inp['ixc'] = 7
+        multi = dfpt_from_gsinput(gs_inp, ph_ngqpt=[4, 4, 4], do_ddk=True, do_dde=True, do_strain=True,
+                                  do_dte=True, ph_tol=None, ddk_tol=None, dde_tol=None)
+        self.abivalidate_multi(multi)
+
+        from abipy.abio.input_tags import DDK, DDE, PH_Q_PERT, STRAIN, DTE
+        inp_ddk = multi.filter_by_tags(DDK)[0]
+        inp_dde = multi.filter_by_tags(DDE)[0]
+        inp_ph_q_pert_1 = multi.filter_by_tags(PH_Q_PERT)[0]
+        inp_ph_q_pert_2 = multi.filter_by_tags(PH_Q_PERT)[10]
+        inp_strain = multi.filter_by_tags(STRAIN)[0]
+        inp_dte = multi.filter_by_tags(DTE)[0]
+
+        if False:
+            with open('dfpt_from_gsinput_ddk.json', mode='w') as fp:
+                json.dump(inp_ddk.as_dict(), fp, indent=2)
+            with open('dfpt_from_gsinput_dde.json', mode='w') as fp:
+                json.dump(inp_dde.as_dict(), fp, indent=2)
+            with open('dfpt_from_gsinput_ph_q_pert_1.json', mode='w') as fp:
+                json.dump(inp_ph_q_pert_1.as_dict(), fp, indent=2)
+            with open('dfpt_from_gsinput_ph_q_pert_2.json', mode='w') as fp:
+                json.dump(inp_ph_q_pert_2.as_dict(), fp, indent=2)
+            with open('dfpt_from_gsinput_strain.json', mode='w') as fp:
+                json.dump(inp_strain.as_dict(), fp, indent=2)
+            with open('dfpt_from_gsinput_dte.json', mode='w') as fp:
+                json.dump(inp_dte.as_dict(), fp, indent=2)
+
+        self.assert_input_equality('dfpt_from_gsinput_ddk.json', inp_ddk)
+        self.assert_input_equality('dfpt_from_gsinput_dde.json', inp_dde)
+        self.assert_input_equality('dfpt_from_gsinput_ph_q_pert_1.json', inp_ph_q_pert_1)
+        self.assert_input_equality('dfpt_from_gsinput_ph_q_pert_2.json', inp_ph_q_pert_2)
+        self.assert_input_equality('dfpt_from_gsinput_strain.json', inp_strain)
+        self.assert_input_equality('dfpt_from_gsinput_dte.json', inp_dte)
+

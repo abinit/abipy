@@ -319,6 +319,14 @@ class DdbTest(AbipyTest):
         assert robot.abifiles[1].structure.formula == "Li1 F1"
         assert robot.abifiles[1].header["ixc"] == -116133
 
+    def test_alas_with_third_order(self):
+        """
+        Testing DDB containing also third order derivatives.
+        """
+        with abilab.abiopen(abidata.ref_file("refs/alas_nl_dfpt/AlAs_nl_dte_DDB")) as ddb:
+            for qpoint in ddb.qpoints:
+                assert qpoint in ddb.computed_dynmat
+
 
 class DielectricTensorGeneratorTest(AbipyTest):
 
