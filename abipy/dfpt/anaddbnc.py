@@ -13,6 +13,7 @@ from abipy.iotools import ETSF_Reader
 from abipy.dfpt.phonons import InteratomicForceConstants
 from abipy.dfpt.ddb import Becs
 from abipy.dfpt.tensors import NLOpticalSusceptibilityTensor
+from abipy.dfpt.elastic import ElasticData
 
 
 class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
@@ -177,7 +178,6 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             return self.reader.read_value("oscillator_strength", cmode="c")
         except Exception as exc:
             print(exc, "Oscillator strengths require dieflag == 1, 3 or 4", "Returning None", sep="\n")
-            raise
             return None
 
     def write_notebook(self, nbpath=None):
@@ -193,3 +193,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
+
+    @lazy_property
+    def elastic_data(self):
+        return ElasticData.from_ncreader(self.reader)
