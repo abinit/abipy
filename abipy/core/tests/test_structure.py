@@ -28,7 +28,7 @@ class TestStructure(AbipyTest):
             assert structure.has_abi_spacegroup
 
             # Call pymatgen machinery to get the high-symmetry stars.
-            print(structure.hsym_stars)
+            str(structure.hsym_stars)
 
             geodict = structure.get_dict4pandas()
             assert geodict["abispg_num"] is not None
@@ -46,6 +46,7 @@ class TestStructure(AbipyTest):
         # Test as_structure and from/to abivars
         si = Structure.as_structure(abidata.cif_file("si.cif"))
         assert si.formula == "Si2"
+        assert si.latex_formula == "Si$_{2}$"
         assert si.abi_spacegroup is None and not si.has_abi_spacegroup
         assert "ntypat" in si.to(fmt="abivars")
 
@@ -53,6 +54,9 @@ class TestStructure(AbipyTest):
         assert spgroup is not None
         assert si.has_abi_spacegroup
         assert si.abi_spacegroup.spgid == 227
+        kfrac_coords = si.get_kcoords_from_names(["G", "X", "L", "Gamma"])
+        self.assert_equal(kfrac_coords,
+            ([[0. , 0. , 0. ], [0.5, 0. , 0.5], [0.5, 0.5, 0.5], [0. , 0. , 0. ]]))
 
         with self.assertRaises(TypeError):
             Structure.as_structure({})
@@ -105,8 +109,11 @@ class TestStructure(AbipyTest):
         same_znse = Structure.as_structure(tmp_path)
         assert same_znse == znse
 
-        for fmt in ["abivars", "cif", "POSCAR", "json", "xsf", "qe"]:
+        for fmt in ["abivars", "cif", "POSCAR", "json", "xsf", "qe", "siesta", "wannier90"]:
             assert len(znse.convert(fmt=fmt)) > 0
+
+        for fmt in ["abinit", "w90", "siesta"]:
+            assert len(znse.get_kpath_input_string(fmt=fmt)) > 0
 
         oxi_znse = znse.get_oxi_state_decorated()
         assert len(oxi_znse.abi_string)

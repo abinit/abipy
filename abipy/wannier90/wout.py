@@ -86,6 +86,11 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
                 app(self.conv_df.to_string(index=False))
             app("")
 
+        if self.warnings:
+            app("Found %d warnings in output file:" % len(self.warnings))
+            for i, w in enumerate(self.warnings):
+                app("[%d] %s" % (i, w))
+
         #if verbose:
 
         return "\n".join(lines)
@@ -242,8 +247,9 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
                     self.wf_centers[iw].append(center)
                     self.wf_spreads[iw].append(spread)
 
-            line = lines.pop(0)
-            assert not line.strip()
+            line = lines.pop(0).strip()
+            if line:
+                raise ValueError("Expecting empty string. Got:\n`%s`" % line)
 
             #      0     0.421E+02     0.0000000000       42.1124500153       0.57  <-- CONV
             #        O_D=     32.4608805 O_OD=      5.9016636 O_TOT=     42.1124500 <-- SPRD

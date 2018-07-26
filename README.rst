@@ -71,7 +71,7 @@ in the form of pre-compiled packages that can be easily installed with e.g.::
 
     conda install numpy scipy netcdf4
 
-To install AbiPy with conda, download the `minconda installer <https://conda.io/miniconda.html>`_
+To install AbiPy with conda, download the `miniconda installer <https://conda.io/miniconda.html>`_
 (select python3.6 and the version corresponding to your operating system).
 Create a new conda_ environment (let's call it ``abipy3.6``) based on python3.6 with::
 
@@ -137,6 +137,7 @@ and install the AbiPy dependencies with::
     conda install --file ./requirements.txt
     conda install --file ./requirements-optional.txt
 
+The second command is needed for Jupyter only.
 Once the requirements have been installed (either with pip or conda), execute::
 
     python setup.py install
@@ -145,8 +146,42 @@ or alternately::
 
     python setup.py develop
 
-to install the package in developmental mode 
-(this is the recommended approach, especially if you are planning to implement new features).
+to install the package in developmental mode. 
+This is the recommended approach, especially if you are planning to implement new features.
+
+Note, however, that the developmental version of AbiPy is kept in sync with the
+developmental version of pymatgen thus ```python setup.py develop``` may 
+try to download new versions from the PyPi portal and then fail with e.g. the error message::
+
+    ...
+    processing dependencies for abipy==0.6.0.dev0
+    error: scipy 1.0.0 is installed but scipy>=1.0.1 is required by {'pymatgen'}
+
+due to inconsistent dependencies.
+To solve the problem, use conda to update scipy to a version >= 1.0.1 with::
+
+    conda install "scipy>=1.0.1"
+
+then issue again python setup.py develop.
+
+Use::
+
+    conda info pymatgen
+
+to display information about the installed version of pymatgen.
+
+Also note that the BLAS/Lapack libraries provided by conda have multithreading support activated by default.
+Each process will try to use all of the cores on your machine, which quickly overloads things 
+if there are multiple processes running. 
+(Also, this is a shared machine, so it is just rude behavior in general).
+To disable multithreading, add these lines to your ~/.bash_profile::
+
+    export OPENBLAS_NUM_THREADS=1
+    export OMP_NUM_THREADS=1
+
+and then activate these settings with::
+
+    source ~/.bash_profile
 
 The Github version include test files for complete unit testing.
 To run the suite of unit tests, make sure you have pytest_ installed and then type::

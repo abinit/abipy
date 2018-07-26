@@ -358,8 +358,8 @@ class ScissorsBuilder(object):
         plotter = ElectronBandsPlotter()
 
         bands_label = bands_label if bands_label is not None else os.path.basename(bands_filepath)
-        plotter.add_ebands(bands_label, ks_bands, dos=ks_dos)
-        plotter.add_ebands(bands_label + " + scissors", qp_bands, dos=qp_dos)
+        plotter.add_ebands(bands_label, ks_bands, edos=ks_dos)
+        plotter.add_ebands(bands_label + " + scissors", qp_bands, edos=qp_dos)
 
         #qp_marker: if int > 0, markers for the ab-initio QP energies are displayed. e.g qp_marker=50
         #qp_marker = 50

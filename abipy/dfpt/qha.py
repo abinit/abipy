@@ -163,7 +163,7 @@ class AbstractQHA(six.with_metaclass(abc.ABCMeta, object)):
 
         ax.plot(f.min_vol, f.min_en - self.energies[self.iv0] , color='r', lw=1, marker='x', ms=5)
 
-        ax.set_xlabel('V (${\AA}^3$)')
+        ax.set_xlabel(r'V (${\AA}^3$)')
         ax.set_ylabel('E (eV)')
 
         return fig

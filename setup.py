@@ -153,7 +153,6 @@ def cleanup():
 
 install_requires = [
 "six",
-"prettytable",
 "tabulate",
 "apscheduler==2.1.0",
 "pydispatcher>=2.0.5",
@@ -164,7 +163,7 @@ install_requires = [
 "numpy",
 "scipy",
 "spglib",
-"pymatgen==2018.6.11",
+"pymatgen>=2018.7.15",
 "netCDF4",
 "matplotlib",
 "seaborn",

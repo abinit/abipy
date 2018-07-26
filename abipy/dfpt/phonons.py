@@ -342,7 +342,7 @@ class PhononBands(object):
 
     @property
     def maxfreq(self):
-        """Maximum phonon frequency."""
+        """Maximum phonon frequency in eV."""
         return self.get_maxfreq_mode()
 
     def get_minfreq_mode(self, mode=None):
@@ -892,7 +892,7 @@ class PhononBands(object):
         if units:
             ax.set_ylabel(abu.wlabel_from_units(units))
 
-        ax.set_xlabel("Wave vector")
+        ax.set_xlabel("Wave Vector")
 
         # Set ticks and labels.
         ticks, labels = self._make_ticks_and_labels(kwargs.pop("qlabels", None))
@@ -2971,7 +2971,8 @@ class PhononBandsPlotter(NotebookWriter):
     #    return "\n\n".join(text)
 
     @add_fig_kwargs
-    def combiplot(self, qlabels=None, units='eV', ylims=None, width_ratios=(2, 1), **kwargs):
+    def combiplot(self, qlabels=None, units='eV', ylims=None, width_ratios=(2, 1), fontsize=8,
+                  linestyle_dict=None, **kwargs):
         r"""
         Plot the band structure and the DOS on the same figure.
         Use ``gridplot`` to plot band structures on different figures.
@@ -2984,6 +2985,8 @@ class PhononBandsPlotter(NotebookWriter):
                    or scalar e.g. ``left``. If left (right) is None, default values are used
             width_ratios: Ratio between the width of the phonon bands plots and the DOS plots.
                 Used if plotter has DOSes.
+            fontsize: fontsize for titles and legend.
+            linestyle_dict: Dictionary mapping labels to matplotlib linestyle options.
 
         Returns: |matplotlib-Figure|
         """
@@ -3020,7 +3023,10 @@ class PhononBandsPlotter(NotebookWriter):
 
         for (label, phbands), lineopt in zip(self._bands_dict.items(), self.iter_lineopt()):
             i += 1
-            my_kwargs.update(lineopt)
+            if linestyle_dict is not None and label in linestyle_dict:
+                my_kwargs.update(linestyle_dict[label])
+            else:
+                my_kwargs.update(lineopt)
             opts_label[label] = my_kwargs.copy()
 
             l = phbands.plot_ax(ax1, branch=None, units=units, **my_kwargs)
@@ -3036,7 +3042,7 @@ class PhononBandsPlotter(NotebookWriter):
             if i == 0:
                 phbands.decorate_ax(ax1, qlabels=qlabels, units=units)
 
-        ax1.legend(lines, legends, loc='best', shadow=True)
+        ax1.legend(lines, legends, loc='best', fontsize=fontsize, shadow=True)
 
         # Add DOSes
         if self.phdoses_dict:

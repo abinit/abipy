@@ -24,7 +24,7 @@ with abiopen(abidata.ref_file("si_scf_GSR.nc")) as gs_file:
 edos = gs_ebands.get_edos()
 
 # Plot bands and DOS.
-nscf_ebands.plot_with_edos(edos, e0=None)
+nscf_ebands.plot_with_edos(edos, e0=None, with_gaps=True)
 
 print("nscf_ebands.efermi", nscf_ebands.fermie)
 print("gs_ebands.efermi", gs_ebands.fermie)

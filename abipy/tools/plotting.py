@@ -36,21 +36,21 @@ __all__ = [
 # https://matplotlib.org/gallery/lines_bars_and_markers/linestyles.html
 linestyles = OrderedDict(
     [('solid',               (0, ())),
-     ('loosely dotted',      (0, (1, 10))),
+     ('loosely_dotted',      (0, (1, 10))),
      ('dotted',              (0, (1, 5))),
-     ('densely dotted',      (0, (1, 1))),
+     ('densely_dotted',      (0, (1, 1))),
 
-     ('loosely dashed',      (0, (5, 10))),
+     ('loosely_dashed',      (0, (5, 10))),
      ('dashed',              (0, (5, 5))),
-     ('densely dashed',      (0, (5, 1))),
+     ('densely_dashed',      (0, (5, 1))),
 
-     ('loosely dashdotted',  (0, (3, 10, 1, 10))),
+     ('loosely_dashdotted',  (0, (3, 10, 1, 10))),
      ('dashdotted',          (0, (3, 5, 1, 5))),
-     ('densely dashdotted',  (0, (3, 1, 1, 1))),
+     ('densely_dashdotted',  (0, (3, 1, 1, 1))),
 
-     ('loosely dashdotdotted', (0, (3, 10, 1, 10, 1, 10))),
+     ('loosely_dashdotdotted', (0, (3, 10, 1, 10, 1, 10))),
      ('dashdotdotted',         (0, (3, 5, 1, 5, 1, 5))),
-     ('densely dashdotdotted', (0, (3, 1, 1, 1, 1, 1)))]
+     ('densely_dashdotdotted', (0, (3, 1, 1, 1, 1, 1)))]
 )
 
 
@@ -97,9 +97,19 @@ def set_axlims(ax, lims, axname):
             left = lims[0]
 
     set_lim = getattr(ax, {"x": "set_xlim", "y": "set_ylim"}[axname])
-    set_lim(left, right)
+    if left != right:
+        set_lim(left, right)
 
     return left, right
+
+
+def set_ax_xylabels(ax, xlabel, ylabel, exchange_xy):
+    """
+    Set the x- and the y-label of axis ax, exchanging x and y if exchange_xy
+    """
+    if exchange_xy: xlabel, ylabel = ylabel, xlabel
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
 
 
 def set_visible(ax, boolean, *args):

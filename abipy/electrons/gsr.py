@@ -341,17 +341,14 @@ class EnergyTerms(AttrDict):
 
     @property
     def table(self):
-        """PrettyTable object with the results."""
-        from prettytable import PrettyTable
-        table = PrettyTable(["Term", "Value"])
+        """string with results in tabular form."""
+        table = [["Term", "Value"]]
         for k, doc in self._NAME2DOC.items():
-            table.add_row([k, self[k]])
-        return table
+            table.append([k, self[k]])
+        return tabulate(table, tablefmt="plain")
 
     #def get_dataframe(self):
-    #    """
-    #    Return a |pandas-DataFrame|
-    #    """
+    #    """Return a |pandas-DataFrame|"""
     #    d = {k: float(self[k]) for k in self}
     #    return pd.DataFrame(d, index=[None], columns=list(d.keys()))
     #    #return pd.DataFrame(d, columns=list(d.keys()))

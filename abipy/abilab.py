@@ -38,6 +38,7 @@ from abipy.abio.abivars import AbinitInputFile
 from abipy.abio.outputs import AbinitLogFile, AbinitOutputFile, OutNcFile, AboRobot #, CubeFile
 from abipy.tools.printing import print_dataframe
 from abipy.tools.notebooks import print_source
+from abipy.tools.plotting import get_ax_fig_plt, get_axarray_fig_plt, get_ax3d_fig_plt #, plot_array, ArrayPlotter
 from abipy.abio.factories import *
 from abipy.electrons.ebands import (ElectronBands, ElectronBandsPlotter, ElectronDos, ElectronDosPlotter,
     dataframe_from_ebands)
@@ -62,8 +63,8 @@ from abipy.dynamics.hist import HistFile, HistRobot
 from abipy.waves import WfkFile
 from abipy.eph.a2f import A2fFile, A2fRobot
 from abipy.eph.sigeph import SigEPhFile, SigEPhRobot
-from abipy.wannier90 import WoutFile
-from abipy.electrons.lobster import Coxp, ICoxp, LobsterDos, LobsterInput, LobsterAnalyzer
+from abipy.wannier90 import WoutFile, AbiwanFile, AbiwanRobot
+from abipy.electrons.lobster import CoxpFile, ICoxpFile, LobsterDoscarFile, LobsterInput, LobsterAnalyzer
 
 # Abinit Documentation.
 from abipy.abio.abivars_db import get_abinit_variables, abinit_help, docvar
@@ -93,10 +94,10 @@ ext2file = collections.OrderedDict([
     ("JTH.xml", Pseudo),
     (".wout", WoutFile),
     # Lobster files.
-    ("COHPCAR.lobster", Coxp),
-    ("COOPCAR.lobster", Coxp),
-    ("ICOHPLIST.lobster", ICoxp),
-    ("DOSCAR.lobster", LobsterDos),
+    ("COHPCAR.lobster", CoxpFile),
+    ("COOPCAR.lobster", CoxpFile),
+    ("ICOHPLIST.lobster", ICoxpFile),
+    ("DOSCAR.lobster", LobsterDoscarFile),
 ])
 
 # Abinit files require a special treatment.
@@ -125,6 +126,7 @@ abiext2ncfile = collections.OrderedDict([
     ("OPTIC.nc", OpticNcFile),
     ("A2F.nc", A2fFile),
     ("SIGEPH.nc", SigEPhFile),
+    ("ABIWAN.nc", AbiwanFile),
 ])
 
 
@@ -162,7 +164,7 @@ def abifile_subclass_from_filename(filename):
         for ext, cls in abiext2ncfile.items():
             if filename.endswith(ext): return cls
 
-    msg = ("No class has been registered for file:\n\t%s\n\nFile extensions supported:\n%s" %
+    msg = ("No class has been registered for file:\n\t%s\n\nFile extensions supported:\n\n%s" %
         (filename, abiopen_ext2class_table()))
     raise ValueError(msg)
 
@@ -219,6 +221,10 @@ def abiopen(filepath):
     abonum = re.compile(r".+\.abo[\d]+")
     if outnum.match(filepath) or abonum.match(filepath):
         return AbinitOutputFile.from_file(filepath)
+
+    if os.path.basename(filepath) == "log":
+        # Assume Abinit log file.
+        return AbinitLogFile.from_file(filepath)
 
     cls = abifile_subclass_from_filename(filepath)
     return cls.from_file(filepath)

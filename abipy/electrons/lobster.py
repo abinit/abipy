@@ -1,4 +1,5 @@
-"Tools to analyze output files produced by lobster code."""
+# coding: utf-8
+"""Tools to analyze the output files produced by Lobster."""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
@@ -12,6 +13,7 @@ from monty.collections import tree
 from monty.io import zopen
 from monty.termcolor import cprint
 from monty.functools import lazy_property
+from pymatgen.core.periodic_table import Element
 from pymatgen.electronic_structure.core import OrbitalType
 from pymatgen.io.vasp.outputs import Vasprun
 from pymatgen.io.vasp.inputs import Potcar
@@ -19,7 +21,7 @@ from pymatgen.io.abinit.pseudos import Pseudo
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import BaseFile, NotebookWriter
 from abipy.electrons.gsr import GsrFile
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible, set_ax_xylabels
 from abipy.tools import duck
 
 
@@ -30,7 +32,7 @@ class _LobsterFile(BaseFile, NotebookWriter):
     # These class attributes can be redefined in order to customize the plots.
 
     # Mapping L --> color used in plots.
-    #color_l = {"s": "red", "p": "blue", "d": "green", "f": "orange"}
+    color_l = {"s": "red", "p": "blue", "d": "green", "f": "orange"}
 
     # \U starts an eight-character Unicode escape. raw strings do not work in python2.7
     # and we need a latex symbol to avoid errors in matplotlib --> replace myuparrow --> uparrow
@@ -39,14 +41,79 @@ class _LobsterFile(BaseFile, NotebookWriter):
     spin2tex = {k: v.replace("myuparrow", "uparrow") for k, v in
             {0: r"$\sigma=\myuparrow$", 1: r"$\sigma=\downarrow$"}.items()}
 
+    # TODOL ls
+    params_orbs = {
+      "s":  {"style": dict(color="red", ls="-", lw=1), "latex": "s"},
+      #
+      "p_x": {"style": dict(color="blue", ls="-", lw=1), "latex": "p_x"},
+      "p_y": {"style": dict(color="blue", ls="-", lw=1), "latex": "p_y"},
+      "p_z": {"style": dict(color="blue", ls="-", lw=1), "latex": "p_z"},
+      #
+      "d_xy":  {"style": dict(color="green", ls="-", lw=1), "latex": "d_{xy}"},
+      "d_yz":  {"style": dict(color="green", ls="-", lw=1), "latex": "d_{yz}"},
+      "d_z^2": {"style": dict(color="green", ls="-", lw=1), "latex": "d_{z^2}"},
+      "d_xz":  {"style": dict(color="green", ls="-", lw=1), "latex": "d_{xz}"},
+      "d_x^2-y^2": {"style": dict(color="green", ls="-", lw=1), "latex": "d_{x^2-y^2}"},
+      #
+      "4f_y(3x^2-y^2)": {"style": dict(color="orange", ls="-", lw=1), "latex": "4f_{y(3x^2-y^2)}"},
+      "4f_xyz": {"style": dict(color="orange", ls="-", lw=1), "latex": "4f_{xyz}"},
+      "4f_yz^2": {"style": dict(color="orange", ls="-", lw=1), "latex": "4f_{yz^2}"},
+      "4f_z^3": {"style": dict(color="orange", ls="-", lw=1), "latex": "4f_{z^3}"},
+      "4f_xz^2": {"style": dict(color="orange", ls="-", lw=1), "latex": "4f_{xz^2}"},
+      "4f_z(x^2-y^2)": {"style": dict(color="orange", ls="-", lw=1), "latex": "4f_{z(x^2-y^2)}"},
+    }
+
     def __str__(self):
         return self.to_string()
 
     def close(self):
         """Needed by ABC."""
 
+    #@add_fig_kwargs
+    #def plot_with_ebands(self, ebands, fontsize=12, **kwargs):
+    #    """
+    #    Plot bands + (COHP|COOP|DOSCAR) depending on the content of the file.
 
-class Coxp(_LobsterFile):
+    #    Args:
+    #        ebands: Path to ncfile with ebands or |ElectronBands| object.
+    #        fontsize: fontsize for legends and titles
+
+    #    Returns: |matplotlib-Figure|
+    #    """
+    #    ebands = ElectronBands.as_ebands(ebands)
+
+    #    import matplotlib.pyplot as plt
+    #    from matplotlib.gridspec import GridSpec
+    #    fig = plt.figure()
+
+    #    # Build grid.
+    #    nrows, ncols = 1, 2
+    #    gspec = GridSpec(nrows=nrows, ncols=ncols, width_ratios=(2, 1), wspace=0.05)
+
+    #    # Bands and DOS will share the y-axis
+    #    axmat = np.array((nrows, ncols), dtype=object)
+    #    for icol in range(ncols):
+    #        for irow in range(nrows):
+    #            axmat[irow, icol] = plt.subplot(gspec[irow, icol], sharey=None if irow == 0 else axmat[irow, icol-1])
+
+    #    #axmat, fig, plt = get_axarray_fig_plt(None, nrows=self.nsppol, ncols=len(entries) + 1,
+    #    #                                        sharex=False, sharey=True, squeeze=False)
+
+    #    for ix, ax in enumerate(axmat.ravel()):
+    #        if ix == 0:
+    #            ebands.plot(e0="fermie", ax=ax, show=False)
+    #        else:
+    #            self.plot(ax=ax, exchange_xy=True, show=False)
+
+    #        #if ix != 0:
+    #        #    set_visible(ax, False, "ylabel")
+    #        #if self.nsppol == 2 and spin == 0:
+    #        #    set_visible(ax, False, "xlabel")
+
+    #    return fig
+
+
+class CoxpFile(_LobsterFile):
     """
     Wrapper class for the crystal orbital projections produced by Lobster.
     Wraps both a COOP and a COHP.
@@ -110,15 +177,31 @@ class Coxp(_LobsterFile):
     @classmethod
     def from_file(cls, filepath):
         """
-        Generates an instance of Coxp from the files produce by Lobster.
+        Generates an instance of CoxpFile from the files produce by Lobster.
         Accepts gzipped files.
 
         Args:
             filepath: path to the COHPCAR.lobster or COOPCAR.lobster.
 
         Returns:
-            A Coxp.
+            A CoxpFile.
         """
+        # From lobster documentation
+        # COHPCAR.lobster:
+        # File that contains the pCOHPs as requested in the lobsterin file.
+        # It resembles the format of TB-LMTO-ASA's COPL file, which is organized as follows:
+        # - Starting in line 3, the labels for the interactions are presented, followed by the
+        # actual data.
+        # - Column 1: energy axis, shifted such that the Fermi level lies at zero eV.
+        # - Column 2: pCOHP averaged over all atom pairs specified
+        # - Column 3: integrated pCOHP (IpCOHP) averaged over all atom pairs
+        # - Column 4: pCOHP of the first interaction
+        # - Column 5: IpCOHP of the first interaction
+        # - and so on...
+        # Note that in a spin-polarized calculation, the first set of the columns (2, 3, ..., 2N+3)
+        # belongs to the first (up) spin and the other set (2N+4, 2N+5, ..., 4N+5) belongs to the
+        # second (down) spin. Here N is the number of interactions.
+
         float_patt = r'-?(?:0|[1-9]\d*)(?:\.\d*)?(?:[eE][+\-]?\d+)?'
         header_patt = re.compile(r'\s+(\d+)\s+(\d+)\s+(\d+)\s+('+float_patt+
                                  r')\s+('+float_patt+r')\s+('+float_patt+r')')
@@ -127,7 +210,7 @@ class Coxp(_LobsterFile):
         new = cls(filepath)
 
         with zopen(filepath, "rt") as f:
-            # find the header
+            # Find the header
             for line in f:
                 match = header_patt.match(line.rstrip())
                 if match:
@@ -146,11 +229,11 @@ class Coxp(_LobsterFile):
             count_pairs = 0
             pairs_data = []
             new.type_of_index = {}
-            # parse the pairs considered
+            # Parse the pairs considered
             for line in f:
                 match = pair_patt.match(line.rstrip())
                 if match:
-                    # adds a tuple: [type1, index1, orbital1, type2, index2, orbital2]
+                    # Adds a tuple: [type1, index1, orbital1, type2, index2, orbital2]
                     # with orbital1, orbital2 = None if the pair is not orbitalwise
                     type1, index1, orbital1, type2, index2, orbital2 = match.groups()
                     # 0-based indexing
@@ -169,7 +252,7 @@ class Coxp(_LobsterFile):
 
             data = np.fromstring(f.read(), dtype=np.float, sep=' ').reshape([n_en_steps, 1+n_spin*n_column_groups*2])
 
-            # initialize and fill results
+            # Initialize and fill results
             new.energies = data[:, 0]
             new.averaged = defaultdict(dict)
             new.total = tree()
@@ -177,22 +260,24 @@ class Coxp(_LobsterFile):
 
             for i, s in enumerate(spins):
                 base_index = 1+i*n_column_groups*2
-                new.averaged[s]['single'] = data[:, base_index]
-                new.averaged[s]['integrated'] = data[:, base_index+1]
+                new.averaged[s]['single'] = data[:, base_index].copy()
+                new.averaged[s]['integrated'] = data[:, base_index+1].copy()
+                # NB (i, j) --> (j, i) symmetry is enforced to make API easier.
                 for j, p in enumerate(pairs_data):
                     index1 = p[1]
                     index2 = p[4]
-                    # partial or total
                     if p[2] is not None:
-                        single = data[:, base_index+2*(j+1)]
-                        integrated = data[:, base_index+2*(j+1)+1]
+                        # Partial
+                        single = data[:, base_index+2*(j+1)].copy()
+                        integrated = data[:, base_index+2*(j+1)+1].copy()
                         new.partial[(index1, index2)][(p[2], p[5])][s]['single'] = single
                         new.partial[(index2, index1)][(p[5], p[2])][s]['single'] = single
                         new.partial[(index1, index2)][(p[2], p[5])][s]['integrated'] = integrated
                         new.partial[(index2, index1)][(p[5], p[2])][s]['integrated'] = integrated
                     else:
-                        single = data[:, base_index+2*(j+1)]
-                        integrated = data[:, base_index+2*(j+1)+1]
+                        # Total
+                        single = data[:, base_index+2*(j+1)].copy()
+                        integrated = data[:, base_index+2*(j+1)+1].copy()
                         new.total[(index1, index2)][s]['single'] = single
                         new.total[(index2, index1)][s]['single'] = single
                         new.total[(index1, index2)][s]['integrated'] = integrated
@@ -216,13 +301,13 @@ class Coxp(_LobsterFile):
 
         results = tree()
         for pair, pair_data in self.partial.items():
-            #check if the symmetric has already been calculated
+            # Check if the symmetric has already been calculated
             if (pair[1], pair[0]) in results:
                 for orbs, orbs_data in results[(pair[1], pair[0])].items():
                     results[pair][(orbs[1], orbs[0])] = orbs_data
                 continue
 
-            #for each look at all orbital possibilities
+            # For each look at all orbital possibilities
             for orbs, orbs_data in pair_data.items():
                 k = (orbs[0].split("_")[0], orbs[1].split("_")[0])
                 if k in results[pair]:
@@ -242,6 +327,7 @@ class Coxp(_LobsterFile):
         """
         if not self.partial:
             raise RuntimeError("Partial orbitals not calculated.")
+
         results = tree()
         for pair, pair_data in self.partial.items():
             for orbs, orbs_data in pair_data.items():
@@ -263,8 +349,12 @@ class Coxp(_LobsterFile):
     def to_string(self, verbose=0):
         """String representation with verbosity level `verbose`."""
         lines = []; app = lines.append
-        app("%s: Number of energies: %d, from %.3f to %.3f (eV) with E_Fermi = 0" % (
-            self.cop_type.upper(), len(self.energies), self.energies[0], self.energies[-1]))
+        if verbose:
+            #app(marquee("File Info", mark="="))
+            app(self.filestat(as_string=True))
+        app("")
+        app("%s: Number of energies: %d, from %.3f to %.3f (eV) with E_fermi set 0 (was %.3f)" % (
+            self.cop_type.upper(), len(self.energies), self.energies[0], self.energies[-1], self.fermie))
         app("has_partial_projections: %s, nsppol: %d" % (bool(self.partial), self.nsppol))
         app("Number of pairs: %d" % len(self.total))
         for i, pair in enumerate(self.total):
@@ -298,7 +388,7 @@ class Coxp(_LobsterFile):
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
 
-        xlabel = r"$\epsilon-\epsilon_F\;(eV)$"
+        xlabel = r"$E - E_f\;(eV)$"
         if self.cop_type == "coop":
             ysign = +1
             ylabel = {"d": "COOP", "i": "ICOOP"}[what]
@@ -306,12 +396,12 @@ class Coxp(_LobsterFile):
             ysign = -1
             ylabel = {"d": "-COHP", "i": "-ICOHP"}[what]
         else:
-            raise ValueError("Wrong cop_type: `%s`" % self.cop_type)
+            raise ValueError("Wrong cop_type: `%s`" % str(self.cop_type))
 
         spins = range(self.nsppol) if spin is None else [spin]
         for spin in spins:
-            opts = {"color": "black", "linewidth": 1.0} if spin == 0 else \
-                   {"color": "red", "linewidth": 1.0}
+            opts = {"color": "black", "linewidth": 2.0, "ls": "-"} if spin == 0 else \
+                   {"color": "red", "linewidth": 2.0, "ls": "--"}
             opts.update(kwargs)
             key = {"d": "single", "i": "integrated"}[what]
             xs, ys = self.energies, ysign * self.averaged[spin][key]
@@ -320,14 +410,12 @@ class Coxp(_LobsterFile):
                     **opts)
 
         if exchange_xy:
-            xlabel, ylabel = ylabel, xlabel
             # Add vertical line to signal the zero.
             ax.axvline(c="k", ls=":", lw=1)
         else:
             ax.axhline(c="k", ls=":", lw=1)
 
-        ax.set_xlabel(xlabel)
-        ax.set_ylabel(ylabel)
+        set_ax_xylabels(ax, xlabel, ylabel, exchange_xy)
 
         if self.nsppol == 2:
             ax.legend(loc="best", shadow=True, fontsize=fontsize)
@@ -369,21 +457,21 @@ class Coxp(_LobsterFile):
         ax_list, fig, plt = get_axarray_fig_plt(None, nrows=1, ncols=self.nsppol,
                                                 sharex=True, sharey=True, squeeze=False)
 
-        xlabel, ylabel, ysign = r"$\epsilon-\epsilon_F\;(eV)$", "COOP", +1
+        xlabel, ylabel, ysign = r"$E - E_f\;(eV)$", "COOP", +1
         if self.cop_type == "cohp":
             ylabel, ysign = "-COHP", -1
-        if exchange_xy:
-            xlabel, ylabel = ylabel, xlabel
 
         # self.total[pair][spin][what]
         for spin, ax in enumerate(ax_list.ravel()):
             ax.grid(True)
             sum_all = np.zeros_like(self.energies)
             for index, pairs in zip(with_site_index, all_pairs):
+                if not pairs: continue
                 ys = np.zeros_like(self.energies)
                 for pair in pairs:
                     ys += self.total[pair][spin][what]
-                ys /= len(pairs)
+                #ys /= len(pairs)
+                ys /= len(self.total)
                 sum_all += ys
 
                 #label, style = self.get_labelstyle_from_spin_pair(spin, pair)
@@ -394,7 +482,7 @@ class Coxp(_LobsterFile):
                 ax.plot(xs, ys, label=label, **style)
 
             # Plot average * num_pairs for this spin.
-            xs, ys = self.energies, ysign * self.averaged[spin][what] * len(self.total)
+            xs, ys = self.energies, ysign * self.averaged[spin][what] * 2 * len(self.total)
             if exchange_xy: xs, ys = ys, xs
             style = {}
             ax.plot(xs, ys, label="Average", **style)
@@ -411,8 +499,7 @@ class Coxp(_LobsterFile):
                 ax.axhline(c="k", ls=":", lw=1)
 
             if self.nsppol == 2: ax.set_title(self.spin2tex[spin])
-            ax.set_xlabel(xlabel)
-            ax.set_ylabel(ylabel)
+            set_ax_xylabels(ax, xlabel, ylabel, exchange_xy)
             ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
         return fig
@@ -455,7 +542,7 @@ class Coxp(_LobsterFile):
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
 
-        xlabel, ylabel, ysign = r"$\epsilon-\epsilon_F\;(eV)$", "COOP", +1
+        xlabel, ylabel, ysign = r"$E - E_f\;(eV)$", "COOP", +1
         if self.cop_type == "cohp":
             ylabel, ysign = "-COHP", -1
 
@@ -468,15 +555,12 @@ class Coxp(_LobsterFile):
                 ax.plot(xs, ys, label=label, **style)
 
         if exchange_xy:
-            xlabel, ylabel = ylabel, xlabel
             # Add vertical line to signal the zero.
             ax.axvline(c="k", ls=":", lw=1)
         else:
             ax.axhline(c="k", ls=":", lw=1)
 
-        ax.set_xlabel(xlabel)
-        ax.set_ylabel(ylabel)
-
+        set_ax_xylabels(ax, xlabel, ylabel, exchange_xy)
         ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
         return fig
@@ -488,11 +572,11 @@ class Coxp(_LobsterFile):
         style = {"color": "black", "linewidth": 1.0} if spin == 0 else \
                 {"color": "red", "linewidth": 1.0}
         # TODO: Improve style
-        #style = {} #dict(lw=lw, color=color, ls=ls)
+        style = dict(lw=2, ls="-" if spin == 0 else "--") #, color=color)
         return label, style
 
     @add_fig_kwargs
-    def plot_site_pairs_partial(self, from_site_index, what="single", exchange_xy=False, ax=None,
+    def plot_site_pairs_partial(self, from_site_index, what="single", exchange_xy=True, ax=None,
                                 fontsize=8, **kwargs):
         """
         Plot partial crystal orbital projections (DOS or IDOS) for all sites listed in `from_site_index`
@@ -506,6 +590,10 @@ class Coxp(_LobsterFile):
 
         Returns: |matplotlib-Figure|
         """
+        if not self.partial:
+            cprint("File does not contain partial projections", "yellow")
+            return None
+
         # Handle list of sites.
         if duck.is_listlike(from_site_index):
             nrows, ncols = 1, len(from_site_index)
@@ -529,30 +617,26 @@ class Coxp(_LobsterFile):
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
 
-        xlabel, ylabel, ysign = r"$\epsilon-\epsilon_F\;(eV)$", "pCOOP", +1
+        xlabel, ylabel, ysign = r"$E - E_f\;(eV)$", "pCOOP", +1
         if self.cop_type == "cohp":
-            ylabel, ysign = "-pCOHP", -1
+            ylabel, ysign = "-COHP", -1
 
         # [(0, 1)]["4s", "4p_x"][spin]["single"]
         for pair in pairs:
             for orbs, d in self.partial[pair].items():
                 for spin in range(self.nsppol):
-                    xs = self.energies
-                    ys = ysign * d[spin][what]
+                    xs, ys = self.energies, ysign * d[spin][what]
                     if exchange_xy: xs, ys = ys, xs
                     label, style = self.get_labelstyle_from_spin_pair_orbs(spin, pair, orbs)
                     ax.plot(xs, ys, label=label, **style)
 
         if exchange_xy:
-            xlabel, ylabel = ylabel, xlabel
             # Add vertical line to signal the zero.
-            ax.axvline(c="k", ls=":", lw=1)
+            ax.axvline(c="k", ls=":", lw=2)
         else:
-            ax.axhline(c="k", ls=":", lw=1)
+            ax.axhline(c="k", ls=":", lw=2)
 
-        ax.set_xlabel(xlabel)
-        ax.set_ylabel(ylabel)
-
+        set_ax_xylabels(ax, xlabel, ylabel, exchange_xy)
         ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
         return fig
@@ -562,7 +646,8 @@ class Coxp(_LobsterFile):
         type0, type1 = self.type_of_index[pair[0]], self.type_of_index[pair[1]]
         label = r"$%s_{%s}@%s \rightarrow %s_{%s}@%s$" % (type0, orbs[0], pair[0], type1, orbs[1], pair[1])
         # TODO: Improve style
-        style = {} #dict(lw=lw, color=color, ls=ls)
+        #style = self.params_orbs[orbs[0]]["style"]
+        style = dict(lw=2, ls="-" if spin == 0 else "--") #, color=color)
         return label, style
 
     def write_notebook(self, nbpath=None):
@@ -573,17 +658,19 @@ class Coxp(_LobsterFile):
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
         nb.cells.extend([
-            nbv.new_code_cell("coxp = abilab.abiopen('%s')" % self.filepath),
-            nbv.new_code_cell("print(coxp)"),
-            nbv.new_code_cell("coxp.plot(what='d');"),
-            nbv.new_code_cell("coxp.plot_site_pairs_total(from_site_index=[0,]);"),
-            nbv.new_code_cell("coxp.plot_site_pairs_partial(from_site_index=[0,]);"),
+            nbv.new_code_cell("coxpfile = abilab.abiopen('%s')" % self.filepath),
+            nbv.new_code_cell("print(coxpfile)"),
+            nbv.new_code_cell("coxpfile.plot(what='d');"),
+            nbv.new_code_cell("coxpfile.plot(what='i');"),
+            nbv.new_code_cell("coxpfile.plot_site_pairs_total(from_site_index=[0,]);"),
+            nbv.new_code_cell("coxpfile.plot_site_pairs_partial(from_site_index=[0,]);"),
+            nbv.new_code_cell("#coxpfile.plot_with_ebands(ebands='filepath');"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
 
 
-class ICoxp(_LobsterFile):
+class ICoxpFile(_LobsterFile):
     """
     Wrapper class for the integrated crystal orbital projections up to the Fermi energy
     produced from Lobster.
@@ -606,14 +693,14 @@ class ICoxp(_LobsterFile):
     @classmethod
     def from_file(cls, filepath):
         """
-        Generates an instance of ICoxp from the files produce by Lobster.
+        Generates an instance of ICoxpFile from the files produce by Lobster.
         Accepts gzipped files.
 
         Args:
             filepath: path to the ICOHPLIST.lobster or ICOOPLIST.lobster.
 
         Returns:
-            A ICoxp.
+            A ICoxpFile.
         """
         float_patt = r'-?(?:0|[1-9]\d*)(?:\.\d*)?(?:[eE][+\-]?\d+)?'
         header_patt = re.compile(r'.*?(over+\s#\s+bonds)?\s+for\s+spin\s+(\d).*')
@@ -667,16 +754,16 @@ class ICoxp(_LobsterFile):
         for pair, d in self.values.items():
             for spin in sorted(d.keys()):
                 rows.append(OrderedDict([
-                               ("index0", pair[0]),
-                               ("index1", pair[1]),
-                               ("type0", self.type_of_index[pair[0]]),
-                               ("type1", self.type_of_index[pair[1]]),
-                               ("spin", spin),
-                               ("average", d[spin]["average"]),
-                               ("distance", d[spin]["distance"]),
-                               ("n_bonds", d[spin]["n_bonds"]),
-                               ("pair", (pair[0], pair[1])),
-                            ]))
+                    ("index0", pair[0]),
+                    ("index1", pair[1]),
+                    ("type0", self.type_of_index[pair[0]]),
+                    ("type1", self.type_of_index[pair[1]]),
+                    ("spin", spin),
+                    ("average", d[spin]["average"]),
+                    ("distance", d[spin]["distance"]),
+                    ("n_bonds", d[spin]["n_bonds"]),
+                    ("pair", (pair[0], pair[1])),
+                ]))
 
         return pd.DataFrame(rows, columns=list(rows[0].keys()))
 
@@ -702,15 +789,15 @@ class ICoxp(_LobsterFile):
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
         nb.cells.extend([
-            nbv.new_code_cell("icoxp = abilab.abiopen('%s')" % self.filepath),
-            nbv.new_code_cell("print(coxp)"),
-            nbv.new_code_cell("icoxp.plot();"),
+            nbv.new_code_cell("icoxp_file = abilab.abiopen('%s')" % self.filepath),
+            nbv.new_code_cell("print(icoxp_file)"),
+            nbv.new_code_cell("icoxp_file.plot();"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
 
 
-class LobsterDos(_LobsterFile):
+class LobsterDoscarFile(_LobsterFile):
     """
     Total and partial dos extracted from lobster DOSCAR.
     The fermi energy is always at the zero value.
@@ -743,15 +830,16 @@ class LobsterDos(_LobsterFile):
             filepath: path to the DOSCAR.lobster.
 
         Returns:
-            A LobsterDos.
+            A LobsterDoscarFile.
         """
         with zopen(filepath, "rt") as f:
             dos_data = f.readlines()
 
         new = cls(filepath)
 
-        n_sites = int(dos_data[0].split()[0])
+        new.nsites = int(dos_data[0].split()[0])
         n_energies = int(dos_data[5].split()[2])
+        new.fermie = float(dos_data[5].split()[3])
 
         n_spin = 1 if len(dos_data[6].split()) == 3 else 2
         spins = [0, 1][:n_spin]
@@ -760,18 +848,24 @@ class LobsterDos(_LobsterFile):
         tdos_data = np.fromiter((d for l in dos_data[6:6+n_energies] for d in l.split()),
                                 dtype=np.float).reshape((n_energies, 1+2*n_spin))
 
-        new.energies = tdos_data[:,0]
+        new.energies = tdos_data[:,0].copy()
         new.total_dos = {}
         for i_spin, spin in enumerate(spins):
-            new.total_dos[spin] = tdos_data[:,1+2*i_spin]
+            new.total_dos[spin] = tdos_data[:,1+2*i_spin].copy()
 
         new.pdos = tree()
+        new.type_of_index = {}
         # read partial doses
-        for i_site in range(n_sites):
+        for i_site in range(new.nsites):
             i_first_line = 5+(n_energies+1)*(i_site+1)
 
             # read orbitals
-            orbitals = dos_data[i_first_line].rsplit(';', 1)[-1].split()
+            # 6.01503759     -14.03508772   401       2.29842595       1.00000000; Z= 31; 4s 4p_y 4p_z 4p_x
+            tokens = dos_data[i_first_line].split(';')
+            orbitals = tokens[-1].split()
+            Z = int(tokens[-2].split()[-1])
+            el = Element.from_Z(Z)
+            new.type_of_index[i_site] = el.symbol
 
             # extract np array for partial dos
             pdos_data = np.fromiter((d for l in dos_data[i_first_line+1:i_first_line+1+n_energies] for d in l.split()),
@@ -787,8 +881,8 @@ class LobsterDos(_LobsterFile):
     def to_string(self, verbose=0):
         """String representation with Verbosity level `verbose`."""
         lines = []; app = lines.append
-        app("Number of energies: %d, from %.3f to %.3f (eV) with E_Fermi = 0" % (
-            len(self.energies), self.energies[0], self.energies[-1]))
+        app("Number of energies: %d, from %.3f to %.3f (eV) with E_fermi set to 0 (was %.3f)" % (
+            len(self.energies), self.energies[0], self.energies[-1], self.fermie))
         app("nsppol: %d" % (self.nsppol))
         app("Number of sites in projected DOS: %d" % len(self.pdos))
         for i_site, dsite in self.pdos.items():
@@ -801,6 +895,8 @@ class LobsterDos(_LobsterFile):
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         """
         yield self.plot(show=False)
+        for site_index in range(self.nsites):
+            yield self.plot_pdos_site(site_index, show=False)
 
     @add_fig_kwargs
     def plot(self, spin=None, ax=None, exchange_xy=False, fontsize=12, **kwargs):
@@ -820,19 +916,17 @@ class LobsterDos(_LobsterFile):
 
         spins = range(self.nsppol) if spin is None else [spin]
         for spin in spins:
-            opts = {"color": "black", "linewidth": 1.0} if spin == 0 else \
-                   {"color": "red", "linewidth": 1.0}
+            opts = {"color": "black", "linewidth": 2.0, "ls": "-"} if spin == 0 else \
+                   {"color": "red", "linewidth": 2.0, "ls": "--"}
             opts.update(kwargs)
-
-            xs, ys = self.energies, self.total_dos[spin]
+            spin_sign = +1 if spin == 0 else -1
+            xs, ys = self.energies, spin_sign * self.total_dos[spin]
             if exchange_xy: xs, ys = ys, xs
             ax.plot(xs, ys, label=self.spin2tex[spin] if self.nsppol == 2 else None,
                     **opts)
 
-        xlabel, ylabel = r"$\epsilon-\epsilon_F\;(eV)$", "DOS"
-        if exchange_xy: xlabel, ylabel = ylabel, xlabel
-        ax.set_xlabel(xlabel)
-        ax.set_ylabel(ylabel)
+        xlabel, ylabel = r"$E - E_f\;(eV)$", "DOS"
+        set_ax_xylabels(ax, xlabel, ylabel, exchange_xy)
 
         if self.nsppol == 2:
             ax.legend(loc="best", shadow=True, fontsize=fontsize)
@@ -840,7 +934,7 @@ class LobsterDos(_LobsterFile):
         return fig
 
     @add_fig_kwargs
-    def plot_pdos(self, site_index, ax=None, exchange_xy=False, fontsize=8, **kwargs):
+    def plot_pdos_site(self, site_index, ax=None, exchange_xy=False, fontsize=8, **kwargs):
         """
         Plot projected DOS
 
@@ -861,8 +955,7 @@ class LobsterDos(_LobsterFile):
                                                     sharex=sharex, sharey=sharey, squeeze=False)
             # Recursive call.
             for ax, index in zip(ax_list.ravel(), site_index):
-                self.plot_pdos(index, exchange_xy=exchange_xy, ax=ax,
-                    fontsize=fontsize, show=False)
+                self.plot_pdos_site(index, exchange_xy=exchange_xy, ax=ax, fontsize=fontsize, show=False)
 
             return fig
 
@@ -873,18 +966,16 @@ class LobsterDos(_LobsterFile):
         # self.pdos[site_index]["4p_x"][spin]
         for orb, d in self.pdos[site_index].items():
             for spin in range(self.nsppol):
-                #opts = {"color": "black", "linewidth": 1.0} if spin == 0 else \
-                #       {"color": "red", "linewidth": 1.0}
-                #opts.update(kwargs)
-                xs, ys = self.energies, d[spin]
+                spin_sign = +1 if spin == 0 else -1
+                xs, ys = self.energies, spin_sign * d[spin]
                 if exchange_xy: xs, ys = ys, xs
-                label = "$%s_{%s}$" % (site_index, orb)
-                ax.plot(xs, ys, label=label)
+                n, lm = orb[0], orb[1:]
+                params = self.params_orbs[lm]
+                label = "$%s@%s_{%s}$" % (self.type_of_index[site_index], site_index, params["latex"])
+                ax.plot(xs, ys, label=label, **params["style"])
 
-        xlabel, ylabel = r"$\epsilon-\epsilon_F\;(eV)$", "PDOS"
-        if exchange_xy: xlabel, ylabel = ylabel, xlabel
-        ax.set_xlabel(xlabel)
-        ax.set_ylabel(ylabel)
+        xlabel, ylabel = r"$E - E_f\;(eV)$", "PDOS"
+        set_ax_xylabels(ax, xlabel, ylabel, exchange_xy)
 
         ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
@@ -901,7 +992,7 @@ class LobsterDos(_LobsterFile):
             nbv.new_code_cell("lobdos = abilab.abiopen('%s')" % self.filepath),
             nbv.new_code_cell("print(lobdos)"),
             nbv.new_code_cell("lobdos.plot();"),
-            nbv.new_code_cell("pdos.plot_pdos(site_index=[0,]);"),
+            nbv.new_code_cell("pdos.plot_pdos_site(site_index=[0,]);"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
@@ -1174,14 +1265,14 @@ class LobsterAnalyzer(NotebookWriter):
         return cls(dirpath, prefix, **kwargs)
 
     def __init__(self, dirpath, prefix, coop_path=None, cohp_path=None, icohp_path=None, lobdos_path=None):
-        self.coop = Coxp.from_file(coop_path) if coop_path else None
-        self.cohp = Coxp.from_file(cohp_path) if cohp_path else None
-        self.icohp = ICoxp.from_file(icohp_path) if icohp_path else None
-        self.dos = LobsterDos.from_file(lobdos_path) if lobdos_path else None
+        self.coop = CoxpFile.from_file(coop_path) if coop_path else None
+        self.cohp = CoxpFile.from_file(cohp_path) if cohp_path else None
+        self.icohp = ICoxpFile.from_file(icohp_path) if icohp_path else None
+        self.doscar = LobsterDoscarFile.from_file(lobdos_path) if lobdos_path else None
         self.dirpath = dirpath
         self.prefix = prefix
 
-        for a in ("coop", "cohp", "icohp", "dos"):
+        for a in ("coop", "cohp", "icohp", "doscar"):
             obj = getattr(self, a)
             if obj is not None:
                 self.nsppol = obj.nsppol
@@ -1194,11 +1285,12 @@ class LobsterAnalyzer(NotebookWriter):
         """String representation with verbosity level `verbose`."""
         lines = []; app = lines.append
         for aname, header in [("coop", "COOP File"), ("cohp", "COHP File"),
-                              ("icohp", "ICHOHPLIST File"), ("dos", "Lobster DOSCAR"),]:
+                              ("icohp", "ICHOHPLIST File"), ("doscar", "Lobster DOSCAR"),]:
             obj = getattr(self, aname, None)
             if obj is None: continue
             app(marquee(header, mark="="))
             app(obj.to_string(verbose=verbose))
+            app("")
 
         return "\n".join(lines)
 
@@ -1209,9 +1301,9 @@ class LobsterAnalyzer(NotebookWriter):
         yield self.plot(show=False)
 
     @add_fig_kwargs
-    def plot(self, entries=("coop", "cohp", "dos"), spin=None, **kwargs):
+    def plot(self, entries=("coop", "cohp", "doscar"), spin=None, **kwargs):
         """
-        Plot COOP + COHP + DOS.
+        Plot COOP + COHP + DOSCAR.
 
         Args:
             entries: "cohp" to plot COHP, "coop" for COOP
@@ -1261,12 +1353,12 @@ class LobsterAnalyzer(NotebookWriter):
         ax_list = ax_list.ravel()
 
         # Plot (COHP|COOP) (total|projections) on the first ncols - 1 axes.
-        coxp = getattr(self, what)
+        coxp_file = getattr(self, what)
         for ix, (ax, index) in enumerate(zip(ax_list[:-1], from_site_index)):
             if with_orbitals:
-                coxp.plot_site_pairs_partial(index, exchange_xy=exchange_xy, ax=ax, fontsize=fontsize, show=False)
+                coxp_file.plot_site_pairs_partial(index, exchange_xy=exchange_xy, ax=ax, fontsize=fontsize, show=False)
             else:
-                coxp.plot_site_pairs_total(index, exchange_xy=exchange_xy, ax=ax, fontsize=fontsize, show=False)
+                coxp_file.plot_site_pairs_total(index, exchange_xy=exchange_xy, ax=ax, fontsize=fontsize, show=False)
 
             if ix != 0:
                 set_visible(ax, False, "ylabel")
@@ -1274,60 +1366,60 @@ class LobsterAnalyzer(NotebookWriter):
 
         # Plot DOS on the last ax.
         ax = ax_list[-1]
-        self.dos.plot(ax=ax, exchange_xy=exchange_xy, fontsize=fontsize, show=False)
+        self.doscar.plot(ax=ax, exchange_xy=exchange_xy, fontsize=fontsize, show=False)
         set_visible(ax, False, "ylabel" if exchange_xy else "xlabel")
 
         return fig
 
-    @add_fig_kwargs
-    def plot_with_ebands(self, ebands, entries=("coop", "cohp", "dos"), **kwargs):
-        """
-        Plot bands + COHP, COOP, DOS.
+    #@add_fig_kwargs
+    #def plot_with_ebands(self, ebands, entries=("coop", "cohp", "doscar"), **kwargs):
+    #    """
+    #    Plot bands + COHP, COOP, DOSCAR.
 
-        Args:
-            ebands:
-            entries: "cohp" to plot COHP, "coop" for COOP
-            fontsize: fontsize for legends and titles
+    #    Args:
+    #        ebands:
+    #        entries: "cohp" to plot COHP, "coop" for COOP
+    #        fontsize: fontsize for legends and titles
 
-        Returns: |matplotlib-Figure|
-        """
-        ebands = ElectronBands.as_ebands(ebands)
+    #    Returns: |matplotlib-Figure|
+    #    """
+    #    ebands = ElectronBands.as_ebands(ebands)
 
-        entries = [e for e in entries if getattr(self, e, None)]
-        if not entries: return None
+    #    entries = [e for e in entries if getattr(self, e, None)]
+    #    if not entries: return None
 
-        import matplotlib.pyplot as plt
-        from matplotlib.gridspec import GridSpec
-        fig = plt.figure()
+    #    import matplotlib.pyplot as plt
+    #    from matplotlib.gridspec import GridSpec
+    #    fig = plt.figure()
 
-        # Build grid.
-        nrows, ncols = self.nsppol, len(entries) + 1
-        width_ratios = [2] + [1] * len(entries)
-        gspec = GridSpec(nrows=nrows, ncols=ncols, width_ratios=width_ratios, wspace=0.05)
+    #    # Build grid.
+    #    nrows, ncols = self.nsppol, len(entries) + 1
+    #    width_ratios = [2] + [1] * len(entries)
+    #    gspec = GridSpec(nrows=nrows, ncols=ncols, width_ratios=width_ratios, wspace=0.05)
 
-        # Bands and DOS will share the y-axis
-        axmat = np.array((nrows, ncols), dtype=object)
-        for icol in range(ncols):
-            for irow in range(nrows):
-                axmat[irow, icol] = plt.subplot(gspec[irow, icol], sharey=None if irow == 0 else axmat[irow, icol-1])
+    #    # Bands and DOS will share the y-axis
+    #    axmat = np.array((nrows, ncols), dtype=object)
+    #    for icol in range(ncols):
+    #        for irow in range(nrows):
+    #            axmat[irow, icol] = plt.subplot(gspec[irow, icol], sharey=None if irow == 0 else axmat[irow, icol-1])
 
-        #axmat, fig, plt = get_axarray_fig_plt(None, nrows=self.nsppol, ncols=len(entries) + 1,
-        #                                        sharex=False, sharey=True, squeeze=False)
+    #    #axmat, fig, plt = get_axarray_fig_plt(None, nrows=self.nsppol, ncols=len(entries) + 1,
+    #    #                                        sharex=False, sharey=True, squeeze=False)
 
-        for spin in range(self.nsppol):
-            for ix, (label, ax) in enumerate(zip(entries, axmat[spin, :])):
-                if ix == 0:
-                    ebands.plot(spin=spin, e0="fermie", ax=ax, show=False)
-                else:
-                    obj = getattr(self, label)
-                    obj.plot(ax=ax, spin=spin, exchange_xy=True, show=False)
+    #    for spin in range(self.nsppol):
+    #        for ix, (label, ax) in enumerate(zip(entries, axmat[spin, :])):
+    #            if ix == 0:
+    #                ebands.plot(spin=spin, e0="fermie", ax=ax, show=False)
+    #            else:
+    #                obj = getattr(self, label)
+    #                obj.plot(ax=ax, spin=spin, exchange_xy=True, show=False)
 
-                if ix != 0:
-                    set_visible(ax, False, "ylabel")
-                if self.nsppol == 2 and spin == 0:
-                    set_visible(ax, False, "xlabel")
+    #            if ix != 0:
+    #                set_visible(ax, False, "ylabel")
+    #            if self.nsppol == 2 and spin == 0:
+    #                set_visible(ax, False, "xlabel")
 
-        return fig
+    #    return fig
 
     def write_notebook(self, nbpath=None):
         """

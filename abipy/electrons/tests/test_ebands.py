@@ -91,9 +91,10 @@ class ElectronBandsTest(AbipyTest):
         assert smearing.occopt == 7
         self.assert_almost_equal(smearing.tsmear_ev.to("Ha"), 0.0075)
         assert smearing.scheme == "gaussian"
+        assert not ni_ebands_kmesh.get_gaps_string()
 
-        ni_ebands_kmesh.copy()
-        ni_ebands_kmesh.deepcopy()
+        #ni_ebands_kmesh.copy()
+        #ni_ebands_kmesh.deepcopy()
 
         ni_edos = ni_ebands_kmesh.get_edos()
         repr(ni_edos); str(ni_edos)
@@ -170,7 +171,7 @@ class ElectronBandsTest(AbipyTest):
             elims = [-10, 2]
             assert ni_ebands_kmesh.plot(show=False)
             assert ni_ebands_kmesh.plot_bz(show=False)
-            assert ni_ebands_kpath.plot(ylims=elims, show=False)
+            assert ni_ebands_kpath.plot(ylims=elims, with_gaps=True, show=False)
             assert ni_ebands_kpath.plot_with_edos(ni_edos, ylims=elims, show=False)
             assert ni_ebands_kpath.plot_bz(show=False)
             assert ni_ebands_kpath.plot_transitions(4.4, qpt=(0, 0, 0), atol_ev=0.1, atol_kdiff=1e-4, show=False)
@@ -238,6 +239,12 @@ class ElectronBandsTest(AbipyTest):
         with self.assertRaises(ValueError):
             si_ebands_kmesh.get_e0("foo")
 
+        r = si_ebands_kmesh.with_points_along_path(knames=["G", "X", "L", "G"])
+        assert r.ebands.kpoints.is_path
+        assert r.ebands.kpoints[0].is_gamma
+        assert r.ebands.kpoints[0] == r.ebands.kpoints[-1]
+        assert si_ebands_kmesh.kpoints[r.ik_new2prev[0]].is_gamma
+
         # Serialization
         self.serialize_with_pickle(si_ebands_kmesh, test_eq=False)
         self.assertMSONable(si_ebands_kmesh, test_if_subclass=False)
@@ -301,7 +308,7 @@ class ElectronBandsTest(AbipyTest):
             assert si_edos.plot(show=False)
             assert si_edos.plot_dos_idos(show=False)
             assert si_edos.plot_up_minus_down(show=False)
-            assert si_ebands_kmesh.plot_with_edos(edos=si_edos, klabels=klabels, show=False)
+            assert si_ebands_kmesh.plot_with_edos(edos=si_edos, klabels=klabels, with_gaps=True, show=False)
             assert si_ebands_kmesh.kpoints.plot(show=False)
 
             vrange, crange = range(0, 4), range(4, 5)
@@ -348,11 +355,13 @@ class ElectronBandsTest(AbipyTest):
         repr(homo); str(homo)
         assert homo.spin == 0 and homo.occ == 2.0 and homo.band == 3
         assert homo.kpoint == [0, 0, 0]
+        assert homo == homo
         assert si_ebands_kpath.kpoints[homo.kidx] == homo.kpoint
         self.assert_almost_equal(homo.eig, 5.5983129712050665)
         assert "eig" in homo.__class__.get_fields()
 
         lumo = si_ebands_kpath.lumos[0]
+        assert homo != lumo
         assert lumo.spin == 0 and lumo.occ == 0.0 and lumo.band == 4
         self.assert_almost_equal(lumo.kpoint.frac_coords, [0.,  0.4285714, 0.4285714])
         assert si_ebands_kpath.kpoints[lumo.kidx] == lumo.kpoint
@@ -363,6 +372,9 @@ class ElectronBandsTest(AbipyTest):
         assert fun_gap.energy <= dir_gap.energy
         assert dir_gap.qpoint == [0, 0, 0]
         assert dir_gap.is_direct
+        assert dir_gap == dir_gap
+        assert dir_gap != fun_gap
+        assert si_ebands_kpath.get_gaps_string()
         #print("repr_fun_gap", repr(fun_gap), id(fun_gap), id(fun_gap.qpoint))
         #print("repr_dir_gap", repr(dir_gap), id(dir_gap), id(dir_gap.qpoint))
         self.assert_almost_equal(dir_gap.energy, 2.5318279814319133)
@@ -400,6 +412,9 @@ class ElectronBandsTest(AbipyTest):
         # JDOS requires a homogeneous sampling.
         with self.assertRaises(ValueError):
             si_ebands_kpath.get_ejdos(spin, 0, 4)
+
+        if self.has_matplotlib():
+            assert si_ebands_kpath.plot(spin=0, e0=0, with_gaps=True, max_phfreq=0.1, show=False)
 
     def test_ebands_skw_interpolation(self):
         """Testing SKW interpolation."""
@@ -537,7 +552,7 @@ class ElectronBandsPlotterTest(AbipyTest):
             assert plotter.plot(e0=2, width_ratios=(3, 1), fontsize=12, show=False)
             if self.has_seaborn():
                 plotter.combiboxplot(title="Silicon band structure", swarm=True, show=False)
-            assert plotter.gridplot(title="Silicon band structure", show=False)
+            assert plotter.gridplot(title="Silicon band structure", with_gaps=True, show=False)
             assert plotter.boxplot(title="Silicon band structure", swarm=True, show=False)
             assert plotter.animate(show=False)
 

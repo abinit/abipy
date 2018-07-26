@@ -15,7 +15,7 @@ the latest **stable** release that can be installed with::
     pip install abipy
 
 Note that you may need to install pymatgen_ and other critical dependencies manually.
-In this case, please consult the detailed installation instructions provided by the
+In this case, please consult the detailed installation instructions provided in the
 `pymatgen howto <http://pymatgen.org/index.html#standard-install>`_ to install pymatgen 
 and then follow the instructions in the :ref:`netcdf4_installation` section.
 
@@ -92,7 +92,7 @@ To install the pymatgen_ package from the matsci_ channel, use::
 
 then install Abipy from the abinit-channel_ with::
 
-    conda install pymatgen --channel abinit
+    conda install abipy --channel abinit
 
 Visit `materials.sh <http://materials.sh>`_ for instructions on how to use the
 matsci channel to install pymatgen and other packages.
@@ -141,7 +141,7 @@ This will allow you to push any changes to you own fork and also get them merged
 The documentation of the **developmental** version is hosted on `github pages <http://abinit.github.io/abipy>`_.
 
 The Github version include test files for complete unit testing.
-To run the suite of unit tests, make sure you have pytest_ installed and then type::
+To run the suite of unit tests, make sure you have pytest_ installed and issue::
 
     pytest
 
