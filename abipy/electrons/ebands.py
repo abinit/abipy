@@ -2419,7 +2419,7 @@ class ElectronBands(Has_Structure):
         # Build new ebands object.
         occfacts_kpath = np.zeros_like(eigens_kpath)
         ebands_kpath = self.__class__(self.structure, kpath, eigens_kpath, self.fermie, occfacts_kpath,
-                                      self.nelect, self.nspinor, self.nspden)
+                                      self.nelect, self.nspinor, self.nspden, smearing=self.smearing)
         ebands_kmesh = None
         if kmesh is not None:
             # Get kpts and weights in IBZ.
@@ -2434,7 +2434,7 @@ class ElectronBands(Has_Structure):
             occfacts_kmesh = np.zeros_like(eigens_kmesh)
 
             ebands_kmesh = self.__class__(self.structure, kpts_kmesh, eigens_kmesh, self.fermie, occfacts_kmesh,
-                                          self.nelect, self.nspinor, self.nspden)
+                                          self.nelect, self.nspinor, self.nspden, smearing=self.smearing)
 
         return dict2namedtuple(ebands_kpath=ebands_kpath, ebands_kmesh=ebands_kmesh, interpolator=skw)
 
