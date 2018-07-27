@@ -23,7 +23,7 @@ The documentation sources are found in the :file:`~/docs/` directory in the repo
 
 The main entry point is :file:`docs/index.rst`, which pulls in 
 the files for the users guide, developers guide, api reference. 
-The actual ReStructured Text files for the subpackage API, scripts and workflows (resp.) are kept 
+The actual ReStructured Text files for the APIs of the subpackages, for the scripts and for the workflows (resp.) are kept 
 in :file:`docs/api`, :file:`docs/scripts` and :file:`docs/workflows` (resp.). 
 
 Additional files can be added to the various guides by including their base
