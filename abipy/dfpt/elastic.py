@@ -17,7 +17,7 @@ class ElasticData(Has_Structure):
     Handles all kind of elastic data return from abinit/anaddb relying on pymatgen tensor objects.
     """
 
-    def __init__(self, structure, elastic_clamped=None, elastic_relaxed=None, elastic_stress=None,
+    def __init__(self, structure, elastic_clamped=None, elastic_relaxed=None, elastic_stress_corr=None,
                  elastic_relaxed_fixed=None, piezo_clamped=None, piezo_relaxed=None, d_piezo_relaxed=None,
                  g_piezo_relaxed=None, h_piezo_relaxed=None):
         """
@@ -25,7 +25,7 @@ class ElasticData(Has_Structure):
             structure: the structure
             elastic_clamped: the values of a clamped-ion elastic tensor in Voigt notation (shape (6,3)) in GPa.
             elastic_relaxed: the values of a relaxed-ion elastic tensor in Voigt notation (shape (6,3)) in GPa.
-            elastic_stress: the values of a relaxed-ion elastic tensor considering the stress left inside cell
+            elastic_stress_corr: the values of a relaxed-ion elastic tensor considering the stress left inside cell
                 in Voigt notation (shape (6,3)) in GPa.
             elastic_relaxed_fixed: the values of a relaxed-ion elastic tensor at fixed displacement field
                 in Voigt notation (shape (6,3)) in GPa.
@@ -38,7 +38,7 @@ class ElasticData(Has_Structure):
         self._structure = structure
         self.elastic_clamped = self._define_variable(elastic_clamped, ElasticTensor)
         self.elastic_relaxed = self._define_variable(elastic_relaxed, ElasticTensor)
-        self.elastic_stress = self._define_variable(elastic_stress, ElasticTensor)
+        self.elastic_stress_corr = self._define_variable(elastic_stress_corr, ElasticTensor)
         self.elastic_relaxed_fixed = self._define_variable(elastic_relaxed_fixed, ElasticTensor)
         self.piezo_clamped = self._define_variable(piezo_clamped, PiezoTensor)
         self.piezo_relaxed = self._define_variable(piezo_relaxed, PiezoTensor)
@@ -77,7 +77,7 @@ class ElasticData(Has_Structure):
 
         elastic_clamped = reader.read_value("elastic_constants_clamped_ion", default=None)
         elastic_relaxed = reader.read_value("elastic_constants_relaxed_ion", default=None)
-        elastic_stress = reader.read_value("elastic_constants_relaxed_ion_stress_corrected",default=None)
+        elastic_stress_corr = reader.read_value("elastic_constants_relaxed_ion_stress_corrected",default=None)
         elastic_relaxed_fixed = reader.read_value("elastic_tensor_relaxed_ion_fixed_D", default=None)
 
         piezo_clamped = reader.read_value("piezo_clamped_ion", default=None)
@@ -93,6 +93,6 @@ class ElasticData(Has_Structure):
         h_piezo_relaxed = reader.read_value("h_tensor_relaxed_ion", default=None)
 
         return cls(structure=structure, elastic_clamped=elastic_clamped, elastic_relaxed=elastic_relaxed,
-                   elastic_stress=elastic_stress, elastic_relaxed_fixed=elastic_relaxed_fixed, piezo_clamped=piezo_clamped,
-                   piezo_relaxed=piezo_relaxed, d_piezo_relaxed=d_piezo_relaxed, g_piezo_relaxed=g_piezo_relaxed,
-                   h_piezo_relaxed=h_piezo_relaxed)
+                   elastic_stress_corr=elastic_stress_corr, elastic_relaxed_fixed=elastic_relaxed_fixed,
+                   piezo_clamped=piezo_clamped, piezo_relaxed=piezo_relaxed, d_piezo_relaxed=d_piezo_relaxed,
+                   g_piezo_relaxed=g_piezo_relaxed, h_piezo_relaxed=h_piezo_relaxed)
