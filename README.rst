@@ -207,7 +207,7 @@ abinit-channel_ with::
     conda install abinit -c abinit
 
 For further information on the syntax of the configuration file, please consult the 
-`workflows <http://abinit.github.io/abipy/workflows/taskmanager.html>`_ section.
+`workflows docs <http://abinit.github.io/abipy/workflows/taskmanager.html>`_ section.
 
 Contributing to AbiPy is relatively easy.
 Just send us a `pull request <https://help.github.com/articles/using-pull-requests/>`_.
@@ -254,7 +254,7 @@ The following scripts can be invoked directly from the terminal:
 
 Use ``SCRIPT --help`` to get the list of supported commands and 
 ``SCRIPT COMMAND --help`` to get the documentation for ``COMMAND``.
-For further information, please consult the `official documentation <http://abinit.github.io/abipy/scripts/index.html>`_.
+For further information, please consult the `scripts docs <http://abinit.github.io/abipy/scripts/index.html>` section.
 
 License
 =======
