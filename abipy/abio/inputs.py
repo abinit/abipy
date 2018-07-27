@@ -565,7 +565,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
         String representation.
 
         Args:
-            sortmode: "section" if variables should be gruped by sections.
+            sortmode: "section" if variables should be grouped by sections.
                 "a" for alphabetical order, None if no sorting is wanted.
             with_mnemonics: True if mnemonics should be added.
             mode: Either `text` or `html` if HTML output with links is wanted.
@@ -740,7 +740,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
     def set_phdos_qmesh(self, nqsmall, method="tetra", ph_qshift=(0, 0, 0)):
         """
         Set the variables (ngkpt, shift, kptopt) for the computation of the Phonon DOS in Abinit.
-        Remember that the Phdos is computed via Fourier interpolation so there's no costraint
+        Remember that the Phdos is computed via Fourier interpolation so there's no constraint
         of the q-mesh.
 
         Args:

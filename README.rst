@@ -196,8 +196,8 @@ Unit tests require ``scripttest`` that can be installed with::
 
     pip install scripttest
 
-Two tests rely on the availability of a PMG_MAPI_KEY, that you do not have if you are not a pymatgen developer.
-You can ignore the failure of these two tests (TestMpRestAPI and TestSymmetries) for most of the developments inside Abipy.
+Two tests rely on the availability of a 
+`pymatgen PMG_MAPI_KEY <http://pymatgen.org/usage.html#setting-the-pmg-mapi-key-in-the-config-file>` in ~/.pmgrc.yaml.
 
 Note that several unit tests check the integration between AbiPy and Abinit. 
 In order to run the tests, you need a working set of Abinit executables and  a ``manager.yml`` configuration file.
