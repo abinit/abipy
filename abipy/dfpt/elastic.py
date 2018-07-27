@@ -50,10 +50,7 @@ class ElasticData(Has_Structure):
         """
         Helper function to set values of a variable
         """
-        if not tensor_voigt:
-            return None
-        else:
-            return tensor_class.from_voigt(tensor_voigt)
+        return tensor_class.from_voigt(tensor_voigt) if tensor_voigt is not None else None
 
     @property
     def structure(self):
@@ -74,23 +71,24 @@ class ElasticData(Has_Structure):
         """
 
         structure = reader.read_structure()
-
+        # [6, 6] symmetric tensors (written by Fortran)
         elastic_clamped = reader.read_value("elastic_constants_clamped_ion", default=None)
         elastic_relaxed = reader.read_value("elastic_constants_relaxed_ion", default=None)
         elastic_stress_corr = reader.read_value("elastic_constants_relaxed_ion_stress_corrected",default=None)
         elastic_relaxed_fixed = reader.read_value("elastic_tensor_relaxed_ion_fixed_D", default=None)
 
+        # [3, 6] tensors
         piezo_clamped = reader.read_value("piezo_clamped_ion", default=None)
-        if piezo_clamped is not None:
-            piezo_clamped = piezo_clamped.T.copy()
         piezo_relaxed = reader.read_value("piezo_relaxed_ion", default=None)
-        if piezo_relaxed is not None:
-            piezo_relaxed = piezo_relaxed.T.copy()
         d_piezo_relaxed = reader.read_value("d_tensor_relaxed_ion", default=None)
-        if d_piezo_relaxed is not None:
-            d_piezo_relaxed = d_piezo_relaxed.T.copy()
+
+        # These are  [6, 3] tensors written by Fortran (need to transpose)
         g_piezo_relaxed = reader.read_value("g_tensor_relaxed_ion", default=None)
+        if g_piezo_relaxed is not None:
+            g_piezo_relaxed = g_piezo_relaxed.T.copy()
         h_piezo_relaxed = reader.read_value("h_tensor_relaxed_ion", default=None)
+        if h_piezo_relaxed is not None:
+            h_piezo_relaxed = h_piezo_relaxed.T.copy()
 
         return cls(structure=structure, elastic_clamped=elastic_clamped, elastic_relaxed=elastic_relaxed,
                    elastic_stress_corr=elastic_stress_corr, elastic_relaxed_fixed=elastic_relaxed_fixed,
