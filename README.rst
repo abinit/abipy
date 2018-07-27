@@ -162,7 +162,7 @@ To solve the problem, use conda to update scipy to a version >= 1.0.1 with::
 
     conda install "scipy>=1.0.1"
 
-then issue again python setup.py develop.
+then issue again python setup.py develop. If this fails, supposing you were upgrading abipy inside an already existing conda environment, try to restart by creating from scratch a fresh conda environment, see above.
 
 Use::
 
@@ -188,10 +188,16 @@ To run the suite of unit tests, make sure you have pytest_ installed and then ty
 
     pytest
 
-in the AbiPy root directory.
+in the AbiPy root directory. A quicker check might be obtained with 
+
+    pytest abipy/core/tests -v
+
 Unit tests require ``scripttest`` that can be installed with::
 
     pip install scripttest
+
+Two tests rely on the availability of a 
+`pymatgen PMG_MAPI_KEY <http://pymatgen.org/usage.html#setting-the-pmg-mapi-key-in-the-config-file>` in ~/.pmgrc.yaml.
 
 Note that several unit tests check the integration between AbiPy and Abinit. 
 In order to run the tests, you need a working set of Abinit executables and  a ``manager.yml`` configuration file.
@@ -201,7 +207,7 @@ abinit-channel_ with::
     conda install abinit -c abinit
 
 For further information on the syntax of the configuration file, please consult the 
-`workflows <http://abinit.github.io/abipy/workflows/taskmanager.html>`_ section.
+`workflows docs <http://abinit.github.io/abipy/workflows/taskmanager.html>`_ section.
 
 Contributing to AbiPy is relatively easy.
 Just send us a `pull request <https://help.github.com/articles/using-pull-requests/>`_.
@@ -248,7 +254,7 @@ The following scripts can be invoked directly from the terminal:
 
 Use ``SCRIPT --help`` to get the list of supported commands and 
 ``SCRIPT COMMAND --help`` to get the documentation for ``COMMAND``.
-For further information, please consult the `official documentation <http://abinit.github.io/abipy/scripts/index.html>`_.
+For further information, please consult the `scripts docs <http://abinit.github.io/abipy/scripts/index.html>` section.
 
 License
 =======
