@@ -2740,7 +2740,7 @@ class AnaddbInput(AbiAbstractInput, Has_Structure):
                                                lo_to_splitting=dde, q1shft=q1shft)
         else:
             anaddb_input = AnaddbInput(structure)
-            anaddb_input.set_vars(asr=2, chneut=1)
+            anaddb_input.set_vars(asr=asr, chneut=chneut)
 
         # define a link between the different calculations available (in order: dde, strain, phonons at gamma) and
         # the flags to set (dieflag, elaflag, peizoflag). Only meaningful cases are considered

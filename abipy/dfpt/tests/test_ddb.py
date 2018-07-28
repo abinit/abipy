@@ -327,6 +327,17 @@ class DdbTest(AbipyTest):
             for qpoint in ddb.qpoints:
                 assert qpoint in ddb.computed_dynmat
 
+    def test_alas_elastic(self):
+        """
+        Testing DDB containing also third order derivatives.
+        """
+        with abilab.abiopen(abidata.ref_file("refs/alas_elastic_dfpt/AlAs_elastic_DDB")) as ddb:
+            self.assertTrue(ddb.has_strain_terms())
+            self.assertFalse(ddb.has_strain_terms("all"))
+            e = ddb.anaget_elastic(has_dde=True, has_gamma_ph=True, verbose=2)
+            self.assertEqual(e.elastic_relaxed[0,0,0,0], 120.41874336082199)
+            self.assertEqual(e.piezo_relaxed[0,1,2], -0.030391022487094244)
+
 
 class DielectricTensorGeneratorTest(AbipyTest):
 

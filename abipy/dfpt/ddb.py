@@ -25,6 +25,7 @@ from abipy.iotools import ETSF_Reader
 from abipy.abio.inputs import AnaddbInput
 from abipy.dfpt.phonons import PhononDosPlotter, PhononBandsPlotter, InteratomicForceConstants
 from abipy.dfpt.tensors import DielectricTensor
+from abipy.dfpt.elastic import ElasticData
 from abipy.core.abinit_units import phfactor_ev2units, phunit_tag #Ha_cmm1,
 from pymatgen.analysis.elasticity.elastic import ElasticTensor
 from pymatgen.core.units import eV_to_Ha, bohr_to_angstrom
@@ -529,6 +530,37 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         for ap1 in ap_list:
             for ep2 in ep_list:
                 p12 = ap1 + ep2
+                if select == "at_least_one":
+                    if p12 in index_set: return True
+                elif select == "all":
+                    if p12 not in index_set: return False
+                else:
+                    raise ValueError("Wrong select %s" % str(select))
+
+        return False
+
+    @lru_cache(typed=True)
+    def has_strain_terms(self, select="at_least_one"):
+        """
+        True if the DDB file contains info on the strain perturbation.
+
+        Args:
+            select: Possible values in ["at_least_one", "all"]
+                If select == "at_least_one", we check if there's at least one entry associated to the strain.
+                and we assume that anaddb will be able to reconstruct the full tensor by symmetry.
+                If select == "all", all tensor components must be present in the DDB file.
+        """
+        gamma = Kpoint.gamma(self.structure.reciprocal_lattice)
+        if gamma not in self.computed_dynmat:
+            return False
+
+        index_set = set(self.computed_dynmat[gamma].index)
+
+        natom = len(self.structure)
+        sp_list = list(itertools.product(range(1, 4), [natom + 3, natom + 4]))
+        for p1 in sp_list:
+            for p2 in sp_list:
+                p12 = p1 + p2
                 if select == "at_least_one":
                     if p12 in index_set: return True
                 elif select == "all":
@@ -1047,6 +1079,45 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return DielectricTensorGenerator.from_files(os.path.join(task.workdir, "run.abo_PHBST.nc"),
                                                     os.path.join(task.workdir, "anaddb.nc"))
+
+    def anaget_elastic(self, has_gamma_ph=False, has_dde=False, asr=2, chneut=1,
+                       mpi_procs=1, workdir=None, manager=None, verbose=0):
+        """
+        Call anaddb to compute the elastic and piezoelectric properties.
+
+        Args:
+            has_gamma_ph: True if phonons at gamma are present in the DDB.
+            has_dde= True if DDE perturbations are present in the DDB
+            asr: Anaddb input variable. See official documentation.
+            chneut: Anaddb input variable. See official documentation.
+            manager: |TaskManager| object. If None, the object is initialized from the configuration file
+            mpi_procs: Number of MPI processes to use.
+            workdir: Working directory. If None, a temporary directory is created.
+            verbose: verbosity level. Set it to a value > 0 to get more information
+
+        Return:
+            ElasticData object
+        """
+        if not self.has_strain_terms():
+            cprint("Strain perturbations are not available in DDB: %s" % self.filepath, "yellow")
+
+        inp = AnaddbInput.dfpt(self.structure, strain=True, has_gamma_ph=has_gamma_ph, dde=has_dde, dte=False, asr=asr,
+                               chneut=chneut)
+        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, mpi_procs=mpi_procs, workdir=workdir, manager=manager)
+
+        if verbose:
+            print("ANADDB INPUT:\n", inp)
+            print("workdir:", task.workdir)
+
+        # Run the task here.
+        task.start_and_wait(autoparal=False)
+
+        report = task.get_event_report()
+        if not report.run_completed:
+            raise self.AnaddbError(task=task, report=report)
+
+        # Read data from the netcdf output file produced by anaddb.
+        return ElasticData.from_file(os.path.join(task.workdir, "anaddb.nc"))
 
     def write(self, filepath, filter_blocks=None):
         """
