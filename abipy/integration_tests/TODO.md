@@ -90,6 +90,13 @@ TODO list:
 
 * Had to increase fermie again to get correct gap in diamond treated if FD smearing
 
+* XG remarks:
+
+    - Improve abipy/docs/README.rst mentions 
+    - Change bibtex style (use same format as abidocs)
+
+	open _build/html/index.html
+
 ## Low priority
 
 * Use parser subclass to avoid boiler plate code.

@@ -449,6 +449,13 @@ def abicomp_ddb(options):
     return _invoke_robot(options)
 
 
+def abicomp_anaddb(options):
+    """
+    Compare multiple anaddb.nc files.
+    """
+    return _invoke_robot(options)
+
+
 def abicomp_phbst(options):
     """
     Compare multiple PHBST.nc files.
@@ -553,7 +560,8 @@ def _invoke_robot(options):
     # To define an Help action
     # http://stackoverflow.com/questions/20094215/argparse-subparser-monolithic-help-output?rq=1
     paths = options.paths
-    #print(paths)
+    if options.verbose > 1:
+        print("In _invoke_robot with paths", paths)
 
     if os.path.isdir(paths[0]):
         # Assume directory.
@@ -581,9 +589,6 @@ def _invoke_robot(options):
 
     elif options.print or options.expose:
         robot.trim_paths()
-        #df = robot.get_params_dataframe()
-        #abilab.print_dataframe(df, title="Output of robot.get_params_dataframe():")
-
         # Print dataframe if robot provides get_dataframe method.
         if hasattr(robot, "get_dataframe"):
             try:
@@ -738,6 +743,12 @@ Usage example:
   abicomp.py phbst *_PHBST.nc -ipy              => Compare phonon bands with robot in ipython terminal.
   abicomp.py phdos *_PHDOS.nc -nb               => Compare phonon DOSes in the jupyter notebook.
   abicomp.py ddb outdir1 outdir2 out_DDB -nb    => Analyze all DDB files in directories outdir1, outdir2 and out_DDB file.
+
+###############
+# Anaddb netcdf
+###############
+
+  abicomp anaddb tutorespfn_telast_2-telast_3/anaddb.nc
 
 #########
 # E-PH
@@ -956,6 +967,7 @@ def get_parser(with_epilog=False):
     p_gsr = subparsers.add_parser('gsr', parents=robot_parents, help=abicomp_gsr.__doc__)
     p_hist = subparsers.add_parser('hist', parents=robot_parents, help=abicomp_hist.__doc__)
     p_ddb = subparsers.add_parser('ddb', parents=robot_parents, help=abicomp_ddb.__doc__)
+    p_anaddb = subparsers.add_parser('anaddb', parents=robot_parents, help=abicomp_anaddb.__doc__)
     p_phbst = subparsers.add_parser('phbst', parents=robot_parents, help=abicomp_phbst.__doc__)
     p_sigres = subparsers.add_parser('sigres', parents=robot_parents, help=abicomp_sigres.__doc__)
     p_mdf = subparsers.add_parser('mdf', parents=robot_parents, help=abicomp_mdf.__doc__)

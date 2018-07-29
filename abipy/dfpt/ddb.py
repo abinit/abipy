@@ -74,7 +74,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     About the indices (idir, ipert) used by Abinit (Fortran notation):
 
-    * idir in [1, 2, 3] gives the direction (usually reduced direction)
+    * idir in [1, 2, 3] gives the direction (usually reduced direction, cart for strain)
     * ipert in [1, 2, ..., mpert] where mpert = natom + 6
 
         * ipert in [1, ..., natom] corresponds to atomic perturbations
@@ -375,6 +375,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
             if "List of bloks and their characteristics" in line:
                 # add last block when we reach the last part of the file.
+                # This line is present only if DDB has been produced by mrgddb
                 blocks.append({"data": block_lines, "qpt": qpt})
                 break
 
@@ -389,6 +390,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             block_lines.append(line)
             if "qpt" in line:
                 qpt = list(map(float, line.split()[1:4]))
+
+        if block_lines:
+            blocks.append({"data": block_lines, "qpt": qpt})
 
         return blocks
 
@@ -470,6 +474,13 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         if not hasattr(obj, "params"):
             raise TypeError("object %s does not have `params` attribute" % type(obj))
         obj.params.update(self.params)
+
+    # TODO
+    #@lru_cache(typed=True)
+    #def has_forces(self, select="at_least_one"):
+
+    #@lru_cache(typed=True)
+    #def has_stress(self, select="at_least_one"):
 
     def has_lo_to_data(self, select="at_least_one"):
         """
@@ -665,8 +676,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
             return ncfile.phbands
 
-    def anaget_phbst_and_phdos_files(self, nqsmall=10, qppa=None, ndivsm=20, line_density=None, asr=2, chneut=1, dipdip=1, 
-                                     dos_method="tetra", lo_to_splitting="automatic", ngqpt=None, qptbounds=None, 
+    def anaget_phbst_and_phdos_files(self, nqsmall=10, qppa=None, ndivsm=20, line_density=None, asr=2, chneut=1, dipdip=1,
+                                     dos_method="tetra", lo_to_splitting="automatic", ngqpt=None, qptbounds=None,
                                      anaddb_kwargs=None, verbose=0, spell_check=True,
                                      mpi_procs=1, workdir=None, manager=None):
         """
@@ -1081,7 +1092,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                                                     os.path.join(task.workdir, "anaddb.nc"))
 
     def anaget_elastic(self, has_gamma_ph=False, has_dde=False, asr=2, chneut=1,
-                       mpi_procs=1, workdir=None, manager=None, verbose=0):
+                       mpi_procs=1, workdir=None, manager=None, verbose=0, retpath=False):
         """
         Call anaddb to compute the elastic and piezoelectric properties.
 
@@ -1094,9 +1105,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             mpi_procs: Number of MPI processes to use.
             workdir: Working directory. If None, a temporary directory is created.
             verbose: verbosity level. Set it to a value > 0 to get more information
+            retpath: True to return path to anaddb.nc file.
 
         Return:
-            ElasticData object
+            ElasticData object if retpath is None else path to anaddb.nc file.
         """
         if not self.has_strain_terms():
             cprint("Strain perturbations are not available in DDB: %s" % self.filepath, "yellow")
@@ -1117,7 +1129,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             raise self.AnaddbError(task=task, report=report)
 
         # Read data from the netcdf output file produced by anaddb.
-        return ElasticData.from_file(os.path.join(task.workdir, "anaddb.nc"))
+        path = os.path.join(task.workdir, "anaddb.nc")
+        return ElasticData.from_file(path) if not retpath else path
 
     def write(self, filepath, filter_blocks=None):
         """
@@ -1720,6 +1733,16 @@ class DdbRobot(Robot):
                 phdos_file.close()
 
         return dict2namedtuple(phbands_plotter=phbands_plotter, phdos_plotter=phdos_plotter)
+
+    #def anaget_elastic_robot(self, manager=None):
+    #    anaddbnc_paths = []
+    #    for ddb in self.abifiles:
+    #        p = ddb.anaget_elastic(has_gamma_ph=True, has_dde=False, asr=2, chneut=1,
+    #                               mpi_procs=1, workdir=None, manager=manager, verbose=0, retpath=True)
+    #        anaddbnc_paths.append(p)
+
+    #    from abipy.dfpt.anaddbnc import AnaddbNcRobot
+    #    return AnaddbNcRobot.from_files(anaddbnc_paths)
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """

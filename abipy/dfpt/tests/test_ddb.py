@@ -331,12 +331,30 @@ class DdbTest(AbipyTest):
         """
         Testing DDB containing also third order derivatives.
         """
+        self.skip_if_abinit_not_ge("8.9.3")
+
         with abilab.abiopen(abidata.ref_file("refs/alas_elastic_dfpt/AlAs_elastic_DDB")) as ddb:
-            self.assertTrue(ddb.has_strain_terms())
-            self.assertFalse(ddb.has_strain_terms("all"))
+            assert ddb.has_strain_terms()
+            assert not ddb.has_strain_terms("all")
             e = ddb.anaget_elastic(has_dde=True, has_gamma_ph=True, verbose=2)
-            self.assertEqual(e.elastic_relaxed[0,0,0,0], 120.41874336082199)
-            self.assertEqual(e.piezo_relaxed[0,1,2], -0.030391022487094244)
+            self.assert_almost_equal(e.elastic_relaxed[0,0,0,0], 120.41874336082199)
+            self.assert_almost_equal(e.piezo_relaxed[0,1,2], -0.030391022487094244)
+
+            assert repr(e); assert str(e)
+            assert e.to_string(verbose=2)
+            assert e.structure.formula == "Al1 As1"
+
+            name_tensor_list = e.name_tensor_list(tensor_type="elastic")
+            names = [nt[0] for nt in name_tensor_list]
+            assert "elastic_relaxed" in names
+            name_tensor_list = e.name_tensor_list(tensor_type="piezoelectric")
+            names = [nt[0] for nt in name_tensor_list]
+            assert "piezo_relaxed" in names
+            edata_fit = e.fit_to_structure()
+            edata_ieee = e.convert_to_ieee()
+            df = e.get_voigt_dataframe("elastic_relaxed")
+            self.assert_almost_equal(df[(0, 0)], 120.41874336082199)
+            df = e.get_elast_properties_dataframe(tensor_names="elastic_relaxed", fit_to_structure=True)
 
 
 class DielectricTensorGeneratorTest(AbipyTest):
