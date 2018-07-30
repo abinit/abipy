@@ -8,6 +8,7 @@ import tempfile
 import itertools
 import numpy as np
 import pandas as pd
+import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
 from six.moves import map, zip, StringIO
@@ -27,8 +28,8 @@ from abipy.dfpt.phonons import PhononDosPlotter, PhononBandsPlotter, Interatomic
 from abipy.dfpt.tensors import DielectricTensor
 from abipy.dfpt.elastic import ElasticData
 from abipy.core.abinit_units import phfactor_ev2units, phunit_tag #Ha_cmm1,
-from pymatgen.analysis.elasticity.elastic import ElasticTensor
-from pymatgen.core.units import eV_to_Ha, bohr_to_angstrom
+from pymatgen.analysis.elasticity import Stress, ElasticTensor
+from pymatgen.core.units import eV_to_Ha, bohr_to_angstrom, Energy
 from abipy.tools.plotting import Marker, add_fig_kwargs, get_ax_fig_plt, set_axlims
 from abipy.tools import duck
 from abipy.abio.robots import Robot
@@ -376,14 +377,30 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             if "List of bloks and their characteristics" in line:
                 # add last block when we reach the last part of the file.
                 # This line is present only if DDB has been produced by mrgddb
-                blocks.append({"data": block_lines, "qpt": qpt})
+                if block_lines:
+                    blocks.append({"data": block_lines, "qpt": qpt, "dord": dord})
+                    block_lines = []
+                    qpt = None
                 break
 
+            # Don't use lstring because we may reuse block_lines to write new DDB.
             line = line.rstrip()
-            # new block
+
+            # new block --> detect order
             if "# elements" in line:
                 if block_lines:
-                    blocks.append({"data": block_lines, "qpt": qpt})
+                    blocks.append({"data": block_lines, "qpt": qpt, "dord": dord})
+
+                tokens = line.split()
+                num_elements = int(tokens[-1])
+                s = " ".join(tokens[:2])
+                dord = {"Total energy": 0,
+                        "1st derivatives": 1,
+                        "2nd derivatives": 2,
+                        "3rd derivatives": 3}.get(s, None)
+                if dord is None:
+                    raise RuntimeError("Cannot detect derivative order from string: `%s`" % s)
+
                 block_lines = []
                 qpt = None
 
@@ -391,8 +408,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             if "qpt" in line:
                 qpt = list(map(float, line.split()[1:4]))
 
+
         if block_lines:
-            blocks.append({"data": block_lines, "qpt": qpt})
+            blocks.append({"data": block_lines, "qpt": qpt, "dord": dord})
 
         return blocks
 
@@ -475,12 +493,77 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             raise TypeError("object %s does not have `params` attribute" % type(obj))
         obj.params.update(self.params)
 
-    # TODO
-    #@lru_cache(typed=True)
-    #def has_forces(self, select="at_least_one"):
+    @lazy_property
+    def total_energy(self):
+        """
+        Total energy in eV. None if not available.
+        """
+        for block in self.blocks:
+            if block["dord"] == 0:
+                ene_ha = float(block["data"][1].split()[0].replace("D", "E"))
+                return Energy(ene_ha, "Ha").to("eV")
+        return None
 
-    #@lru_cache(typed=True)
-    #def has_stress(self, select="at_least_one"):
+    @lazy_property
+    def cart_forces(self):
+        """
+        Cartesian forces in eV / Ang
+        None if not available i.e. if the GS DDB has not been merged.
+
+        .. note::
+
+            These values correspond to the `fred` array in abinit
+            this array has *not* been corrected by enforcing
+            the translational symmetry, namely that the sum of force
+            on all atoms is not necessarly zero.
+            So inconsistencies with the results reported in the output file are expected.
+        """
+        for block in self.blocks:
+            if block["dord"] != 1: continue
+            natom = len(self.structure)
+            fred = np.empty((natom, 3))
+            for line in block["data"][1:]:
+                idir, ipert, fval = line.split()[:3]
+                # F --> C
+                idir, ipert = int(idir) - 1, int(ipert) - 1
+                if ipert < natom:
+                    fred[ipert, idir] = float(fval.replace("D", "E"))
+            # FIXME
+            gprimd = self.structure.reciprocal_lattice.matrix
+            fcart = - fred
+            return fcart * abu.Ha_eV / abu.Bohr_Ang
+
+        return None
+
+    @lazy_property
+    def cart_stress_tensor(self):
+        """
+        pymatgen Stress tensor in cartesian coordinates (Hartree/Bohr^3)
+        None if not available.
+        """
+        for block in self.blocks:
+            if block["dord"] != 1: continue
+            svoigt = np.empty(6)
+            # Abinit stress is in cart coords and Ha/Bohr**3
+            # Map (idir, ipert) --> voigt
+            uniax, shear = len(self.structure) + 3, len(self.structure) + 4
+            dirper2voigt = {
+                (1, uniax): 0,
+                (2, uniax): 1,
+                (3, uniax): 2,
+                (1, shear): 3,
+                (2, shear): 4,
+                (3, shear): 5}
+
+            for line in block["data"][1:]:
+                idir, ipert, fval = line.split()[:3]
+                idp = int(idir), int(ipert)
+                if idp in dirper2voigt:
+                    svoigt[dirper2voigt[idp]] = float(fval.replace("D", "E"))
+
+            return Stress.from_voigt(svoigt * abu.Ha_eV / (abu.Bohr_Ang**3))
+
+        return None
 
     def has_lo_to_data(self, select="at_least_one"):
         """
