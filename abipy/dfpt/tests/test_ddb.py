@@ -129,6 +129,10 @@ class DdbTest(AbipyTest):
         assert not ddb.has_bec_terms(select="all")
         assert not ddb.has_emacro_terms()
         assert not ddb.has_lo_to_data()
+        assert not ddb.has_internalstrain_terms()
+        assert not ddb.has_piezoelectric_terms()
+        assert not ddb.has_strain_terms()
+        assert ddb.has_at_least_one_atomic_perturbation()
 
         ref_qpoints = np.reshape([
                  0.00000000E+00,  0.00000000E+00,  0.00000000E+00,
@@ -222,8 +226,8 @@ class DdbTest(AbipyTest):
             # Test Lru_cache as well
             assert ddb.has_bec_terms(select="at_least_one")
             assert ddb.has_bec_terms(select="at_least_one")
-            assert not ddb.has_bec_terms(select="all")
-            assert not ddb.has_bec_terms(select="all")
+            assert ddb.has_bec_terms(select="all")
+            assert ddb.has_bec_terms(select="all")
             assert ddb.has_emacro_terms()
             assert ddb.has_lo_to_data()
 
@@ -354,8 +358,11 @@ class DdbTest(AbipyTest):
         self.skip_if_abinit_not_ge("8.9.3")
 
         with abilab.abiopen(abidata.ref_file("refs/alas_elastic_dfpt/AlAs_elastic_DDB")) as ddb:
-            assert ddb.has_strain_terms()
-            assert not ddb.has_strain_terms("all")
+            assert ddb.has_strain_terms(select="at_least_one")
+            assert ddb.has_strain_terms(select="all")
+            #assert ddb.has_internalstrain_terms(select="all")
+            #assert ddb.has_piezoelectric_terms_terms(select="all")
+            #assert ddb.has_at_least_one_atomic_perturbation()
             e = ddb.anaget_elastic(has_dde=True, has_gamma_ph=True, verbose=2)
             self.assert_almost_equal(e.elastic_relaxed[0,0,0,0], 120.41874336082199)
             self.assert_almost_equal(e.piezo_relaxed[0,1,2], -0.030391022487094244)

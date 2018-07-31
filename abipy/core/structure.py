@@ -1274,6 +1274,8 @@ class Structure(pymatgen.Structure, NotebookWriter):
         """
         if fmt in ("abivars", "abinit"):
             return self.abi_string
+        elif fmt == "abipython":
+            return pformat(self.to_abivars(), indent=4)
         elif fmt == "qe":
             from pymatgen.io.pwscf import PWInput
             return str(PWInput(self, pseudo={s: s + ".pseudo" for s in self.symbol_set}))
