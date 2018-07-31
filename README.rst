@@ -72,9 +72,9 @@ in the form of pre-compiled packages that can be easily installed with e.g.::
 
     conda install numpy scipy netcdf4
 
-Create a new conda_ environment (let's call it ``abipy3.6``) based on python3.6 with::
+Create a new conda_ environment (let's call it ``abienv``) based on python3.6 with::
 
-    conda create --name abipy3.6 python=3.6
+    conda create --name abienv python=3.6
 
 and activate it with::
 
@@ -113,9 +113,9 @@ For pip, use::
     pip install -r requirements.txt
     pip install -r requirements-optional.txt
 
-If you are using conda_ (see `Installing conda`_ to install conda itself),  create a new environment (``abipy3.6``) based on python3.6 with::
+If you are using conda_ (see `Installing conda`_ to install conda itself),  create a new environment (``abienv``) based on python3.6 with::
 
-    conda create -n abipy3.6 python=3.6
+    conda create -n abienv python=3.6
     source activate abipy3.6
 
 Add ``conda-forge``, ``matsci`` and ``abinit`` to your channels with::
