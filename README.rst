@@ -294,7 +294,7 @@ You should see (with minor changes)::
 
     Abipy requirements are properly configured
 
-If the script fails with the error message:
+If the script fails with the error message::
 
     Abinit executable does not support netcdf
     Abipy requires Abinit version >= 8.0.8 but got 0.0.0
@@ -302,41 +302,39 @@ If the script fails with the error message:
 it means that your environment is not property configured or that there's a problem
 with the binary executable.
 In this case, look at the files produced in the temporary directory of the flow.
-The script reports the name of the directory, something like:
+The script reports the name of the directory, something like::
 
     CRITICAL:pymatgen.io.abinit.tasks:Error while executing /var/folders/89/47k8wfdj11x035svqf8qnl4m0000gn/T/tmp28xi4dy1/job.sh
 
 Check the `job.sh` script for possible typos, then search for possible error messages in `run.err`.
 
 The last test consists in executing a small calculation with AbiPy and Abinit.
-Inside the shell, execute:
+Inside the shell, execute::
 
     abicheck.py --with-flow
 
 to run a GS + NSCF band structure calculation for Si.
-If the software stack is properly configured, the output should end with:
+If the software stack is properly configured, the output should end with::
 
-```shell
-Work #0: <BandStructureWork, node_id=313436, workdir=../../../../var/folders/89/47k8wfdj11x035svqf8qnl4m0000gn/T/tmpygixwf9a/w0>, Finalized=True
-  Finalized works are not shown. Use verbose > 0 to force output.
+    Work #0: <BandStructureWork, node_id=313436, workdir=../../../../var/folders/89/47k8wfdj11x035svqf8qnl4m0000gn/T/tmpygixwf9a/w0>, Finalized=True
+      Finalized works are not shown. Use verbose > 0 to force output.
 
-all_ok reached
+    all_ok reached
 
-Submitted on: Sat Jul 28 09:14:28 2018
-Completed on: Sat Jul 28 09:14:38 2018
-Elapsed time: 0:00:10.030767
-Flow completed successfully
+    Submitted on: Sat Jul 28 09:14:28 2018
+    Completed on: Sat Jul 28 09:14:38 2018
+    Elapsed time: 0:00:10.030767
+    Flow completed successfully
 
-Calling flow.finalize()...
+    Calling flow.finalize()...
 
-Work #0: <BandStructureWork, node_id=313436, workdir=../../../../var/folders/89/47k8wfdj11x035svqf8qnl4m0000gn/T/tmpygixwf9a/w0>, Finalized=True
-  Finalized works are not shown. Use verbose > 0 to force output.
+    Work #0: <BandStructureWork, node_id=313436, workdir=../../../../var/folders/89/47k8wfdj11x035svqf8qnl4m0000gn/T/tmpygixwf9a/w0>, Finalized=True
+      Finalized works are not shown. Use verbose > 0 to force output.
 
-all_ok reached
+    all_ok reached
 
 
-Test flow completed successfully
-```
+    Test flow completed successfully
 
 Great, if you've reached this part it means that you've installed AbiPy and Abinit on your machine!
 We can finally start to run the scripts in this repo or use one of the AbiPy script to analyze  the results.
@@ -391,23 +389,23 @@ In case you have not yet used conda ...
 Download the `miniconda installer <https://conda.io/miniconda.html>`.
 Select python3.6 and the version corresponding to your operating system.
 
-As an example, if you are a Linux user, download and install `miniconda` on your local machine with:
+As an example, if you are a Linux user, download and install `miniconda` on your local machine with::
 
     wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
     bash Miniconda3-latest-Linux-x86_64.sh
 
-while for MacOSx use:
+while for MacOSx use::
 
     curl -o https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh
     bash Miniconda3-latest-MacOSX-x86_64.sh
 
-Answer ``yes`` to the question:
+Answer ``yes`` to the question::
 
     Do you wish the installer to prepend the Miniconda3 install location
     to PATH in your /home/gmatteo/.bashrc ? [yes|no]
     [no] >>> yes
 
-Source your ``.bashrc`` file to activate the changes done by ``miniconda`` to your ``$PATH``:
+Source your ``.bashrc`` file to activate the changes done by ``miniconda`` to your ``$PATH``::
 
     source ~/.bashrc
 
