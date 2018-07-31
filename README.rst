@@ -40,7 +40,7 @@ The notebook will be opened in your browser after building.
 AbiPy is free to use. However, we also welcome your help to improve this library by making your own contributions.
 Please report any bugs and issues at AbiPy's `Github page <https://github.com/abinit/abipy>`_.
 
-.. important::
+.. *important*::
 
     Note that the majority of the post-processing tools available in AbiPy require output files in
     netcdf_ format so we **strongly** suggest to compile Abinit with netcdf support
