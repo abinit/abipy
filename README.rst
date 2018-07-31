@@ -23,7 +23,7 @@ ab-initio calculations and typical convergence studies.
 AbiPy is interfaced with pymatgen_ and this allows users to
 benefit from the different tools and python objects available in the pymatgen ecosystem.
 
-The official documentation of the stable version is available at the `abipy docpage`_.
+The official documentation of the stable version is available at the `abipy docpage`_,
 while the documentation of the **developmental** version is hosted on `github pages <http://abinit.github.io/abipy>`_.
 
 AbiPy can be used in conjunction with matplotlib_, pandas_, scipy_, seaborn_, ipython_ and jupyter_ notebooks
@@ -180,7 +180,7 @@ To run the suite of unit tests, make sure you have pytest_ installed and then ty
 
     pytest
 
-in the AbiPy root directory. A quicker check might be obtained with 
+in the AbiPy root directory. A quicker check might be obtained with:: 
 
     pytest abipy/core/tests -v
 
@@ -211,6 +211,9 @@ A pre-compiled sequential version of Abinit for Linux and OSx can be installed d
 abinit-channel_ with::
 
     conda install abinit -c abinit
+
+Otherwise, follow the usual abinit installation instructions, and make sure abinit can be run with the command::
+
     abinit --version
 
 
@@ -235,65 +238,61 @@ Checking the installation
 =========================
 
 Now open the python interpreter and import the following three modules
-to check that the python installation is OK:
+to check that the python installation is OK::
 
-```python
-import spglib
-import pymatgen
-from abipy import abilab
-```
+    import spglib
+    import pymatgen
+    from abipy import abilab
 
-The Abinit executables are placed inside the anaconda directory associated to the ``abienv`` environment:
+The Abinit executables are placed inside the anaconda directory associated to the ``abienv`` environment::
 
     which abinit
     /Users/gmatteo/anaconda3/envs/abienv/bin/abinit
 
-To perform a basic validation of the build, execute:
+To perform a basic validation of the build, execute::
 
     abinit -b
 
 If successful, one can start to use the AbiPy scripts from the command line to analyze the output results.
-Execute:
+Execute::
 
     abicheck.py
 
-You should see:
+You should see (with minor changes)::
 
-```shell
-$ abicheck.py
-AbiPy Manager:
-[Qadapter 0]
-ShellAdapter:localhost
-Hardware:
-   num_nodes: 2, sockets_per_node: 1, cores_per_socket: 2, mem_per_node 4096,
-Qadapter selected: 0
+    $ abicheck.py
+    AbiPy Manager:
+    [Qadapter 0]
+    ShellAdapter:localhost
+    Hardware:
+       num_nodes: 2, sockets_per_node: 1, cores_per_socket: 2, mem_per_node 4096,
+    Qadapter selected: 0
 
-Abinitbuild:
-Abinit Build Information:
-    Abinit version: 8.8.2
-    MPI: True, MPI-IO: True, OpenMP: False
-    Netcdf: True
+    Abinitbuild:
+    Abinit Build Information:
+        Abinit version: 8.8.2
+        MPI: True, MPI-IO: True, OpenMP: False
+        Netcdf: True
 
-Abipy Scheduler:
-PyFlowScheduler, Pid: 19379
-Scheduler options: {'weeks': 0, 'days': 0, 'hours': 0, 'minutes': 0, 'seconds': 5}
+    Abipy Scheduler:
+    PyFlowScheduler, Pid: 19379
+    Scheduler options: {'weeks': 0, 'days': 0, 'hours': 0, 'minutes': 0, 'seconds': 5}
 
-Installed packages:
-Package         Version
---------------  ---------
-system          Darwin
-python_version  3.6.5
-numpy           1.14.3
-scipy           1.1.0
-netCDF4         1.4.0
-apscheduler     2.1.0
-pydispatch      2.0.5
-yaml            3.12
-pymatgen        2018.6.11
+    Installed packages:
+    Package         Version
+    --------------  ---------
+    system          Darwin
+    python_version  3.6.5
+    numpy           1.14.3
+    scipy           1.1.0
+    netCDF4         1.4.0
+    apscheduler     2.1.0
+    pydispatch      2.0.5
+    yaml            3.12
+    pymatgen        2018.6.11
 
 
-Abipy requirements are properly configured
-```
+    Abipy requirements are properly configured
 
 If the script fails with the error message:
 
