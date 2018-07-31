@@ -223,11 +223,11 @@ Configuration files for Abipy
 Note that several unit tests check the integration between AbiPy and Abinit.
 In order to run the tests, you will need a ``manager.yml`` configuration file.
 For a more detailed description of the syntax used in this configuration file
-please consult the `TaskManager documentation <http://abinit.github.io/abipy/workflows/taskmanager.html>`.
+please consult the `TaskManager documentation <http://abinit.github.io/abipy/workflows/taskmanager.html>`_.
 
-Copy the `scheduler.yml` and `manager.yml` files from the `managers` directory
+Copy the ``scheduler.yml`` and ``manager.yml`` files from the ``managers`` directory
 of this repository to your `$HOME/.abinit/abipy` directory.
-Open `manager.yml` and make sure that the `pre_run` section contains the shell commands
+Open ``manager.yml`` and make sure that the ``pre_run`` section contains the shell commands
 needed to setup the environment before launching Abinit (e.g. Abinit is in $PATH)
 
 For further information on the syntax of the configuration file, please consult the
@@ -384,8 +384,8 @@ For further information, please consult the `scripts docs <http://abinit.github.
 Installing conda
 ================
 
-A brief install guide, in case you have not yet used conda ... For a more extensive description, see the
-`anaconda how to <http://abinit.github.io/abipy/installation#anaconda-howto>`_.
+A brief install guide, in case you have not yet used conda ... For a more extensive description, see our
+`Anaconda Howto <http://abinit.github.io/abipy/installation#anaconda-howto>`_.
 
 Download the `miniconda installer <https://conda.io/miniconda.html>`_.
 Select python3.6 and the version corresponding to your operating system.
