@@ -64,7 +64,7 @@ In this case, please consult the detailed installation instructions provided by 
 and then follow the instructions in `our howto <http://abinit.github.io/abipy/installation>`_.
 
 The installation process is greatly simplified if you install the required 
-python packages through `Anaconda <https://continuum.io/downloads>`_. See the last section of this README file.
+python packages through `Anaconda <https://continuum.io/downloads>`_ (or conda). See InstallConda_ to install conda itself.
 We routinely use conda_ to test new developments with multiple Python versions and multiple virtual environments.
 The anaconda distribution already provides the most critical dependencies (matplotlib_, scipy_, numpy_, netcdf4-python_)
 in the form of pre-compiled packages that can be easily installed with e.g.::
@@ -121,7 +121,7 @@ For pip, use::
     pip install -r requirements.txt
     pip install -r requirements-optional.txt
 
-If you are using conda_,  create a new environment (``abipy3.6``) based on python3.6 with::
+If you are using conda_ (see InstallConda_ to install conda itself),  create a new environment (``abipy3.6``) based on python3.6 with::
 
     conda create -n abipy3.6 python=3.6
     source activate abipy3.6
@@ -255,6 +255,8 @@ The following scripts can be invoked directly from the terminal:
 Use ``SCRIPT --help`` to get the list of supported commands and 
 ``SCRIPT COMMAND --help`` to get the documentation for ``COMMAND``.
 For further information, please consult the `scripts docs <http://abinit.github.io/abipy/scripts/index.html>` section.
+
+.. _InstallConda:
 
 How to install conda ?
 ======================
