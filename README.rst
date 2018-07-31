@@ -378,16 +378,16 @@ The following scripts can be invoked directly from the terminal:
 
 Use ``SCRIPT --help`` to get the list of supported commands and 
 ``SCRIPT COMMAND --help`` to get the documentation for ``COMMAND``.
-For further information, please consult the `scripts docs <http://abinit.github.io/abipy/scripts/index.html>` section.
+For further information, please consult the `scripts docs <http://abinit.github.io/abipy/scripts/index.html>`_ section.
 
 
 Installing conda
 ================
 
 A brief install guide, in case you have not yet used conda ... For a more extensive description see the
-`anaconda how to <http://abinit.github.io/abipy/installation#anaconda-howto>`.
+`anaconda how to <http://abinit.github.io/abipy/installation#anaconda-howto>`_.
 
-Download the `miniconda installer <https://conda.io/miniconda.html>`.
+Download the `miniconda installer <https://conda.io/miniconda.html>`_.
 Select python3.6 and the version corresponding to your operating system.
 
 As an example, if you are a Linux user, download and install `miniconda` on your local machine with::
