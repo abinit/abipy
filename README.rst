@@ -358,7 +358,7 @@ Below is a brief description of the different directories found there:
     Scripts showing how to generate an AbiPy flow, run the calculation and use ipython to analyze the data.
 
 Additional jupyter notebooks with the Abinit tutorials written with AbiPy are available in the
-`abitutorial repository <https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/index.ipynb>`_
+`abitutorial repository <https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/index.ipynb>`_.
 
 Users are strongly encouraged to explore the detailed `API docs <http://abinit.github.io/abipy/api/index.html>`_.
 
@@ -384,7 +384,7 @@ For further information, please consult the `scripts docs <http://abinit.github.
 Installing conda
 ================
 
-A brief install guide, in case you have not yet used conda ... For a more extensive description see the
+A brief install guide, in case you have not yet used conda ... For a more extensive description, see the
 `anaconda how to <http://abinit.github.io/abipy/installation#anaconda-howto>`_.
 
 Download the `miniconda installer <https://conda.io/miniconda.html>`_.
