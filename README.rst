@@ -65,7 +65,7 @@ and then follow the instructions in `our howto <http://abinit.github.io/abipy/in
 
 The installation process is greatly simplified if you install the required 
 python packages through `Anaconda <https://continuum.io/downloads>`_ (or conda). 
-See `later<#how-to-install-conda->` to install conda itself.
+See `later<#how-to-install-conda->`_ to install conda itself.
 We routinely use conda_ to test new developments with multiple Python versions and multiple virtual environments.
 The anaconda distribution already provides the most critical dependencies (matplotlib_, scipy_, numpy_, netcdf4-python_)
 in the form of pre-compiled packages that can be easily installed with e.g.::
@@ -120,7 +120,7 @@ For pip, use::
     pip install -r requirements.txt
     pip install -r requirements-optional.txt
 
-If you are using conda_ (see `later<#how-to-install-conda->` to install conda itself),  create a new environment (``abipy3.6``) based on python3.6 with::
+If you are using conda_ (see `later<#how-to-install-conda->`_ to install conda itself),  create a new environment (``abipy3.6``) based on python3.6 with::
 
     conda create -n abipy3.6 python=3.6
     source activate abipy3.6
@@ -261,7 +261,7 @@ How to install conda ?
 Download the `miniconda installer <https://conda.io/miniconda.html>`.
 Select python3.6 and the version corresponding to your operating system.
 
-If you are a Linux user, download and install `miniconda` on your local machine with:
+As an example, if you are a Linux user, download and install `miniconda` on your local machine with:
 
     wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
     bash Miniconda3-latest-Linux-x86_64.sh
