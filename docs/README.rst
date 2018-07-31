@@ -46,6 +46,11 @@ Remember to issue::
 before running ``make`` to activate the generation of the thumbnails in :file:`abipy/examples/flows`.
 
 The documentation is produced in :file:`_build/html`.
+Use::
+
+	open _build/html/index.html
+
+to open the homepage in the browser.
 
 You can run ``make help`` to see information on all possible make targets.
 
@@ -148,11 +153,10 @@ Here are a few additional things to keep in mind:
      The transforms have been completely revamped.
 
 * The autodoc extension will handle index entries for the API, but additional
-  entries in the index_ need to be explicitly added.
+  entries in the index need to be explicitly added.
 
-.. _documentation: http://sphinx.pocoo.org/contents.html
-.. _`inline markup`: http://sphinx.pocoo.org/markup/inline.html
-.. _index: http://sphinx.pocoo.org/markup/para.html#index-generating-markup
+.. _documentation: http://www.sphinx-doc.org/en/master/
+.. _`inline markup`: http://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html?highlight=inline#inline-markup
 
 Docstrings
 ----------

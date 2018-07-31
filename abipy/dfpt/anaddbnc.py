@@ -4,12 +4,18 @@ AnaddbNcFile provides a high-level interface to the data stored in the anaddb.nc
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
 
+import os
+import pandas as pd
+
+from collections import OrderedDict
 from monty.functools import lazy_property
 from monty.string import marquee
 from monty.termcolor import cprint
 from abipy.core.tensor import Tensor
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
+from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
+from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt, rotate_ticklabels, set_visible
 from abipy.dfpt.phonons import InteratomicForceConstants
 from abipy.dfpt.ddb import Becs
 from abipy.dfpt.tensors import NLOpticalSusceptibilityTensor
@@ -50,14 +56,23 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     def __init__(self, filepath):
         super(AnaddbNcFile, self).__init__(filepath)
         self.reader = ETSF_Reader(filepath)
-        self._structure = self.reader.read_structure()
 
     def close(self):
         self.reader.close()
 
     @lazy_property
+    def structure(self):
+        return self.reader.read_structure()
+
+    @lazy_property
     def params(self):
-        return {}
+        # -666 to support old anaddb.nc files without metadata
+        return OrderedDict([
+	    ("asr", int(self.reader.read_value("asr", default=-666))),
+	    ("chneut", int(self.reader.read_value("chneut", default=-666))),
+	    ("dipdip", int(self.reader.read_value("dipdip", default=-666))),
+	    ("symdynmat", int(self.reader.read_value("symdynmat", default=-666))),
+	])
 
     def __str__(self):
         return self.to_string()
@@ -76,11 +91,28 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         app("")
         app(self.structure.to_string(verbose=verbose, title="Structure"))
 
-        return "\n".join(lines)
+        if self.has_elastic_data:
+            app("")
+            df = self.elastic_data.get_average_elastic_dataframe(tensor="elastic_relaxed")
+            if not df.empty:
+                app(marquee("Averaged elastic properties (relaxed ions)", mark="="))
+                app(df.to_string(index=False))
+                app("")
+            df = self.elastic_data.get_elast_properties_dataframe()
+            if not df.empty:
+                app(marquee("Averaged elastic properties (relaxed ions)", mark="="))
+                app(df.T.to_string(index=True))
 
-    @property
-    def structure(self):
-        return self._structure
+            if verbose:
+                df = self.elastic_data.get_voigt_dataframe(["elastic_relaxed", "elastic_clamped"])
+                app(df.T.to_string())
+
+        #if self.has_piezoelectric_data:
+        #    df = self.elastic_data.get_piezoelectric_dataframe()
+
+        #app(str(self.params))
+
+        return "\n".join(lines)
 
     @lazy_property
     def emacro(self):
@@ -111,8 +143,8 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         Born effective charges. None if the file does not contain this information.
         """
+        chneut = self.params["chneut"]
         try:
-            chneut = -666 # TODO: anaddb.nc should contain the input file.
             return Becs(self.reader.read_value("becs_cart"), self.structure, chneut=chneut, order="f")
         except Exception as exc:
             print(exc, "Returning None", sep="\n")
@@ -180,6 +212,24 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             print(exc, "Oscillator strengths require dieflag == 1, 3 or 4", "Returning None", sep="\n")
             return None
 
+    @lazy_property
+    def has_elastic_data(self):
+        """True if elastic tensors have been computed."""
+        return self.reader.read_value("elaflag", default=0) != 0
+
+    @lazy_property
+    def has_piezoelectric_data(self):
+        """True if piezoelectric tensors have been computed."""
+        return self.reader.read_value("piezoflag", default=0) != 0
+
+    @lazy_property
+    def elastic_data(self):
+        """
+        Container with the different (piezo)elastic tensors computed by anaddb.
+        stored in pymatgen tensor objects.
+        """
+        return ElasticData.from_ncreader(self.reader)
+
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
@@ -201,6 +251,178 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         return self._write_nb_nbpath(nb, nbpath)
 
-    @lazy_property
-    def elastic_data(self):
-        return ElasticData.from_ncreader(self.reader)
+
+class AnaddbNcRobot(Robot):
+    """
+    This robot analyzes the results contained in multiple anaddb.nc files.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: AnaddbNcRobot
+    """
+    EXT = "anaddb"
+
+    @property
+    def has_elastic_data(self):
+        return all(ncfile.has_elastic_data for ncfile in self.abifiles)
+
+    def get_dataframe(self):
+
+        if self.has_elastic_data:
+            return self.get_elastic_dataframe()
+            #for ncfile in self.abifiles:
+            #    df = ncfile.elastic_data.get_elast_properties_dataframe(etypes=["elastic_relaxed"])
+            #    df_list.append(df)
+
+            #df_list = []
+            #df = pd.concat(df_list, ignore_index=True)
+            #df["labels"] = list(self.keys())
+            #df.set_index("labels", inplace=True)
+            #return df
+
+    def get_elastic_dataframe(self, with_geo=True, abspath=False, with_params=False, funcs=None, **kwargs):
+        """
+        Return a |pandas-DataFrame| with properties derived from the elastic tensor
+        and an associated structure. Filename is used as index.
+
+        Args:
+            with_geo: True if structure info should be added to the dataframe
+            abspath: True if paths in index should be absolute. Default: Relative to getcwd().
+            with_params: False to exclude calculation parameters from the dataframe.
+
+        kwargs:
+            attrs:
+                List of additional attributes of the |GsrFile| to add to the DataFrame.
+            funcs: Function or list of functions to execute to add more data to the DataFrame.
+                Each function receives a |GsrFile| object and returns a tuple (key, value)
+                where key is a string with the name of column and value is the value to be inserted.
+        """
+        # Add attributes specified by the users
+        attrs = [
+            #"energy", "pressure", "max_force",
+            #"nsppol", "nspinor", "nspden",
+        ] + kwargs.pop("attrs", [])
+
+        rows, index = [], []
+        for label, ncfile in self.items():
+            index.append(label)
+            d = OrderedDict()
+
+            # Add info on structure.
+            if with_geo:
+                d.update(ncfile.structure.get_dict4pandas(with_spglib=True))
+
+            if with_params:
+                d.update(self.params)
+
+            # Execute functions
+            if funcs is not None: d.update(self._exec_funcs(funcs, ncfile))
+
+            df = ncfile.elastic_data.get_elast_properties_dataframe(etypes="elastic_relaxed")
+            d.update(df.to_dict("records")[0])
+
+            rows.append(d)
+
+        #index = index if not abspath else self._to_relpaths(index)
+        return pd.DataFrame(rows, index=index, columns=list(rows[0].keys() if rows else None))
+
+    @add_fig_kwargs
+    def plot_elastic_properties(self, fontsize=10, **kwargs):
+        """
+        Args:
+            fontsize: legend and label fontsize.
+
+        Returns: |matplotlib-Figure|
+        """
+        df = self.get_elastic_dataframe(with_geo=False, abspath=False, with_params=False)
+        from pandas.api.types import is_numeric_dtype
+        keys = [k for k in df.keys() if is_numeric_dtype(df[k])]
+        i = keys.index("fitted_to_structure")
+        if i != -1:
+            keys.pop(i)
+
+        num_plots, ncols, nrows = len(keys), 1, 1
+        if num_plots > 1:
+            ncols = 3
+            nrows = (num_plots // ncols) + (num_plots % ncols)
+
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=False, sharey=False, squeeze=False)
+        ax_list = ax_list.ravel()
+
+        for ix, (key, ax) in enumerate(zip(keys, ax_list)):
+            irow, icol = divmod(ix, ncols)
+            xn = range(len(df.index))
+            ax.plot(xn, df[key], marker="o")
+            ax.grid(True)
+            ax.set_xticks(xn)
+            ax.set_ylabel(key, fontsize=fontsize)
+            ax.set_xticklabels([])
+
+        ax.set_xticklabels(self.keys(), fontsize=fontsize)
+        rotate_ticklabels(ax, 15)
+
+        if ix != len(ax_list) -1:
+            for ix in range(ix + 1, len(ax_list)):
+                ax_list[ix].axis('off')
+
+        return fig
+
+    #def get_voigt_dataframe(self, tensor_names):
+    #    ncfile.get_voigt_dataframe(self, tensor_names):
+
+#    @add_fig_kwargs
+#    def plot_gsr_convergence(self, sortby=None, hue=None, fontsize=6,
+#                             items=("energy", "pressure", "max_force"), **kwargs):
+#        """
+#        Plot the convergence of the most important quantities available in the GSR file
+#        wrt to the ``sortby`` parameter. Values can optionally be grouped by ``hue``.
+#
+#        Args:
+#            sortby: Define the convergence parameter, sort files and produce plot labels.
+#                Can be None, string or function. If None, no sorting is performed.
+#                If string and not empty it's assumed that the abifile has an attribute
+#                with the same name and `getattr` is invoked.
+#                If callable, the output of sortby(abifile) is used.
+#            hue: Variable that define subsets of the data, which will be drawn on separate lines.
+#                Accepts callable or string
+#                If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
+#                If callable, the output of hue(abifile) is used.
+#            items: List of GSR attributes (or callables) to be analyzed.
+#            fontsize: legend and label fontsize.
+#
+#        Returns: |matplotlib-Figure|
+#
+#        Example:
+#
+#             robot.plot_gsr_convergence(sortby="nkpt", hue="tsmear")
+#        """
+#        return self.plot_convergence_items(items, sortby=sortby, hue=hue, fontsize=fontsize, show=False, **kwargs)
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        Used in abiview.py to get a quick look at the results.
+        """
+        if self.has_elastic_data:
+            yield self.plot_elastic_properties(show=False)
+        else:
+            yield None
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        args = [(l, f.filepath) for l, f in self.items()]
+        nb.cells.extend([
+            #nbv.new_markdown_cell("# This is a markdown cell"),
+            nbv.new_code_cell("robot = abilab.AnaddbNcRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+            #nbv.new_code_cell("df = ebands_plotter.get_ebands_frame()\ndisplay(df)"),
+        ])
+
+        # Mixins
+        nb.cells.extend(self.get_baserobot_code_cells())
+
+        return self._write_nb_nbpath(nb, nbpath)

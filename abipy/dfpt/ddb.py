@@ -8,6 +8,7 @@ import tempfile
 import itertools
 import numpy as np
 import pandas as pd
+import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
 from six.moves import map, zip, StringIO
@@ -27,8 +28,8 @@ from abipy.dfpt.phonons import PhononDosPlotter, PhononBandsPlotter, Interatomic
 from abipy.dfpt.tensors import DielectricTensor
 from abipy.dfpt.elastic import ElasticData
 from abipy.core.abinit_units import phfactor_ev2units, phunit_tag #Ha_cmm1,
-from pymatgen.analysis.elasticity.elastic import ElasticTensor
-from pymatgen.core.units import eV_to_Ha, bohr_to_angstrom
+from pymatgen.analysis.elasticity import Stress, ElasticTensor
+from pymatgen.core.units import eV_to_Ha, bohr_to_angstrom, Energy
 from abipy.tools.plotting import Marker, add_fig_kwargs, get_ax_fig_plt, set_axlims
 from abipy.tools import duck
 from abipy.abio.robots import Robot
@@ -74,7 +75,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     About the indices (idir, ipert) used by Abinit (Fortran notation):
 
-    * idir in [1, 2, 3] gives the direction (usually reduced direction)
+    * idir in [1, 2, 3] gives the direction (usually reduced direction, cart for strain)
     * ipert in [1, 2, ..., mpert] where mpert = natom + 6
 
         * ipert in [1, ..., natom] corresponds to atomic perturbations
@@ -375,20 +376,41 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
             if "List of bloks and their characteristics" in line:
                 # add last block when we reach the last part of the file.
-                blocks.append({"data": block_lines, "qpt": qpt})
+                # This line is present only if DDB has been produced by mrgddb
+                if block_lines:
+                    blocks.append({"data": block_lines, "qpt": qpt, "dord": dord})
+                    block_lines = []
+                    qpt = None
                 break
 
+            # Don't use lstring because we may reuse block_lines to write new DDB.
             line = line.rstrip()
-            # new block
+
+            # new block --> detect order
             if "# elements" in line:
                 if block_lines:
-                    blocks.append({"data": block_lines, "qpt": qpt})
+                    blocks.append({"data": block_lines, "qpt": qpt, "dord": dord})
+
+                tokens = line.split()
+                num_elements = int(tokens[-1])
+                s = " ".join(tokens[:2])
+                dord = {"Total energy": 0,
+                        "1st derivatives": 1,
+                        "2nd derivatives": 2,
+                        "3rd derivatives": 3}.get(s, None)
+                if dord is None:
+                    raise RuntimeError("Cannot detect derivative order from string: `%s`" % s)
+
                 block_lines = []
                 qpt = None
 
             block_lines.append(line)
             if "qpt" in line:
                 qpt = list(map(float, line.split()[1:4]))
+
+
+        if block_lines:
+            blocks.append({"data": block_lines, "qpt": qpt, "dord": dord})
 
         return blocks
 
@@ -470,6 +492,78 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         if not hasattr(obj, "params"):
             raise TypeError("object %s does not have `params` attribute" % type(obj))
         obj.params.update(self.params)
+
+    @lazy_property
+    def total_energy(self):
+        """
+        Total energy in eV. None if not available.
+        """
+        for block in self.blocks:
+            if block["dord"] == 0:
+                ene_ha = float(block["data"][1].split()[0].replace("D", "E"))
+                return Energy(ene_ha, "Ha").to("eV")
+        return None
+
+    @lazy_property
+    def cart_forces(self):
+        """
+        Cartesian forces in eV / Ang
+        None if not available i.e. if the GS DDB has not been merged.
+
+        .. note::
+
+            These values correspond to the `fred` array in abinit
+            this array has *not* been corrected by enforcing
+            the translational symmetry, namely that the sum of force
+            on all atoms is not necessarly zero.
+            So inconsistencies with the results reported in the output file are expected.
+        """
+        for block in self.blocks:
+            if block["dord"] != 1: continue
+            natom = len(self.structure)
+            fred = np.empty((natom, 3))
+            for line in block["data"][1:]:
+                idir, ipert, fval = line.split()[:3]
+                # F --> C
+                idir, ipert = int(idir) - 1, int(ipert) - 1
+                if ipert < natom:
+                    fred[ipert, idir] = float(fval.replace("D", "E"))
+            # FIXME
+            gprimd = self.structure.reciprocal_lattice.matrix
+            fcart = - fred
+            return fcart * abu.Ha_eV / abu.Bohr_Ang
+
+        return None
+
+    @lazy_property
+    def cart_stress_tensor(self):
+        """
+        pymatgen Stress tensor in cartesian coordinates (Hartree/Bohr^3)
+        None if not available.
+        """
+        for block in self.blocks:
+            if block["dord"] != 1: continue
+            svoigt = np.empty(6)
+            # Abinit stress is in cart coords and Ha/Bohr**3
+            # Map (idir, ipert) --> voigt
+            uniax, shear = len(self.structure) + 3, len(self.structure) + 4
+            dirper2voigt = {
+                (1, uniax): 0,
+                (2, uniax): 1,
+                (3, uniax): 2,
+                (1, shear): 3,
+                (2, shear): 4,
+                (3, shear): 5}
+
+            for line in block["data"][1:]:
+                idir, ipert, fval = line.split()[:3]
+                idp = int(idir), int(ipert)
+                if idp in dirper2voigt:
+                    svoigt[dirper2voigt[idp]] = float(fval.replace("D", "E"))
+
+            return Stress.from_voigt(svoigt * abu.Ha_eV / (abu.Bohr_Ang**3))
+
+        return None
 
     def has_lo_to_data(self, select="at_least_one"):
         """
@@ -665,8 +759,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
             return ncfile.phbands
 
-    def anaget_phbst_and_phdos_files(self, nqsmall=10, qppa=None, ndivsm=20, line_density=None, asr=2, chneut=1, dipdip=1, 
-                                     dos_method="tetra", lo_to_splitting="automatic", ngqpt=None, qptbounds=None, 
+    def anaget_phbst_and_phdos_files(self, nqsmall=10, qppa=None, ndivsm=20, line_density=None, asr=2, chneut=1, dipdip=1,
+                                     dos_method="tetra", lo_to_splitting="automatic", ngqpt=None, qptbounds=None,
                                      anaddb_kwargs=None, verbose=0, spell_check=True,
                                      mpi_procs=1, workdir=None, manager=None):
         """
@@ -1081,7 +1175,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                                                     os.path.join(task.workdir, "anaddb.nc"))
 
     def anaget_elastic(self, has_gamma_ph=False, has_dde=False, asr=2, chneut=1,
-                       mpi_procs=1, workdir=None, manager=None, verbose=0):
+                       mpi_procs=1, workdir=None, manager=None, verbose=0, retpath=False):
         """
         Call anaddb to compute the elastic and piezoelectric properties.
 
@@ -1094,9 +1188,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             mpi_procs: Number of MPI processes to use.
             workdir: Working directory. If None, a temporary directory is created.
             verbose: verbosity level. Set it to a value > 0 to get more information
+            retpath: True to return path to anaddb.nc file.
 
         Return:
-            ElasticData object
+            ElasticData object if retpath is None else path to anaddb.nc file.
         """
         if not self.has_strain_terms():
             cprint("Strain perturbations are not available in DDB: %s" % self.filepath, "yellow")
@@ -1117,7 +1212,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             raise self.AnaddbError(task=task, report=report)
 
         # Read data from the netcdf output file produced by anaddb.
-        return ElasticData.from_file(os.path.join(task.workdir, "anaddb.nc"))
+        path = os.path.join(task.workdir, "anaddb.nc")
+        return ElasticData.from_file(path) if not retpath else path
 
     def write(self, filepath, filter_blocks=None):
         """
@@ -1720,6 +1816,16 @@ class DdbRobot(Robot):
                 phdos_file.close()
 
         return dict2namedtuple(phbands_plotter=phbands_plotter, phdos_plotter=phdos_plotter)
+
+    #def anaget_elastic_robot(self, manager=None):
+    #    anaddbnc_paths = []
+    #    for ddb in self.abifiles:
+    #        p = ddb.anaget_elastic(has_gamma_ph=True, has_dde=False, asr=2, chneut=1,
+    #                               mpi_procs=1, workdir=None, manager=manager, verbose=0, retpath=True)
+    #        anaddbnc_paths.append(p)
+
+    #    from abipy.dfpt.anaddbnc import AnaddbNcRobot
+    #    return AnaddbNcRobot.from_files(anaddbnc_paths)
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """

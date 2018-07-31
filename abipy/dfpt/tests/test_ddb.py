@@ -4,6 +4,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import os
 import numpy as np
 import abipy.data as abidata
+import abipy.core.abinit_units as abu
 
 from abipy import abilab
 from abipy.core.testing import AbipyTest
@@ -36,6 +37,9 @@ class DdbTest(AbipyTest):
             assert h.xred.shape == (h.natom, 3) and h.kpt.shape == (h.nkpt, 3)
             self.assert_equal(h.znucl, [13, 33])
             assert ddb.version == 100401
+            assert ddb.total_energy is None
+            assert ddb.cart_forces is None
+            assert ddb.cart_stress_tensor is None
 
             assert np.all(h.symrel[1].T.ravel() == [0, -1, 1, 0, -1, 0, 1, -1, 0])
             assert np.all(h.symrel[2].T.ravel() == [-1, 0, 0, -1, 0, 1, -1, 1, 0])
@@ -77,6 +81,7 @@ class DdbTest(AbipyTest):
             blocks = ddb._read_blocks()
             assert len(blocks) == 1
             assert blocks[0]["qpt"] == [0.25, 0, 0]
+            assert blocks[0]["dord"] == 2
 
             lines = blocks[0]["data"]
             assert lines[0].rstrip() == " 2nd derivatives (non-stat.)  - # elements :      36"
@@ -182,6 +187,7 @@ class DdbTest(AbipyTest):
         # Execute anaddb to compute the interatomic forces.
         ifc = ddb.anaget_ifc()
         str(ifc); repr(ifc)
+        #assert ifc.to_string(verbose=2)
         assert ifc.structure == ddb.structure
         assert ifc.number_of_atoms == len(ddb.structure)
 
@@ -324,6 +330,20 @@ class DdbTest(AbipyTest):
         Testing DDB containing also third order derivatives.
         """
         with abilab.abiopen(abidata.ref_file("refs/alas_nl_dfpt/AlAs_nl_dte_DDB")) as ddb:
+            repr(ddb); str(ddb)
+            assert ddb.to_string(verbose=2)
+            self.assert_almost_equal(ddb.total_energy.to("Ha"), -0.10085769246152e+02)
+            assert ddb.cart_forces is not None
+            stress = ddb.cart_stress_tensor
+            ref_voigt = np.array([-0.31110177329142E-05, -0.31110177329142E-05, -0.31110177329146E-05,
+                                  0.00000000000000E+00, 0.00000000000000E+00, 0.00000000000000E+00])
+            self.assert_almost_equal(stress[0, 0], ref_voigt[0] * abu.Ha_eV / abu.Bohr_Ang**3)
+            self.assert_almost_equal(stress[1, 1], ref_voigt[1] * abu.Ha_eV / abu.Bohr_Ang**3)
+            self.assert_almost_equal(stress[2, 2], ref_voigt[2] * abu.Ha_eV / abu.Bohr_Ang**3)
+            self.assert_almost_equal(stress[1, 2], ref_voigt[3] * abu.Ha_eV / abu.Bohr_Ang**3)
+            self.assert_almost_equal(stress[0, 2], ref_voigt[4] * abu.Ha_eV / abu.Bohr_Ang**3)
+            self.assert_almost_equal(stress[0, 1], ref_voigt[5] * abu.Ha_eV / abu.Bohr_Ang**3)
+
             for qpoint in ddb.qpoints:
                 assert qpoint in ddb.computed_dynmat
 
@@ -331,12 +351,32 @@ class DdbTest(AbipyTest):
         """
         Testing DDB containing also third order derivatives.
         """
+        self.skip_if_abinit_not_ge("8.9.3")
+
         with abilab.abiopen(abidata.ref_file("refs/alas_elastic_dfpt/AlAs_elastic_DDB")) as ddb:
-            self.assertTrue(ddb.has_strain_terms())
-            self.assertFalse(ddb.has_strain_terms("all"))
+            assert ddb.has_strain_terms()
+            assert not ddb.has_strain_terms("all")
             e = ddb.anaget_elastic(has_dde=True, has_gamma_ph=True, verbose=2)
-            self.assertEqual(e.elastic_relaxed[0,0,0,0], 120.41874336082199)
-            self.assertEqual(e.piezo_relaxed[0,1,2], -0.030391022487094244)
+            self.assert_almost_equal(e.elastic_relaxed[0,0,0,0], 120.41874336082199)
+            self.assert_almost_equal(e.piezo_relaxed[0,1,2], -0.030391022487094244)
+
+            assert repr(e); assert str(e)
+            assert e.to_string(verbose=2)
+            assert e.structure.formula == "Al1 As1"
+            assert e.elastic_relaxed._repr_html_()
+            #assert hasattr(e.elastic_relaxed.compliance_tensor, "_repr_html_")
+
+            name_tensor_list = e.name_tensor_list(tensor_type="elastic")
+            names = [nt[0] for nt in name_tensor_list]
+            assert "elastic_relaxed" in names
+            name_tensor_list = e.name_tensor_list(tensor_type="piezoelectric")
+            names = [nt[0] for nt in name_tensor_list]
+            assert "piezo_relaxed" in names
+            edata_fit = e.fit_to_structure()
+            edata_ieee = e.convert_to_ieee()
+            df = e.get_voigt_dataframe("elastic_relaxed")
+            self.assert_almost_equal(df[(0, 0)][0], 120.41874336082199)
+            df = e.get_elast_properties_dataframe(tensor_names="elastic_relaxed", fit_to_structure=True)
 
 
 class DielectricTensorGeneratorTest(AbipyTest):
@@ -388,7 +428,7 @@ class DdbRobotTest(AbipyTest):
             assert r.phdos_plotter.gridplot(show=False)
 
         if self.has_nbformat():
-            robot.write_notebook(nbpath=self.get_tmpname(text=True))
+            assert robot.write_notebook(nbpath=self.get_tmpname(text=True))
 
         robot.close()
 
@@ -400,8 +440,6 @@ class PhononComputationTest(AbipyTest):
         path = os.path.join(abidata.dirpath, "refs", "mgb2_phonons_nkpt_tsmear", "mgb2_121212k_0.04tsmear_DDB")
         ddb = abilab.abiopen(path)
 
-        #for dos_method in ("gaussian",):
-        #for dos_method in ("tetra",):
         for dos_method in ("tetra", "gaussian"):
             # Get phonon bands and Dos with anaddb.
             phbands_file, phdos_file = ddb.anaget_phbst_and_phdos_files(nqsmall=4, ndivsm=2,

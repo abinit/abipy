@@ -57,7 +57,7 @@ from abipy.electrons.fold2bloch import Fold2BlochNcfile
 from abipy.dfpt.phonons import (PhbstFile, PhbstRobot, PhononBands, PhononBandsPlotter, PhdosFile, PhononDosPlotter,
     PhdosReader, phbands_gridplot)
 from abipy.dfpt.ddb import DdbFile, DdbRobot
-from abipy.dfpt.anaddbnc import AnaddbNcFile
+from abipy.dfpt.anaddbnc import AnaddbNcFile, AnaddbNcRobot
 from abipy.dfpt.gruneisen import GrunsNcFile
 from abipy.dynamics.hist import HistFile, HistRobot
 from abipy.waves import WfkFile
