@@ -152,8 +152,12 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         app("")
         app("Number of q-points in DDB: %d" % len(self.qpoints))
         app("guessed_ngqpt: %s (guess for the q-mesh divisions made by AbiPy)" % self.guessed_ngqpt)
-        app("Has electric-field perturbation: %s" % self.has_emacro_terms())
-        app("Has Born effective charges: %s" % self.has_bec_terms())
+        app("Has (at least one) atomic pertubation: %s" % self.has_at_least_one_atomic_perturbation())
+        app("Has (at least one) electric-field perturbation: %s" % self.has_emacro_terms(select="at_least_one"))
+        app("Has (at least one) Born effective charge: %s" % self.has_bec_terms(select="at_least_one"))
+        app("Has (all) strain terms: %s" % self.has_strain_terms(select="all"))
+        app("Has (all) internal strain terms: %s" % self.has_internalstrain_terms(select="all"))
+        app("Has (all) piezoelectric terms: %s" % self.has_piezoelectric_terms(select="all"))
 
         if verbose:
             app(self.qpoints.to_string(verbose=verbose, title="Q-points in DDB"))
@@ -572,6 +576,23 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return self.has_emacro_terms(select=select) and self.has_bec_terms(select=select)
 
     @lru_cache(typed=True)
+    def has_at_least_one_atomic_perturbation(self):
+        """
+        True if the DDB file contains info on (at least one) atomic perturbation.
+        """
+        natom = len(self.structure)
+        ap_list = list(itertools.product(range(1, 4), range(1, natom + 1)))
+
+        for qpt, df in self.computed_dynmat.items():
+            index_set = set(df.index)
+            for p1 in ap_list:
+                for p2 in ap_list:
+                    p12 = p1 + p2
+                    if p12 in index_set: return True
+
+        return False
+
+    @lru_cache(typed=True)
     def has_emacro_terms(self, select="at_least_one"):
         """
         True if the DDB file contains info on the electric-field perturbation.
@@ -600,7 +621,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 else:
                     raise ValueError("Wrong select %s" % str(select))
 
-        return False
+        return False if select == "at_least_one" else True
 
     @lru_cache(typed=True)
     def has_bec_terms(self, select="at_least_one"):
@@ -631,18 +652,24 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 else:
                     raise ValueError("Wrong select %s" % str(select))
 
-        return False
+        return False if select == "at_least_one" else True
 
     @lru_cache(typed=True)
-    def has_strain_terms(self, select="at_least_one"):
+    def has_strain_terms(self, select="all"):
         """
-        True if the DDB file contains info on the strain perturbation.
+        True if the DDB file contains info on the (clamped-ion) strain perturbation
+        (i.e. 2nd order derivatives wrt strain)
 
         Args:
             select: Possible values in ["at_least_one", "all"]
                 If select == "at_least_one", we check if there's at least one entry associated to the strain.
                 and we assume that anaddb will be able to reconstruct the full tensor by symmetry.
                 If select == "all", all tensor components must be present in the DDB file.
+
+        .. note::
+
+            As anaddb is not yet able to reconstruct the strain terms by symmetry,
+            the default value for select is "all"
         """
         gamma = Kpoint.gamma(self.structure.reciprocal_lattice)
         if gamma not in self.computed_dynmat:
@@ -658,11 +685,89 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 if select == "at_least_one":
                     if p12 in index_set: return True
                 elif select == "all":
+                    if p12 not in index_set:
+                        #print("p12", p12, "not in index_set")
+                        return False
+                else:
+                    raise ValueError("Wrong select %s" % str(select))
+
+        return False if select == "at_least_one" else True
+
+    @lru_cache(typed=True)
+    def has_internalstrain_terms(self, select="all"):
+        """
+        True if the DDB file contains internal strain terms
+        i.e "off-diagonal" 2nd order derivatives wrt (strain, atomic displacement)
+
+        Args:
+            select: Possible values in ["at_least_one", "all"]
+                If select == "at_least_one", we check if there's at least one entry associated to the strain.
+                and we assume that anaddb will be able to reconstruct the full tensor by symmetry.
+                If select == "all", all tensor components must be present in the DDB file.
+
+        .. note::
+
+            As anaddb is not yet able to reconstruct the strain terms by symmetry,
+            the default value for select is "all"
+        """
+        gamma = Kpoint.gamma(self.structure.reciprocal_lattice)
+        if gamma not in self.computed_dynmat:
+            return False
+
+        index_set = set(self.computed_dynmat[gamma].index)
+
+        natom = len(self.structure)
+        sp_list = list(itertools.product(range(1, 4), [natom + 3, natom + 4]))
+        ap_list = list(itertools.product(range(1, 4), range(1, natom + 1)))
+        for p1 in sp_list:
+            for p2 in ap_list:
+                p12 = p1 + p2
+                if select == "at_least_one":
+                    if p12 in index_set: return True
+                elif select == "all":
                     if p12 not in index_set: return False
                 else:
                     raise ValueError("Wrong select %s" % str(select))
 
-        return False
+        return False if select == "at_least_one" else True
+
+    @lru_cache(typed=True)
+    def has_piezoelectric_terms(self, select="all"):
+        """
+        True if the DDB file contains piezoelectric terms
+        i.e "off-diagonal" 2nd order derivatives wrt (electric_field, strain)
+
+        Args:
+            select: Possible values in ["at_least_one", "all"]
+                If select == "at_least_one", we check if there's at least one entry associated to the strain.
+                and we assume that anaddb will be able to reconstruct the full tensor by symmetry.
+                If select == "all", all tensor components must be present in the DDB file.
+
+        .. note::
+
+            As anaddb is not yet able to reconstruct the (strain, electric) terms by symmetry,
+            the default value for select is "all"
+        """
+        gamma = Kpoint.gamma(self.structure.reciprocal_lattice)
+        if gamma not in self.computed_dynmat:
+            return False
+
+        index_set = set(self.computed_dynmat[gamma].index)
+
+        natom = len(self.structure)
+        sp_list = list(itertools.product(range(1, 4), [natom + 3, natom + 4]))
+        ep_list = list(itertools.product(range(1, 4), [natom + 2]))
+        for p1 in sp_list:
+            for p2 in ep_list:
+                p12 = p1 + p2
+                if select == "at_least_one":
+                    if p12 in index_set: return True
+                elif select == "all":
+                    if p12 not in index_set: return False
+                else:
+                    raise ValueError("Wrong select %s" % str(select))
+
+        return False if select == "at_least_one" else True
 
     def view_phononwebsite(self, browser=None, verbose=0, dryrun=False, **kwargs):
         """

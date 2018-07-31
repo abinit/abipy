@@ -1132,7 +1132,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
 
     #def pop_relax_vars(self):
     #    """
-    #    Remove all the `ird*` variables present in self.
+    #    Remove all the relax variables present in self.
     #    Return dictionary with the variables that have been removed.
     #    """
     #    return scf_input.pop_vars(["ionmov", "optcell", "ntime", "dilatmx"])
@@ -1425,7 +1425,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
 
         return multi
 
-    def make_strain_perts_inputs(self, tolerance=None, manager=None, phonon_pert=True, kptopt=3):
+    def make_strain_perts_inputs(self, tolerance=None, manager=None, phonon_pert=True, kptopt=2):
         """
         Return inputs for the strain perturbation calculation.
         This functions should be called with an input that represents a GS run.
@@ -1435,14 +1435,16 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
                 Defaults to {"tolvrs": 1.0e-12}.
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
             phonon_pert: is True also the phonon perturbations will be considered. Default False.
-            kptopt: 2 to take into account time-reversal symmetry. Default 3 for backward compatibility.
+            kptopt: 2 to take into account time-reversal symmetry.
         """
         if tolerance is None:
             tolerance = {"tolvrs": 1.0e-12}
+
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
             raise self.Error("Invalid tolerance: {}".format(str(tolerance)))
 
-        perts = self.abiget_irred_strainperts(kptopt=2, manager=manager, phonon_pert=phonon_pert)
+        perts = self.abiget_irred_strainperts(kptopt=kptopt, manager=manager, phonon_pert=phonon_pert)
+        #print("Stress perts:", perts)
 
         # Build list of datasets (one input per perturbation)
         multi = MultiDataset.replicate_input(input=self, ndtset=len(perts))
@@ -1450,6 +1452,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
         for pert, inp in zip(perts, multi):
             rfdir = 3 * [0]
             rfdir[pert.idir -1] = 1
+
             if pert.ipert <= len(self.structure):
                 inp.set_vars(rfphon=1,             # Activate the calculation of the atomic dispacement perturbations
                              rfatpol=[pert.ipert, pert.ipert],
@@ -1457,34 +1460,32 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
                              nqpt=1,               # One wavevector is to be considered
                              qpt=(0, 0, 0),        # q-wavevector.
                              kptopt=kptopt,        # No symmetries
-                             iscf=7,
+                             #iscf=7,
                              paral_kgb=0
                              )
+
             elif pert.ipert == len(self.structure) + 3:
                 inp.set_vars(rfstrs=1,             # Activate the calculation of the strain perturbations (uniaxial)
                              rfdir=rfdir,
                              nqpt=1,               # One wavevector is to be considered
                              qpt=(0, 0, 0),        # q-wavevector.
                              kptopt=kptopt,        # No symmetries
-                             iscf=7,
+                             #iscf=7,
                              paral_kgb=0
                              )
+
             elif pert.ipert == len(self.structure) + 4:
                 inp.set_vars(rfstrs=2,             # Activate the calculation of the strain perturbations (shear)
                              rfdir=rfdir,
                              nqpt=1,               # One wavevector is to be considered
                              qpt=(0, 0, 0),        # q-wavevector.
                              kptopt=kptopt,        # No symmetries
-                             iscf=7,
+                             #iscf=7,
                              paral_kgb=0
                              )
 
             inp.pop_tolerances()
             inp.set_vars(tolerance)
-            # Adding buffer to help convergence ...
-            if 'nbdbuf' not in inp:
-                nbdbuf = max(int(0.1*inp['nband']), 4)
-                inp.set_vars(nband=inp['nband']+nbdbuf, nbdbuf=nbdbuf)
 
         return multi
 
