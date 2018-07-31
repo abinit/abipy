@@ -24,28 +24,35 @@ class ElasticWork(Work, MergeDdb):
         # Register task for SCF calculation.
         scf_task = new.register_scf_task(scf_input)
 
-        multi = scf_task.input.make_strain_perts_inputs(tolerance=tolerance, manager=manager, phonon_pert=False, kptopt=2)
+        multi = scf_task.input.make_strain_perts_inputs(tolerance=tolerance, manager=manager,
+                phonon_pert=with_internal_strain, kptopt=2)
 
         ddk_tasks = []
         if with_piezoelectric:
-            #sfc_task.input.make_ddk_inputs(tolerance=None, manager=None):
-            for inp in multi.filter_by_tags(tags=tags.DDK):
+            ddk_multi = scf_task.input.make_ddk_inputs(tolerance=None, manager=manager)
+            #for inp in multi.filter_by_tags(tags=tags.DDK):
+            for inp in ddk_multi:
                 ddk_task = new.register_ddk_task(inp, deps={scf_task: "WFK"})
                 ddk_tasks.append(ddk_task)
             assert len(ddk_tasks) == 3
+            ddk_deps = {ddk_task: "DDK" for ddk_task in ddk_tasks}
 
         if with_internal_strain:
             ph_deps = {scf_task: "WFK"}
-            #if with_piezoelectric: ph_deps.update()
-            for inp in multi.filter_by_tags(tags=tags.PHONON):
-                new.register_phonon_task(inp, deps=ph_deps)
+            if with_piezoelectric: ph_deps.update(ddk_deps)
+            #for inp in multi.filter_by_tags(tags=tags.PHONON):
+            for inp in multi:
+                if inp.get("rfphon", 0) == 1:
+                    #new.register_phonon_task(inp, deps=ph_deps)
+                    new.register_bec_task(inp, deps=ph_deps)
 
-        #bec_deps = {ddk_task: "DDK" for ddk_task in ddk_tasks}
         elast_deps = {scf_task: "WFK"}
-        #if with_piezoelectric: ph_deps.update()
+        if with_piezoelectric: elast_deps.update(ddk_deps)
         #for inp in multi.filter_by_tags(tags=tags.STRAIN)
         for inp in multi:
-            new.register_elastic_task(inp, deps=elast_deps)
+            # FIXME
+            #new.register_elastic_task(inp, deps=elast_deps)
+            new.register_bec_task(inp, deps=elast_deps)
 
         return new
 
