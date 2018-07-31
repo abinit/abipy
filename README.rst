@@ -244,6 +244,8 @@ to check that the python installation is OK::
     import pymatgen
     from abipy import abilab
 
+then quit the interpreter.
+
 The Abinit executables are placed inside the anaconda directory associated to the ``abienv`` environment::
 
     which abinit
@@ -252,6 +254,22 @@ The Abinit executables are placed inside the anaconda directory associated to th
 To perform a basic validation of the build, execute::
 
     abinit -b
+
+Abinit should echo miscellaneous information, starting with
+
+     DATA TYPE INFORMATION: 
+     REAL:      Data type name: REAL(DP) 
+                Kind value:      8
+                Precision:      15
+
+and ending with 
+
+     ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+     Default optimizations:
+       --- None ---
+
+
+     ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 If successful, one can start to use the AbiPy scripts from the command line to analyze the output results.
 Execute::
