@@ -192,7 +192,7 @@ Two tests rely on the availability of a
 `pymatgen PMG_MAPI_KEY <http://pymatgen.org/usage.html#setting-the-pmg-mapi-key-in-the-config-file>` in ~/.pmgrc.yaml.
 
 Note that several unit tests check the integration between AbiPy and Abinit. 
-In order to run the tests, you will need a working Abinit executable and  a ``manager.yml`` configuration file.
+In order to run the tests, you will need a working set of Abinit executables and  a ``manager.yml`` configuration file.
 
 Contributing to AbiPy is relatively easy.
 Just send us a `pull request <https://help.github.com/articles/using-pull-requests/>`_.
@@ -396,6 +396,7 @@ The following scripts can be invoked directly from the terminal:
 
 Use ``SCRIPT --help`` to get the list of supported commands and 
 ``SCRIPT COMMAND --help`` to get the documentation for ``COMMAND``.
+
 For further information, please consult the `scripts docs <http://abinit.github.io/abipy/scripts/index.html>`_ section.
 
 
