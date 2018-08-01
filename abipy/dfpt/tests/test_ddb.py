@@ -363,13 +363,13 @@ class DdbTest(AbipyTest):
             #assert ddb.has_internalstrain_terms(select="all")
             #assert ddb.has_piezoelectric_terms_terms(select="all")
             #assert ddb.has_at_least_one_atomic_perturbation()
-            e = ddb.anaget_elastic(has_dde=True, has_gamma_ph=True, verbose=2)
-            self.assert_almost_equal(e.elastic_relaxed[0,0,0,0], 120.41874336082199)
-            self.assert_almost_equal(e.piezo_relaxed[0,1,2], -0.030391022487094244)
+            e = ddb.anaget_elastic(verbose=2)
+            self.assert_almost_equal(e.elastic_relaxed[0,0,0,0], 122.23496623977118)
+            self.assert_almost_equal(e.piezo_relaxed[2,2,2], -0.041496005147475756)
 
             assert repr(e); assert str(e)
             assert e.to_string(verbose=2)
-            assert e.structure.formula == "Al1 As1"
+            assert e.structure.formula == "Al2 As2"
             assert e.elastic_relaxed._repr_html_()
             #assert hasattr(e.elastic_relaxed.compliance_tensor, "_repr_html_")
 
@@ -382,7 +382,7 @@ class DdbTest(AbipyTest):
             edata_fit = e.fit_to_structure()
             edata_ieee = e.convert_to_ieee()
             df = e.get_voigt_dataframe("elastic_relaxed")
-            self.assert_almost_equal(df[(0, 0)][0], 120.41874336082199)
+            self.assert_almost_equal(df[(0, 0)][0], 122.23496623977118)
             df = e.get_elast_properties_dataframe(tensor_names="elastic_relaxed", fit_to_structure=True)
 
 
