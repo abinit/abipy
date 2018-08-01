@@ -255,21 +255,21 @@ To perform a basic validation of the build, execute::
 
     abinit -b
 
-Abinit should echo miscellaneous information, starting with
+Abinit should echo miscellaneous information, starting with::
 
-     DATA TYPE INFORMATION: 
-     REAL:      Data type name: REAL(DP) 
-                Kind value:      8
-                Precision:      15
+    DATA TYPE INFORMATION: 
+    REAL:      Data type name: REAL(DP) 
+               Kind value:      8
+               Precision:      15
 
-and ending with 
+and ending with:: 
 
-     ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-     Default optimizations:
-       --- None ---
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    Default optimizations:
+      --- None ---
 
 
-     ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 If successful, one can start to use the AbiPy scripts from the command line to analyze the output results.
 Execute::
