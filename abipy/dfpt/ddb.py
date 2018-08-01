@@ -152,6 +152,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         app("")
         app("Number of q-points in DDB: %d" % len(self.qpoints))
         app("guessed_ngqpt: %s (guess for the q-mesh divisions made by AbiPy)" % self.guessed_ngqpt)
+        app("Has total energy: %s" % (self.total_energy is not None))
+        app("Has forces: %s" % (self.cart_forces is not None))
+        app("Has stress tensor: %s" % (self.cart_stress_tensor is not None))
         app("Has (at least one) atomic pertubation: %s" % self.has_at_least_one_atomic_perturbation())
         app("Has (at least one) electric-field perturbation: %s" % self.has_emacro_terms(select="at_least_one"))
         app("Has (at least one) Born effective charge: %s" % self.has_bec_terms(select="at_least_one"))
@@ -614,10 +617,12 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         for p1 in ep_list:
             for p2 in ep_list:
                 p12 = p1 + p2
+                p21 = p2 + p1
                 if select == "at_least_one":
                     if p12 in index_set: return True
                 elif select == "all":
-                    if p12 not in index_set: return False
+                    if p12 not in index_set and p21 not in index_set:
+                        return False
                 else:
                     raise ValueError("Wrong select %s" % str(select))
 
@@ -645,10 +650,12 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         for ap1 in ap_list:
             for ep2 in ep_list:
                 p12 = ap1 + ep2
+                p21 = ep2 + ap1
                 if select == "at_least_one":
                     if p12 in index_set: return True
                 elif select == "all":
-                    if p12 not in index_set: return False
+                    if p12 not in index_set and p21 not in index_set:
+                        return False
                 else:
                     raise ValueError("Wrong select %s" % str(select))
 
@@ -682,10 +689,11 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         for p1 in sp_list:
             for p2 in sp_list:
                 p12 = p1 + p2
+                p21 = p2 + p1
                 if select == "at_least_one":
                     if p12 in index_set: return True
                 elif select == "all":
-                    if p12 not in index_set:
+                    if p12 not in index_set and p21 not in index_set:
                         #print("p12", p12, "not in index_set")
                         return False
                 else:
@@ -722,10 +730,13 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         for p1 in sp_list:
             for p2 in ap_list:
                 p12 = p1 + p2
+                p21 = p2 + p1
                 if select == "at_least_one":
                     if p12 in index_set: return True
                 elif select == "all":
-                    if p12 not in index_set: return False
+                    if p12 not in index_set and p21 not in index_set:
+                        #print("p12", p12, "non in index")
+                        return False
                 else:
                     raise ValueError("Wrong select %s" % str(select))
 
@@ -760,10 +771,11 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         for p1 in sp_list:
             for p2 in ep_list:
                 p12 = p1 + p2
+                p21 = p2 + p1
                 if select == "at_least_one":
                     if p12 in index_set: return True
                 elif select == "all":
-                    if p12 not in index_set: return False
+                    if p12 not in index_set and p21 not in index_set: return False
                 else:
                     raise ValueError("Wrong select %s" % str(select))
 
@@ -1931,6 +1943,8 @@ class DdbRobot(Robot):
 
     #    from abipy.dfpt.anaddbnc import AnaddbNcRobot
     #    return AnaddbNcRobot.from_files(anaddbnc_paths)
+
+    #def compare_computed_dynmat(self):
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """

@@ -1209,7 +1209,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
 
         return ph_inputs
 
-    def make_ddk_inputs(self, tolerance=None, kptopt=2):
+    def make_ddk_inputs(self, tolerance=None, kptopt=2, manager=None):
         """
         Return inputs for performing DDK calculations.
         This functions should be called with an input the represents a GS run.
@@ -1218,6 +1218,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
             kptopt: 2 to take into account time-reversal symmetry. note that kptopt 1 is not available.
             tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.
                 Defaults to {"tolwfr": 1.0e-22}.
+            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
 
         Return:
             List of |AbinitInput| objects for DFPT runs.
@@ -1243,6 +1244,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
         for rfdir, ddk_input in zip(ddk_rfdirs, ddk_inputs):
             ddk_input.set_vars(
                 rfelfd=2,             # Activate the calculation of the d/dk perturbation
+                                      # only the derivative of ground-state wavefunctions with respect to k
                 rfdir=rfdir,          # Direction of the per ddk.
                 nqpt=1,               # One wavevector is to be considered
                 qpt=(0, 0, 0),        # q-wavevector.
@@ -1425,7 +1427,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
 
         return multi
 
-    def make_strain_perts_inputs(self, tolerance=None, manager=None, phonon_pert=True, kptopt=2):
+    def make_strain_perts_inputs(self, tolerance=None, phonon_pert=True, kptopt=2, manager=None):
         """
         Return inputs for the strain perturbation calculation.
         This functions should be called with an input that represents a GS run.
