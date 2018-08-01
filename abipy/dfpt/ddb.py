@@ -588,12 +588,13 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         ap_list = list(itertools.product(range(1, 4), range(1, natom + 1)))
 
         for qpt_dm, df in self.computed_dynmat.items():
-            if qpt == qpt_dm:
-                index_set = set(df.index)
-                for p1 in ap_list:
-                    for p2 in ap_list:
-                        p12 = p1 + p2
-                        if p12 in index_set: return True
+            if qpt is not None and qpt_dm != qpt: continue
+
+            index_set = set(df.index)
+            for p1 in ap_list:
+                for p2 in ap_list:
+                    p12 = p1 + p2
+                    if p12 in index_set: return True
 
         return False
 
@@ -1293,13 +1294,13 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return DielectricTensorGenerator.from_files(os.path.join(task.workdir, "run.abo_PHBST.nc"),
                                                     os.path.join(task.workdir, "anaddb.nc"))
 
-    def anaget_elastic(self, atomic_pert="automatic", internal_strain="automatic", piezo="automatic", asr=2, chneut=1,
+    def anaget_elastic(self, relaxed_ion="automatic", internal_strain="automatic", piezo="automatic", asr=2, chneut=1,
                        mpi_procs=1, workdir=None, manager=None, verbose=0, retpath=False):
         """
         Call anaddb to compute the elastic and piezoelectric properties.
 
         Args:
-            atomic_pert: Allowed values are [True, False, "automatic"]. Defaults to "automatic".
+            relaxed_ion: Allowed values are [True, False, "automatic"]. Defaults to "automatic".
                 True if phonons at gamma are present in the DDB and relax-ion tensor should be calculated.
             internal_strain: Allowed values are [True, False, "automatic"]. Defaults to "automatic".
                 True if the internal strain perturbations perturbations are present in the DDB.
@@ -1320,10 +1321,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         if not self.has_strain_terms():
             cprint("Strain perturbations are not available in DDB: %s" % self.filepath, "yellow")
 
-        if atomic_pert == "automatic":
-            atomic_pert = self.has_at_least_one_atomic_perturbation(qpt=(0, 0, 0))
+        if relaxed_ion == "automatic":
+            relaxed_ion = self.has_at_least_one_atomic_perturbation(qpt=(0, 0, 0))
 
-        if atomic_pert and not self.has_at_least_one_atomic_perturbation(qpt=(0, 0, 0)):
+        if relaxed_ion and not self.has_at_least_one_atomic_perturbation(qpt=(0, 0, 0)):
             cprint("atomic_pert is True but no atomic perturbations are available in DDB: %s" % self.filepath, "yellow")
 
         if internal_strain == "automatic":
@@ -1339,7 +1340,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         if piezo and not self.has_piezoelectric_terms():
             cprint("piezo is True but no piezoelectric perturbations are available in DDB: %s" % self.filepath, "yellow")
 
-        inp = AnaddbInput.dfpt(self.structure, strain=True, has_atomic_pert=atomic_pert, dde=self.has_emacro_terms(),
+        inp = AnaddbInput.dfpt(self.structure, strain=True, has_atomic_pert=relaxed_ion, dde=self.has_emacro_terms(),
                                piezo=piezo, has_stress=self.cart_stress_tensor is not None, dte=False, asr=asr,
                                chneut=chneut)
         task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, mpi_procs=mpi_procs, workdir=workdir, manager=manager)

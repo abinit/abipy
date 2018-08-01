@@ -673,7 +673,7 @@ class AnaddbInputTest(AbipyTest):
         assert anaddb_input["elaflag"] == 3 and anaddb_input["piezoflag"] == 3 and anaddb_input["chneut"] == 1
         self.abivalidate_input(anaddb_input)
 
-    def test_dfpt_a(self):
+    def test_dfpt(self):
         """Testing dfpt constructor."""
         anaddb_input = AnaddbInput.dfpt(self.structure, has_stress=True, has_atomic_pert=True, piezo=True, dde=True,
                                         strain=True, dte=False)
