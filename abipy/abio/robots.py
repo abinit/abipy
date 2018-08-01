@@ -182,8 +182,8 @@ class Robot(NotebookWriter):
             try:
                 abifile = abiopen(f)
             except Exception as exc:
-                cprint("Exception while opening file: `%s`" % str(f), "read")
-                cprint(exc, "read")
+                cprint("Exception while opening file: `%s`" % str(f), "red")
+                cprint(exc, "red")
                 abifile = None
 
             if abifile is not None:

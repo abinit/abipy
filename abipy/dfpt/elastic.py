@@ -64,13 +64,18 @@ class ElasticData(Has_Structure):
     """
 
     ALL_ELASTIC_TENSOR_NAMES = (
-        "elastic_clamped", "elastic_relaxed",
-        "elastic_stress_corr", "elastic_relaxed_fixed_D",
+        "elastic_relaxed",
+        "elastic_clamped",
+        "elastic_stress_corr",
+        "elastic_relaxed_fixed_D",
     )
 
     ALL_PIEZOELECTRIC_TENSOR_NAMES = (
-        "piezo_clamped", "piezo_relaxed",
-        "d_piezo_relaxed", "g_piezo_relaxed", "h_piezo_relaxed"
+        "piezo_relaxed",
+        "piezo_clamped",
+        "d_piezo_relaxed",
+        "g_piezo_relaxed",
+        "h_piezo_relaxed",
     )
 
     ALL_TENSOR_NAMES = ALL_ELASTIC_TENSOR_NAMES + ALL_PIEZOELECTRIC_TENSOR_NAMES
@@ -81,34 +86,35 @@ class ElasticData(Has_Structure):
         "piezoelectric": ALL_PIEZOELECTRIC_TENSOR_NAMES,
     }
 
+    # https://journals.aps.org/prb/abstract/10.1103/PhysRevB.72.035105
     TENSOR_META = {
         "elastic_clamped": AttrDict(
             info="clamped-ion elastic tensor in Voigt notation (shape: (6, 6))",
-            units="GPa"),
+            units="GPa", latex=r"${\xoverline(C)}$"),
         "elastic_relaxed": AttrDict(
             info="relaxed-ion elastic tensor in Voigt notation (shape: (6, 6))",
-            units="GPa"),
+            units="GPa", latex=r"${C}$"),
         "elastic_stress_corr": AttrDict(
             info="relaxed-ion elastic tensor considering the stress left inside cell in Voigt notation (shape: (6, 6))",
-            units="GPa"),
+            units="GPa", latex=r"${C^{\sigma}}$"),
         "elastic_relaxed_fixed_D": AttrDict(
             info="relaxed-ion elastic tensor at fixed displacement field in Voigt notation (shape: (6, 6))",
-            units="GPa"),
+            units="GPa", latex=r"$C^{(D)}$"),
         "piezo_clamped": AttrDict(
             info="clamped-ion piezoelectric tensor in Voigt notation (shape: (3, 6))",
-            units="c/m^2"),
+            units="c/m^2", latex=r"${\xoverline(e)}$"),
         "piezo_relaxed": AttrDict(
             info="relaxed-ion piezoelectric tensor in Voigt notation (shape: (3, 6))",
-            units="c/m^2"),
+            units="c/m^2", latex=r"${e}$"),
         "d_piezo_relaxed": AttrDict(
             info="relaxed-ion piezoelectric d tensor in Voigt notation (shape: (3, 6))",
-            units="pc/m^2"),
+            units="pc/m^2", latex=r"${d}$"),
         "g_piezo_relaxed": AttrDict(
             info="relaxed-ion piezoelectric g tensor in Voigt notation (shape: (3, 6))",
-            units="m^2/c"),
+            units="m^2/c", latex=r"${g}$"),
         "h_piezo_relaxed": AttrDict(
             info="relaxed-ion piezoelectric h tensor in Voigt notation (shape: (3, 6))",
-            units="GN/c"),
+            units="GN/c", latex=r"${h}$"),
     }
 
     def __init__(self, structure, params, elastic_clamped=None, elastic_relaxed=None, elastic_stress_corr=None,
@@ -355,6 +361,12 @@ class ElasticData(Has_Structure):
 
         return pd.DataFrame(rows, index=index, columns=columns)
 
+    def get_elastic_voigt_dataframe(self):
+        return self.get_voigt_dataframe(tensor_names=self.ALL_ELASTIC_TENSOR_NAMES)
+
+    #def get_piezo_voigt_dataframe(self, tensor_names=()):
+    #    return self.get_voigt_dataframe(tensor_names=self.ALL_PIEZOELECTRIC_TENSOR_NAMES)
+
     def get_voigt_dataframe(self, tensor_names):
         """
         Return a |pandas-DataFrame| with voigt indices as colums.
@@ -363,17 +375,19 @@ class ElasticData(Has_Structure):
         Args:
             tensor_names: List of tensor names.
         """
-        rows = []
+        rows, index = [], []
         for name, tensor in self.name_tensor_list(tensor_names=tensor_names):
             voigt_map = tensor.get_voigt_dict(tensor.rank)
             row = {}
             for ind in voigt_map:
                 row[voigt_map[ind]] = tensor[ind]
+            index.append(name)
             row = OrderedDict(sorted(row.items(), key=lambda item: item[0]))
             row["tensor_name"] = name
             rows.append(row)
 
-        return pd.DataFrame(rows, columns=list(rows[0].keys() if rows else None))
+        # Return transpose to have (i,j) as index and tensor names as columns
+        return pd.DataFrame(rows, index=index, columns=list(rows[0].keys() if rows else None)).T
 
     #def get_average_elastic_dataframe(self, tensor_names="elastic_relaxed", fit_to_structure=False, symprec=0.1):
     #    """
