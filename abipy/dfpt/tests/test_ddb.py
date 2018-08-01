@@ -382,7 +382,7 @@ class DdbTest(AbipyTest):
             edata_fit = e.fit_to_structure()
             edata_ieee = e.convert_to_ieee()
             df = e.get_voigt_dataframe("elastic_relaxed")
-            self.assert_almost_equal(df[(0, 0)][0], 120.41874336082199)
+            self.assert_almost_equal(df.T[(0, 0)][0], 120.41874336082199)
             df = e.get_elast_properties_dataframe(tensor_names="elastic_relaxed", fit_to_structure=True)
 
 

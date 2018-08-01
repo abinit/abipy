@@ -152,9 +152,14 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         app("")
         app("Number of q-points in DDB: %d" % len(self.qpoints))
         app("guessed_ngqpt: %s (guess for the q-mesh divisions made by AbiPy)" % self.guessed_ngqpt)
-        app("Has total energy: %s" % (self.total_energy is not None))
-        app("Has forces: %s" % (self.cart_forces is not None))
+        app("Has total energy: %s, Has forces: %s" % (self.total_energy is not None, self.cart_forces is not None))
+        if self.cart_forces is not None:
+            app("Cartesian forces (eV/Ang):\n%s" % (self.cart_forces))
+            app("")
         app("Has stress tensor: %s" % (self.cart_stress_tensor is not None))
+        if self.cart_stress_tensor is not None:
+            app("Stress tensor (eV/Ang^3):\n%s" % (self.cart_stress_tensor))
+            app("")
         app("Has (at least one) atomic pertubation: %s" % self.has_at_least_one_atomic_perturbation())
         app("Has (at least one) electric-field perturbation: %s" % self.has_emacro_terms(select="at_least_one"))
         app("Has (at least one) Born effective charge: %s" % self.has_bec_terms(select="at_least_one"))
@@ -305,7 +310,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             qpoints.append(nums[:3])
             weights.append(nums[3])
 
-        return np.reshape(qpoints, (-1,3))
+        return np.reshape(qpoints, (-1, 3))
 
     @lazy_property
     def computed_dynmat(self):
@@ -1842,6 +1847,74 @@ class DdbRobot(Robot):
     #
     #    return np.array(qpoints)
 
+    # Uncomment this method to use `abicomp ddb */out_DDB -p`
+    #def to_string(self, **kwargs):
+    #    self.find_duplicated_entries()
+
+    def find_duplicated_entries(self, std_tol=1e-5, verbose=1):
+        """
+        Check for duplicated entries in the list of ddb files
+
+        Args:
+            std_tol: Tolerance on standard deviation
+            verbose: Verbosity level.
+
+        Return: (retcode, results) where results maps qpt --> DataFrame with perts as index.
+        """
+        from pprint import pprint
+
+        # Build q --> group of dataframes.
+        from collections import defaultdict
+        q2dfgroup = defaultdict(list)
+        for ddb in self.abifiles:
+            for qpt, df in ddb.computed_dynmat.items():
+                q2dfgroup[qpt].append(df)
+
+        retcode, results = 0, {}
+        for qpt, dfgroup in q2dfgroup.items():
+            all_indset = [set(df.index) for df in dfgroup]
+            # Build union of all dynmat indices with this q
+            allps = set(all_indset[0]).union(*all_indset)
+            #allps = set(all_indset[0]).intersection(*all_indset)
+
+            index, d_list = [], []
+            for p in allps:
+                # Find dataframes with this p
+                found = [p in index for index in all_indset]
+                count = found.count(True)
+                if count == 1: continue
+                if verbose:
+                    print("Found %s duplicated entries for p: %s" % (count, str(p)))
+
+                # Compute stats for this p (complex numbers)
+                cvalues = []
+                for f, df in zip(found, dfgroup):
+                    if not f: continue
+                    c = df["cvalue"].loc[[p]]
+                    cvalues.append(c)
+
+                cvalues = np.array(cvalues)
+                norms = np.abs(cvalues)
+                d = dict(mean=cvalues.mean(), std=cvalues.std(),
+                         min_norm=norms.min(), max_norm=norms.max(), count=count)
+
+                # Print warning if large deviation
+                #if d["max_norm"]  - d["min_norm"] > 1e-5:
+                if d["std"] > std_tol:
+                    retcode += 1
+                    cprint("Found std > %s" % std_tol, "red")
+                    pprint(cvalues)
+                if verbose:
+                    pprint(d)
+                    print(2 * "")
+
+                d_list.append(d)
+                index.append(p)
+
+            results[qpt] = pd.DataFrame(d_list, index=index)
+
+        return retcode, results
+
     def get_dataframe_at_qpoint(self, qpoint=None, units="eV", asr=2, chneut=1, dipdip=1, with_geo=True,
             abspath=False, funcs=None):
         """
@@ -1934,17 +2007,45 @@ class DdbRobot(Robot):
 
         return dict2namedtuple(phbands_plotter=phbands_plotter, phdos_plotter=phdos_plotter)
 
-    #def anaget_elastic_robot(self, manager=None):
-    #    anaddbnc_paths = []
-    #    for ddb in self.abifiles:
-    #        p = ddb.anaget_elastic(has_gamma_ph=True, has_dde=False, asr=2, chneut=1,
-    #                               mpi_procs=1, workdir=None, manager=manager, verbose=0, retpath=True)
-    #        anaddbnc_paths.append(p)
+    def anacompare_elastic(self, ddb_header_keys=None, with_structure=True,
+            with_spglib=True, manager=None):
+        """
+        Compute elastic and piezoelectric properties for all DDBs in the robot.
 
-    #    from abipy.dfpt.anaddbnc import AnaddbNcRobot
-    #    return AnaddbNcRobot.from_files(anaddbnc_paths)
+        Args:
+            ddb_header_keys: List of keywors in the header of the DDB file.
+                whose value will be added to the Dataframe.
+            with_structure:
+            with_spglib
 
-    #def compare_computed_dynmat(self):
+        Return: DataFrame and list of ElastData objects.
+        """
+        elastdata_list = []
+        ddb_header_keys = [] if ddb_header_keys is None else list_strings(ddb_header_keys)
+        df_list = []
+
+        for label, ddb in self.items():
+            # Invoke anaddb to compute elastic data.
+            edata = ddb.anaget_elastic()
+            elastdata_list.append(edata)
+            df = edata.get_elast_properties_dataframe()
+
+            # Add metadata to the dataframe.
+            for k in list_strings(ddb_header_keys):
+                df[k] = ddb.header[k]
+
+            # Add structural parameters to the dataframe.
+            if with_structure:
+                for skey, svalue in ddb.structure.get_dict4pandas(with_spglib=with_spglib).items():
+                    df[skey] = svalue
+
+            # Add path to the DDB file.
+            df["ddb_path"] = ddb.filepath
+
+            df_list.append(df)
+
+        # Concatenate dataframes.
+        return pd.concat(df_list), elastdata_list
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
