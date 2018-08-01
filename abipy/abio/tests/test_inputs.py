@@ -673,6 +673,40 @@ class AnaddbInputTest(AbipyTest):
         assert anaddb_input["elaflag"] == 3 and anaddb_input["piezoflag"] == 3 and anaddb_input["chneut"] == 1
         self.abivalidate_input(anaddb_input)
 
+    def test_dfpt(self):
+        """Testing dfpt constructor."""
+        anaddb_input = AnaddbInput.dfpt(self.structure, has_stress=True, has_atomic_pert=True, piezo=True, dde=True,
+                                        strain=True, dte=False)
+        assert anaddb_input["elaflag"] == 5
+        assert anaddb_input["dieflag"] == 3
+        assert anaddb_input["piezoflag"] == 7
+        self.abivalidate_input(anaddb_input)
+
+        anaddb_input = AnaddbInput.dfpt(self.structure, has_stress=True, has_atomic_pert=False, piezo=True, dde=True,
+                                        strain=True, dte=False)
+        assert anaddb_input["elaflag"] == 1
+        assert anaddb_input["dieflag"] == 2
+        assert anaddb_input["piezoflag"] == 1
+        self.abivalidate_input(anaddb_input)
+
+        anaddb_input = AnaddbInput.dfpt(self.structure, has_stress=False, has_atomic_pert=True, piezo=True, dde=False,
+                                        strain=True, dte=False)
+        assert anaddb_input["elaflag"] == 3
+        assert anaddb_input["dieflag"] == 0
+        assert anaddb_input["piezoflag"] == 3
+        self.abivalidate_input(anaddb_input)
+
+        ndivsm = 1
+        nqsmall = 3
+        ngqpt = (4, 4, 4)
+        anaddb_input = AnaddbInput.dfpt(self.structure, ngqpt=ngqpt, ndivsm=ndivsm, nqsmall=nqsmall, asr=0, dos_method="tetra")
+        assert anaddb_input['ifcflag'] == 1
+        self.abivalidate_input(anaddb_input)
+
+        anaddb_input = AnaddbInput.dfpt(self.structure, dte=True)
+        assert anaddb_input['nlflag'] == 1
+        assert anaddb_input['alphon'] == 1
+
 
 class TestCut3DInput(AbipyTest):
     """Unit tests for AbinitInput."""

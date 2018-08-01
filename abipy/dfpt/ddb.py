@@ -584,14 +584,17 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return self.has_emacro_terms(select=select) and self.has_bec_terms(select=select)
 
     @lru_cache(typed=True)
-    def has_at_least_one_atomic_perturbation(self):
+    def has_at_least_one_atomic_perturbation(self, qpt=None):
         """
         True if the DDB file contains info on (at least one) atomic perturbation.
+        If the coordinates of a q point are provided only the specified qpt will be considered.
         """
         natom = len(self.structure)
         ap_list = list(itertools.product(range(1, 4), range(1, natom + 1)))
 
-        for qpt, df in self.computed_dynmat.items():
+        for qpt_dm, df in self.computed_dynmat.items():
+            if qpt is not None and qpt_dm != qpt: continue
+
             index_set = set(df.index)
             for p1 in ap_list:
                 for p2 in ap_list:
@@ -1296,14 +1299,19 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return DielectricTensorGenerator.from_files(os.path.join(task.workdir, "run.abo_PHBST.nc"),
                                                     os.path.join(task.workdir, "anaddb.nc"))
 
-    def anaget_elastic(self, has_gamma_ph=False, has_dde=False, asr=2, chneut=1,
+    def anaget_elastic(self, relaxed_ion="automatic", internal_strain="automatic", piezo="automatic", asr=2, chneut=1,
                        mpi_procs=1, workdir=None, manager=None, verbose=0, retpath=False):
         """
         Call anaddb to compute the elastic and piezoelectric properties.
 
         Args:
-            has_gamma_ph: True if phonons at gamma are present in the DDB.
-            has_dde= True if DDE perturbations are present in the DDB
+            relaxed_ion: Allowed values are [True, False, "automatic"]. Defaults to "automatic".
+                True if phonons at gamma are present in the DDB and relax-ion tensor should be calculated.
+            internal_strain: Allowed values are [True, False, "automatic"]. Defaults to "automatic".
+                True if the internal strain perturbations perturbations are present in the DDB.
+            piezo: Allowed values are [True, False, "automatic"]. Defaults to "automatic".
+                True if the piezoelectric perturbations perturbations are present in the DDB and the piezoelectric
+                tensor should be calculated.
             asr: Anaddb input variable. See official documentation.
             chneut: Anaddb input variable. See official documentation.
             manager: |TaskManager| object. If None, the object is initialized from the configuration file
@@ -1318,7 +1326,27 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         if not self.has_strain_terms():
             cprint("Strain perturbations are not available in DDB: %s" % self.filepath, "yellow")
 
-        inp = AnaddbInput.dfpt(self.structure, strain=True, has_gamma_ph=has_gamma_ph, dde=has_dde, dte=False, asr=asr,
+        if relaxed_ion == "automatic":
+            relaxed_ion = self.has_at_least_one_atomic_perturbation(qpt=(0, 0, 0))
+
+        if relaxed_ion and not self.has_at_least_one_atomic_perturbation(qpt=(0, 0, 0)):
+            cprint("atomic_pert is True but no atomic perturbations are available in DDB: %s" % self.filepath, "yellow")
+
+        if internal_strain == "automatic":
+            internal_strain = self.has_internalstrain_terms()
+
+        if internal_strain and not self.has_internalstrain_terms():
+            cprint("internal_strain is True but no internal strain perturbations are available in "
+                   "DDB: %s" % self.filepath, "yellow")
+
+        if piezo == "automatic":
+            piezo = self.has_piezoelectric_terms()
+
+        if piezo and not self.has_piezoelectric_terms():
+            cprint("piezo is True but no piezoelectric perturbations are available in DDB: %s" % self.filepath, "yellow")
+
+        inp = AnaddbInput.dfpt(self.structure, strain=True, has_atomic_pert=relaxed_ion, dde=self.has_emacro_terms(),
+                               piezo=piezo, has_stress=self.cart_stress_tensor is not None, dte=False, asr=asr,
                                chneut=chneut)
         task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, mpi_procs=mpi_procs, workdir=workdir, manager=manager)
 

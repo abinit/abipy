@@ -2731,9 +2731,42 @@ class AnaddbInput(AbiAbstractInput, Has_Structure):
         return new
 
     @classmethod
-    def dfpt(cls, structure, ngqpt=None, has_gamma_ph=False, dde=False, strain=False, dte=False, nqsmall=None,
-             qppa=None, ndivsm=20, line_density=None, q1shft=(0, 0, 0), qptbounds=None, asr=2, chneut=1, dipdip=1,
-             dos_method="tetra", anaddb_args=None, anaddb_kwargs=None):
+    def dfpt(cls, structure, ngqpt=None, has_stress=False, has_atomic_pert=False, piezo=False, dde=False,
+             strain=False, dte=False, nqsmall=None, qppa=None, ndivsm=20, line_density=None, q1shft=(0, 0, 0),
+             qptbounds=None, asr=2, chneut=1, dipdip=1, dos_method="tetra", anaddb_args=None, anaddb_kwargs=None):
+        """
+        Builds an input for a generic dfpt calculation.
+
+        Args:
+            structure: |Structure| object
+            ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
+            has_stress: True if the DDB has the stress values
+            has_atomic_pert: True if the DDB has atomic perturbations at Gamma (used to set the elastic and
+                piezoelectric keys)
+            piezo: if True the piezoelectric tensor are calculated (requires the piezoelectric perturbations)
+            dde: if True dielectric tensors will be calculated. If phonon band
+                structure is calculated will also enable the calculation of the lo_to splitting (requires the
+                DDE perturbations)
+            strain: if True the elastic tensors will be calculated (requires the strain perturbations)
+            dte: if True properties related to the non linear tensors will be calculated (requires the third orders
+                perturbations)
+            nqsmall: Used to generate the (dense) mesh for the DOS.
+                It defines the number of q-points used to sample the smallest lattice vector.
+            qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per reciproval atom.
+                Overrides nqsmall.
+            line_density: Defines the a density of k-points per reciprocal atom to plot the phonon dispersion.
+                Overrides ndivsm.
+            ndivsm: Used to generate a normalized path for the phonon bands.
+                If gives the number of divisions for the smallest segment of the path.
+            q1shft: Shifts used for the coarse Q-mesh
+            qptbounds Boundaries of the path. If None, the path is generated from an internal database
+                depending on the input structure.
+            asr, chneut, dipdp: Anaddb input variable. See official documentation.
+            dos_method: Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
+                In the later case, the value 0.001 eV is used as gaussian broadening
+            anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
+            anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
+        """
 
         # use the phonon BS and DOS input as starting point is required, otherwise
         if ngqpt:
@@ -2745,17 +2778,30 @@ class AnaddbInput(AbiAbstractInput, Has_Structure):
             anaddb_input = AnaddbInput(structure)
             anaddb_input.set_vars(asr=asr, chneut=chneut)
 
-        # define a link between the different calculations available (in order: dde, strain, phonons at gamma) and
-        # the flags to set (dieflag, elaflag, peizoflag). Only meaningful cases are considered
-        flags_mapping = {(False, False, True): (0, 0, 0),
-                         (False, True, False): (0, 1, 0),
-                         (True, False, False): (2, 0, 0),
-                         (False, True, True): (0, 5, 0),
-                         (True, False, True): (3, 0, 0),
-                         (True, True, False): (0, 1, 1),
-                         (True, True, True): (3, 5, 7)}
+        dieflag = 0
+        if dde:
+            if has_atomic_pert and strain:
+                dieflag = 3
+            else:
+                dieflag = 2
 
-        dieflag, elaflag, piezoflag = flags_mapping[(dde, strain, has_gamma_ph)]
+        elaflag = 0
+        if strain:
+            if not has_atomic_pert:
+                elaflag = 1
+            elif has_stress:
+                    elaflag = 5
+            else:
+                elaflag = 3
+
+        piezoflag = 0
+        if piezo:
+            if not has_atomic_pert:
+                piezoflag = 1
+            elif dde and strain:
+                piezoflag = 7
+            else:
+                piezoflag = 3
 
         anaddb_input.set_vars(dieflag=dieflag,
                               elaflag=elaflag,
