@@ -220,19 +220,18 @@ Otherwise, follow the usual abinit installation instructions, and make sure abin
 Configuration files for Abipy
 =============================
 
-Note that several unit tests check the integration between AbiPy and Abinit.
-In order to run the tests, you will need a ``manager.yml`` configuration file.
-For a more detailed description of the syntax used in this configuration file
+In order to run the Abipy tests, you will need a ``manager.yml`` configuration file.
+For a detailed description of the syntax used in this configuration file
 please consult the `TaskManager documentation <http://abinit.github.io/abipy/workflows/taskmanager.html>`_.
 
-Copy the ``scheduler.yml`` and ``manager.yml`` files from the ``managers`` directory
-of this repository to your `$HOME/.abinit/abipy` directory.
-Open ``manager.yml`` and make sure that the ``pre_run`` section contains the shell commands
-needed to setup the environment before launching Abinit (e.g. Abinit is in $PATH)
+At this stage, for the purpose of checking the installation, you might 
+take the ``shell_nompi_manager.yml`` file from the ``abipy/data/managers`` directory
+of this repository, and copy it with new name ``manager.yml`` to your `$HOME/.abinit/abipy` directory.
+Open this file and make sure that the ``pre_run`` section contains the shell commands
+needed to setup the environment before launching Abinit (e.g. Abinit is in $PATH), unless it is available from the environment (e.g. conda).
 
-For further information on the syntax of the configuration file, please consult the
-`workflows docs <http://abinit.github.io/abipy/workflows/taskmanager.html>`_ section.
-
+To complete the configuration files for Abipy, you might also copy the ``simple_scheduler.yml`` file from the same directory, 
+and copy it with name ``scheduler.yml``. Modifications are needed if you are developer.
 
 Checking the installation
 =========================
