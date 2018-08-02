@@ -65,7 +65,7 @@ Usage example:
   abistruct.py abisanitize FILE            => Read structure from FILE, call abisanitize, compare structures
                                               and save "abisanitized" structure to file.
   abistruct.py conventional FILE           => Read structure from FILE, generate conventional structure
-                                              following doi:10.1016/j.commatsci.2010.05.010
+                                              following Setyawan, W., & Curtarolo, S. (2010) doi:10.1016/j.commatsci.2010.05.010 
 ##################
 # Conversion tools
 ##################
@@ -252,7 +252,7 @@ Has to be all integers. Several options are possible:
     # Subparser for conventional.
     p_conventional = subparsers.add_parser('conventional', parents=[copts_parser, path_selector, spgopt_parser, savefile_parser],
         help="Gives a structure with a conventional cell according to certain standards. "
-             "The standards are defined in doi:10.1016/j.commatsci.2010.05.010")
+             "The standards are defined in Setyawan, W., & Curtarolo, S. (2010) doi:10.1016/j.commatsci.2010.05.010")
 
     # Subparser for neighbors.
     p_neighbors = subparsers.add_parser('neighbors', parents=[copts_parser, path_selector],
