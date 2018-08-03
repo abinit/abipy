@@ -167,18 +167,20 @@ class HistFile(AbinitNcFile, NotebookWriter):
         """
         return RelaxationAnalyzer(self.initial_structure, self.final_structure)
 
-    def to_xdatcar(self, filepath=None, groupby_type=True, **kwargs):
+    def to_xdatcar(self, filepath=None, groupby_type=True, to_unit_cell=False, **kwargs):
         """
         Return Xdatcar pymatgen object. See write_xdatcar for the meaning of arguments.
 
         Args:
+            to_unit_cell (bool): Whether to translate sites into the unit cell.
             kwargs: keywords arguments passed to Xdatcar constructor.
         """
-        filepath = self.write_xdatcar(filepath=filepath, groupby_type=groupby_type, overwrite=True)
+        filepath = self.write_xdatcar(filepath=filepath, groupby_type=groupby_type,
+                                      to_unit_cell=to_unit_cell, overwrite=True)
         from pymatgen.io.vasp.outputs import Xdatcar
         return Xdatcar(filepath, **kwargs)
 
-    def write_xdatcar(self, filepath="XDATCAR", groupby_type=True, overwrite=False):
+    def write_xdatcar(self, filepath="XDATCAR", groupby_type=True, overwrite=False, to_unit_cell=False):
         """
         Write Xdatcar file with unit cell and atomic positions to file ``filepath``.
 
@@ -189,6 +191,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
                 there are post-processing tools (e.g. ovito) that do not work as expected
                 if the atoms in the structure are not grouped by type.
             overwrite: raise RuntimeError, if False and filepath exists.
+            to_unit_cell (bool): Whether to translate sites into the unit cell.
 
         Return:
             path to Xdatcar file.
@@ -242,6 +245,9 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
             # Write atomic positions in reduced coordinates.
             xred_list = self.reader.read_value("xred")
+            if to_unit_cell:
+                xred_list = xred_list % 1
+
             for step in range(self.num_steps):
                 fh.write("Direct configuration= %d\n" % (step + 1))
                 frac_coords = xred_list[step, group_ids]
@@ -250,10 +256,13 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
         return filepath
 
-    def visualize(self, appname="ovito"):  # pragma: no cover
+    def visualize(self, appname="ovito", to_unit_cell=False):  # pragma: no cover
         """
         Visualize the crystalline structure with visualizer.
         See :class:`Visualizer` for the list of applications and formats supported.
+
+        Args:
+            to_unit_cell (bool): Whether to translate sites into the unit cell.
         """
         if appname == "mayavi": return self.mayaview()
 
@@ -263,7 +272,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         if visu.name != "ovito":
             raise NotImplementedError("visualizer: %s" % visu.name)
 
-        filepath = self.write_xdatcar(filepath=None, groupby_type=True)
+        filepath = self.write_xdatcar(filepath=None, groupby_type=True, to_unit_cell=to_unit_cell)
 
         return visu(filepath)()
         #if options.trajectories:
