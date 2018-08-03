@@ -10,17 +10,21 @@ Organization of documentation
 -----------------------------
 
 The documentation for AbiPy is generated from ReStructured Text using the Sphinx_ documentation generation tool. 
-The documentation sources are found in the :file:`~/docs/` directory in the repository.  
+The documentation sources are found in the :file:`~/docs/` directory in the repository. Major items : 
 
 * index.rst - the top level include document for AbiPy docs
 * api - placeholders to automatically generate the api documentation
+* scripts - documentation for scripts
+* workflows - documentation for workflows 
+* README.rst - the present file
 * conf.py - the sphinx configuration
 * _static - used by the sphinx build system
 * _templates - used by the sphinx build system
 
 The main entry point is :file:`docs/index.rst`, which pulls in 
 the files for the users guide, developers guide, api reference. 
-The actual ReStructured Text files for the API are kept in :file:`docs/api`. 
+The actual ReStructured Text files for the APIs of the subpackages, for the scripts and for the workflows (resp.) are kept 
+in :file:`docs/api`, :file:`docs/scripts` and :file:`docs/workflows` (resp.). 
 
 Additional files can be added to the various guides by including their base
 file name (the ``.rst`` extension is not necessary) in the table of contents.
