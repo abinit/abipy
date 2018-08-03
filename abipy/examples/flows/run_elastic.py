@@ -95,8 +95,7 @@ def build_flow(options):
     # Build input for GS calculation and register the first work.
     scf_input = make_scf_input()
 
-    elast_work = flowtk.ElasticWork.from_scf_input(scf_input,
-            with_internal_strain=True, with_piezoelectric=True)
+    elast_work = flowtk.ElasticWork.from_scf_input(scf_input, with_relaxed_ion=True, with_piezo=True)
 
     flow.register_work(elast_work)
 

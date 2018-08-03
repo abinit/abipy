@@ -360,18 +360,24 @@ class DdbTest(AbipyTest):
         with abilab.abiopen(abidata.ref_file("refs/alas_elastic_dfpt/AlAs_elastic_DDB")) as ddb:
             assert ddb.has_strain_terms(select="at_least_one")
             assert ddb.has_strain_terms(select="all")
-            #assert ddb.has_internalstrain_terms(select="all")
-            #assert ddb.has_piezoelectric_terms_terms(select="all")
-            #assert ddb.has_at_least_one_atomic_perturbation()
+            assert ddb.has_internalstrain_terms(select="all")
+            assert ddb.has_piezoelectric_terms(select="all")
+            assert ddb.has_at_least_one_atomic_perturbation()
+
             e = ddb.anaget_elastic(verbose=2)
+            assert e.params["elaflag"] == 3
+            assert e.params["piezoflag"] == 3
+            assert e.params["instrflag"] == 1
+            assert e.params["asr"] == 2 and e.params["chneut"] == 1
             self.assert_almost_equal(e.elastic_relaxed[0,0,0,0], 122.23496623977118)
             self.assert_almost_equal(e.piezo_relaxed[2,2,2], -0.041496005147475756)
+            assert e.elastic_clamped is not None
+            assert e.piezo_clamped is not None
 
             assert repr(e); assert str(e)
             assert e.to_string(verbose=2)
             assert e.structure.formula == "Al2 As2"
             assert e.elastic_relaxed._repr_html_()
-            #assert hasattr(e.elastic_relaxed.compliance_tensor, "_repr_html_")
 
             name_tensor_list = e.name_tensor_list(tensor_type="elastic")
             names = [nt[0] for nt in name_tensor_list]
@@ -381,9 +387,9 @@ class DdbTest(AbipyTest):
             assert "piezo_relaxed" in names
             edata_fit = e.fit_to_structure()
             edata_ieee = e.convert_to_ieee()
-            df = e.get_voigt_dataframe("elastic_relaxed")
-            self.assert_almost_equal(df.T[(0, 0)][0], 122.23496623977118)
-            df = e.get_elast_properties_dataframe(tensor_names="elastic_relaxed", fit_to_structure=True)
+            df = e.get_voigt_dataframe("elastic_relaxed", voigt_as_index=False, tol=1e-1)
+            self.assert_almost_equal(df[(0, 0)][0], 122.23496623977118)
+            df = e.get_elastic_properties_dataframe(tensor_names="elastic_relaxed", fit_to_structure=True)
 
 
 class DielectricTensorGeneratorTest(AbipyTest):

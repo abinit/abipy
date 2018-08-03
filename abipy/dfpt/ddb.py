@@ -153,6 +153,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         app("Number of q-points in DDB: %d" % len(self.qpoints))
         app("guessed_ngqpt: %s (guess for the q-mesh divisions made by AbiPy)" % self.guessed_ngqpt)
         app("Has total energy: %s, Has forces: %s" % (self.total_energy is not None, self.cart_forces is not None))
+        if self.total_energy is not None:
+            app("Total energy: %s [eV]" % self.total_energy)
         if self.cart_forces is not None:
             app("Cartesian forces (eV/Ang):\n%s" % (self.cart_forces))
             app("")
@@ -184,7 +186,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     @property
     def natom(self):
-        """Number of atoms in structure"""
+        """Number of atoms in structure."""
         return len(self.structure)
 
     @property
@@ -352,7 +354,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                     toks[5] = toks[5].replace("D", "E")
                     cvalue = float(toks[4]) + 1j*float(toks[5])
                 except Exception as exc:
-                    print("exception while parsing line:", line)
+                    cprint("exception while parsing line: %s" % line, "red")
                     raise exc
 
                 df_index.append(p1 + p2)
@@ -419,7 +421,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             block_lines.append(line)
             if "qpt" in line:
                 qpt = list(map(float, line.split()[1:4]))
-
 
         if block_lines:
             blocks.append({"data": block_lines, "qpt": qpt, "dord": dord})
@@ -1299,55 +1300,74 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return DielectricTensorGenerator.from_files(os.path.join(task.workdir, "run.abo_PHBST.nc"),
                                                     os.path.join(task.workdir, "anaddb.nc"))
 
-    def anaget_elastic(self, relaxed_ion="automatic", internal_strain="automatic", piezo="automatic", asr=2, chneut=1,
-                       mpi_procs=1, workdir=None, manager=None, verbose=0, retpath=False):
+    def anaget_elastic(self, relaxed_ion="automatic", piezo="automatic", dde=False, stress_correction=False,
+			asr=2, chneut=1, mpi_procs=1, workdir=None, manager=None, verbose=0, retpath=False):
         """
-        Call anaddb to compute the elastic and piezoelectric properties.
+        Call anaddb to compute elastic and piezoelectric properties. Require DDB with strain terms.
+
+	By default, this method defines the value of the anaddb input variable in an `automatic` fashion
+	by looking at the 2nd-order derivatives available in the DDB file.
+	This behaviour can be changed by setting explicitly the value of: `relaxed_ion` and `piezo`.
 
         Args:
-            relaxed_ion: Allowed values are [True, False, "automatic"]. Defaults to "automatic".
-                True if phonons at gamma are present in the DDB and relax-ion tensor should be calculated.
-            internal_strain: Allowed values are [True, False, "automatic"]. Defaults to "automatic".
-                True if the internal strain perturbations perturbations are present in the DDB.
-            piezo: Allowed values are [True, False, "automatic"]. Defaults to "automatic".
-                True if the piezoelectric perturbations perturbations are present in the DDB and the piezoelectric
-                tensor should be calculated.
+            relaxed_ion: Activate computation of relaxed-ion tensors.
+		Allowed values are [True, False, "automatic"]. Defaults to "automatic".
+                In "automatic" mode, relaxed-ion tensors are automatically computed if the
+                DDB contains phonons at Gamma and internal strain terms.
+            piezo: Activate computation of piezoelectric tensors.
+		Allowed values are [True, False, "automatic"]. Defaults to "automatic".
+                In "automatic" mode, piezoelectric tensors are automatically computed if
+                piezoelectric terms are present in the DDB.
+                NB: relaxed-ion piezoelectric requires the activation of `relaxed_ion`.
+            dde: if True, dielectric tensors will be calculated.
+	    stress_correction: Calculate the relaxed ion elastic tensors, considering
+                the stress left inside cell. The DDB must contain the stress tensor.
             asr: Anaddb input variable. See official documentation.
             chneut: Anaddb input variable. See official documentation.
-            manager: |TaskManager| object. If None, the object is initialized from the configuration file
             mpi_procs: Number of MPI processes to use.
             workdir: Working directory. If None, a temporary directory is created.
+            manager: |TaskManager| object. If None, the object is initialized from the configuration file
             verbose: verbosity level. Set it to a value > 0 to get more information
             retpath: True to return path to anaddb.nc file.
 
         Return:
-            ElasticData object if retpath is None else path to anaddb.nc file.
+            |ElasticData| object if `retpath` is None else absolute path to anaddb.nc file.
         """
-        if not self.has_strain_terms():
+        if not self.has_strain_terms(): # DOH!
             cprint("Strain perturbations are not available in DDB: %s" % self.filepath, "yellow")
 
         if relaxed_ion == "automatic":
-            relaxed_ion = self.has_at_least_one_atomic_perturbation(qpt=(0, 0, 0))
+            relaxed_ion = self.has_internalstrain_terms() and self.has_at_least_one_atomic_perturbation(qpt=(0, 0, 0))
 
-        if relaxed_ion and not self.has_at_least_one_atomic_perturbation(qpt=(0, 0, 0)):
-            cprint("atomic_pert is True but no atomic perturbations are available in DDB: %s" % self.filepath, "yellow")
-
-        if internal_strain == "automatic":
-            internal_strain = self.has_internalstrain_terms()
-
-        if internal_strain and not self.has_internalstrain_terms():
-            cprint("internal_strain is True but no internal strain perturbations are available in "
-                   "DDB: %s" % self.filepath, "yellow")
+        if relaxed_ion:
+            if not self.has_at_least_one_atomic_perturbation(qpt=(0, 0, 0)):
+                cprint("Requiring `relaxed_ion` but no atomic term available in DDB: %s" % self.filepath, "yellow")
+            if not self.has_internalstrain_terms():
+                cprint("Requiring `internal_strain` but no internal strain term in DDB: %s" % self.filepath, "yellow")
 
         if piezo == "automatic":
             piezo = self.has_piezoelectric_terms()
 
         if piezo and not self.has_piezoelectric_terms():
-            cprint("piezo is True but no piezoelectric perturbations are available in DDB: %s" % self.filepath, "yellow")
+            cprint("Requiring `piezo` but no piezoelectric term available in DDB: %s" % self.filepath, "yellow")
 
-        inp = AnaddbInput.dfpt(self.structure, strain=True, has_atomic_pert=relaxed_ion, dde=self.has_emacro_terms(),
-                               piezo=piezo, has_stress=self.cart_stress_tensor is not None, dte=False, asr=asr,
-                               chneut=chneut)
+	# FIXME This is problematic so don't use automatic as default
+        if dde == "automatic":
+            dde = self.has_emacro_terms()
+
+        if dde and not self.has_emacro_terms():
+            cprint("Requiring `dde` but dielectric tensor not available in DDB: %s" % self.filepath, "yellow")
+
+        if stress_correction == "automatic":
+            stress_correction = self.cart_stress_tensor is not None
+
+        if stress_correction and self.cart_stress_tensor is None:
+            cprint("Requiring `stress_correction` but stress not available in DDB: %s" % self.filepath, "yellow")
+
+        inp = AnaddbInput.dfpt(self.structure, strain=True, has_atomic_pert=relaxed_ion,
+		               dde=dde, piezo=piezo, has_stress=stress_correction, dte=False,
+                               asr=asr, chneut=chneut)
+
         task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, mpi_procs=mpi_procs, workdir=workdir, manager=manager)
 
         if verbose:
@@ -1943,8 +1963,8 @@ class DdbRobot(Robot):
 
         return retcode, results
 
-    def get_dataframe_at_qpoint(self, qpoint=None, units="eV", asr=2, chneut=1, dipdip=1, with_geo=True,
-            abspath=False, funcs=None):
+    def get_dataframe_at_qpoint(self, qpoint=None, units="eV", asr=2, chneut=1, dipdip=1,
+	    with_geo=True, with_spglib=True, abspath=False, funcs=None):
         """
 	Call anaddb to compute the phonon frequencies at a single q-point using the DDB files treated
 	by the robot and the given anaddb input arguments. LO-TO splitting is not included.
@@ -1956,6 +1976,7 @@ class DdbRobot(Robot):
                 ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             asr, chneut, dipdip: Anaddb input variable. See official documentation.
             with_geo: True if structure info should be added to the dataframe
+	    with_spglib: True to compute sgplib space group and add it to the DataFrame.
             abspath: True if paths in index should be absolute. Default: Relative to getcwd().
             funcs: Function or list of functions to execute to add more data to the DataFrame.
                 Each function receives a |DdbFile| object and returns a tuple (key, value)
@@ -1993,7 +2014,7 @@ class DdbRobot(Robot):
 
             # Add info on structure.
             if with_geo:
-                d.update(phbands.structure.get_dict4pandas(with_spglib=True))
+                d.update(phbands.structure.get_dict4pandas(with_spglib=with_spglib))
 
             # Execute functions.
             if funcs is not None: d.update(self._exec_funcs(funcs, ddb))
@@ -2036,27 +2057,29 @@ class DdbRobot(Robot):
         return dict2namedtuple(phbands_plotter=phbands_plotter, phdos_plotter=phdos_plotter)
 
     def anacompare_elastic(self, ddb_header_keys=None, with_structure=True,
-            with_spglib=True, manager=None):
+	    with_spglib=True, manager=None, **kwargs):
         """
-        Compute elastic and piezoelectric properties for all DDBs in the robot.
+        Compute elastic and piezoelectric properties for all DDBs in the robot and build DataFrame.
 
         Args:
-            ddb_header_keys: List of keywors in the header of the DDB file.
+            ddb_header_keys: List of keywords in the header of the DDB file
                 whose value will be added to the Dataframe.
-            with_structure:
-            with_spglib
+            with_structure: True to add structure parameters to the DataFrame.
+	    with_spglib: True to compute sgplib space group and add it to the DataFrame.
+            manager: |TaskManager| object. If None, the object is initialized from the configuration file
+	    kwargs: Keyword arguments passed to `ddb.anaget_elastic`.
 
         Return: DataFrame and list of ElastData objects.
         """
-        elastdata_list = []
         ddb_header_keys = [] if ddb_header_keys is None else list_strings(ddb_header_keys)
-        df_list = []
-
+        df_list, elastdata_list = [], []
         for label, ddb in self.items():
             # Invoke anaddb to compute elastic data.
-            edata = ddb.anaget_elastic()
+            edata = ddb.anaget_elastic(**kwargs)
             elastdata_list.append(edata)
-            df = edata.get_elast_properties_dataframe()
+
+	    # Build daframe with properties derived from the elastic tensor.
+            df = edata.get_elastic_properties_dataframe()
 
             # Add metadata to the dataframe.
             for k in list_strings(ddb_header_keys):

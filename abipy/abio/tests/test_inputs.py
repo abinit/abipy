@@ -629,18 +629,6 @@ class AnaddbInputTest(AbipyTest):
              [ 0.0924795 , 0.0924795 , 0.0924795, 0.]])
         self.abivalidate_input(inp_loto)
 
-    def test_thermo(self):
-        """Testing the thermodynamics constructor"""
-        anaddb_input = AnaddbInput.thermo(self.structure, ngqpt=(40, 40, 40), nqsmall=20)
-        assert str(anaddb_input)
-        for var in ('thmtol', 'ntemper', 'temperinc', 'thmtol'):
-            assert anaddb_input[var] >= 0
-        for flag in ('ifcflag', 'thmflag'):
-            assert anaddb_input[flag] == 1
-
-        self.serialize_with_pickle(anaddb_input, test_eq=False)
-        anaddb_input.deepcopy()
-
     def test_modes(self):
         """Testing modes constructor"""
         anaddb_input = AnaddbInput.modes(self.structure)
@@ -666,7 +654,7 @@ class AnaddbInputTest(AbipyTest):
     def test_piezo_elastic(self):
         """Testing piezo_elastic constructor."""
         anaddb_input = AnaddbInput.piezo_elastic(self.structure, stress_correction=True)
-        assert anaddb_input["elaflag"] == 5 and anaddb_input["piezoflag"] == 3 and anaddb_input["asr"] == 0
+        assert anaddb_input["elaflag"] == 5 and anaddb_input["piezoflag"] == 3 and anaddb_input["asr"] == 2
         self.abivalidate_input(anaddb_input)
 
         anaddb_input = AnaddbInput.piezo_elastic(self.structure, stress_correction=False)
