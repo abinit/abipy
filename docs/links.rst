@@ -108,6 +108,7 @@
 .. |DielectricTensorGenerator| replace:: :class:`abipy.dfpt.ddb.DielectricTensorGenerator`
 .. |DdbRobot| replace:: :class:`abipy.dfpt.ddb.DdbRobot`
 .. |AnaddbNcFile| replace:: :class:`abipy.dfpt.anaddb.AnaddbNcFile`
+.. |pmg-Tensor| replace:: :class:`pymatgen.analysis.elasticity.tensors.Tensor` 
 .. |ElasticData| replace:: :class:`abipy.dfpt.elastic.ElasticData`
 .. |PhbstFile| replace:: :class:`abipy.dfpt.phonons.PhbstFile`
 .. |PhdosFile| replace:: :class:`abipy.dfpt.phonons.PhdosFile`

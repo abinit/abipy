@@ -2327,7 +2327,7 @@ class AnaddbInput(AbiAbstractInput, Has_Structure):
         """
         self.set_spell_check(spell_check)
         self._structure = structure
-        self.comment = comment
+        self.comment = "" if comment is None else str(comment)
 
         anaddb_args = [] if anaddb_args is None else anaddb_args
         for key, value in anaddb_args:
@@ -2382,7 +2382,7 @@ class AnaddbInput(AbiAbstractInput, Has_Structure):
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
             spell_check: False to disable spell checking for input variables.
         """
-        new = cls(structure, comment="ANADB input for phonon frequencies at one q-point",
+        new = cls(structure, comment="ANADDB input for phonon frequencies at one q-point",
                   anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
 
         # We need a numpy array.
@@ -2424,27 +2424,31 @@ class AnaddbInput(AbiAbstractInput, Has_Structure):
         Args:
             asr, chneut, dipdp: Anaddb input variable. See official documentation.
         """
-        new = cls(structure, comment="ANADB input for piezoelectric and elastic tensor calculation",
-                  anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
+        comment = "ANADDB input for piezoelectric and elastic tensor calculation"
 
-        elaflag = 3 if not stress_correction else 5
-
-        new.set_vars(
-            elaflag=elaflag,
-            piezoflag=3,
-            instrflag=1 if elaflag > 1 else 0,
-            chneut=chneut,
-            asr=asr,
-            dipdip=dipdip,
-            symdynmat=1
-        )
-
+        new = cls.dfpt(structure, relaxed_ion=relaxed_ion, piezo=True, dde=False, strain=True, dte=False,
+                       stress_correction=stress_correction, asr=asr, chneut=chneut, dipdip=dipdip,
+                       anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs, comment=comment)
         return new
+
+        #new = cls(structure, anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs, comment=comment)
+        #elaflag = 3 if not stress_correction else 5
+        #new.set_vars(
+        #    elaflag=elaflag,
+        #    piezoflag=3,
+        #    instrflag=1 if elaflag > 1 else 0,
+        #    chneut=chneut,
+        #    asr=asr,
+        #    dipdip=dipdip,
+        #    symdynmat=1
+        #)
+
+        #return new
 
     @classmethod
     def phbands_and_dos(cls, structure, ngqpt, nqsmall, qppa=None, ndivsm=20, line_density=None, q1shft=(0, 0, 0),
                         qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method="tetra", lo_to_splitting=False,
-                        anaddb_args=None, anaddb_kwargs=None, spell_check=False):
+                        anaddb_args=None, anaddb_kwargs=None, spell_check=False, comment=None):
         """
         Build an |AnaddbInput| for the computation of phonon bands and phonon DOS.
 
@@ -2469,6 +2473,7 @@ class AnaddbInput(AbiAbstractInput, Has_Structure):
             anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
             spell_check: False to disable spell checking for input variables.
+            comment: Optional string with a comment that will be placed at the beginning of the file.
         """
         dosdeltae, dossmear = None, None
 
@@ -2483,7 +2488,7 @@ class AnaddbInput(AbiAbstractInput, Has_Structure):
         else:
             raise NotImplementedError("Wrong value for dos_method: %s" % str(dos_method))
 
-        new = cls(structure, comment="ANADB input for phonon bands and DOS",
+        new = cls(structure, comment="ANADDB input for phonon bands and DOS" if not comment else comment,
                   anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs, spell_check=spell_check)
 
         # Parameters for the DOS
@@ -2565,7 +2570,7 @@ class AnaddbInput(AbiAbstractInput, Has_Structure):
             anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
         """
-        new = cls(structure, comment="ANADB input for modes", anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
+        new = cls(structure, comment="ANADDB input for modes", anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
 
         new.set_vars(
             enunit=enunit,
@@ -2598,7 +2603,7 @@ class AnaddbInput(AbiAbstractInput, Has_Structure):
             anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
         """
-        new = cls(structure, comment="ANADB input for IFC",
+        new = cls(structure, comment="ANADDB input for IFC",
                   anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
 
         q1shft = np.reshape(q1shft, (-1, 3))
@@ -2625,18 +2630,19 @@ class AnaddbInput(AbiAbstractInput, Has_Structure):
         return new
 
     @classmethod
-    def dfpt(cls, structure, ngqpt=None, has_stress=False, has_atomic_pert=False, piezo=False, dde=False,
-             strain=False, dte=False, nqsmall=None, qppa=None, ndivsm=20, line_density=None, q1shft=(0, 0, 0),
-             qptbounds=None, asr=2, chneut=1, dipdip=1, dos_method="tetra", anaddb_args=None, anaddb_kwargs=None):
+    def dfpt(cls, structure, ngqpt=None, relaxed_ion=False, piezo=False, dde=False, strain=False, dte=False,
+	     stress_correction=False, nqsmall=None, qppa=None, ndivsm=20, line_density=None, q1shft=(0, 0, 0),
+             qptbounds=None, asr=2, chneut=1, dipdip=1, dos_method="tetra", anaddb_args=None, anaddb_kwargs=None, comment=None):
         """
         Builds an |AnaddbInput| to post-process a generic DFPT calculation.
 
         Args:
             structure: |Structure| object.
             ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
-            has_stress: True if the DDB has the stress tensor.
-            has_atomic_pert: True if the DDB has atomic perturbations at Gamma
-                (used to set the elastic and piezoelectric keys)
+            stress_correction: True to activate computation of  stress correction in elastic tensor.
+		Requires DDB with stress entries.
+            relaxed_ion: True to activate computation of relaxed-ion elastic and piezoelectric tensors.
+		(assume the DDB has atomic perturbations at Gamma)
             piezo: if True the piezoelectric tensor are calculated (requires piezoelectric perturbations)
             dde: if True dielectric tensors will be calculated. If phonon band
                 structure is calculated will also enable the calculation of the lo_to splitting
@@ -2660,33 +2666,34 @@ class AnaddbInput(AbiAbstractInput, Has_Structure):
                 In the later case, the value 0.001 eV is used as gaussian broadening
             anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
+            comment: Optional string with a comment that will be placed at the beginning of the file.
         """
         # use the phonon BS and DOS input as starting point is required, otherwise
         if ngqpt:
             anaddb_input = cls.phbands_and_dos(structure=structure, ngqpt=ngqpt, ndivsm=ndivsm, nqsmall=nqsmall,
                                                qppa=qppa, line_density=line_density, asr=asr, chneut=chneut,
                                                dipdip=dipdip, qptbounds=qptbounds, dos_method=dos_method,
-                                               lo_to_splitting=dde, q1shft=q1shft)
+                                               lo_to_splitting=dde, q1shft=q1shft, comment=comment)
         else:
-            anaddb_input = AnaddbInput(structure)
+            anaddb_input = AnaddbInput(structure, comment=comment)
             anaddb_input.set_vars(asr=asr, chneut=chneut)
 
         dieflag = 0
         if dde:
-            dieflag = 3 if (has_atomic_pert and strain) else 2
+            dieflag = 3 if (relaxed_ion and strain) else 2
 
         elaflag = 0
         if strain:
-            if not has_atomic_pert:
+            if not relaxed_ion:
                 elaflag = 1
-            elif has_stress:
+            elif stress_correction:
                 elaflag = 5
             else:
                 elaflag = 3
 
         piezoflag = 0
         if piezo:
-            if not has_atomic_pert:
+            if not relaxed_ion:
                 piezoflag = 1
             elif dde and strain:
                 piezoflag = 7

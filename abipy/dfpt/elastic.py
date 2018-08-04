@@ -57,7 +57,7 @@ class MyPiezoTensor(PiezoTensor):
 class ElasticData(Has_Structure):
     """
     Container with the different elastic and piezoelectric tensors
-    computed by anaddb. Data is tored in pymatgen tensor objects.
+    computed by anaddb. Data is stored in pymatgen tensor objects.
 
     Provides methods to analyze/tabule data
     http://progs.coudert.name/elate/mp?query=mp-2172
@@ -247,7 +247,6 @@ class ElasticData(Has_Structure):
                 for name, tensor in name_tensor_list:
                     meta = self.TENSOR_META[name]
                     is_fit = tensor.is_fit_to_structure(self.structure, tol=1e-2)
-                    # TODO
                     tol = dict(elastic=1e-3, piezoelectric=1e-5)[tensor_type]
                     app("[%s]" % name.upper())
                     app("%s" % meta.info)
@@ -413,8 +412,7 @@ class ElasticData(Has_Structure):
         else:
             return df
 
-    def get_elastic_properties_dataframe(self, tensor_names=("elastic_relaxed", "elastic_clamped"),
-            properties_as_index=False,
+    def get_elastic_properties_dataframe(self, tensor_names="all", properties_as_index=False,
             include_base_props=True, ignore_errors=False, fit_to_structure=False, symprec=0.1):
         """
         Return a |pandas-DataFrame| with properties derived from the elastic tensor
@@ -431,7 +429,7 @@ class ElasticData(Has_Structure):
             symprec (float): symmetry tolerance for the Spacegroup Analyzer
                 used to generate the symmetry operations if `fit_to_structure`
         """
-        #tensors_names = self.ALL_ELASTIC_TENSOR_NAMES if tensor_names == "all" else tensor_names
+        tensor_names = self.ALL_ELASTIC_TENSOR_NAMES if tensor_names == "all" else list_strings(tensor_names)
         do_fits = [False] if not fit_to_structure else [True, False]
         rows = []
         for name, tensor in self.name_tensor_list(tensor_names=tensor_names):

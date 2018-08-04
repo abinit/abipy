@@ -15,4 +15,9 @@ class ElaticDataFileTest(AbipyTest):
         """Base tests for ElasticData"""
         anaddbnc_fname = abidata.ref_file("AlAs_nl_dte_anaddb.nc")
 
-        elastic = ElasticData.from_file(anaddbnc_fname)
+        # Construct ElasticData by calling anaddb.
+        e = ElasticData.from_file(anaddbnc_fname)
+        #assert e.params["elaflag"] == 3
+        #assert e.params["piezoflag"] == 3
+        #assert e.params["instrflag"] == 1
+        #assert e.params["asr"] == 2 and e.params["chneut"] == 1

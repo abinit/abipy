@@ -42,6 +42,7 @@ try:
 except ImportError:  # py2k
     from abipy.tools.functools_lru_cache import lru_cache
 
+
 class DdbError(Exception):
     """Error class raised by DDB."""
 
@@ -610,9 +611,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         True if the DDB file contains info on the electric-field perturbation.
 
         Args:
-            select: Possible values in ["at_least_one", "all"]
+            select: Possible values in ["at_least_one", "at_least_one_diagoterm", "all"]
                 If select == "at_least_one", we check if there's at least one entry associated to the electric field.
                 and we assume that anaddb will be able to reconstruct the full tensor by symmetry.
+		"at_least_one_diagoterm" is similar but it only checks for the presence of one diagonal term.
                 If select == "all", all tensor components must be present in the DDB file.
         """
         gamma = Kpoint.gamma(self.structure.reciprocal_lattice)
@@ -629,13 +631,16 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 p21 = p2 + p1
                 if select == "at_least_one":
                     if p12 in index_set: return True
+                elif select == "at_least_one_diagoterm":
+                    if p12 == p21 and p12 in index_set:
+                        return True
                 elif select == "all":
                     if p12 not in index_set and p21 not in index_set:
                         return False
                 else:
                     raise ValueError("Wrong select %s" % str(select))
 
-        return False if select == "at_least_one" else True
+        return False if select in ("at_least_one", "at_least_one_diagoterm") else True
 
     @lru_cache(typed=True)
     def has_bec_terms(self, select="at_least_one"):
@@ -935,7 +940,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, lo_to_splitting=lo_to_splitting,
             anaddb_kwargs=anaddb_kwargs, spell_check=spell_check)
 
-        #work as usual
         task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager, mpi_procs=mpi_procs)
 
         if verbose:
@@ -968,15 +972,15 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         Args:
             ngqpt: list of ngqpt indexes that must be a sub-mesh of the original ngqpt
         """
-        #check if ngqpt is a sub-mesh of ngqpt
+        # Check if ngqpt is a sub-mesh of ngqpt
         ngqpt_fine = self.guessed_ngqpt
-        if any([a%b for a,b in zip(ngqpt_fine,ngqpt_coarse)]):
+        if any([a % b for a, b in zip(ngqpt_fine, ngqpt_coarse)]):
             raise ValueError('Coarse q-mesh is not a sub-mesh of the current q-mesh')
 
-        #get the points in the fine mesh
+        # Get the points in the fine mesh
         fine_qpoints = [q.frac_coords for q in self.qpoints]
 
-        #generate the points of the coarse mesh
+        # Generate the points of the coarse mesh
         map_fine_to_coarse = []
         nx,ny,nz = ngqpt_coarse
         for i,j,k in itertools.product(range(-int(nx/2), int(nx/2) + 1),
@@ -984,12 +988,12 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                                        range(-int(nz/2), int(nz/2) + 1)):
             coarse_qpt = np.array([i, j, k]) / np.array(ngqpt_coarse)
             for n,fine_qpt in enumerate(fine_qpoints):
-                if np.allclose(coarse_qpt,fine_qpt):
+                if np.allclose(coarse_qpt, fine_qpt):
                     map_fine_to_coarse.append(n)
 
-        #write the file with a subset of q-points
-        self.write(filepath,map_fine_to_coarse)
-        return DdbFile(filepath)
+        # Write the file with a subset of q-points
+        self.write(filepath, map_fine_to_coarse)
+        return self.__class__(filepath)
 
     def anacompare_asr(self, asr_list=(0, 2), chneut_list=(1,), dipdip=1, lo_to_splitting="automatic",
                        nqsmall=10, ndivsm=20, dos_method="tetra", ngqpt=None,
@@ -1303,17 +1307,17 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     def anaget_elastic(self, relaxed_ion="automatic", piezo="automatic", dde=False, stress_correction=False,
 			asr=2, chneut=1, mpi_procs=1, workdir=None, manager=None, verbose=0, retpath=False):
         """
-        Call anaddb to compute elastic and piezoelectric properties. Require DDB with strain terms.
+        Call anaddb to compute elastic and piezoelectric tensors. Require DDB with strain terms.
 
-	By default, this method defines the value of the anaddb input variable in an `automatic` fashion
+	By default, this method sets the anaddb input variables automatically
 	by looking at the 2nd-order derivatives available in the DDB file.
 	This behaviour can be changed by setting explicitly the value of: `relaxed_ion` and `piezo`.
 
         Args:
             relaxed_ion: Activate computation of relaxed-ion tensors.
 		Allowed values are [True, False, "automatic"]. Defaults to "automatic".
-                In "automatic" mode, relaxed-ion tensors are automatically computed if the
-                DDB contains phonons at Gamma and internal strain terms.
+                In "automatic" mode, relaxed-ion tensors are automatically computed if
+                internal strain terms and phonons at Gamma are present in the DDB.
             piezo: Activate computation of piezoelectric tensors.
 		Allowed values are [True, False, "automatic"]. Defaults to "automatic".
                 In "automatic" mode, piezoelectric tensors are automatically computed if
@@ -1352,10 +1356,11 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             cprint("Requiring `piezo` but no piezoelectric term available in DDB: %s" % self.filepath, "yellow")
 
 	# FIXME This is problematic so don't use automatic as default
+        select = "all"
         if dde == "automatic":
-            dde = self.has_emacro_terms()
+            dde = self.has_emacro_terms(select=select)
 
-        if dde and not self.has_emacro_terms():
+        if dde and not self.has_emacro_terms(select=select):
             cprint("Requiring `dde` but dielectric tensor not available in DDB: %s" % self.filepath, "yellow")
 
         if stress_correction == "automatic":
@@ -1364,8 +1369,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         if stress_correction and self.cart_stress_tensor is None:
             cprint("Requiring `stress_correction` but stress not available in DDB: %s" % self.filepath, "yellow")
 
-        inp = AnaddbInput.dfpt(self.structure, strain=True, has_atomic_pert=relaxed_ion,
-		               dde=dde, piezo=piezo, has_stress=stress_correction, dte=False,
+        inp = AnaddbInput.dfpt(self.structure, strain=True, relaxed_ion=relaxed_ion,
+		               dde=dde, piezo=piezo, stress_correction=stress_correction, dte=False,
                                asr=asr, chneut=chneut)
 
         task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, mpi_procs=mpi_procs, workdir=workdir, manager=manager)
@@ -1585,95 +1590,6 @@ class Becs(Has_Structure):
         stream.write(str(self.sumrule))
 
 
-class ElasticComplianceTensor(Has_Structure):
-    """This object is used to store the elastic and compliance tensors."""
-
-    def __init__(self, elastic_tensor, compliance_tensor, structure, additional_info=None):
-        """
-
-        Args:
-            elastic_tensor: (6, 6) array with the elastic tensor in Cartesian coordinates
-            compliance_tensor: (6, 6) array with the compliance tensor in Cartesian coordinates
-            structure: |Structure| object.
-        """
-        self._structure = structure
-        self.elastic_tensor = elastic_tensor
-        self.compliance_tensor = compliance_tensor
-        self.additional_info = additional_info
-
-    @property
-    def structure(self):
-        """|Structure| object."""
-        return self._structure
-
-    def __repr__(self):
-        return self.to_string()
-
-    @classmethod
-    def from_ec_nc_file(cls, ec_nc_file, tensor_type='relaxed_ion'):
-        with NetcdfReader(ec_nc_file) as nc_reader:
-            if tensor_type == 'relaxed_ion':
-                ec = np.array(nc_reader.read_variable('elastic_constants_relaxed_ion'))
-                compl = np.array(nc_reader.read_variable('compliance_constants_relaxed_ion'))
-            elif tensor_type == 'clamped_ion':
-                ec = np.array(nc_reader.read_variable('elastic_constants_clamped_ion'))
-                compl = np.array(nc_reader.read_variable('compliance_constants_clamped_ion'))
-            elif tensor_type == 'relaxed_ion_stress_corrected':
-                ec = np.array(nc_reader.read_variable('elastic_constants_relaxed_ion_stress_corrected'))
-                compl = np.array(nc_reader.read_variable('compliance_constants_relaxed_ion_stress_corrected'))
-            else:
-                raise ValueError('tensor_type "{0}" not allowed'.format(tensor_type))
-        #TODO: add the structure object!
-        return cls(elastic_tensor=ec, compliance_tensor=compl, structure=None,
-                   additional_info={'tensor_type': tensor_type})
-
-    def as_dict(self):
-        return {'elastic_tensor': self.elastic_tensor, 'compliance_tensor': self.compliance_tensor,
-                'structure': self.structure.as_dict() if self.structure is not None else None,
-                'additional_info': self.additional_info}
-
-    def extended_dict(self):
-        dd = self.as_dict()
-        K_Voigt = (self.elastic_tensor[0, 0] + self.elastic_tensor[1, 1] + self.elastic_tensor[2, 2] +
-                   2.0*self.elastic_tensor[0, 1] + 2.0*self.elastic_tensor[1, 2] + 2.0*self.elastic_tensor[2, 0]) / 9.0
-        K_Reuss = 1.0 / (self.compliance_tensor[0, 0] + self.compliance_tensor[1, 1] + self.compliance_tensor[2, 2] +
-                         2.0*self.compliance_tensor[0, 1] + 2.0*self.compliance_tensor[1, 2] +
-                         2.0*self.compliance_tensor[2, 0])
-        G_Voigt = (self.elastic_tensor[0, 0] + self.elastic_tensor[1, 1] + self.elastic_tensor[2, 2] -
-                   self.elastic_tensor[0, 1] - self.elastic_tensor[1, 2] - self.elastic_tensor[2, 0] +
-                   3.0*self.elastic_tensor[3, 3] + 3.0*self.elastic_tensor[4, 4] + 3.0*self.elastic_tensor[5, 5]) / 15.0
-        G_Reuss = 15.0 / (4.0*self.compliance_tensor[0, 0] + 4.0*self.compliance_tensor[1, 1] +
-                          4.0*self.compliance_tensor[2, 2] - 4.0*self.compliance_tensor[0, 1] -
-                          4.0*self.compliance_tensor[1, 2] - 4.0*self.compliance_tensor[2, 0] +
-                          3.0*self.compliance_tensor[3, 3] + 3.0*self.compliance_tensor[4, 4] +
-                          3.0*self.compliance_tensor[5, 5])
-        K_VRH = (K_Voigt + K_Reuss) / 2.0
-        G_VRH = (G_Voigt + G_Reuss) / 2.0
-        universal_elastic_anisotropy = 5.0*G_Voigt/G_Reuss + K_Voigt/K_Reuss - 6.0
-        isotropic_poisson_ratio = (3.0*K_VRH - 2.0*G_VRH) / (6.0*K_VRH + 2.0*G_VRH)
-        dd['K_Voigt'] = K_Voigt
-        dd['G_Voigt'] = G_Voigt
-        dd['K_Reuss'] = K_Reuss
-        dd['G_Reuss'] = G_Reuss
-        dd['K_VRH'] = K_VRH
-        dd['G_VRH'] = G_VRH
-        dd['universal_elastic_anistropy'] = universal_elastic_anisotropy
-        dd['isotropic_poisson_ratio'] = isotropic_poisson_ratio
-        return dd
-
-    @classmethod
-    def from_dict(cls, dd):
-        return cls(elastic_tensor=dd['elastic_tensor'], compliance_tensor=dd['compliance_tensor'],
-                   structure=dd['structure'] if dd['structure'] is not None else None,
-                   additional_info=dd['additional_info'])
-
-    def get_pmg_elastic_tensor(self):
-        """
-        Converts to a pymatgen :class:`ElasticTensor` object.
-        """
-        return ElasticTensor.from_voigt(self.elastic_tensor)
-
-
 class DielectricTensorGenerator(Has_Structure):
     """
     Object used to generate frequency dependent dielectric tensors as obtained
@@ -1718,9 +1634,9 @@ class DielectricTensorGenerator(Has_Structure):
             if np.array_equal(q, [0, 0, 0]):
                 break
         else:
-            raise ValueError('The PHBST does not containg the frequencies at gamma')
+            raise ValueError('The PHBST does not contain frequencies at gamma')
 
-        phfreqs = full_phfreqs[i]
+        phfreqs = full_phfreqs[i].copy()
 
         with ETSF_Reader(anaddbnc_filepath) as reader_anaddbnc:
             emacro = reader_anaddbnc.read_value("emacro_cart")
@@ -1764,7 +1680,7 @@ class DielectricTensorGenerator(Has_Structure):
         """
         w =  w / phfactor_ev2units(units)
 
-        t = np.zeros((3,3))
+        t = np.zeros((3, 3))
         for i in range(3, len(self.phfreqs)):
             t += self.oscillator_strength[i].real/(self.phfreqs[i]**2 - w**2)
 
