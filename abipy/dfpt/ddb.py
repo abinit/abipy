@@ -164,7 +164,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             app("Stress tensor (eV/Ang^3):\n%s" % (self.cart_stress_tensor))
             app("")
         app("Has (at least one) atomic pertubation: %s" % self.has_at_least_one_atomic_perturbation())
-        app("Has (at least one) electric-field perturbation: %s" % self.has_emacro_terms(select="at_least_one"))
+        #app("Has (at least one) electric-field perturbation: %s" % self.has_emacro_terms(select="at_least_one"))
+        #app("Has (all) electric-field perturbation: %s" % self.has_emacro_terms(select="all"))
+        app("Has (at least one diagonal) electric-field perturbation: %s" % self.has_emacro_terms(select="at_least_one_diagoterm"))
         app("Has (at least one) Born effective charge: %s" % self.has_bec_terms(select="at_least_one"))
         app("Has (all) strain terms: %s" % self.has_strain_terms(select="all"))
         app("Has (all) internal strain terms: %s" % self.has_internalstrain_terms(select="all"))
@@ -257,7 +259,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             h[key] = value
 
         # Convert to array. Note that znucl is converted into integer
-        # to avoid problems with pymatgen routines that expect integral Z
+        # to avoid problems with pymatgen routines that expect integer Z
         # This of course will break any code for alchemical mixing.
         arrays = {
             "acell": dict(shape=(3, ), dtype=np.double),
@@ -872,17 +874,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                                           lo_to_splitting=lo_to_splitting, directions=directions,
                                           anaddb_kwargs=anaddb_kwargs, spell_check=spell_check)
 
-        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir,
-                                          manager=manager, mpi_procs=mpi_procs)
-        if verbose:
-            print("ANADDB INPUT:\n", inp)
-            print("workdir:", task.workdir)
-
-        # Run the task here
-        task.start_and_wait(autoparal=False)
-        report = task.get_event_report()
-        if not report.run_completed:
-            raise self.AnaddbError(task=task, report=report)
+        task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose)
 
         with task.open_phbst() as ncfile:
             if lo_to_splitting and qpoint.is_gamma():
@@ -940,18 +932,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, lo_to_splitting=lo_to_splitting,
             anaddb_kwargs=anaddb_kwargs, spell_check=spell_check)
 
-        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager, mpi_procs=mpi_procs)
-
-        if verbose:
-            print("ANADDB INPUT:\n", inp)
-            print("workdir:", task.workdir)
-
-        # Run the task here.
-        task.start_and_wait(autoparal=False)
-
-        report = task.get_event_report()
-        if not report.run_completed:
-            raise self.AnaddbError(task=task, report=report)
+        task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose)
 
         # Open file and add metadata to phbands from DDB
         # TODO: in principle phbands.add_params?
@@ -1201,18 +1182,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             cprint("Dielectric tensor and Becs are not available in DDB: %s" % self.filepath, "yellow")
 
         inp = AnaddbInput(self.structure, anaddb_kwargs={"chneut": chneut})
-        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, mpi_procs=mpi_procs, workdir=workdir, manager=manager)
 
-        if verbose:
-            print("ANADDB INPUT:\n", inp)
-            print("workdir:", task.workdir)
-
-        # Run the task here.
-        task.start_and_wait(autoparal=False)
-
-        report = task.get_event_report()
-        if not report.run_completed:
-            raise self.AnaddbError(task=task, report=report)
+        task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose)
 
         # Read data from the netcdf output file produced by anaddb.
         with ETSF_Reader(os.path.join(task.workdir, "anaddb.nc")) as r:
@@ -1246,18 +1217,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         inp = AnaddbInput.ifc(self.structure, ngqpt=ngqpt, ifcout=ifcout, q1shft=(0, 0, 0), asr=asr, chneut=chneut,
                               dipdip=dipdip, anaddb_kwargs=anaddb_kwargs)
 
-        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, mpi_procs=mpi_procs, workdir=workdir, manager=manager)
-
-        if verbose:
-            print("ANADDB INPUT:\n", inp)
-            print("workdir:", task.workdir)
-
-        # Run the task here.
-        task.start_and_wait(autoparal=False)
-
-        report = task.get_event_report()
-        if not report.run_completed:
-            raise self.AnaddbError(task=task, report=report)
+        task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose)
 
         return InteratomicForceConstants.from_file(os.path.join(task.workdir, 'anaddb.nc'))
 
@@ -1289,17 +1249,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         if anaddb_kwargs is None or 'dieflag' not in anaddb_kwargs:
             inp['dieflag'] = 1
 
-        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager, mpi_procs=mpi_procs)
-
-        if verbose:
-            print("ANADDB INPUT:\n", inp)
-            print("workdir:", task.workdir)
-
-        # Run the task here
-        task.start_and_wait(autoparal=False)
-        report = task.get_event_report()
-        if not report.run_completed:
-            raise self.AnaddbError(task=task, report=report)
+        task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose)
 
         return DielectricTensorGenerator.from_files(os.path.join(task.workdir, "run.abo_PHBST.nc"),
                                                     os.path.join(task.workdir, "anaddb.nc"))
@@ -1356,7 +1306,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             cprint("Requiring `piezo` but no piezoelectric term available in DDB: %s" % self.filepath, "yellow")
 
 	# FIXME This is problematic so don't use automatic as default
-        select = "all"
+        #select = "all"
+        select = "at_least_one_diagoterm"
         if dde == "automatic":
             dde = self.has_emacro_terms(select=select)
 
@@ -1373,10 +1324,21 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 		               dde=dde, piezo=piezo, stress_correction=stress_correction, dte=False,
                                asr=asr, chneut=chneut)
 
-        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, mpi_procs=mpi_procs, workdir=workdir, manager=manager)
+        task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose)
+
+        # Read data from the netcdf output file produced by anaddb.
+        path = os.path.join(task.workdir, "anaddb.nc")
+        return ElasticData.from_file(path) if not retpath else path
+
+    def _run_anaddb_task(self, anaddb_input, mpi_procs, workdir, manager, verbose):
+        """
+        Execute an |AnaddbInput| via the shell. Return AnaddbTask.
+        """
+        task = AnaddbTask.temp_shell_task(anaddb_input, ddb_node=self.filepath,
+                mpi_procs=mpi_procs, workdir=workdir, manager=manager)
 
         if verbose:
-            print("ANADDB INPUT:\n", inp)
+            print("ANADDB INPUT:\n", anaddb_input)
             print("workdir:", task.workdir)
 
         # Run the task here.
@@ -1386,9 +1348,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         if not report.run_completed:
             raise self.AnaddbError(task=task, report=report)
 
-        # Read data from the netcdf output file produced by anaddb.
-        path = os.path.join(task.workdir, "anaddb.nc")
-        return ElasticData.from_file(path) if not retpath else path
+        return task
 
     def write(self, filepath, filter_blocks=None):
         """
@@ -1579,12 +1539,17 @@ class Becs(Has_Structure):
         self.check_sumrule(stream=stream)
         app(stream.getvalue())
 
+        #app("Born effective charge neutrality sum-rule with chneut: %d\n" % self.chneut)
+        #app(str(self.sumrule))
+
         return "\n".join(lines)
 
     @property
     def sumrule(self):
+        """Born effective charge neutrality sum-rule."""
         return self.values.sum(axis=0)
 
+    # TODO: Deprecated
     def check_sumrule(self, stream=sys.stdout):
         stream.write("Born effective charge neutrality sum-rule with chneut: %d\n" % self.chneut)
         stream.write(str(self.sumrule))

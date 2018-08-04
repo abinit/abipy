@@ -461,8 +461,21 @@ class DdbRobotTest(AbipyTest):
 
         robot.close()
 
-    #def test_robot_elastic(self):
-    #    df, edata_list = robot.anacompare_elastic(ddb_header_keys=[], with_structure=True, with_spglib=False)
+    def test_robot_elastic(self):
+        """Test DdbRobot with anacompare_elastic method."""
+        self.skip_if_abinit_not_ge("8.9.3")
+        filepaths = [abidata.ref_file("refs/alas_elastic_dfpt/AlAs_elastic_DDB")]
+
+        with abilab.DdbRobot.from_files(filepaths) as robot:
+            robot.add_file("samefile", filepaths[0])
+            assert len(robot) == 2
+            ddb_header_keys=["nkpt", "tsmear"]
+            df, edata_list = robot.anacompare_elastic(ddb_header_keys=ddb_header_keys,
+                with_structure=True, with_spglib=False, relaxed_ion="automatic", piezo="automatic", verbose=1)
+            assert "tensor_name" in df.keys()
+            for k in ddb_header_keys:
+                assert k in df
+            assert len(edata_list) == 2
 
 
 class PhononComputationTest(AbipyTest):
