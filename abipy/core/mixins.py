@@ -477,12 +477,17 @@ class NotebookWriter(object):
         if which("jupyter") is None:
             raise RuntimeError("Cannot find jupyter in $PATH. Install it with `conda install jupyter or `pip install jupyter`")
 
+        # Use jupyter-lab instead of classic notebook if possible.
+        has_jupyterlab = which("jupyter-lab") is not None
+        #has_jupyterlab = False
+        appname = "jupyter-lab" if has_jupyterlab else "jupyter notebook"
+
         if foreground:
-            return os.system("jupyter notebook %s" % nbpath)
+            return os.system("%s %s" % (appname, nbpath))
         else:
             fd, tmpname = tempfile.mkstemp(text=True)
             print(tmpname)
-            cmd = "jupyter notebook %s" % nbpath
+            cmd = "%s %s" % (appname, nbpath)
             print("Executing:", cmd)
             print("stdout and stderr redirected to %s" % tmpname)
             import subprocess

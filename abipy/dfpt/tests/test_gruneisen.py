@@ -73,4 +73,3 @@ class GrunsFileTest(AbipyTest):
         ddb_list = [os.path.join(path, "mp-149_{:+d}_DDB".format(s)) for s in strains]
 
         g = GrunsNcFile.from_ddb_list(ddb_list, ndivsm=3, nqsmall=3)
-
