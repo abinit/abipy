@@ -47,11 +47,12 @@ def abiview_hist(options):
     with abilab.abiopen(options.filepath) as hist:
         print(hist.to_string(verbose=options.verbose))
         if options.appname is not None:
-            hist.visualize(appname=options.appname)
+            hist.visualize(appname=options.appname, to_unit_cell=options.to_unit_cell)
         elif options.xdatcar:
             xpath = options.filepath + ".XDATCAR"
             handle_overwrite(xpath, options)
-            hist.write_xdatcar(filepath=xpath, groupby_type=True, overwrite=True)
+            hist.write_xdatcar(filepath=xpath, groupby_type=True, overwrite=True,
+                               to_unit_cell=options.to_unit_cell)
         else:
             hist.plot()
 
@@ -541,6 +542,8 @@ def get_parser(with_epilog=False):
         help=("Application name. Default: ovito. "
               "Possible options: `%s`, `mpl` (matplotlib) `mayavi`, `vtk`" % ", ".join(Visualizer.all_visunames())))
     p_hist.add_argument("--xdatcar", default=False, action="store_true", help="Convert HIST file into XDATCAR format.")
+    p_hist.add_argument("--to-unit-cell", default=False, action="store_true",
+            help="Whether to translate sites into the unit cell.")
     add_args(p_hist, "force")
 
     # Subparser for data command.

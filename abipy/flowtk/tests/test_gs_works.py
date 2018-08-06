@@ -12,7 +12,7 @@ from abipy.flowtk import gs_works
 
 class TestGsWorks(AbipyTest):
 
-    def test_eoswork(self):
+    def test_eos_work(self):
         """Testing EosWork."""
         scf_input = self.get_gsinput_si()
         work = gs_works.EosWork.from_scf_input(scf_input, npoints=4, deltap_vol=0.25, ecutsm=2.0, move_atoms=True)

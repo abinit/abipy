@@ -166,7 +166,7 @@ def plot_xy_with_hue(data, x, y, hue, decimals=None, ax=None,
     Args:
         data: |pandas-DataFrame| containing columns `x`, `y`, and `hue`.
         x: Name of the column used as x-value
-        y: Name of the column used as y-value
+        y: Name of the column(s) used as y-value
         hue: Variable that define subsets of the data, which will be drawn on separate lines
         decimals: Number of decimal places to round `hue` columns. Ignore if None
         ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -177,6 +177,24 @@ def plot_xy_with_hue(data, x, y, hue, decimals=None, ax=None,
 
     Returns: |matplotlib-Figure|
     """
+    if isinstance(y, (list, tuple)):
+        # Recursive call for each ax in ax_list.
+        num_plots, ncols, nrows = len(y), 1, 1
+        if num_plots > 1:
+            ncols = 2
+            nrows = (num_plots // ncols) + (num_plots % ncols)
+
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=False, sharey=False, squeeze=False)
+
+        ax_list = ax_list.ravel()
+        if num_plots % ncols != 0: ax_list[-1].axis('off')
+
+        for yname, ax in zip(y, ax_list):
+            plot_xy_with_hue(data, x, str(yname), hue, decimals=decimals, ax=ax,
+                             xlims=xlims, ylims=ylims, fontsize=fontsize, show=False, **kwargs)
+        return fig
+
     # Check here because pandas error messages are a bit criptic.
     miss = [k for k in (x, y, hue) if k not in data]
     if miss:
@@ -192,7 +210,8 @@ def plot_xy_with_hue(data, x, y, hue, decimals=None, ax=None,
         xy = np.array(sorted(zip(grp[x], grp[y]), key=lambda t: t[0]))
         xvals, yvals = xy[:, 0], xy[:, 1]
 
-        label = "{} = {}".format(hue, key)
+        #label = "{} = {}".format(hue, key)
+        label = "%s" % (str(key))
         if not kwargs:
             ax.plot(xvals, yvals, 'o-', label=label)
         else:

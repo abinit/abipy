@@ -13,6 +13,9 @@ TODO list:
 * introduce new status for tasks that are removed at runtime e.g. S_CANCELLED
   and handle new case in flow machinery. Be careful with pickle, status comparison and ordering though.
 
+* introduce new staus WAITING_FOR_RESTART
+  so that we don't have to restart task in callbacks
+
 * DONE Check PJDOS in abinit@gitlab
 
 * DONE Add mpirun_args see e.g nic4 and mpirun --bind-to None
@@ -68,6 +71,8 @@ TODO list:
 * Scheduler should report info on exceptions (especially if at the end when on_all_ok is invoked)
 
 * Replace core.tensor with pymatgen tensor (postponed to v0.4)
+  Check DielectricTensor in Anaddb from DDB.
+  Use pmg tensor for stress as well.
 
 * Add nsppol, nspinor, nspden to HIST file (and other stuff?)
 

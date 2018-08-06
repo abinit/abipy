@@ -57,7 +57,7 @@ class MyPiezoTensor(PiezoTensor):
 class ElasticData(Has_Structure):
     """
     Container with the different elastic and piezoelectric tensors
-    computed by anaddb. Data is tored in pymatgen tensor objects.
+    computed by anaddb. Data is stored in pymatgen tensor objects.
 
     Provides methods to analyze/tabule data
     http://progs.coudert.name/elate/mp?query=mp-2172
@@ -124,17 +124,17 @@ class ElasticData(Has_Structure):
         Args:
             structure: |Structure| object.
             params: Dictionary with input parameters.
-            elastic_clamped: clamped-ion elastic tensor in Voigt notation (shape (6,6)) in GPa.
-            elastic_relaxed: relaxed-ion elastic tensor in Voigt notation (shape (6,6)) in GPa.
+            elastic_clamped: clamped-ion elastic tensor in Voigt notation in GPa. shape (6,6).
+            elastic_relaxed: relaxed-ion elastic tensor in Voigt notation in GPa. shape (6,6).
             elastic_stress_corr: relaxed-ion elastic tensor considering the stress left inside cell
-                in Voigt notation (shape (6,6)) in GPa.
+                in Voigt notation in GPa. shape (6,6).
             elastic_relaxed_fixed_D: relaxed-ion elastic tensor at fixed displacement field
-                in Voigt notation (shape (6,6)) in GPa.
-            piezo_clamped: clamped-ion piezoelectric tensor in Voigt notation (shape (3,6)) in c/m^2.
-            piezo_relaxed: relaxed-ion piezoelectric tensor in Voigt notation (shape (3,6)) in c/m^2.
-            d_piezo_relaxed: relaxed-ion piezoelectric d tensor in Voigt notation (shape (3,6)) in pc/m^2.
-            g_piezo_relaxed: relaxed-ion piezoelectric g tensor in Voigt notation (shape (3,6)) in m^2/c.
-            h_piezo_relaxed: relaxed-ion piezoelectric h tensor in Voigt notation (shape (3,6)) in GN/c.
+                in Voigt notation in GPa. shape (6,6).
+            piezo_clamped: clamped-ion piezoelectric tensor in Voigt notation in c/m^2. shape (3,6).
+            piezo_relaxed: relaxed-ion piezoelectric tensor in Voigt notation in c/m^2. shape (3,6).
+            d_piezo_relaxed: relaxed-ion piezoelectric d tensor in Voigt notation in pc/m^2. shape (3,6).
+            g_piezo_relaxed: relaxed-ion piezoelectric g tensor in Voigt notation in m^2/c. shape (3,6).
+            h_piezo_relaxed: relaxed-ion piezoelectric h tensor in Voigt notation in GN/c. shape (3,6).
 
         .. note::
 
@@ -204,27 +204,28 @@ class ElasticData(Has_Structure):
             ts.elastic_stress_corr = reader.read_value("elastic_constants_relaxed_ion_stress_corrected")
 
         # Written in ddb_piezo
-        ts.elastic_relaxed_fixed_D = reader.read_value("elastic_tensor_relaxed_ion_fixed_D", default=None)
+        if params.elaflag == 4:
+            ts.elastic_relaxed_fixed_D = reader.read_value("elastic_tensor_relaxed_ion_fixed_D", default=None)
 
         # [3, 6] tensors (written by Fortran, produced in ddb_piezo).
         ts.piezo_clamped = reader.read_value("piezo_clamped_ion", default=None)
         ts.piezo_relaxed = reader.read_value("piezo_relaxed_ion", default=None)
-        ts.d_piezo_relaxed = reader.read_value("d_tensor_relaxed_ion", default=None)
+
+        if params.piezoflag == 4:
+            ts.d_piezo_relaxed = reader.read_value("d_tensor_relaxed_ion", default=None)
 
         # These are [6, 3] tensors written by Fortran (need to transpose).
-        ts.g_piezo_relaxed = reader.read_value("g_tensor_relaxed_ion", default=None)
-        if ts.g_piezo_relaxed is not None:
-            ts.g_piezo_relaxed = ts.g_piezo_relaxed.T.copy()
-        ts.h_piezo_relaxed = reader.read_value("h_tensor_relaxed_ion", default=None)
-        if ts.h_piezo_relaxed is not None:
-            ts.h_piezo_relaxed = ts.h_piezo_relaxed.T.copy()
+        if params.piezoflag in (5, 7):
+            ts.g_piezo_relaxed = reader.read_value("g_tensor_relaxed_ion", default=None)
+            if ts.g_piezo_relaxed is not None:
+                ts.g_piezo_relaxed = ts.g_piezo_relaxed.T.copy()
+
+        if params.piezoflag in (6, 7):
+            ts.h_piezo_relaxed = reader.read_value("h_tensor_relaxed_ion", default=None)
+            if ts.h_piezo_relaxed is not None:
+                ts.h_piezo_relaxed = ts.h_piezo_relaxed.T.copy()
 
         return cls(structure, params, **ts)
-
-        #return cls(structure, params, elastic_clamped=elastic_clamped, elastic_relaxed=elastic_relaxed,
-        #           elastic_stress_corr=elastic_stress_corr, elastic_relaxed_fixed_D=elastic_relaxed_fixed_D,
-        #           piezo_clamped=piezo_clamped, piezo_relaxed=piezo_relaxed, d_piezo_relaxed=d_piezo_relaxed,
-        #           g_piezo_relaxed=g_piezo_relaxed, h_piezo_relaxed=h_piezo_relaxed)
 
     def __str__(self):
         return self.to_string()
@@ -234,7 +235,7 @@ class ElasticData(Has_Structure):
         lines = []; app = lines.append
         app(self.structure.to_string(verbose=verbose, title="Structure"))
         app("")
-        app(marquee("Parameters", mark="="))
+        app(marquee("Anaddb Variables", mark="="))
         import json
         app(json.dumps(self.params, indent=2, sort_keys=True))
 
@@ -246,7 +247,6 @@ class ElasticData(Has_Structure):
                 for name, tensor in name_tensor_list:
                     meta = self.TENSOR_META[name]
                     is_fit = tensor.is_fit_to_structure(self.structure, tol=1e-2)
-                    # TODO
                     tol = dict(elastic=1e-3, piezoelectric=1e-5)[tensor_type]
                     app("[%s]" % name.upper())
                     app("%s" % meta.info)
@@ -260,25 +260,38 @@ class ElasticData(Has_Structure):
 
         return "\n".join(lines)
 
-    def name_tensor_list(self, tensor_names=None, tensor_type="all"):
+    def get_tensor(self, tensor_name, tol=None):
+        """
+        Return tensor from its name `tensor_name`.
+        Set to zero all entries below `tol` if `tol` is not None.
+        """
+        tensor = getattr(self, tensor_name)
+        if tensor is None: return None
+        if tol is not None: tensor = tensor.zeroed(tol)
+        return tensor
+
+    def name_tensor_list(self, tensor_names=None, tensor_type="all", tol=None):
         """
         List of (name, tensor) tuples. Only tensors stored in the object are returned.
 
         Args:
             tensor_names: List of tensor names to select. None means all.
             tensor_type: Select tensors by type. Must be in ["all", "elastic", "piezoelectric"].
+            tol: Set to zero all all entries below this threshold
         """
         l = []
         if tensor_names is None:
             for name in self.TYPE2NAMES[tensor_type]:
-                tensor = getattr(self, name)
-                if tensor is not None: l.append((name, tensor))
+                tensor = self.get_tensor(name, tol=tol)
+                if tensor is not None:
+                    l.append((name, tensor))
         else:
             for name in list_strings(tensor_names):
                 if name not in self.TYPE2NAMES[tensor_type]:
                     raise ValueError("tensor name %s does not belong to type: `%s`" % (name, tensor_type))
-                tensor = getattr(self, name)
-                if tensor is not None: l.append((name, tensor))
+                tensor = self.get_tensor(name, tol=tol)
+                if tensor is not None:
+                    l.append((name, tensor))
 
         return l
 
@@ -288,7 +301,7 @@ class ElasticData(Has_Structure):
         operations corresponding to `structure`.
 
         Args:
-            structure (Structure): structure from which to generate symmetry operations
+            structure: |Structure| from which to generate symmetry operations
                 If None, the internal structure is used.
             symprec (float): symmetry tolerance for the Spacegroup Analyzer
                 used to generate the symmetry operations
@@ -304,7 +317,7 @@ class ElasticData(Has_Structure):
         Return new set of tensors in IEEE format according to the 1987 IEEE standards.
 
         Args:
-            structure (Structure): a structure associated with the
+            structure: A |Structure| structure associated with the
                 tensor to be converted to the IEEE standard
                 If None, the internal structure is used
             initial_fit (bool): flag to indicate whether initial
@@ -319,7 +332,7 @@ class ElasticData(Has_Structure):
         kwargs = {}
         structure = self.structure if structure is None else structure
         for name, tensor in self.name_tensor_list():
-            # TODO: one should use the ieee stucture.
+            # TODO: one should pass the ieee stucture.
             kwargs[name] = tensor.convert_to_ieee(structure,
                 initial_fit=initial_fit, refine_rotation=refine_rotation)
 
@@ -328,12 +341,11 @@ class ElasticData(Has_Structure):
     def get_elastic_tensor_dataframe(self, tensor_name="elastic_relaxed", tol=1e-3):
         """
         Args:
-            tol: returns the matrix with all entries below a certain threshold
-            (i.e. tol) set to zero
+            tensor_name:
+            tol: set to zero all entries below this threshold.
         """
-        tensor = getattr(self, tensor_name)
+        tensor = self.get_tensor(tensor_name, tol=tol)
         if tensor is None: return pd.DataFrame()
-        if tol: tensor = tensor.zeroed(tol)
         columns = ["xx", "yy", "zz", "yz", "xz", "xy"]
         #columns = ["1", "2", "3", "4", "5", "6"]
         rows = []
@@ -345,12 +357,11 @@ class ElasticData(Has_Structure):
     def get_piezoelectric_tensor_dataframe(self, tensor_name="piezo_relaxed", tol=1e-5):
         """
         Args:
-            tol: returns the matrix with all entries below a certain threshold
-            (i.e. tol) set to zero
+            tensor_name:
+            tol: set to zero all entries below this threshold.
         """
-        tensor = getattr(self, tensor_name)
+        tensor = self.get_tensor(tensor_name, tol=tol)
         if tensor is None: return pd.DataFrame()
-        if tol: tensor = tensor.zeroed(tol)
         index = ["Px", "Py", "Pz"]
         columns = ["xx", "yy", "zz", "yz", "xz", "xy"]
         #index = ["P1", "P2", "P3"]
@@ -361,22 +372,25 @@ class ElasticData(Has_Structure):
 
         return pd.DataFrame(rows, index=index, columns=columns)
 
-    def get_elastic_voigt_dataframe(self):
-        return self.get_voigt_dataframe(tensor_names=self.ALL_ELASTIC_TENSOR_NAMES)
+    def get_elastic_voigt_dataframe(self, voigt_as_index=True, tol=None):
+        return self.get_voigt_dataframe(tensor_names=self.ALL_ELASTIC_TENSOR_NAMES,
+                                    voigt_as_index=voigt_as_index, tol=tol)
 
-    #def get_piezo_voigt_dataframe(self, tensor_names=()):
-    #    return self.get_voigt_dataframe(tensor_names=self.ALL_PIEZOELECTRIC_TENSOR_NAMES)
+    def get_piezo_voigt_dataframe(self, voigt_as_index=True, tol=None):
+        return self.get_voigt_dataframe(tensor_names=self.ALL_PIEZOELECTRIC_TENSOR_NAMES,
+                                        voigt_as_index=voigt_as_index, tol=tol)
 
-    def get_voigt_dataframe(self, tensor_names):
+    def get_voigt_dataframe(self, tensor_names, voigt_as_index=True, tol=None):
         """
-        Return a |pandas-DataFrame| with voigt indices as colums.
+        Return a |pandas-DataFrame| with Voigt indices as colums (C-indexing starting from 0).
         Useful to analyze the converge of individual elements of the tensor(s)
 
         Args:
             tensor_names: List of tensor names.
+            tol: Set to zero all all entries below a certain threshold
         """
         rows, index = [], []
-        for name, tensor in self.name_tensor_list(tensor_names=tensor_names):
+        for name, tensor in self.name_tensor_list(tensor_names=tensor_names, tol=tol):
             voigt_map = tensor.get_voigt_dict(tensor.rank)
             row = {}
             for ind in voigt_map:
@@ -386,35 +400,19 @@ class ElasticData(Has_Structure):
             row["tensor_name"] = name
             rows.append(row)
 
-        # Return transpose to have (i,j) as index and tensor names as columns
-        return pd.DataFrame(rows, index=index, columns=list(rows[0].keys() if rows else None)).T
+        # Build dataframe.
+        df = pd.DataFrame(rows, index=index, columns=list(rows[0].keys() if rows else None))
 
-    #def get_average_elastic_dataframe(self, tensor_names="elastic_relaxed", fit_to_structure=False, symprec=0.1):
-    #    """
-    #    Return a |pandas-DataFrame|
+        if voigt_as_index:
+            # Return transpose to have (i,j) as index and tensor names as columns
+            df = df.drop(columns="tensor_name").T
+            df.index.name = "voigt_cinds"
+            return df.reset_index()
+            #return df
+        else:
+            return df
 
-    #    Args:
-    #        tensor_names
-    #    """
-    #    schemes = ["voigt", "reuss", "vrh"]
-    #    what_list = ["k", "g"] # "E", "v"]  # TODO
-    #    rows = []
-    #    for name, tensor in self.name_tensor_list(tensor_names=tensor_names):
-    #        if fit_to_structure:
-    #            tensor = tensor.fit_to_structure(self.structure, symprec=symprec)
-    #        for scheme in schemes:
-    #            row = OrderedDict()
-    #            row["scheme"] = scheme
-    #            row["tensor_name"] = name
-    #            for what in what_list:
-    #                # k_vrh
-    #                aname = what + "_" + scheme
-    #                row[what] = getattr(tensor, aname)
-    #            rows.append(row)
-
-    #    return pd.DataFrame(rows, columns=list(rows[0].keys()) if rows else None)
-
-    def get_elast_properties_dataframe(self, tensor_names=["elastic_relaxed", "elastic_clamped"],
+    def get_elastic_properties_dataframe(self, tensor_names="all", properties_as_index=False,
             include_base_props=True, ignore_errors=False, fit_to_structure=False, symprec=0.1):
         """
         Return a |pandas-DataFrame| with properties derived from the elastic tensor
@@ -422,6 +420,7 @@ class ElasticData(Has_Structure):
 
         Args:
             tensor_names= ["elastic_relaxed", "elastic_clamped", "elastic_stress_corr", "elastic_relaxed_fixed_D"]
+            properties_as_index:
             include_base_props (bool): whether to include base properties, like k_vrh, etc.
             ignore_errors (bool): if set to true, will set problem properties
                 that depend on a physical tensor to None, defaults to False
@@ -430,6 +429,7 @@ class ElasticData(Has_Structure):
             symprec (float): symmetry tolerance for the Spacegroup Analyzer
                 used to generate the symmetry operations if `fit_to_structure`
         """
+        tensor_names = self.ALL_ELASTIC_TENSOR_NAMES if tensor_names == "all" else list_strings(tensor_names)
         do_fits = [False] if not fit_to_structure else [True, False]
         rows = []
         for name, tensor in self.name_tensor_list(tensor_names=tensor_names):
@@ -444,4 +444,15 @@ class ElasticData(Has_Structure):
                 d["tensor_name"] = name
                 rows.append(d)
 
-        return pd.DataFrame(rows, columns=list(rows[0].keys() if rows else None))
+        df = pd.DataFrame(rows, columns=list(rows[0].keys() if rows else None))
+
+        if properties_as_index:
+            # TODO
+            # Return transpose to have (i,j) as index and tensor names as columns
+            #columns = df.columns
+            df = df.drop(columns="tensor_name").T
+            df.index.name = "property"
+            #df.columns = columns
+            return df.reset_index()
+        else:
+            return df

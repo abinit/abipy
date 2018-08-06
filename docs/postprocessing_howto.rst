@@ -139,7 +139,7 @@ Get a quick look to a file
 --------------------------
 
 The :ref:`abiview.py` script is especially designed for this task.
-The syntax is ``abistruct.py COMMAND FILE`` where ``COMMAND`` is either 
+The syntax is ``abiview.py COMMAND FILE`` where ``COMMAND`` is either 
 the Abinit file extension (without ``.nc``, if any) or the AbiPy object we want to visualize.
 
 To get a quick look at the DDB file, use::
@@ -152,7 +152,7 @@ If ``FILE`` contains electronic band energies, use e.g.::
 
     abiview.py ebands out_GSR.nc
 
-to plot the KS eigenvalues (the same command works for other files such as ``WFK.nc``, ``DEN.nc`` etcetera. 
+to plot the KS eigenvalues (the same command works for other files such as ``WFK.nc``, ``DEN.nc`` etc. 
 
 Note that :ref:`abiview.py` uses a predefined logic to visualize the data.
 There are options to tune some parameters and/or export data in different formats
@@ -174,7 +174,7 @@ Visualize a structure
 ---------------------
 
 The visualization of the structure is delegated to external graphical applications
-that must be istalled on your machine. 
+that must be installed on your machine. 
 AbiPy will extract the structure from ``FILE``, convert it to one of the formats 
 supported by the graphical application and finally invoke the executable.
 If you have vesta_ installed in one of the standard 
@@ -355,7 +355,7 @@ to print the warnings/comments/errors reported in the Abinit log file ``run.log`
 Export bands to xmgrace format 
 ------------------------------
 
-But |ElectronBands| and |PhononBands| provide a ``to_xmgrace`` method to produce xmgrace_ files.
+Both |ElectronBands| and |PhononBands| provide a ``to_xmgrace`` method to produce xmgrace_ files.
 To export the data to xmgrace, use :ref:`abiview.py` with the ``--xmgrace`` option.
 For electrons, use::
 

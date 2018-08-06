@@ -640,7 +640,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             nqsmall: Defines the homogeneous q-mesh used for the DOS. Gives the number of divisions
                 used to sample the smallest lattice vector. If 0, DOS is not computed and
                 (phbst, None) is returned.
-            qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per reciproval atom.
+            qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per reciprocal atom.
                 Overrides nqsmall.
             ndivsm: Number of division used for the smallest segment of the q-path.
             line_density: Defines the a density of k-points per reciprocal atom to plot the phonon dispersion.

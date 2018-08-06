@@ -629,18 +629,6 @@ class AnaddbInputTest(AbipyTest):
              [ 0.0924795 , 0.0924795 , 0.0924795, 0.]])
         self.abivalidate_input(inp_loto)
 
-    def test_thermo(self):
-        """Testing the thermodynamics constructor"""
-        anaddb_input = AnaddbInput.thermo(self.structure, ngqpt=(40, 40, 40), nqsmall=20)
-        assert str(anaddb_input)
-        for var in ('thmtol', 'ntemper', 'temperinc', 'thmtol'):
-            assert anaddb_input[var] >= 0
-        for flag in ('ifcflag', 'thmflag'):
-            assert anaddb_input[flag] == 1
-
-        self.serialize_with_pickle(anaddb_input, test_eq=False)
-        anaddb_input.deepcopy()
-
     def test_modes(self):
         """Testing modes constructor"""
         anaddb_input = AnaddbInput.modes(self.structure)
@@ -666,30 +654,32 @@ class AnaddbInputTest(AbipyTest):
     def test_piezo_elastic(self):
         """Testing piezo_elastic constructor."""
         anaddb_input = AnaddbInput.piezo_elastic(self.structure, stress_correction=True)
-        assert anaddb_input["elaflag"] == 5 and anaddb_input["piezoflag"] == 3 and anaddb_input["asr"] == 0
+        assert anaddb_input["elaflag"] == 5 and anaddb_input["piezoflag"] == 3 and anaddb_input["asr"] == 2
+        assert anaddb_input["instrflag"] == 1 and len(anaddb_input.comment) > 0
         self.abivalidate_input(anaddb_input)
 
-        anaddb_input = AnaddbInput.piezo_elastic(self.structure, stress_correction=False)
+        anaddb_input = AnaddbInput.piezo_elastic(self.structure, stress_correction=False, asr=0)
         assert anaddb_input["elaflag"] == 3 and anaddb_input["piezoflag"] == 3 and anaddb_input["chneut"] == 1
+        assert anaddb_input["instrflag"] == 1 and anaddb_input["asr"] == 0
         self.abivalidate_input(anaddb_input)
 
     def test_dfpt(self):
         """Testing dfpt constructor."""
-        anaddb_input = AnaddbInput.dfpt(self.structure, has_stress=True, has_atomic_pert=True, piezo=True, dde=True,
+        anaddb_input = AnaddbInput.dfpt(self.structure, stress_correction=True, relaxed_ion=True, piezo=True, dde=True,
                                         strain=True, dte=False)
         assert anaddb_input["elaflag"] == 5
         assert anaddb_input["dieflag"] == 3
         assert anaddb_input["piezoflag"] == 7
         self.abivalidate_input(anaddb_input)
 
-        anaddb_input = AnaddbInput.dfpt(self.structure, has_stress=True, has_atomic_pert=False, piezo=True, dde=True,
+        anaddb_input = AnaddbInput.dfpt(self.structure, stress_correction=True, relaxed_ion=False, piezo=True, dde=True,
                                         strain=True, dte=False)
         assert anaddb_input["elaflag"] == 1
         assert anaddb_input["dieflag"] == 2
         assert anaddb_input["piezoflag"] == 1
         self.abivalidate_input(anaddb_input)
 
-        anaddb_input = AnaddbInput.dfpt(self.structure, has_stress=False, has_atomic_pert=True, piezo=True, dde=False,
+        anaddb_input = AnaddbInput.dfpt(self.structure, stress_correction=False, relaxed_ion=True, piezo=True, dde=False,
                                         strain=True, dte=False)
         assert anaddb_input["elaflag"] == 3
         assert anaddb_input["dieflag"] == 0

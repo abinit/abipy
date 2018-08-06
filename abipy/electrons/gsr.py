@@ -164,7 +164,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     @lazy_property
     def pressure(self):
-        """Pressure in Gpa"""
+        """Pressure in GPa"""
         HaBohr3_GPa = 29421.033 # 1 Ha/Bohr^3, in GPa
         pressure = - (HaBohr3_GPa/3) * self.cart_stress_tensor.trace()
         return units.FloatWithUnit(pressure, unit="GPa", unit_type="pressure")
@@ -372,7 +372,7 @@ class GsrReader(ElectronsReader):
     def read_cart_stress_tensor(self):
         """
         Return the stress tensor (3x3 matrix) in cartesian coordinates (Hartree/Bohr^3)
-        If MaskedArray (i.e. tensor was not computed  e.g. Nscf run) set it to
+        If MaskedArray (i.e. tensor was not computed  e.g. Nscf run) set it to _INVALID_STRESS_TENSOR
         """
         # Abinit stores 6 unique components of this symmetric 3x3 tensor:
         # Given in order (1,1), (2,2), (3,3), (3,2), (3,1), (2,1).

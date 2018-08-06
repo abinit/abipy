@@ -377,6 +377,11 @@ class AbipyTest(PymatgenTest):
         except ImportError:
             return False
 
+    def run_nbpath(self, nbpath):
+        """Test that the notebook in question runs all cells correctly."""
+        nb, errors = notebook_run(nbpath)
+        return nb, errors
+
     @staticmethod
     def has_ipywidgets():
         """Return True if ipywidgets_ package is available."""
@@ -507,6 +512,14 @@ class AbipyTest(PymatgenTest):
 
         assert not errors
 
+    def abivalidate_work(self, work):
+        """Invoke Abinit to test validity of the inputs of a |Work|"""
+        from abipy.flowtk import Flow
+        tmpdir = tempfile.mkdtemp()
+        flow = Flow(workdir=tmpdir)
+        flow.register_work(work)
+        return self.abivalidate_flow(flow)
+
     @staticmethod
     def abivalidate_flow(flow):
         """
@@ -528,3 +541,36 @@ class AbipyTest(PymatgenTest):
     @wraps(get_gsinput_si)
     def get_gsinput_si(*args, **kwargs):
         return get_gsinput_si(*args, **kwargs)
+
+
+def notebook_run(path):
+    """
+    Execute a notebook via nbconvert and collect output.
+
+    Taken from
+    https://blog.thedataincubator.com/2016/06/testing-jupyter-notebooks/
+
+    Args:
+        path (str): file path for the notebook object
+
+    Returns: (parsed nb object, execution errors)
+
+    """
+    import nbformat
+    dirname, __ = os.path.split(path)
+    os.chdir(dirname)
+    with tempfile.NamedTemporaryFile(suffix=".ipynb") as fout:
+        args = ["jupyter", "nbconvert", "--to", "notebook", "--execute",
+                "--ExecutePreprocessor.timeout=300",
+                "--ExecutePreprocessor.allow_errors=True",
+                "--output", fout.name, path]
+        subprocess.check_call(args)
+
+        fout.seek(0)
+        nb = nbformat.read(fout, nbformat.current_nbformat)
+
+    errors = [output for cell in nb.cells if "outputs" in cell
+              for output in cell["outputs"]\
+              if output.output_type == "error"]
+
+    return nb, errors

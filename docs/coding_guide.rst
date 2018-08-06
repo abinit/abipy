@@ -70,7 +70,7 @@ Naming, spacing, and formatting conventions
 -------------------------------------------
 
 In general, we want to stay as closely as possible to the standard
-coding guidelines for python written by Guido in `PEP0008 <http://www.python.org/dev/peps/pep-0008>`_.
+coding guidelines for python written by Guido van Rossum in `PEP0008 <http://www.python.org/dev/peps/pep-0008>`_.
 
 * functions and class methods: ``lower`` or ``lower_underscore_separated``
 * attributes and variables: ``lower`` 
