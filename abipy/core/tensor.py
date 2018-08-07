@@ -56,7 +56,7 @@ class Tensor(object):
                 self.space == other.space)
 
     def __ne__(self, other):
-        return not self == other
+        return not (self == other)
 
     def __repr__(self):
         return self.to_string()

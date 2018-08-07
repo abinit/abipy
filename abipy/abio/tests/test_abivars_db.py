@@ -72,6 +72,6 @@ class AbinitVariableDatabaseTest(AbipyTest):
         assert ecut_var.executable == "abinit"
 
         elaflag = docvar("elaflag", executable="anaddb")
-        assert elaflag.name == "alaflag"
+        assert elaflag.name == "elaflag"
         assert elaflag.executable == "anaddb"
         assert str(elaflag._repr_html_())
