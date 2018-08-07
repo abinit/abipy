@@ -74,7 +74,7 @@ TODO list:
 
 * Scheduler should report info on exceptions (especially if at the end when on_all_ok is invoked)
 
-* Replace core.tensor with pymatgen tensor (postponed to v0.4)
+* ALMOST DONE: Replace core.tensor with pymatgen tensor
   Check DielectricTensor in Anaddb from DDB.
   Use pmg tensor for stress as well.
 
