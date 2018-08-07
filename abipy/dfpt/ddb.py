@@ -132,6 +132,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         spgid, has_timerev, h = 0, True, self.header
         self._structure.set_abi_spacegroup(AbinitSpaceGroup(spgid, h.symrel, h.tnons, h.symafm, has_timerev))
 
+        # Add forces to structure.
+        if self.cart_forces is not None:
+            self._structure.add_site_property("cartesian_forces", self.cart_forces)
+
         frac_coords = self._read_qpoints()
         self._qpoints = KpointList(self.structure.lattice.reciprocal_lattice, frac_coords, weights=None, names=None)
 
@@ -153,16 +157,21 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         app("")
         app("Number of q-points in DDB: %d" % len(self.qpoints))
         app("guessed_ngqpt: %s (guess for the q-mesh divisions made by AbiPy)" % self.guessed_ngqpt)
-        app("Has total energy: %s, Has forces: %s" % (self.total_energy is not None, self.cart_forces is not None))
+        app("Has total energy: %s, Has forces: %s" % (
+            self.total_energy is not None, self.cart_forces is not None))
         if self.total_energy is not None:
             app("Total energy: %s [eV]" % self.total_energy)
-        if self.cart_forces is not None:
-            app("Cartesian forces (eV/Ang):\n%s" % (self.cart_forces))
-            app("")
-        app("Has stress tensor: %s" % (self.cart_stress_tensor is not None))
+        #app("Has forces: %s" % (
+        #if self.cart_forces is not None:
+        #    app("Cartesian forces (eV/Ang):\n%s" % (self.cart_forces))
+        #    app("")
         if self.cart_stress_tensor is not None:
-            app("Stress tensor (eV/Ang^3):\n%s" % (self.cart_stress_tensor))
             app("")
+            app("Cartesian stress tensor in GPa with pressure %.3e (GPa):\n%s" % (
+                - self.cart_stress_tensor.trace() / 3, self.cart_stress_tensor))
+        else:
+            app("Has stress tensor: %s" % (self.cart_stress_tensor is not None))
+        app("")
         app("Has (at least one) atomic pertubation: %s" % self.has_at_least_one_atomic_perturbation())
         #app("Has (at least one) electric-field perturbation: %s" % self.has_emacro_terms(select="at_least_one"))
         #app("Has (all) electric-field perturbation: %s" % self.has_emacro_terms(select="all"))
@@ -525,14 +534,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """
         Cartesian forces in eV / Ang
         None if not available i.e. if the GS DDB has not been merged.
-
-        .. note::
-
-            These values correspond to the `fred` array in abinit
-            this array has *not* been corrected by enforcing
-            the translational symmetry, namely that the sum of force
-            on all atoms is not necessarly zero.
-            So inconsistencies with the results reported in the output file are expected.
         """
         for block in self.blocks:
             if block["dord"] != 1: continue
@@ -544,9 +545,21 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 idir, ipert = int(idir) - 1, int(ipert) - 1
                 if ipert < natom:
                     fred[ipert, idir] = float(fval.replace("D", "E"))
-            # FIXME
-            gprimd = self.structure.reciprocal_lattice.matrix
-            fcart = - fred
+
+            # Fred stores d(etotal)/d(xred)
+            # this array has *not* been corrected by enforcing
+            # the translational symmetry, namely that the sum of force
+            # on all atoms is not necessarly zero.
+            # Compute fcart using same code as in fred2fcart.
+            # Note conversion to cartesian coordinates (bohr) AND
+            # negation to make a force out of a gradient.
+            gprimd = self.structure.reciprocal_lattice.matrix / (2 * np.pi) * abu.Bohr_Ang
+            #fcart = - np.matmul(fred, gprimd)
+            fcart = - np.matmul(fred, gprimd.T)
+            # Subtract off average force from each force component
+            favg = fcart.sum(axis=0) / len(self.structure)
+            fcart -= favg
+
             return fcart * abu.Ha_eV / abu.Bohr_Ang
 
         return None
@@ -554,7 +567,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     @lazy_property
     def cart_stress_tensor(self):
         """
-        pymatgen Stress tensor in cartesian coordinates (Hartree/Bohr^3)
+        |pmg-Stress| tensor in cartesian coordinates (GPa units).
         None if not available.
         """
         for block in self.blocks:
@@ -577,7 +590,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 if idp in dirper2voigt:
                     svoigt[dirper2voigt[idp]] = float(fval.replace("D", "E"))
 
-            return Stress.from_voigt(svoigt * abu.Ha_eV / (abu.Bohr_Ang**3))
+            # Convert from Ha/Bohr^3 to GPa
+            return Stress.from_voigt(svoigt * abu.HaBohr3_GPa)
 
         return None
 

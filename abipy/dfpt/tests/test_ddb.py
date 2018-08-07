@@ -340,14 +340,16 @@ class DdbTest(AbipyTest):
             self.assert_almost_equal(ddb.total_energy.to("Ha"), -0.10085769246152e+02)
             assert ddb.cart_forces is not None
             stress = ddb.cart_stress_tensor
+            # Ha/Bohr^3 from DDB
             ref_voigt = np.array([-0.31110177329142E-05, -0.31110177329142E-05, -0.31110177329146E-05,
                                   0.00000000000000E+00, 0.00000000000000E+00, 0.00000000000000E+00])
-            self.assert_almost_equal(stress[0, 0], ref_voigt[0] * abu.Ha_eV / abu.Bohr_Ang**3)
-            self.assert_almost_equal(stress[1, 1], ref_voigt[1] * abu.Ha_eV / abu.Bohr_Ang**3)
-            self.assert_almost_equal(stress[2, 2], ref_voigt[2] * abu.Ha_eV / abu.Bohr_Ang**3)
-            self.assert_almost_equal(stress[1, 2], ref_voigt[3] * abu.Ha_eV / abu.Bohr_Ang**3)
-            self.assert_almost_equal(stress[0, 2], ref_voigt[4] * abu.Ha_eV / abu.Bohr_Ang**3)
-            self.assert_almost_equal(stress[0, 1], ref_voigt[5] * abu.Ha_eV / abu.Bohr_Ang**3)
+            # AbiPy stress is in GPa
+            self.assert_almost_equal(stress[0, 0], ref_voigt[0] * abu.HaBohr3_GPa)
+            self.assert_almost_equal(stress[1, 1], ref_voigt[1] * abu.HaBohr3_GPa)
+            self.assert_almost_equal(stress[2, 2], ref_voigt[2] * abu.HaBohr3_GPa)
+            self.assert_almost_equal(stress[1, 2], ref_voigt[3] * abu.HaBohr3_GPa)
+            self.assert_almost_equal(stress[0, 2], ref_voigt[4] * abu.HaBohr3_GPa)
+            self.assert_almost_equal(stress[0, 1], ref_voigt[5] * abu.HaBohr3_GPa)
 
             for qpoint in ddb.qpoints:
                 assert qpoint in ddb.computed_dynmat

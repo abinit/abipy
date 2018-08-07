@@ -107,7 +107,7 @@ class ElectronBandsTest(AbipyTest):
             # Combiplot.
             assert edos_plotter.combiplot(title="default values", show=False)
             assert edos_plotter.combiplot(what_list=("dos", "idos"), spin_mode="resolved", show=False)
-            assert edos_plotter.combiplot(e0=0, what_list="dos", spin_mode="resolved", fontsize=12, show=False)
+            assert edos_plotter.combiplot(e0=0, what_list="dos", spin_mode="automatic", fontsize=12, show=False)
             # Gridplot
             assert edos_plotter.gridplot(title="default values", show=False)
             assert edos_plotter.gridplot(what="idos", spin_mode="resolved", xlims=(-10, 10), show=False)

@@ -1206,15 +1206,17 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
 
         return ph_inputs
 
-    def make_ddk_inputs(self, tolerance=None, kptopt=2, manager=None):
+    def make_ddk_inputs(self, tolerance=None, kptopt=2, only_vk=False, manager=None):
         """
         Return inputs for performing DDK calculations.
         This functions should be called with an input the represents a GS run.
 
         Args:
-            kptopt: 2 to take into account time-reversal symmetry. note that kptopt 1 is not available.
             tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.
                 Defaults to {"tolwfr": 1.0e-22}.
+            kptopt: 2 to take into account time-reversal symmetry. note that kptopt 1 is not available.
+	    only_vk: If only matrix elements of the velocity operator are needed.
+		First-order wavefunctions won't be converged --> not usable for other DFPT calculations.
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
 
         Return:
@@ -1251,6 +1253,9 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
 
             ddk_input.pop_tolerances()
             ddk_input.set_vars(tolerance)
+
+        if only_vk:
+            ddk_inputs.set_vars(nstep=1, nline=1)
 
         return ddk_inputs
 
@@ -2430,20 +2435,6 @@ class AnaddbInput(AbiAbstractInput, Has_Structure):
                        stress_correction=stress_correction, asr=asr, chneut=chneut, dipdip=dipdip,
                        anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs, comment=comment)
         return new
-
-        #new = cls(structure, anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs, comment=comment)
-        #elaflag = 3 if not stress_correction else 5
-        #new.set_vars(
-        #    elaflag=elaflag,
-        #    piezoflag=3,
-        #    instrflag=1 if elaflag > 1 else 0,
-        #    chneut=chneut,
-        #    asr=asr,
-        #    dipdip=dipdip,
-        #    symdynmat=1
-        #)
-
-        #return new
 
     @classmethod
     def phbands_and_dos(cls, structure, ngqpt, nqsmall, qppa=None, ndivsm=20, line_density=None, q1shft=(0, 0, 0),

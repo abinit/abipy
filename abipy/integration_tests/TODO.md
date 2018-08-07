@@ -43,9 +43,13 @@ TODO list:
 
 * Add support for PSML/UPF format
 
+* Add iscf to GSR.nc so that we know if we have SCF|NSCF run.
+
 ## Medium priority
 
 * remove phononflow
+
+* Add DOS to GSR file (useful if tetra)  Create Dosfile ?
 
 * Add with_becs to PhononWork
 
@@ -88,8 +92,6 @@ TODO list:
 * Investigate NaN issue in BECS reported by Ahn if tolvrs instead of tolwfr (tolwfr could activate nbdbuf)
 
 * DONE: Fix possible error reported by Henrique (NscfTask from file that tries to change ngfft)
-
-* Add iscf to GSR.nc so that we know if we have SCF|NSCF run.
 
 * Add input file to NC files (?)
 
