@@ -266,18 +266,9 @@ class AnaddbNcRobot(Robot):
         return all(ncfile.has_elastic_data for ncfile in self.abifiles)
 
     def get_dataframe(self):
-
         if self.has_elastic_data:
             return self.get_elastic_dataframe()
-            #for ncfile in self.abifiles:
-            #    df = ncfile.elastic_data.get_elast_properties_dataframe(etypes=["elastic_relaxed"])
-            #    df_list.append(df)
-
-            #df_list = []
-            #df = pd.concat(df_list, ignore_index=True)
-            #df["labels"] = list(self.keys())
-            #df.set_index("labels", inplace=True)
-            #return df
+        return None
 
     def get_elastic_dataframe(self, with_geo=True, abspath=False, with_params=False, funcs=None, **kwargs):
         """
@@ -369,34 +360,6 @@ class AnaddbNcRobot(Robot):
 
     #def get_voigt_dataframe(self, tensor_names):
     #    ncfile.get_voigt_dataframe(self, tensor_names):
-
-#    @add_fig_kwargs
-#    def plot_gsr_convergence(self, sortby=None, hue=None, fontsize=6,
-#                             items=("energy", "pressure", "max_force"), **kwargs):
-#        """
-#        Plot the convergence of the most important quantities available in the GSR file
-#        wrt to the ``sortby`` parameter. Values can optionally be grouped by ``hue``.
-#
-#        Args:
-#            sortby: Define the convergence parameter, sort files and produce plot labels.
-#                Can be None, string or function. If None, no sorting is performed.
-#                If string and not empty it's assumed that the abifile has an attribute
-#                with the same name and `getattr` is invoked.
-#                If callable, the output of sortby(abifile) is used.
-#            hue: Variable that define subsets of the data, which will be drawn on separate lines.
-#                Accepts callable or string
-#                If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
-#                If callable, the output of hue(abifile) is used.
-#            items: List of GSR attributes (or callables) to be analyzed.
-#            fontsize: legend and label fontsize.
-#
-#        Returns: |matplotlib-Figure|
-#
-#        Example:
-#
-#             robot.plot_gsr_convergence(sortby="nkpt", hue="tsmear")
-#        """
-#        return self.plot_convergence_items(items, sortby=sortby, hue=hue, fontsize=fontsize, show=False, **kwargs)
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """

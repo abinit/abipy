@@ -69,7 +69,7 @@ class AbinitVariableDatabaseTest(AbipyTest):
 
         ecut_var = docvar("ecut")
         assert ecut_var.name == "ecut"
-        assert ecut_var.executable = "abinit"
+        assert ecut_var.executable == "abinit"
 
         elaflag = docvar("elaflag", executable="anaddb")
         assert elaflag.name == "alaflag"

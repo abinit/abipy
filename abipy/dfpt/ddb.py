@@ -11,7 +11,7 @@ import pandas as pd
 import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
-from six.moves import map, zip, StringIO
+from six.moves import map, zip
 from monty.string import marquee, list_strings
 from monty.collections import AttrDict, dict2namedtuple, tree
 from monty.functools import lazy_property
@@ -21,7 +21,6 @@ from abipy.core.mixins import TextFile, Has_Structure, NotebookWriter
 from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.core.structure import Structure
 from abipy.core.kpoints import KpointList, Kpoint
-from abipy.core.tensor import Tensor
 from abipy.iotools import ETSF_Reader
 from abipy.abio.inputs import AnaddbInput
 from abipy.dfpt.phonons import PhononDosPlotter, PhononBandsPlotter, InteratomicForceConstants
@@ -1203,6 +1202,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         with ETSF_Reader(os.path.join(task.workdir, "anaddb.nc")) as r:
             structure = r.read_structure()
             # TODO Replace with pymatgen tensors
+            from abipy.core.tensor import Tensor
             emacro = Tensor.from_cartesian_tensor(r.read_value("emacro_cart"), structure.lattice, space="r"),
             becs = Becs(r.read_value("becs_cart"), structure, chneut=inp["chneut"], order="f")
 
@@ -1527,7 +1527,7 @@ class Becs(Has_Structure):
         self.values = np.empty((len(structure), 3, 3))
         for i, bec in enumerate(becs_arr):
             mat = becs_arr[i]
-            if order.lower() == "f": mat = mat.T
+            if order.lower() == "f": mat = mat.T.copy()
             self.values[i] = mat
 
     @property
@@ -1549,12 +1549,8 @@ class Becs(Has_Structure):
             app("")
 
         # Add info on the bec sum rule.
-        stream = StringIO()
-        self.check_sumrule(stream=stream)
-        app(stream.getvalue())
-
-        #app("Born effective charge neutrality sum-rule with chneut: %d\n" % self.chneut)
-        #app(str(self.sumrule))
+        app("Born effective charge neutrality sum-rule with chneut: %d\n" % self.chneut)
+        app(str(self.sumrule))
 
         return "\n".join(lines)
 
