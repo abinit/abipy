@@ -43,7 +43,7 @@ install:
   #- set -ev  # exit on first error, print each command
   - env
   #- ulimit -s unlimited
-  - echo "PMG_MAPI_KEY: ${PMG_MAPI_KEY}" > ${HOME}/.pmgrc.yaml && cat ${HOME}/.pmgrc.yaml 
+  - 'echo "PMG_MAPI_KEY: ${PMG_MAPI_KEY}" > ${HOME}/.pmgrc.yaml && cat ${HOME}/.pmgrc.yaml'
 
   - |
       if [ "${ABIPY_INSTALLER}" == "pip" ]; then

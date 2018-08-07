@@ -248,8 +248,12 @@ class DdbTest(AbipyTest):
                  [  5.66391495e-24,   2.28904397e-24,  -2.19362823e+00]]
                 ]
 
+            ref_emacro = [[ 5.42055574e+00,  8.88178420e-16, -1.30717901e-25],
+                          [-8.88178420e-16,  5.42055574e+00, -2.26410045e-25],
+                          [-1.30717901e-25,  2.26410045e-25,  4.98835236e+00]]
+
             self.assert_almost_equal(becs.values, ref_becs_values)
-            #self.assert_almost_equal(emacro.values, ref_emacro_values)
+            self.assert_almost_equal(emacro, ref_emacro)
             repr(becs); str(becs)
             assert becs.to_string(verbose=2)
 

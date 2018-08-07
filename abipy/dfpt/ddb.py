@@ -1180,7 +1180,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     def anaget_emacro_and_becs(self, chneut=1, mpi_procs=1, workdir=None, manager=None, verbose=0):
         """
-        Call anaddb to compute the macroscopic dielectric tensor and the Born effective charges.
+        Call anaddb to compute the macroscopic electronic dielectric tensor (e_inf)
+        in Cartesian coordinates and the Born effective charges.
 
         Args:
             chneut: Anaddb input variable. See official documentation.
@@ -1201,9 +1202,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         # Read data from the netcdf output file produced by anaddb.
         with ETSF_Reader(os.path.join(task.workdir, "anaddb.nc")) as r:
             structure = r.read_structure()
-            # TODO Replace with pymatgen tensors
-            from abipy.core.tensor import Tensor
-            emacro = Tensor.from_cartesian_tensor(r.read_value("emacro_cart"), structure.lattice, space="r"),
+            emacro = DielectricTensor(r.read_value("emacro_cart"))
             becs = Becs(r.read_value("becs_cart"), structure, chneut=inp["chneut"], order="f")
 
             return emacro, becs
