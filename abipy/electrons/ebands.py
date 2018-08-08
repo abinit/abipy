@@ -2537,6 +2537,9 @@ class ElectronBandsPlotter(NotebookWriter):
         """Invoked by str"""
         return self.to_string(func=str)
 
+    def __len__(self):
+        return len(self.ebands_dict)
+
     def add_plotter(self, other):
         """Merge two plotters, return new plotter."""
         if not isinstance(other, self.__class__):
@@ -3493,7 +3496,7 @@ class ElectronDosPlotter(NotebookWriter):
         self.edoses_dict[label] = ElectronDos.as_edos(edos, edos_kwargs)
 
     @add_fig_kwargs
-    def combiplot(self, what_list="dos", spin_mode="total", e0="fermie",
+    def combiplot(self, what_list="dos", spin_mode="automatic", e0="fermie",
                   ax_list=None,  xlims=None, fontsize=8, **kwargs):
         """
         Plot the the DOSes on the same figure. Use ``gridplot`` to plot DOSes on different figures.
@@ -3503,6 +3506,7 @@ class ElectronDosPlotter(NotebookWriter):
                 "dos" for DOS only and "idos" for IDOS only
             spin_mode: "total" for total (I)DOS, "resolved" for plotting individual contributions.
                 Meaningful only if nsppol == 2.
+                "automatic" to use "resolved" if at least one DOS is polarized.
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
                 - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy (``self.fermie``).
                 -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
@@ -3514,6 +3518,9 @@ class ElectronDosPlotter(NotebookWriter):
 
         Return: |matplotlib-Figure|
         """
+        if spin_mode == "automatic":
+            spin_mode = "resolved" if any(edos.nsppol == 2 for edos in self.edoses_dict.values()) else "total"
+
         what_list = list_strings(what_list)
         nrows, ncols = len(what_list), 1
         ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
@@ -3558,7 +3565,7 @@ class ElectronDosPlotter(NotebookWriter):
     plot = combiplot
 
     @add_fig_kwargs
-    def gridplot(self, what="dos", spin_mode="total", e0="fermie",
+    def gridplot(self, what="dos", spin_mode="automatic", e0="fermie",
                  sharex=True, sharey=True, xlims=None, fontsize=8, **kwargs):
         """
         Plot multiple DOSes on a grid.
@@ -3567,6 +3574,7 @@ class ElectronDosPlotter(NotebookWriter):
             what: "dos" to plot DOS, "idos" for integrated DOS.
             spin_mode: "total" for total (I)DOS, "resolved" for plotting individual contributions.
                 Meaningful only if nsppol == 2.
+                "automatic" to use "resolved" if at least one DOS is polarized.
             e0: Option used to define the zero of energy in the band structure plot. Possible values::
 
                 - ``fermie``: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.
@@ -3587,6 +3595,9 @@ class ElectronDosPlotter(NotebookWriter):
 
         Return: |matplotlib-Figure|
         """
+        if spin_mode == "automatic":
+            spin_mode = "resolved" if any(edos.nsppol == 2 for edos in self.edoses_dict.values()) else "total"
+
         titles = list(self.edoses_dict.keys())
         edos_list = self.edos_list
 
@@ -4136,11 +4147,14 @@ class RobotWithEbands(object):
         """Wraps gridplot method of |ElectronDosPlotter|. kwargs passed to gridplot."""
         return self.get_edos_plotter().gridplot(**kwargs)
 
-    def get_ebands_plotter(self, filter_abifile=None, cls=None):
+    def get_ebands_plotter(self, kselect=None, filter_abifile=None, cls=None):
         """
-        Build and return an instance of |ElectronBandsPlotter| or a subclass is ``cls`` is not None.
+        Build and return an instance of |ElectronBandsPlotter| or a subclass if ``cls`` is not None.
 
         Args:
+            kselect (str): Used to select particula `ebands`.
+                "path" to select bands given on a k-path, "ibz" for bands with IBZ sampling.
+                None has not effect
             filter_abifile: Function that receives an ``abifile`` object and returns
                 True if the file should be added to the plotter.
             cls: subclass of |ElectronBandsPlotter|.
@@ -4149,6 +4163,9 @@ class RobotWithEbands(object):
 
         for label, abifile in self.items():
             if filter_abifile is not None and not filter_abifile(abifile): continue
+            if kselect is not None:
+                if kselect == "path" and not abifile.ebands.kpoints.is_path: continue
+                if kselect == "ibz" and not abifile.ebands.kpoints.is_ibz: continue
             plotter.add_ebands(label, abifile.ebands)
 
         return plotter

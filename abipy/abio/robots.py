@@ -511,7 +511,7 @@ class Robot(NotebookWriter):
 
     def _repr_html_(self):
         """Integration with jupyter_ notebooks."""
-        return "<ol>\n{}\n</ol>".format("\n".join("<li>%s</li>" % label for label, abifile in self.items()))
+        return '<ol start="0">\n{}\n</ol>'.format("\n".join("<li>%s</li>" % label for label, abifile in self.items()))
 
     @property
     def abifiles(self):
