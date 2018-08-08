@@ -24,3 +24,4 @@ class TestGsWorks(AbipyTest):
         work = gs_works.EosWork.from_scf_input(scf_input, npoints=3, deltap_vol=0.25, ecutsm=0.5, move_atoms=False)
         assert len(work) == 7
         assert all(isinstance(task, flowtk.ScfTask) for task in work)
+        self.abivalidate_work(work)

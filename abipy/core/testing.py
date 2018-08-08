@@ -51,7 +51,7 @@ def has_abinit(version=None, op=">=", manager=None):
     from abipy.flowtk import TaskManager, AbinitBuild
     manager = TaskManager.from_user_config() if manager is None else manager
     build = AbinitBuild(manager=manager)
-    if version is not None:
+    if version is None:
         return build.version != "0.0.0"
     else:
         return cmp_version(build.version, version, op=op)
@@ -570,7 +570,6 @@ def notebook_run(path):
         nb = nbformat.read(fout, nbformat.current_nbformat)
 
     errors = [output for cell in nb.cells if "outputs" in cell
-              for output in cell["outputs"]\
-              if output.output_type == "error"]
+              for output in cell["outputs"] if output.output_type == "error"]
 
     return nb, errors

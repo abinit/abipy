@@ -38,7 +38,7 @@ __all__ = [
     "scf_piezo_elastic_inputs",
     "scf_for_phonons",
     "dte_from_gsinput",
-    "dfpt_from_gsinput"
+    "dfpt_from_gsinput",
 ]
 
 

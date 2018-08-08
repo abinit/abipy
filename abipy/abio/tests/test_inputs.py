@@ -415,6 +415,12 @@ class TestAbinitInput(AbipyTest):
         # Validate with Abinit
         self.abivalidate_multi(ddk_inputs)
 
+        oneshot_ddk_inputs = gs_inp.make_ddk_inputs(kptopt=3, only_vk=True)
+        for inp in oneshot_ddk_inputs:
+            assert inp["kptopt"] == 3
+            assert inp["nstep"] == 1
+            assert inp["nline"] == 1
+
         #############
         # DDE methods
         #############

@@ -11,14 +11,13 @@ from collections import OrderedDict
 from monty.functools import lazy_property
 from monty.string import marquee
 from monty.termcolor import cprint
-from abipy.core.tensor import Tensor
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
 from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
 from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt, rotate_ticklabels, set_visible
 from abipy.dfpt.phonons import InteratomicForceConstants
 from abipy.dfpt.ddb import Becs
-from abipy.dfpt.tensors import NLOpticalSusceptibilityTensor
+from abipy.dfpt.tensors import Tensor, DielectricTensor, NLOpticalSusceptibilityTensor
 from abipy.dfpt.elastic import ElasticData
 
 
@@ -91,6 +90,11 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         app("")
         app(self.structure.to_string(verbose=verbose, title="Structure"))
 
+        import json
+        app(marquee("Parameters", mark="="))
+        app(json.dumps(self.params, indent=2, sort_keys=True))
+        app("")
+
         if self.has_elastic_data:
             app("")
             df = self.elastic_data.get_average_elastic_dataframe(tensor="elastic_relaxed")
@@ -104,38 +108,58 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
                 app(df.T.to_string(index=True))
 
             if verbose:
-                df = self.elastic_data.get_voigt_dataframe(["elastic_relaxed", "elastic_clamped"])
+                df = self.elastic_data.get_voigt_dataframe()
                 app(df.T.to_string())
+
+        if self.emacro is not None:
+            app("Macroscopic dielectric tensor (Cartesian coords)")
+            app(str(self.emacro))
+            app("")
+
+        if self.emacro_rlx is not None:
+            app("Relaxed ion Macroscopic dielectric tensor (Cartesian coords)")
+            app(str(self.emacro_rlx))
+            app("")
+
+        #if self.becs is not None:
+
+        if self.dchide is not None:
+            app("Non-linear optical susceptibility tensor.")
+            app(str(self.dchide))
+            app("")
+
+        if self.dchidt is not None:
+            app("First-order change in the linear dielectric susceptibility.")
+            app(str(self.dchidt))
+            app("")
 
         #if self.has_piezoelectric_data:
         #    df = self.elastic_data.get_piezoelectric_dataframe()
-
-        #app(str(self.params))
 
         return "\n".join(lines)
 
     @lazy_property
     def emacro(self):
         """
-        Macroscopic dielectric tensor. None if the file does not contain this information.
+        Macroscopic dielectric tensor.
+        None if the file does not contain this information.
         """
         try:
-            return Tensor.from_cartesian_tensor(self.reader.read_value("emacro_cart"),
-                                                self.structure.lattice, space="r")
+            return DielectricTensor(self.reader.read_value("emacro_cart"))
         except Exception as exc:
-            print(exc, "Returning None", sep="\n")
+            #print(exc, "Returning None", sep="\n")
             return None
 
     @lazy_property
     def emacro_rlx(self):
         """
-        Relaxed ion Macroscopic dielectric tensor. None if the file does not contain this information.
+        Relaxed ion Macroscopic dielectric tensor.
+        None if the file does not contain this information.
         """
         try:
-            return Tensor.from_cartesian_tensor(self.reader.read_value("emacro_cart_rlx"),
-                                                self.structure.lattice, space="r")
+            return DielectricTensor(self.reader.read_value("emacro_cart_rlx"))
         except Exception as exc:
-            print(exc, "Requires dieflag > 0", "Returning None", sep="\n")
+            #print(exc, "Requires dieflag > 0", "Returning None", sep="\n")
             return None
 
     @lazy_property
@@ -147,7 +171,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         try:
             return Becs(self.reader.read_value("becs_cart"), self.structure, chneut=chneut, order="f")
         except Exception as exc:
-            print(exc, "Returning None", sep="\n")
+            #print(exc, "Returning None", sep="\n")
             return None
 
     @lazy_property
@@ -160,8 +184,8 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         try:
             return InteratomicForceConstants.from_file(self.filepath)
         except Exception as exc:
-            print(exc)
-            cprint("Interatomic force constants have not been calculated. Returning None", "red")
+            #print(exc)
+            #cprint("Interatomic force constants have not been calculated. Returning None", "red")
             return None
 
     @lazy_property
@@ -173,7 +197,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         try:
             return NLOpticalSusceptibilityTensor(self.reader.read_value("dchide"))
         except Exception as exc:
-            print(exc, "Requires nlflag > 0", "Returning None", sep="\n")
+            #print(exc, "Requires nlflag > 0", "Returning None", sep="\n")
             return None
 
     @lazy_property
@@ -186,18 +210,19 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         None if the file does not contain this information.
         """
         try:
-            a = self.reader.read_value("dchidt").T
-            dchidt = []
-            for i in a:
-                d = []
-                for j in i:
-                    d.append(Tensor.from_cartesian_tensor(j, self.structure.lattice, space="r"))
-                dchidt.append(d)
-
-            return dchidt
+            a = self.reader.read_value("dchidt").T.copy()
         except Exception as exc:
-            print(exc, "Requires 0 < nlflag < 3", "Returning None", sep="\n")
+            #print(exc, "Requires 0 < nlflag < 3", "Returning None", sep="\n")
             return None
+
+        dchidt = []
+        for i in a:
+            d = []
+            for j in i:
+                d.append(Tensor(j))
+            dchidt.append(d)
+
+        return dchidt
 
     @lazy_property
     def oscillator_strength(self):
@@ -209,7 +234,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         try:
             return self.reader.read_value("oscillator_strength", cmode="c")
         except Exception as exc:
-            print(exc, "Oscillator strengths require dieflag == 1, 3 or 4", "Returning None", sep="\n")
+            #print(exc, "Oscillator strengths require dieflag == 1, 3 or 4", "Returning None", sep="\n")
             return None
 
     @lazy_property
@@ -266,18 +291,9 @@ class AnaddbNcRobot(Robot):
         return all(ncfile.has_elastic_data for ncfile in self.abifiles)
 
     def get_dataframe(self):
-
         if self.has_elastic_data:
             return self.get_elastic_dataframe()
-            #for ncfile in self.abifiles:
-            #    df = ncfile.elastic_data.get_elast_properties_dataframe(etypes=["elastic_relaxed"])
-            #    df_list.append(df)
-
-            #df_list = []
-            #df = pd.concat(df_list, ignore_index=True)
-            #df["labels"] = list(self.keys())
-            #df.set_index("labels", inplace=True)
-            #return df
+        return None
 
     def get_elastic_dataframe(self, with_geo=True, abspath=False, with_params=False, funcs=None, **kwargs):
         """
@@ -322,7 +338,6 @@ class AnaddbNcRobot(Robot):
 
             rows.append(d)
 
-        #index = index if not abspath else self._to_relpaths(index)
         return pd.DataFrame(rows, index=index, columns=list(rows[0].keys() if rows else None))
 
     @add_fig_kwargs
@@ -369,34 +384,6 @@ class AnaddbNcRobot(Robot):
 
     #def get_voigt_dataframe(self, tensor_names):
     #    ncfile.get_voigt_dataframe(self, tensor_names):
-
-#    @add_fig_kwargs
-#    def plot_gsr_convergence(self, sortby=None, hue=None, fontsize=6,
-#                             items=("energy", "pressure", "max_force"), **kwargs):
-#        """
-#        Plot the convergence of the most important quantities available in the GSR file
-#        wrt to the ``sortby`` parameter. Values can optionally be grouped by ``hue``.
-#
-#        Args:
-#            sortby: Define the convergence parameter, sort files and produce plot labels.
-#                Can be None, string or function. If None, no sorting is performed.
-#                If string and not empty it's assumed that the abifile has an attribute
-#                with the same name and `getattr` is invoked.
-#                If callable, the output of sortby(abifile) is used.
-#            hue: Variable that define subsets of the data, which will be drawn on separate lines.
-#                Accepts callable or string
-#                If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
-#                If callable, the output of hue(abifile) is used.
-#            items: List of GSR attributes (or callables) to be analyzed.
-#            fontsize: legend and label fontsize.
-#
-#        Returns: |matplotlib-Figure|
-#
-#        Example:
-#
-#             robot.plot_gsr_convergence(sortby="nkpt", hue="tsmear")
-#        """
-#        return self.plot_convergence_items(items, sortby=sortby, hue=hue, fontsize=fontsize, show=False, **kwargs)
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """

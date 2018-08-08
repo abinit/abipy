@@ -248,10 +248,18 @@ class DdbTest(AbipyTest):
                  [  5.66391495e-24,   2.28904397e-24,  -2.19362823e+00]]
                 ]
 
+            ref_emacro = [[ 5.42055574e+00,  8.88178420e-16, -1.30717901e-25],
+                          [-8.88178420e-16,  5.42055574e+00, -2.26410045e-25],
+                          [-1.30717901e-25,  2.26410045e-25,  4.98835236e+00]]
+
             self.assert_almost_equal(becs.values, ref_becs_values)
-            #self.assert_almost_equal(emacro.values, ref_emacro_values)
+            self.assert_almost_equal(emacro, ref_emacro)
             repr(becs); str(becs)
             assert becs.to_string(verbose=2)
+            for arr, z in zip(becs.values, becs.zstars):
+                self.assert_equal(arr, z)
+            df = becs.get_voigt_dataframe(select_symbols="O")
+            assert len(df) == 2
 
             # get the dielectric tensor generator from anaddb
             dtg = ddb.anaget_dielectric_tensor_generator(verbose=2)
@@ -340,14 +348,16 @@ class DdbTest(AbipyTest):
             self.assert_almost_equal(ddb.total_energy.to("Ha"), -0.10085769246152e+02)
             assert ddb.cart_forces is not None
             stress = ddb.cart_stress_tensor
+            # Ha/Bohr^3 from DDB
             ref_voigt = np.array([-0.31110177329142E-05, -0.31110177329142E-05, -0.31110177329146E-05,
                                   0.00000000000000E+00, 0.00000000000000E+00, 0.00000000000000E+00])
-            self.assert_almost_equal(stress[0, 0], ref_voigt[0] * abu.Ha_eV / abu.Bohr_Ang**3)
-            self.assert_almost_equal(stress[1, 1], ref_voigt[1] * abu.Ha_eV / abu.Bohr_Ang**3)
-            self.assert_almost_equal(stress[2, 2], ref_voigt[2] * abu.Ha_eV / abu.Bohr_Ang**3)
-            self.assert_almost_equal(stress[1, 2], ref_voigt[3] * abu.Ha_eV / abu.Bohr_Ang**3)
-            self.assert_almost_equal(stress[0, 2], ref_voigt[4] * abu.Ha_eV / abu.Bohr_Ang**3)
-            self.assert_almost_equal(stress[0, 1], ref_voigt[5] * abu.Ha_eV / abu.Bohr_Ang**3)
+            # AbiPy stress is in GPa
+            self.assert_almost_equal(stress[0, 0], ref_voigt[0] * abu.HaBohr3_GPa)
+            self.assert_almost_equal(stress[1, 1], ref_voigt[1] * abu.HaBohr3_GPa)
+            self.assert_almost_equal(stress[2, 2], ref_voigt[2] * abu.HaBohr3_GPa)
+            self.assert_almost_equal(stress[1, 2], ref_voigt[3] * abu.HaBohr3_GPa)
+            self.assert_almost_equal(stress[0, 2], ref_voigt[4] * abu.HaBohr3_GPa)
+            self.assert_almost_equal(stress[0, 1], ref_voigt[5] * abu.HaBohr3_GPa)
 
             for qpoint in ddb.qpoints:
                 assert qpoint in ddb.computed_dynmat
@@ -469,13 +479,28 @@ class DdbRobotTest(AbipyTest):
         with abilab.DdbRobot.from_files(filepaths) as robot:
             robot.add_file("samefile", filepaths[0])
             assert len(robot) == 2
+
+            # Test anacompare_elastic
             ddb_header_keys=["nkpt", "tsmear"]
             df, edata_list = robot.anacompare_elastic(ddb_header_keys=ddb_header_keys,
                 with_structure=True, with_spglib=False, relaxed_ion="automatic", piezo="automatic", verbose=1)
             assert "tensor_name" in df.keys()
+            assert "ddb_path" in df
             for k in ddb_header_keys:
                 assert k in df
             assert len(edata_list) == 2
+
+            # Test anacompare_becs
+            df, becs_list = robot.anacompare_becs(ddb_header_keys=ddb_header_keys, chneut=1, verbose=2)
+            for k in ddb_header_keys:
+                assert k in df
+            #assert "ddb_path" in df and (0, 0) in df
+            assert len(becs_list) == 2
+
+            # Test anacompare_emacro
+            #df, emacro_list = robot.anacompare_emacro(ddb_header_keys=ddb_header_keys, verbose=2)
+            #assert "ddb_path" in df and (0, 0) in df
+            #assert len(emacro_list) == 2
 
 
 class PhononComputationTest(AbipyTest):

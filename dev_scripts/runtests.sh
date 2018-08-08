@@ -2,8 +2,6 @@
 set -e  # exit on first error
 #set -ev  # exit on first error, print each command
 
-echo "PMG_MAPI_KEY: ${PMG_MAPI_KEY}" > ${HOME}/.pmgrc.yaml
-
 abinit --version
 abinit --build
 abicheck.py --with-flow

@@ -11,31 +11,27 @@ import pandas as pd
 import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
-from six.moves import map, zip, StringIO
+from six.moves import map, zip
 from monty.string import marquee, list_strings
 from monty.collections import AttrDict, dict2namedtuple, tree
 from monty.functools import lazy_property
 from monty.termcolor import cprint
+from pymatgen.analysis.elasticity import Tensor, Stress, ElasticTensor
+from pymatgen.core.units import eV_to_Ha, bohr_to_angstrom, Energy
 from abipy.flowtk import NetcdfReader, AnaddbTask
 from abipy.core.mixins import TextFile, Has_Structure, NotebookWriter
 from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.core.structure import Structure
 from abipy.core.kpoints import KpointList, Kpoint
-from abipy.core.tensor import Tensor
 from abipy.iotools import ETSF_Reader
 from abipy.abio.inputs import AnaddbInput
 from abipy.dfpt.phonons import PhononDosPlotter, PhononBandsPlotter, InteratomicForceConstants
 from abipy.dfpt.tensors import DielectricTensor
 from abipy.dfpt.elastic import ElasticData
 from abipy.core.abinit_units import phfactor_ev2units, phunit_tag #Ha_cmm1,
-from pymatgen.analysis.elasticity import Stress, ElasticTensor
-from pymatgen.core.units import eV_to_Ha, bohr_to_angstrom, Energy
 from abipy.tools.plotting import Marker, add_fig_kwargs, get_ax_fig_plt, set_axlims
 from abipy.tools import duck
 from abipy.abio.robots import Robot
-
-import logging
-logger = logging.getLogger(__name__)
 
 try:
     from functools import lru_cache
@@ -132,6 +128,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         spgid, has_timerev, h = 0, True, self.header
         self._structure.set_abi_spacegroup(AbinitSpaceGroup(spgid, h.symrel, h.tnons, h.symafm, has_timerev))
 
+        # Add forces to structure.
+        if self.cart_forces is not None:
+            self._structure.add_site_property("cartesian_forces", self.cart_forces)
+
         frac_coords = self._read_qpoints()
         self._qpoints = KpointList(self.structure.lattice.reciprocal_lattice, frac_coords, weights=None, names=None)
 
@@ -153,16 +153,21 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         app("")
         app("Number of q-points in DDB: %d" % len(self.qpoints))
         app("guessed_ngqpt: %s (guess for the q-mesh divisions made by AbiPy)" % self.guessed_ngqpt)
-        app("Has total energy: %s, Has forces: %s" % (self.total_energy is not None, self.cart_forces is not None))
+        app("Has total energy: %s, Has forces: %s" % (
+            self.total_energy is not None, self.cart_forces is not None))
         if self.total_energy is not None:
             app("Total energy: %s [eV]" % self.total_energy)
-        if self.cart_forces is not None:
-            app("Cartesian forces (eV/Ang):\n%s" % (self.cart_forces))
-            app("")
-        app("Has stress tensor: %s" % (self.cart_stress_tensor is not None))
+        #app("Has forces: %s" % (
+        #if self.cart_forces is not None:
+        #    app("Cartesian forces (eV/Ang):\n%s" % (self.cart_forces))
+        #    app("")
         if self.cart_stress_tensor is not None:
-            app("Stress tensor (eV/Ang^3):\n%s" % (self.cart_stress_tensor))
             app("")
+            app("Cartesian stress tensor in GPa with pressure %.3e (GPa):\n%s" % (
+                - self.cart_stress_tensor.trace() / 3, self.cart_stress_tensor))
+        else:
+            app("Has stress tensor: %s" % (self.cart_stress_tensor is not None))
+        app("")
         app("Has (at least one) atomic pertubation: %s" % self.has_at_least_one_atomic_perturbation())
         #app("Has (at least one) electric-field perturbation: %s" % self.has_emacro_terms(select="at_least_one"))
         #app("Has (all) electric-field perturbation: %s" % self.has_emacro_terms(select="all"))
@@ -525,14 +530,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """
         Cartesian forces in eV / Ang
         None if not available i.e. if the GS DDB has not been merged.
-
-        .. note::
-
-            These values correspond to the `fred` array in abinit
-            this array has *not* been corrected by enforcing
-            the translational symmetry, namely that the sum of force
-            on all atoms is not necessarly zero.
-            So inconsistencies with the results reported in the output file are expected.
         """
         for block in self.blocks:
             if block["dord"] != 1: continue
@@ -544,9 +541,21 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 idir, ipert = int(idir) - 1, int(ipert) - 1
                 if ipert < natom:
                     fred[ipert, idir] = float(fval.replace("D", "E"))
-            # FIXME
-            gprimd = self.structure.reciprocal_lattice.matrix
-            fcart = - fred
+
+            # Fred stores d(etotal)/d(xred)
+            # this array has *not* been corrected by enforcing
+            # the translational symmetry, namely that the sum of force
+            # on all atoms is not necessarly zero.
+            # Compute fcart using same code as in fred2fcart.
+            # Note conversion to cartesian coordinates (bohr) AND
+            # negation to make a force out of a gradient.
+            gprimd = self.structure.reciprocal_lattice.matrix / (2 * np.pi) * abu.Bohr_Ang
+            #fcart = - np.matmul(fred, gprimd)
+            fcart = - np.matmul(fred, gprimd.T)
+            # Subtract off average force from each force component
+            favg = fcart.sum(axis=0) / len(self.structure)
+            fcart -= favg
+
             return fcart * abu.Ha_eV / abu.Bohr_Ang
 
         return None
@@ -554,7 +563,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     @lazy_property
     def cart_stress_tensor(self):
         """
-        pymatgen Stress tensor in cartesian coordinates (Hartree/Bohr^3)
+        |pmg-Stress| tensor in cartesian coordinates (GPa units).
         None if not available.
         """
         for block in self.blocks:
@@ -577,7 +586,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 if idp in dirper2voigt:
                     svoigt[dirper2voigt[idp]] = float(fval.replace("D", "E"))
 
-            return Stress.from_voigt(svoigt * abu.Ha_eV / (abu.Bohr_Ang**3))
+            # Convert from Ha/Bohr^3 to GPa
+            return Stress.from_voigt(svoigt * abu.HaBohr3_GPa)
 
         return None
 
@@ -1167,7 +1177,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     def anaget_emacro_and_becs(self, chneut=1, mpi_procs=1, workdir=None, manager=None, verbose=0):
         """
-        Call anaddb to compute the macroscopic dielectric tensor and the Born effective charges.
+        Call anaddb to compute the macroscopic electronic dielectric tensor (e_inf)
+        in Cartesian coordinates and the Born effective charges.
 
         Args:
             chneut: Anaddb input variable. See official documentation.
@@ -1188,8 +1199,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         # Read data from the netcdf output file produced by anaddb.
         with ETSF_Reader(os.path.join(task.workdir, "anaddb.nc")) as r:
             structure = r.read_structure()
-            # TODO Replace with pymatgen tensors
-            emacro = Tensor.from_cartesian_tensor(r.read_value("emacro_cart"), structure.lattice, space="r"),
+            emacro = DielectricTensor(r.read_value("emacro_cart"))
             becs = Becs(r.read_value("becs_cart"), structure, chneut=inp["chneut"], order="f")
 
             return emacro, becs
@@ -1500,7 +1510,7 @@ class Becs(Has_Structure):
     def __init__(self, becs_arr, structure, chneut, order="c"):
         """
         Args:
-            becs_arr: (3, 3, natom) array with the Born effective charges in Cartesian coordinates.
+            becs_arr: [3, 3, natom] array with the Born effective charges in Cartesian coordinates.
             structure: |Structure| object.
             chneut: Option used for the treatment of the Charge Neutrality requirement
                 for the effective charges (anaddb input variable)
@@ -1510,11 +1520,14 @@ class Becs(Has_Structure):
         self._structure = structure
         self.chneut = chneut
 
+        # Values is a numpy array while zstars is a list of Tensor objects.
         self.values = np.empty((len(structure), 3, 3))
         for i, bec in enumerate(becs_arr):
             mat = becs_arr[i]
-            if order.lower() == "f": mat = mat.T
+            if order.lower() == "f": mat = mat.T.copy()
             self.values[i] = mat
+
+        self.zstars = [Tensor(mat) for mat in self.values]
 
     @property
     def structure(self):
@@ -1526,33 +1539,55 @@ class Becs(Has_Structure):
 
     def to_string(self, verbose=0):
         """String representation."""
-        lines = []
-        app = lines.append
-        app("Born effective charges computed with chneut: %d\n" % self.chneut)
-        for site, bec in zip(self.structure, self.values):
-            app("Z* at site: %s" % repr(site))
-            app(str(bec))
-            app("")
+        lines = []; app = lines.append
+        app("Born effective charges in Cartesian coordinates (Voigt notation)")
+        app(self.get_voigt_dataframe().to_string())
+        app("")
+
+        if verbose:
+            app("Born effective charges (full tensor)")
+            for site, bec in zip(self.structure, self.values):
+                app("Z* at site: %s" % repr(site))
+                app(str(bec))
+                app("")
 
         # Add info on the bec sum rule.
-        stream = StringIO()
-        self.check_sumrule(stream=stream)
-        app(stream.getvalue())
-
-        #app("Born effective charge neutrality sum-rule with chneut: %d\n" % self.chneut)
-        #app(str(self.sumrule))
+        app("Born effective charge neutrality sum-rule with chneut: %d\n" % self.chneut)
+        app(str(self.sumrule))
 
         return "\n".join(lines)
 
     @property
     def sumrule(self):
-        """Born effective charge neutrality sum-rule."""
+        """[3, 3] matrix with Born effective charge neutrality sum-rule."""
         return self.values.sum(axis=0)
 
-    # TODO: Deprecated
-    def check_sumrule(self, stream=sys.stdout):
-        stream.write("Born effective charge neutrality sum-rule with chneut: %d\n" % self.chneut)
-        stream.write(str(self.sumrule))
+    def _repr_html_(self):
+        """Integration with jupyter notebooks."""
+        return self.get_voigt_dataframe()._repr_html_()
+
+    def get_voigt_dataframe(self, select_symbols=None):
+        """
+        Return |pandas-DataFrame| with Voigt indices as columns and natom rows.
+
+        Args:
+            select_symbols: String or list of strings with chemical symbols.
+                Used to select only atoms of this type.
+        """
+        select_symbols = set(list_strings(select_symbols)) if select_symbols is not None else None
+
+        columns = ["xx", "yy", "zz", "yz", "xz", "xy"]
+        rows = []
+        for site, zstar in zip(self.structure, self.zstars):
+            if select_symbols is not None and site.specie.symbol not in select_symbols: continue
+            d = OrderedDict()
+            d["element"] = site.specie.symbol
+            d["frac_coords"] = site.frac_coords
+            for k, v in zip(columns, zstar.voigt):
+                d[k] = v
+            rows.append(d)
+
+        return pd.DataFrame(rows, index=None, columns=list(rows[0].keys()))
 
 
 class DielectricTensorGenerator(Has_Structure):
@@ -1627,7 +1662,7 @@ class DielectricTensorGenerator(Has_Structure):
 
         phfreqs = phbands.phfreqs[gamma_index]
 
-        emacro = anaddbnc.emacro.cartesian_tensor
+        emacro = anaddbnc.emacro
         oscillator_strength = anaddbnc.oscillator_strength
 
         return cls(phfreqs, oscillator_strength, emacro, anaddbnc.structure)
@@ -1776,73 +1811,70 @@ class DdbRobot(Robot):
     #
     #    return np.array(qpoints)
 
-    # Uncomment this method to use `abicomp ddb */out_DDB -p`
-    #def to_string(self, **kwargs):
-    #    self.find_duplicated_entries()
+    # DEBUGGING CODE (do not remove)
+    #def find_duplicated_entries(self, std_tol=1e-5, verbose=1):
+    #    """
+    #    Check for duplicated entries in the list of ddb files
 
-    def find_duplicated_entries(self, std_tol=1e-5, verbose=1):
-        """
-        Check for duplicated entries in the list of ddb files
+    #    Args:
+    #        std_tol: Tolerance on standard deviation
+    #        verbose: Verbosity level.
 
-        Args:
-            std_tol: Tolerance on standard deviation
-            verbose: Verbosity level.
+    #    Return: (retcode, results) where results maps qpt --> DataFrame with perts as index.
+    #    """
+    #    from pprint import pprint
 
-        Return: (retcode, results) where results maps qpt --> DataFrame with perts as index.
-        """
-        from pprint import pprint
+    #    # Build q --> group of dataframes.
+    #    from collections import defaultdict
+    #    q2dfgroup = defaultdict(list)
+    #    for ddb in self.abifiles:
+    #        for qpt, df in ddb.computed_dynmat.items():
+    #            q2dfgroup[qpt].append(df)
 
-        # Build q --> group of dataframes.
-        from collections import defaultdict
-        q2dfgroup = defaultdict(list)
-        for ddb in self.abifiles:
-            for qpt, df in ddb.computed_dynmat.items():
-                q2dfgroup[qpt].append(df)
+    #    retcode, results = 0, {}
+    #    for qpt, dfgroup in q2dfgroup.items():
+    #        all_indset = [set(df.index) for df in dfgroup]
+    #        # Build union of all dynmat indices with this q
+    #        allps = set(all_indset[0]).union(*all_indset)
+    #        #allps = set(all_indset[0]).intersection(*all_indset)
 
-        retcode, results = 0, {}
-        for qpt, dfgroup in q2dfgroup.items():
-            all_indset = [set(df.index) for df in dfgroup]
-            # Build union of all dynmat indices with this q
-            allps = set(all_indset[0]).union(*all_indset)
-            #allps = set(all_indset[0]).intersection(*all_indset)
+    #        index, d_list = [], []
+    #        for p in allps:
+    #            # Find dataframes with this p
+    #            found = [p in index for index in all_indset]
+    #            count = found.count(True)
+    #            if count == 1: continue
+    #            if verbose:
+    #                print("Found %s duplicated entries for p: %s" % (count, str(p)))
 
-            index, d_list = [], []
-            for p in allps:
-                # Find dataframes with this p
-                found = [p in index for index in all_indset]
-                count = found.count(True)
-                if count == 1: continue
-                if verbose:
-                    print("Found %s duplicated entries for p: %s" % (count, str(p)))
+    #            # Compute stats for this p (complex numbers)
+    #            cvalues = []
+    #            for f, df in zip(found, dfgroup):
+    #                if not f: continue
+    #                c = df["cvalue"].loc[[p]]
+    #                cvalues.append(c)
 
-                # Compute stats for this p (complex numbers)
-                cvalues = []
-                for f, df in zip(found, dfgroup):
-                    if not f: continue
-                    c = df["cvalue"].loc[[p]]
-                    cvalues.append(c)
+    #            cvalues = np.array(cvalues)
+    #            norms = np.abs(cvalues)
+    #            d = dict(mean=cvalues.mean(), std=cvalues.std(),
+    #                     min_norm=norms.min(), max_norm=norms.max(), count=count)
 
-                cvalues = np.array(cvalues)
-                norms = np.abs(cvalues)
-                d = dict(mean=cvalues.mean(), std=cvalues.std(),
-                         min_norm=norms.min(), max_norm=norms.max(), count=count)
+    #            # Print warning if large deviation
+    #            #if d["max_norm"]  - d["min_norm"] > 1e-5:
+    #            if d["std"] > std_tol:
+    #                retcode += 1
+    #                cprint("Found std > %s" % std_tol, "red")
+    #                pprint(cvalues)
+    #            if verbose:
+    #                pprint(d)
+    #                print(2 * "")
 
-                # Print warning if large deviation
-                #if d["max_norm"]  - d["min_norm"] > 1e-5:
-                if d["std"] > std_tol:
-                    retcode += 1
-                    cprint("Found std > %s" % std_tol, "red")
-                    pprint(cvalues)
-                if verbose:
-                    pprint(d)
-                    print(2 * "")
+    #            d_list.append(d)
+    #            index.append(p)
 
-                d_list.append(d)
-                index.append(p)
+    #        results[qpt] = pd.DataFrame(d_list, index=index)
 
-            results[qpt] = pd.DataFrame(d_list, index=index)
-
-        return retcode, results
+    #    return retcode, results
 
     def get_dataframe_at_qpoint(self, qpoint=None, units="eV", asr=2, chneut=1, dipdip=1,
 	    with_geo=True, with_spglib=True, abspath=False, funcs=None):
@@ -1938,7 +1970,7 @@ class DdbRobot(Robot):
         return dict2namedtuple(phbands_plotter=phbands_plotter, phdos_plotter=phdos_plotter)
 
     def anacompare_elastic(self, ddb_header_keys=None, with_structure=True,
-	    with_spglib=True, manager=None, **kwargs):
+	    with_spglib=True, manager=None, verbose=0, **kwargs):
         """
         Compute elastic and piezoelectric properties for all DDBs in the robot and build DataFrame.
 
@@ -1948,7 +1980,8 @@ class DdbRobot(Robot):
             with_structure: True to add structure parameters to the DataFrame.
 	    with_spglib: True to compute sgplib space group and add it to the DataFrame.
             manager: |TaskManager| object. If None, the object is initialized from the configuration file
-	    kwargs: Keyword arguments passed to `ddb.anaget_elastic`.
+            verbose: verbosity level. Set it to a value > 0 to get more information
+            kwargs: Keyword arguments passed to `ddb.anaget_elastic`.
 
         Return: DataFrame and list of ElastData objects.
         """
@@ -1956,7 +1989,7 @@ class DdbRobot(Robot):
         df_list, elastdata_list = [], []
         for label, ddb in self.items():
             # Invoke anaddb to compute elastic data.
-            edata = ddb.anaget_elastic(**kwargs)
+            edata = ddb.anaget_elastic(verbose=verbose, **kwargs)
             elastdata_list.append(edata)
 
 	    # Build daframe with properties derived from the elastic tensor.
@@ -1973,20 +2006,83 @@ class DdbRobot(Robot):
 
             # Add path to the DDB file.
             df["ddb_path"] = ddb.filepath
-
             df_list.append(df)
 
         # Concatenate dataframes.
         return pd.concat(df_list), elastdata_list
 
+    def anacompare_becs(self, ddb_header_keys=None, chneut=1, verbose=0):
+        """
+        Compute Born effective charges for all DDBs in the robot and build DataFrame.
+        with Voigt indices as colums + metadata. Useful for convergence studies.
+
+        Args:
+            ddb_header_keys: List of keywords in the header of the DDB file
+                whose value will be added to the Dataframe.
+            verbose: verbosity level. Set it to a value > 0 to get more information
+
+        Return: DataFrame and list of Becs objects
+        """
+        ddb_header_keys = [] if ddb_header_keys is None else list_strings(ddb_header_keys)
+        df_list, becs_list = [], []
+        for label, ddb in self.items():
+            # Invoke anaddb to compute Becs
+            _, becs = ddb.anaget_emacro_and_becs(chneut=chneut, verbose=verbose)
+            becs_list.append(becs)
+            df = becs.get_voigt_dataframe()
+
+            # Add metadata to the dataframe.
+            df["chneut"] = chneut
+            for k in list_strings(ddb_header_keys):
+                df[k] = ddb.header[k]
+
+            # Add path to the DDB file.
+            df["ddb_path"] = ddb.filepath
+            df_list.append(df)
+
+        # Concatenate dataframes.
+        return pd.concat(df_list), becs_list
+
+    #def anacompare_emacro(self, ddb_header_keys=None, verbose=0):
+    #    """
+    #    Compute Born effective charges for all DDBs in the robot and build DataFrame.
+    #    with Voigt indices as colums + metadata. Useful for convergence studies.
+
+    #    Args:
+    #        ddb_header_keys: List of keywords in the header of the DDB file
+    #            whose value will be added to the Dataframe.
+    #        verbose: verbosity level. Set it to a value > 0 to get more information
+
+    #    Return: DataFrame and list of DielectricTensor objects
+    #    """
+    #    ddb_header_keys = [] if ddb_header_keys is None else list_strings(ddb_header_keys)
+    #    df_list, emacro_list = [], []
+    #    for label, ddb in self.items():
+    #        # Invoke anaddb to compute Becs
+    #        emacro, _ = ddb.anaget_emacro_and_becs(chneut=chneut, verbose=verbose)
+    #        emacro_list.append(emacro)
+    #        df = emacro.get_voigt_dataframe()
+
+    #        # Add metadata to the dataframe.
+    #        for k in list_strings(ddb_header_keys):
+    #            df[k] = ddb.header[k]
+
+    #        # Add path to the DDB file.
+    #        df["ddb_path"] = ddb.filepath
+    #        df_list.append(df)
+
+    #    # Concatenate dataframes.
+    #    return pd.concat(df_list), emacro_list
+
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         """
-        print("Invoking anaddb through anaget_phonon_plotters...")
-        r = self.anaget_phonon_plotters()
-        for fig in r.phbands_plotter.yield_figs(): yield fig
-        for fig in r.phdos_plotter.yield_figs(): yield fig
+        if all(ddb.has_at_least_one_atomic_perturbation() for ddb in self.abifiles):
+            print("Invoking anaddb through anaget_phonon_plotters...")
+            r = self.anaget_phonon_plotters()
+            for fig in r.phbands_plotter.yield_figs(): yield fig
+            for fig in r.phdos_plotter.yield_figs(): yield fig
 
     def write_notebook(self, nbpath=None):
         """
