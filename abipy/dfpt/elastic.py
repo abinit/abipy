@@ -22,9 +22,9 @@ class MyElasticTensor(ElasticTensor):
 
     def _repr_html_(self):
         """Integration with jupyter notebooks."""
-        return self.to_voigt_dataframe()._repr_html_()
+        return self.get_voigt_dataframe()._repr_html_()
 
-    def to_voigt_dataframe(self, tol=1e-5):
+    def get_voigt_dataframe(self, tol=1e-5):
         tensor = self.zeroed(tol) if tol else self
         columns = ["xx", "yy", "zz", "yz", "xz", "xy"]
         #columns = ["1", "2", "3", "4", "5", "6"]
@@ -39,9 +39,9 @@ class MyPiezoTensor(PiezoTensor):
 
     def _repr_html_(self):
         """Integration with jupyter notebooks."""
-        return self.to_voigt_dataframe()._repr_html_()
+        return self.get_voigt_dataframe()._repr_html_()
 
-    def to_voigt_dataframe(self, tol=1e-5):
+    def get_voigt_dataframe(self, tol=1e-5):
         tensor = self.zeroed(tol) if tol else self
         index = ["Px", "Py", "Pz"]
         columns = ["xx", "yy", "zz", "yz", "xz", "xy"]

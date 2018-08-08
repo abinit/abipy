@@ -256,6 +256,10 @@ class DdbTest(AbipyTest):
             self.assert_almost_equal(emacro, ref_emacro)
             repr(becs); str(becs)
             assert becs.to_string(verbose=2)
+            for arr, z in zip(becs.values, becs.zstars):
+                self.assert_equal(arr, z)
+            df = becs.get_voigt_dataframe(select_symbols="O")
+            assert len(df) == 2
 
             # get the dielectric tensor generator from anaddb
             dtg = ddb.anaget_dielectric_tensor_generator(verbose=2)
@@ -475,13 +479,28 @@ class DdbRobotTest(AbipyTest):
         with abilab.DdbRobot.from_files(filepaths) as robot:
             robot.add_file("samefile", filepaths[0])
             assert len(robot) == 2
+
+            # Test anacompare_elastic
             ddb_header_keys=["nkpt", "tsmear"]
             df, edata_list = robot.anacompare_elastic(ddb_header_keys=ddb_header_keys,
                 with_structure=True, with_spglib=False, relaxed_ion="automatic", piezo="automatic", verbose=1)
             assert "tensor_name" in df.keys()
+            assert "ddb_path" in df
             for k in ddb_header_keys:
                 assert k in df
             assert len(edata_list) == 2
+
+            # Test anacompare_becs
+            df, becs_list = robot.anacompare_becs(ddb_header_keys=ddb_header_keys, chneut=1, verbose=2)
+            for k in ddb_header_keys:
+                assert k in df
+            #assert "ddb_path" in df and (0, 0) in df
+            assert len(becs_list) == 2
+
+            # Test anacompare_emacro
+            #df, emacro_list = robot.anacompare_emacro(ddb_header_keys=ddb_header_keys, verbose=2)
+            #assert "ddb_path" in df and (0, 0) in df
+            #assert len(emacro_list) == 2
 
 
 class PhononComputationTest(AbipyTest):

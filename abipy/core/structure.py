@@ -1001,7 +1001,6 @@ class Structure(pymatgen.Structure, NotebookWriter):
             return None
 
     def get_symbol2indices(self):
-
         """
         Return a dictionary mapping chemical symbols to numpy array with the position of the atoms.
 
