@@ -992,10 +992,27 @@ class Structure(pymatgen.Structure, NotebookWriter):
         return self.__class__.from_sites(sorted(self.sites, key=lambda site: site.specie.Z))
 
     def findname_in_hsym_stars(self, kpoint):
-        """Returns the name of the special k-point, None if kpoint is unknown."""
+        """
+        Returns the name of the special k-point, None if kpoint is unknown.
+        """
         if self.abi_spacegroup is None: return None
+
+        from .kpoints import Kpoint
+        kpoint = Kpoint.as_kpoint(kpoint, self.reciprocal_lattice)
+
+        # Try to find kpoint in hsym_stars without taking into accout symmetry operation (compare with base_point)
+        # Important if there are symmetry equivalent k-points in hsym_kpoints e.g. K and U in FCC lattice
+        # as U should not be mapped onto K as done in the second loop below.
+        from .kpoints import issamek
         for star in self.hsym_stars:
-            if star.find(kpoint) != -1:
+            if issamek(kpoint.frac_coords, star.base_point.frac_coords):
+                return star.name
+
+	# Now check if kpoint is in one of the stars.
+        for star in self.hsym_stars:
+            i = star.find(kpoint)
+            if i != -1:
+                #print("input kpt:", kpoint, "star image", star[i], star[i].name)
                 return star.name
         else:
             return None
