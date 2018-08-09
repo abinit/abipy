@@ -105,7 +105,6 @@ branches:
   only:
     - master
     - develop
-    - gp_qha
 
 after_success:
     - if [[ "${ABIPY_COVERALLS}" == "yes" ]]; then coveralls; fi
