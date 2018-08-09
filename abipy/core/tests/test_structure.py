@@ -72,6 +72,10 @@ class TestStructure(AbipyTest):
         with self.assertRaises(ValueError):
             si_wfk.spgset_abi_spacegroup(has_timerev=True)
 
+        # K and U are equivalent. [5/8, 1/4, 5/8] should return U
+        assert si_wfk.findname_in_hsym_stars([3/8, 3/8, 3/4]) == "K"
+        assert si_wfk.findname_in_hsym_stars([5/8, 1/4, 5/8]) == "U"
+
         # TODO: Fix order of atoms in supercells.
         # Test __mul__, __rmul__ (should return Abipy structures)
         assert si_wfk == 1 * si_wfk
