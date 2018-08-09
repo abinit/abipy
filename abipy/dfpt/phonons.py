@@ -4057,7 +4057,7 @@ class InteratomicForceConstants(Has_Structure):
 
 
 # TODO: amu should become mandatory.
-def get_dyn_mat_eigenvec(phdispl, structure, amu=None):
+def get_dyn_mat_eigenvec(phdispl, structure, amu=None, amu_symbol=None):
     """
     Converts the phonon displacements to the orthonormal eigenvectors of the dynamical matrix.
     Small discrepancies with the original values may be expected due to the different values of the atomic masses in
@@ -4075,20 +4075,29 @@ def get_dyn_mat_eigenvec(phdispl, structure, amu=None):
             should match the q points.
         structure: |Structure| object.
         amu: dictionary that associates the atomic numbers present in the structure to the values of the atomic
-            mass units used for the calculation. If None, values from pymatgen will be used. Note that this will
-            almost always lead to inaccuracies in the conversion.
+            mass units used for the calculation. Incompatible with amu_sumbol. If None and amu_symbol is None, values
+            from pymatgen will be used.  Note that this will almost always lead to inaccuracies in the conversion.
+        amu_symbol: dictionary that associates the symbol present in the structure to the values of the atomic
+            mass units used for the calculation. Incompatible with amu. If None and amu_symbol is None, values from
+            pymatgen will be used. that this will almost always lead to inaccuracies in the conversion.
 
     Returns:
         A |numpy-array| of the same shape as phdispl containing the eigenvectors of the dynamical matrix
     """
     eigvec = np.zeros(np.shape(phdispl), dtype=np.complex)
 
-    if amu is None:
+    if amu is not None and amu_symbol is not None:
+        raise ValueError("Only one between amu and amu_symbol should be provided!")
+
+    if amu is not None:
+        amu_symbol = {Element.from_Z(n).symbol: v for n, v in amu.items()}
+
+    if amu_symbol is None:
         warnings.warn("get_dyn_mat_eigenvec has been called with amu=None. Eigenvectors may not be orthonormal.")
-        amu = {e.number: e.atomic_mass for e in structure.composition.elements}
+        amu_symbol = {e.symbol: e.atomic_mass for e in structure.composition.elements}
 
     for j, a in enumerate(structure):
-        eigvec[...,3*j:3*(j+1)] = phdispl[...,3*j:3*(j+1)] * np.sqrt(amu[a.specie.number]*abu.amu_emass) / abu.Bohr_Ang
+        eigvec[...,3*j:3*(j+1)] = phdispl[...,3*j:3*(j+1)] * np.sqrt(amu_symbol[a.specie.symbol]*abu.amu_emass) / abu.Bohr_Ang
 
     return eigvec
 

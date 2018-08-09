@@ -13,7 +13,7 @@ from monty.termcolor import cprint
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from abipy.core.kpoints import Kpath, IrredZone, KSamplingInfo
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
+from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
 from abipy.abio.inputs import AnaddbInput
 from abipy.dfpt.phonons import PhononBands, PhononBandsPlotter, PhononDos, match_eigenvectors, get_dyn_mat_eigenvec
 from abipy.dfpt.ddb import DdbFile
@@ -22,8 +22,8 @@ from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig
 from abipy.flowtk import AnaddbTask
 from abipy.tools.derivatives import finite_diff
 #from abipy.tools import duck
-from abipy.core.func1d import Function1D
-from pymatgen.core.units import amu_to_kg, bohr_to_ang
+from pymatgen.core.units import amu_to_kg
+from pymatgen.core.periodic_table import Element
 
 try:
     from functools import lru_cache
@@ -161,11 +161,11 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return len(self.structures)
 
     @lazy_property
-    def amu(self):
+    def amu_symbol(self):
         """Atomic mass units"""
         amu_list = self.reader.read_value("atomic_mass_units")
         atomic_numbers = self.reader.read_value("atomic_numbers")
-        amu = {at: a for at, a in zip(atomic_numbers, amu_list)}
+        amu = {Element.from_Z(at).symbol: a for at, a in zip(atomic_numbers, amu_list)}
         return amu
 
     def to_dataframe(self):
@@ -800,7 +800,8 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         if match_eigv:
             eig = np.zeros_like(self.phdispl_cart_qibz)
             for i in range(self.nvols):
-                eig[:, i] = get_dyn_mat_eigenvec(self.phdispl_cart_qibz[:, i], self.structures[i], amu=self.amu)
+                eig[:, i] = get_dyn_mat_eigenvec(self.phdispl_cart_qibz[:, i], self.structures[i],
+                                                 amu_symbol=self.amu_symbol)
 
             eig = eig.transpose((1, 0, 2, 3))
         else:
