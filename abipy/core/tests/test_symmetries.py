@@ -77,6 +77,7 @@ class TestSymmetries(AbipyTest):
 
         for idx, symmop in enumerate(spgrp):
             repr(symmop); str(symmop)
+            symmop.to_string(verbose=2)
             assert symmop in spgrp
             assert spgrp.count(symmop) == 1
             assert spgrp.find(symmop) == idx
@@ -107,6 +108,15 @@ class TestSymmetries(AbipyTest):
                     err_msg += "Cannot find symmetrical image of %s\n" % str(rot_coords)
 
                 assert not err_msg
+
+        k1, k2 = [0.5, 0, 0], [0, 0.5, 0]
+        ktab = spgrp.symeq(k1, k2, atol=None)
+        assert ktab.isym != -1
+        self.assert_equal(spgrp[ktab.isym].rotate_k(k1) - np.array(k2), ktab.g0)
+
+        k1, k2 = [0.0, 0, 0], [0, 0.5, 0]
+        ktab = spgrp.symeq(k1, k2, atol=None)
+        assert ktab.isym == -1
 
         # Test little group with Gamma point.
         lg_gamma = spgrp.find_little_group(kpoint=[0, 0, 0])
