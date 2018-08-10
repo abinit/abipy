@@ -749,7 +749,7 @@ class ElectronBands(Has_Structure):
     #               nelect, nspinor, nspden,
     #               smearing=smearing, linewidths=linewidths)
 
-    def get_dict4pandas(self, with_spglib=True):
+    def get_dict4pandas(self, with_geo=True, with_spglib=True):
         """
         Return a :class:`OrderedDict` with the most important parameters:
 
@@ -761,6 +761,7 @@ class ElectronBands(Has_Structure):
         Useful to construct pandas DataFrames
 
         Args:
+            with_geo: True if structure info should be added to the dataframe
             with_spglib: If True, spglib_ is invoked to get the spacegroup symbol and number.
         """
         odict = OrderedDict([
@@ -769,7 +770,11 @@ class ElectronBands(Has_Structure):
             ("nelect", self.nelect), ("fermie", self.fermie),
 
         ])
-        odict.update(self.structure.get_dict4pandas(with_spglib=with_spglib))
+
+        # Add info on structure.
+        if with_geo:
+            odict.update(self.structure.get_dict4pandas(with_spglib=with_spglib))
+
         odict.update(self.smearing)
 
         bws = self.bandwidths
@@ -783,14 +788,14 @@ class ElectronBands(Has_Structure):
             for spin in self.spins:
                 odict["dirgap_spin%d" % spin] = self.direct_gaps[spin].energy
 
-            # Select min over spins (if any).
+            # Select min gap over spins.
             min_fgap = self.fundamental_gaps[0]
             min_dgap = self.direct_gaps[0]
             if self.nsppol == 2:
                 fgap0, fgap1 = self.fundamental_gaps[0], self.fundamental_gaps[1]
                 min_fgap = fgap0 if fgap0.energy < fgap1.energy else fgap1
                 dgap0, dgap1 = self.direct_gaps[0], self.direct_gaps[1]
-                min_fgap = dgap0 if dgap0.energy < dgap1.energy else dgap1
+                min_dgap = dgap0 if dgap0.energy < dgap1.energy else dgap1
 
             # These quantities are not spin-dependent.
             odict["gap_type"] = "direct" if min_fgap.is_direct else "indirect"
@@ -1079,8 +1084,8 @@ class ElectronBands(Has_Structure):
 
             The Abipy bandstructure contains more information than the pymatgen object so
             the conversion is not complete, especially if you rely on the default values.
-            Please read the docstring and the code carefully and use the optional arguments to pass
-            additional data required by Abipy if you need a complete conversion.
+            Please read carefylly the docstring and the code and use the optional arguments to pass
+            additional data required by AbiPy if you need a complete conversion.
         """
         from pymatgen.electronic_structure.bandstructure import BandStructure, BandStructureSymmLine
 
