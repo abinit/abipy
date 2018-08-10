@@ -11,6 +11,7 @@ import warnings
 import tempfile
 import pickle
 import numpy as np
+import pandas as pd
 import pymatgen.core.units as units
 
 from collections import OrderedDict, namedtuple, Iterable
@@ -782,6 +783,22 @@ class ElectronBands(Has_Structure):
             for spin in self.spins:
                 odict["dirgap_spin%d" % spin] = self.direct_gaps[spin].energy
 
+            # Select min over spins (if any).
+            min_fgap = self.fundamental_gaps[0]
+            min_dgap = self.direct_gaps[0]
+            if self.nsppol == 2:
+                fgap0, fgap1 = self.fundamental_gaps[0], self.fundamental_gaps[1]
+                min_fgap = fgap0 if fgap0.energy < fgap1.energy else fgap1
+                dgap0, dgap1 = self.direct_gaps[0], self.direct_gaps[1]
+                min_fgap = dgap0 if dgap0.energy < dgap1.energy else dgap1
+
+            # These quantities are not spin-dependent.
+            odict["gap_type"] = "direct" if min_fgap.is_direct else "indirect"
+            odict["fundgap_kstart"] = repr(min_fgap.in_state.kpoint)
+            odict["fundgap_kend"] = repr(min_fgap.out_state.kpoint)
+            odict["dirgap_kstart"] = repr(min_dgap.in_state.kpoint)
+            odict["dirgap_kend"] = repr(min_dgap.out_state.kpoint)
+
         return odict
 
     @lazy_property
@@ -985,7 +1002,6 @@ class ElectronBands(Has_Structure):
                 -  None: Don't shift energies, equivalent to e0=0
                 The Fermi energy is saved in frame.fermie
         """
-        import pandas as pd
         rows = []
         e0 = self.get_e0(e0)
         for spin in self.spins:
@@ -2479,9 +2495,8 @@ def dataframe_from_ebands(ebands_objects, index=None, with_spglib=True):
     # Use OrderedDict to have columns ordered nicely.
     odict_list = [(ebands.get_dict4pandas(with_spglib=with_spglib)) for ebands in ebands_list]
 
-    import pandas as pd
-    return pd.DataFrame(odict_list, index=index)
-                        #columns=list(odict_list[0].keys()) if odict_list else None)
+    return pd.DataFrame(odict_list, index=index,
+                        columns=list(odict_list[0].keys()) if odict_list else None)
 
 
 class ElectronBandsPlotter(NotebookWriter):
@@ -2888,7 +2903,6 @@ class ElectronBandsPlotter(NotebookWriter):
             if ebands.nsppol == 2: spin_polarized = True
 
         # Merge frames ignoring index (not meaningful)
-        import pandas as pd
         data = pd.concat(frames, ignore_index=True)
 
         import matplotlib.pyplot as plt

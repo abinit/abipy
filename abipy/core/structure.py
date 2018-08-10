@@ -1091,14 +1091,17 @@ class Structure(pymatgen.Structure, NotebookWriter):
             with_spglib (bool): If True, spglib is invoked to get the spacegroup symbol and number
         """
         abc, angles = self.lattice.abc, self.lattice.angles
+
         # Get spacegroup info from spglib.
-        spglib_symbol, spglib_number = None, None
+        spglib_symbol, spglib_number, spglib_lattice_type = None, None, None
         if with_spglib:
             try:
                 spglib_symbol, spglib_number = self.get_space_group_info()
+                spglib_lattice_type = self.spget_lattice_type()
             except Exception as exc:
                 cprint("Spglib couldn't find space group symbol and number for composition %s" % str(self.composition), "red")
                 print("Exception:\n", exc)
+
         # Get spacegroup number computed by Abinit if available.
         abispg_number = None if self.abi_spacegroup is None else self.abi_spacegroup.spgid
 
@@ -1111,6 +1114,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         if with_spglib:
             od["spglib_symb"] = spglib_symbol
             od["spglib_num"] = spglib_number
+            od["spglib_lattice_type"] = spglib_lattice_type
 
         return od
 

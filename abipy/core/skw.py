@@ -981,7 +981,7 @@ class SkwInterpolator(ElectronInterpolator):
                         print("spin", spin, "band", band, "ikpt", ik, "e0", e0, "eskw", eskw, "diff", e0 - eskw)
 
         mae *= 1e3 / (nsppol * nkpt * nband)
-        if np.isnan(mae) or np.isinf(mae):
+        if np.isnan(mae) or np.isinf(mae) or mae > 1000:
             raise RuntimeError("Interpolation went bananas! mae = %s" % mae)
 
         warn = mae > 10.0
