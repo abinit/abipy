@@ -18,9 +18,6 @@ from abipy.dfpt.gruneisen import GrunsNcFile
 import abipy.core.abinit_units as abu
 
 
-eVA3_GPa = 160.21766208 # 1 eV/A^3 to GPa
-
-
 class AbstractQHA(six.with_metaclass(abc.ABCMeta, object)):
     """
     Abstract class for the quasi-harmonic approximation  analysis.
@@ -72,7 +69,7 @@ class AbstractQHA(six.with_metaclass(abc.ABCMeta, object)):
         # array with phonon energies and shape (n_vol, n_temp)
         ph_energies = self.get_vib_free_energies(tstart, tstop, num)
 
-        tot_en = self.energies[np.newaxis, :].T + ph_energies + self.volumes[np.newaxis, :].T * self.pressure / eVA3_GPa
+        tot_en = self.energies[np.newaxis, :].T + ph_energies + self.volumes[np.newaxis, :].T * self.pressure / abu.eVA3_GPa
 
         # list of fits objects, one for each temperature
         fits = [self.eos.fit(self.volumes, e) for e in tot_en.T]
@@ -435,7 +432,7 @@ class AbstractQHA(six.with_metaclass(abc.ABCMeta, object)):
         cv = thermo.cv.T * abu.e_Cb * abu.Avogadro
         temperatures = thermo.tmesh
 
-        en = self.energies + self.volumes * self.pressure / eVA3_GPa
+        en = self.energies + self.volumes * self.pressure / abu.eVA3_GPa
 
         qha_p = QHA_phonopy(self.volumes, en, temperatures, cv, entropy, fe, eos, t_max, energy_plot_factor)
 

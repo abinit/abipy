@@ -4,13 +4,12 @@ Objects to analyze elastic and piezoelectric tensors computed by anaddb.
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
 
-import sys
 import pandas as pd
 
 from collections import OrderedDict
-from monty.string import is_string, list_strings, marquee
+from monty.string import list_strings, marquee
 from monty.collections import AttrDict
-from monty.functools import lazy_property
+#from monty.functools import lazy_property
 from pymatgen.analysis.elasticity.tensors import Tensor
 from pymatgen.analysis.elasticity.elastic import ElasticTensor
 from pymatgen.analysis.piezo import PiezoTensor

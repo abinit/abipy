@@ -44,7 +44,7 @@ class DielectricTensor(SquareTensor):
         """
         d = np.diag(self)
 
-        if np.max(np.abs(self-np.diag(d))) > tol:
+        if np.max(np.abs(self - np.diag(d))) > tol:
             raise ValueError("The tensor is not diagonal.")
 
         d = np.sqrt(d)

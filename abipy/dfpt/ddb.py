@@ -16,7 +16,7 @@ from monty.string import marquee, list_strings
 from monty.collections import AttrDict, dict2namedtuple, tree
 from monty.functools import lazy_property
 from monty.termcolor import cprint
-from pymatgen.analysis.elasticity import Tensor, Stress, ElasticTensor
+from pymatgen.analysis.elasticity import Tensor, Stress
 from pymatgen.core.units import eV_to_Ha, bohr_to_angstrom, Energy
 from abipy.flowtk import NetcdfReader, AnaddbTask
 from abipy.core.mixins import TextFile, Has_Structure, NotebookWriter
@@ -390,6 +390,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         blocks = []
         block_lines = []
         qpt = None
+        dord = None
 
         for line in self:
             # skip empty lines

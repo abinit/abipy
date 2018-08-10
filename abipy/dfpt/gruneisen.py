@@ -375,26 +375,19 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         return fig
 
-    def yield_figs(self, **kwargs):  # pragma: no cover
-        """
-        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
-        Used in abiview.py to get a quick look at the results.
-        """
-        yield self.plot_phbands_with_gruns(show=False)
-        yield self.plot_doses(show=False)
-
     @add_fig_kwargs
-    def plot_gruns_scatter(self, values="gruns", ax=None, units="eV", **kwargs):
+    def plot_gruns_scatter(self, values="gruns", ax=None, units="eV", cmap="rainbow", **kwargs):
         """
         A scatter plot of the values of the Gruneisen parameters or group velocities as a function
         of the phonon frequencies.
 
         Args:
-            values:  Define the plotted quantity. "gruns" for Grunesein parameters, "gruns_fd" for Grunesein
+            values: Define the plotted quantity. "gruns" for Grunesein parameters, "gruns_fd" for Grunesein
                 parameters calculated with finite differences,  "groupv" for phonon group velocities.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             units: Units for phonon frequencies. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
                 Case-insensitive.
+            cmap: matplotlib colormap. If not None, points are colored according to the branch index.
             **kwargs: kwargs passed to the matplotlib function 'scatter'. Size defaults to 10.
 
         Returns: |matplotlib-Figure|
@@ -413,12 +406,22 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         w = self.wvols_qibz[:, self.iv0, :] * abu.phfactor_ev2units(units)
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
+        ax.grid(True)
 
         if 's' not in kwargs:
             kwargs['s'] = 10
 
-        ax.scatter(w.flatten(), y.flatten(), **kwargs)
+        if cmap is None:
+            ax.scatter(w.flatten(), y.flatten(), **kwargs)
+        else:
+            cmap = plt.get_cmap(cmap)
+            natom3 = 3 * len(self.structure)
+            for nu in range(natom3):
+                color = cmap(float(nu) / natom3)
+                ax.scatter(w[:, nu], y[:, nu], color=color, **kwargs)
+
         ax.set_xlabel('Frequency %s' % abu.phunit_tag(units))
+
         if values.startswith("gruns"):
             ax.set_ylabel('Gruneisen')
         elif values == "groupv":
@@ -431,34 +434,24 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         Splits the values of the gruneisen along a path like for the phonon bands
         """
+        # trigger the generation of the split in the phbands
+        self.phbands_qpath_vol[self.iv0].split_phfreqs
 
-        try:
-            return self._split_gruns
-        except AttributeError:
-            # trigger the generation of the split in the phbands
-            self.phbands_qpath_vol[self.iv0].split_phfreqs
-
-            indices = self.phbands_qpath_vol[self.iv0]._split_indices
-            g = self.phbands_qpath_vol[self.iv0].grun_vals
-            self._split_gruns = [np.array(g[indices[i]:indices[i + 1] + 1]) for i in range(len(indices) - 1)]
-            return self._split_gruns
+        indices = self.phbands_qpath_vol[self.iv0]._split_indices
+        g = self.phbands_qpath_vol[self.iv0].grun_vals
+        return [np.array(g[indices[i]:indices[i + 1] + 1]) for i in range(len(indices) - 1)]
 
     @lazy_property
     def split_dwdq(self):
         """
         Splits the values of the group velocities along a path like for the phonon bands
         """
+        # trigger the generation of the split in the phbands
+        self.phbands_qpath_vol[self.iv0].split_phfreqs
 
-        try:
-            return self._split_dwdq
-        except AttributeError:
-            # trigger the generation of the split in the phbands
-            self.phbands_qpath_vol[self.iv0].split_phfreqs
-
-            indices = self.phbands_qpath_vol[self.iv0]._split_indices
-            v = self.reader.read_value("gruns_dwdq_qpath")
-            self._split_dwdq = [np.array(v[indices[i]:indices[i + 1] + 1]) for i in range(len(indices) - 1)]
-            return self._split_dwdq
+        indices = self.phbands_qpath_vol[self.iv0]._split_indices
+        v = self.reader.read_value("gruns_dwdq_qpath")
+        return [np.array(v[indices[i]:indices[i + 1] + 1]) for i in range(len(indices) - 1)]
 
     @add_fig_kwargs
     def plot_gruns_bs(self, values="gruns", ax=None, branch_range=None, qlabels=None, match_bands=False, **kwargs):
@@ -533,6 +526,16 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             first_xx = xx[-1]
 
         return fig
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        Used in abiview.py to get a quick look at the results.
+        """
+        yield self.plot_phbands_with_gruns(show=False)
+        yield self.plot_doses(show=False)
+        yield self.plot_gruns_scatter(show=False)
+        yield self.plot_gruns_bs(show=False)
 
     def write_notebook(self, nbpath=None):
         """
