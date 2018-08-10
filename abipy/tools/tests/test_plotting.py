@@ -81,6 +81,9 @@ class TestPlotting(AbipyTest):
             with self.assertRaises(ValueError):
                 plot_xy_with_hue(data=df, x="foo", y="y", hue="bar", ax=None, show=False)
 
+            assert plot_xy_with_hue(data=df, x="x", y=["y", "y"], hue="z", decimals=0, ax=None, show=False,
+                                    color="red", marker="v")
+
     def test_array_plotter(self):
         """Testing array plotter."""
         plotter = ArrayPlotter()

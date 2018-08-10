@@ -70,6 +70,11 @@ class Robot(NotebookWriter):
             if subcls.EXT in (ext, ext.upper()):
                 return subcls
 
+        # anaddb.nc does not follow the extension rule...
+        if ext.lower() == "anaddb":
+            from abipy.dfpt.anaddbnc import AnaddbNcRobot as subcls
+            return subcls
+
         raise ValueError("Cannot find Robot subclass associated to extension %s\n" % ext +
                          "The list of supported extensions (case insensitive) is:\n%s" %
                          str(cls.get_supported_extensions()))
@@ -153,6 +158,10 @@ class Robot(NotebookWriter):
     @classmethod
     def class_handles_filename(cls, filename):
         """True if robot class handles filename."""
+        # Special treatment of AnaddbNcRobot
+        if cls.EXT == "anaddb" and os.path.basename(filename).lower() == "anaddb.nc":
+            return True
+
         return (filename.endswith("_" + cls.EXT + ".nc") or
                 filename.endswith("." + cls.EXT))  # This for .abo
 
@@ -172,7 +181,9 @@ class Robot(NotebookWriter):
         for i, f in enumerate(filenames):
             try:
                 abifile = abiopen(f)
-            except Exception:
+            except Exception as exc:
+                cprint("Exception while opening file: `%s`" % str(f), "red")
+                cprint(exc, "red")
                 abifile = None
 
             if abifile is not None:
@@ -500,7 +511,7 @@ class Robot(NotebookWriter):
 
     def _repr_html_(self):
         """Integration with jupyter_ notebooks."""
-        return "<ol>\n{}\n</ol>".format("\n".join("<li>%s</li>" % label for label, abifile in self.items()))
+        return '<ol start="0">\n{}\n</ol>'.format("\n".join("<li>%s</li>" % label for label, abifile in self.items()))
 
     @property
     def abifiles(self):

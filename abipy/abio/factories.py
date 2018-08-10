@@ -37,7 +37,8 @@ __all__ = [
     "piezo_elastic_inputs_from_gsinput",
     "scf_piezo_elastic_inputs",
     "scf_for_phonons",
-    "dte_from_gsinput"
+    "dte_from_gsinput",
+    "dfpt_from_gsinput",
 ]
 
 
@@ -874,7 +875,7 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, wit
         ph_ngqpt: a list of three integers representing the gamma centered q-point grid used for the calculation.
             If None and qpoint==None the ngkpt value present in the gs_input will be used.
             Incompatible with qpoints.
-        qpoints: a list of of coordinatesq points in reduced coordinates for which the phonon perturbations will
+        qpoints: a list of coordinates of q points in reduced coordinates for which the phonon perturbations will
             be calculated. Incompatible with ph_ngqpt.
         with_ddk: If True, if Gamma is included in the list of qpoints it will add inputs for the calculations of
             the DDK.
@@ -883,13 +884,13 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, wit
         with_bec: If Truem if Gamma is included in the list of qpoints the DDE will be calculated in the same
             input as the phonons. This will allow to determine the BECs.
             Automatically sets with_ddk=True and with_dde=False.
-        ph_tol: a dictionary with a single key defining the type of tolarence used for the phonon calculations and
+        ph_tol: a dictionary with a single key defining the type of tolerance used for the phonon calculations and
             its value. Default: {"tolvrs": 1.0e-10}.
-        ddk_tol: a dictionary with a single key defining the type of tolarence used for the DDK calculations and
+        ddk_tol: a dictionary with a single key defining the type of tolerance used for the DDK calculations and
             its value. Default: {"tolwfr": 1.0e-22}.
-        dde_tol: a dictionary with a single key defining the type of tolarence used for the DDE calculations and
+        dde_tol: a dictionary with a single key defining the type of tolerance used for the DDE calculations and
             its value. Default: {"tolvrs": 1.0e-10}.
-        wfq_tol: a dictionary with a single key defining the type of tolarence used for the NSCF calculations of
+        wfq_tol: a dictionary with a single key defining the type of tolerance used for the NSCF calculations of
             the WFQ and its value. Default {"tolwfr": 1.0e-22}.
         qpoints_to_skip: a list of coordinates of q points in reduced coordinates that will be skipped.
             Useful when calculating multiple grids for the same system to avoid duplicate calculations.
@@ -968,11 +969,11 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, wit
                 multi_ddk.add_tags(DDK)
                 multi.extend(multi_ddk)
             if with_dde:
-                multi_dde = gs_inp.make_dde_inputs(dde_tol)
+                multi_dde = gs_inp.make_dde_inputs(dde_tol, manager=manager)
                 multi_dde.add_tags(DDE)
                 multi.extend(multi_dde)
             elif with_bec:
-                multi_bec = gs_inp.make_bec_inputs(ph_tol)
+                multi_bec = gs_inp.make_bec_inputs(ph_tol, manager=manager)
                 multi_bec.add_tags(BEC)
                 multi.extend(multi_bec)
                 continue
@@ -1272,7 +1273,7 @@ def scf_for_phonons(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nb
     return abiinput
 
 
-def dte_from_gsinput(gs_inp, use_phonons=True, ph_tol=None, ddk_tol=None, dde_tol=None, dte_tol=None,
+def dte_from_gsinput(gs_inp, use_phonons=True, ph_tol=None, ddk_tol=None, dde_tol=None,
                      skip_dte_permutations=False, manager=None):
     """
     Returns a list of inputs in the form of a |MultiDataset| to perform calculations of non-linear properties, based on
@@ -1284,15 +1285,15 @@ def dte_from_gsinput(gs_inp, use_phonons=True, ph_tol=None, ddk_tol=None, dde_to
     Args:
         gs_inp: an |AbinitInput| representing a ground state calculation, likely the SCF performed to get the WFK.
         use_phonons: determine wether the phonon perturbations at gamma should be included or not
-        ph_tol: a dictionary with a single key defining the type of tolarence used for the phonon calculations and
+        ph_tol: a dictionary with a single key defining the type of tolerance used for the phonon calculations and
             its value. Default: {"tolvrs": 1.0e-22}.
-        ddk_tol: a dictionary with a single key defining the type of tolarence used for the DDK calculations and
+        ddk_tol: a dictionary with a single key defining the type of tolerance used for the DDK calculations and
             its value. Default: {"tolwfr": 1.0e-22}.
-        dde_tol: a dictionary with a single key defining the type of tolarence used for the DDE calculations and
+        dde_tol: a dictionary with a single key defining the type of tolerance used for the DDE calculations and
             its value. Default: {"tolvrs": 1.0e-22}.
-        dte_tol: a dictionary with a single key defining the type of tolarence used for the DTE calculations and
-            its value. Default: {"tolwfr": 1.0e-20}.
-        skip_dte_permutations:
+        skip_dte_permutations: Since the current version of abinit always performs all the permutations of the
+            perturbations, even if only one is asked, if True avoids the creation of inputs that will produce
+            duplicated outputs.
         manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
     """
     gs_inp = gs_inp.deepcopy()
@@ -1306,9 +1307,6 @@ def dte_from_gsinput(gs_inp, use_phonons=True, ph_tol=None, ddk_tol=None, dde_to
 
     if dde_tol is None:
         dde_tol = {"tolvrs": 1.0e-22}
-
-    if dte_tol is None:
-        dte_tol = {"tolwfr": 1.0e-20}
 
     multi = []
 
@@ -1325,7 +1323,7 @@ def dte_from_gsinput(gs_inp, use_phonons=True, ph_tol=None, ddk_tol=None, dde_to
         multi.extend(multi_ph)
 
     # non-linear calculations do not accept more bands than those in the valence. Set the correct values.
-    # Do this as last, so not to intrfere with the the generation of the other steps.
+    # Do this as last, so not to interfere with the the generation of the other steps.
     nval = gs_inp.structure.num_valence_electrons(gs_inp.pseudos)
     nval -= gs_inp['charge']
     nband = int(round(nval / 2))
@@ -1341,6 +1339,107 @@ def dte_from_gsinput(gs_inp, use_phonons=True, ph_tol=None, ddk_tol=None, dde_to
 
     return multi
 
+
+def dfpt_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, do_ddk=True, do_dde=True, do_strain=True,
+                      do_dte=False, ph_tol=None, ddk_tol=None, dde_tol=None, wfq_tol=None, strain_tol=None,
+                      skip_dte_permutations=False, manager=None):
+    """
+    Returns a list of inputs in the form of a MultiDataset to perform a set of calculations based on DFPT including
+    phonons, elastic and non-linear properties. Requires a ground state |AbinitInput| as a starting point.
+
+    It will determine if WFQ files should be calculated for some q points and add the NSCF AbinitInputs to the set.
+    The original input is included and the inputs have the following tags, according to their function:
+    "scf", "ddk", "dde", "nscf", "ph_q_pert", "strain", "dte", "dfpt".
+
+    N.B. Currently (version 8.8.3) anaddb does not support a DDB containing both 2nd order derivatives with qpoints
+    different from gamma AND  3rd oreder derivatives. The calculations could be run, but the global DDB will not
+    be directly usable as is.
+
+    Args:
+        gs_inp: an |AbinitInput| representing a ground state calculation, likely the SCF performed to get the WFK.
+        ph_ngqpt: a list of three integers representing the gamma centered q-point grid used for the calculation.
+            If None and qpoint==None the ngkpt value present in the gs_input will be used.
+            Incompatible with qpoints.
+        qpoints: a list of coordinates of q points in reduced coordinates for which the phonon perturbations will
+            be calculated. Incompatible with ph_ngqpt.
+        do_ddk: If True, if Gamma is included in the list of qpoints it will add inputs for the calculations of
+            the DDK.
+        do_dde: If True, if Gamma is included in the list of qpoints it will add inputs for the calculations of
+            the DDE. Automatically sets with_ddk=True.
+        do_strain: If True inputs for the strain perturbations will be included.
+        do_dte: If True inputs for the non-linear perturbations will be included. The phonon non-linear perturbations
+            will be included only if a phonon calculation at gamma is present. The caller is responsible for
+            adding it.
+        ph_tol: a dictionary with a single key defining the type of tolerance used for the phonon calculations and
+            its value. Default: {"tolvrs": 1.0e-10}.
+        ddk_tol: a dictionary with a single key defining the type of tolerance used for the DDK calculations and
+            its value. Default: {"tolwfr": 1.0e-22}.
+        dde_tol: a dictionary with a single key defining the type of tolerance used for the DDE calculations and
+            its value. Default: {"tolvrs": 1.0e-10}.
+        wfq_tol: a dictionary with a single key defining the type of tolerance used for the NSCF calculations of
+            the WFQ and its value. Default {"tolwfr": 1.0e-22}.
+        strain_tol:  dictionary with a single key defining the type of tolerance used for the strain calculations of
+            and its value. Default {"tolvrs": 1.0e-12}.
+        skip_dte_permutations: Since the current version of abinit always performs all the permutations of the
+            perturbations, even if only one is asked, if True avoids the creation of inputs that will produce
+            duplicated outputs.
+        manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
+    """
+
+    if ph_tol is None:
+        ph_tol = {"tolvrs": 1.0e-10}
+    if ddk_tol is None:
+        ddk_tol = {"tolwfr": 1.0e-22}
+    if dde_tol is None:
+        dde_tol = {"tolvrs": 1.0e-10}
+    if wfq_tol is None:
+        wfq_tol = {"tolwfr": 1.0e-22}
+    if strain_tol is None:
+        strain_tol = {"tolvrs": 1.0e-12}
+
+    if do_dde:
+        do_ddk = True
+
+    multi = MultiDataset.from_inputs([gs_inp])
+    multi[0].add_tags(SCF)
+
+    do_phonons = ph_ngqpt is not None or qpoints is not None
+    has_gamma = False
+    if do_phonons:
+        multi.extend(phonons_from_gsinput(gs_inp, ph_ngqpt=ph_ngqpt, qpoints=qpoints, with_ddk=False, with_dde=False,
+                                          with_bec=False, ph_tol=ph_tol, ddk_tol=ddk_tol, dde_tol=dde_tol,
+                                          wfq_tol=wfq_tol, qpoints_to_skip=None, manager=manager))
+        has_gamma = ph_ngqpt is not None or any(np.allclose(q, [0, 0, 0]) for q in qpoints)
+
+    if do_ddk:
+        multi_ddk = gs_inp.make_ddk_inputs(tolerance=ddk_tol)
+        multi_ddk.add_tags(DDK)
+        multi.extend(multi_ddk)
+    if do_dde:
+        multi_dde = gs_inp.make_dde_inputs(dde_tol, use_symmetries=not do_dte, manager=manager)
+        multi_dde.add_tags(DDE)
+        multi.extend(multi_dde)
+
+    if do_strain:
+        multi_strain = gs_inp.make_strain_perts_inputs(tolerance=strain_tol, manager=manager, phonon_pert=False,
+                                                       kptopt=2)
+        multi_strain.add_tags([DFPT, STRAIN])
+        multi.extend(multi_strain)
+
+    if do_dte:
+        # non-linear calculations do not accept more bands than those in the valence. Set the correct values.
+        nval = gs_inp.structure.num_valence_electrons(gs_inp.pseudos)
+        nval -= gs_inp['charge']
+        nband = int(round(nval / 2))
+        gs_inp_copy = gs_inp.deepcopy()
+        gs_inp_copy.set_vars(nband=nband)
+        gs_inp_copy.pop('nbdbuf', None)
+        multi_dte = gs_inp_copy.make_dte_inputs(phonon_pert=do_phonons and has_gamma,
+                                           skip_permutations=skip_dte_permutations, manager=manager)
+        multi_dte.add_tags([DTE, DFPT])
+        multi.extend(multi_dte)
+
+    return multi
 
 #FIXME if the pseudos are passed as a PseudoTable the whole table will be serialized,
 # it would be better to filter on the structure elements

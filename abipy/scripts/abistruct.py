@@ -92,6 +92,8 @@ Usage example:
   abistruct.py lgk FILE -k 0.25 0 0        => Read structure from FILE, find little group of k-point,
                                               print Bilbao character table.
   abistruct.py kstar FILE -k 0.25 0 0      => Read structure from FILE, print star of k-point.
+  abistruct.py keq FILE -k 0.5 0 0 0 0.5 0  => Read structure from FILE, test whether k1 and k2 are
+                                               symmetry equivalent k-points.
 
 ###############
 # Miscelleanous
@@ -347,6 +349,12 @@ closest points in this particular structure. This is usually what you want in a 
         help="Read structure from file, print star of k-point.")
     p_kstar.add_argument("-k", "--kpoint", nargs=3, required=True, type=float,
         help="K-point in reduced coordinates e.g. 0.25 0 0")
+
+    # Subparser for keq.
+    p_keq = subparsers.add_parser('keq', parents=[copts_parser, path_selector, spgopt_parser],
+        help="Read structure from file, check whether two k-points are equivalent by symmetry.")
+    p_keq.add_argument("-k", "--kpoints", nargs=6, required=True, type=float,
+        help="K-points in reduced coordinates e.g. 0.25 0 0 0 0.25 0")
 
     # Subparser for visualize command.
     p_visualize = subparsers.add_parser('visualize', parents=[copts_parser, path_selector],
@@ -703,9 +711,6 @@ def main():
     elif options.command == "kstar":
         structure = abilab.Structure.from_file(options.filepath)
 
-        # TODO
-        #kstar = structure.get_star_kpoint(options.kpoint, has_timerev=not options.no_time_reversal)
-
         # Call spglib to get spacegroup if Abinit spacegroup is not available.
         if structure.abi_spacegroup is None:
             structure.spgset_abi_spacegroup(has_timerev=not options.no_time_reversal)
@@ -715,6 +720,23 @@ def main():
         print("Found %s points in the star of %s\n" % (len(kstar), repr(kpoint)))
         for k in kstar:
             print(4 * " ", repr(k))
+
+    elif options.command == "keq":
+        structure = abilab.Structure.from_file(options.filepath)
+
+        # Call spglib to get spacegroup if Abinit spacegroup is not available.
+        if structure.abi_spacegroup is None:
+            structure.spgset_abi_spacegroup(has_timerev=not options.no_time_reversal)
+
+        k1, k2 = options.kpoints[:3], options.kpoints[3:6]
+        k1tab = structure.abi_spacegroup.symeq(k1, k2)
+
+        if k1tab.isym != -1:
+            print("\nk1:", k1, "and k2:", k2, "are symmetry equivalent k-points\n")
+            print("Related by the symmetry operation (reduced coords):\n", k1tab.op)
+            print("With umklapp vector Go = TO(k1) - k2 =", k1tab.g0)
+        else:
+            print(k1, "and", k2, "are NOT symmetry equivalent")
 
     elif options.command == "mp_id":
         # Get the Structure corresponding to material_id.

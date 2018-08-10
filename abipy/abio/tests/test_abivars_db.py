@@ -32,7 +32,7 @@ class AbinitVariableDatabaseTest(AbipyTest):
         #assert len(database.json_dumps_varnames())
 
         for setname in [
-            "basic", "rlx", "gstate", "eph", "ffield", "paral", "gw", "dfpt", 
+            "basic", "rlx", "gstate", "eph", "ffield", "paral", "gw", "dfpt",
             "geo", "bse", "dev", "paw", "dmft", "files", "internal", "w90"]:
             assert database.vars_with_varset(setname)
 
@@ -69,3 +69,9 @@ class AbinitVariableDatabaseTest(AbipyTest):
 
         ecut_var = docvar("ecut")
         assert ecut_var.name == "ecut"
+        assert ecut_var.executable == "abinit"
+
+        elaflag = docvar("elaflag", executable="anaddb")
+        assert elaflag.name == "elaflag"
+        assert elaflag.executable == "anaddb"
+        assert str(elaflag._repr_html_())

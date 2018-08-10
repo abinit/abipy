@@ -36,9 +36,36 @@ def print_source(function, **kwargs):  # pragma: no cover
     from pygments.lexers import PythonLexer
     from pygments.formatters import HtmlFormatter
     from IPython.core.display import HTML
-    if "full" not in kwargs: kwargs["full"] = True
 
+    if "full" not in kwargs: kwargs["full"] = True
     return HTML(highlight(getsource(function), PythonLexer(), HtmlFormatter(**kwargs)))
+
+
+def print_doc(function, **kwargs):  # pragma: no cover
+    """
+    For use inside a jupyter_ notebook: given a function, print the docstring.
+
+    Args:
+        **kwargs: Passed to HtmlFormatter
+
+    Return:
+        HTML string.
+    """
+    from inspect import getsource
+    from pygments import highlight
+    from pygments.lexers import PythonLexer
+    from pygments.formatters import HtmlFormatter
+    from IPython.core.display import HTML
+
+    # Extract source code up to end of docstring.
+    lines, count = [], 0
+    for l in getsource(function).splitlines():
+        lines.append(l)
+        if l.lstrip().startswith('"""'): count += 1
+        if count == 2: break
+
+    if "full" not in kwargs: kwargs["full"] = True
+    return HTML(highlight("\n".join(lines), PythonLexer(), HtmlFormatter(**kwargs)))
 
 
 def ipw_listdir(top=".", recurse=True, widget_type="dropdown"):   # pragma: no cover
