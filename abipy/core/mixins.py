@@ -335,6 +335,10 @@ class Has_ElectronBands(object):
         """Plot the electron energy bands with DOS. See the :func:`ElectronBands.plot_with_edos` for the signature."""
         return self.ebands.plot_with_edos(edos, **kwargs)
 
+    def get_edos(self, **kwargs):
+        """Compute the electronic DOS on a linear mesh. Wraps ebands.get_edos."""
+        return self.ebands.get_edos(**kwargs)
+
     def yield_ebands_figs(self, **kwargs):
         """*Generates* a predefined list of matplotlib figures with minimal input from the user."""
         with_gaps = not self.ebands.has_metallic_scheme
@@ -477,12 +481,17 @@ class NotebookWriter(object):
         if which("jupyter") is None:
             raise RuntimeError("Cannot find jupyter in $PATH. Install it with `conda install jupyter or `pip install jupyter`")
 
+        # Use jupyter-lab instead of classic notebook if possible.
+        has_jupyterlab = which("jupyter-lab") is not None
+        #has_jupyterlab = False
+        appname = "jupyter-lab" if has_jupyterlab else "jupyter notebook"
+
         if foreground:
-            return os.system("jupyter notebook %s" % nbpath)
+            return os.system("%s %s" % (appname, nbpath))
         else:
             fd, tmpname = tempfile.mkstemp(text=True)
             print(tmpname)
-            cmd = "jupyter notebook %s" % nbpath
+            cmd = "%s %s" % (appname, nbpath)
             print("Executing:", cmd)
             print("stdout and stderr redirected to %s" % tmpname)
             import subprocess

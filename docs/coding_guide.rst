@@ -112,4 +112,5 @@ Testing
 Abipy has a testing infrastructure based on :mod:`unittest` and pytest_.
 
 Common test support is provided by :mod:`abipy.core.testing`, 
-data files are stored in :file:`abipy/tests/data`.
+data files are stored in :file:`abipy/data`, in particular in :file:`abipy/data/refs` that
+contains several output files that can be used for writing unit tests and examples.

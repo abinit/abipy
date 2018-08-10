@@ -13,6 +13,9 @@ TODO list:
 * introduce new status for tasks that are removed at runtime e.g. S_CANCELLED
   and handle new case in flow machinery. Be careful with pickle, status comparison and ordering though.
 
+* introduce new staus WAITING_FOR_RESTART
+  so that we don't have to restart task in callbacks
+
 * DONE Check PJDOS in abinit@gitlab
 
 * DONE Add mpirun_args see e.g nic4 and mpirun --bind-to None
@@ -40,9 +43,13 @@ TODO list:
 
 * Add support for PSML/UPF format
 
+* Add iscf to GSR.nc so that we know if we have SCF|NSCF run.
+
 ## Medium priority
 
 * remove phononflow
+
+* Add DOS to GSR file (useful if tetra)  Create Dosfile ?
 
 * Add with_becs to PhononWork
 
@@ -67,7 +74,9 @@ TODO list:
 
 * Scheduler should report info on exceptions (especially if at the end when on_all_ok is invoked)
 
-* Replace core.tensor with pymatgen tensor (postponed to v0.4)
+* ALMOST DONE: Replace core.tensor with pymatgen tensor
+  Check DielectricTensor in Anaddb from DDB.
+  Use pmg tensor for stress as well.
 
 * Add nsppol, nspinor, nspden to HIST file (and other stuff?)
 
@@ -84,11 +93,16 @@ TODO list:
 
 * DONE: Fix possible error reported by Henrique (NscfTask from file that tries to change ngfft)
 
-* Add iscf to GSR.nc so that we know if we have SCF|NSCF run.
-
 * Add input file to NC files (?)
 
 * Had to increase fermie again to get correct gap in diamond treated if FD smearing
+
+* XG remarks:
+
+    - Improve abipy/docs/README.rst mentions 
+    - Change bibtex style (use same format as abidocs)
+
+	open _build/html/index.html
 
 ## Low priority
 

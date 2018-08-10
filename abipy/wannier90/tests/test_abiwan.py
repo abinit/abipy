@@ -120,6 +120,6 @@ class TestAbiwanFile(AbipyTest):
             assert plotter.gridplot(show=False)
 
         if self.has_nbformat():
-            robot.write_notebook(nbpath=self.get_tmpname(text=True))
+            assert robot.write_notebook(nbpath=self.get_tmpname(text=True))
 
         robot.close()

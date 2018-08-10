@@ -15,6 +15,7 @@ from tabulate import tabulate
 from monty.string import is_string
 from monty.itertools import iuptri
 from monty.functools import lazy_property
+from monty.collections import dict2namedtuple
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 try:
     from pymatgen.util.serialization import SlotPickleMixin
@@ -239,14 +240,17 @@ class SymmOp(Operation, SlotPickleMixin):
         return str(self)
 
     def __str__(self):
+        return self.to_string()
+
+    def to_string(self, verbose=0):
         def vec2str(vec):
             return "%2d,%2d,%2d" % tuple(v for v in vec)
 
         s = ""
         for i in range(3):
-            s +=  "[" + vec2str(self.rot_r[i]) + ", %.3f]  " % self.tau[i] + "[" + vec2str(self.rot_g[i]) + "] "
-            if i == 0:
-                s += " time_sign=%2d, afm_sign=%2d, det=%2d" % (self.time_sign, self.afm_sign, self.det)
+            s += "[" + vec2str(self.rot_r[i]) + ", %.3f]  " % self.tau[i] + "[" + vec2str(self.rot_g[i]) + "] "
+            if i == 2:
+                s += ", time_sign = %+1d, afm_sign = %+1d, det = %+1d" % (self.time_sign, self.afm_sign, self.det)
             s += "\n"
 
         return s
@@ -733,6 +737,28 @@ class AbinitSpaceGroup(OpSequence):
                 symmops.append(sym)
 
         return tuple(symmops)
+
+    def symeq(self, k1_frac_coords, k2_frac_coords, atol=None):
+        """
+        Test whether two k-points in fractional coordinates are symmetry equivalent
+        i.e. if there's a symmetry operations TO (including time-reversal T, if present)
+        such that:
+
+            TO(k1) = k2 + G0
+
+        Return: namedtuple with:
+            isym: The index of the symmetry operation such that TS(k1) = k2 + G0
+                Set to -1 if k1 and k2 are not related by symmetry.
+            op: Symmetry operation.
+            g0: numpy vector.
+        """
+        for isym, sym in enumerate(self):
+            sk_coords = sym.rotate_k(k1_frac_coords, wrap_tows=False)
+            if issamek(sk_coords, k2_frac_coords, atol=atol):
+                g0 = sym.rotate_k(k1_frac_coords) - k2_frac_coords
+                return dict2namedtuple(isym=isym, op=self[isym], g0=g0)
+
+        return dict2namedtuple(isym=-1, op=None, g0=None)
 
     def find_little_group(self, kpoint):
         """

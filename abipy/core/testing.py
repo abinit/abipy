@@ -43,32 +43,18 @@ def cmp_version(this, other, op=">="):
     return op(parse_version(this), parse_version(other))
 
 
-#TODO: Replace with abinit build and manager
-def has_abinit(version=None, op=">="):
+def has_abinit(version=None, op=">=", manager=None):
     """
-    True if abinit is in $PATH.
-    If version is not None, abinit version op version is evaluated and the result is returned.
-    False if condition is not fulfilled or the execution of ``abinit -v`` raised CalledProcessError
+    True if abinit is available via TaskManager configuration options.
+    If version is not None, `abinit_version op version` is evaluated and the result is returned.
     """
-    abinit = which("abinit")
-    if abinit is None: return False
-    if version is None: return abinit is not None
-
-    try:
-        abinit_version = str(subprocess.check_output(["abinit", "-v"]))
-
-    except subprocess.CalledProcessError:
-        # Some MPI implementations require the mpirunner.
-        try:
-            abinit_version = subprocess.check_output(["mpirun", "-n", "1", "abinit", "-v"])
-        except subprocess.CalledProcessError:
-            try:
-                abinit_version = subprocess.check_output(["mpiexec", "-n", "1", "abinit", "-v"])
-            except subprocess.CalledProcessError as exc:
-                logger.warning(exc.output)
-                return False
-
-    return cmp_version(abinit_version, version, op=op)
+    from abipy.flowtk import TaskManager, AbinitBuild
+    manager = TaskManager.from_user_config() if manager is None else manager
+    build = AbinitBuild(manager=manager)
+    if version is None:
+        return build.version != "0.0.0"
+    else:
+        return cmp_version(build.version, version, op=op)
 
 
 def has_matplotlib(version=None, op=">="):
@@ -292,6 +278,12 @@ class AbipyTest(PymatgenTest):
         """Return True if abinit is in $PATH and version is op min_version."""
         return has_abinit(version=version, op=op)
 
+    def skip_if_abinit_not_ge(self, version):
+        """Skip test if Abinit version is not >= `version`"""
+        op = ">="
+        if not self.has_abinit(version, op=op):
+            raise unittest.SkipTest("This test requires Abinit version %s %s" % (op, version))
+
     @staticmethod
     def has_matplotlib(version=None, op=">="):
         return has_matplotlib(version=version, op=op)
@@ -384,6 +376,11 @@ class AbipyTest(PymatgenTest):
             return True
         except ImportError:
             return False
+
+    def run_nbpath(self, nbpath):
+        """Test that the notebook in question runs all cells correctly."""
+        nb, errors = notebook_run(nbpath)
+        return nb, errors
 
     @staticmethod
     def has_ipywidgets():
@@ -515,6 +512,14 @@ class AbipyTest(PymatgenTest):
 
         assert not errors
 
+    def abivalidate_work(self, work):
+        """Invoke Abinit to test validity of the inputs of a |Work|"""
+        from abipy.flowtk import Flow
+        tmpdir = tempfile.mkdtemp()
+        flow = Flow(workdir=tmpdir)
+        flow.register_work(work)
+        return self.abivalidate_flow(flow)
+
     @staticmethod
     def abivalidate_flow(flow):
         """
@@ -536,3 +541,35 @@ class AbipyTest(PymatgenTest):
     @wraps(get_gsinput_si)
     def get_gsinput_si(*args, **kwargs):
         return get_gsinput_si(*args, **kwargs)
+
+
+def notebook_run(path):
+    """
+    Execute a notebook via nbconvert and collect output.
+
+    Taken from
+    https://blog.thedataincubator.com/2016/06/testing-jupyter-notebooks/
+
+    Args:
+        path (str): file path for the notebook object
+
+    Returns: (parsed nb object, execution errors)
+
+    """
+    import nbformat
+    dirname, __ = os.path.split(path)
+    os.chdir(dirname)
+    with tempfile.NamedTemporaryFile(suffix=".ipynb") as fout:
+        args = ["jupyter", "nbconvert", "--to", "notebook", "--execute",
+                "--ExecutePreprocessor.timeout=300",
+                "--ExecutePreprocessor.allow_errors=True",
+                "--output", fout.name, path]
+        subprocess.check_call(args)
+
+        fout.seek(0)
+        nb = nbformat.read(fout, nbformat.current_nbformat)
+
+    errors = [output for cell in nb.cells if "outputs" in cell
+              for output in cell["outputs"] if output.output_type == "error"]
+
+    return nb, errors

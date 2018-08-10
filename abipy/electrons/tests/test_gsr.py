@@ -135,7 +135,7 @@ class GSRFileTestCase(AbipyTest):
 
             if self.has_matplotlib():
                 assert gsr.plot_ebands(show=False)
-                assert gsr.plot_ebands_with_edos(edos=gsr.ebands.get_edos(), show=False)
+                assert gsr.plot_ebands_with_edos(edos=gsr.get_edos(), show=False)
 
             if self.has_nbformat():
                 gsr.write_notebook(nbpath=self.get_tmpname(text=True))
@@ -146,9 +146,9 @@ class GsrRobotTest(AbipyTest):
     def test_gsr_robot(self):
         """Testing GSR robot"""
         from abipy import abilab
-        gsr_path = abidata.ref_file("si_scf_GSR.nc")
+        gsr_ibz = abidata.ref_file("si_scf_GSR.nc")
         robot = abilab.GsrRobot()
-        robot.add_file("gsr0", gsr_path)
+        robot.add_file("gsr0", gsr_ibz)
         assert len(robot.abifiles) == 1
         assert "gsr0" in robot.keys()
         assert "gsr0" in robot.labels
@@ -158,10 +158,10 @@ class GsrRobotTest(AbipyTest):
 
 	# Cannot have same label
         with self.assertRaises(ValueError):
-            robot.add_file("gsr0", gsr_path)
+            robot.add_file("gsr0", gsr_ibz)
 
         assert len(robot) == 1 and not robot.exceptions
-        robot.add_file("gsr1", abilab.abiopen(gsr_path))
+        robot.add_file("gsr1", abilab.abiopen(gsr_ibz))
         assert len(robot) == 2
         robot.show_files()
         assert not robot.has_different_structures()
@@ -177,6 +177,10 @@ class GsrRobotTest(AbipyTest):
         assert dfs.lattice is not None
         assert dfs.coords is not None
         assert len(dfs.structures) == len(robot)
+
+        assert len(robot.get_ebands_plotter(kselect="path")) == 0
+        filter_abifile = lambda gsr: gsr.ebands.kpoints.is_ibz
+        assert len(robot.get_ebands_plotter(filter_abifile=filter_abifile)) == 2
 
         ebands_plotter = robot.get_ebands_plotter()
         edos_plotter = robot.get_edos_plotter()
