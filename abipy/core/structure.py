@@ -592,7 +592,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         """
         Gives a structure with a conventional cell according to certain
 	standards. The standards are defined in :cite:`Setyawan2010`
-        They basically enforce as much as possible norm(a1)<norm(a2)<norm(a3)
+        They basically enforce as much as possible norm(a1) < norm(a2) < norm(a3)
 
         Returns:
             The structure in a conventional standardized cell

@@ -448,11 +448,14 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
                              "Use Structure objects to prepare the input file.")
 
         if self.spell_check and not is_abivar(key):
-            raise self.Error("%s is not a valid ABINIT variable.\n" % key +
-                             "If the name is correct, try to remove ~/.abinit/abipy/abinit_vars.pickle\n"
-                             "and rerun the code. If the problems persists, contact the abipy developers\n"
-                             "or use input.set_spell_check(False)\n"
-                             "or add the variable to ~abipy/data/variables/abinit_vars.json\n")
+            raise self.Error("""
+Cannot find variable `%s` in internal database.
+If you think this is not a typo, use:
+
+    input.set_spell_check(False)
+
+to disable spell checking. Perhaps the internal database is not in synch
+with the Abinit version you are using. Please contact the AbiPy developers.""" % key)
 
     #def __eq__(self, other)
     #def __ne__(self, other)
@@ -2365,10 +2368,14 @@ class AnaddbInput(AbiAbstractInput, Has_Structure):
 
     def _check_varname(self, key):
         if self.spell_check and not is_anaddb_var(key):
-            raise self.Error("%s is not a registered Anaddb variable\n"
-                             "If you are sure the name is correct, please contact the abipy developers\n"
-                             "or use input.set_spell_check(False)\n"
-                             "or modify the JSON file abipy/data/variables/anaddb_vars.json" % key)
+            raise self.Error("""
+Cannot find variable `%s` in internal database.
+If you think this is not a typo, use:
+
+    input.set_spell_check(False)
+
+to disable spell checking. Perhaps the internal database is not in synch
+with the Abinit version you are using. Please contact the AbiPy developers.""" % key)
 
     @classmethod
     def modes_at_qpoint(cls, structure, qpoint, asr=2, chneut=1, dipdip=1, ifcflag=0, lo_to_splitting=False,
