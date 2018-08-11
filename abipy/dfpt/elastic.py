@@ -9,6 +9,7 @@ import pandas as pd
 from collections import OrderedDict
 from monty.string import list_strings, marquee
 from monty.collections import AttrDict
+from monty.json import MSONable
 #from monty.functools import lazy_property
 from pymatgen.analysis.elasticity.tensors import Tensor
 from pymatgen.analysis.elasticity.elastic import ElasticTensor
@@ -53,7 +54,7 @@ class MyPiezoTensor(PiezoTensor):
         return pd.DataFrame(rows, index=index, columns=columns)
 
 
-class ElasticData(Has_Structure):
+class ElasticData(Has_Structure, MSONable):
     """
     Container with the different elastic and piezoelectric tensors
     computed by anaddb. Data is stored in pymatgen tensor objects.

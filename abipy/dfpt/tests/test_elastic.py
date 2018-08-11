@@ -60,6 +60,8 @@ class ElaticDataFileTest(AbipyTest):
             edata_ieee = e.convert_to_ieee()
             assert edata_ieee is not None
 
+            self.assertMSONable(e)
+
             df = e.get_elastic_tensor_dataframe(tensor_name="elastic_clamped", tol=1e-5)
             df = e.get_piezoelectric_tensor_dataframe(tensor_name="piezo_clamped", tol=1e-8)
 
