@@ -1215,8 +1215,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
             tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.
                 Defaults to {"tolwfr": 1.0e-22}.
             kptopt: 2 to take into account time-reversal symmetry. note that kptopt 1 is not available.
-	    only_vk: If only matrix elements of the velocity operator are needed.
-		First-order wavefunctions won't be converged --> not usable for other DFPT calculations.
+            only_vk: If only matrix elements of the velocity operator are needed.
+                First-order wavefunctions won't be converged --> not usable for other DFPT calculations.
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
 
         Return:
@@ -2622,7 +2622,7 @@ class AnaddbInput(AbiAbstractInput, Has_Structure):
 
     @classmethod
     def dfpt(cls, structure, ngqpt=None, relaxed_ion=False, piezo=False, dde=False, strain=False, dte=False,
-	     stress_correction=False, nqsmall=None, qppa=None, ndivsm=20, line_density=None, q1shft=(0, 0, 0),
+             stress_correction=False, nqsmall=None, qppa=None, ndivsm=20, line_density=None, q1shft=(0, 0, 0),
              qptbounds=None, asr=2, chneut=1, dipdip=1, dos_method="tetra", anaddb_args=None, anaddb_kwargs=None, comment=None):
         """
         Builds an |AnaddbInput| to post-process a generic DFPT calculation.
@@ -2631,9 +2631,9 @@ class AnaddbInput(AbiAbstractInput, Has_Structure):
             structure: |Structure| object.
             ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
             stress_correction: True to activate computation of  stress correction in elastic tensor.
-		Requires DDB with stress entries.
+                Requires DDB with stress entries.
             relaxed_ion: True to activate computation of relaxed-ion elastic and piezoelectric tensors.
-		(assume the DDB has atomic perturbations at Gamma)
+                (assume the DDB has atomic perturbations at Gamma)
             piezo: if True the piezoelectric tensor are calculated (requires piezoelectric perturbations)
             dde: if True dielectric tensors will be calculated. If phonon band
                 structure is calculated will also enable the calculation of the lo_to splitting
