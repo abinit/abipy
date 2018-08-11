@@ -327,7 +327,7 @@ class QPList(list):
         qps = self if self.is_e0sorted else self.sort_by_e0()
         e0mesh = qps.get_e0mesh()
         xlabel = r"$\epsilon_{KS}\;(eV)$"
-        print("fermie", fermie)
+        #print("fermie", fermie)
         if fermie is not None:
             xlabel = r"$\epsilon_{KS}-\epsilon_F\;(eV)$"
             e0mesh -= fermie

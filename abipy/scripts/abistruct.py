@@ -366,14 +366,14 @@ closest points in this particular structure. This is usually what you want in a 
     # Options for commands accessing the materials project database.
     mp_rest_parser = argparse.ArgumentParser(add_help=False)
     mp_rest_parser.add_argument("--mapi-key", default=None,
-        help="Pymatgen MAPI_KEY. Use value in .pmgrc.yaml if not specified.")
+        help="Pymatgen PMG_MAPI_KEY. Use value in .pmgrc.yaml if not specified.")
     mp_rest_parser.add_argument("--endpoint", help="Pymatgen database.", default="https://www.materialsproject.org/rest/v2")
     mp_rest_parser.add_argument("-b", "--browser", default=False, action='store_true',
         help="Open materials-project webpages in browser")
 
     # Subparser for mp_id command.
     p_mpid = subparsers.add_parser('mp_id', parents=[copts_parser, mp_rest_parser],
-        help="Get structure from the pymatgen database. Export to format. Requires internet connection and MAPI_KEY.")
+        help="Get structure from the pymatgen database. Export to format. Requires internet connection and PMG_MAPI_KEY.")
     p_mpid.add_argument("mpid", type=str, default=None, help="Pymatgen identifier.")
     add_format_arg(p_mpid, default="cif")
 
@@ -421,7 +421,7 @@ ehull < show_unstable will be shown.""")
 
     # Subparser for animate command.
     p_animate = subparsers.add_parser('animate', parents=[copts_parser, path_selector],
-        help="Read structures from HIST.nc or XDATCAR. Print structures in Xrysden AXSF format to stdout.")
+        help="Read structures from HIST.nc or XDATCAR. Print structures in Xcrysden AXSF format to stdout.")
 
     return parser
 

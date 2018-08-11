@@ -2160,6 +2160,8 @@ class PhononDos(Function1D):
         """
         tmesh = np.linspace(tstart, tstop, num=num)
         w, gw = self.mesh[self.iw0:], self.values[self.iw0:]
+        if w[0] < 1e-12:
+            w, gw = self.mesh[self.iw0+1:], self.values[self.iw0+1:]
         coth = lambda x: 1.0 / np.tanh(x)
 
         vals = np.empty(len(tmesh))
@@ -2169,6 +2171,7 @@ class PhononDos(Function1D):
             else:
                 wd2kt = w / (2 * abu.kb_eVK * temp)
                 vals[it] = 0.5 * np.trapz(w * coth(wd2kt) * gw, x=w)
+            #print(vals[it])
 
         return Function1D(tmesh, vals)
 
@@ -2185,6 +2188,8 @@ class PhononDos(Function1D):
         """
         tmesh = np.linspace(tstart, tstop, num=num)
         w, gw = self.mesh[self.iw0:], self.values[self.iw0:]
+        if w[0] < 1e-12:
+            w, gw = self.mesh[self.iw0+1:], self.values[self.iw0+1:]
         coth = lambda x: 1.0 / np.tanh(x)
 
         vals = np.empty(len(tmesh))
@@ -2228,6 +2233,8 @@ class PhononDos(Function1D):
         """
         tmesh = np.linspace(tstart, tstop, num=num)
         w, gw = self.mesh[self.iw0:], self.values[self.iw0:]
+        if w[0] < 1e-12:
+            w, gw = self.mesh[self.iw0+1:], self.values[self.iw0+1:]
         csch2 = lambda x: 1.0 / (np.sinh(x) ** 2)
 
         vals = np.empty(len(tmesh))
@@ -2287,9 +2294,8 @@ class PhononDos(Function1D):
             ax.grid(True)
             ax.set_xlabel("Temperature (K)", fontsize=fontsize)
             ax.set_ylabel(_THERMO_YLABELS[qname][units], fontsize=fontsize)
-            ax.legend(loc="best", fontsize=fontsize, shadow=True)
+            #ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
-        #fig.tight_layout()
         return fig
 
     def to_pymatgen(self):
@@ -2305,7 +2311,6 @@ class PhononDos(Function1D):
         """
         Debye temperature in K.
         """
-
         integrals = (self * self.mesh ** 2).spline_integral() / self.spline_integral()
         t_d = np.sqrt(5/3*integrals)/abu.kb_eVK
 
@@ -2318,7 +2323,6 @@ class PhononDos(Function1D):
         Args:
             nsites: the number of sites in the cell.
         """
-
         return self.debye_temp/nsites**(1/3)
 
 

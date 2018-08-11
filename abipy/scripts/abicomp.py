@@ -252,6 +252,11 @@ def abicomp_ebands(options):
         frame = plotter.get_ebands_frame()
         abilab.print_dataframe(frame)
 
+        if options.clipboard:
+            cprint("Copying dataframe to the system clipboard.", "green")
+            cprint("This can be pasted into Excel, for example", "green")
+            frame.to_clipboard()
+
         # Optionally, print info on gaps and their location
         if not options.verbose:
             print("\nUse --verbose for more information")
@@ -594,6 +599,11 @@ def _invoke_robot(options):
             try:
                 df = robot.get_dataframe()
                 abilab.print_dataframe(df, title="Output of robot.get_dataframe():")
+                if options.clipboard:
+                    cprint("Copying dataframe to the system clipboard.", "green")
+                    cprint("This can be pasted into Excel, for example", "green")
+                    df.to_clipboard()
+
             except Exception as exc:
                 cprint("Exception:\n%s\n\nwhile invoking get_dataframe. Falling back to to_string" % str(exc), "red")
                 print(robot.to_string(verbose=options.verbose))
@@ -731,6 +741,9 @@ Usage example:
   abicomp.py ebands out1_GSR.nc out2_WFK.nc     => Plot electron bands on a grid (Use `-p` to change plot mode)
   abicomp.py ebands *_GSR.nc -ipy               => Build plotter object and start ipython console.
   abicomp.py ebands *_GSR.nc -nb                => Interact with the plotter in the jupyter notebook.
+  abicomp.py ebands `find . -name "*_GSR.nc"` -c = Find all GSR.nc files startign from current working directory
+                                                   Copy dataframe to the system clipboard.
+                                                   This can be pasted into Excel, for example
   abicomp.py edos *_WFK.nc -nb                  => Compare electron DOS in the jupyter notebook.
   abicomp.py optic DIR -nb                      => Compare optic results in the jupyter notebook.
   abicomp.py abiwan *_ABIWAN.nc --expose        => Compare ABIWAN results, produce matplotlib figures.
@@ -859,10 +872,6 @@ def get_parser(with_epilog=False):
     nb_parser.add_argument('--foreground', action='store_true', default=False,
         help="Run jupyter notebook in the foreground.")
 
-    # Parent parser for *robot* commands
-    robot_parser = argparse.ArgumentParser(add_help=False)
-    robot_parser.add_argument('--no-walk', default=False, action="store_true", help="Don't enter subdirectories.")
-
     # Parent parser for commands supporting expose
     expose_parser = argparse.ArgumentParser(add_help=False)
     expose_parser.add_argument("-e", '--expose', default=False, action="store_true",
@@ -925,6 +934,8 @@ def get_parser(with_epilog=False):
         help="Plot mode e.g. `-p combiplot` to plot bands on the same figure. Default is `gridplot`.")
     p_ebands.add_argument("-e0", default="fermie", choices=["fermie", "None"],
         help="Option used to define the zero of energy in the band structure plot. Default is `fermie`.")
+    p_ebands.add_argument("-c", '--clipboard', default=False, action="store_true",
+            help="Copy dataframe to the system clipboard. This can be pasted into Excel, for example")
 
     # Subparser for edos command.
     p_edos = subparsers.add_parser('edos', parents=[copts_parser, ipy_parser, expose_parser],
@@ -962,6 +973,12 @@ def get_parser(with_epilog=False):
         help="Run jupyter notebook in the foreground.")
     #robot_ipy_parser.add_argument('-ipy', '--ipython', default=True, action="store_true", help='Invoke ipython terminal.')
     robot_ipy_parser.add_argument('-p', '--print', default=False, action="store_true", help='Print robot and return.')
+
+    # Parent parser for *robot* commands
+    robot_parser = argparse.ArgumentParser(add_help=False)
+    robot_parser.add_argument('--no-walk', default=False, action="store_true", help="Don't enter subdirectories.")
+    robot_parser.add_argument("-c", '--clipboard', default=False, action="store_true",
+            help="Copy dataframe to the system clipboard. This can be pasted into Excel, for example")
 
     robot_parents = [copts_parser, robot_ipy_parser, robot_parser, expose_parser]
     p_gsr = subparsers.add_parser('gsr', parents=robot_parents, help=abicomp_gsr.__doc__)
