@@ -5,6 +5,7 @@ import os
 import numpy as np
 import abipy.data as abidata
 import abipy.core
+import abipy.core.abinit_units as abu
 
 from pprint import pprint
 from abipy.core.testing import AbipyTest
@@ -114,15 +115,9 @@ class GSRFileTestCase(AbipyTest):
             #  sigma(1 1)=  1.77139311E-04  sigma(3 2)=  0.00000000E+00
             #  sigma(2 2)=  1.77139311E-04  sigma(3 1)=  0.00000000E+00
             #  sigma(3 3)=  1.77139311E-04  sigma(2 1)=  2.67294316E-15
-            self.assert_almost_equal(gsr.pressure, -5.21162150)
-
-            # Test as_dict
-            d = gsr.as_dict()
-            assert d and "structure" in d
-            #import json
-            #with open("hello.json", "w") as fp:
-            #    json.dump(gsr.as_dict(), fp)
-            #assert 0
+            for i in range(3):
+                self.assert_almost_equal(gsr.cart_stress_tensor[0, 0], 1.77139311E-04 * abu.HaBohr3_GPa)
+            self.assert_almost_equal(gsr.pressure, -5.211617575719521)
 
             # Test pymatgen computed_entries
             for inc_structure in (True, False):

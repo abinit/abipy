@@ -17,6 +17,7 @@ from abipy.core.structure import Structure
 from abipy.core.mixins import AbinitNcFile, NotebookWriter
 from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
+import abipy.core.abinit_units as abu
 
 
 class HistFile(AbinitNcFile, NotebookWriter):
@@ -126,7 +127,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         app("")
 
         cart_stress_tensors, pressures = self.reader.read_cart_stress_tensors()
-        app("Stress tensor (Cartesian coordinates in Ha/Bohr**3):\n%s" % cart_stress_tensors[-1])
+        app("Stress tensor (Cartesian coordinates in GPa):\n%s" % cart_stress_tensors[-1])
         app("Pressure: %.3f [GPa]" % pressures[-1])
 
         return "\n".join(lines)
@@ -789,7 +790,7 @@ class HistReader(ETSF_Reader):
 
     def read_cart_stress_tensors(self):
         """
-        Return the stress tensors (nstep x 3 x 3) in cartesian coordinates (Hartree/Bohr^3)
+        Return the stress tensors (nstep x 3 x 3) in cartesian coordinates (GPa)
         and the list of pressures in GPa unit.
         """
         # Abinit stores 6 unique components of this symmetric 3x3 tensor:
@@ -803,9 +804,9 @@ class HistReader(ETSF_Reader):
                 tensors[step, i,j] = c[step, 3+p]
                 tensors[step, j,i] = c[step, 3+p]
 
-        HaBohr3_GPa = 29421.033 # 1 Ha/Bohr^3, in GPa
+        tensors *= abu.HaBohr3_GPa
         pressures = np.empty(self.num_steps)
         for step, tensor in enumerate(tensors):
-            pressures[step] = - (HaBohr3_GPa/3) * tensor.trace()
+            pressures[step] = - tensor.trace() / 3
 
         return tensors, pressures
