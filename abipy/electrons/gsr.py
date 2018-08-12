@@ -200,6 +200,10 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
     def close(self):
         self.reader.close()
 
+    # FIXME: This is deprecated. Must keep it to avoid breaking ScfTask.get_results
+    def as_dict(self):
+        return {}
+
     def get_computed_entry(self, inc_structure=True, parameters=None, data=None):
         """
         Returns a pymatgen :class:`ComputedStructureEntry` from the GSR file.

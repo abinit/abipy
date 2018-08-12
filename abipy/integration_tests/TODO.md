@@ -2,9 +2,9 @@ TODO list:
 
 ## High priority
 
-* Remove all the abiview commands that are now implemented in abiopen. 
+* DONE Remove all the abiview commands that are now implemented in abiopen. 
 
-* Add ebands.method to fix the fermi level in semiconductors
+* DONE Add ebands.method to fix the fermi level in semiconductors
   Remember that ebands is immutable
 
 * Use angdeg instead of rprimd in structure_to_abivars if hex or rhomboedral lattice 
@@ -53,7 +53,7 @@ TODO list:
 
 * Add with_becs to PhononWork
 
-* video with atom and hydrogen
+* videos in README (atom and hydrogen)
 
 * ALMOST DONE: Fix travis warnings.
 
@@ -103,6 +103,8 @@ TODO list:
     - Change bibtex style (use same format as abidocs)
 
 	open _build/html/index.html
+
+    - Band structure and Fermi level
 
 ## Low priority
 

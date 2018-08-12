@@ -293,7 +293,7 @@ class ElectronBandsError(Exception):
 
 class ElectronBands(Has_Structure):
     """
-    Immutable object storing the electron band structure.
+    Object storing the electron band structure.
 
     .. attribute:: fermie
 
@@ -501,11 +501,6 @@ class ElectronBands(Has_Structure):
         self.nelect = float(nelect)
         self.fermie = float(fermie)
 
-        # Recompute the Fermi level (in principle should do this only if
-        # bands are computed on a BZ mesh with a NSCF run.
-        #if self.kpoints.is_ibz: # and iscf < 0
-        #    self.recalc_fermie()
-
     @property
     def structure(self):
         """|Structure| object."""
@@ -630,23 +625,48 @@ class ElectronBands(Has_Structure):
             cprint("ebands.smearing is not defined, assuming has_metallic_scheme = False", "red")
             return False
 
-    #@lazy_property
-    #def likely_semiconductor(self):
-    #    """
-    #    True if energy gap is present in the band structure,
-    #    independently on the use of metallic scheme for occupancies
-    #    """
+    def set_fermie_to_vbm(self):
+        """
+        Set the Fermi energy to the valence band maximum (VBM).
+        Useful when the initial fermie energy comes from a GS-SCF calculation
+        that underestimates the Fermi energy because e.g. the IBZ sampling
+        is shifted whereas the true VMB is at Gamma.
 
-    #def new_with_fermie(self, nelect=None, method="gaussian", step=0.001, width=0.002):
-    #    """
-    #    Recompute the Fermi level.
-    #    """
-    #    if nelect is None: nelect = self.nelect
-    #    edos = self.get_edos(method=method, step=step, width=width)
-    #    ef = edos.find_mu(nelect)
-    #    self.set_fermie(ef)
-    #    # TODO: Recalculate occupations.
-    #    return ef
+        Return:
+            New fermi energy in eV.
+
+        .. warning:
+
+            Assume spin-unpolarized band energies.
+        """
+        iv = int(self.nelect) // 2 - 1
+        new_fermie = self.eigens[:, :, iv].max()
+        return self.set_fermie(new_fermie)
+
+    def set_fermie_from_edos(self, edos, nelect=None):
+        """
+        Set the Fermi level using the integrated DOS computed in edos.
+
+         Args:
+            edos: |ElectronDos| object.
+            nelect: Number of electrons.
+                If None, the number of electrons in self. is used
+
+        Return:
+            New fermi energy in eV.
+        """
+        if nelect is None:
+            new_fermie = edos.find_mu(self.nelect)
+        else:
+            new_fermie = edos.find_mu(nelect)
+
+        return self.set_fermie(new_fermie)
+
+    def set_fermie(self, new_fermie):
+        """Set the new fermi energy. Return new value"""
+        self.fermie = new_fermie
+        # TODO change occfacts
+        return self.fermie
 
     def with_points_along_path(self, frac_bounds=None, knames=None, dist_tol=1e-12):
         """
@@ -839,12 +859,6 @@ class ElectronBands(Has_Structure):
             return int(kpoint)
         else:
             return self.kpoints.index(kpoint)
-
-    #def sb_iter(self, ik):
-    #    """Iterator over (spin, band) indices."""
-    #    for spin in self.spins:
-    #        for band in range(self.nband_sk[spin, ik]):
-    #            yield spin, band
 
     def skb_iter(self):
         """Iterator over (spin, k, band) indices."""
@@ -1176,7 +1190,7 @@ class ElectronBands(Has_Structure):
                         #fermie=self.fermie
                         )
 
-    @lazy_property
+    @property
     def lomos(self):
         """lomo states for each spin channel as a list of nsppol :class:`Electron`."""
         lomos = self.nsppol * [None]
@@ -1222,7 +1236,7 @@ class ElectronBands(Has_Structure):
         b = find_gt(self.eigens[spin,k,:], self.fermie + self.pad_fermie)
         return self._electron_state(spin, k, b)
 
-    @lazy_property
+    @property
     def homos(self):
         """
         homo states for each spin channel as a list of nsppol :class:`Electron`.
@@ -1245,7 +1259,7 @@ class ElectronBands(Has_Structure):
 
         return homos
 
-    @lazy_property
+    @property
     def lumos(self):
         """
         lumo states for each spin channel as a list of nsppol :class:`Electron`.
@@ -1286,17 +1300,17 @@ class ElectronBands(Has_Structure):
     #    for spin in self.spins:
     #       if abs(fun_gaps.ene) <  TOL_EGAP
 
-    @lazy_property
+    @property
     def bandwidths(self):
         """The bandwidth for each spin channel i.e. the energy difference (homo - lomo)."""
         return [self.homos[spin].eig - self.lomos[spin].eig for spin in self.spins]
 
-    @lazy_property
+    @property
     def fundamental_gaps(self):
         """List of :class:`ElectronTransition` with info on the fundamental gaps for each spin."""
         return [ElectronTransition(self.homos[spin], self.lumos[spin]) for spin in self.spins]
 
-    @lazy_property
+    @property
     def direct_gaps(self):
         """List of `nsppol` :class:`ElectronTransition` with info on the direct gaps for each spin."""
         dirgaps = self.nsppol * [None]

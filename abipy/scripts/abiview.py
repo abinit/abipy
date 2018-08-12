@@ -73,25 +73,16 @@ def abiview_data(options):
     return 0
 
 
-def abiview_abo(options):
-    """
-    Plot self-consistent iterations extracted from Abinit output file
-    as well as timer data (if present)
-    """
-    with abilab.abiopen(options.filepath) as abo:
-        print(abo.to_string(verbose=options.verbose))
-        abo.plot()
-        #timer = abo.get_timer()
-    return 0
-
-
-def abiview_log(options):
-    """
-    Print WARNINGS/COMMENTS/ERRORS found in Abinit log file.
-    """
-    with abilab.abiopen(options.filepath) as abo:
-        print(abo.to_string(verbose=options.verbose))
-    return 0
+#def abiview_abo(options):
+#    """
+#    Plot self-consistent iterations extracted from Abinit output file
+#    as well as timer data (if present)
+#    """
+#    with abilab.abiopen(options.filepath) as abo:
+#        print(abo.to_string(verbose=options.verbose))
+#        abo.plot()
+#        #timer = abo.get_timer()
+#    return 0
 
 
 def abiview_dirviz(options):
@@ -160,31 +151,6 @@ def abiview_fs(options):
             raise ValueError("Unsupported value for --appname: %s" % str(options.appname))
 
         return 0
-
-
-def abiview_fatbands(options):
-    """
-    Plot electronic fatbands bands if file contains high-symmetry k-path
-    or PJDOS if k-sampling. Requires FATBANDS.nc file.
-    """
-    with abilab.abiopen(options.filepath) as abifile:
-        print(abifile.to_string(verbose=options.verbose))
-        abifile.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                       verbose=options.verbose)
-
-    return 0
-
-
-def abiview_optic(options):
-    """
-    Plot optical spectra produced by optic code. Requires OPTIC.nc file.
-    """
-    with abilab.abiopen(options.filepath) as abifile:
-        print(abifile.to_string(verbose=options.verbose))
-        abifile.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                       verbose=options.verbose)
-
-    return 0
 
 
 def abiview_ddb(options):
@@ -260,54 +226,6 @@ def abiview_phbands(options):
         return 0
 
 
-def abiview_phdos(options):
-    """Plot phonon DOS. Require PHDOS.nc file."""
-    with abilab.abiopen(options.filepath) as abifile:
-        print(abifile.to_string(verbose=options.verbose))
-        units = "mev"
-        abifile.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                       verbose=options.verbose, units="mev")
-
-    return 0
-
-
-def abiview_scr(options):
-    """
-    Plot screening results computed by GW code. Requires SCR.nc file.
-    """
-    with abilab.abiopen(options.filepath) as abifile:
-        print(abifile.to_string(verbose=options.verbose))
-        abifile.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                       verbose=options.verbose)
-
-    return 0
-
-
-def abiview_sigres(options):
-    """
-    Plot the QP results. Requires SIGRES.nc file.
-    """
-    with abilab.abiopen(options.filepath) as abifile:
-        print(abifile.to_string(verbose=options.verbose))
-        abifile.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                       verbose=options.verbose)
-
-    return 0
-
-
-def abiview_mdf(options):
-    """
-    Plot the macroscopic dielectric functions computed by the Bethe-Salpeter code.
-    Requires MDF.nc file.
-    """
-    with abilab.abiopen(options.filepath) as abifile:
-        print(abifile.to_string(verbose=options.verbose))
-        abifile.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                       verbose=options.verbose)
-
-    return 0
-
-
 def abiview_denpot(options):
     """
     Plot DEN/POT files
@@ -325,36 +243,6 @@ def abiview_denpot(options):
         #    field.export_to_cube(filename=handle_overwrite(outpath, options), spin="total")
         else:
             abifile.field.visualize(appname=options.appname)
-    return 0
-
-
-def abiview_gruns(options):
-    """Plot Grunesein parameters. Requires GRUNS.nc file."""
-    with abilab.abiopen(options.filepath) as abifile:
-        print(abifile.to_string(verbose=options.verbose))
-        abifile.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                       verbose=options.verbose)
-
-    return 0
-
-
-def abiview_a2f(options):
-    """Plot Eliashberg function. Requires A2F.nc file."""
-    with abilab.abiopen(options.filepath) as abifile:
-        print(abifile.to_string(verbose=options.verbose))
-        abifile.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                       verbose=options.verbose)
-
-    return 0
-
-
-def abiview_sigeph(options):
-    """Plot e-ph self-energy. Requires SIGEPH.nc file."""
-    with abilab.abiopen(options.filepath) as abifile:
-        print(abifile.to_string(verbose=options.verbose))
-        abifile.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                       verbose=options.verbose)
-
     return 0
 
 
@@ -398,8 +286,6 @@ Usage example:
 # Text files
 ############
 
-    abiview.py abo run.abo   ==> Plot SCF iterations extracted from Abinit output file.
-    abiview.py log run.log   ==> Print warnings/comments/errors found in Abinit log file.
     abiview.py data FILE     ==> Parse text FILE with data in tabular format and plot arrays.
 
 ###########
@@ -408,10 +294,8 @@ Usage example:
 
     abiview.py ebands out_WFK.nc              ==>  Plot electrons bands (or DOS) with matplotlib.
     abiview.py ebands out_GSR.nc --xmgrace    ==>  Generate xmgrace file with electron bands.
-    abiview.py fatbands out_FATBANDS.nc       ==>  Plot electron fatbands or PJDOS depending on k-sampling.
     abiview.py fs FILE_WITH_KMESH.nc          ==>  Visualize Fermi surface from netcdf file with electron energies
                                                    on a k-mesh. Use -a xsf to change application e.g. Xcrysden.
-    abiview.py optic out_OPTIC.nc             ==>  Plot optical properties computed by optic code.
     abiview.py skw out_GSR.nc                 ==> Interpolate IBZ energies with star-functions and plot
                                                   interpolated bands.
 
@@ -421,23 +305,6 @@ Usage example:
 
     abiview.py ddb out_DDB                ==>  Compute ph-bands and DOS from DDB, plot results.
     abiview.py phbands out_PHBST.nc -web  ==>  Visualize phonon bands and displacements with phononwebsite.
-    abiview.py phdos out_PHDOS.nc         ==>  Plot phonon DOS.
-
-#######
-# E-PH
-#######
-
-  abiview.py a2f out_A2F.nc              ==> Plot Eliashberg results.
-  abiview.py sigeph out_SIGEPH.nc        ==> Plot E-PH self-energy.
-
-########
-# GW/BSE
-########
-
-  abiview.py scr out_SCR.nc              ==> Plot results stored in SCR file (GW code).
-  abiview.py sigres out_SIGRES.nc        ==> Plot QP results stored in SIGRES.
-  abiview.py mdf out_MDF.nc --seaborn    ==> Plot macroscopic dielectric functions with excitonic effects.
-                                             Use seaborn settings for plots.
 
 ###############
 # Miscelleanous
@@ -555,9 +422,6 @@ def get_parser(with_epilog=False):
     p_abo = subparsers.add_parser('abo', parents=[copts_parser], help=abiview_abo.__doc__)
 
     # Subparser for log command.
-    p_log = subparsers.add_parser('log', parents=[copts_parser], help=abiview_log.__doc__)
-
-    # Subparser for log command.
     p_dirviz = subparsers.add_parser('dirviz', parents=[copts_parser], help=abiview_dirviz.__doc__)
     p_dirviz.add_argument("-e", "--engine", type=str, default="fdp",
         help=("graphviz engine: ['dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage']. "
@@ -581,9 +445,6 @@ def get_parser(with_epilog=False):
     p_fs.add_argument("-a", "--appname", type=str, default="mpl",
         help="Application name. Possible options: mpl (matplotlib, default), xsf (xcrysden), mayavi.")
 
-    # Subparser for fatbands command.
-    p_fatbands = subparsers.add_parser('fatbands', parents=[copts_parser, slide_parser], help=abiview_fatbands.__doc__)
-
     # Subparser for ddb command.
     p_ddb = subparsers.add_parser('ddb', parents=[copts_parser, slide_parser], help=abiview_ddb.__doc__)
     add_args(p_ddb, "xmgrace", "phononweb", "browser", "force")
@@ -591,30 +452,6 @@ def get_parser(with_epilog=False):
     # Subparser for phbands command.
     p_phbands = subparsers.add_parser('phbands', parents=[copts_parser, slide_parser], help=abiview_phbands.__doc__)
     add_args(p_phbands, "xmgrace", "phononweb", "browser", "force")
-
-    # Subparser for phdos command.
-    p_phdos = subparsers.add_parser('phdos', parents=[copts_parser, slide_parser], help=abiview_phdos.__doc__)
-
-    # Subparser for gruns command.
-    p_gruns = subparsers.add_parser('gruns', parents=[copts_parser, slide_parser], help=abiview_gruns.__doc__)
-
-    # Subparser for scr command.
-    p_scr = subparsers.add_parser('scr', parents=[copts_parser, slide_parser], help=abiview_scr.__doc__)
-
-    # Subparser for sigres command.
-    p_sigres = subparsers.add_parser('sigres', parents=[copts_parser, slide_parser], help=abiview_sigres.__doc__)
-
-    # Subparser for mdf command.
-    p_mdf = subparsers.add_parser('mdf', parents=[copts_parser, slide_parser], help=abiview_mdf.__doc__)
-
-    # Subparser for optic command.
-    p_optic = subparsers.add_parser('optic', parents=[copts_parser, slide_parser], help=abiview_optic.__doc__)
-
-    # Subparser for a2f command.
-    p_a2f = subparsers.add_parser('a2f', parents=[copts_parser, slide_parser], help=abiview_a2f.__doc__)
-
-    # Subparser for sigeph command.
-    p_sigeph = subparsers.add_parser('sigeph', parents=[copts_parser, slide_parser], help=abiview_sigeph.__doc__)
 
     # Subparser for lobster command.
     p_lobster = subparsers.add_parser('lobster', parents=[copts_parser, ipy_parser, nb_parser],
