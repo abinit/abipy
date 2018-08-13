@@ -31,7 +31,8 @@ TODO list:
 
 * Almost DONE: Add support for https://mybinder.readthedocs.io/en/latest/sample_repos.html#conda-environment-with-environment-yml
 
-* DONE Add https://github.com/mcmtroffaes/sphinxcontrib-bibtex
+* ALMOST DONE Add https://github.com/mcmtroffaes/sphinxcontrib-bibtex
+  Change bibtex style.
 
 * DONE Add support for DVDV, DDB in plot_networkx (but graphviz is much better)
 
@@ -44,6 +45,8 @@ TODO list:
 * Add support for PSML/UPF format
 
 * Add iscf to GSR.nc so that we know if we have SCF|NSCF run.
+
+* DONE Remove abipy.core.mixis.AbinitOutNcFile (deprecated, will be removed in 0.4)
 
 ## Medium priority
 
@@ -75,8 +78,8 @@ TODO list:
 * Scheduler should report info on exceptions (especially if at the end when on_all_ok is invoked)
 
 * ALMOST DONE: Replace core.tensor with pymatgen tensor
+  DONE Use pmg tensor for stress as well.
   Check DielectricTensor in Anaddb from DDB.
-  Use pmg tensor for stress as well.
 
 * Add nsppol, nspinor, nspden to HIST file (and other stuff?)
 
@@ -122,8 +125,6 @@ TODO list:
 
 * Finalize DDK.nc  (EVK.nc)
 
-* Remove abipy.core.mixis.AbinitOutNcFile (deprecated, will be removed in 0.4)
-
 * Fix issue with DOJO_REPORT and PAW XML files.
 
 * DONE plot_networkx does not work with flows containing callbacks e.g. run_qptdm_flow
@@ -132,8 +133,6 @@ TODO list:
 * Check xsf_write_data and visualization of potentials.
 
 * Add phbands.to_bxsf and histogram for phonon modes at a given q-point.
-
-* Add treatment of out-of-boundary conditions in scissors operator.
 
 * Add possibility of specifying the max number of CPUs that can be used  
   for a flow at the level of the scheduler.
@@ -189,14 +188,10 @@ TODO list:
 
 * ALMOST DONE lobster interface from Guido
 
-* DONE Remove Prettytable
-
 * context manager to change variables (e.g. autoparal)
 
 * Cleanup and refactoring in OpticTask
 
 * Replace SIGRES with new fileformat based on SIGEPH (long-term)
-
-* DONE [eV] --> (ev) in title
 
 * Update spack recipe, add support for EasyBuild, revamp homebrew (?)

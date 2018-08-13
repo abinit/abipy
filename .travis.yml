@@ -10,7 +10,6 @@ env:
   - ABIPY_PYTEST=yes
   - OPENBLAS_NUM_THREADS=1
   - OMP_NUM_THREADS=1
-  - secure: "LHWeXCIXnVAcnxtdTFJ4UEFwD9TKrBjZzCWC+8suYQFquTlKJ+6RNlIAZrtaAP1hHtqDf0cIvp23ZtnIjNHTyMIuS7HYg9tLd7h3RHgYd8V3uaDrVkHpzOnsYEwOKCYDaF3WAXmuCgSvRnC8KyPmprE+KHEIV10YR0g6jZfxdts="
 
 matrix:
   include:
@@ -43,7 +42,6 @@ install:
   #- set -ev  # exit on first error, print each command
   - env
   #- ulimit -s unlimited
-  - 'echo "PMG_MAPI_KEY: ${PMG_MAPI_KEY}" > ${HOME}/.pmgrc.yaml && cat ${HOME}/.pmgrc.yaml'
 
   - |
       if [ "${ABIPY_INSTALLER}" == "pip" ]; then

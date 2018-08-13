@@ -483,7 +483,7 @@ class ElectronBandsTest(AbipyTest):
             if self.has_matplotlib():
                 assert eb3d.plot_contour(band=4, spin=0, plane="xy", elevation=0, show=False)
                 if self.has_skimage():
-                    assert eb3d.plot_isosurfaces(e0="fermie", verbose=1, show=False)
+                    assert eb3d.plot_isosurfaces(e0="fermie", cmap="rainbow", verbose=1, show=False)
 
             # Test Mayavi
             if self.has_mayavi():
@@ -497,7 +497,7 @@ class ElectronBandsTest(AbipyTest):
         gsr_nscf_path = abidata.ref_file("si_nscf_GSR.nc")
         index = ["foo", "bar", "hello"]
         df = dataframe_from_ebands([gsr_kmesh, si_ebands_kmesh, gsr_nscf_path], index=index, with_spglib=True)
-        str(df)
+        #str(df)
         assert all(f == "Si2" for f in df["formula"])
         assert all(num == 227 for num in df["abispg_num"])
         assert all(df["spglib_num"] == df["abispg_num"])
@@ -517,9 +517,15 @@ class ElectronBandsFromRestApi(AbipyTest):
         # Results are very sensitive to the value of lpratio. The default is not enough in this case!!
         r = ebands.interpolate(lpratio=50, kmesh=[10, 10, 10])
 
+        new_fermie = r.ebands_kpath.set_fermie_to_vbm()
+        assert new_fermie == r.ebands_kpath.fermie
+
+        edos = r.ebands_kmesh.get_edos()
+        new_fermie = r.ebands_kpath.set_fermie_from_edos(edos)
+        assert new_fermie == edos.fermie
+
         if self.has_matplotlib():
             # Plot bands + dos using interpolated energies.
-            edos = r.ebands_kmesh.get_edos()
             assert r.ebands_kpath.plot_with_edos(edos, show=False)
 
 

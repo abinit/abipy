@@ -3946,7 +3946,7 @@ class Bands3D(Has_Structure):
             return e0
 
     @add_fig_kwargs
-    def plot_isosurfaces(self, e0="fermie", verbose=0, **kwargs):
+    def plot_isosurfaces(self, e0="fermie", cmap=None, verbose=0, **kwargs):
         """
         Plot isosurface with matplotlib_
 
@@ -3982,7 +3982,7 @@ class Bands3D(Has_Structure):
         #plot_wigner_seitz(self.reciprocal_lattice, ax=ax, color="k", linewidth=1)
 
         for spin in self.spins:
-            for band in isobands[spin]:
+            for ib, band in enumerate(isobands[spin]):
                 # From http://scikit-image.org/docs/stable/api/skimage.measure.html#marching-cubes
                 # verts: (V, 3) array
                 #   Spatial coordinates for V unique mesh vertices. Coordinate order matches input volume (M, N, P).
@@ -3998,7 +3998,14 @@ class Bands3D(Has_Structure):
                 verts, faces, normals, values = marching_cubes(voldata, level=e0, spacing=tuple(self.spacing))
                 #verts, faces, normals, values = marching_cubes_lewiner(voldata, level=e0, spacing=tuple(self.spacing))
                 verts = self.reciprocal_lattice.get_cartesian_coords(verts)
-                ax.plot_trisurf(verts[:, 0], verts[:, 1], faces, verts[:, 2]) #, cmap='Spectral', lw=1, antialiased=True)
+
+                if cmap is not None:
+                    cmap = plt.get_cmap(cmap)
+                    kwargs["color"] = cmap(float(ib) / len(isobands[spin]))
+
+                ax.plot_trisurf(verts[:, 0], verts[:, 1], faces, verts[:, 2], **kwargs)
+                    #, cmap='Spectral', lw=1, antialiased=True)
+
                 # mayavi package:
                 #mlab.triangular_mesh([v[0] for v in verts], [v[1] for v in verts], [v[2] for v in verts], faces) #, color=(0, 0, 0))
 

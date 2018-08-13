@@ -12,7 +12,6 @@ import pickle
 from time import ctime
 from monty.os.path import which
 from monty.termcolor import cprint
-from monty.dev import deprecated
 from monty.string import is_string
 from monty.functools import lazy_property
 from abipy.flowtk.netcdf import NetcdfReader, NO_DEFAULT
@@ -137,21 +136,6 @@ class TextFile(BaseFile):
     def seek(self, offset, whence=0):
         """Set the file's current position, like stdio's fseek()."""
         self._file.seek(offset, whence)
-
-
-@deprecated(message="AbinitOutNcFile is deprecated, use abipy.abio.outputs.OutNcFile")
-class AbinitOutNcFile(NetcdfReader):
-    """
-    Class representing the _OUT.nc file.
-    """
-
-    def get_vars(self, vars, strict=False):
-        # TODO: add a check on the variable names ?
-        default = NO_DEFAULT if strict else None
-        var_values = {}
-        for var in vars:
-            var_values[var] = self.read_value(varname=var, default=default)
-        return var_values
 
 
 @six.add_metaclass(abc.ABCMeta)
