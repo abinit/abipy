@@ -239,7 +239,7 @@ class SigEPhFileTest(AbipyTest):
         with abilab.SigEPhRobot.from_files(filepaths) as robot:
             robot.add_file("same_file", filepaths[0])
             repr(robot); str(robot)
-            robot.to_string(verbose=2)
+            assert robot.to_string(verbose=2)
             assert len(robot) == 2
 
             data = robot.get_dataframe()
@@ -249,12 +249,8 @@ class SigEPhFileTest(AbipyTest):
             if self.has_matplotlib():
                 assert robot.plot_selfenergy_conv(spin=0, kpoint=0, band=0, show=False)
                 assert robot.plot_selfenergy_conv(spin=0, kpoint=0, band=0, sortby="nbsum", hue="nqibz", show=False)
-                #try:
                 assert robot.plot_qpgaps_t(show=False)
                 assert robot.plot_qpgaps_t(plot_qpmks=True, show=False)
-                #except ValueError:
-                # workaround for matplotlib bug
-                #pass
 
                 assert robot.plot_qpgaps_convergence(itemp=0, sortby="nbsum", show=False)
                 assert robot.plot_qpgaps_convergence(itemp=0, sortby="nbsum", hue="nqibz", show=False)

@@ -907,8 +907,9 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
     #def get_dirgaps_dataframe(self):
 
-    def interpolate(self, itemp_list=None, lpratio=5, mode="qp", ks_ebands_kpath=None, ks_ebands_kmesh=None, ks_degatol=1e-4,
-                    vertices_names=None, line_density=20, filter_params=None, only_corrections=False, verbose=0): # pragma: no cover
+    def interpolate(self, itemp_list=None, lpratio=5, mode="qp", ks_ebands_kpath=None, ks_ebands_kmesh=None,
+                    ks_degatol=1e-4, vertices_names=None, line_density=20, filter_params=None,
+                    only_corrections=False, verbose=0): # pragma: no cover
         """
         Interpolated the self-energy corrections in k-space on a k-path and, optionally, on a k-mesh.
 
@@ -1058,14 +1059,14 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                     else:
                         lw_kpath = qp_corrs
 
-                if ks_ebands_kmesh is None:
-                    # Interpolate QP energies
-                    if reim == "real":
-                        eigens_kmesh = skw.interp_kpts(dos_kcoords).eigens
-                    else:
-                        linewidths_kmesh = skw.interp_kpts(dos_kcoords).eigens
+                #if ks_ebands_kmesh is None:
+                #    # Interpolate QP energies
+                #    if reim == "real":
+                #        eigens_kmesh = skw.interp_kpts(dos_kcoords).eigens
+                #    else:
+                #        linewidths_kmesh = skw.interp_kpts(dos_kcoords).eigens
 
-                else:
+                if ks_ebands_kmesh is not None:
                     # Interpolate QP energies corrections and add them to KS
                     ref_eigens = ks_ebands_kmesh.eigens[:, :, bstart:bstop]
                     if reim == "real":
