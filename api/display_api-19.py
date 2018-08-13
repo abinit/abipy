@@ -1,3 +1,3 @@
-g = sns.pairplot(iris, diag_kind="kde", markers="+",
-                 plot_kws=dict(s=50, edgecolor="b", linewidth=1),
-                 diag_kws=dict(shade=True))
+import seaborn as sns; sns.set(color_codes=True)
+tips = sns.load_dataset("tips")
+g = sns.lmplot(x="total_bill", y="tip", data=tips)

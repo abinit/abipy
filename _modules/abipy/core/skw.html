@@ -1113,7 +1113,7 @@
                         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;spin&quot;</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="s2">&quot;band&quot;</span><span class="p">,</span> <span class="n">band</span><span class="p">,</span> <span class="s2">&quot;ikpt&quot;</span><span class="p">,</span> <span class="n">ik</span><span class="p">,</span> <span class="s2">&quot;e0&quot;</span><span class="p">,</span> <span class="n">e0</span><span class="p">,</span> <span class="s2">&quot;eskw&quot;</span><span class="p">,</span> <span class="n">eskw</span><span class="p">,</span> <span class="s2">&quot;diff&quot;</span><span class="p">,</span> <span class="n">e0</span> <span class="o">-</span> <span class="n">eskw</span><span class="p">)</span>
 
         <span class="n">mae</span> <span class="o">*=</span> <span class="mf">1e3</span> <span class="o">/</span> <span class="p">(</span><span class="n">nsppol</span> <span class="o">*</span> <span class="n">nkpt</span> <span class="o">*</span> <span class="n">nband</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">mae</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">mae</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">mae</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">mae</span><span class="p">)</span> <span class="ow">or</span> <span class="n">mae</span> <span class="o">&gt;</span> <span class="mi">1000</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Interpolation went bananas! mae = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">mae</span><span class="p">)</span>
 
         <span class="n">warn</span> <span class="o">=</span> <span class="n">mae</span> <span class="o">&gt;</span> <span class="mf">10.0</span>
@@ -1476,7 +1476,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 26, 2018.<br/>
+      Last updated on Aug 14, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

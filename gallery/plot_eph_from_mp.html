@@ -165,18 +165,16 @@ obtained with Abinit</p>
 Will call spglib to get symmetry operations.[0m
 [35mStructure object does not have symmetry operations computed from Abinit.
 Will call spglib to get symmetry operations.[0m
-Downloading DDB for mpid: mp-149
-Invoking anaddb...
-Downloading DDB for mpid: mp-66
-Invoking anaddb...
+Downloading DDB for mpid mp-149 (Si2) ...
+Invoking anaddb to compute phonon bands...
+Downloading DDB for mpid mp-66 (C2) ...
+Invoking anaddb to compute phonon bands...
 </pre></div>
 </div>
 <div class="line-block">
 <div class="line"><br /></div>
 </div>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">abipy</span> <span class="kn">import</span> <span class="n">abilab</span>
-<span class="kn">import</span> <span class="nn">abipy.data</span> <span class="kn">as</span> <span class="nn">abidata</span>
-<span class="kn">import</span> <span class="nn">os</span>
 
 <span class="c1"># List of mp ids for Si, Diamond</span>
 <span class="n">mpids</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;mp-149&quot;</span><span class="p">,</span> <span class="s2">&quot;mp-66&quot;</span><span class="p">]</span>
@@ -186,12 +184,12 @@ Invoking anaddb...
 
 <span class="c1"># Get list of DDB files from the MP website and run anaddb to get the phonon bands.</span>
 <span class="n">phbands_list</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="k">for</span> <span class="n">mpid</span> <span class="ow">in</span> <span class="n">mpids</span><span class="p">:</span>
-    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Downloading DDB for mpid:&quot;</span><span class="p">,</span> <span class="n">mpid</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">mpid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">mpids</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Downloading DDB for mpid </span><span class="si">%s</span><span class="s2"> (</span><span class="si">%s</span><span class="s2">) ...&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mpid</span><span class="p">,</span> <span class="n">ebands_list</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">formula</span><span class="p">))</span>
     <span class="n">ddb</span> <span class="o">=</span> <span class="n">abilab</span><span class="o">.</span><span class="n">DdbFile</span><span class="o">.</span><span class="n">from_mpid</span><span class="p">(</span><span class="n">mpid</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">ddb</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2"> does not provide DDB&quot;</span> <span class="o">%</span> <span class="n">mpid</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Invoking anaddb...&quot;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Invoking anaddb to compute phonon bands...&quot;</span><span class="p">)</span>
     <span class="n">phbst</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">ddb</span><span class="o">.</span><span class="n">anaget_phbst_and_phdos_files</span><span class="p">(</span><span class="n">nqsmall</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">phbands_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">phbst</span><span class="o">.</span><span class="n">phbands</span><span class="p">)</span>
     <span class="n">phbst</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
@@ -218,7 +216,7 @@ Invoking anaddb...
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<p><strong>Total running time of the script:</strong> ( 0 minutes  34.857 seconds)</p>
+<p><strong>Total running time of the script:</strong> ( 0 minutes  40.787 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-eph-from-mp-py">
 <div class="sphx-glr-download docutils container">
 <a class="reference download internal" href="../_downloads/plot_eph_from_mp.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_eph_from_mp.py</span></code></a></div>
@@ -241,7 +239,7 @@ Invoking anaddb...
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 26, 2018.<br/>
+      Last updated on Aug 14, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

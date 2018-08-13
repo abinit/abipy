@@ -1,1 +1,1 @@
-g = sns.pairplot(iris, hue="species", palette="husl")
+g = sns.pairplot(iris, hue="species", markers=["o", "s", "D"])

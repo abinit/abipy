@@ -1,2 +1,2 @@
-g = sns.factorplot(x="time", y="pulse", hue="kind",
-                   col="diet", data=exercise)
+ax = sns.boxplot(x="day", y="total_bill", hue="time",
+                 data=tips, linewidth=2.5)

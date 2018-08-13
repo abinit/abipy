@@ -202,44 +202,49 @@
 <li><a class="reference internal" href="#Named Arguments_repeat20">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#visualize">visualize</a><ul>
+<li><a class="reference internal" href="#keq">keq</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat20">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat21">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#mp_id">mp_id</a><ul>
+<li><a class="reference internal" href="#visualize">visualize</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat21">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat22">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#mp_match">mp_match</a><ul>
+<li><a class="reference internal" href="#mp_id">mp_id</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat22">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat23">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#mp_search">mp_search</a><ul>
+<li><a class="reference internal" href="#mp_match">mp_match</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat23">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat24">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#mp_pd">mp_pd</a><ul>
+<li><a class="reference internal" href="#mp_search">mp_search</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat24">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat25">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#cod_search">cod_search</a><ul>
+<li><a class="reference internal" href="#mp_pd">mp_pd</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat25">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat26">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#cod_id">cod_id</a><ul>
+<li><a class="reference internal" href="#cod_search">cod_search</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat26">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat27">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#animate">animate</a><ul>
+<li><a class="reference internal" href="#cod_id">cod_id</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat27">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat28">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#animate">animate</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat28">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat29">Named Arguments</a></li>
 </ul>
 </li>
 </ul>
@@ -341,7 +346,7 @@ Then create a <cite>.pymrc.yaml</cite> configuration file inside your $HOME and 
 <p>Several other options are available. To get the full list, use</p>
 <div class="highlight-text"><div class="highlight"><pre><span></span>$ abistruct.py --help
 usage: abistruct.py [-h] [-V]
-                    {spglib,abispg,convert,supercell,abisanitize,irefine,conventional,neighbors,interpolate,xrd,oxistate,ipython,notebook,kpath,bz,ngkpt,ktables,abikmesh,lgk,kstar,visualize,mp_id,mp_match,mp_search,mp_pd,cod_search,cod_id,animate}
+                    {spglib,abispg,convert,supercell,abisanitize,irefine,conventional,neighbors,interpolate,xrd,oxistate,ipython,notebook,kpath,bz,ngkpt,ktables,abikmesh,lgk,kstar,keq,visualize,mp_id,mp_match,mp_search,mp_pd,cod_search,cod_id,animate}
                     ...
 
 optional arguments:
@@ -351,7 +356,7 @@ optional arguments:
 subcommands:
   Valid subcommands, use command --help for help
 
-  {spglib,abispg,convert,supercell,abisanitize,irefine,conventional,neighbors,interpolate,xrd,oxistate,ipython,notebook,kpath,bz,ngkpt,ktables,abikmesh,lgk,kstar,visualize,mp_id,mp_match,mp_search,mp_pd,cod_search,cod_id,animate}
+  {spglib,abispg,convert,supercell,abisanitize,irefine,conventional,neighbors,interpolate,xrd,oxistate,ipython,notebook,kpath,bz,ngkpt,ktables,abikmesh,lgk,kstar,keq,visualize,mp_id,mp_match,mp_search,mp_pd,cod_search,cod_id,animate}
                         sub-command help
     spglib              Analyze structure with spglib.
     abispg              Extract/Compute Abinit space group from file with
@@ -391,11 +396,13 @@ subcommands:
     lgk                 Read structure from file, find little group of
                         k-point, print Bilbao character table.
     kstar               Read structure from file, print star of k-point.
+    keq                 Read structure from file, check whether two k-points
+                        are equivalent by symmetry.
     visualize           Visualize the structure with the specified
                         application. Requires external app or optional python
                         modules (mayavi, vtk).
     mp_id               Get structure from the pymatgen database. Export to
-                        format. Requires internet connection and MAPI_KEY.
+                        format. Requires internet connection and PMG_MAPI_KEY.
     mp_match            Get structure from the pymatgen database. Requires
                         internet connection and PMG_MAPI_KEY.
     mp_search           Get structure from the pymatgen database. Requires
@@ -407,7 +414,7 @@ subcommands:
     cod_id              Get structure from COD database. Requires internet
                         connection and mysql
     animate             Read structures from HIST.nc or XDATCAR. Print
-                        structures in Xrysden AXSF format to stdout.
+                        structures in Xcrysden AXSF format to stdout.
 
 Usage example:
 
@@ -447,6 +454,8 @@ Usage example:
   abistruct.py lgk FILE -k 0.25 0 0        =&gt; Read structure from FILE, find little group of k-point,
                                               print Bilbao character table.
   abistruct.py kstar FILE -k 0.25 0 0      =&gt; Read structure from FILE, print star of k-point.
+  abistruct.py keq FILE -k 0.5 0 0 0 0.5 0  =&gt; Read structure from FILE, test whether k1 and k2 are
+                                               symmetry equivalent k-points.
 
 ###############
 # Miscelleanous
@@ -491,7 +500,7 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 </div>
 <p>Complete command line reference</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">V</span><span class="p">]</span>
-                    <span class="p">{</span><span class="n">spglib</span><span class="p">,</span><span class="n">abispg</span><span class="p">,</span><span class="n">convert</span><span class="p">,</span><span class="n">supercell</span><span class="p">,</span><span class="n">abisanitize</span><span class="p">,</span><span class="n">irefine</span><span class="p">,</span><span class="n">conventional</span><span class="p">,</span><span class="n">neighbors</span><span class="p">,</span><span class="n">interpolate</span><span class="p">,</span><span class="n">xrd</span><span class="p">,</span><span class="n">oxistate</span><span class="p">,</span><span class="n">ipython</span><span class="p">,</span><span class="n">notebook</span><span class="p">,</span><span class="n">kpath</span><span class="p">,</span><span class="n">bz</span><span class="p">,</span><span class="n">ngkpt</span><span class="p">,</span><span class="n">ktables</span><span class="p">,</span><span class="n">abikmesh</span><span class="p">,</span><span class="n">lgk</span><span class="p">,</span><span class="n">kstar</span><span class="p">,</span><span class="n">visualize</span><span class="p">,</span><span class="n">mp_id</span><span class="p">,</span><span class="n">mp_match</span><span class="p">,</span><span class="n">mp_search</span><span class="p">,</span><span class="n">mp_pd</span><span class="p">,</span><span class="n">cod_search</span><span class="p">,</span><span class="n">cod_id</span><span class="p">,</span><span class="n">animate</span><span class="p">}</span>
+                    <span class="p">{</span><span class="n">spglib</span><span class="p">,</span><span class="n">abispg</span><span class="p">,</span><span class="n">convert</span><span class="p">,</span><span class="n">supercell</span><span class="p">,</span><span class="n">abisanitize</span><span class="p">,</span><span class="n">irefine</span><span class="p">,</span><span class="n">conventional</span><span class="p">,</span><span class="n">neighbors</span><span class="p">,</span><span class="n">interpolate</span><span class="p">,</span><span class="n">xrd</span><span class="p">,</span><span class="n">oxistate</span><span class="p">,</span><span class="n">ipython</span><span class="p">,</span><span class="n">notebook</span><span class="p">,</span><span class="n">kpath</span><span class="p">,</span><span class="n">bz</span><span class="p">,</span><span class="n">ngkpt</span><span class="p">,</span><span class="n">ktables</span><span class="p">,</span><span class="n">abikmesh</span><span class="p">,</span><span class="n">lgk</span><span class="p">,</span><span class="n">kstar</span><span class="p">,</span><span class="n">keq</span><span class="p">,</span><span class="n">visualize</span><span class="p">,</span><span class="n">mp_id</span><span class="p">,</span><span class="n">mp_match</span><span class="p">,</span><span class="n">mp_search</span><span class="p">,</span><span class="n">mp_pd</span><span class="p">,</span><span class="n">cod_search</span><span class="p">,</span><span class="n">cod_id</span><span class="p">,</span><span class="n">animate</span><span class="p">}</span>
                     <span class="o">...</span>
 </pre></div>
 </div>
@@ -516,7 +525,7 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 <tbody valign="top">
 <tr><td class="option-group">
 <kbd>command</kbd></td>
-<td><p class="first">Possible choices: spglib, abispg, convert, supercell, abisanitize, irefine, conventional, neighbors, interpolate, xrd, oxistate, ipython, notebook, kpath, bz, ngkpt, ktables, abikmesh, lgk, kstar, visualize, mp_id, mp_match, mp_search, mp_pd, cod_search, cod_id, animate</p>
+<td><p class="first">Possible choices: spglib, abispg, convert, supercell, abisanitize, irefine, conventional, neighbors, interpolate, xrd, oxistate, ipython, notebook, kpath, bz, ngkpt, ktables, abikmesh, lgk, kstar, keq, visualize, mp_id, mp_match, mp_search, mp_pd, cod_search, cod_id, animate</p>
 <p class="last">sub-command help</p>
 </td></tr>
 </tbody>
@@ -1627,10 +1636,13 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
 </table>
 </div>
 </div>
-<div class="section" id="visualize">
-<h3>visualize<a class="headerlink" href="#visualize" title="Permalink to this headline">¶</a></h3>
-<p>Visualize the structure with the specified application. Requires external app or optional python modules (mayavi, vtk).</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">visualize</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span> <span class="n">APPNAME</span><span class="p">]</span> <span class="p">[</span><span class="n">filepath</span><span class="p">]</span>
+<div class="section" id="keq">
+<h3>keq<a class="headerlink" href="#keq" title="Permalink to this headline">¶</a></h3>
+<p>Read structure from file, check whether two k-points are equivalent by symmetry.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">keq</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">symprec</span> <span class="n">SYMPREC</span><span class="p">]</span>
+                 <span class="p">[</span><span class="o">--</span><span class="n">angle</span><span class="o">-</span><span class="n">tolerance</span> <span class="n">ANGLE_TOLERANCE</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">time</span><span class="o">-</span><span class="n">reversal</span><span class="p">]</span> <span class="o">-</span><span class="n">k</span>
+                 <span class="n">KPOINTS</span> <span class="n">KPOINTS</span> <span class="n">KPOINTS</span> <span class="n">KPOINTS</span> <span class="n">KPOINTS</span> <span class="n">KPOINTS</span>
+                 <span class="p">[</span><span class="n">filepath</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat20">
@@ -1662,20 +1674,36 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
 <p class="last">Default: “ERROR”</p>
 </td></tr>
 <tr><td class="option-group">
-<kbd>-a, --appname</kbd></td>
-<td><p class="first">Application name. Possible options: avogadro, ovito, v_sim, vesta, xcrysden, mpl (matplotlib), mayavi, vtk</p>
-<p class="last">Default: “vesta”</p>
+<kbd>--symprec</kbd></td>
+<td><p class="first">symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
+which is fairly strict and works well for properly refined structures with atoms in the proper symmetry coordinates.
+For structures with slight deviations from their proper atomic positions (e.g., structures relaxed with electronic structure
+codes), a looser tolerance of 0.1 (the value used in Materials Project) is often needed.</p>
+<p class="last">Default: 0.001</p>
 </td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>--angle-tolerance</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">angle_tolerance (float): Angle tolerance for symmetry finding. Default: 5.0</p>
+<p class="last">Default: 5.0</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>--no-time-reversal</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Don’t use time-reversal.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-k, --kpoints</kbd></td>
+<td>K-points in reduced coordinates e.g. 0.25 0 0 0 0.25 0</td></tr>
 </tbody>
 </table>
 </div>
 </div>
-<div class="section" id="mp_id">
-<h3>mp_id<a class="headerlink" href="#mp_id" title="Permalink to this headline">¶</a></h3>
-<p>Get structure from the pymatgen database. Export to format. Requires internet connection and MAPI_KEY.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">mp_id</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mapi</span><span class="o">-</span><span class="n">key</span> <span class="n">MAPI_KEY</span><span class="p">]</span>
-                   <span class="p">[</span><span class="o">--</span><span class="n">endpoint</span> <span class="n">ENDPOINT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">b</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">FORMAT</span><span class="p">]</span>
-                   <span class="n">mpid</span>
+<div class="section" id="visualize">
+<h3>visualize<a class="headerlink" href="#visualize" title="Permalink to this headline">¶</a></h3>
+<p>Visualize the structure with the specified application. Requires external app or optional python modules (mayavi, vtk).</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">visualize</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span> <span class="n">APPNAME</span><span class="p">]</span> <span class="p">[</span><span class="n">filepath</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat21">
@@ -1685,8 +1713,8 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
 <col class="description" />
 <tbody valign="top">
 <tr><td class="option-group">
-<kbd>mpid</kbd></td>
-<td>Pymatgen identifier.</td></tr>
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (Abinit Netcdf files, CIF, Abinit input/output files, POSCAR …)</td></tr>
 </tbody>
 </table>
 </div>
@@ -1707,8 +1735,53 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
 <p class="last">Default: “ERROR”</p>
 </td></tr>
 <tr><td class="option-group">
+<kbd>-a, --appname</kbd></td>
+<td><p class="first">Application name. Possible options: avogadro, ovito, v_sim, vesta, xcrysden, mpl (matplotlib), mayavi, vtk</p>
+<p class="last">Default: “vesta”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="mp_id">
+<h3>mp_id<a class="headerlink" href="#mp_id" title="Permalink to this headline">¶</a></h3>
+<p>Get structure from the pymatgen database. Export to format. Requires internet connection and PMG_MAPI_KEY.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">mp_id</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mapi</span><span class="o">-</span><span class="n">key</span> <span class="n">MAPI_KEY</span><span class="p">]</span>
+                   <span class="p">[</span><span class="o">--</span><span class="n">endpoint</span> <span class="n">ENDPOINT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">b</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">FORMAT</span><span class="p">]</span>
+                   <span class="n">mpid</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat22">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat22" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>mpid</kbd></td>
+<td>Pymatgen identifier.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat23">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat23" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
 <kbd>--mapi-key</kbd></td>
-<td>Pymatgen MAPI_KEY. Use value in .pmgrc.yaml if not specified.</td></tr>
+<td>Pymatgen PMG_MAPI_KEY. Use value in .pmgrc.yaml if not specified.</td></tr>
 <tr><td class="option-group">
 <kbd>--endpoint</kbd></td>
 <td><p class="first">Pymatgen database.</p>
@@ -1737,8 +1810,8 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
                       <span class="p">[</span><span class="n">filepath</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments_repeat22">
-<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat22" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Positional Arguments_repeat23">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat23" title="Permalink to this headline">¶</a></h4>
 <table class="docutils option-list" frame="void" rules="none">
 <col class="option" />
 <col class="description" />
@@ -1749,15 +1822,15 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
 </tbody>
 </table>
 </div>
-<div class="section" id="Named Arguments_repeat23">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat23" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat24">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat24" title="Permalink to this headline">¶</a></h4>
 <table class="docutils option-list" frame="void" rules="none">
 <col class="option" />
 <col class="description" />
 <tbody valign="top">
 <tr><td class="option-group">
 <kbd>--mapi-key</kbd></td>
-<td>Pymatgen MAPI_KEY. Use value in .pmgrc.yaml if not specified.</td></tr>
+<td>Pymatgen PMG_MAPI_KEY. Use value in .pmgrc.yaml if not specified.</td></tr>
 <tr><td class="option-group">
 <kbd>--endpoint</kbd></td>
 <td><p class="first">Pymatgen database.</p>
@@ -1807,8 +1880,8 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
                        <span class="n">chemsys_formula_id</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments_repeat23">
-<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat23" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Positional Arguments_repeat24">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat24" title="Permalink to this headline">¶</a></h4>
 <table class="docutils option-list" frame="void" rules="none">
 <col class="option" />
 <col class="description" />
@@ -1820,15 +1893,15 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
 </tbody>
 </table>
 </div>
-<div class="section" id="Named Arguments_repeat24">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat24" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat25">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat25" title="Permalink to this headline">¶</a></h4>
 <table class="docutils option-list" frame="void" rules="none">
 <col class="option" />
 <col class="description" />
 <tbody valign="top">
 <tr><td class="option-group">
 <kbd>--mapi-key</kbd></td>
-<td>Pymatgen MAPI_KEY. Use value in .pmgrc.yaml if not specified.</td></tr>
+<td>Pymatgen PMG_MAPI_KEY. Use value in .pmgrc.yaml if not specified.</td></tr>
 <tr><td class="option-group">
 <kbd>--endpoint</kbd></td>
 <td><p class="first">Pymatgen database.</p>
@@ -1881,8 +1954,8 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
                    <span class="n">file_or_elements</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments_repeat24">
-<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat24" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Positional Arguments_repeat25">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat25" title="Permalink to this headline">¶</a></h4>
 <table class="docutils option-list" frame="void" rules="none">
 <col class="option" />
 <col class="description" />
@@ -1894,15 +1967,15 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
 </tbody>
 </table>
 </div>
-<div class="section" id="Named Arguments_repeat25">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat25" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat26">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat26" title="Permalink to this headline">¶</a></h4>
 <table class="docutils option-list" frame="void" rules="none">
 <col class="option" />
 <col class="description" />
 <tbody valign="top">
 <tr><td class="option-group">
 <kbd>--mapi-key</kbd></td>
-<td>Pymatgen MAPI_KEY. Use value in .pmgrc.yaml if not specified.</td></tr>
+<td>Pymatgen PMG_MAPI_KEY. Use value in .pmgrc.yaml if not specified.</td></tr>
 <tr><td class="option-group">
 <kbd>--endpoint</kbd></td>
 <td><p class="first">Pymatgen database.</p>
@@ -1943,8 +2016,8 @@ ehull &lt; show_unstable will be shown.</p>
                         <span class="n">formula</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments_repeat25">
-<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat25" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Positional Arguments_repeat26">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat26" title="Permalink to this headline">¶</a></h4>
 <table class="docutils option-list" frame="void" rules="none">
 <col class="option" />
 <col class="description" />
@@ -1955,8 +2028,8 @@ ehull &lt; show_unstable will be shown.</p>
 </tbody>
 </table>
 </div>
-<div class="section" id="Named Arguments_repeat26">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat26" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat27">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat27" title="Permalink to this headline">¶</a></h4>
 <table class="docutils option-list" frame="void" rules="none">
 <col class="option" />
 <col class="description" />
@@ -2007,8 +2080,8 @@ ehull &lt; show_unstable will be shown.</p>
                     <span class="n">cod_identifier</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments_repeat26">
-<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat26" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Positional Arguments_repeat27">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat27" title="Permalink to this headline">¶</a></h4>
 <table class="docutils option-list" frame="void" rules="none">
 <col class="option" />
 <col class="description" />
@@ -2019,8 +2092,8 @@ ehull &lt; show_unstable will be shown.</p>
 </tbody>
 </table>
 </div>
-<div class="section" id="Named Arguments_repeat27">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat27" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat28">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat28" title="Permalink to this headline">¶</a></h4>
 <table class="docutils option-list" frame="void" rules="none">
 <col class="option" />
 <col class="description" />
@@ -2051,12 +2124,12 @@ ehull &lt; show_unstable will be shown.</p>
 </div>
 <div class="section" id="animate">
 <h3>animate<a class="headerlink" href="#animate" title="Permalink to this headline">¶</a></h3>
-<p>Read structures from HIST.nc or XDATCAR. Print structures in Xrysden AXSF format to stdout.</p>
+<p>Read structures from HIST.nc or XDATCAR. Print structures in Xcrysden AXSF format to stdout.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">animate</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="n">filepath</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments_repeat27">
-<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat27" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Positional Arguments_repeat28">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat28" title="Permalink to this headline">¶</a></h4>
 <table class="docutils option-list" frame="void" rules="none">
 <col class="option" />
 <col class="description" />
@@ -2067,8 +2140,8 @@ ehull &lt; show_unstable will be shown.</p>
 </tbody>
 </table>
 </div>
-<div class="section" id="Named Arguments_repeat28">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat28" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat29">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat29" title="Permalink to this headline">¶</a></h4>
 <table class="docutils option-list" frame="void" rules="none">
 <col class="option" />
 <col class="description" />
@@ -2103,7 +2176,7 @@ ehull &lt; show_unstable will be shown.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 26, 2018.<br/>
+      Last updated on Aug 14, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

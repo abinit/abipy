@@ -1,3 +1,1 @@
-ax = sns.stripplot(x="day", y="total_bill", hue="smoker",
-                   data=tips, jitter=True,
-                   palette="Set2", dodge=True)
+ax = sns.swarmplot(x="total_bill", y="day", data=tips)

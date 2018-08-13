@@ -132,7 +132,7 @@
   <h1>Source code for abipy.dfpt.tensors</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding: utf-8</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">This modules provides tensors objects extracted from dfpt calculations.</span>
+<span class="sd">This modules provides tensors objects produced by DFPT calculations.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
 
@@ -144,14 +144,13 @@
 
 <div class="viewcode-block" id="NLOpticalSusceptibilityTensor"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.tensors.NLOpticalSusceptibilityTensor">[docs]</a><span class="k">class</span> <span class="nc">NLOpticalSusceptibilityTensor</span><span class="p">(</span><span class="n">Tensor</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Subclass of :class:`pymatgen.analysis.elasticity.tensors.Tensor` containing the</span>
-<span class="sd">    non-linear optical susceptibility tensor.</span>
+<span class="sd">    Subclass of |pmg-Tensor| containing the non-linear optical susceptibility tensor.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="NLOpticalSusceptibilityTensor.from_file"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.tensors.NLOpticalSusceptibilityTensor.from_file">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Creates the tensor from a anaddb.nc netcdf file containing ``dchide``.</span>
+<span class="sd">        Creates the tensor from an anaddb.nc netcdf file containing ``dchide``.</span>
 <span class="sd">        This requires to run anaddb with ``tnlflag`` &gt; 0</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">with</span> <span class="n">ETSF_Reader</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
@@ -167,8 +166,7 @@
 
 <div class="viewcode-block" id="DielectricTensor"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.tensors.DielectricTensor">[docs]</a><span class="k">class</span> <span class="nc">DielectricTensor</span><span class="p">(</span><span class="n">SquareTensor</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Subclass of :class:`pymatgen.analysis.elasticity.tensors.SquareTensor`</span>
-<span class="sd">    describing a dielectric tensor.</span>
+<span class="sd">    Subclass of |pmg-Tensor| describing a dielectric tensor.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="DielectricTensor.reflectivity"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.tensors.DielectricTensor.reflectivity">[docs]</a>    <span class="k">def</span> <span class="nf">reflectivity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
@@ -176,10 +174,9 @@
 <span class="sd">        If the tensor is diagonal (with off diagonal elements smaller than tol)</span>
 <span class="sd">        returns the three components of the reflectivity.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">d</span><span class="p">)))</span> <span class="o">&gt;</span> <span class="n">tol</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">d</span><span class="p">)))</span> <span class="o">&gt;</span> <span class="n">tol</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The tensor is not diagonal.&quot;</span><span class="p">)</span>
 
         <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
@@ -199,7 +196,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 26, 2018.<br/>
+      Last updated on Aug 14, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

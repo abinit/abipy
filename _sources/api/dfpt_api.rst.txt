@@ -28,6 +28,14 @@ dfpt Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`elastic` Module
+---------------------
+
+.. automodule:: abipy.dfpt.elastic
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`frozen_phonons` Module
 ----------------------------
 
@@ -60,7 +68,6 @@ dfpt Package
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 :mod:`tensors` Module
 ---------------------

@@ -152,8 +152,12 @@
 <span class="kn">from</span> <span class="nn">.axisgrid</span> <span class="k">import</span> <span class="n">FacetGrid</span><span class="p">,</span> <span class="n">_facet_docs</span>
 
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;boxplot&quot;</span><span class="p">,</span> <span class="s2">&quot;violinplot&quot;</span><span class="p">,</span> <span class="s2">&quot;stripplot&quot;</span><span class="p">,</span> <span class="s2">&quot;swarmplot&quot;</span><span class="p">,</span> <span class="s2">&quot;lvplot&quot;</span><span class="p">,</span>
-           <span class="s2">&quot;pointplot&quot;</span><span class="p">,</span> <span class="s2">&quot;barplot&quot;</span><span class="p">,</span> <span class="s2">&quot;countplot&quot;</span><span class="p">,</span> <span class="s2">&quot;factorplot&quot;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;catplot&quot;</span><span class="p">,</span> <span class="s2">&quot;factorplot&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;stripplot&quot;</span><span class="p">,</span> <span class="s2">&quot;swarmplot&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;boxplot&quot;</span><span class="p">,</span> <span class="s2">&quot;violinplot&quot;</span><span class="p">,</span> <span class="s2">&quot;boxenplot&quot;</span><span class="p">,</span> <span class="s2">&quot;lvplot&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;pointplot&quot;</span><span class="p">,</span> <span class="s2">&quot;barplot&quot;</span><span class="p">,</span> <span class="s2">&quot;countplot&quot;</span><span class="p">,</span>
+<span class="p">]</span>
 
 
 <span class="k">class</span> <span class="nc">_CategoricalPlotter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -403,7 +407,7 @@
             <span class="k">if</span> <span class="n">n_colors</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">current_palette</span><span class="p">):</span>
                 <span class="n">colors</span> <span class="o">=</span> <span class="n">color_palette</span><span class="p">(</span><span class="n">n_colors</span><span class="o">=</span><span class="n">n_colors</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">colors</span> <span class="o">=</span> <span class="n">husl_palette</span><span class="p">(</span><span class="n">n_colors</span><span class="p">,</span> <span class="n">l</span><span class="o">=.</span><span class="mi">7</span><span class="p">)</span>
+                <span class="n">colors</span> <span class="o">=</span> <span class="n">husl_palette</span><span class="p">(</span><span class="n">n_colors</span><span class="p">,</span> <span class="n">l</span><span class="o">=.</span><span class="mi">7</span><span class="p">)</span>  <span class="c1"># noqa</span>
 
         <span class="k">elif</span> <span class="n">palette</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># When passing a specific color, the interpretation depends</span>
@@ -440,8 +444,8 @@
 
         <span class="c1"># Determine the gray color to use for the lines framing the plot</span>
         <span class="n">light_vals</span> <span class="o">=</span> <span class="p">[</span><span class="n">colorsys</span><span class="o">.</span><span class="n">rgb_to_hls</span><span class="p">(</span><span class="o">*</span><span class="n">c</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">rgb_colors</span><span class="p">]</span>
-        <span class="n">l</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">light_vals</span><span class="p">)</span> <span class="o">*</span> <span class="o">.</span><span class="mi">6</span>
-        <span class="n">gray</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">rgb2hex</span><span class="p">((</span><span class="n">l</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">l</span><span class="p">))</span>
+        <span class="n">lum</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">light_vals</span><span class="p">)</span> <span class="o">*</span> <span class="o">.</span><span class="mi">6</span>
+        <span class="n">gray</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">rgb2hex</span><span class="p">((</span><span class="n">lum</span><span class="p">,</span> <span class="n">lum</span><span class="p">,</span> <span class="n">lum</span><span class="p">))</span>
 
         <span class="c1"># Assign object attributes</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">colors</span> <span class="o">=</span> <span class="n">rgb_colors</span>
@@ -453,7 +457,7 @@
 
         <span class="k">def</span> <span class="nf">is_categorical</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="c1"># Correct way, but doesnt exist in older Pandas</span>
+                <span class="c1"># Correct way, but does not exist in older Pandas</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">is_categorical_dtype</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
                 <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
@@ -535,10 +539,10 @@
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">orient</span> <span class="o">==</span> <span class="s2">&quot;v&quot;</span><span class="p">:</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="o">-.</span><span class="mi">5</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plot_data</span><span class="p">)</span> <span class="o">-</span> <span class="o">.</span><span class="mi">5</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="o">-.</span><span class="mi">5</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plot_data</span><span class="p">)</span> <span class="o">-</span> <span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="n">auto</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="o">-.</span><span class="mi">5</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plot_data</span><span class="p">)</span> <span class="o">-</span> <span class="o">.</span><span class="mi">5</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="o">-.</span><span class="mi">5</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plot_data</span><span class="p">)</span> <span class="o">-</span> <span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="n">auto</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hue_names</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">leg</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">)</span>
@@ -546,7 +550,8 @@
                 <span class="n">leg</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hue_title</span><span class="p">)</span>
 
                 <span class="c1"># Set the title size a roundabout way to maintain</span>
-                <span class="c1"># compatability with matplotlib 1.1</span>
+                <span class="c1"># compatibility with matplotlib 1.1</span>
+                <span class="c1"># TODO no longer needed</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">title_size</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;axes.labelsize&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="o">.</span><span class="mi">85</span>
                 <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>  <span class="c1"># labelsize is something like &quot;large&quot;</span>
@@ -901,19 +906,25 @@
     <span class="k">def</span> <span class="nf">scale_count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">density</span><span class="p">,</span> <span class="n">counts</span><span class="p">,</span> <span class="n">scale_hue</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Scale each density curve by the number of observations.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hue_names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="n">density</span><span class="p">):</span>
-                <span class="n">d</span> <span class="o">/=</span> <span class="n">d</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
-                <span class="n">d</span> <span class="o">*=</span> <span class="n">count</span> <span class="o">/</span> <span class="n">counts</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">counts</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">d</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="n">density</span><span class="p">):</span>
+                    <span class="n">d</span> <span class="o">/=</span> <span class="n">d</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+                    <span class="n">d</span> <span class="o">*=</span> <span class="n">count</span> <span class="o">/</span> <span class="n">counts</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">group</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">density</span><span class="p">):</span>
                 <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">group</span><span class="p">):</span>
-                    <span class="n">count</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
-                    <span class="k">if</span> <span class="n">scale_hue</span><span class="p">:</span>
-                        <span class="n">scaler</span> <span class="o">=</span> <span class="n">count</span> <span class="o">/</span> <span class="n">counts</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">counts</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">d</span> <span class="o">=</span> <span class="mi">0</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="n">scaler</span> <span class="o">=</span> <span class="n">count</span> <span class="o">/</span> <span class="n">counts</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
-                    <span class="n">d</span> <span class="o">/=</span> <span class="n">d</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
-                    <span class="n">d</span> <span class="o">*=</span> <span class="n">scaler</span>
+                        <span class="n">count</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">scale_hue</span><span class="p">:</span>
+                            <span class="n">scaler</span> <span class="o">=</span> <span class="n">count</span> <span class="o">/</span> <span class="n">counts</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">scaler</span> <span class="o">=</span> <span class="n">count</span> <span class="o">/</span> <span class="n">counts</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+                        <span class="n">d</span> <span class="o">/=</span> <span class="n">d</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+                        <span class="n">d</span> <span class="o">*=</span> <span class="n">scaler</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">dwidth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1429,7 +1440,7 @@
             <span class="n">offsets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">candidates</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">midline</span><span class="p">)</span>
             <span class="n">candidates</span> <span class="o">=</span> <span class="n">candidates</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">offsets</span><span class="p">)]</span>
 
-            <span class="c1"># Find the first candidate that doesn&#39;t overlap any neighbours</span>
+            <span class="c1"># Find the first candidate that does not overlap any neighbours</span>
             <span class="n">new_xy_i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">first_non_overlapping_candidate</span><span class="p">(</span><span class="n">candidates</span><span class="p">,</span>
                                                             <span class="n">neighbors</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
 
@@ -1464,7 +1475,7 @@
         <span class="c1"># and then convert back to data coordinates and replot</span>
         <span class="n">orig_xy</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">transData</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">points</span><span class="o">.</span><span class="n">get_offsets</span><span class="p">())</span>
 
-        <span class="c1"># Order the variables so that x is the caegorical axis</span>
+        <span class="c1"># Order the variables so that x is the categorical axis</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">orient</span> <span class="o">==</span> <span class="s2">&quot;h&quot;</span><span class="p">:</span>
             <span class="n">orig_xy</span> <span class="o">=</span> <span class="n">orig_xy</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]]</span>
 
@@ -1941,7 +1952,7 @@
                  <span class="n">orient</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">palette</span><span class="p">,</span> <span class="n">saturation</span><span class="p">,</span>
                  <span class="n">width</span><span class="p">,</span> <span class="n">dodge</span><span class="p">,</span> <span class="n">k_depth</span><span class="p">,</span> <span class="n">linewidth</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">outlier_prop</span><span class="p">):</span>
 
-        <span class="c1"># TODO assigning variables for None is unceccesary</span>
+        <span class="c1"># TODO assigning variables for None is unneccesary</span>
         <span class="k">if</span> <span class="n">width</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">width</span> <span class="o">=</span> <span class="o">.</span><span class="mi">8</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="n">width</span>
@@ -2132,16 +2143,16 @@
 
                 <span class="n">color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">colors</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
 
-                <span class="n">artist_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lvplot</span><span class="p">(</span><span class="n">box_data</span><span class="p">,</span>
-                                           <span class="n">positions</span><span class="o">=</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
-                                           <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
-                                           <span class="n">vert</span><span class="o">=</span><span class="n">vert</span><span class="p">,</span>
-                                           <span class="n">widths</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
-                                           <span class="n">k_depth</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">k_depth</span><span class="p">,</span>
-                                           <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
-                                           <span class="n">scale</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">,</span>
-                                           <span class="n">outlier_prop</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">outlier_prop</span><span class="p">,</span>
-                                           <span class="o">**</span><span class="n">kws</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_lvplot</span><span class="p">(</span><span class="n">box_data</span><span class="p">,</span>
+                             <span class="n">positions</span><span class="o">=</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                             <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+                             <span class="n">vert</span><span class="o">=</span><span class="n">vert</span><span class="p">,</span>
+                             <span class="n">widths</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
+                             <span class="n">k_depth</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">k_depth</span><span class="p">,</span>
+                             <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+                             <span class="n">scale</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">,</span>
+                             <span class="n">outlier_prop</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">outlier_prop</span><span class="p">,</span>
+                             <span class="o">**</span><span class="n">kws</span><span class="p">)</span>
 
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># Draw nested groups of boxes</span>
@@ -2165,16 +2176,16 @@
 
                     <span class="n">color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">colors</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
                     <span class="n">center</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="n">offsets</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
-                    <span class="n">artist_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lvplot</span><span class="p">(</span><span class="n">box_data</span><span class="p">,</span>
-                                               <span class="n">positions</span><span class="o">=</span><span class="p">[</span><span class="n">center</span><span class="p">],</span>
-                                               <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
-                                               <span class="n">vert</span><span class="o">=</span><span class="n">vert</span><span class="p">,</span>
-                                               <span class="n">widths</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nested_width</span><span class="p">,</span>
-                                               <span class="n">k_depth</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">k_depth</span><span class="p">,</span>
-                                               <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
-                                               <span class="n">scale</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">,</span>
-                                               <span class="n">outlier_prop</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">outlier_prop</span><span class="p">,</span>
-                                               <span class="o">**</span><span class="n">kws</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_lvplot</span><span class="p">(</span><span class="n">box_data</span><span class="p">,</span>
+                                 <span class="n">positions</span><span class="o">=</span><span class="p">[</span><span class="n">center</span><span class="p">],</span>
+                                 <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+                                 <span class="n">vert</span><span class="o">=</span><span class="n">vert</span><span class="p">,</span>
+                                 <span class="n">widths</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nested_width</span><span class="p">,</span>
+                                 <span class="n">k_depth</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">k_depth</span><span class="p">,</span>
+                                 <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+                                 <span class="n">scale</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">,</span>
+                                 <span class="n">outlier_prop</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">outlier_prop</span><span class="p">,</span>
+                                 <span class="o">**</span><span class="n">kws</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">boxplot_kws</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Make the plot.&quot;&quot;&quot;</span>
@@ -2183,10 +2194,19 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">orient</span> <span class="o">==</span> <span class="s2">&quot;h&quot;</span><span class="p">:</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">invert_yaxis</span><span class="p">()</span>
 
+
 <span class="n">_categorical_docs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
 
     <span class="c1"># Shared narrative docs</span>
+    <span class="n">categorical_narrative</span><span class="o">=</span><span class="n">dedent</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">    This function always treats one of the variables as categorical and</span>
+<span class="s2">    draws data at ordinal positions (0, 1, ... n) on the relevant axis, even</span>
+<span class="s2">    when the data has a numeric or date type.</span>
+
+<span class="s2">    See the :ref:`tutorial &lt;categorical_tutorial&gt;` for more information.</span><span class="se">\</span>
+<span class="s2">    &quot;&quot;&quot;</span><span class="p">),</span>
     <span class="n">main_api_narrative</span><span class="o">=</span><span class="n">dedent</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+
 <span class="s2">    Input data can be passed in a variety of formats, including:</span>
 
 <span class="s2">    - Vectors of data represented as lists, numpy arrays, or pandas Series</span>
@@ -2194,7 +2214,7 @@
 <span class="s2">    - A &quot;long-form&quot; DataFrame, in which case the ``x``, ``y``, and ``hue``</span>
 <span class="s2">      variables will determine how the data are plotted.</span>
 <span class="s2">    - A &quot;wide-form&quot; DataFrame, such that each numeric column will be plotted.</span>
-<span class="s2">    - Anything accepted by ``plt.boxplot`` (e.g. a 2d array or list of vectors)</span>
+<span class="s2">    - An array or list of vectors.</span>
 
 <span class="s2">    In most cases, it is possible to use numpy or Python objects, but pandas</span>
 <span class="s2">    objects are preferable because the associated names will be used to</span>
@@ -2250,7 +2270,7 @@
 <span class="s2">    &quot;&quot;&quot;</span><span class="p">),</span>
     <span class="n">color</span><span class="o">=</span><span class="n">dedent</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
 <span class="s2">    color : matplotlib color, optional</span>
-<span class="s2">        Color for all of the elements, or seed for a gradient palette.</span>
+<span class="s2">        Color for all of the elements, or seed for a gradient palette.</span><span class="se">\</span>
 <span class="s2">    &quot;&quot;&quot;</span><span class="p">),</span>
     <span class="n">palette</span><span class="o">=</span><span class="n">dedent</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
 <span class="s2">    palette : palette name, list, or dict, optional</span>
@@ -2293,7 +2313,7 @@
 <span class="s2">    &quot;&quot;&quot;</span><span class="p">),</span>
     <span class="n">ax_out</span><span class="o">=</span><span class="n">dedent</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
 <span class="s2">    ax : matplotlib Axes</span>
-<span class="s2">        Returns the Axes object with the boxplot drawn onto it.</span><span class="se">\</span>
+<span class="s2">        Returns the Axes object with the plot drawn onto it.</span><span class="se">\</span>
 <span class="s2">    &quot;&quot;&quot;</span><span class="p">),</span>
 
     <span class="c1"># Shared see also</span>
@@ -2321,11 +2341,11 @@
 <span class="s2">    pointplot : Show point estimates and confidence intervals using scatterplot</span>
 <span class="s2">                glyphs.</span><span class="se">\</span>
 <span class="s2">    &quot;&quot;&quot;</span><span class="p">),</span>
-    <span class="n">factorplot</span><span class="o">=</span><span class="n">dedent</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
-<span class="s2">    factorplot : Combine categorical plots and a class:`FacetGrid`.</span><span class="se">\</span>
+    <span class="n">catplot</span><span class="o">=</span><span class="n">dedent</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">    catplot : Combine a categorical plot with a class:`FacetGrid`.</span><span class="se">\</span>
 <span class="s2">    &quot;&quot;&quot;</span><span class="p">),</span>
-    <span class="n">lvplot</span><span class="o">=</span><span class="n">dedent</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
-<span class="s2">    lvplot : An extension of the boxplot for long-tailed and large data sets.</span>
+    <span class="n">boxenplot</span><span class="o">=</span><span class="n">dedent</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">    boxenplot : An enhanced boxplot for larger datasets.</span><span class="se">\</span>
 <span class="s2">    &quot;&quot;&quot;</span><span class="p">),</span>
 
     <span class="p">)</span>
@@ -2349,6 +2369,7 @@
     <span class="n">plotter</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">ax</span></div>
 
+
 <span class="n">boxplot</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">dedent</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
 <span class="s2">    Draw a box plot to show distributions with respect to categories.</span>
 
@@ -2360,6 +2381,8 @@
 <span class="s2">    that is a function of the inter-quartile range.</span>
 
 <span class="s2">    </span><span class="si">{main_api_narrative}</span><span class="s2"></span>
+
+<span class="s2">    </span><span class="si">{categorical_narrative}</span><span class="s2"></span>
 
 <span class="s2">    Parameters</span>
 <span class="s2">    ----------</span>
@@ -2408,7 +2431,7 @@
 <span class="s2">        :context: close-figs</span>
 
 <span class="s2">        &gt;&gt;&gt; import seaborn as sns</span>
-<span class="s2">        &gt;&gt;&gt; sns.set_style(&quot;whitegrid&quot;)</span>
+<span class="s2">        &gt;&gt;&gt; sns.set(style=&quot;whitegrid&quot;)</span>
 <span class="s2">        &gt;&gt;&gt; tips = sns.load_dataset(&quot;tips&quot;)</span>
 <span class="s2">        &gt;&gt;&gt; ax = sns.boxplot(x=tips[&quot;total_bill&quot;])</span>
 
@@ -2468,18 +2491,18 @@
 <span class="s2">        &gt;&gt;&gt; ax = sns.boxplot(x=&quot;day&quot;, y=&quot;total_bill&quot;, data=tips)</span>
 <span class="s2">        &gt;&gt;&gt; ax = sns.swarmplot(x=&quot;day&quot;, y=&quot;total_bill&quot;, data=tips, color=&quot;.25&quot;)</span>
 
-<span class="s2">    Use :func:`factorplot` to combine a :func:`boxplot` and a</span>
+<span class="s2">    Use :func:`catplot` to combine a :func:`pointplot` and a</span>
 <span class="s2">    :class:`FacetGrid`. This allows grouping within additional categorical</span>
-<span class="s2">    variables. Using :func:`factorplot` is safer than using :class:`FacetGrid`</span>
+<span class="s2">    variables. Using :func:`catplot` is safer than using :class:`FacetGrid`</span>
 <span class="s2">    directly, as it ensures synchronization of variable order across facets:</span>
 
 <span class="s2">    .. plot::</span>
 <span class="s2">        :context: close-figs</span>
 
-<span class="s2">        &gt;&gt;&gt; g = sns.factorplot(x=&quot;sex&quot;, y=&quot;total_bill&quot;,</span>
-<span class="s2">        ...                    hue=&quot;smoker&quot;, col=&quot;time&quot;,</span>
-<span class="s2">        ...                    data=tips, kind=&quot;box&quot;,</span>
-<span class="s2">        ...                    size=4, aspect=.7);</span>
+<span class="s2">        &gt;&gt;&gt; g = sns.catplot(x=&quot;sex&quot;, y=&quot;total_bill&quot;,</span>
+<span class="s2">        ...                 hue=&quot;smoker&quot;, col=&quot;time&quot;,</span>
+<span class="s2">        ...                 data=tips, kind=&quot;box&quot;,</span>
+<span class="s2">        ...                 height=4, aspect=.7);</span>
 
 <span class="s2">    &quot;&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">_categorical_docs</span><span class="p">)</span>
 
@@ -2501,6 +2524,7 @@
     <span class="n">plotter</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">ax</span></div>
 
+
 <span class="n">violinplot</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">dedent</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
 <span class="s2">    Draw a combination of boxplot and kernel density estimate.</span>
 
@@ -2517,6 +2541,8 @@
 <span class="s2">    might look misleadingly smooth.</span>
 
 <span class="s2">    </span><span class="si">{main_api_narrative}</span><span class="s2"></span>
+
+<span class="s2">    </span><span class="si">{categorical_narrative}</span><span class="s2"></span>
 
 <span class="s2">    Parameters</span>
 <span class="s2">    ----------</span>
@@ -2583,7 +2609,7 @@
 <span class="s2">        :context: close-figs</span>
 
 <span class="s2">        &gt;&gt;&gt; import seaborn as sns</span>
-<span class="s2">        &gt;&gt;&gt; sns.set_style(&quot;whitegrid&quot;)</span>
+<span class="s2">        &gt;&gt;&gt; sns.set(style=&quot;whitegrid&quot;)</span>
 <span class="s2">        &gt;&gt;&gt; tips = sns.load_dataset(&quot;tips&quot;)</span>
 <span class="s2">        &gt;&gt;&gt; ax = sns.violinplot(x=tips[&quot;total_bill&quot;])</span>
 
@@ -2692,24 +2718,187 @@
 <span class="s2">        &gt;&gt;&gt; ax = sns.violinplot(x=&quot;day&quot;, y=&quot;total_bill&quot;, hue=&quot;weekend&quot;,</span>
 <span class="s2">        ...                     data=tips, dodge=False)</span>
 
-<span class="s2">    Use :func:`factorplot` to combine a :func:`violinplot` and a</span>
+<span class="s2">    Use :func:`catplot` to combine a :func:`violinplot` and a</span>
 <span class="s2">    :class:`FacetGrid`. This allows grouping within additional categorical</span>
-<span class="s2">    variables. Using :func:`factorplot` is safer than using :class:`FacetGrid`</span>
+<span class="s2">    variables. Using :func:`catplot` is safer than using :class:`FacetGrid`</span>
 <span class="s2">    directly, as it ensures synchronization of variable order across facets:</span>
 
 <span class="s2">    .. plot::</span>
 <span class="s2">        :context: close-figs</span>
 
-<span class="s2">        &gt;&gt;&gt; g = sns.factorplot(x=&quot;sex&quot;, y=&quot;total_bill&quot;,</span>
-<span class="s2">        ...                    hue=&quot;smoker&quot;, col=&quot;time&quot;,</span>
-<span class="s2">        ...                    data=tips, kind=&quot;violin&quot;, split=True,</span>
-<span class="s2">        ...                    size=4, aspect=.7);</span>
+<span class="s2">        &gt;&gt;&gt; g = sns.catplot(x=&quot;sex&quot;, y=&quot;total_bill&quot;,</span>
+<span class="s2">        ...                 hue=&quot;smoker&quot;, col=&quot;time&quot;,</span>
+<span class="s2">        ...                 data=tips, kind=&quot;violin&quot;, split=True,</span>
+<span class="s2">        ...                 height=4, aspect=.7);</span>
+
+<span class="s2">    &quot;&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">_categorical_docs</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">lvplot</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Deprecated; please use `boxenplot`.&quot;&quot;&quot;</span>
+
+    <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;The `lvplot` function has been renamed to `boxenplot`. The original &quot;</span>
+        <span class="s2">&quot;name will be removed in a future release. Please update your code. &quot;</span>
+    <span class="p">)</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">boxenplot</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">boxenplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hue</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hue_order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+              <span class="n">orient</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">palette</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">saturation</span><span class="o">=.</span><span class="mi">75</span><span class="p">,</span>
+              <span class="n">width</span><span class="o">=.</span><span class="mi">8</span><span class="p">,</span> <span class="n">dodge</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">k_depth</span><span class="o">=</span><span class="s1">&#39;proportion&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+              <span class="n">scale</span><span class="o">=</span><span class="s1">&#39;exponential&#39;</span><span class="p">,</span> <span class="n">outlier_prop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+    <span class="n">plotter</span> <span class="o">=</span> <span class="n">_LVPlotter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">hue</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">hue_order</span><span class="p">,</span>
+                         <span class="n">orient</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">palette</span><span class="p">,</span> <span class="n">saturation</span><span class="p">,</span>
+                         <span class="n">width</span><span class="p">,</span> <span class="n">dodge</span><span class="p">,</span> <span class="n">k_depth</span><span class="p">,</span> <span class="n">linewidth</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span>
+                         <span class="n">outlier_prop</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+
+    <span class="n">plotter</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ax</span>
+
+
+<span class="n">boxenplot</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">dedent</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">    Draw an enhanced box plot for larger datasets.</span>
+
+<span class="s2">    This style of plot was originally named a &quot;letter value&quot; plot because it</span>
+<span class="s2">    shows a large number of quantiles that are defined as &quot;letter values&quot;.  It</span>
+<span class="s2">    is similar to a box plot in plotting a nonparametric representation of a</span>
+<span class="s2">    distribution in which all features correspond to actual observations. By</span>
+<span class="s2">    plotting more quantiles, it provides more information about the shape of</span>
+<span class="s2">    the distribution, particularly in the tails. For a more extensive</span>
+<span class="s2">    explanation, you can read the paper that introduced the plot:</span>
+
+<span class="s2">    https://vita.had.co.nz/papers/letter-value-plot.html</span>
+
+<span class="s2">    </span><span class="si">{main_api_narrative}</span><span class="s2"></span>
+
+<span class="s2">    </span><span class="si">{categorical_narrative}</span><span class="s2"></span>
+
+<span class="s2">    Parameters</span>
+<span class="s2">    ----------</span>
+<span class="s2">    </span><span class="si">{input_params}</span><span class="s2"></span>
+<span class="s2">    </span><span class="si">{categorical_data}</span><span class="s2"></span>
+<span class="s2">    </span><span class="si">{order_vars}</span><span class="s2"></span>
+<span class="s2">    </span><span class="si">{orient}</span><span class="s2"></span>
+<span class="s2">    </span><span class="si">{color}</span><span class="s2"></span>
+<span class="s2">    </span><span class="si">{palette}</span><span class="s2"></span>
+<span class="s2">    </span><span class="si">{saturation}</span><span class="s2"></span>
+<span class="s2">    </span><span class="si">{width}</span><span class="s2"></span>
+<span class="s2">    </span><span class="si">{dodge}</span><span class="s2"></span>
+<span class="s2">    k_depth : &quot;proportion&quot; | &quot;tukey&quot; | &quot;trustworthy&quot;, optional</span>
+<span class="s2">        The number of boxes, and by extension number of percentiles, to draw.</span>
+<span class="s2">        All methods are detailed in Wickham&#39;s paper. Each makes different</span>
+<span class="s2">        assumptions about the number of outliers and leverages different</span>
+<span class="s2">        statistical properties.</span>
+<span class="s2">    </span><span class="si">{linewidth}</span><span class="s2"></span>
+<span class="s2">    scale : &quot;linear&quot; | &quot;exponential&quot; | &quot;area&quot;</span>
+<span class="s2">        Method to use for the width of the letter value boxes. All give similar</span>
+<span class="s2">        results visually. &quot;linear&quot; reduces the width by a constant linear</span>
+<span class="s2">        factor, &quot;exponential&quot; uses the proportion of data not covered, &quot;area&quot;</span>
+<span class="s2">        is proportional to the percentage of data covered.</span>
+<span class="s2">    outlier_prop : float, optional</span>
+<span class="s2">        Proportion of data believed to be outliers. Used in conjunction with</span>
+<span class="s2">        k_depth to determine the number of percentiles to draw. Defaults to</span>
+<span class="s2">        0.007 as a proportion of outliers. Should be in range [0, 1].</span>
+<span class="s2">    </span><span class="si">{ax_in}</span><span class="s2"></span>
+<span class="s2">    kwargs : key, value mappings</span>
+<span class="s2">        Other keyword arguments are passed through to ``plt.plot`` and</span>
+<span class="s2">        ``plt.scatter`` at draw time.</span>
+
+<span class="s2">    Returns</span>
+<span class="s2">    -------</span>
+<span class="s2">    </span><span class="si">{ax_out}</span><span class="s2"></span>
+
+<span class="s2">    See Also</span>
+<span class="s2">    --------</span>
+<span class="s2">    </span><span class="si">{violinplot}</span><span class="s2"></span>
+<span class="s2">    </span><span class="si">{boxplot}</span><span class="s2"></span>
+
+<span class="s2">    Examples</span>
+<span class="s2">    --------</span>
+
+<span class="s2">    Draw a single horizontal boxen plot:</span>
+
+<span class="s2">    .. plot::</span>
+<span class="s2">        :context: close-figs</span>
+
+<span class="s2">        &gt;&gt;&gt; import seaborn as sns</span>
+<span class="s2">        &gt;&gt;&gt; sns.set(style=&quot;whitegrid&quot;)</span>
+<span class="s2">        &gt;&gt;&gt; tips = sns.load_dataset(&quot;tips&quot;)</span>
+<span class="s2">        &gt;&gt;&gt; ax = sns.boxenplot(x=tips[&quot;total_bill&quot;])</span>
+
+<span class="s2">    Draw a vertical boxen plot grouped by a categorical variable:</span>
+
+<span class="s2">    .. plot::</span>
+<span class="s2">        :context: close-figs</span>
+
+<span class="s2">        &gt;&gt;&gt; ax = sns.boxenplot(x=&quot;day&quot;, y=&quot;total_bill&quot;, data=tips)</span>
+
+<span class="s2">    Draw a letter value plot with nested grouping by two categorical variables:</span>
+
+<span class="s2">    .. plot::</span>
+<span class="s2">        :context: close-figs</span>
+
+<span class="s2">        &gt;&gt;&gt; ax = sns.boxenplot(x=&quot;day&quot;, y=&quot;total_bill&quot;, hue=&quot;smoker&quot;,</span>
+<span class="s2">        ...                    data=tips, palette=&quot;Set3&quot;)</span>
+
+<span class="s2">    Draw a boxen plot with nested grouping when some bins are empty:</span>
+
+<span class="s2">    .. plot::</span>
+<span class="s2">        :context: close-figs</span>
+
+<span class="s2">        &gt;&gt;&gt; ax = sns.boxenplot(x=&quot;day&quot;, y=&quot;total_bill&quot;, hue=&quot;time&quot;,</span>
+<span class="s2">        ...                    data=tips, linewidth=2.5)</span>
+
+<span class="s2">    Control box order by passing an explicit order:</span>
+
+<span class="s2">    .. plot::</span>
+<span class="s2">        :context: close-figs</span>
+
+<span class="s2">        &gt;&gt;&gt; ax = sns.boxenplot(x=&quot;time&quot;, y=&quot;tip&quot;, data=tips,</span>
+<span class="s2">        ...                    order=[&quot;Dinner&quot;, &quot;Lunch&quot;])</span>
+
+<span class="s2">    Draw a boxen plot for each numeric variable in a DataFrame:</span>
+
+<span class="s2">    .. plot::</span>
+<span class="s2">        :context: close-figs</span>
+
+<span class="s2">        &gt;&gt;&gt; iris = sns.load_dataset(&quot;iris&quot;)</span>
+<span class="s2">        &gt;&gt;&gt; ax = sns.boxenplot(data=iris, orient=&quot;h&quot;, palette=&quot;Set2&quot;)</span>
+
+<span class="s2">    Use :func:`stripplot` to show the datapoints on top of the boxes:</span>
+
+<span class="s2">    .. plot::</span>
+<span class="s2">        :context: close-figs</span>
+
+<span class="s2">        &gt;&gt;&gt; ax = sns.boxenplot(x=&quot;day&quot;, y=&quot;total_bill&quot;, data=tips)</span>
+<span class="s2">        &gt;&gt;&gt; ax = sns.stripplot(x=&quot;day&quot;, y=&quot;total_bill&quot;, data=tips,</span>
+<span class="s2">        ...                    size=4, jitter=True, color=&quot;gray&quot;)</span>
+
+<span class="s2">    Use :func:`catplot` to combine :func:`boxenplot` and a :class:`FacetGrid`.</span>
+<span class="s2">    This allows grouping within additional categorical variables. Using</span>
+<span class="s2">    :func:`catplot` is safer than using :class:`FacetGrid` directly, as it</span>
+<span class="s2">    ensures synchronization of variable order across facets:</span>
+
+<span class="s2">    .. plot::</span>
+<span class="s2">        :context: close-figs</span>
+
+<span class="s2">        &gt;&gt;&gt; g = sns.catplot(x=&quot;sex&quot;, y=&quot;total_bill&quot;,</span>
+<span class="s2">        ...                 hue=&quot;smoker&quot;, col=&quot;time&quot;,</span>
+<span class="s2">        ...                 data=tips, kind=&quot;boxen&quot;,</span>
+<span class="s2">        ...                 height=4, aspect=.7);</span>
 
 <span class="s2">    &quot;&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">_categorical_docs</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="stripplot"><a class="viewcode-back" href="../../api/display_api.html#abipy.display.seabornw.stripplot">[docs]</a><span class="k">def</span> <span class="nf">stripplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hue</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hue_order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-              <span class="n">jitter</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dodge</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">palette</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+              <span class="n">jitter</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dodge</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">palette</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
               <span class="n">size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s2">&quot;gray&quot;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
     <span class="k">if</span> <span class="s2">&quot;split&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
@@ -2745,6 +2934,8 @@
 
 <span class="s2">    </span><span class="si">{main_api_narrative}</span><span class="s2"></span>
 
+<span class="s2">    </span><span class="si">{categorical_narrative}</span><span class="s2"></span>
+
 <span class="s2">    Parameters</span>
 <span class="s2">    ----------</span>
 <span class="s2">    </span><span class="si">{input_params}</span><span class="s2"></span>
@@ -2756,7 +2947,7 @@
 <span class="s2">        it is easier to see the distribution. You can specify the amount</span>
 <span class="s2">        of jitter (half the width of the uniform random variable support),</span>
 <span class="s2">        or just use ``True`` for a good default.</span>
-<span class="s2">    split : bool, optional</span>
+<span class="s2">    dodge : bool, optional</span>
 <span class="s2">        When using ``hue`` nesting, setting this to ``True`` will separate</span>
 <span class="s2">        the strips for different hue levels along the categorical axis.</span>
 <span class="s2">        Otherwise, the points for each level will be plotted on top of</span>
@@ -2794,7 +2985,7 @@
 <span class="s2">        :context: close-figs</span>
 
 <span class="s2">        &gt;&gt;&gt; import seaborn as sns</span>
-<span class="s2">        &gt;&gt;&gt; sns.set_style(&quot;whitegrid&quot;)</span>
+<span class="s2">        &gt;&gt;&gt; sns.set(style=&quot;whitegrid&quot;)</span>
 <span class="s2">        &gt;&gt;&gt; tips = sns.load_dataset(&quot;tips&quot;)</span>
 <span class="s2">        &gt;&gt;&gt; ax = sns.stripplot(x=tips[&quot;total_bill&quot;])</span>
 
@@ -2888,19 +3079,19 @@
 <span class="s2">        ...                     inner=None, color=&quot;.8&quot;)</span>
 <span class="s2">        &gt;&gt;&gt; ax = sns.stripplot(x=&quot;day&quot;, y=&quot;total_bill&quot;, data=tips, jitter=True)</span>
 
-<span class="s2">    Use :func:`factorplot` to combine a :func:`stripplot` and a</span>
+<span class="s2">    Use :func:`catplot` to combine a :func:`stripplot` and a</span>
 <span class="s2">    :class:`FacetGrid`. This allows grouping within additional categorical</span>
-<span class="s2">    variables. Using :func:`factorplot` is safer than using :class:`FacetGrid`</span>
+<span class="s2">    variables. Using :func:`catplot` is safer than using :class:`FacetGrid`</span>
 <span class="s2">    directly, as it ensures synchronization of variable order across facets:</span>
 
 <span class="s2">    .. plot::</span>
 <span class="s2">        :context: close-figs</span>
 
-<span class="s2">        &gt;&gt;&gt; g = sns.factorplot(x=&quot;sex&quot;, y=&quot;total_bill&quot;,</span>
-<span class="s2">        ...                    hue=&quot;smoker&quot;, col=&quot;time&quot;,</span>
-<span class="s2">        ...                    data=tips, kind=&quot;strip&quot;,</span>
-<span class="s2">        ...                    jitter=True,</span>
-<span class="s2">        ...                    size=4, aspect=.7);</span>
+<span class="s2">        &gt;&gt;&gt; g = sns.catplot(x=&quot;sex&quot;, y=&quot;total_bill&quot;,</span>
+<span class="s2">        ...                 hue=&quot;smoker&quot;, col=&quot;time&quot;,</span>
+<span class="s2">        ...                 data=tips, kind=&quot;strip&quot;,</span>
+<span class="s2">        ...                 jitter=True,</span>
+<span class="s2">        ...                 height=4, aspect=.7);</span>
 
 <span class="s2">    &quot;&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">_categorical_docs</span><span class="p">)</span>
 
@@ -2938,29 +3129,28 @@
 
 <span class="s2">    This function is similar to :func:`stripplot`, but the points are adjusted</span>
 <span class="s2">    (only along the categorical axis) so that they don&#39;t overlap. This gives a</span>
-<span class="s2">    better representation of the distribution of values, although it does not</span>
-<span class="s2">    scale as well to large numbers of observations (both in terms of the</span>
-<span class="s2">    ability to show all the points and in terms of the computation needed</span>
-<span class="s2">    to arrange them).</span>
-
-<span class="s2">    This style of plot is often called a &quot;beeswarm&quot;.</span>
+<span class="s2">    better representation of the distribution of values, but it does not scale</span>
+<span class="s2">    well to large numbers of observations. This style of plot is sometimes</span>
+<span class="s2">    called a &quot;beeswarm&quot;.</span>
 
 <span class="s2">    A swarm plot can be drawn on its own, but it is also a good complement</span>
 <span class="s2">    to a box or violin plot in cases where you want to show all observations</span>
 <span class="s2">    along with some representation of the underlying distribution.</span>
 
-<span class="s2">    Note that arranging the points properly requires an accurate transformation</span>
-<span class="s2">    between data and point coordinates. This means that non-default axis limits</span>
-<span class="s2">    should be set *before* drawing the swarm plot.</span>
+<span class="s2">    Arranging the points properly requires an accurate transformation between</span>
+<span class="s2">    data and point coordinates. This means that non-default axis limits must</span>
+<span class="s2">    be set *before* drawing the plot.</span>
 
 <span class="s2">    </span><span class="si">{main_api_narrative}</span><span class="s2"></span>
+
+<span class="s2">    </span><span class="si">{categorical_narrative}</span><span class="s2"></span>
 
 <span class="s2">    Parameters</span>
 <span class="s2">    ----------</span>
 <span class="s2">    </span><span class="si">{input_params}</span><span class="s2"></span>
 <span class="s2">    </span><span class="si">{categorical_data}</span><span class="s2"></span>
 <span class="s2">    </span><span class="si">{order_vars}</span><span class="s2"></span>
-<span class="s2">    split : bool, optional</span>
+<span class="s2">    dodge : bool, optional</span>
 <span class="s2">        When using ``hue`` nesting, setting this to ``True`` will separate</span>
 <span class="s2">        the strips for different hue levels along the categorical axis.</span>
 <span class="s2">        Otherwise, the points for each level will be plotted in one swarm.</span>
@@ -2987,7 +3177,7 @@
 <span class="s2">    </span><span class="si">{boxplot}</span><span class="s2"></span>
 <span class="s2">    </span><span class="si">{violinplot}</span><span class="s2"></span>
 <span class="s2">    </span><span class="si">{stripplot}</span><span class="s2"></span>
-<span class="s2">    </span><span class="si">{factorplot}</span><span class="s2"></span>
+<span class="s2">    </span><span class="si">{catplot}</span><span class="s2"></span>
 
 <span class="s2">    Examples</span>
 <span class="s2">    --------</span>
@@ -2998,7 +3188,7 @@
 <span class="s2">        :context: close-figs</span>
 
 <span class="s2">        &gt;&gt;&gt; import seaborn as sns</span>
-<span class="s2">        &gt;&gt;&gt; sns.set_style(&quot;whitegrid&quot;)</span>
+<span class="s2">        &gt;&gt;&gt; sns.set(style=&quot;whitegrid&quot;)</span>
 <span class="s2">        &gt;&gt;&gt; tips = sns.load_dataset(&quot;tips&quot;)</span>
 <span class="s2">        &gt;&gt;&gt; ax = sns.swarmplot(x=tips[&quot;total_bill&quot;])</span>
 
@@ -3063,18 +3253,18 @@
 <span class="s2">        &gt;&gt;&gt; ax = sns.swarmplot(x=&quot;day&quot;, y=&quot;total_bill&quot;, data=tips,</span>
 <span class="s2">        ...                    color=&quot;white&quot;, edgecolor=&quot;gray&quot;)</span>
 
-<span class="s2">    Use :func:`factorplot` to combine a :func:`swarmplot` and a</span>
+<span class="s2">    Use :func:`catplot` to combine a :func:`swarmplot` and a</span>
 <span class="s2">    :class:`FacetGrid`. This allows grouping within additional categorical</span>
-<span class="s2">    variables. Using :func:`factorplot` is safer than using :class:`FacetGrid`</span>
+<span class="s2">    variables. Using :func:`catplot` is safer than using :class:`FacetGrid`</span>
 <span class="s2">    directly, as it ensures synchronization of variable order across facets:</span>
 
 <span class="s2">    .. plot::</span>
 <span class="s2">        :context: close-figs</span>
 
-<span class="s2">        &gt;&gt;&gt; g = sns.factorplot(x=&quot;sex&quot;, y=&quot;total_bill&quot;,</span>
-<span class="s2">        ...                    hue=&quot;smoker&quot;, col=&quot;time&quot;,</span>
-<span class="s2">        ...                    data=tips, kind=&quot;swarm&quot;,</span>
-<span class="s2">        ...                    size=4, aspect=.7);</span>
+<span class="s2">        &gt;&gt;&gt; g = sns.catplot(x=&quot;sex&quot;, y=&quot;total_bill&quot;,</span>
+<span class="s2">        ...                 hue=&quot;smoker&quot;, col=&quot;time&quot;,</span>
+<span class="s2">        ...                 data=tips, kind=&quot;swarm&quot;,</span>
+<span class="s2">        ...                 height=4, aspect=.7);</span>
 
 <span class="s2">    &quot;&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">_categorical_docs</span><span class="p">)</span>
 
@@ -3119,6 +3309,8 @@
 
 <span class="s2">    </span><span class="si">{main_api_narrative}</span><span class="s2"></span>
 
+<span class="s2">    </span><span class="si">{categorical_narrative}</span><span class="s2"></span>
+
 <span class="s2">    Parameters</span>
 <span class="s2">    ----------</span>
 <span class="s2">    </span><span class="si">{input_params}</span><span class="s2"></span>
@@ -3147,7 +3339,7 @@
 <span class="s2">    --------</span>
 <span class="s2">    </span><span class="si">{countplot}</span><span class="s2"></span>
 <span class="s2">    </span><span class="si">{pointplot}</span><span class="s2"></span>
-<span class="s2">    </span><span class="si">{factorplot}</span><span class="s2"></span>
+<span class="s2">    </span><span class="si">{catplot}</span><span class="s2"></span>
 
 <span class="s2">    Examples</span>
 <span class="s2">    --------</span>
@@ -3158,7 +3350,7 @@
 <span class="s2">        :context: close-figs</span>
 
 <span class="s2">        &gt;&gt;&gt; import seaborn as sns</span>
-<span class="s2">        &gt;&gt;&gt; sns.set_style(&quot;whitegrid&quot;)</span>
+<span class="s2">        &gt;&gt;&gt; sns.set(style=&quot;whitegrid&quot;)</span>
 <span class="s2">        &gt;&gt;&gt; tips = sns.load_dataset(&quot;tips&quot;)</span>
 <span class="s2">        &gt;&gt;&gt; ax = sns.barplot(x=&quot;day&quot;, y=&quot;total_bill&quot;, data=tips)</span>
 
@@ -3247,18 +3439,18 @@
 <span class="s2">        ...                  linewidth=2.5, facecolor=(1, 1, 1, 0),</span>
 <span class="s2">        ...                  errcolor=&quot;.2&quot;, edgecolor=&quot;.2&quot;)</span>
 
-<span class="s2">    Use :func:`factorplot` to combine a :func:`barplot` and a</span>
-<span class="s2">    :class:`FacetGrid`. This allows grouping within additional categorical</span>
-<span class="s2">    variables. Using :func:`factorplot` is safer than using :class:`FacetGrid`</span>
-<span class="s2">    directly, as it ensures synchronization of variable order across facets:</span>
+<span class="s2">    Use :func:`catplot` to combine a :func:`barplot` and a :class:`FacetGrid`.</span>
+<span class="s2">    This allows grouping within additional categorical variables. Using</span>
+<span class="s2">    :func:`catplot` is safer than using :class:`FacetGrid` directly, as it</span>
+<span class="s2">    ensures synchronization of variable order across facets:</span>
 
 <span class="s2">    .. plot::</span>
 <span class="s2">        :context: close-figs</span>
 
-<span class="s2">        &gt;&gt;&gt; g = sns.factorplot(x=&quot;sex&quot;, y=&quot;total_bill&quot;,</span>
-<span class="s2">        ...                    hue=&quot;smoker&quot;, col=&quot;time&quot;,</span>
-<span class="s2">        ...                    data=tips, kind=&quot;bar&quot;,</span>
-<span class="s2">        ...                    size=4, aspect=.7);</span>
+<span class="s2">        &gt;&gt;&gt; g = sns.catplot(x=&quot;sex&quot;, y=&quot;total_bill&quot;,</span>
+<span class="s2">        ...                 hue=&quot;smoker&quot;, col=&quot;time&quot;,</span>
+<span class="s2">        ...                 data=tips, kind=&quot;bar&quot;,</span>
+<span class="s2">        ...                 height=4, aspect=.7);</span>
 
 <span class="s2">    &quot;&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">_categorical_docs</span><span class="p">)</span>
 
@@ -3305,6 +3497,8 @@
 
 <span class="s2">    </span><span class="si">{main_api_narrative}</span><span class="s2"></span>
 
+<span class="s2">    </span><span class="si">{categorical_narrative}</span><span class="s2"></span>
+
 <span class="s2">    Parameters</span>
 <span class="s2">    ----------</span>
 <span class="s2">    </span><span class="si">{input_params}</span><span class="s2"></span>
@@ -3337,7 +3531,7 @@
 <span class="s2">    See Also</span>
 <span class="s2">    --------</span>
 <span class="s2">    </span><span class="si">{barplot}</span><span class="s2"></span>
-<span class="s2">    </span><span class="si">{factorplot}</span><span class="s2"></span>
+<span class="s2">    </span><span class="si">{catplot}</span><span class="s2"></span>
 
 <span class="s2">    Examples</span>
 <span class="s2">    --------</span>
@@ -3348,7 +3542,7 @@
 <span class="s2">        :context: close-figs</span>
 
 <span class="s2">        &gt;&gt;&gt; import seaborn as sns</span>
-<span class="s2">        &gt;&gt;&gt; sns.set_style(&quot;darkgrid&quot;)</span>
+<span class="s2">        &gt;&gt;&gt; sns.set(style=&quot;darkgrid&quot;)</span>
 <span class="s2">        &gt;&gt;&gt; tips = sns.load_dataset(&quot;tips&quot;)</span>
 <span class="s2">        &gt;&gt;&gt; ax = sns.pointplot(x=&quot;time&quot;, y=&quot;total_bill&quot;, data=tips)</span>
 
@@ -3445,19 +3639,19 @@
 
 <span class="s2">        &gt;&gt;&gt; ax = sns.pointplot(x=&quot;day&quot;, y=&quot;tip&quot;, data=tips, capsize=.2)</span>
 
-<span class="s2">    Use :func:`factorplot` to combine a :func:`barplot` and a</span>
+<span class="s2">    Use :func:`catplot` to combine a :func:`barplot` and a</span>
 <span class="s2">    :class:`FacetGrid`. This allows grouping within additional categorical</span>
-<span class="s2">    variables. Using :func:`factorplot` is safer than using :class:`FacetGrid`</span>
+<span class="s2">    variables. Using :func:`catplot` is safer than using :class:`FacetGrid`</span>
 <span class="s2">    directly, as it ensures synchronization of variable order across facets:</span>
 
 <span class="s2">    .. plot::</span>
 <span class="s2">        :context: close-figs</span>
 
-<span class="s2">        &gt;&gt;&gt; g = sns.factorplot(x=&quot;sex&quot;, y=&quot;total_bill&quot;,</span>
-<span class="s2">        ...                    hue=&quot;smoker&quot;, col=&quot;time&quot;,</span>
-<span class="s2">        ...                    data=tips, kind=&quot;point&quot;,</span>
-<span class="s2">        ...                    dodge=True,</span>
-<span class="s2">        ...                    size=4, aspect=.7);</span>
+<span class="s2">        &gt;&gt;&gt; g = sns.catplot(x=&quot;sex&quot;, y=&quot;total_bill&quot;,</span>
+<span class="s2">        ...                 hue=&quot;smoker&quot;, col=&quot;time&quot;,</span>
+<span class="s2">        ...                 data=tips, kind=&quot;point&quot;,</span>
+<span class="s2">        ...                 dodge=True,</span>
+<span class="s2">        ...                 height=4, aspect=.7);</span>
 
 <span class="s2">    &quot;&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">_categorical_docs</span><span class="p">)</span>
 
@@ -3508,6 +3702,8 @@
 
 <span class="s2">    </span><span class="si">{main_api_narrative}</span><span class="s2"></span>
 
+<span class="s2">    </span><span class="si">{categorical_narrative}</span><span class="s2"></span>
+
 <span class="s2">    Parameters</span>
 <span class="s2">    ----------</span>
 <span class="s2">    </span><span class="si">{input_params}</span><span class="s2"></span>
@@ -3529,7 +3725,7 @@
 <span class="s2">    See Also</span>
 <span class="s2">    --------</span>
 <span class="s2">    </span><span class="si">{barplot}</span><span class="s2"></span>
-<span class="s2">    </span><span class="si">{factorplot}</span><span class="s2"></span>
+<span class="s2">    </span><span class="si">{catplot}</span><span class="s2"></span>
 
 <span class="s2">    Examples</span>
 <span class="s2">    --------</span>
@@ -3575,28 +3771,57 @@
 <span class="s2">        ...                    linewidth=5,</span>
 <span class="s2">        ...                    edgecolor=sns.color_palette(&quot;dark&quot;, 3))</span>
 
-<span class="s2">    Use :func:`factorplot` to combine a :func:`countplot` and a</span>
+<span class="s2">    Use :func:`catplot` to combine a :func:`countplot` and a</span>
 <span class="s2">    :class:`FacetGrid`. This allows grouping within additional categorical</span>
-<span class="s2">    variables. Using :func:`factorplot` is safer than using :class:`FacetGrid`</span>
+<span class="s2">    variables. Using :func:`catplot` is safer than using :class:`FacetGrid`</span>
 <span class="s2">    directly, as it ensures synchronization of variable order across facets:</span>
 
 <span class="s2">    .. plot::</span>
 <span class="s2">        :context: close-figs</span>
 
-<span class="s2">        &gt;&gt;&gt; g = sns.factorplot(x=&quot;class&quot;, hue=&quot;who&quot;, col=&quot;survived&quot;,</span>
-<span class="s2">        ...                    data=titanic, kind=&quot;count&quot;,</span>
-<span class="s2">        ...                    size=4, aspect=.7);</span>
+<span class="s2">        &gt;&gt;&gt; g = sns.catplot(x=&quot;class&quot;, hue=&quot;who&quot;, col=&quot;survived&quot;,</span>
+<span class="s2">        ...                 data=titanic, kind=&quot;count&quot;,</span>
+<span class="s2">        ...                 height=4, aspect=.7);</span>
 
 <span class="s2">    &quot;&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">_categorical_docs</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="factorplot"><a class="viewcode-back" href="../../api/display_api.html#abipy.display.seabornw.factorplot">[docs]</a><span class="k">def</span> <span class="nf">factorplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hue</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-               <span class="n">col_wrap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">estimator</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">,</span> <span class="n">ci</span><span class="o">=</span><span class="mi">95</span><span class="p">,</span> <span class="n">n_boot</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
-               <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hue_order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">row_order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-               <span class="n">col_order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;point&quot;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-               <span class="n">orient</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">palette</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-               <span class="n">legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">legend_out</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-               <span class="n">margin_titles</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">facet_kws</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="factorplot"><a class="viewcode-back" href="../../api/display_api.html#abipy.display.seabornw.factorplot">[docs]</a><span class="k">def</span> <span class="nf">factorplot</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Deprecated; please use `catplot` instead.&quot;&quot;&quot;</span>
+
+    <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;The `factorplot` function has been renamed to `catplot`. The &quot;</span>
+        <span class="s2">&quot;original name will be removed in a future release. Please update &quot;</span>
+        <span class="s2">&quot;your code. Note that the default `kind` in `factorplot` (`&#39;point&#39;`) &quot;</span>
+        <span class="s2">&quot;has changed `&#39;strip&#39;` in `catplot`.&quot;</span>
+    <span class="p">)</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s2">&quot;size&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;height&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;size&quot;</span><span class="p">)</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;The `size` paramter has been renamed to `height`; &quot;</span>
+               <span class="s2">&quot;please update your code.&quot;</span><span class="p">)</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">)</span>
+
+    <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;kind&quot;</span><span class="p">,</span> <span class="s2">&quot;point&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">catplot</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">catplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hue</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">col_wrap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">estimator</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">,</span> <span class="n">ci</span><span class="o">=</span><span class="mi">95</span><span class="p">,</span> <span class="n">n_boot</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+            <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hue_order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">row_order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">col_order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;strip&quot;</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">orient</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">palette</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">legend_out</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">margin_titles</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">facet_kws</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+    <span class="c1"># Handle deprecations</span>
+    <span class="k">if</span> <span class="s2">&quot;size&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">height</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;size&quot;</span><span class="p">)</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;The `size` paramter has been renamed to `height`; &quot;</span>
+               <span class="s2">&quot;please update your code.&quot;</span><span class="p">)</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">)</span>
 
     <span class="c1"># Determine the plotting function</span>
     <span class="k">try</span><span class="p">:</span>
@@ -3637,7 +3862,7 @@
     <span class="n">facet_kws</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
         <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="n">col</span><span class="p">,</span>
         <span class="n">row_order</span><span class="o">=</span><span class="n">row_order</span><span class="p">,</span> <span class="n">col_order</span><span class="o">=</span><span class="n">col_order</span><span class="p">,</span>
-        <span class="n">col_wrap</span><span class="o">=</span><span class="n">col_wrap</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="n">aspect</span><span class="p">,</span>
+        <span class="n">col_wrap</span><span class="o">=</span><span class="n">col_wrap</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="n">aspect</span><span class="p">,</span>
         <span class="n">sharex</span><span class="o">=</span><span class="n">sharex</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="n">sharey</span><span class="p">,</span>
         <span class="n">legend_out</span><span class="o">=</span><span class="n">legend_out</span><span class="p">,</span> <span class="n">margin_titles</span><span class="o">=</span><span class="n">margin_titles</span><span class="p">,</span>
         <span class="n">dropna</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -3672,38 +3897,51 @@
         <span class="n">hue_order</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">to_utf8</span><span class="p">,</span> <span class="n">hue_order</span><span class="p">))</span>
         <span class="n">g</span><span class="o">.</span><span class="n">add_legend</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">hue</span><span class="p">,</span> <span class="n">label_order</span><span class="o">=</span><span class="n">hue_order</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">g</span></div>
+    <span class="k">return</span> <span class="n">g</span>
 
 
-<span class="n">factorplot</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">dedent</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
-<span class="s2">    Draw a categorical plot onto a FacetGrid.</span>
+<span class="n">catplot</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">dedent</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">    Figure-level interface for drawing categorical plots onto a FacetGrid.</span>
 
-<span class="s2">    The default plot that is shown is a point plot, but other seaborn</span>
-<span class="s2">    categorical plots can be chosen with the ``kind`` parameter, including</span>
-<span class="s2">    box plots, violin plots, bar plots, or strip plots.</span>
+<span class="s2">    This function provides access to several axes-level functions that</span>
+<span class="s2">    show the relationship between a numerical and one or more categorical</span>
+<span class="s2">    variables using one of several visual representations. The ``kind``</span>
+<span class="s2">    parameter selects the underlying axes-level function to use:</span>
 
-<span class="s2">    It is important to choose how variables get mapped to the plot structure</span>
-<span class="s2">    such that the most important comparisons are easiest to make. As a general</span>
-<span class="s2">    rule, it is easier to compare positions that are closer together, so the</span>
-<span class="s2">    ``hue`` variable should be used for the most important comparisons. For</span>
-<span class="s2">    secondary comparisons, try to share the quantitative axis (so, use ``col``</span>
-<span class="s2">    for vertical plots and ``row`` for horizontal plots). Note that, although</span>
-<span class="s2">    it is possible to make rather complex plots using this function, in many</span>
-<span class="s2">    cases you may be better served by created several smaller and more focused</span>
-<span class="s2">    plots than by trying to stuff many comparisons into one figure.</span>
+<span class="s2">    Categorical scatterplots:</span>
+
+<span class="s2">    - :func:`stripplot` (with ``kind=&quot;strip&quot;``; the default)</span>
+<span class="s2">    - :func:`swarmplot` (with ``kind=&quot;swarm&quot;``)</span>
+
+<span class="s2">    Categorical distribution plots:</span>
+
+<span class="s2">    - :func:`boxplot` (with ``kind=&quot;box&quot;``)</span>
+<span class="s2">    - :func:`violinplot` (with ``kind=&quot;violin&quot;``)</span>
+<span class="s2">    - :func:`boxenplot` (with ``kind=&quot;boxen&quot;``)</span>
+
+<span class="s2">    Categorical estimate plots:</span>
+
+<span class="s2">    - :func:`pointplot` (with ``kind=&quot;point&quot;``)</span>
+<span class="s2">    - :func:`barplot` (with ``kind=&quot;bar&quot;``)</span>
+<span class="s2">    - :func:`countplot` (with ``kind=&quot;count&quot;``)</span>
+
+<span class="s2">    Extra keyword arguments are passed to the underlying function, so you</span>
+<span class="s2">    should refer to the documentation for each to see kind-specific options.</span>
+
+<span class="s2">    Note that unlike when using the axes-level functions directly, data must be</span>
+<span class="s2">    passed in a long-form DataFrame with variables specified by passing strings</span>
+<span class="s2">    to ``x``, ``y``, ``hue``, etc.</span>
+
+<span class="s2">    As in the case with the underlying plot functions, if variables have a</span>
+<span class="s2">    ``categorical`` data type, the the levels of the categorical variables, and</span>
+<span class="s2">    their order will be inferred from the objects. Otherwise you may have to</span>
+<span class="s2">    use alter the dataframe sorting or use the function parameters (``orient``,</span>
+<span class="s2">    ``order``, ``hue_order``, etc.) to set up the plot correctly.</span>
+
+<span class="s2">    </span><span class="si">{categorical_narrative}</span><span class="s2"></span>
 
 <span class="s2">    After plotting, the :class:`FacetGrid` with the plot is returned and can</span>
 <span class="s2">    be used directly to tweak supporting plot details or add other layers.</span>
-
-<span class="s2">    Note that, unlike when using the underlying plotting functions directly,</span>
-<span class="s2">    data must be passed in a long-form DataFrame with variables specified by</span>
-<span class="s2">    passing strings to ``x``, ``y``, ``hue``, and other parameters.</span>
-
-<span class="s2">    As in the case with the underlying plot functions, if variables have a</span>
-<span class="s2">    ``categorical`` data type, the correct orientation of the plot elements,</span>
-<span class="s2">    the levels of the categorical variables, and their order will be inferred</span>
-<span class="s2">    from the objects. Otherwise you may have to use the function parameters</span>
-<span class="s2">    (``orient``, ``order``, ``hue_order``, etc.) to set up the plot correctly.</span>
 
 <span class="s2">    Parameters</span>
 <span class="s2">    ----------</span>
@@ -3717,9 +3955,11 @@
 <span class="s2">    row_order, col_order : lists of strings, optional</span>
 <span class="s2">        Order to organize the rows and/or columns of the grid in, otherwise the</span>
 <span class="s2">        orders are inferred from the data objects.</span>
-<span class="s2">    kind : {{``point``, ``bar``, ``count``, ``box``, ``violin``, ``strip``}}</span>
-<span class="s2">        The kind of plot to draw.</span>
-<span class="s2">    </span><span class="si">{size}</span><span class="s2"></span>
+<span class="s2">    kind : string, optional</span>
+<span class="s2">        The kind of plot to draw (corresponds to the name of a categorical</span>
+<span class="s2">        plotting function. Options are: &quot;point&quot;, &quot;bar&quot;, &quot;strip&quot;, &quot;swarm&quot;,</span>
+<span class="s2">        &quot;box&quot;, &quot;violin&quot;, or &quot;boxen&quot;.</span>
+<span class="s2">    </span><span class="si">{height}</span><span class="s2"></span>
 <span class="s2">    </span><span class="si">{aspect}</span><span class="s2"></span>
 <span class="s2">    </span><span class="si">{orient}</span><span class="s2"></span>
 <span class="s2">    </span><span class="si">{color}</span><span class="s2"></span>
@@ -3752,32 +3992,32 @@
 <span class="s2">        &gt;&gt;&gt; import seaborn as sns</span>
 <span class="s2">        &gt;&gt;&gt; sns.set(style=&quot;ticks&quot;)</span>
 <span class="s2">        &gt;&gt;&gt; exercise = sns.load_dataset(&quot;exercise&quot;)</span>
-<span class="s2">        &gt;&gt;&gt; g = sns.factorplot(x=&quot;time&quot;, y=&quot;pulse&quot;, hue=&quot;kind&quot;, data=exercise)</span>
+<span class="s2">        &gt;&gt;&gt; g = sns.catplot(x=&quot;time&quot;, y=&quot;pulse&quot;, hue=&quot;kind&quot;, data=exercise)</span>
 
 <span class="s2">    Use a different plot kind to visualize the same data:</span>
 
 <span class="s2">    .. plot::</span>
 <span class="s2">        :context: close-figs</span>
 
-<span class="s2">        &gt;&gt;&gt; g = sns.factorplot(x=&quot;time&quot;, y=&quot;pulse&quot;, hue=&quot;kind&quot;,</span>
-<span class="s2">        ...                    data=exercise, kind=&quot;violin&quot;)</span>
+<span class="s2">        &gt;&gt;&gt; g = sns.catplot(x=&quot;time&quot;, y=&quot;pulse&quot;, hue=&quot;kind&quot;,</span>
+<span class="s2">        ...                data=exercise, kind=&quot;violin&quot;)</span>
 
 <span class="s2">    Facet along the columns to show a third categorical variable:</span>
 
 <span class="s2">    .. plot::</span>
 <span class="s2">        :context: close-figs</span>
 
-<span class="s2">        &gt;&gt;&gt; g = sns.factorplot(x=&quot;time&quot;, y=&quot;pulse&quot;, hue=&quot;kind&quot;,</span>
-<span class="s2">        ...                    col=&quot;diet&quot;, data=exercise)</span>
+<span class="s2">        &gt;&gt;&gt; g = sns.catplot(x=&quot;time&quot;, y=&quot;pulse&quot;, hue=&quot;kind&quot;,</span>
+<span class="s2">        ...                 col=&quot;diet&quot;, data=exercise)</span>
 
-<span class="s2">    Use a different size and aspect ratio for the facets:</span>
+<span class="s2">    Use a different height and aspect ratio for the facets:</span>
 
 <span class="s2">    .. plot::</span>
 <span class="s2">        :context: close-figs</span>
 
-<span class="s2">        &gt;&gt;&gt; g = sns.factorplot(x=&quot;time&quot;, y=&quot;pulse&quot;, hue=&quot;kind&quot;,</span>
-<span class="s2">        ...                    col=&quot;diet&quot;, data=exercise,</span>
-<span class="s2">        ...                    size=5, aspect=.8)</span>
+<span class="s2">        &gt;&gt;&gt; g = sns.catplot(x=&quot;time&quot;, y=&quot;pulse&quot;, hue=&quot;kind&quot;,</span>
+<span class="s2">        ...                 col=&quot;diet&quot;, data=exercise,</span>
+<span class="s2">        ...                 height=5, aspect=.8)</span>
 
 <span class="s2">    Make many column facets and wrap them into the rows of the grid:</span>
 
@@ -3785,182 +4025,35 @@
 <span class="s2">        :context: close-figs</span>
 
 <span class="s2">        &gt;&gt;&gt; titanic = sns.load_dataset(&quot;titanic&quot;)</span>
-<span class="s2">        &gt;&gt;&gt; g = sns.factorplot(&quot;alive&quot;, col=&quot;deck&quot;, col_wrap=4,</span>
-<span class="s2">        ...                    data=titanic[titanic.deck.notnull()],</span>
-<span class="s2">        ...                    kind=&quot;count&quot;, size=2.5, aspect=.8)</span>
+<span class="s2">        &gt;&gt;&gt; g = sns.catplot(&quot;alive&quot;, col=&quot;deck&quot;, col_wrap=4,</span>
+<span class="s2">        ...                 data=titanic[titanic.deck.notnull()],</span>
+<span class="s2">        ...                 kind=&quot;count&quot;, height=2.5, aspect=.8)</span>
 
 <span class="s2">    Plot horizontally and pass other keyword arguments to the plot function:</span>
 
 <span class="s2">    .. plot::</span>
 <span class="s2">        :context: close-figs</span>
 
-<span class="s2">        &gt;&gt;&gt; g = sns.factorplot(x=&quot;age&quot;, y=&quot;embark_town&quot;,</span>
-<span class="s2">        ...                    hue=&quot;sex&quot;, row=&quot;class&quot;,</span>
-<span class="s2">        ...                    data=titanic[titanic.embark_town.notnull()],</span>
-<span class="s2">        ...                    orient=&quot;h&quot;, size=2, aspect=3.5, palette=&quot;Set3&quot;,</span>
-<span class="s2">        ...                    kind=&quot;violin&quot;, dodge=True, cut=0, bw=.2)</span>
+<span class="s2">        &gt;&gt;&gt; g = sns.catplot(x=&quot;age&quot;, y=&quot;embark_town&quot;,</span>
+<span class="s2">        ...                 hue=&quot;sex&quot;, row=&quot;class&quot;,</span>
+<span class="s2">        ...                 data=titanic[titanic.embark_town.notnull()],</span>
+<span class="s2">        ...                 orient=&quot;h&quot;, height=2, aspect=3, palette=&quot;Set3&quot;,</span>
+<span class="s2">        ...                 kind=&quot;violin&quot;, dodge=True, cut=0, bw=.2)</span>
 
 <span class="s2">    Use methods on the returned :class:`FacetGrid` to tweak the presentation:</span>
 
 <span class="s2">    .. plot::</span>
 <span class="s2">        :context: close-figs</span>
 
-<span class="s2">        &gt;&gt;&gt; g = sns.factorplot(x=&quot;who&quot;, y=&quot;survived&quot;, col=&quot;class&quot;,</span>
-<span class="s2">        ...                    data=titanic, saturation=.5,</span>
-<span class="s2">        ...                    kind=&quot;bar&quot;, ci=None, aspect=.6)</span>
+<span class="s2">        &gt;&gt;&gt; g = sns.catplot(x=&quot;who&quot;, y=&quot;survived&quot;, col=&quot;class&quot;,</span>
+<span class="s2">        ...                 data=titanic, saturation=.5,</span>
+<span class="s2">        ...                 kind=&quot;bar&quot;, ci=None, aspect=.6)</span>
 <span class="s2">        &gt;&gt;&gt; (g.set_axis_labels(&quot;&quot;, &quot;Survival Rate&quot;)</span>
 <span class="s2">        ...   .set_xticklabels([&quot;Men&quot;, &quot;Women&quot;, &quot;Children&quot;])</span>
 <span class="s2">        ...   .set_titles(&quot;{{col_name}} {{col_var}}&quot;)</span>
 <span class="s2">        ...   .set(ylim=(0, 1))</span>
 <span class="s2">        ...   .despine(left=True))  #doctest: +ELLIPSIS</span>
 <span class="s2">        &lt;seaborn.axisgrid.FacetGrid object at 0x...&gt;</span>
-
-<span class="s2">    &quot;&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">_categorical_docs</span><span class="p">)</span>
-
-
-<span class="k">def</span> <span class="nf">lvplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hue</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hue_order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-           <span class="n">orient</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">palette</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">saturation</span><span class="o">=.</span><span class="mi">75</span><span class="p">,</span>
-           <span class="n">width</span><span class="o">=.</span><span class="mi">8</span><span class="p">,</span> <span class="n">dodge</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">k_depth</span><span class="o">=</span><span class="s1">&#39;proportion&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-           <span class="n">scale</span><span class="o">=</span><span class="s1">&#39;exponential&#39;</span><span class="p">,</span> <span class="n">outlier_prop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-
-    <span class="n">plotter</span> <span class="o">=</span> <span class="n">_LVPlotter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">hue</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">hue_order</span><span class="p">,</span>
-                         <span class="n">orient</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">palette</span><span class="p">,</span> <span class="n">saturation</span><span class="p">,</span>
-                         <span class="n">width</span><span class="p">,</span> <span class="n">dodge</span><span class="p">,</span> <span class="n">k_depth</span><span class="p">,</span> <span class="n">linewidth</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">outlier_prop</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
-
-    <span class="n">plotter</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">ax</span>
-
-<span class="n">lvplot</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">dedent</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
-<span class="s2">    Draw a letter value plot to show distributions of large datasets.</span>
-
-<span class="s2">    Letter value (LV) plots are non-parametric estimates of the distribution of</span>
-<span class="s2">    a dataset, similar to boxplots. LV plots are also similar to violin plots</span>
-<span class="s2">    but without the need to fit a kernel density estimate. Thus, LV plots are</span>
-<span class="s2">    fast to generate, directly interpretable in terms of the distribution of</span>
-<span class="s2">    data, and easy to understand. For a more extensive explanation of letter</span>
-<span class="s2">    value plots and their properties, see Hadley Wickham&#39;s excellent paper on</span>
-<span class="s2">    the topic:</span>
-
-<span class="s2">    http://vita.had.co.nz/papers/letter-value-plot.html</span>
-
-<span class="s2">    </span><span class="si">{main_api_narrative}</span><span class="s2"></span>
-
-<span class="s2">    Parameters</span>
-<span class="s2">    ----------</span>
-<span class="s2">    </span><span class="si">{input_params}</span><span class="s2"></span>
-<span class="s2">    </span><span class="si">{categorical_data}</span><span class="s2"></span>
-<span class="s2">    </span><span class="si">{order_vars}</span><span class="s2"></span>
-<span class="s2">    </span><span class="si">{orient}</span><span class="s2"></span>
-<span class="s2">    </span><span class="si">{color}</span><span class="s2"></span>
-<span class="s2">    </span><span class="si">{palette}</span><span class="s2"></span>
-<span class="s2">    </span><span class="si">{saturation}</span><span class="s2"></span>
-<span class="s2">    </span><span class="si">{width}</span><span class="s2"></span>
-<span class="s2">    </span><span class="si">{dodge}</span><span class="s2"></span>
-<span class="s2">    k_depth : &quot;proportion&quot; | &quot;tukey&quot; | &quot;trustworthy&quot;, optional</span>
-<span class="s2">        The number of boxes, and by extension number of percentiles, to draw.</span>
-<span class="s2">        All methods are detailed in Wickham&#39;s paper. Each makes different</span>
-<span class="s2">        assumptions about the number of outliers and leverages different</span>
-<span class="s2">        statistical properties.</span>
-<span class="s2">    </span><span class="si">{linewidth}</span><span class="s2"></span>
-<span class="s2">    scale : &quot;linear&quot; | &quot;exonential&quot; | &quot;area&quot;</span>
-<span class="s2">        Method to use for the width of the letter value boxes. All give similar</span>
-<span class="s2">        results visually. &quot;linear&quot; reduces the width by a constant linear</span>
-<span class="s2">        factor, &quot;exponential&quot; uses the proportion of data not covered, &quot;area&quot;</span>
-<span class="s2">        is proportional to the percentage of data covered.</span>
-<span class="s2">    outlier_prop : float, optional</span>
-<span class="s2">        Proportion of data believed to be outliers. Is used in conjuction with</span>
-<span class="s2">        k_depth to determine the number of percentiles to draw. Defaults to</span>
-<span class="s2">        0.007 as a proportion of outliers. Should be in range [0, 1].</span>
-<span class="s2">    </span><span class="si">{ax_in}</span><span class="s2"></span>
-<span class="s2">    kwargs : key, value mappings</span>
-<span class="s2">        Other keyword arguments are passed through to ``plt.plot`` and</span>
-<span class="s2">        ``plt.scatter`` at draw time.</span>
-
-<span class="s2">    Returns</span>
-<span class="s2">    -------</span>
-<span class="s2">    </span><span class="si">{ax_out}</span><span class="s2"></span>
-
-<span class="s2">    See Also</span>
-<span class="s2">    --------</span>
-<span class="s2">    </span><span class="si">{violinplot}</span><span class="s2"></span>
-<span class="s2">    </span><span class="si">{boxplot}</span><span class="s2"></span>
-
-<span class="s2">    Examples</span>
-<span class="s2">    --------</span>
-
-<span class="s2">    Draw a single horizontal letter value plot:</span>
-
-<span class="s2">    .. plot::</span>
-<span class="s2">        :context: close-figs</span>
-
-<span class="s2">        &gt;&gt;&gt; import seaborn as sns</span>
-<span class="s2">        &gt;&gt;&gt; sns.set_style(&quot;whitegrid&quot;)</span>
-<span class="s2">        &gt;&gt;&gt; tips = sns.load_dataset(&quot;tips&quot;)</span>
-<span class="s2">        &gt;&gt;&gt; ax = sns.lvplot(x=tips[&quot;total_bill&quot;])</span>
-
-<span class="s2">    Draw a vertical letter value plot grouped by a categorical variable:</span>
-
-<span class="s2">    .. plot::</span>
-<span class="s2">        :context: close-figs</span>
-
-<span class="s2">        &gt;&gt;&gt; ax = sns.lvplot(x=&quot;day&quot;, y=&quot;total_bill&quot;, data=tips)</span>
-
-<span class="s2">    Draw a letter value plot with nested grouping by two categorical variables:</span>
-
-<span class="s2">    .. plot::</span>
-<span class="s2">        :context: close-figs</span>
-
-<span class="s2">        &gt;&gt;&gt; ax = sns.lvplot(x=&quot;day&quot;, y=&quot;total_bill&quot;, hue=&quot;smoker&quot;,</span>
-<span class="s2">        ...                 data=tips, palette=&quot;Set3&quot;)</span>
-
-<span class="s2">    Draw a letter value plot with nested grouping when some bins are empty:</span>
-
-<span class="s2">    .. plot::</span>
-<span class="s2">        :context: close-figs</span>
-
-<span class="s2">        &gt;&gt;&gt; ax = sns.lvplot(x=&quot;day&quot;, y=&quot;total_bill&quot;, hue=&quot;time&quot;,</span>
-<span class="s2">        ...                 data=tips, linewidth=2.5)</span>
-
-<span class="s2">    Control box order by passing an explicit order:</span>
-
-<span class="s2">    .. plot::</span>
-<span class="s2">        :context: close-figs</span>
-
-<span class="s2">        &gt;&gt;&gt; ax = sns.lvplot(x=&quot;time&quot;, y=&quot;tip&quot;, data=tips,</span>
-<span class="s2">        ...                 order=[&quot;Dinner&quot;, &quot;Lunch&quot;])</span>
-
-<span class="s2">    Draw a letter value plot for each numeric variable in a DataFrame:</span>
-
-<span class="s2">    .. plot::</span>
-<span class="s2">        :context: close-figs</span>
-
-<span class="s2">        &gt;&gt;&gt; iris = sns.load_dataset(&quot;iris&quot;)</span>
-<span class="s2">        &gt;&gt;&gt; ax = sns.lvplot(data=iris, orient=&quot;h&quot;, palette=&quot;Set2&quot;)</span>
-
-<span class="s2">    Use :func:`stripplot` to show the datapoints on top of the boxes:</span>
-
-<span class="s2">    .. plot::</span>
-<span class="s2">        :context: close-figs</span>
-
-<span class="s2">        &gt;&gt;&gt; ax = sns.lvplot(x=&quot;day&quot;, y=&quot;total_bill&quot;, data=tips)</span>
-<span class="s2">        &gt;&gt;&gt; ax = sns.stripplot(x=&quot;day&quot;, y=&quot;total_bill&quot;, data=tips,</span>
-<span class="s2">        ...                    size=4, jitter=True, color=&quot;gray&quot;)</span>
-
-<span class="s2">    Use :func:`factorplot` to combine a :func:`lvplot` and a</span>
-<span class="s2">    :class:`FacetGrid`. This allows grouping within additional categorical</span>
-<span class="s2">    variables. Using :func:`factorplot` is safer than using :class:`FacetGrid`</span>
-<span class="s2">    directly, as it ensures synchronization of variable order across facets:</span>
-
-<span class="s2">    .. plot::</span>
-<span class="s2">        :context: close-figs</span>
-
-<span class="s2">        &gt;&gt;&gt; g = sns.factorplot(x=&quot;sex&quot;, y=&quot;total_bill&quot;,</span>
-<span class="s2">        ...                    hue=&quot;smoker&quot;, col=&quot;time&quot;,</span>
-<span class="s2">        ...                    data=tips, kind=&quot;lv&quot;,</span>
-<span class="s2">        ...                    size=4, aspect=.7);</span>
 
 <span class="s2">    &quot;&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">_categorical_docs</span><span class="p">)</span>
 </pre></div>
@@ -3977,7 +4070,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 26, 2018.<br/>
+      Last updated on Aug 14, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

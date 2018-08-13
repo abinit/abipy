@@ -101,6 +101,7 @@
 <li><a class="reference internal" href="#">eph Package</a><ul>
 <li><a class="reference internal" href="#id1"><code class="docutils literal"><span class="pre">eph</span></code> Package</a></li>
 <li><a class="reference internal" href="#module-abipy.eph.a2f"><code class="docutils literal"><span class="pre">a2f</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.eph.common"><code class="docutils literal"><span class="pre">common</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.eph.sigeph"><code class="docutils literal"><span class="pre">sigeph</span></code> Module</a></li>
 </ul>
 </li>
@@ -159,7 +160,8 @@
 <li><a class="reference internal" href="#eph-package" id="id3">eph Package</a><ul>
 <li><a class="reference internal" href="#id1" id="id4"><code class="xref py py-mod docutils literal"><span class="pre">eph</span></code> Package</a></li>
 <li><a class="reference internal" href="#module-abipy.eph.a2f" id="id5"><code class="xref py py-mod docutils literal"><span class="pre">a2f</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.eph.sigeph" id="id6"><code class="xref py py-mod docutils literal"><span class="pre">sigeph</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.eph.common" id="id6"><code class="xref py py-mod docutils literal"><span class="pre">common</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.eph.sigeph" id="id7"><code class="xref py py-mod docutils literal"><span class="pre">sigeph</span></code> Module</a></li>
 </ul>
 </li>
 </ul>
@@ -257,7 +259,7 @@ From Allen PRL 59 1460 (See also Grimvall, Eq 6.72 page 175)</p>
 <li><strong>what</strong> – a2f for a2F(w), lambda for lambda(w)</li>
 <li><strong>units</strong> – Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.</li>
 <li><strong>exchange_xy</strong> – True to exchange x-y axes.</li>
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>xlims</strong> – Set the data limits for the x-axis. Accept tuple e.g. <code class="docutils literal"><span class="pre">(left,</span> <span class="pre">right)</span></code>
 or scalar e.g. <code class="docutils literal"><span class="pre">left</span></code>. If left (right) is None, default values are used</li>
 <li><strong>ylims</strong> – Limits for y-axis. See xlims for API.</li>
@@ -269,7 +271,7 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -316,7 +318,7 @@ Default: None i.e. fig is left unchanged.</td>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>units</strong> – Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.</li>
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>xlims</strong> – Set the data limits for the y-axis. Accept tuple e.g. <code class="docutils literal"><span class="pre">(left,</span> <span class="pre">right)</span></code>
 or scalar e.g. <code class="docutils literal"><span class="pre">left</span></code>. If left (right) is None, default values are used</li>
 <li><strong>fontsize</strong> – Legend and title fontsize</li>
@@ -325,7 +327,7 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -384,7 +386,7 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -437,7 +439,7 @@ Default: None i.e. fig is left unchanged.</td>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -486,13 +488,13 @@ Default: None i.e. fig is left unchanged.</td>
 <li><strong>start</strong> – The starting value of the sequence.</li>
 <li><strong>stop</strong> – The end value of the sequence</li>
 <li><strong>num</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – optional. Number of samples to generate. Default is 50. Must be non-negative.</li>
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -679,7 +681,7 @@ These values have been Fourier interpolated by Abinit.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>what_list</strong> – <code class="docutils literal"><span class="pre">phfreqs</span></code> for phonons, <cite>lambda`</cite> for the eph coupling strength,
 <code class="docutils literal"><span class="pre">gamma</span></code> for phonon linewidths.</li>
-<li><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> (same length as what_list)
+<li><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> (same length as what_list)
 or None if a new figure should be created.</li>
 <li><strong>ylims</strong> – Set the data limits for the y-axis. Accept tuple e.g. <code class="docutils literal"><span class="pre">(left,</span> <span class="pre">right)</span></code>
 or scalar e.g. <code class="docutils literal"><span class="pre">left</span></code>. If left (right) is None, default values are used</li>
@@ -690,7 +692,7 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -743,14 +745,14 @@ Case-insensitive.</li>
 <li><strong>alpha</strong> – The alpha blending value for the markers between 0 (transparent) and 1 (opaque)</li>
 <li><strong>ylims</strong> – Set the data limits for the y-axis. Accept tuple e.g. <code class="docutils literal"><span class="pre">(left,</span> <span class="pre">right)</span></code>
 or scalar e.g. <code class="docutils literal"><span class="pre">left</span></code>. If left (right) is None, default values are used</li>
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>colormap</strong> – matplotlib color map.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -806,7 +808,7 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -863,7 +865,7 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -953,7 +955,7 @@ working directory is created. Return path to the notebook.</p>
 <dl class="method">
 <dt id="abipy.eph.a2f.A2fRobot.get_dataframe">
 <code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>abspath=False</em>, <em>with_geo=False</em>, <em>with_params=True</em>, <em>funcs=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/a2f.html#A2fRobot.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.a2f.A2fRobot.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build and return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important results.</p>
+<dd><p>Build and return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important results.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -970,7 +972,7 @@ where key is a string with the name of column and value is the value to be inser
 </tr>
 </tbody>
 </table>
-<p>Return: <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a></p>
+<p>Return: <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a></p>
 </dd></dl>
 
 <dl class="method">
@@ -1001,7 +1003,7 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -1066,7 +1068,7 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -1129,7 +1131,7 @@ If callable, the output of hue(abifile) is used.</li>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -1238,14 +1240,14 @@ working directory is created. Return path to the notebook.</p>
 <dl class="class">
 <dt id="abipy.eph.a2f.A2fReader">
 <em class="property">class </em><code class="descclassname">abipy.eph.a2f.</code><code class="descname">A2fReader</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/a2f.html#A2fReader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.a2f.A2fReader" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.eph.common.BaseEphReader</span></code></p>
+<dd><p>Bases: <a class="reference internal" href="#abipy.eph.common.BaseEphReader" title="abipy.eph.common.BaseEphReader"><code class="xref py py-class docutils literal"><span class="pre">abipy.eph.common.BaseEphReader</span></code></a></p>
 <p>Reads data from the EPH.nc file and constructs objects.</p>
 <p class="rubric">Inheritance Diagram</p>
-<img src="../_images/inheritance-4ea9675c4c48abbcbd21a98f9266f34354aed086.png" alt="Inheritance diagram of A2fReader" usemap="#inheritancee4f3900f8b" class="inheritance"/>
+<img src="../_images/inheritance-e75cdd6a2313a4c0dea5ecb2852775d9761367df.png" alt="Inheritance diagram of A2fReader" usemap="#inheritancee4f3900f8b" class="inheritance"/>
 <map id="inheritancee4f3900f8b" name="inheritancee4f3900f8b">
 <area shape="rect" id="node1" title="Mixin class that provides methods for reading k&#45;point data from a netcdf" alt="" coords="282,2,396,13"/>
 <area shape="rect" id="node2" title="This object reads band structure data from a netcdf_ file." alt="" coords="418,13,538,24"/>
-<area shape="rect" id="node5" title="Provides methods common to the netcdf files produced by the EPH code." alt="" coords="559,13,667,24"/>
+<area shape="rect" id="node5" href="#abipy.eph.common.BaseEphReader" target="_top" title="Provides methods common to the netcdf files produced by the EPH code." alt="" coords="559,13,667,24"/>
 <area shape="rect" id="node3" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="297,24,381,35"/>
 <area shape="rect" id="node4" href="#abipy.eph.a2f.A2fReader" target="_top" title="Reads data from the EPH.nc file and constructs objects." alt="" coords="689,13,766,24"/>
 <area shape="rect" id="node6" title="This object reads data from a file written according to the ETSF&#45;IO specifications." alt="" coords="141,24,260,35"/>
@@ -1300,10 +1302,52 @@ working directory is created. Return path to the notebook.</p>
 </dd></dl>
 
 </div>
+<div class="section" id="module-abipy.eph.common">
+<span id="common-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">common</span></code> Module</a><a class="headerlink" href="#module-abipy.eph.common" title="Permalink to this headline">¶</a></h2>
+<p>Objects common to the other eph modules.</p>
+<dl class="class">
+<dt id="abipy.eph.common.BaseEphReader">
+<em class="property">class </em><code class="descclassname">abipy.eph.common.</code><code class="descname">BaseEphReader</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/common.html#BaseEphReader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.common.BaseEphReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.ebands.ElectronsReader</span></code></p>
+<p>Provides methods common to the netcdf files produced by the EPH code.
+See Abinit docs for the meaning of the variables.</p>
+<dl class="attribute">
+<dt id="abipy.eph.common.BaseEphReader.ddb_ngqpt">
+<code class="descname">ddb_ngqpt</code><a class="reference internal" href="../_modules/abipy/eph/common.html#BaseEphReader.ddb_ngqpt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.common.BaseEphReader.ddb_ngqpt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Q-Mesh for DDB file.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.eph.common.BaseEphReader.ngqpt">
+<code class="descname">ngqpt</code><a class="reference internal" href="../_modules/abipy/eph/common.html#BaseEphReader.ngqpt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.common.BaseEphReader.ngqpt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Effective Q-mesh used in to compute integrals (ph_linewidts, e-ph self-energy).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.eph.common.BaseEphReader.ph_ngqpt">
+<code class="descname">ph_ngqpt</code><a class="reference internal" href="../_modules/abipy/eph/common.html#BaseEphReader.ph_ngqpt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.common.BaseEphReader.ph_ngqpt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Q-mesh for Phonon DOS, interpolated A2F …</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.eph.common.BaseEphReader.eph_ngqpt_fine">
+<code class="descname">eph_ngqpt_fine</code><a class="reference internal" href="../_modules/abipy/eph/common.html#BaseEphReader.eph_ngqpt_fine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.common.BaseEphReader.eph_ngqpt_fine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Q-mesh for interpolated DFPT potentials</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.eph.common.BaseEphReader.common_eph_params">
+<code class="descname">common_eph_params</code><a class="reference internal" href="../_modules/abipy/eph/common.html#BaseEphReader.common_eph_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.common.BaseEphReader.common_eph_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read basic parameters (scalars) from the netcdf files produced by the EPH code and cache them</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="module-abipy.eph.sigeph">
 <span id="sigeph-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">sigeph</span></code> Module</a><a class="headerlink" href="#module-abipy.eph.sigeph" title="Permalink to this headline">¶</a></h2>
 <p>This module contains objects for the postprocessing of Sigma_eph calculations.</p>
-<p>For a theoretical introduction see <a class="reference internal" href="../zzbiblio.html#giustino2017" id="id2">[Giu17]</a></p>
+<p>For a theoretical introduction see <a class="reference internal" href="../zzbiblio.html#giustino2017" id="id2">[Giustino2017]</a></p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
 <p class="last">Work in progress, DO NOT USE THIS CODE</p>
@@ -1380,7 +1424,7 @@ working directory is created. Return path to the notebook.</p>
 </tr>
 </tbody>
 </table>
-<p>Return: <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a></p>
+<p>Return: <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a></p>
 </dd></dl>
 
 <dl class="classmethod">
@@ -1423,7 +1467,7 @@ See <a class="reference internal" href="#abipy.eph.sigeph.QpTempState" title="ab
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -1528,7 +1572,7 @@ See <code class="xref py py-class docutils literal"><span class="pre">QPState</s
 <li><strong>exclude_fields</strong> – Similar to <cite>with_field</cite> but excludes fields.</li>
 <li><strong>fermie</strong> – Value of the Fermi level used in plot. None for absolute e0s.</li>
 <li><strong>colormap</strong> – matplotlib color map.</li>
-<li><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> for plot. If None, new figure is produced.</li>
+<li><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> for plot. If None, new figure is produced.</li>
 <li><strong>xlims</strong> – Set the data limits for the x-axis. Accept tuple e.g. <code class="docutils literal"><span class="pre">(left,</span> <span class="pre">right)</span></code>
 or scalar e.g. <code class="docutils literal"><span class="pre">left</span></code>. If left (right) is None, default values are used.</li>
 <li><strong>fontsize</strong> – Legend and title fontsize.</li>
@@ -1538,7 +1582,7 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -1607,7 +1651,7 @@ the different temperatures with a color map.</p>
 <li><strong>itemps</strong> – List of temperature indices. “all” to plot’em all.</li>
 <li><strong>zero_energy</strong> – </li>
 <li><strong>colormap</strong> – matplotlib color map.</li>
-<li><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a>. If None, new figure is produced.</li>
+<li><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a>. If None, new figure is produced.</li>
 <li><strong>what_list</strong> – List of strings selecting the quantity to plot.</li>
 <li><strong>xlims</strong> – Set the data limits for the x-axis. Accept tuple e.g. <code class="docutils literal"><span class="pre">(left,</span> <span class="pre">right)</span></code>
 or scalar e.g. <code class="docutils literal"><span class="pre">left</span></code>. If left (right) is None, default values are used.</li>
@@ -1618,7 +1662,7 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -1668,7 +1712,7 @@ the different temperatures with a color map.</p>
 <li><strong>itemps</strong> – List of temperature indices. “all” to plot’em all.</li>
 <li><strong>zero_energy</strong> – </li>
 <li><strong>colormap</strong> – matplotlib color map.</li>
-<li><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a>. If None, new figure is produced.</li>
+<li><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a>. If None, new figure is produced.</li>
 <li><strong>what_list</strong> – List of strings selecting the quantity to plot.</li>
 <li><strong>xlims</strong> – Set the data limits for the x-axis. Accept tuple e.g. <code class="docutils literal"><span class="pre">(left,</span> <span class="pre">right)</span></code>
 or scalar e.g. <code class="docutils literal"><span class="pre">left</span></code>. If left (right) is None, default values are used.</li>
@@ -1679,7 +1723,7 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -1851,7 +1895,7 @@ ikcalc is the index in the nkcalc array..</p>
 <dl class="method">
 <dt id="abipy.eph.sigeph.SigEPhFile.get_dataframe">
 <code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>with_params=True</em>, <em>ignore_imag=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for all k-points, bands and spins
+<dd><p>Returns <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for all k-points, bands and spins
 included in the calculation.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1870,7 +1914,7 @@ included in the calculation.</p>
 <dl class="method">
 <dt id="abipy.eph.sigeph.SigEPhFile.get_dataframe_sk">
 <code class="descname">get_dataframe_sk</code><span class="sig-paren">(</span><em>spin</em>, <em>kpoint</em>, <em>itemp=None</em>, <em>index=None</em>, <em>with_params=False</em>, <em>ignore_imag=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.get_dataframe_sk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.get_dataframe_sk" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for the given (spin, k-point).</p>
+<dd><p>Returns <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for the given (spin, k-point).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1966,7 +2010,7 @@ Available only if ks_ebands_kpath and/or ks_ebands_kmesh are used.</li>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>qp_kpoints</strong> – List of k-points in self-energy. Accept integers (list or scalars), list of vectors,
 or None to plot all k-points.</li>
-<li><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>plot_qpmks</strong> – If False, plot QP_gap, KS_gap else (QP_gap - KS_gap)</li>
 <li><strong>fontsize</strong> – legend and title fontsize.</li>
 <li><strong>kwargs</strong> – Passed to ax.plot method except for marker.</li>
@@ -1975,7 +2019,7 @@ or None to plot all k-points.</li>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -2030,7 +2074,7 @@ Default: None i.e. fig is left unchanged.</td>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -2093,7 +2137,7 @@ See <code class="xref py py-class docutils literal"><span class="pre">QPState</s
 - <cite>fermie</cite>: shift all eigenvalues to have zero energy at the Fermi energy (<cite>self.fermie</cite>).
 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
 -  None: Don’t shift energies, equivalent to e0=0</li>
-<li><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> for plot. If None, new figure is produced.</li>
+<li><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> for plot. If None, new figure is produced.</li>
 <li><strong>colormap</strong> – matplotlib color map.</li>
 <li><strong>xlims</strong> – Set the data limits for the x-axis. Accept tuple e.g. <code class="docutils literal"><span class="pre">(left,</span> <span class="pre">right)</span></code>
 or scalar e.g. <code class="docutils literal"><span class="pre">left</span></code>. If left (right) is None, default values are used.</li>
@@ -2103,7 +2147,7 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -2160,7 +2204,7 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -2234,7 +2278,7 @@ working directory is created. Return path to the notebook.</p>
 <dl class="method">
 <dt id="abipy.eph.sigeph.SigEPhRobot.get_dataframe_sk">
 <code class="descname">get_dataframe_sk</code><span class="sig-paren">(</span><em>spin</em>, <em>kpoint</em>, <em>with_params=True</em>, <em>ignore_imag=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhRobot.get_dataframe_sk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhRobot.get_dataframe_sk" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with qp results for this spin, k-point</p>
+<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with qp results for this spin, k-point</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -2254,7 +2298,7 @@ working directory is created. Return path to the notebook.</p>
 <dl class="method">
 <dt id="abipy.eph.sigeph.SigEPhRobot.get_dataframe">
 <code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>with_params=True</em>, <em>ignore_imag=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhRobot.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhRobot.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for all k-points, bands and spins
+<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for all k-points, bands and spins
 present in the files treated by the robot.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2302,7 +2346,7 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -2366,7 +2410,7 @@ If callable, the output of hue(abifile) is used.</li>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -2432,7 +2476,7 @@ If callable, the output of hue(abifile) is used.</li>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -2497,7 +2541,7 @@ If callable, the output of hue(abifile) is used.</li>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -2569,7 +2613,7 @@ If callable, the output of hue(abifile) is used.</li>
 <p class="first admonition-title">Note</p>
 <p class="last">For the meaning of the other arguments, see other robot methods.</p>
 </div>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -2681,7 +2725,7 @@ is created and the two axes are automatically generated.</li>
 </tr>
 </tbody>
 </table>
-<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -2728,7 +2772,7 @@ Default: None i.e. fig is left unchanged.</td>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>itemp</strong> – Temperature index.</li>
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>e0</strong> – Option used to define the zero of energy in the band structure plot.</li>
 <li><strong>ylims</strong> – Set the data limits for the y-axis. Accept tuple e.g. <code class="docutils literal"><span class="pre">(left,</span> <span class="pre">right)</span></code>
 or scalar e.g. <code class="docutils literal"><span class="pre">left</span></code>. If left (right) is None, default values are used</li>
@@ -2738,7 +2782,7 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 </tr>
 </tbody>
 </table>
-<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -2794,7 +2838,7 @@ Default: None i.e. fig is left unchanged.</td>
 </tr>
 </tbody>
 </table>
-<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -2841,7 +2885,7 @@ Default: None i.e. fig is left unchanged.</td>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>itemp_list</strong> – List of temperature indices to interpolate. None for all.</li>
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>e0</strong> – Option used to define the zero of energy in the band structure plot. Possible values:
 - <code class="docutils literal"><span class="pre">fermie</span></code>: shift all eigenvalues to have zero energy at the Fermi energy (<code class="docutils literal"><span class="pre">self.fermie</span></code>).
 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
@@ -2857,7 +2901,7 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -2931,14 +2975,14 @@ Default: None i.e. fig is left unchanged.</td>
 <dl class="class">
 <dt id="abipy.eph.sigeph.SigmaPhReader">
 <em class="property">class </em><code class="descclassname">abipy.eph.sigeph.</code><code class="descname">SigmaPhReader</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigmaPhReader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigmaPhReader" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.eph.common.BaseEphReader</span></code></p>
+<dd><p>Bases: <a class="reference internal" href="#abipy.eph.common.BaseEphReader" title="abipy.eph.common.BaseEphReader"><code class="xref py py-class docutils literal"><span class="pre">abipy.eph.common.BaseEphReader</span></code></a></p>
 <p>Reads data from file and constructs objects.</p>
 <p class="rubric">Inheritance Diagram</p>
-<img src="../_images/inheritance-9f514d8058b765819167416b8a6ff8f897a93a5a.png" alt="Inheritance diagram of SigmaPhReader" usemap="#inheritancee22e7005ea" class="inheritance"/>
+<img src="../_images/inheritance-6259224702a9f159e1fee7796b32ad0f30c4a6f4.png" alt="Inheritance diagram of SigmaPhReader" usemap="#inheritancee22e7005ea" class="inheritance"/>
 <map id="inheritancee22e7005ea" name="inheritancee22e7005ea">
 <area shape="rect" id="node1" title="Mixin class that provides methods for reading k&#45;point data from a netcdf" alt="" coords="273,2,384,13"/>
 <area shape="rect" id="node2" title="This object reads band structure data from a netcdf_ file." alt="" coords="405,13,520,24"/>
-<area shape="rect" id="node4" title="Provides methods common to the netcdf files produced by the EPH code." alt="" coords="542,13,646,24"/>
+<area shape="rect" id="node4" href="#abipy.eph.common.BaseEphReader" target="_top" title="Provides methods common to the netcdf files produced by the EPH code." alt="" coords="542,13,646,24"/>
 <area shape="rect" id="node3" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="288,24,369,34"/>
 <area shape="rect" id="node5" href="#abipy.eph.sigeph.SigmaPhReader" target="_top" title="Reads data from file and constructs objects." alt="" coords="667,13,766,24"/>
 <area shape="rect" id="node6" title="This object reads data from a file written according to the ETSF&#45;IO specifications." alt="" coords="137,24,251,34"/>
@@ -3036,7 +3080,7 @@ Only real part is returned if <code class="docutils literal"><span class="pre">i
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 26, 2018.<br/>
+      Last updated on Aug 14, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

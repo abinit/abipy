@@ -1,2 +1,2 @@
-g = sns.factorplot(x="time", y="pulse", hue="kind",
-                   data=exercise, kind="violin")
+ax = sns.boxplot(x="day", y="total_bill", hue="smoker",
+                 data=tips, palette="Set3")

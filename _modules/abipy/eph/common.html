@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>abipy.eph.common &#8212; abipy 0.6.0.dev documentation</title>
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.6.0.dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.6.0.dev</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <h1>Source code for abipy.eph.common</h1><div class="highlight"><pre>
+<span></span><span class="c1"># coding: utf-8</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Objects common to the other eph modules.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
+<span class="kn">from</span> <span class="nn">abipy.electrons.ebands</span> <span class="k">import</span> <span class="n">ElectronsReader</span>
+
+
+<div class="viewcode-block" id="BaseEphReader"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.common.BaseEphReader">[docs]</a><span class="k">class</span> <span class="nc">BaseEphReader</span><span class="p">(</span><span class="n">ElectronsReader</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Provides methods common to the netcdf files produced by the EPH code.</span>
+<span class="sd">    See Abinit docs for the meaning of the variables.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="BaseEphReader.ddb_ngqpt"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.common.BaseEphReader.ddb_ngqpt">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">ddb_ngqpt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Q-Mesh for DDB file.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;ddb_ngqpt&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BaseEphReader.ngqpt"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.common.BaseEphReader.ngqpt">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">ngqpt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Effective Q-mesh used in to compute integrals (ph_linewidts, e-ph self-energy).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;ngqpt&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BaseEphReader.ph_ngqpt"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.common.BaseEphReader.ph_ngqpt">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">ph_ngqpt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Q-mesh for Phonon DOS, interpolated A2F ...&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;ph_ngqpt&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BaseEphReader.eph_ngqpt_fine"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.common.BaseEphReader.eph_ngqpt_fine">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">eph_ngqpt_fine</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Q-mesh for interpolated DFPT potentials&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;eph_ngqpt_fine&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BaseEphReader.common_eph_params"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.common.BaseEphReader.common_eph_params">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">common_eph_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read basic parameters (scalars) from the netcdf files produced by the EPH code and cache them</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">od</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([</span>
+            <span class="p">(</span><span class="s2">&quot;ddb_nqbz&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ddb_ngqpt</span><span class="p">)),</span>
+            <span class="p">(</span><span class="s2">&quot;eph_nqbz_fine&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eph_ngqpt_fine</span><span class="p">)),</span>
+            <span class="p">(</span><span class="s2">&quot;ph_nqbz&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ph_ngqpt</span><span class="p">)),</span>
+        <span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">vname</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;eph_intmeth&quot;</span><span class="p">,</span> <span class="s2">&quot;eph_fsewin&quot;</span><span class="p">,</span> <span class="s2">&quot;eph_fsmear&quot;</span><span class="p">,</span> <span class="s2">&quot;eph_extrael&quot;</span><span class="p">,</span> <span class="s2">&quot;eph_fermie&quot;</span><span class="p">]:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="n">vname</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">vname</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;eph_intmeth&quot;</span><span class="p">,):</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="n">od</span><span class="p">[</span><span class="n">vname</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+        <span class="k">return</span> <span class="n">od</span></div></div>
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
+      Last updated on Aug 14, 2018.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

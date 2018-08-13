@@ -102,6 +102,7 @@
 <li><a class="reference internal" href="#module-abipy.dfpt"><code class="docutils literal"><span class="pre">dpft</span></code> Package</a></li>
 <li><a class="reference internal" href="#module-abipy.dfpt.anaddbnc"><code class="docutils literal"><span class="pre">anaddbnc</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.dfpt.ddb"><code class="docutils literal"><span class="pre">ddb</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.dfpt.elastic"><code class="docutils literal"><span class="pre">elastic</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.dfpt.frozen_phonons"><code class="docutils literal"><span class="pre">frozen_phonons</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.dfpt.gruneisen"><code class="docutils literal"><span class="pre">gruneisen</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.dfpt.phonons"><code class="docutils literal"><span class="pre">phonons</span></code> Module</a></li>
@@ -165,11 +166,12 @@
 <li><a class="reference internal" href="#module-abipy.dfpt" id="id4"><code class="xref py py-mod docutils literal"><span class="pre">dpft</span></code> Package</a></li>
 <li><a class="reference internal" href="#module-abipy.dfpt.anaddbnc" id="id5"><code class="xref py py-mod docutils literal"><span class="pre">anaddbnc</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.dfpt.ddb" id="id6"><code class="xref py py-mod docutils literal"><span class="pre">ddb</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.dfpt.frozen_phonons" id="id7"><code class="xref py py-mod docutils literal"><span class="pre">frozen_phonons</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.dfpt.gruneisen" id="id8"><code class="xref py py-mod docutils literal"><span class="pre">gruneisen</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.dfpt.phonons" id="id9"><code class="xref py py-mod docutils literal"><span class="pre">phonons</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.dfpt.qha" id="id10"><code class="xref py py-mod docutils literal"><span class="pre">qha</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.dfpt.tensors" id="id11"><code class="xref py py-mod docutils literal"><span class="pre">tensors</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.dfpt.elastic" id="id7"><code class="xref py py-mod docutils literal"><span class="pre">elastic</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.dfpt.frozen_phonons" id="id8"><code class="xref py py-mod docutils literal"><span class="pre">frozen_phonons</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.dfpt.gruneisen" id="id9"><code class="xref py py-mod docutils literal"><span class="pre">gruneisen</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.dfpt.phonons" id="id10"><code class="xref py py-mod docutils literal"><span class="pre">phonons</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.dfpt.qha" id="id11"><code class="xref py py-mod docutils literal"><span class="pre">qha</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.dfpt.tensors" id="id12"><code class="xref py py-mod docutils literal"><span class="pre">tensors</span></code> Module</a></li>
 </ul>
 </li>
 </ul>
@@ -189,7 +191,7 @@
 This object is usually instanciated with <cite>abiopen(“anaddb.nc”)</cite>.</p>
 <dl class="attribute">
 <dt id="abipy.dfpt.anaddbnc.AnaddbNcFile.structure">
-<code class="descname">structure</code><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcFile.structure" title="Permalink to this definition">¶</a></dt>
+<code class="descname">structure</code><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcFile.structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcFile.structure" title="Permalink to this definition">¶</a></dt>
 <dd><p><a class="reference internal" href="core_api.html#abipy.core.structure.Structure" title="abipy.core.structure.Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.structure.Structure</span></code></a> object.</p>
 </dd></dl>
 
@@ -233,6 +235,11 @@ None, if the netcdf file does not contain the IFCs.</p>
 <dd></dd></dl>
 
 <dl class="attribute">
+<dt>
+<code class="descname">structure</code><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcFile.structure"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="abipy.dfpt.anaddbnc.AnaddbNcFile.params">
 <code class="descname">params</code><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcFile.params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcFile.params" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -253,19 +260,16 @@ None, if the netcdf file does not contain the IFCs.</p>
 
 <dl class="attribute">
 <dt>
-<code class="descname">structure</code></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt>
 <code class="descname">emacro</code><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcFile.emacro"><span class="viewcode-link">[source]</span></a></dt>
-<dd><p>Macroscopic dielectric tensor. None if the file does not contain this information.</p>
+<dd><p>Macroscopic dielectric tensor.
+None if the file does not contain this information.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="abipy.dfpt.anaddbnc.AnaddbNcFile.emacro_rlx">
 <code class="descname">emacro_rlx</code><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcFile.emacro_rlx"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcFile.emacro_rlx" title="Permalink to this definition">¶</a></dt>
-<dd><p>Relaxed ion Macroscopic dielectric tensor. None if the file does not contain this information.</p>
+<dd><p>Relaxed ion Macroscopic dielectric tensor.
+None if the file does not contain this information.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -307,6 +311,25 @@ in a.u. (1 a.u.=253.2638413 m3/s2).
 None if the file does not contain this information.</p>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="abipy.dfpt.anaddbnc.AnaddbNcFile.has_elastic_data">
+<code class="descname">has_elastic_data</code><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcFile.has_elastic_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcFile.has_elastic_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if elastic tensors have been computed.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.anaddbnc.AnaddbNcFile.has_piezoelectric_data">
+<code class="descname">has_piezoelectric_data</code><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcFile.has_piezoelectric_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcFile.has_piezoelectric_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if piezoelectric tensors have been computed.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.anaddbnc.AnaddbNcFile.elastic_data">
+<code class="descname">elastic_data</code><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcFile.elastic_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcFile.elastic_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Container with the different (piezo)elastic tensors computed by anaddb.
+stored in pymatgen tensor objects.</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="abipy.dfpt.anaddbnc.AnaddbNcFile.yield_figs">
 <code class="descname">yield_figs</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcFile.yield_figs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcFile.yield_figs" title="Permalink to this definition">¶</a></dt>
@@ -318,6 +341,128 @@ Used in abiview.py to get a quick look at the results.</p>
 <dt id="abipy.dfpt.anaddbnc.AnaddbNcFile.write_notebook">
 <code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcFile.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcFile.write_notebook" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write an <a class="reference external" href="http://jupyter.org/">jupyter</a> notebook to nbpath. If <code class="docutils literal"><span class="pre">nbpath</span></code> is None, a temporay file in the current
+working directory is created. Return path to the notebook.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.dfpt.anaddbnc.AnaddbNcRobot">
+<em class="property">class </em><code class="descclassname">abipy.dfpt.anaddbnc.</code><code class="descname">AnaddbNcRobot</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcRobot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcRobot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="abio_api.html#abipy.abio.robots.Robot" title="abipy.abio.robots.Robot"><code class="xref py py-class docutils literal"><span class="pre">abipy.abio.robots.Robot</span></code></a></p>
+<p>This robot analyzes the results contained in multiple anaddb.nc files.</p>
+<p class="rubric">Inheritance Diagram</p>
+<img src="../_images/inheritance-62d18a690577420e27780271425e37241a622786.png" alt="Inheritance diagram of AnaddbNcRobot" usemap="#inheritance78c7737bde" class="inheritance"/>
+<map id="inheritance78c7737bde" name="inheritance78c7737bde">
+<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="273,5,434,29"/>
+<area shape="rect" id="node3" href="#abipy.dfpt.anaddbnc.AnaddbNcRobot" target="_top" title="This robot analyzes the results contained in multiple anaddb.nc files." alt="" coords="482,5,724,29"/>
+<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="5,5,225,29"/>
+</map>
+<dl class="attribute">
+<dt id="abipy.dfpt.anaddbnc.AnaddbNcRobot.EXT">
+<code class="descname">EXT</code><em class="property"> = 'anaddb'</em><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcRobot.EXT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.anaddbnc.AnaddbNcRobot.has_elastic_data">
+<code class="descname">has_elastic_data</code><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcRobot.has_elastic_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.anaddbnc.AnaddbNcRobot.get_dataframe">
+<code class="descname">get_dataframe</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcRobot.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcRobot.get_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.anaddbnc.AnaddbNcRobot.get_elastic_dataframe">
+<code class="descname">get_elastic_dataframe</code><span class="sig-paren">(</span><em>with_geo=True</em>, <em>abspath=False</em>, <em>with_params=False</em>, <em>funcs=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcRobot.get_elastic_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcRobot.get_elastic_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with properties derived from the elastic tensor
+and an associated structure. Filename is used as index.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>with_geo</strong> – True if structure info should be added to the dataframe</li>
+<li><strong>abspath</strong> – True if paths in index should be absolute. Default: Relative to getcwd().</li>
+<li><strong>with_params</strong> – False to exclude calculation parameters from the dataframe.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>kwargs:</dt>
+<dd><dl class="first last docutils">
+<dt>attrs:</dt>
+<dd>List of additional attributes of the <a class="reference internal" href="electrons_api.html#abipy.electrons.gsr.GsrFile" title="abipy.electrons.gsr.GsrFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.gsr.GsrFile</span></code></a> to add to the DataFrame.</dd>
+<dt>funcs: Function or list of functions to execute to add more data to the DataFrame.</dt>
+<dd>Each function receives a <a class="reference internal" href="electrons_api.html#abipy.electrons.gsr.GsrFile" title="abipy.electrons.gsr.GsrFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.gsr.GsrFile</span></code></a> object and returns a tuple (key, value)
+where key is a string with the name of column and value is the value to be inserted.</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.anaddbnc.AnaddbNcRobot.plot_elastic_properties">
+<code class="descname">plot_elastic_properties</code><span class="sig-paren">(</span><em>fontsize=10</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcRobot.plot_elastic_properties"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcRobot.plot_elastic_properties" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fontsize</strong> – legend and label fontsize.</td>
+</tr>
+</tbody>
+</table>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>“abc.png” or “abc.eps” to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+e.g. size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
+<td>True to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.anaddbnc.AnaddbNcRobot.yield_figs">
+<code class="descname">yield_figs</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcRobot.yield_figs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcRobot.yield_figs" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function <em>generates</em> a predefined list of matplotlib figures with minimal input from the user.
+Used in abiview.py to get a quick look at the results.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.anaddbnc.AnaddbNcRobot.write_notebook">
+<code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcRobot.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcRobot.write_notebook" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a <a class="reference external" href="http://jupyter.org/">jupyter</a> notebook to <code class="docutils literal"><span class="pre">nbpath</span></code>. If nbpath is None, a temporay file in the current
 working directory is created. Return path to the notebook.</p>
 </dd></dl>
 
@@ -351,7 +496,7 @@ the error messages of the run.</p>
 as well as methods to compute phonon band structures, phonon DOS, thermodinamical properties …</p>
 <p>About the indices (idir, ipert) used by Abinit (Fortran notation):</p>
 <ul>
-<li><p class="first">idir in [1, 2, 3] gives the direction (usually reduced direction)</p>
+<li><p class="first">idir in [1, 2, 3] gives the direction (usually reduced direction, cart for strain)</p>
 </li>
 <li><p class="first">ipert in [1, 2, …, mpert] where mpert = natom + 6</p>
 <blockquote>
@@ -432,7 +577,7 @@ Defaults to the standard Materials Project REST address</li>
 <dl class="attribute">
 <dt id="abipy.dfpt.ddb.DdbFile.natom">
 <code class="descname">natom</code><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.natom" title="Permalink to this definition">¶</a></dt>
-<dd><p>Number of atoms in structure</p>
+<dd><p>Number of atoms in structure.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -452,7 +597,7 @@ Use e.g. <code class="docutils literal"><span class="pre">ddb.header.ecut</span>
 <dt id="abipy.dfpt.ddb.DdbFile.computed_dynmat">
 <code class="descname">computed_dynmat</code><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.computed_dynmat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.computed_dynmat" title="Permalink to this definition">¶</a></dt>
 <dd><p><code class="xref py py-class docutils literal"><span class="pre">OrderedDict</span></code> mapping q-point object to –&gt; pandas Dataframe.
-The <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> contains the columns: “idir1”, “ipert1”, “idir2”, “ipert2”, “cvalue”
+The <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> contains the columns: “idir1”, “ipert1”, “idir2”, “ipert2”, “cvalue”
 and (idir1, ipert1, idir2, ipert2) as index.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -505,10 +650,37 @@ to different meshes and/or the Q-mesh is shifted.</p>
 <dd><p><code class="xref py py-class docutils literal"><span class="pre">OrderedDict</span></code> with parameters that might be subject to convergence studies.</p>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="abipy.dfpt.ddb.DdbFile.total_energy">
+<code class="descname">total_energy</code><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.total_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.total_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Total energy in eV. None if not available.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.ddb.DdbFile.cart_forces">
+<code class="descname">cart_forces</code><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.cart_forces"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.cart_forces" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cartesian forces in eV / Ang
+None if not available i.e. if the GS DDB has not been merged.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.ddb.DdbFile.cart_stress_tensor">
+<code class="descname">cart_stress_tensor</code><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.cart_stress_tensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.cart_stress_tensor" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.stress.html#pymatgen.analysis.elasticity.stress.Stress" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.stress.Stress</span></code></a> tensor in cartesian coordinates (GPa units).
+None if not available.</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="abipy.dfpt.ddb.DdbFile.has_lo_to_data">
 <code class="descname">has_lo_to_data</code><span class="sig-paren">(</span><em>select='at_least_one'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.has_lo_to_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.has_lo_to_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>True if the DDB file contains the data required to compute the LO-TO splitting.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.ddb.DdbFile.has_at_least_one_atomic_perturbation">
+<code class="descname">has_at_least_one_atomic_perturbation</code><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.has_at_least_one_atomic_perturbation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.has_at_least_one_atomic_perturbation" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if the DDB file contains info on (at least one) atomic perturbation.
+If the coordinates of a q point are provided only the specified qpt will be considered.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -519,9 +691,10 @@ to different meshes and/or the Q-mesh is shifted.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>select</strong> – Possible values in [“at_least_one”, “all”]
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>select</strong> – Possible values in [“at_least_one”, “at_least_one_diagoterm”, “all”]
 If select == “at_least_one”, we check if there’s at least one entry associated to the electric field.
 and we assume that anaddb will be able to reconstruct the full tensor by symmetry.
+“at_least_one_diagoterm” is similar but it only checks for the presence of one diagonal term.
 If select == “all”, all tensor components must be present in the DDB file.</td>
 </tr>
 </tbody>
@@ -543,6 +716,75 @@ If select == “all”, all bec components must be present in the DDB file.</td>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.ddb.DdbFile.has_strain_terms">
+<code class="descname">has_strain_terms</code><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.has_strain_terms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.has_strain_terms" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if the DDB file contains info on the (clamped-ion) strain perturbation
+(i.e. 2nd order derivatives wrt strain)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>select</strong> – Possible values in [“at_least_one”, “all”]
+If select == “at_least_one”, we check if there’s at least one entry associated to the strain.
+and we assume that anaddb will be able to reconstruct the full tensor by symmetry.
+If select == “all”, all tensor components must be present in the DDB file.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">As anaddb is not yet able to reconstruct the strain terms by symmetry,
+the default value for select is “all”</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.ddb.DdbFile.has_internalstrain_terms">
+<code class="descname">has_internalstrain_terms</code><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.has_internalstrain_terms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.has_internalstrain_terms" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if the DDB file contains internal strain terms
+i.e “off-diagonal” 2nd order derivatives wrt (strain, atomic displacement)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>select</strong> – Possible values in [“at_least_one”, “all”]
+If select == “at_least_one”, we check if there’s at least one entry associated to the strain.
+and we assume that anaddb will be able to reconstruct the full tensor by symmetry.
+If select == “all”, all tensor components must be present in the DDB file.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">As anaddb is not yet able to reconstruct the strain terms by symmetry,
+the default value for select is “all”</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.ddb.DdbFile.has_piezoelectric_terms">
+<code class="descname">has_piezoelectric_terms</code><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.has_piezoelectric_terms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.has_piezoelectric_terms" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if the DDB file contains piezoelectric terms
+i.e “off-diagonal” 2nd order derivatives wrt (electric_field, strain)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>select</strong> – Possible values in [“at_least_one”, “all”]
+If select == “at_least_one”, we check if there’s at least one entry associated to the strain.
+and we assume that anaddb will be able to reconstruct the full tensor by symmetry.
+If select == “all”, all tensor components must be present in the DDB file.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">As anaddb is not yet able to reconstruct the (strain, electric) terms by symmetry,
+the default value for select is “all”</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -586,7 +828,7 @@ Produce <a class="reference external" href="https://en.wikipedia.org/wiki/JSON">
 <li><strong>chneut</strong><strong>, </strong><strong>dipdip</strong> (<em>asr</em><em>,</em>) – Anaddb input variable. See official documentation.</li>
 <li><strong>workdir</strong> – Working directory. If None, a temporary directory is created.</li>
 <li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
 <li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information.</li>
 <li><strong>lo_to_splitting</strong> – Allowed values are [True, False, “automatic”]. Defaults to False
 If True the LO-TO splitting will be calculated if qpoint == Gamma and the non_anal_directions
@@ -634,7 +876,7 @@ depending on the input structure.</li>
 <li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information.</li>
 <li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
 <li><strong>workdir</strong> – Working directory. If None, a temporary directory is created.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file.</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file.</li>
 </ul>
 </td>
 </tr>
@@ -777,14 +1019,15 @@ plotter: |PhononDosPlotter| object.
 <dl class="method">
 <dt id="abipy.dfpt.ddb.DdbFile.anaget_emacro_and_becs">
 <code class="descname">anaget_emacro_and_becs</code><span class="sig-paren">(</span><em>chneut=1</em>, <em>mpi_procs=1</em>, <em>workdir=None</em>, <em>manager=None</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.anaget_emacro_and_becs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.anaget_emacro_and_becs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Call anaddb to compute the macroscopic dielectric tensor and the Born effective charges.</p>
+<dd><p>Call anaddb to compute the macroscopic electronic dielectric tensor (e_inf)
+in Cartesian coordinates and the Born effective charges.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>chneut</strong> – Anaddb input variable. See official documentation.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
 <li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
 <li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information</li>
 </ul>
@@ -811,7 +1054,7 @@ plotter: |PhononDosPlotter| object.
 <li><strong>ngqpt</strong> – Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)</li>
 <li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
 <li><strong>workdir</strong> – Working directory. If None, a temporary directory is created.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
 <li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information</li>
 <li><strong>anaddb_kwargs</strong> – additional kwargs for anaddb</li>
 </ul>
@@ -837,7 +1080,7 @@ Requires phonon perturbations at Gamma and static electric field perturbations.<
 <li><strong>chneut</strong><strong>, </strong><strong>dipdip</strong> (<em>asr</em><em>,</em>) – Anaddb input variable. See official documentation.</li>
 <li><strong>workdir</strong> – Working directory. If None, a temporary directory is created.</li>
 <li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
 <li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information</li>
 <li><strong>anaddb_kwargs</strong> – additional kwargs for anaddb</li>
 </ul>
@@ -846,6 +1089,48 @@ Requires phonon perturbations at Gamma and static electric field perturbations.<
 </tbody>
 </table>
 <p>Return: <a class="reference internal" href="#abipy.dfpt.ddb.DielectricTensorGenerator" title="abipy.dfpt.ddb.DielectricTensorGenerator"><code class="xref py py-class docutils literal"><span class="pre">abipy.dfpt.ddb.DielectricTensorGenerator</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.ddb.DdbFile.anaget_elastic">
+<code class="descname">anaget_elastic</code><span class="sig-paren">(</span><em>relaxed_ion='automatic'</em>, <em>piezo='automatic'</em>, <em>dde=False</em>, <em>stress_correction=False</em>, <em>asr=2</em>, <em>chneut=1</em>, <em>mpi_procs=1</em>, <em>workdir=None</em>, <em>manager=None</em>, <em>verbose=0</em>, <em>retpath=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.anaget_elastic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.anaget_elastic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call anaddb to compute elastic and piezoelectric tensors. Require DDB with strain terms.</p>
+<p>By default, this method sets the anaddb input variables automatically
+by looking at the 2nd-order derivatives available in the DDB file.
+This behaviour can be changed by setting explicitly the value of:
+<cite>relaxed_ion</cite> and <cite>piezo</cite>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>relaxed_ion</strong> – Activate computation of relaxed-ion tensors.
+Allowed values are [True, False, “automatic”]. Defaults to “automatic”.
+In “automatic” mode, relaxed-ion tensors are automatically computed if
+internal strain terms and phonons at Gamma are present in the DDB.</li>
+<li><strong>piezo</strong> – Activate computation of piezoelectric tensors.
+Allowed values are [True, False, “automatic”]. Defaults to “automatic”.
+In “automatic” mode, piezoelectric tensors are automatically computed if
+piezoelectric terms are present in the DDB.
+NB: relaxed-ion piezoelectric requires the activation of <cite>relaxed_ion</cite>.</li>
+<li><strong>dde</strong> – if True, dielectric tensors will be calculated.</li>
+<li><strong>stress_correction</strong> – Calculate the relaxed ion elastic tensors, considering
+the stress left inside cell. The DDB must contain the stress tensor.</li>
+<li><strong>asr</strong> – Anaddb input variable. See official documentation.</li>
+<li><strong>chneut</strong> – Anaddb input variable. See official documentation.</li>
+<li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
+<li><strong>workdir</strong> – Working directory. If None, a temporary directory is created.</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
+<li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information</li>
+<li><strong>retpath</strong> – True to return path to anaddb.nc file.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#abipy.dfpt.elastic.ElasticData" title="abipy.dfpt.elastic.ElasticData"><code class="xref py py-class docutils literal"><span class="pre">abipy.dfpt.elastic.ElasticData</span></code></a> object if <cite>retpath</cite> is None else absolute path to anaddb.nc file.</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -907,50 +1192,22 @@ working directory is created. Return path to the notebook.</p>
 <dl class="attribute">
 <dt id="abipy.dfpt.ddb.Becs.sumrule">
 <code class="descname">sumrule</code><a class="headerlink" href="#abipy.dfpt.ddb.Becs.sumrule" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="abipy.dfpt.ddb.Becs.check_sumrule">
-<code class="descname">check_sumrule</code><span class="sig-paren">(</span><em>stream=&lt;_io.TextIOWrapper name='&lt;stdout&gt;' mode='w' encoding='UTF-8'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#Becs.check_sumrule"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.Becs.check_sumrule" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<dd><p>[3, 3] matrix with Born effective charge neutrality sum-rule.</p>
 </dd></dl>
 
-<dl class="class">
-<dt id="abipy.dfpt.ddb.ElasticComplianceTensor">
-<em class="property">class </em><code class="descclassname">abipy.dfpt.ddb.</code><code class="descname">ElasticComplianceTensor</code><span class="sig-paren">(</span><em>elastic_tensor</em>, <em>compliance_tensor</em>, <em>structure</em>, <em>additional_info=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#ElasticComplianceTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.ElasticComplianceTensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a></p>
-<p>This object is used to store the elastic and compliance tensors.</p>
-<dl class="attribute">
-<dt id="abipy.dfpt.ddb.ElasticComplianceTensor.structure">
-<code class="descname">structure</code><a class="headerlink" href="#abipy.dfpt.ddb.ElasticComplianceTensor.structure" title="Permalink to this definition">¶</a></dt>
-<dd><p><a class="reference internal" href="core_api.html#abipy.core.structure.Structure" title="abipy.core.structure.Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.structure.Structure</span></code></a> object.</p>
-</dd></dl>
-
-<dl class="classmethod">
-<dt id="abipy.dfpt.ddb.ElasticComplianceTensor.from_ec_nc_file">
-<em class="property">classmethod </em><code class="descname">from_ec_nc_file</code><span class="sig-paren">(</span><em>ec_nc_file</em>, <em>tensor_type='relaxed_ion'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#ElasticComplianceTensor.from_ec_nc_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.ElasticComplianceTensor.from_ec_nc_file" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="method">
-<dt id="abipy.dfpt.ddb.ElasticComplianceTensor.as_dict">
-<code class="descname">as_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#ElasticComplianceTensor.as_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.ElasticComplianceTensor.as_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="abipy.dfpt.ddb.ElasticComplianceTensor.extended_dict">
-<code class="descname">extended_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#ElasticComplianceTensor.extended_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.ElasticComplianceTensor.extended_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="classmethod">
-<dt id="abipy.dfpt.ddb.ElasticComplianceTensor.from_dict">
-<em class="property">classmethod </em><code class="descname">from_dict</code><span class="sig-paren">(</span><em>dd</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#ElasticComplianceTensor.from_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.ElasticComplianceTensor.from_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="abipy.dfpt.ddb.ElasticComplianceTensor.get_pmg_elastic_tensor">
-<code class="descname">get_pmg_elastic_tensor</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#ElasticComplianceTensor.get_pmg_elastic_tensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.ElasticComplianceTensor.get_pmg_elastic_tensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Converts to a pymatgen <code class="xref py py-class docutils literal"><span class="pre">ElasticTensor</span></code> object.</p>
+<dt id="abipy.dfpt.ddb.Becs.get_voigt_dataframe">
+<code class="descname">get_voigt_dataframe</code><span class="sig-paren">(</span><em>select_symbols=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#Becs.get_voigt_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.Becs.get_voigt_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with Voigt indices as columns and natom rows.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>select_symbols</strong> – String or list of strings with chemical symbols.
+Used to select only atoms of this type.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
@@ -964,7 +1221,7 @@ from DFPT calculations. The values are calculated on the fly
 based on the phonon frequencies at gamma and oscillator strengths.
 The first three frequencies would be considered as acoustic modes and
 ignored in the calculation. No checks would be performed.</p>
-<p>See the definitions Eq.(53-54) in <a class="reference internal" href="../zzbiblio.html#gonze1997" id="id1">[GL97]</a> PRB55, 10355 (1997).</p>
+<p>See the definitions Eq.(53-54) in <a class="reference internal" href="../zzbiblio.html#gonze1997" id="id1">[Gonze1997]</a> PRB55, 10355 (1997).</p>
 <dl class="attribute">
 <dt id="abipy.dfpt.ddb.DielectricTensorGenerator.structure">
 <code class="descname">structure</code><a class="headerlink" href="#abipy.dfpt.ddb.DielectricTensorGenerator.structure" title="Permalink to this definition">¶</a></dt>
@@ -1033,7 +1290,7 @@ elements, indicating the indices [i, j] of the desired component or a string amo
 </tr>
 </tbody>
 </table>
-<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -1118,10 +1375,10 @@ Defaults to the standard Materials Project REST address</li>
 
 <dl class="method">
 <dt id="abipy.dfpt.ddb.DdbRobot.get_dataframe_at_qpoint">
-<code class="descname">get_dataframe_at_qpoint</code><span class="sig-paren">(</span><em>qpoint=None</em>, <em>units='eV'</em>, <em>asr=2</em>, <em>chneut=1</em>, <em>dipdip=1</em>, <em>with_geo=True</em>, <em>abspath=False</em>, <em>funcs=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbRobot.get_dataframe_at_qpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbRobot.get_dataframe_at_qpoint" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_dataframe_at_qpoint</code><span class="sig-paren">(</span><em>qpoint=None</em>, <em>units='eV'</em>, <em>asr=2</em>, <em>chneut=1</em>, <em>dipdip=1</em>, <em>with_geo=True</em>, <em>with_spglib=True</em>, <em>abspath=False</em>, <em>funcs=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbRobot.get_dataframe_at_qpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbRobot.get_dataframe_at_qpoint" title="Permalink to this definition">¶</a></dt>
 <dd><p>Call anaddb to compute the phonon frequencies at a single q-point using the DDB files treated
 by the robot and the given anaddb input arguments. LO-TO splitting is not included.
-Build and return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with results</p>
+Build and return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with results</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1132,6 +1389,7 @@ Build and return a <a class="reference external" href="http://pandas-docs.github
 (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.</li>
 <li><strong>chneut</strong><strong>, </strong><strong>dipdip</strong> (<em>asr</em><em>,</em>) – Anaddb input variable. See official documentation.</li>
 <li><strong>with_geo</strong> – True if structure info should be added to the dataframe</li>
+<li><strong>with_spglib</strong> – True to compute sgplib space group and add it to the DataFrame.</li>
 <li><strong>abspath</strong> – True if paths in index should be absolute. Default: Relative to getcwd().</li>
 <li><strong>funcs</strong> – Function or list of functions to execute to add more data to the DataFrame.
 Each function receives a <a class="reference internal" href="#abipy.dfpt.ddb.DdbFile" title="abipy.dfpt.ddb.DdbFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.dfpt.ddb.DdbFile</span></code></a> object and returns a tuple (key, value)
@@ -1139,7 +1397,7 @@ where key is a string with the name of column and value is the value to be inser
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a></p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a></p>
 </td>
 </tr>
 </tbody>
@@ -1157,6 +1415,51 @@ phdos_plotter: <a class="reference internal" href="#abipy.dfpt.phonons.PhononDos
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.dfpt.ddb.DdbRobot.anacompare_elastic">
+<code class="descname">anacompare_elastic</code><span class="sig-paren">(</span><em>ddb_header_keys=None</em>, <em>with_structure=True</em>, <em>with_spglib=True</em>, <em>manager=None</em>, <em>verbose=0</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbRobot.anacompare_elastic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbRobot.anacompare_elastic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute elastic and piezoelectric properties for all DDBs in the robot and build DataFrame.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ddb_header_keys</strong> – List of keywords in the header of the DDB file
+whose value will be added to the Dataframe.</li>
+<li><strong>with_structure</strong> – True to add structure parameters to the DataFrame.</li>
+<li><strong>with_spglib</strong> – True to compute sgplib space group and add it to the DataFrame.</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
+<li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information</li>
+<li><strong>kwargs</strong> – Keyword arguments passed to <cite>ddb.anaget_elastic</cite>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Return: DataFrame and list of ElastData objects.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.ddb.DdbRobot.anacompare_becs">
+<code class="descname">anacompare_becs</code><span class="sig-paren">(</span><em>ddb_header_keys=None</em>, <em>chneut=1</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbRobot.anacompare_becs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbRobot.anacompare_becs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute Born effective charges for all DDBs in the robot and build DataFrame.
+with Voigt indices as colums + metadata. Useful for convergence studies.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ddb_header_keys</strong> – List of keywords in the header of the DDB file
+whose value will be added to the Dataframe.</li>
+<li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Return: DataFrame and list of Becs objects</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.dfpt.ddb.DdbRobot.yield_figs">
 <code class="descname">yield_figs</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbRobot.yield_figs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbRobot.yield_figs" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function <em>generates</em> a predefined list of matplotlib figures with minimal input from the user.</p>
@@ -1167,6 +1470,254 @@ phdos_plotter: <a class="reference internal" href="#abipy.dfpt.phonons.PhononDos
 <code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbRobot.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbRobot.write_notebook" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write a <a class="reference external" href="http://jupyter.org/">jupyter</a> notebook to nbpath. If <code class="docutils literal"><span class="pre">nbpath</span></code> is None, a temporay file in the current
 working directory is created. Return path to the notebook.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-abipy.dfpt.elastic">
+<span id="elastic-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">elastic</span></code> Module</a><a class="headerlink" href="#module-abipy.dfpt.elastic" title="Permalink to this headline">¶</a></h2>
+<p>Objects to analyze elastic and piezoelectric tensors computed by anaddb.</p>
+<dl class="class">
+<dt id="abipy.dfpt.elastic.MyElasticTensor">
+<em class="property">class </em><code class="descclassname">abipy.dfpt.elastic.</code><code class="descname">MyElasticTensor</code><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#MyElasticTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.elastic.MyElasticTensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.elastic.html#pymatgen.analysis.elasticity.elastic.ElasticTensor" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.elastic.ElasticTensor</span></code></a></p>
+<dl class="method">
+<dt id="abipy.dfpt.elastic.MyElasticTensor.get_voigt_dataframe">
+<code class="descname">get_voigt_dataframe</code><span class="sig-paren">(</span><em>tol=1e-05</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#MyElasticTensor.get_voigt_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.elastic.MyElasticTensor.get_voigt_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.dfpt.elastic.MyPiezoTensor">
+<em class="property">class </em><code class="descclassname">abipy.dfpt.elastic.</code><code class="descname">MyPiezoTensor</code><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#MyPiezoTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.elastic.MyPiezoTensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.piezo.html#pymatgen.analysis.piezo.PiezoTensor" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.piezo.PiezoTensor</span></code></a></p>
+<dl class="method">
+<dt id="abipy.dfpt.elastic.MyPiezoTensor.get_voigt_dataframe">
+<code class="descname">get_voigt_dataframe</code><span class="sig-paren">(</span><em>tol=1e-05</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#MyPiezoTensor.get_voigt_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.elastic.MyPiezoTensor.get_voigt_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.dfpt.elastic.ElasticData">
+<em class="property">class </em><code class="descclassname">abipy.dfpt.elastic.</code><code class="descname">ElasticData</code><span class="sig-paren">(</span><em>structure</em>, <em>params</em>, <em>elastic_clamped=None</em>, <em>elastic_relaxed=None</em>, <em>elastic_stress_corr=None</em>, <em>elastic_relaxed_fixed_D=None</em>, <em>piezo_clamped=None</em>, <em>piezo_relaxed=None</em>, <em>d_piezo_relaxed=None</em>, <em>g_piezo_relaxed=None</em>, <em>h_piezo_relaxed=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#ElasticData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.elastic.ElasticData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a>, <a class="reference external" href="https://pythonhosted.org/monty/monty.html#monty.json.MSONable" title="(in monty v1.0.0)"><code class="xref py py-class docutils literal"><span class="pre">monty.json.MSONable</span></code></a></p>
+<p>Container with the different elastic and piezoelectric tensors
+computed by anaddb. Data is stored in pymatgen tensor objects.</p>
+<p>Provides methods to analyze/tabule data
+<a class="reference external" href="http://progs.coudert.name/elate/mp?query=mp-2172">http://progs.coudert.name/elate/mp?query=mp-2172</a></p>
+<dl class="attribute">
+<dt id="abipy.dfpt.elastic.ElasticData.ALL_ELASTIC_TENSOR_NAMES">
+<code class="descname">ALL_ELASTIC_TENSOR_NAMES</code><em class="property"> = ('elastic_relaxed', 'elastic_clamped', 'elastic_stress_corr', 'elastic_relaxed_fixed_D')</em><a class="headerlink" href="#abipy.dfpt.elastic.ElasticData.ALL_ELASTIC_TENSOR_NAMES" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.elastic.ElasticData.ALL_PIEZOELECTRIC_TENSOR_NAMES">
+<code class="descname">ALL_PIEZOELECTRIC_TENSOR_NAMES</code><em class="property"> = ('piezo_relaxed', 'piezo_clamped', 'd_piezo_relaxed', 'g_piezo_relaxed', 'h_piezo_relaxed')</em><a class="headerlink" href="#abipy.dfpt.elastic.ElasticData.ALL_PIEZOELECTRIC_TENSOR_NAMES" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.elastic.ElasticData.ALL_TENSOR_NAMES">
+<code class="descname">ALL_TENSOR_NAMES</code><em class="property"> = ('elastic_relaxed', 'elastic_clamped', 'elastic_stress_corr', 'elastic_relaxed_fixed_D', 'piezo_relaxed', 'piezo_clamped', 'd_piezo_relaxed', 'g_piezo_relaxed', 'h_piezo_relaxed')</em><a class="headerlink" href="#abipy.dfpt.elastic.ElasticData.ALL_TENSOR_NAMES" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.elastic.ElasticData.TYPE2NAMES">
+<code class="descname">TYPE2NAMES</code><em class="property"> = {'all': ('elastic_relaxed', 'elastic_clamped', 'elastic_stress_corr', 'elastic_relaxed_fixed_D', 'piezo_relaxed', 'piezo_clamped', 'd_piezo_relaxed', 'g_piezo_relaxed', 'h_piezo_relaxed'), 'elastic': ('elastic_relaxed', 'elastic_clamped', 'elastic_stress_corr', 'elastic_relaxed_fixed_D'), 'piezoelectric': ('piezo_relaxed', 'piezo_clamped', 'd_piezo_relaxed', 'g_piezo_relaxed', 'h_piezo_relaxed')}</em><a class="headerlink" href="#abipy.dfpt.elastic.ElasticData.TYPE2NAMES" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.elastic.ElasticData.TENSOR_META">
+<code class="descname">TENSOR_META</code><em class="property"> = {'elastic_clamped': {'info': 'clamped-ion elastic tensor in Voigt notation (shape: (6, 6))', 'units': 'GPa', 'latex': '${\\xoverline(C)}$'}, 'elastic_relaxed': {'info': 'relaxed-ion elastic tensor in Voigt notation (shape: (6, 6))', 'units': 'GPa', 'latex': '${C}$'}, 'elastic_stress_corr': {'info': 'relaxed-ion elastic tensor considering the stress left inside cell in Voigt notation (shape: (6, 6))', 'units': 'GPa', 'latex': '${C^{\\sigma}}$'}, 'elastic_relaxed_fixed_D': {'info': 'relaxed-ion elastic tensor at fixed displacement field in Voigt notation (shape: (6, 6))', 'units': 'GPa', 'latex': '$C^{(D)}$'}, 'piezo_clamped': {'info': 'clamped-ion piezoelectric tensor in Voigt notation (shape: (3, 6))', 'units': 'c/m^2', 'latex': '${\\xoverline(e)}$'}, 'piezo_relaxed': {'info': 'relaxed-ion piezoelectric tensor in Voigt notation (shape: (3, 6))', 'units': 'c/m^2', 'latex': '${e}$'}, 'd_piezo_relaxed': {'info': 'relaxed-ion piezoelectric d tensor in Voigt notation (shape: (3, 6))', 'units': 'pc/m^2', 'latex': '${d}$'}, 'g_piezo_relaxed': {'info': 'relaxed-ion piezoelectric g tensor in Voigt notation (shape: (3, 6))', 'units': 'm^2/c', 'latex': '${g}$'}, 'h_piezo_relaxed': {'info': 'relaxed-ion piezoelectric h tensor in Voigt notation (shape: (3, 6))', 'units': 'GN/c', 'latex': '${h}$'}}</em><a class="headerlink" href="#abipy.dfpt.elastic.ElasticData.TENSOR_META" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.elastic.ElasticData.structure">
+<code class="descname">structure</code><a class="headerlink" href="#abipy.dfpt.elastic.ElasticData.structure" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="core_api.html#abipy.core.structure.Structure" title="abipy.core.structure.Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.structure.Structure</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="abipy.dfpt.elastic.ElasticData.from_file">
+<em class="property">classmethod </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#ElasticData.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.elastic.ElasticData.from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds the object from an anaddb.nc file</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="abipy.dfpt.elastic.ElasticData.from_ncreader">
+<em class="property">classmethod </em><code class="descname">from_ncreader</code><span class="sig-paren">(</span><em>reader</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#ElasticData.from_ncreader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.elastic.ElasticData.from_ncreader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds the object from a ETSF_Reader</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.elastic.ElasticData.to_string">
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#ElasticData.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.elastic.ElasticData.to_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>String represention with verbosity level <cite>verbose</cite>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.elastic.ElasticData.get_tensor">
+<code class="descname">get_tensor</code><span class="sig-paren">(</span><em>tensor_name</em>, <em>tol=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#ElasticData.get_tensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.elastic.ElasticData.get_tensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return tensor from its name <cite>tensor_name</cite>.
+Set to zero all entries below <cite>tol</cite> if <cite>tol</cite> is not None.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.elastic.ElasticData.name_tensor_list">
+<code class="descname">name_tensor_list</code><span class="sig-paren">(</span><em>tensor_names=None</em>, <em>tensor_type='all'</em>, <em>tol=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#ElasticData.name_tensor_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.elastic.ElasticData.name_tensor_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of (name, tensor) tuples. Only tensors stored in the object are returned.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>tensor_names</strong> – List of tensor names to select. None means all.</li>
+<li><strong>tensor_type</strong> – Select tensors by type. Must be in [“all”, “elastic”, “piezoelectric”].</li>
+<li><strong>tol</strong> – Set to zero all all entries below this threshold</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.elastic.ElasticData.fit_to_structure">
+<code class="descname">fit_to_structure</code><span class="sig-paren">(</span><em>structure=None</em>, <em>symprec=0.1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#ElasticData.fit_to_structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.elastic.ElasticData.fit_to_structure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return new ElasticData object with tensors that are invariant with respect to symmetry
+operations corresponding to <cite>structure</cite>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>structure</strong> – <a class="reference internal" href="core_api.html#abipy.core.structure.Structure" title="abipy.core.structure.Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.structure.Structure</span></code></a> from which to generate symmetry operations
+If None, the internal structure is used.</li>
+<li><strong>symprec</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – symmetry tolerance for the Spacegroup Analyzer
+used to generate the symmetry operations</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.elastic.ElasticData.convert_to_ieee">
+<code class="descname">convert_to_ieee</code><span class="sig-paren">(</span><em>structure=None</em>, <em>initial_fit=True</em>, <em>refine_rotation=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#ElasticData.convert_to_ieee"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.elastic.ElasticData.convert_to_ieee" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return new set of tensors in IEEE format according to the 1987 IEEE standards.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>structure</strong> – A <a class="reference internal" href="core_api.html#abipy.core.structure.Structure" title="abipy.core.structure.Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.structure.Structure</span></code></a> structure associated with the
+tensor to be converted to the IEEE standard
+If None, the internal structure is used</li>
+<li><strong>initial_fit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – flag to indicate whether initial
+tensor is fit to the symmetry of the structure.
+Defaults to true. Note that if false, inconsistent
+results may be obtained due to symmetrically
+equivalent, but distinct transformations
+being used in different versions of spglib.</li>
+<li><strong>refine_rotation</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – whether to refine the rotation
+produced by the ieee transform generator, default True</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.elastic.ElasticData.get_elastic_tensor_dataframe">
+<code class="descname">get_elastic_tensor_dataframe</code><span class="sig-paren">(</span><em>tensor_name='elastic_relaxed'</em>, <em>tol=0.001</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#ElasticData.get_elastic_tensor_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.elastic.ElasticData.get_elastic_tensor_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>tensor_name</strong> – </li>
+<li><strong>tol</strong> – set to zero all entries below this threshold.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.elastic.ElasticData.get_piezoelectric_tensor_dataframe">
+<code class="descname">get_piezoelectric_tensor_dataframe</code><span class="sig-paren">(</span><em>tensor_name='piezo_relaxed'</em>, <em>tol=1e-05</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#ElasticData.get_piezoelectric_tensor_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.elastic.ElasticData.get_piezoelectric_tensor_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>tensor_name</strong> – </li>
+<li><strong>tol</strong> – set to zero all entries below this threshold.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.elastic.ElasticData.get_elastic_voigt_dataframe">
+<code class="descname">get_elastic_voigt_dataframe</code><span class="sig-paren">(</span><em>voigt_as_index=True</em>, <em>tol=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#ElasticData.get_elastic_voigt_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.elastic.ElasticData.get_elastic_voigt_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.elastic.ElasticData.get_piezo_voigt_dataframe">
+<code class="descname">get_piezo_voigt_dataframe</code><span class="sig-paren">(</span><em>voigt_as_index=True</em>, <em>tol=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#ElasticData.get_piezo_voigt_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.elastic.ElasticData.get_piezo_voigt_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.elastic.ElasticData.get_voigt_dataframe">
+<code class="descname">get_voigt_dataframe</code><span class="sig-paren">(</span><em>tensor_names</em>, <em>voigt_as_index=True</em>, <em>tol=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#ElasticData.get_voigt_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.elastic.ElasticData.get_voigt_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with Voigt indices as colums (C-indexing starting from 0).
+Useful to analyze the converge of individual elements of the tensor(s)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>tensor_names</strong> – List of tensor names.</li>
+<li><strong>tol</strong> – Set to zero all all entries below a certain threshold</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.elastic.ElasticData.get_elastic_properties_dataframe">
+<code class="descname">get_elastic_properties_dataframe</code><span class="sig-paren">(</span><em>tensor_names='all'</em>, <em>properties_as_index=False</em>, <em>include_base_props=True</em>, <em>ignore_errors=False</em>, <em>fit_to_structure=False</em>, <em>symprec=0.1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#ElasticData.get_elastic_properties_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.elastic.ElasticData.get_elastic_properties_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with properties derived from the elastic tensor
+and the associated structure</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>[</strong><strong>&quot;elastic_relaxed&quot;</strong><strong>, </strong><strong>&quot;elastic_clamped&quot;</strong><strong>, </strong><strong>&quot;elastic_stress_corr&quot;</strong><strong>, </strong><strong>&quot;elastic_relaxed_fixed_D&quot;</strong><strong>]</strong> (<em>tensor_names=</em>) – </li>
+<li><strong>properties_as_index</strong> – </li>
+<li><strong>include_base_props</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – whether to include base properties, like k_vrh, etc.</li>
+<li><strong>ignore_errors</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – if set to true, will set problem properties
+that depend on a physical tensor to None, defaults to False</li>
+<li><strong>fit_to_structure</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If True, properties are computed with the orginal tensors
+and symmetrized tensors. An additional column <cite>fit_to_structure</cite> is added to the dataframe.</li>
+<li><strong>symprec</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – symmetry tolerance for the Spacegroup Analyzer
+used to generate the symmetry operations if <cite>fit_to_structure</cite></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
@@ -1306,11 +1857,11 @@ of the quadratic term. If None a simple quadratic fit will be used.</li>
 <li><strong>max_fit_eta</strong> – if not None represents maximum value allowed for the (signed) eta to be used in the fit.</li>
 <li><strong>freq</strong> – if not None the quadratic function with this frequency as a coefficient will be added to the plot.
 freq in eV. Requires the 0 displacement to be present in the list of etas.</li>
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 </td>
 </tr>
 </tbody>
@@ -1365,11 +1916,11 @@ Requires the 0 displacement to be present in the list of etas.</p>
 <li><strong>freq</strong> – phonon frequncy in eV</li>
 <li><strong>relative</strong> – if True the plot will represent the relative difference with respect to the expected value
 obtained from the frequency, rather than the absolute difference.</li>
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 </td>
 </tr>
 </tbody>
@@ -1501,10 +2052,40 @@ This file contains Grunesein parameters computed via finite difference.</p>
 <dd><p>List of <a class="reference internal" href="#abipy.dfpt.phonons.PhononBands" title="abipy.dfpt.phonons.PhononBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.dfpt.phonons.PhononBands</span></code></a> objects corresponding to the different volumes.</p>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="abipy.dfpt.gruneisen.GrunsNcFile.structures">
+<code class="descname">structures</code><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.structures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.structures" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of structures</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.gruneisen.GrunsNcFile.volumes">
+<code class="descname">volumes</code><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.volumes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.volumes" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of volumes</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.gruneisen.GrunsNcFile.phdispl_cart_qibz">
+<code class="descname">phdispl_cart_qibz</code><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.phdispl_cart_qibz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.phdispl_cart_qibz" title="Permalink to this definition">¶</a></dt>
+<dd><p>Eigendisplacements for the modes on the qibz</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.gruneisen.GrunsNcFile.nvols">
+<code class="descname">nvols</code><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.nvols" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of volumes</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.gruneisen.GrunsNcFile.amu_symbol">
+<code class="descname">amu_symbol</code><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.amu_symbol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.amu_symbol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Atomic mass units</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="abipy.dfpt.gruneisen.GrunsNcFile.to_dataframe">
 <code class="descname">to_dataframe</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.to_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.to_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the following columns:</p>
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the following columns:</p>
 <blockquote>
 <div>[‘qidx’, ‘mode’, ‘freq’, ‘qpoint’]</div></blockquote>
 <p>where:</p>
@@ -1556,7 +2137,7 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 </tr>
 </tbody>
 </table>
-<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -1610,8 +2191,8 @@ showing the value and the sign of the Grunesein parameters.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>fill_with</strong> – Define the quantity used to plot stripes. “gruns” for Grunesein parameters,
-“groupv” for phonon group velocities.</li>
+<li><strong>fill_with</strong> – Define the quantity used to plot stripes. “gruns” for Grunesein parameters, “gruns_fd” for
+Grunesein parameters calculated with finite differences,  “groupv” for phonon group velocities.</li>
 <li><strong>gamma_fact</strong> – Scaling factor for Grunesein parameters.
 Up triangle for positive values, down triangles for negative values.</li>
 <li><strong>alpha</strong> – The alpha blending value for the markers between 0 (transparent) and 1 (opaque).</li>
@@ -1629,7 +2210,7 @@ The values are the labels. e.g. <code class="docutils literal"><span class="pre"
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a>.</p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a>.</p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -1667,15 +2248,8 @@ Default: None i.e. fig is left unchanged.</td>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.dfpt.gruneisen.GrunsNcFile.yield_figs">
-<code class="descname">yield_figs</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.yield_figs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.yield_figs" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function <em>generates</em> a predefined list of matplotlib figures with minimal input from the user.
-Used in abiview.py to get a quick look at the results.</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="abipy.dfpt.gruneisen.GrunsNcFile.plot_gruns_scatter">
-<code class="descname">plot_gruns_scatter</code><span class="sig-paren">(</span><em>values='gruns'</em>, <em>ax=None</em>, <em>units='eV'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.plot_gruns_scatter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.plot_gruns_scatter" title="Permalink to this definition">¶</a></dt>
+<code class="descname">plot_gruns_scatter</code><span class="sig-paren">(</span><em>values='gruns'</em>, <em>ax=None</em>, <em>units='eV'</em>, <em>cmap='rainbow'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.plot_gruns_scatter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.plot_gruns_scatter" title="Permalink to this definition">¶</a></dt>
 <dd><p>A scatter plot of the values of the Gruneisen parameters or group velocities as a function
 of the phonon frequencies.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -1683,18 +2257,19 @@ of the phonon frequencies.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>values</strong> – Define the plotted quantity. “gruns” for Grunesein parameters,
-“groupv” for phonon group velocities.</li>
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>values</strong> – Define the plotted quantity. “gruns” for Grunesein parameters, “gruns_fd” for Grunesein
+parameters calculated with finite differences,  “groupv” for phonon group velocities.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>units</strong> – Units for phonon frequencies. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”).
 Case-insensitive.</li>
+<li><strong>cmap</strong> – matplotlib colormap. If not None, points are colored according to the branch index.</li>
 <li><strong>**kwargs</strong> – kwargs passed to the matplotlib function ‘scatter’. Size defaults to 10.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -1755,9 +2330,9 @@ and match_bands=True to obtained reasonable paths.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>values</strong> – Define the plotted quantity. “gruns” for Grunesein parameters,
-“groupv” for phonon group velocities.</li>
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>values</strong> – Define the plotted quantity. “gruns” for Grunesein parameters, “gruns_fd” for Grunesein
+parameters calculated with finite differences,  “groupv” for phonon group velocities.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>branch_range</strong> – Tuple specifying the minimum and maximum branch index to plot (default: all
 branches are plotted).</li>
 <li><strong>qlabels</strong> – dictionary whose keys are tuples with the reduced coordinates of the q-points.
@@ -1770,7 +2345,7 @@ marker to ‘o’, color to black.</li>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -1805,6 +2380,13 @@ Default: None i.e. fig is left unchanged.</td>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.gruneisen.GrunsNcFile.yield_figs">
+<code class="descname">yield_figs</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.yield_figs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.yield_figs" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function <em>generates</em> a predefined list of matplotlib figures with minimal input from the user.
+Used in abiview.py to get a quick look at the results.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1901,7 +2483,7 @@ volume of the unit cell and the middle one will be considered as the DDB at the 
 <li><strong>nqsmall</strong> – Defines the homogeneous q-mesh used for the DOS. Gives the number of divisions
 used to sample the smallest lattice vector. If 0, DOS is not computed and
 (phbst, None) is returned.</li>
-<li><strong>qppa</strong> – Defines the homogeneous q-mesh used for the DOS in units of q-points per reciproval atom.
+<li><strong>qppa</strong> – Defines the homogeneous q-mesh used for the DOS in units of q-points per reciprocal atom.
 Overrides nqsmall.</li>
 <li><strong>ndivsm</strong> – Number of division used for the smallest segment of the q-path.</li>
 <li><strong>line_density</strong> – Defines the a density of k-points per reciprocal atom to plot the phonon dispersion.
@@ -1920,7 +2502,7 @@ depending on the input structure.</li>
 <li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information.</li>
 <li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
 <li><strong>workdir</strong> – Working directory. If None, a temporary directory is created.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file.</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file.</li>
 </ul>
 </td>
 </tr>
@@ -1929,6 +2511,24 @@ depending on the input structure.</li>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.gruneisen.GrunsNcFile.grun_vals_finite_differences">
+<code class="descname">grun_vals_finite_differences</code><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.grun_vals_finite_differences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.grun_vals_finite_differences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gruneisen parameters along the high symmetry path calculated with finite differences.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.gruneisen.GrunsNcFile.split_gruns_finite_differences">
+<code class="descname">split_gruns_finite_differences</code><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.split_gruns_finite_differences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.split_gruns_finite_differences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Splits the values of the finite differences gruneisen along a path like for the phonon bands</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.gruneisen.GrunsNcFile.gvals_qibz_finite_differences">
+<code class="descname">gvals_qibz_finite_differences</code><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.gvals_qibz_finite_differences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.gvals_qibz_finite_differences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gruneisen parameters in the irreducible brillouin zone calculated with finite differences.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1969,6 +2569,38 @@ with finite differences. This object stores the Grunesein parameters in <code cl
 mass units used for the calculation.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="abipy.dfpt.gruneisen.GrunsReader.read_structures">
+<code class="descname">read_structures</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsReader.read_structures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsReader.read_structures" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resturns a list of structures at the different volumes</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.dfpt.gruneisen.calculate_gruns_finite_differences">
+<code class="descclassname">abipy.dfpt.gruneisen.</code><code class="descname">calculate_gruns_finite_differences</code><span class="sig-paren">(</span><em>phfreqs</em>, <em>eig</em>, <em>iv0</em>, <em>volume</em>, <em>dv</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#calculate_gruns_finite_differences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.calculate_gruns_finite_differences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the Gruneisen parameters from finite differences on the phonon frequencies. Uses the eigenvectors
+to match the frequencies at different volumes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>phfreqs</strong> – numpy array with the phonon frequencies at different volumes. Shape (nvols, nqpts, 3*natoms)</li>
+<li><strong>eig</strong> – numpy array with the phonon eigenvectors at the different volumes. Shape (nvols, nqpts, 3*natoms, 3*natoms)
+If None simple ordering will be used.</li>
+<li><strong>iv0</strong> – index of the 0 volume.</li>
+<li><strong>volume</strong> – volume of the structure at the central volume.</li>
+<li><strong>dv</strong> – volume variation.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A numpy array with the gruneisen parameters. Shape (nqpts, 3*natoms)</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
@@ -2343,7 +2975,7 @@ Use units = “” to add k-labels without adding unit name.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>units</strong> – Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.</li>
 <li><strong>qlabels</strong> – dictionary whose keys are tuples with the reduced coordinates of the q-points.
 The values are the labels. e.g. <code class="docutils literal"><span class="pre">qlabels</span> <span class="pre">=</span> <span class="pre">{(0.0,0.0,0.0):</span> <span class="pre">&quot;$\Gamma$&quot;,</span> <span class="pre">(0.5,0,0):</span> <span class="pre">&quot;L&quot;}</span></code>.</li>
@@ -2354,7 +2986,7 @@ The values are the labels. e.g. <code class="docutils literal"><span class="pre"
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -2408,7 +3040,7 @@ If <code class="docutils literal"><span class="pre">branch</span></code> is None
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>units</strong> – Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.</li>
 <li><strong>qlabels</strong> – dictionary whose keys are tuples with the reduced coordinates of the q-points.
 The values are the labels. e.g. <code class="docutils literal"><span class="pre">qlabels</span> <span class="pre">=</span> <span class="pre">{(0.0,0.0,0.0):</span> <span class="pre">&quot;$\Gamma$&quot;,</span> <span class="pre">(0.5,0,0):</span> <span class="pre">&quot;L&quot;}</span></code>.</li>
@@ -2424,7 +3056,7 @@ It useful to better distinguish close bands when the number of branch is large.<
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -2518,7 +3150,7 @@ The values are the labels. e.g. <code class="docutils literal"><span class="pre"
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -2577,7 +3209,7 @@ Used if <code class="docutils literal"><span class="pre">ax_list</span></code> i
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -2630,7 +3262,7 @@ Options allow to specify which atoms should be taken into account and how should
 <li><strong>qpoint</strong> – integer, vector of reduced coordinates or <a class="reference internal" href="core_api.html#abipy.core.kpoints.Kpoint" title="abipy.core.kpoints.Kpoint"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.kpoints.Kpoint</span></code></a> object.</li>
 <li><strong>cart_dir</strong> – “x”, “y”, or “z” to select a particular Cartesian directions. or combinations separated by “+”.
 Example: “x+y”. None if no projection is wanted.</li>
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>units</strong> – Units for phonon frequencies. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”).
 Case-insensitive.</li>
 <li><strong>is_non_analytical_direction</strong> – If True, the <code class="docutils literal"><span class="pre">qpoint</span></code> is interpreted as a direction in q-space
@@ -2656,7 +3288,7 @@ Should have the same length of atoms_index or be None. If None automatic labelli
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -2770,7 +3402,7 @@ Default: None i.e. fig is left unchanged.</td>
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhononBands.get_dataframe">
 <code class="descname">get_dataframe</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the following columns:</p>
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the following columns:</p>
 <blockquote>
 <div>[‘qidx’, ‘mode’, ‘freq’, ‘qpoint’]</div></blockquote>
 <p>where:</p>
@@ -2810,7 +3442,7 @@ Default: None i.e. fig is left unchanged.</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>units</strong> – Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.</li>
 <li><strong>mode_range</strong> – Only modes such as <cite>mode_range[0] &lt;= mode_index &lt; mode_range[1]</cite> are included in the plot.</li>
 <li><strong>swarm</strong> – True to show the datapoints on top of the boxes</li>
@@ -3028,7 +3660,7 @@ Accepts integer, vector with reduced coordinates or <a class="reference internal
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhbstFile.get_phframe">
 <code class="descname">get_phframe</code><span class="sig-paren">(</span><em>qpoint</em>, <em>with_structure=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhbstFile.get_phframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhbstFile.get_phframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the phonon frequencies at the given q-point and
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the phonon frequencies at the given q-point and
 information on the crystal structure (used for convergence studies).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -3143,7 +3775,7 @@ and another numpy array, <code class="docutils literal"><span class="pre">values
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a></li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a></li>
 <li><strong>what</strong> – string selecting the quantity to plot:
 “d” for DOS, “i” for IDOS. chars can be concatenated
 hence what=”id” plots both IDOS and DOS. (default “d”).</li>
@@ -3176,7 +3808,7 @@ hence what=”id” plots both IDOS and DOS. (default “d”).</li>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -3320,7 +3952,7 @@ thermodynamic quantities will be given on a per-unit-cell basis.</li>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -3468,7 +4100,7 @@ Provides helper function to visualize/extract data.</p>
 <dt id="abipy.dfpt.phonons.PhdosFile.params">
 <code class="descname">params</code><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhdosFile.params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhdosFile.params" title="Permalink to this definition">¶</a></dt>
 <dd><p><code class="xref py py-class docutils literal"><span class="pre">OrderedDict</span></code> with the convergence parameters
-Used to construct <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a>.</p>
+Used to construct <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -3514,7 +4146,7 @@ with chemical symbol <cite>symbol</cite>.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>stacked</strong> – True if DOS partial contributions should be stacked on top of each other.</li>
 <li><strong>units</strong> – Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.</li>
 <li><strong>colormap</strong> – Have a look at the colormaps
@@ -3530,7 +4162,7 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -3587,14 +4219,14 @@ and decide which one you’d like:</p>
 <li><strong>xlims</strong> – Set the data limits for the x-axis. Accept tuple e.g. <code class="docutils literal"><span class="pre">(left,</span> <span class="pre">right)</span></code>
 or scalar e.g. <code class="docutils literal"><span class="pre">left</span></code>. If left (right) is None, default values are used</li>
 <li><strong>ylims</strong> – y-axis limits.</li>
-<li><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>fontsize</strong> – Legend and label fontsize.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a>.</p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a>.</p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -3649,14 +4281,14 @@ Default: None i.e. fig is left unchanged.</td>
 or scalar e.g. <code class="docutils literal"><span class="pre">left</span></code>. If left (right) is None, default values are used.</li>
 <li><strong>ylims</strong> – Set the data limits for the y-axis. Accept tuple e.g. <code class="docutils literal"><span class="pre">(left,</span> <span class="pre">right)</span></code>
 or scalar e.g. <code class="docutils literal"><span class="pre">left</span></code>. If left (right) is None, default values are used</li>
-<li><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>fontsize</strong> – Legend and title fontsize.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -3749,7 +4381,7 @@ Supports plots on the same graph or separated plots.</p>
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhononBandsPlotter.get_phbands_frame">
 <code class="descname">get_phbands_frame</code><span class="sig-paren">(</span><em>with_spglib=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBandsPlotter.get_phbands_frame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBandsPlotter.get_phbands_frame" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important results available in the band structures.</p>
+<dd><p>Build a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important results available in the band structures.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -3833,7 +4465,7 @@ Used if plotter has DOSes.</li>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -3899,7 +4531,7 @@ Default: None i.e. fig is left unchanged.</td>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -3965,7 +4597,7 @@ or scalar e.g. <cite>left</cite>. If left (right) is None, default values are us
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -4070,7 +4702,7 @@ Phonon Band structures are drawn on the same plot.</p>
 <li><strong>mode_range</strong> – Only bands such as <code class="docutils literal"><span class="pre">mode_range[0]</span> <span class="pre">&lt;=</span> <span class="pre">nu_index</span> <span class="pre">&lt;</span> <span class="pre">mode_range[1]</span></code> are included in the plot.</li>
 <li><strong>units</strong> – Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.</li>
 <li><strong>swarm</strong> – True to show the datapoints on top of the boxes</li>
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>kwargs</strong> – Keyword arguments passed to <a class="reference external" href="https://seaborn.pydata.org/">seaborn</a> boxplot.</li>
 </ul>
 </td>
@@ -4130,7 +4762,7 @@ at a given q-point. One panel for all phbands stored in the plotter.</p>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -4263,7 +4895,7 @@ Used when phdos is not already an instance of <cite>cls</cite> or when we have t
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>units</strong> – Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.</li>
 <li><strong>xlims</strong> – Set the data limits for the x-axis. Accept tuple e.g. <cite>(left, right)</cite>
 or scalar e.g. <cite>left</cite>. If left (right) is None, default values are used</li>
@@ -4274,7 +4906,7 @@ or scalar e.g. <cite>left</cite>. If left (right) is None, default values are us
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -4335,7 +4967,7 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -4395,7 +5027,7 @@ Possible values in [“internal_energy”, “free_energy”, “entropy”, “
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -4464,27 +5096,16 @@ working directory is created. Return path to the notebook.</p>
 <div class="section" id="module-abipy.dfpt.qha">
 <span id="qha-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">qha</span></code> Module</a><a class="headerlink" href="#module-abipy.dfpt.qha" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
-<dt id="abipy.dfpt.qha.QHA">
-<em class="property">class </em><code class="descclassname">abipy.dfpt.qha.</code><code class="descname">QHA</code><span class="sig-paren">(</span><em>structures</em>, <em>doses</em>, <em>energies</em>, <em>eos_name='vinet'</em>, <em>pressure=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.dfpt.qha.AbstractQHA">
+<em class="property">class </em><code class="descclassname">abipy.dfpt.qha.</code><code class="descname">AbstractQHA</code><span class="sig-paren">(</span><em>structures</em>, <em>energies</em>, <em>eos_name='vinet'</em>, <em>pressure=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#AbstractQHA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.AbstractQHA" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
-<p>Object to extract results in the quasi-harmonic approximation from electronic and phonon calculations
-at different volumes.
+<p>Abstract class for the quasi-harmonic approximation  analysis.
 Provides some basic methods and plotting utils, plus a converter to write input files for phonopy-qha or to
 generate an instance of phonopy.qha.QHA. These can be used to obtain other quantities and plots.
 Does not include electronic entropic contributions for metals.</p>
-<dl class="attribute">
-<dt id="abipy.dfpt.qha.QHA.nvols">
-<code class="descname">nvols</code><a class="headerlink" href="#abipy.dfpt.qha.QHA.nvols" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.dfpt.qha.QHA.natoms">
-<code class="descname">natoms</code><a class="headerlink" href="#abipy.dfpt.qha.QHA.natoms" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="method">
-<dt id="abipy.dfpt.qha.QHA.fit_energies">
-<code class="descname">fit_energies</code><span class="sig-paren">(</span><em>tstart=0</em>, <em>tstop=800</em>, <em>num=100</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA.fit_energies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA.fit_energies" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.dfpt.qha.AbstractQHA.fit_energies">
+<code class="descname">fit_energies</code><span class="sig-paren">(</span><em>tstart=0</em>, <em>tstop=800</em>, <em>num=100</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#AbstractQHA.fit_energies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.AbstractQHA.fit_energies" title="Permalink to this definition">¶</a></dt>
 <dd><p>Performs a fit of the energies as a function of the volume at different temperatures.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -4514,8 +5135,69 @@ Does not include electronic entropic contributions for metals.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.dfpt.qha.QHA.set_eos">
-<code class="descname">set_eos</code><span class="sig-paren">(</span><em>eos_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA.set_eos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA.set_eos" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.dfpt.qha.AbstractQHA.get_vib_free_energies">
+<code class="descname">get_vib_free_energies</code><span class="sig-paren">(</span><em>tstart=0</em>, <em>tstop=800</em>, <em>num=100</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#AbstractQHA.get_vib_free_energies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.AbstractQHA.get_vib_free_energies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates the vibrational free energy corresponding to all the structures.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tstart</strong> – The starting value (in Kelvin) of the temperature mesh.</li>
+<li><strong>tstop</strong> – The end value (in Kelvin) of the mesh.</li>
+<li><strong>num</strong> – int, optional Number of samples to generate. Default is 100.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A numpy array of <cite>num</cite> values of of the vibrational contribution to the free energy</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.qha.AbstractQHA.get_thermodynamic_properties">
+<code class="descname">get_thermodynamic_properties</code><span class="sig-paren">(</span><em>tstart=0</em>, <em>tstop=800</em>, <em>num=100</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#AbstractQHA.get_thermodynamic_properties"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.AbstractQHA.get_thermodynamic_properties" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates all the thermodynamic properties corresponding to all the volumes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tstart</strong> – The starting value (in Kelvin) of the temperature mesh.</li>
+<li><strong>tstop</strong> – The end value (in Kelvin) of the mesh.</li>
+<li><strong>num</strong> – int, optional Number of samples to generate. Default is 100.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">tmesh: numpy array with the list of temperatures. Shape (num).
+cv: constant-volume specific heat, in eV/K. Shape (nvols, num).
+free_energy: free energy, in eV. Shape (nvols, num).
+entropy: entropy, in eV/K. Shape (nvols, num).
+zpe: zero point energy in eV. Shape (nvols).</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><cite>namedtuple</cite> with the following attributes for all the volumes</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.qha.AbstractQHA.nvols">
+<code class="descname">nvols</code><a class="headerlink" href="#abipy.dfpt.qha.AbstractQHA.nvols" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.qha.AbstractQHA.natoms">
+<code class="descname">natoms</code><a class="headerlink" href="#abipy.dfpt.qha.AbstractQHA.natoms" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.qha.AbstractQHA.set_eos">
+<code class="descname">set_eos</code><span class="sig-paren">(</span><em>eos_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#AbstractQHA.set_eos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.AbstractQHA.set_eos" title="Permalink to this definition">¶</a></dt>
 <dd><p>Updates the EOS used for the fit.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -4527,31 +5209,9 @@ Does not include electronic entropic contributions for metals.</p>
 </table>
 </dd></dl>
 
-<dl class="classmethod">
-<dt id="abipy.dfpt.qha.QHA.from_files">
-<em class="property">classmethod </em><code class="descname">from_files</code><span class="sig-paren">(</span><em>gsr_files_paths</em>, <em>phdos_files_paths</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA.from_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA.from_files" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates an instance of QHA from a list og GSR files and a list PHDOS.nc files.
-The list should have the same size and the volumes should match.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>gsr_files_paths</strong> – list of paths to GSR files</li>
-<li><strong>phdos_files_paths</strong> – list of paths to PHDOS.nc files</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A new instance of QHA</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 <dl class="method">
-<dt id="abipy.dfpt.qha.QHA.plot_energies">
-<code class="descname">plot_energies</code><span class="sig-paren">(</span><em>tstart=0</em>, <em>tstop=800</em>, <em>num=10</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA.plot_energies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA.plot_energies" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.dfpt.qha.AbstractQHA.plot_energies">
+<code class="descname">plot_energies</code><span class="sig-paren">(</span><em>tstart=0</em>, <em>tstop=800</em>, <em>num=10</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#AbstractQHA.plot_energies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.AbstractQHA.plot_energies" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plots the energies as a function of volume at different temperatures.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -4561,13 +5221,13 @@ The list should have the same size and the volumes should match.</p>
 <li><strong>tstart</strong> – The starting value (in Kelvin) of the temperature mesh.</li>
 <li><strong>tstop</strong> – The end value (in Kelvin) of the mesh.</li>
 <li><strong>num</strong> – int, optional Number of samples to generate. Default is 10.</li>
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -4605,8 +5265,8 @@ Default: None i.e. fig is left unchanged.</td>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.dfpt.qha.QHA.get_thermal_expansion_coeff">
-<code class="descname">get_thermal_expansion_coeff</code><span class="sig-paren">(</span><em>tstart=0</em>, <em>tstop=800</em>, <em>num=100</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA.get_thermal_expansion_coeff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA.get_thermal_expansion_coeff" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.dfpt.qha.AbstractQHA.get_thermal_expansion_coeff">
+<code class="descname">get_thermal_expansion_coeff</code><span class="sig-paren">(</span><em>tstart=0</em>, <em>tstop=800</em>, <em>num=100</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#AbstractQHA.get_thermal_expansion_coeff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.AbstractQHA.get_thermal_expansion_coeff" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculates the thermal expansion coefficient as a function of temperature, using
 finite difference on the fitted values of the volume as a function of temperature.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -4626,8 +5286,8 @@ finite difference on the fitted values of the volume as a function of temperatur
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.dfpt.qha.QHA.plot_thermal_expansion_coeff">
-<code class="descname">plot_thermal_expansion_coeff</code><span class="sig-paren">(</span><em>tstart=0</em>, <em>tstop=800</em>, <em>num=100</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA.plot_thermal_expansion_coeff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA.plot_thermal_expansion_coeff" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.dfpt.qha.AbstractQHA.plot_thermal_expansion_coeff">
+<code class="descname">plot_thermal_expansion_coeff</code><span class="sig-paren">(</span><em>tstart=0</em>, <em>tstop=800</em>, <em>num=100</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#AbstractQHA.plot_thermal_expansion_coeff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.AbstractQHA.plot_thermal_expansion_coeff" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plots the thermal expansion coefficient as a function of the temperature.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -4637,13 +5297,13 @@ finite difference on the fitted values of the volume as a function of temperatur
 <li><strong>tstart</strong> – The starting value (in Kelvin) of the temperature mesh.</li>
 <li><strong>tstop</strong> – The end value (in Kelvin) of the mesh.</li>
 <li><strong>num</strong> – int, optional Number of samples to generate. Default is 100.</li>
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -4681,8 +5341,8 @@ Default: None i.e. fig is left unchanged.</td>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.dfpt.qha.QHA.plot_vol_vs_t">
-<code class="descname">plot_vol_vs_t</code><span class="sig-paren">(</span><em>tstart=0</em>, <em>tstop=800</em>, <em>num=100</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA.plot_vol_vs_t"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA.plot_vol_vs_t" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.dfpt.qha.AbstractQHA.plot_vol_vs_t">
+<code class="descname">plot_vol_vs_t</code><span class="sig-paren">(</span><em>tstart=0</em>, <em>tstop=800</em>, <em>num=100</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#AbstractQHA.plot_vol_vs_t"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.AbstractQHA.plot_vol_vs_t" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plots the volume as a function of the temperature.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -4692,13 +5352,13 @@ Default: None i.e. fig is left unchanged.</td>
 <li><strong>tstart</strong> – The starting value (in Kelvin) of the temperature mesh.</li>
 <li><strong>tstop</strong> – The end value (in Kelvin) of the mesh.</li>
 <li><strong>num</strong> – int, optional Number of samples to generate. Default is 100.</li>
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -4736,8 +5396,8 @@ Default: None i.e. fig is left unchanged.</td>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.dfpt.qha.QHA.plot_phbs">
-<code class="descname">plot_phbs</code><span class="sig-paren">(</span><em>phbands</em>, <em>temperatures=None</em>, <em>t_max=1000</em>, <em>colormap='plasma'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA.plot_phbs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA.plot_phbs" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.dfpt.qha.AbstractQHA.plot_phbs">
+<code class="descname">plot_phbs</code><span class="sig-paren">(</span><em>phbands</em>, <em>temperatures=None</em>, <em>t_max=1000</em>, <em>colormap='plasma'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#AbstractQHA.plot_phbs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.AbstractQHA.plot_phbs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a list of <a class="reference internal" href="#abipy.dfpt.phonons.PhononBands" title="abipy.dfpt.phonons.PhononBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.dfpt.phonons.PhononBands</span></code></a> plots the band structures with a color depending on
 the temperature using a <a class="reference internal" href="#abipy.dfpt.phonons.PhononBandsPlotter" title="abipy.dfpt.phonons.PhononBandsPlotter"><code class="xref py py-class docutils literal"><span class="pre">abipy.dfpt.phonons.PhononBandsPlotter</span></code></a>.
 If temperatures are not given they will be deduced inverting the dependence of volume
@@ -4757,7 +5417,7 @@ be raised.</p>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -4795,8 +5455,8 @@ Default: None i.e. fig is left unchanged.</td>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.dfpt.qha.QHA.get_vol_at_t">
-<code class="descname">get_vol_at_t</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA.get_vol_at_t"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA.get_vol_at_t" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.dfpt.qha.AbstractQHA.get_vol_at_t">
+<code class="descname">get_vol_at_t</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#AbstractQHA.get_vol_at_t"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.AbstractQHA.get_vol_at_t" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculates the volume corresponding to a specific temperature.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -4811,8 +5471,8 @@ Default: None i.e. fig is left unchanged.</td>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.dfpt.qha.QHA.get_t_for_vols">
-<code class="descname">get_t_for_vols</code><span class="sig-paren">(</span><em>vols</em>, <em>t_max=1000</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA.get_t_for_vols"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA.get_t_for_vols" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.dfpt.qha.AbstractQHA.get_t_for_vols">
+<code class="descname">get_t_for_vols</code><span class="sig-paren">(</span><em>vols</em>, <em>t_max=1000</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#AbstractQHA.get_t_for_vols"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.AbstractQHA.get_t_for_vols" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find the temperatures corresponding to a specific volume.
 The search is performed interpolating the V(T) dependence with a spline and
 finding the roots with of V(t) - v.
@@ -4836,8 +5496,8 @@ be identified.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.dfpt.qha.QHA.write_phonopy_qha_inputs">
-<code class="descname">write_phonopy_qha_inputs</code><span class="sig-paren">(</span><em>tstart=0</em>, <em>tstop=2100</em>, <em>num=211</em>, <em>path=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA.write_phonopy_qha_inputs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA.write_phonopy_qha_inputs" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.dfpt.qha.AbstractQHA.write_phonopy_qha_inputs">
+<code class="descname">write_phonopy_qha_inputs</code><span class="sig-paren">(</span><em>tstart=0</em>, <em>tstop=2100</em>, <em>num=211</em>, <em>path=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#AbstractQHA.write_phonopy_qha_inputs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.AbstractQHA.write_phonopy_qha_inputs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Writes nvols thermal_properties-i.yaml files that can be used as inputs for phonopy-qha.
 Notice that phonopy apparently requires the value of the 300 K temperature to be present
 in the list. Choose the values of tstart, tstop and num to satisfy this condition.</p>
@@ -4858,8 +5518,8 @@ in the list. Choose the values of tstart, tstop and num to satisfy this conditio
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.dfpt.qha.QHA.get_phonopy_qha">
-<code class="descname">get_phonopy_qha</code><span class="sig-paren">(</span><em>tstart=0</em>, <em>tstop=2100</em>, <em>num=211</em>, <em>eos='vinet'</em>, <em>t_max=None</em>, <em>energy_plot_factor=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA.get_phonopy_qha"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA.get_phonopy_qha" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.dfpt.qha.AbstractQHA.get_phonopy_qha">
+<code class="descname">get_phonopy_qha</code><span class="sig-paren">(</span><em>tstart=0</em>, <em>tstop=2100</em>, <em>num=211</em>, <em>eos='vinet'</em>, <em>t_max=None</em>, <em>energy_plot_factor=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#AbstractQHA.get_phonopy_qha"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.AbstractQHA.get_phonopy_qha" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates an instance of phonopy.qha.QHA that can be used generate further plots and output data.
 The object is returned right after the construction. The “run()” method should be executed
 before getting results and plots.
@@ -4889,20 +5549,360 @@ in the list. Choose the values of tstart, tstop and num to satisfy this conditio
 
 </dd></dl>
 
+<dl class="class">
+<dt id="abipy.dfpt.qha.QHA">
+<em class="property">class </em><code class="descclassname">abipy.dfpt.qha.</code><code class="descname">QHA</code><span class="sig-paren">(</span><em>structures</em>, <em>doses</em>, <em>energies</em>, <em>eos_name='vinet'</em>, <em>pressure=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#abipy.dfpt.qha.AbstractQHA" title="abipy.dfpt.qha.AbstractQHA"><code class="xref py py-class docutils literal"><span class="pre">abipy.dfpt.qha.AbstractQHA</span></code></a></p>
+<p>Object to extract results in the quasi-harmonic approximation from electronic and phonon calculations
+at different volumes.
+Provides some basic methods and plotting utils, plus a converter to write input files for phonopy-qha or to
+generate an instance of phonopy.qha.QHA. These can be used to obtain other quantities and plots.
+Does not include electronic entropic contributions for metals.</p>
+<dl class="method">
+<dt id="abipy.dfpt.qha.QHA.get_vib_free_energies">
+<code class="descname">get_vib_free_energies</code><span class="sig-paren">(</span><em>tstart=0</em>, <em>tstop=800</em>, <em>num=100</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA.get_vib_free_energies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA.get_vib_free_energies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates the vibrational free energy from the phonon DOS.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tstart</strong> – The starting value (in Kelvin) of the temperature mesh.</li>
+<li><strong>tstop</strong> – The end value (in Kelvin) of the mesh.</li>
+<li><strong>num</strong> – int, optional Number of samples to generate. Default is 100.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">AA numpy array of <cite>num</cite> values of of the vibrational contribution to the free energy</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.qha.QHA.get_thermodynamic_properties">
+<code class="descname">get_thermodynamic_properties</code><span class="sig-paren">(</span><em>tstart=0</em>, <em>tstop=800</em>, <em>num=100</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA.get_thermodynamic_properties"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA.get_thermodynamic_properties" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates all the thermodynamic properties corresponding to all the volumes using the phonon DOS.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tstart</strong> – The starting value (in Kelvin) of the temperature mesh.</li>
+<li><strong>tstop</strong> – The end value (in Kelvin) of the mesh.</li>
+<li><strong>num</strong> – int, optional Number of samples to generate. Default is 100.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">tmesh: numpy array with the list of temperatures. Shape (num).
+cv: constant-volume specific heat, in eV/K. Shape (nvols, num).
+free_energy: free energy, in eV. Shape (nvols, num).
+entropy: entropy, in eV/K. Shape (nvols, num).
+zpe: zero point energy in eV. Shape (nvols).</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><cite>namedtuple</cite> with the following attributes for all the volumes</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="abipy.dfpt.qha.QHA.from_files">
+<em class="property">classmethod </em><code class="descname">from_files</code><span class="sig-paren">(</span><em>gsr_files_paths</em>, <em>phdos_files_paths</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA.from_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA.from_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an instance of QHA from a list og GSR files and a list PHDOS.nc files.
+The list should have the same size and the volumes should match.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>gsr_files_paths</strong> – list of paths to GSR files.</li>
+<li><strong>phdos_files_paths</strong> – list of paths to PHDOS.nc files.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A new instance of QHA</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.dfpt.qha.QHA3PF">
+<em class="property">class </em><code class="descclassname">abipy.dfpt.qha.</code><code class="descname">QHA3PF</code><span class="sig-paren">(</span><em>structures</em>, <em>doses</em>, <em>energies</em>, <em>ind_doses</em>, <em>eos_name='vinet'</em>, <em>pressure=0</em>, <em>fit_degree=2</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA3PF"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA3PF" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#abipy.dfpt.qha.AbstractQHA" title="abipy.dfpt.qha.AbstractQHA"><code class="xref py py-class docutils literal"><span class="pre">abipy.dfpt.qha.AbstractQHA</span></code></a></p>
+<p>Object to extract results in the quasi-harmonic approximation from several electronic energies at different
+volumes and three phonon calculations.
+Provides some basic methods and plotting utils, plus a converter to write input files for phonopy-qha or to
+generate an instance of phonopy.qha.QHA. These can be used to obtain other quantities and plots.
+Does not include electronic entropic contributions for metals.</p>
+<dl class="method">
+<dt id="abipy.dfpt.qha.QHA3PF.get_thermodynamic_properties">
+<code class="descname">get_thermodynamic_properties</code><span class="sig-paren">(</span><em>tstart=0</em>, <em>tstop=800</em>, <em>num=100</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA3PF.get_thermodynamic_properties"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA3PF.get_thermodynamic_properties" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates all the thermodynamic properties corresponding to all the volumes using the phonon DOS.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tstart</strong> – The starting value (in Kelvin) of the temperature mesh.</li>
+<li><strong>tstop</strong> – The end value (in Kelvin) of the mesh.</li>
+<li><strong>num</strong> – int, optional Number of samples to generate. Default is 100.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">tmesh: numpy array with the list of temperatures. Shape (num).
+cv: constant-volume specific heat, in eV/K. Shape (nvols, num).
+free_energy: free energy, in eV. Shape (nvols, num).
+entropy: entropy, in eV/K. Shape (nvols, num).
+zpe: zero point energy in eV. Shape (nvols).</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><cite>namedtuple</cite> with the following attributes for all the volumes</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.qha.QHA3PF.get_vib_free_energies">
+<code class="descname">get_vib_free_energies</code><span class="sig-paren">(</span><em>tstart=0</em>, <em>tstop=800</em>, <em>num=100</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA3PF.get_vib_free_energies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA3PF.get_vib_free_energies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates the vibrational free energy corresponding to all the structures, either from the phonon DOS
+or from a fit of the know values.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tstart</strong> – The starting value (in Kelvin) of the temperature mesh.</li>
+<li><strong>tstop</strong> – The end value (in Kelvin) of the mesh.</li>
+<li><strong>num</strong> – int, optional Number of samples to generate. Default is 100.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A numpy array of <cite>num</cite> values of of the vibrational contribution to the free energy</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="abipy.dfpt.qha.QHA3PF.from_files">
+<em class="property">classmethod </em><code class="descname">from_files</code><span class="sig-paren">(</span><em>gsr_files_paths</em>, <em>phdos_files_paths</em>, <em>ind_doses</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA3PF.from_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA3PF.from_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an instance of QHA from a list og GSR files and a list PHDOS.nc files.
+The list should have the same size and the volumes should match.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>gsr_files_paths</strong> – list of paths to GSR files.</li>
+<li><strong>phdos_files_paths</strong> – list of paths to three PHDOS.nc files.</li>
+<li><strong>ind_doses</strong> – list of three values indicating, for each of the three doses, the index of the
+corresponding gsr_file in “gsr_files_paths”.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A new instance of QHA</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.dfpt.qha.QHA3P">
+<em class="property">class </em><code class="descclassname">abipy.dfpt.qha.</code><code class="descname">QHA3P</code><span class="sig-paren">(</span><em>structures</em>, <em>gruns</em>, <em>energies</em>, <em>ind_grun</em>, <em>eos_name='vinet'</em>, <em>pressure=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA3P"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA3P" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#abipy.dfpt.qha.AbstractQHA" title="abipy.dfpt.qha.AbstractQHA"><code class="xref py py-class docutils literal"><span class="pre">abipy.dfpt.qha.AbstractQHA</span></code></a></p>
+<p>Object to extract results in the quasi-harmonic approximation from several electronic energies at different
+volumes and three phonon calculations.
+Provides some basic methods and plotting utils, plus a converter to write input files for phonopy-qha or to
+generate an instance of phonopy.qha.QHA. These can be used to obtain other quantities and plots.
+Does not include electronic entropic contributions for metals.</p>
+<dl class="method">
+<dt id="abipy.dfpt.qha.QHA3P.get_thermodynamic_properties">
+<code class="descname">get_thermodynamic_properties</code><span class="sig-paren">(</span><em>tstart=0</em>, <em>tstop=800</em>, <em>num=100</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA3P.get_thermodynamic_properties"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA3P.get_thermodynamic_properties" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates the thermodynamic properties corresponding to all the structures, either from the phonon
+frequencies or from a fit of the know values..</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tstart</strong> – The starting value (in Kelvin) of the temperature mesh.</li>
+<li><strong>tstop</strong> – The end value (in Kelvin) of the mesh.</li>
+<li><strong>num</strong> – int, optional Number of samples to generate. Default is 100.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">tmesh: numpy array with the list of temperatures. Shape (num).
+cv: constant-volume specific heat, in eV/K. Shape (nvols, num).
+free_energy: free energy, in eV. Shape (nvols, num).
+entropy: entropy, in eV/K. Shape (nvols, num).
+zpe: zero point energy in eV. Shape (nvols).</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><cite>namedtuple</cite> with the following attributes for all the volumes</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.qha.QHA3P.fitted_frequencies">
+<code class="descname">fitted_frequencies</code><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA3P.fitted_frequencies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA3P.fitted_frequencies" title="Permalink to this definition">¶</a></dt>
+<dd><p>A numpy array with size (nvols, nqpts_ibz, 3*natoms) containing the phonon frequencies
+for all the volumes, either from the original phonon calculations or fitted</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.qha.QHA3P.get_vib_free_energies">
+<code class="descname">get_vib_free_energies</code><span class="sig-paren">(</span><em>tstart=0</em>, <em>tstop=800</em>, <em>num=100</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA3P.get_vib_free_energies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA3P.get_vib_free_energies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates the vibrational free energy corresponding to all the structures, either from the phonon DOS
+or from a fit of the know values.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tstart</strong> – The starting value (in Kelvin) of the temperature mesh.</li>
+<li><strong>tstop</strong> – The end value (in Kelvin) of the mesh.</li>
+<li><strong>num</strong> – int, optional Number of samples to generate. Default is 100.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A numpy array of <cite>num</cite> values of of the vibrational contribution to the free energy</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="abipy.dfpt.qha.QHA3P.from_files">
+<em class="property">classmethod </em><code class="descname">from_files</code><span class="sig-paren">(</span><em>gsr_files_paths</em>, <em>grun_file_path</em>, <em>ind_doses</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA3P.from_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA3P.from_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an instance of QHA from a list og GSR files and a list PHDOS.nc files.
+The list should have the same size and the volumes should match.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>gsr_files_paths</strong> – list of paths to GSR files.</li>
+<li><strong>phdos_files_paths</strong> – list of paths to three PHDOS.nc files.</li>
+<li><strong>ind_doses</strong> – list of three values indicating, for each of the three doses, the index of the
+corresponding gsr_file in “gsr_files_paths”.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A new instance of QHA</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.dfpt.qha.get_free_energy">
+<code class="descclassname">abipy.dfpt.qha.</code><code class="descname">get_free_energy</code><span class="sig-paren">(</span><em>w</em>, <em>weights</em>, <em>t</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#get_free_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.get_free_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the free energy in eV from the phonon frequencies on a regular grid.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>w</strong> – the phonon frequencies</li>
+<li><strong>weights</strong> – the weights of the q-points</li>
+<li><strong>t</strong> – the temperature</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.dfpt.qha.get_cv">
+<code class="descclassname">abipy.dfpt.qha.</code><code class="descname">get_cv</code><span class="sig-paren">(</span><em>w</em>, <em>weights</em>, <em>t</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#get_cv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.get_cv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the constant-volume specific heat in eV/K from the phonon frequencies on a regular grid.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>w</strong> – the phonon frequencies</li>
+<li><strong>weights</strong> – the weights of the q-points</li>
+<li><strong>t</strong> – the temperature</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.dfpt.qha.get_zero_point_energy">
+<code class="descclassname">abipy.dfpt.qha.</code><code class="descname">get_zero_point_energy</code><span class="sig-paren">(</span><em>w</em>, <em>weights</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#get_zero_point_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.get_zero_point_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the zero point energy in eV from the phonon frequencies on a regular grid.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>w</strong> – the phonon frequencies</li>
+<li><strong>weights</strong> – the weights of the q-points</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.dfpt.qha.get_entropy">
+<code class="descclassname">abipy.dfpt.qha.</code><code class="descname">get_entropy</code><span class="sig-paren">(</span><em>w</em>, <em>weights</em>, <em>t</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#get_entropy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.get_entropy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the entropy in eV/K from the phonon frequencies on a regular grid.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>w</strong> – the phonon frequencies</li>
+<li><strong>weights</strong> – the weights of the q-points</li>
+<li><strong>t</strong> – the temperature</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 <div class="section" id="module-abipy.dfpt.tensors">
 <span id="tensors-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">tensors</span></code> Module</a><a class="headerlink" href="#module-abipy.dfpt.tensors" title="Permalink to this headline">¶</a></h2>
-<p>This modules provides tensors objects extracted from dfpt calculations.</p>
+<p>This modules provides tensors objects produced by DFPT calculations.</p>
 <dl class="class">
 <dt id="abipy.dfpt.tensors.NLOpticalSusceptibilityTensor">
 <em class="property">class </em><code class="descclassname">abipy.dfpt.tensors.</code><code class="descname">NLOpticalSusceptibilityTensor</code><a class="reference internal" href="../_modules/abipy/dfpt/tensors.html#NLOpticalSusceptibilityTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.tensors.NLOpticalSusceptibilityTensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.Tensor" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.Tensor</span></code></a></p>
-<p>Subclass of <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.Tensor" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.Tensor</span></code></a> containing the
-non-linear optical susceptibility tensor.</p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.Tensor" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.Tensor</span></code></a></p>
+<p>Subclass of <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.Tensor" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.Tensor</span></code></a> containing the non-linear optical susceptibility tensor.</p>
 <dl class="classmethod">
 <dt id="abipy.dfpt.tensors.NLOpticalSusceptibilityTensor.from_file">
 <em class="property">classmethod </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/tensors.html#NLOpticalSusceptibilityTensor.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.tensors.NLOpticalSusceptibilityTensor.from_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates the tensor from a anaddb.nc netcdf file containing <code class="docutils literal"><span class="pre">dchide</span></code>.
+<dd><p>Creates the tensor from an anaddb.nc netcdf file containing <code class="docutils literal"><span class="pre">dchide</span></code>.
 This requires to run anaddb with <code class="docutils literal"><span class="pre">tnlflag</span></code> &gt; 0</p>
 </dd></dl>
 
@@ -4911,9 +5911,8 @@ This requires to run anaddb with <code class="docutils literal"><span class="pre
 <dl class="class">
 <dt id="abipy.dfpt.tensors.DielectricTensor">
 <em class="property">class </em><code class="descclassname">abipy.dfpt.tensors.</code><code class="descname">DielectricTensor</code><a class="reference internal" href="../_modules/abipy/dfpt/tensors.html#DielectricTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.tensors.DielectricTensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.SquareTensor" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.SquareTensor</span></code></a></p>
-<p>Subclass of <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.SquareTensor" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.SquareTensor</span></code></a>
-describing a dielectric tensor.</p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.SquareTensor" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.SquareTensor</span></code></a></p>
+<p>Subclass of <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.Tensor" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.Tensor</span></code></a> describing a dielectric tensor.</p>
 <dl class="method">
 <dt id="abipy.dfpt.tensors.DielectricTensor.reflectivity">
 <code class="descname">reflectivity</code><span class="sig-paren">(</span><em>tol=1e-06</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/tensors.html#DielectricTensor.reflectivity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.tensors.DielectricTensor.reflectivity" title="Permalink to this definition">¶</a></dt>
@@ -4939,7 +5938,7 @@ returns the three components of the reflectivity.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 26, 2018.<br/>
+      Last updated on Aug 14, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

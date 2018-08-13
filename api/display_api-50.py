@@ -1,2 +1,3 @@
-ax = sns.violinplot(x="time", y="tip", data=tips,
-                    order=["Dinner", "Lunch"])
+tips["weekend"] = tips["day"].isin(["Sat", "Sun"])
+ax = sns.violinplot(x="day", y="total_bill", hue="weekend",
+                    data=tips, dodge=False)

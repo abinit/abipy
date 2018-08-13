@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>abipy.dfpt.elastic &#8212; abipy 0.6.0.dev documentation</title>
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.6.0.dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.6.0.dev</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <h1>Source code for abipy.dfpt.elastic</h1><div class="highlight"><pre>
+<span></span><span class="c1"># coding: utf-8</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Objects to analyze elastic and piezoelectric tensors computed by anaddb.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">list_strings</span><span class="p">,</span> <span class="n">marquee</span>
+<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">AttrDict</span>
+<span class="kn">from</span> <span class="nn">monty.json</span> <span class="k">import</span> <span class="n">MSONable</span>
+<span class="c1">#from monty.functools import lazy_property</span>
+<span class="kn">from</span> <span class="nn">pymatgen.analysis.elasticity.tensors</span> <span class="k">import</span> <span class="n">Tensor</span>
+<span class="kn">from</span> <span class="nn">pymatgen.analysis.elasticity.elastic</span> <span class="k">import</span> <span class="n">ElasticTensor</span>
+<span class="kn">from</span> <span class="nn">pymatgen.analysis.piezo</span> <span class="k">import</span> <span class="n">PiezoTensor</span>
+<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">Has_Structure</span>
+<span class="kn">from</span> <span class="nn">abipy.flowtk.netcdf</span> <span class="k">import</span> <span class="n">ETSF_Reader</span>
+
+
+<div class="viewcode-block" id="MyElasticTensor"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.elastic.MyElasticTensor">[docs]</a><span class="k">class</span> <span class="nc">MyElasticTensor</span><span class="p">(</span><span class="n">ElasticTensor</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">_repr_html_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Integration with jupyter notebooks.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_voigt_dataframe</span><span class="p">()</span><span class="o">.</span><span class="n">_repr_html_</span><span class="p">()</span>
+
+<div class="viewcode-block" id="MyElasticTensor.get_voigt_dataframe"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.elastic.MyElasticTensor.get_voigt_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">get_voigt_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
+        <span class="n">tensor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">zeroed</span><span class="p">(</span><span class="n">tol</span><span class="p">)</span> <span class="k">if</span> <span class="n">tol</span> <span class="k">else</span> <span class="bp">self</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;xx&quot;</span><span class="p">,</span> <span class="s2">&quot;yy&quot;</span><span class="p">,</span> <span class="s2">&quot;zz&quot;</span><span class="p">,</span> <span class="s2">&quot;yz&quot;</span><span class="p">,</span> <span class="s2">&quot;xz&quot;</span><span class="p">,</span> <span class="s2">&quot;xy&quot;</span><span class="p">]</span>
+        <span class="c1">#columns = [&quot;1&quot;, &quot;2&quot;, &quot;3&quot;, &quot;4&quot;, &quot;5&quot;, &quot;6&quot;]</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">tensor</span><span class="o">.</span><span class="n">voigt</span><span class="p">:</span>
+            <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="n">row</span><span class="p">)})</span>
+
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="MyPiezoTensor"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.elastic.MyPiezoTensor">[docs]</a><span class="k">class</span> <span class="nc">MyPiezoTensor</span><span class="p">(</span><span class="n">PiezoTensor</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">_repr_html_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Integration with jupyter notebooks.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_voigt_dataframe</span><span class="p">()</span><span class="o">.</span><span class="n">_repr_html_</span><span class="p">()</span>
+
+<div class="viewcode-block" id="MyPiezoTensor.get_voigt_dataframe"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.elastic.MyPiezoTensor.get_voigt_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">get_voigt_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
+        <span class="n">tensor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">zeroed</span><span class="p">(</span><span class="n">tol</span><span class="p">)</span> <span class="k">if</span> <span class="n">tol</span> <span class="k">else</span> <span class="bp">self</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Px&quot;</span><span class="p">,</span> <span class="s2">&quot;Py&quot;</span><span class="p">,</span> <span class="s2">&quot;Pz&quot;</span><span class="p">]</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;xx&quot;</span><span class="p">,</span> <span class="s2">&quot;yy&quot;</span><span class="p">,</span> <span class="s2">&quot;zz&quot;</span><span class="p">,</span> <span class="s2">&quot;yz&quot;</span><span class="p">,</span> <span class="s2">&quot;xz&quot;</span><span class="p">,</span> <span class="s2">&quot;xy&quot;</span><span class="p">]</span>
+        <span class="c1">#index = [&quot;P1&quot;, &quot;P2&quot;, &quot;P3&quot;]</span>
+        <span class="c1">#columns = [&quot;1&quot;, &quot;2&quot;, &quot;3&quot;, &quot;4&quot;, &quot;5&quot;, &quot;6&quot;]</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">irow</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tensor</span><span class="o">.</span><span class="n">voigt</span><span class="p">):</span>
+            <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="n">row</span><span class="p">)})</span>
+
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ElasticData"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.elastic.ElasticData">[docs]</a><span class="k">class</span> <span class="nc">ElasticData</span><span class="p">(</span><span class="n">Has_Structure</span><span class="p">,</span> <span class="n">MSONable</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Container with the different elastic and piezoelectric tensors</span>
+<span class="sd">    computed by anaddb. Data is stored in pymatgen tensor objects.</span>
+
+<span class="sd">    Provides methods to analyze/tabule data</span>
+<span class="sd">    http://progs.coudert.name/elate/mp?query=mp-2172</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">ALL_ELASTIC_TENSOR_NAMES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;elastic_relaxed&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;elastic_clamped&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;elastic_stress_corr&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;elastic_relaxed_fixed_D&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">ALL_PIEZOELECTRIC_TENSOR_NAMES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;piezo_relaxed&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;piezo_clamped&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;d_piezo_relaxed&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;g_piezo_relaxed&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;h_piezo_relaxed&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">ALL_TENSOR_NAMES</span> <span class="o">=</span> <span class="n">ALL_ELASTIC_TENSOR_NAMES</span> <span class="o">+</span> <span class="n">ALL_PIEZOELECTRIC_TENSOR_NAMES</span>
+
+    <span class="n">TYPE2NAMES</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;all&quot;</span><span class="p">:</span> <span class="n">ALL_TENSOR_NAMES</span><span class="p">,</span>
+        <span class="s2">&quot;elastic&quot;</span><span class="p">:</span> <span class="n">ALL_ELASTIC_TENSOR_NAMES</span><span class="p">,</span>
+        <span class="s2">&quot;piezoelectric&quot;</span><span class="p">:</span> <span class="n">ALL_PIEZOELECTRIC_TENSOR_NAMES</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="c1"># https://journals.aps.org/prb/abstract/10.1103/PhysRevB.72.035105</span>
+    <span class="n">TENSOR_META</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;elastic_clamped&quot;</span><span class="p">:</span> <span class="n">AttrDict</span><span class="p">(</span>
+            <span class="n">info</span><span class="o">=</span><span class="s2">&quot;clamped-ion elastic tensor in Voigt notation (shape: (6, 6))&quot;</span><span class="p">,</span>
+            <span class="n">units</span><span class="o">=</span><span class="s2">&quot;GPa&quot;</span><span class="p">,</span> <span class="n">latex</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;${\xoverline(C)}$&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;elastic_relaxed&quot;</span><span class="p">:</span> <span class="n">AttrDict</span><span class="p">(</span>
+            <span class="n">info</span><span class="o">=</span><span class="s2">&quot;relaxed-ion elastic tensor in Voigt notation (shape: (6, 6))&quot;</span><span class="p">,</span>
+            <span class="n">units</span><span class="o">=</span><span class="s2">&quot;GPa&quot;</span><span class="p">,</span> <span class="n">latex</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$</span><span class="si">{C}</span><span class="s2">$&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;elastic_stress_corr&quot;</span><span class="p">:</span> <span class="n">AttrDict</span><span class="p">(</span>
+            <span class="n">info</span><span class="o">=</span><span class="s2">&quot;relaxed-ion elastic tensor considering the stress left inside cell in Voigt notation (shape: (6, 6))&quot;</span><span class="p">,</span>
+            <span class="n">units</span><span class="o">=</span><span class="s2">&quot;GPa&quot;</span><span class="p">,</span> <span class="n">latex</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;${C^{\sigma}}$&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;elastic_relaxed_fixed_D&quot;</span><span class="p">:</span> <span class="n">AttrDict</span><span class="p">(</span>
+            <span class="n">info</span><span class="o">=</span><span class="s2">&quot;relaxed-ion elastic tensor at fixed displacement field in Voigt notation (shape: (6, 6))&quot;</span><span class="p">,</span>
+            <span class="n">units</span><span class="o">=</span><span class="s2">&quot;GPa&quot;</span><span class="p">,</span> <span class="n">latex</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$C^{(D)}$&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;piezo_clamped&quot;</span><span class="p">:</span> <span class="n">AttrDict</span><span class="p">(</span>
+            <span class="n">info</span><span class="o">=</span><span class="s2">&quot;clamped-ion piezoelectric tensor in Voigt notation (shape: (3, 6))&quot;</span><span class="p">,</span>
+            <span class="n">units</span><span class="o">=</span><span class="s2">&quot;c/m^2&quot;</span><span class="p">,</span> <span class="n">latex</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;${\xoverline(e)}$&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;piezo_relaxed&quot;</span><span class="p">:</span> <span class="n">AttrDict</span><span class="p">(</span>
+            <span class="n">info</span><span class="o">=</span><span class="s2">&quot;relaxed-ion piezoelectric tensor in Voigt notation (shape: (3, 6))&quot;</span><span class="p">,</span>
+            <span class="n">units</span><span class="o">=</span><span class="s2">&quot;c/m^2&quot;</span><span class="p">,</span> <span class="n">latex</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$</span><span class="si">{e}</span><span class="s2">$&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;d_piezo_relaxed&quot;</span><span class="p">:</span> <span class="n">AttrDict</span><span class="p">(</span>
+            <span class="n">info</span><span class="o">=</span><span class="s2">&quot;relaxed-ion piezoelectric d tensor in Voigt notation (shape: (3, 6))&quot;</span><span class="p">,</span>
+            <span class="n">units</span><span class="o">=</span><span class="s2">&quot;pc/m^2&quot;</span><span class="p">,</span> <span class="n">latex</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$</span><span class="si">{d}</span><span class="s2">$&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;g_piezo_relaxed&quot;</span><span class="p">:</span> <span class="n">AttrDict</span><span class="p">(</span>
+            <span class="n">info</span><span class="o">=</span><span class="s2">&quot;relaxed-ion piezoelectric g tensor in Voigt notation (shape: (3, 6))&quot;</span><span class="p">,</span>
+            <span class="n">units</span><span class="o">=</span><span class="s2">&quot;m^2/c&quot;</span><span class="p">,</span> <span class="n">latex</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$</span><span class="si">{g}</span><span class="s2">$&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;h_piezo_relaxed&quot;</span><span class="p">:</span> <span class="n">AttrDict</span><span class="p">(</span>
+            <span class="n">info</span><span class="o">=</span><span class="s2">&quot;relaxed-ion piezoelectric h tensor in Voigt notation (shape: (3, 6))&quot;</span><span class="p">,</span>
+            <span class="n">units</span><span class="o">=</span><span class="s2">&quot;GN/c&quot;</span><span class="p">,</span> <span class="n">latex</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$</span><span class="si">{h}</span><span class="s2">$&quot;</span><span class="p">),</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">elastic_clamped</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">elastic_relaxed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">elastic_stress_corr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">elastic_relaxed_fixed_D</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">piezo_clamped</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">piezo_relaxed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">d_piezo_relaxed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">g_piezo_relaxed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">h_piezo_relaxed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            structure: |Structure| object.</span>
+<span class="sd">            params: Dictionary with input parameters.</span>
+<span class="sd">            elastic_clamped: clamped-ion elastic tensor in Voigt notation in GPa. shape (6,6).</span>
+<span class="sd">            elastic_relaxed: relaxed-ion elastic tensor in Voigt notation in GPa. shape (6,6).</span>
+<span class="sd">            elastic_stress_corr: relaxed-ion elastic tensor considering the stress left inside cell</span>
+<span class="sd">                in Voigt notation in GPa. shape (6,6).</span>
+<span class="sd">            elastic_relaxed_fixed_D: relaxed-ion elastic tensor at fixed displacement field</span>
+<span class="sd">                in Voigt notation in GPa. shape (6,6).</span>
+<span class="sd">            piezo_clamped: clamped-ion piezoelectric tensor in Voigt notation in c/m^2. shape (3,6).</span>
+<span class="sd">            piezo_relaxed: relaxed-ion piezoelectric tensor in Voigt notation in c/m^2. shape (3,6).</span>
+<span class="sd">            d_piezo_relaxed: relaxed-ion piezoelectric d tensor in Voigt notation in pc/m^2. shape (3,6).</span>
+<span class="sd">            g_piezo_relaxed: relaxed-ion piezoelectric g tensor in Voigt notation in m^2/c. shape (3,6).</span>
+<span class="sd">            h_piezo_relaxed: relaxed-ion piezoelectric h tensor in Voigt notation in GN/c. shape (3,6).</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            Arguments can be either arrays or Tensor objects.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span> <span class="o">=</span> <span class="n">structure</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">params</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elastic_clamped</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_define_variable</span><span class="p">(</span><span class="n">elastic_clamped</span><span class="p">,</span> <span class="n">MyElasticTensor</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elastic_relaxed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_define_variable</span><span class="p">(</span><span class="n">elastic_relaxed</span><span class="p">,</span> <span class="n">MyElasticTensor</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elastic_stress_corr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_define_variable</span><span class="p">(</span><span class="n">elastic_stress_corr</span><span class="p">,</span> <span class="n">MyElasticTensor</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elastic_relaxed_fixed_D</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_define_variable</span><span class="p">(</span><span class="n">elastic_relaxed_fixed_D</span><span class="p">,</span> <span class="n">MyElasticTensor</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">piezo_clamped</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_define_variable</span><span class="p">(</span><span class="n">piezo_clamped</span><span class="p">,</span> <span class="n">MyPiezoTensor</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">piezo_relaxed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_define_variable</span><span class="p">(</span><span class="n">piezo_relaxed</span><span class="p">,</span> <span class="n">MyPiezoTensor</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d_piezo_relaxed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_define_variable</span><span class="p">(</span><span class="n">d_piezo_relaxed</span><span class="p">,</span> <span class="n">MyPiezoTensor</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">g_piezo_relaxed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_define_variable</span><span class="p">(</span><span class="n">g_piezo_relaxed</span><span class="p">,</span> <span class="n">MyPiezoTensor</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">h_piezo_relaxed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_define_variable</span><span class="p">(</span><span class="n">h_piezo_relaxed</span><span class="p">,</span> <span class="n">MyPiezoTensor</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_define_variable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tensor_voigt</span><span class="p">,</span> <span class="n">tensor_class</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Helper function to set values of a variable</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tensor_voigt</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tensor_voigt</span><span class="p">,</span> <span class="n">tensor_class</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Expecting tensor class `</span><span class="si">%s</span><span class="s2">`, received class `</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">tensor_class</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">tensor_voigt</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">tensor_voigt</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">tensor_class</span><span class="o">.</span><span class="n">from_voigt</span><span class="p">(</span><span class="n">tensor_voigt</span><span class="p">)</span> <span class="k">if</span> <span class="n">tensor_voigt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;|Structure| object.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span>
+
+<div class="viewcode-block" id="ElasticData.from_file"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.from_file">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Builds the object from an anaddb.nc file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="n">ETSF_Reader</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_ncreader</span><span class="p">(</span><span class="n">reader</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ElasticData.from_ncreader"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.from_ncreader">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_ncreader</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">reader</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Builds the object from a ETSF_Reader</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">structure</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read_structure</span><span class="p">()</span>
+
+        <span class="n">params</span> <span class="o">=</span> <span class="n">AttrDict</span><span class="p">(</span>
+            <span class="c1"># NB: asr and chneut are always present in the new anaddb.nc file</span>
+            <span class="c1"># Use -666 to support old formats.</span>
+            <span class="n">asr</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;asr&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=-</span><span class="mi">666</span><span class="p">)),</span>
+            <span class="n">chneut</span><span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;chneut&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=-</span><span class="mi">666</span><span class="p">)),</span>
+            <span class="n">elaflag</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;elaflag&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)),</span>
+            <span class="n">instrflag</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;instrflag&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)),</span>
+            <span class="n">piezoflag</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;piezoflag&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)),</span>
+            <span class="n">dieflag</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;dieflag&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)),</span>
+        <span class="p">)</span>
+
+        <span class="n">ts</span> <span class="o">=</span> <span class="n">AttrDict</span><span class="p">({</span><span class="n">n</span><span class="p">:</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">ALL_TENSOR_NAMES</span><span class="p">})</span>
+
+        <span class="c1"># [6, 6] symmetric tensors (written by Fortran, produced in ddb_elast)</span>
+        <span class="n">ts</span><span class="o">.</span><span class="n">elastic_clamped</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;elastic_constants_clamped_ion&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">ts</span><span class="o">.</span><span class="n">elastic_relaxed</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;elastic_constants_relaxed_ion&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">elaflag</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="n">ts</span><span class="o">.</span><span class="n">elastic_stress_corr</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;elastic_constants_relaxed_ion_stress_corrected&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Written in ddb_piezo</span>
+        <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">elaflag</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">ts</span><span class="o">.</span><span class="n">elastic_relaxed_fixed_D</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;elastic_tensor_relaxed_ion_fixed_D&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="c1"># [3, 6] tensors (written by Fortran, produced in ddb_piezo).</span>
+        <span class="n">ts</span><span class="o">.</span><span class="n">piezo_clamped</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;piezo_clamped_ion&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">ts</span><span class="o">.</span><span class="n">piezo_relaxed</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;piezo_relaxed_ion&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">piezoflag</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">ts</span><span class="o">.</span><span class="n">d_piezo_relaxed</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;d_tensor_relaxed_ion&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="c1"># These are [6, 3] tensors written by Fortran (need to transpose).</span>
+        <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">piezoflag</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">):</span>
+            <span class="n">ts</span><span class="o">.</span><span class="n">g_piezo_relaxed</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;g_tensor_relaxed_ion&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ts</span><span class="o">.</span><span class="n">g_piezo_relaxed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">ts</span><span class="o">.</span><span class="n">g_piezo_relaxed</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">g_piezo_relaxed</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">piezoflag</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">):</span>
+            <span class="n">ts</span><span class="o">.</span><span class="n">h_piezo_relaxed</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;h_tensor_relaxed_ion&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ts</span><span class="o">.</span><span class="n">h_piezo_relaxed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">ts</span><span class="o">.</span><span class="n">h_piezo_relaxed</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">h_piezo_relaxed</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="o">**</span><span class="n">ts</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ElasticData.to_string"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;String represention with verbosity level `verbose`.&quot;&quot;&quot;</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Structure&quot;</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;Anaddb Variables&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
+        <span class="kn">import</span> <span class="nn">json</span>
+        <span class="n">app</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">tensor_type</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;elastic&quot;</span><span class="p">,</span> <span class="s2">&quot;piezoelectric&quot;</span><span class="p">):</span>
+            <span class="n">name_tensor_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name_tensor_list</span><span class="p">(</span><span class="n">tensor_type</span><span class="o">=</span><span class="n">tensor_type</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">name_tensor_list</span><span class="p">:</span>
+                <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> tensors available&quot;</span> <span class="o">%</span> <span class="n">tensor_type</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">tensor</span> <span class="ow">in</span> <span class="n">name_tensor_list</span><span class="p">:</span>
+                    <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">TENSOR_META</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+                    <span class="n">is_fit</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">.</span><span class="n">is_fit_to_structure</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">)</span>
+                    <span class="n">tol</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">elastic</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">piezoelectric</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">)[</span><span class="n">tensor_type</span><span class="p">]</span>
+                    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;[</span><span class="si">%s</span><span class="s2">]&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+                    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">meta</span><span class="o">.</span><span class="n">info</span><span class="p">)</span>
+                    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Units: </span><span class="si">%s</span><span class="s2">, set to zero below: </span><span class="si">%s</span><span class="s2">, fit_to_structure: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">meta</span><span class="o">.</span><span class="n">units</span><span class="p">,</span> <span class="n">tol</span><span class="p">,</span> <span class="n">is_fit</span><span class="p">))</span>
+                    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">tensor_type</span> <span class="o">==</span> <span class="s2">&quot;elastic&quot;</span><span class="p">:</span>
+                        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_elastic_tensor_dataframe</span><span class="p">(</span><span class="n">tensor_name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="n">tol</span><span class="p">)</span><span class="o">.</span><span class="n">to_string</span><span class="p">())</span>
+                    <span class="k">elif</span> <span class="n">tensor_type</span> <span class="o">==</span> <span class="s2">&quot;piezoelectric&quot;</span><span class="p">:</span>
+                        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_piezoelectric_tensor_dataframe</span><span class="p">(</span><span class="n">tensor_name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="n">tol</span><span class="p">)</span><span class="o">.</span><span class="n">to_string</span><span class="p">())</span>
+                    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ElasticData.get_tensor"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.get_tensor">[docs]</a>    <span class="k">def</span> <span class="nf">get_tensor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tensor_name</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return tensor from its name `tensor_name`.</span>
+<span class="sd">        Set to zero all entries below `tol` if `tol` is not None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tensor</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tensor_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tensor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">tol</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">tensor</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">.</span><span class="n">zeroed</span><span class="p">(</span><span class="n">tol</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tensor</span></div>
+
+<div class="viewcode-block" id="ElasticData.name_tensor_list"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.name_tensor_list">[docs]</a>    <span class="k">def</span> <span class="nf">name_tensor_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tensor_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tensor_type</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        List of (name, tensor) tuples. Only tensors stored in the object are returned.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tensor_names: List of tensor names to select. None means all.</span>
+<span class="sd">            tensor_type: Select tensors by type. Must be in [&quot;all&quot;, &quot;elastic&quot;, &quot;piezoelectric&quot;].</span>
+<span class="sd">            tol: Set to zero all all entries below this threshold</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">l</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">tensor_names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">TYPE2NAMES</span><span class="p">[</span><span class="n">tensor_type</span><span class="p">]:</span>
+                <span class="n">tensor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_tensor</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="n">tol</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">tensor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">l</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">name</span><span class="p">,</span> <span class="n">tensor</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">list_strings</span><span class="p">(</span><span class="n">tensor_names</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">TYPE2NAMES</span><span class="p">[</span><span class="n">tensor_type</span><span class="p">]:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;tensor name </span><span class="si">%s</span><span class="s2"> does not belong to type: `</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">tensor_type</span><span class="p">))</span>
+                <span class="n">tensor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_tensor</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="n">tol</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">tensor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">l</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">name</span><span class="p">,</span> <span class="n">tensor</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">l</span></div>
+
+<div class="viewcode-block" id="ElasticData.fit_to_structure"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.fit_to_structure">[docs]</a>    <span class="k">def</span> <span class="nf">fit_to_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return new ElasticData object with tensors that are invariant with respect to symmetry</span>
+<span class="sd">        operations corresponding to `structure`.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            structure: |Structure| from which to generate symmetry operations</span>
+<span class="sd">                If None, the internal structure is used.</span>
+<span class="sd">            symprec (float): symmetry tolerance for the Spacegroup Analyzer</span>
+<span class="sd">                used to generate the symmetry operations</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">structure</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span> <span class="k">if</span> <span class="n">structure</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">structure</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">tensor</span><span class="o">.</span><span class="n">fit_to_structure</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">tensor</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">name_tensor_list</span><span class="p">()}</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ElasticData.convert_to_ieee"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.convert_to_ieee">[docs]</a>    <span class="k">def</span> <span class="nf">convert_to_ieee</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">initial_fit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">refine_rotation</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return new set of tensors in IEEE format according to the 1987 IEEE standards.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            structure: A |Structure| structure associated with the</span>
+<span class="sd">                tensor to be converted to the IEEE standard</span>
+<span class="sd">                If None, the internal structure is used</span>
+<span class="sd">            initial_fit (bool): flag to indicate whether initial</span>
+<span class="sd">                tensor is fit to the symmetry of the structure.</span>
+<span class="sd">                Defaults to true. Note that if false, inconsistent</span>
+<span class="sd">                results may be obtained due to symmetrically</span>
+<span class="sd">                equivalent, but distinct transformations</span>
+<span class="sd">                being used in different versions of spglib.</span>
+<span class="sd">            refine_rotation (bool): whether to refine the rotation</span>
+<span class="sd">                produced by the ieee transform generator, default True</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">structure</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span> <span class="k">if</span> <span class="n">structure</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">structure</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">tensor</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">name_tensor_list</span><span class="p">():</span>
+            <span class="c1"># TODO: one should pass the ieee stucture.</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">.</span><span class="n">convert_to_ieee</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span>
+                <span class="n">initial_fit</span><span class="o">=</span><span class="n">initial_fit</span><span class="p">,</span> <span class="n">refine_rotation</span><span class="o">=</span><span class="n">refine_rotation</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ElasticData.get_elastic_tensor_dataframe"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.get_elastic_tensor_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">get_elastic_tensor_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tensor_name</span><span class="o">=</span><span class="s2">&quot;elastic_relaxed&quot;</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            tensor_name:</span>
+<span class="sd">            tol: set to zero all entries below this threshold.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tensor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_tensor</span><span class="p">(</span><span class="n">tensor_name</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="n">tol</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tensor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;xx&quot;</span><span class="p">,</span> <span class="s2">&quot;yy&quot;</span><span class="p">,</span> <span class="s2">&quot;zz&quot;</span><span class="p">,</span> <span class="s2">&quot;yz&quot;</span><span class="p">,</span> <span class="s2">&quot;xz&quot;</span><span class="p">,</span> <span class="s2">&quot;xy&quot;</span><span class="p">]</span>
+        <span class="c1">#columns = [&quot;1&quot;, &quot;2&quot;, &quot;3&quot;, &quot;4&quot;, &quot;5&quot;, &quot;6&quot;]</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">tensor</span><span class="o">.</span><span class="n">voigt</span><span class="p">:</span>
+            <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="n">row</span><span class="p">)})</span>
+
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ElasticData.get_piezoelectric_tensor_dataframe"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.get_piezoelectric_tensor_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">get_piezoelectric_tensor_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tensor_name</span><span class="o">=</span><span class="s2">&quot;piezo_relaxed&quot;</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            tensor_name:</span>
+<span class="sd">            tol: set to zero all entries below this threshold.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tensor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_tensor</span><span class="p">(</span><span class="n">tensor_name</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="n">tol</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tensor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Px&quot;</span><span class="p">,</span> <span class="s2">&quot;Py&quot;</span><span class="p">,</span> <span class="s2">&quot;Pz&quot;</span><span class="p">]</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;xx&quot;</span><span class="p">,</span> <span class="s2">&quot;yy&quot;</span><span class="p">,</span> <span class="s2">&quot;zz&quot;</span><span class="p">,</span> <span class="s2">&quot;yz&quot;</span><span class="p">,</span> <span class="s2">&quot;xz&quot;</span><span class="p">,</span> <span class="s2">&quot;xy&quot;</span><span class="p">]</span>
+        <span class="c1">#index = [&quot;P1&quot;, &quot;P2&quot;, &quot;P3&quot;]</span>
+        <span class="c1">#columns = [&quot;1&quot;, &quot;2&quot;, &quot;3&quot;, &quot;4&quot;, &quot;5&quot;, &quot;6&quot;]</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">tensor</span><span class="o">.</span><span class="n">voigt</span><span class="p">:</span>
+            <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="n">row</span><span class="p">)})</span>
+
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ElasticData.get_elastic_voigt_dataframe"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.get_elastic_voigt_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">get_elastic_voigt_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">voigt_as_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_voigt_dataframe</span><span class="p">(</span><span class="n">tensor_names</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ALL_ELASTIC_TENSOR_NAMES</span><span class="p">,</span>
+                                    <span class="n">voigt_as_index</span><span class="o">=</span><span class="n">voigt_as_index</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="n">tol</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ElasticData.get_piezo_voigt_dataframe"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.get_piezo_voigt_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">get_piezo_voigt_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">voigt_as_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_voigt_dataframe</span><span class="p">(</span><span class="n">tensor_names</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ALL_PIEZOELECTRIC_TENSOR_NAMES</span><span class="p">,</span>
+                                        <span class="n">voigt_as_index</span><span class="o">=</span><span class="n">voigt_as_index</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="n">tol</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ElasticData.get_voigt_dataframe"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.get_voigt_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">get_voigt_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tensor_names</span><span class="p">,</span> <span class="n">voigt_as_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a |pandas-DataFrame| with Voigt indices as colums (C-indexing starting from 0).</span>
+<span class="sd">        Useful to analyze the converge of individual elements of the tensor(s)</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tensor_names: List of tensor names.</span>
+<span class="sd">            tol: Set to zero all all entries below a certain threshold</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">rows</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">tensor</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">name_tensor_list</span><span class="p">(</span><span class="n">tensor_names</span><span class="o">=</span><span class="n">tensor_names</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="n">tol</span><span class="p">):</span>
+            <span class="n">voigt_map</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">.</span><span class="n">get_voigt_dict</span><span class="p">(</span><span class="n">tensor</span><span class="o">.</span><span class="n">rank</span><span class="p">)</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="n">voigt_map</span><span class="p">:</span>
+                <span class="n">row</span><span class="p">[</span><span class="n">voigt_map</span><span class="p">[</span><span class="n">ind</span><span class="p">]]</span> <span class="o">=</span> <span class="n">tensor</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
+            <span class="n">index</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">item</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+            <span class="n">row</span><span class="p">[</span><span class="s2">&quot;tensor_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
+            <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+
+        <span class="c1"># Build dataframe.</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">rows</span> <span class="k">else</span> <span class="kc">None</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">voigt_as_index</span><span class="p">:</span>
+            <span class="c1"># Return transpose to have (i,j) as index and tensor names as columns</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="s2">&quot;tensor_name&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;voigt_cinds&quot;</span>
+            <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+            <span class="c1">#return df</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">df</span></div>
+
+<div class="viewcode-block" id="ElasticData.get_elastic_properties_dataframe"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.get_elastic_properties_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">get_elastic_properties_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tensor_names</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">properties_as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">include_base_props</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fit_to_structure</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a |pandas-DataFrame| with properties derived from the elastic tensor</span>
+<span class="sd">        and the associated structure</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tensor_names= [&quot;elastic_relaxed&quot;, &quot;elastic_clamped&quot;, &quot;elastic_stress_corr&quot;, &quot;elastic_relaxed_fixed_D&quot;]</span>
+<span class="sd">            properties_as_index:</span>
+<span class="sd">            include_base_props (bool): whether to include base properties, like k_vrh, etc.</span>
+<span class="sd">            ignore_errors (bool): if set to true, will set problem properties</span>
+<span class="sd">                that depend on a physical tensor to None, defaults to False</span>
+<span class="sd">            fit_to_structure (bool): If True, properties are computed with the orginal tensors</span>
+<span class="sd">                and symmetrized tensors. An additional column `fit_to_structure` is added to the dataframe.</span>
+<span class="sd">            symprec (float): symmetry tolerance for the Spacegroup Analyzer</span>
+<span class="sd">                used to generate the symmetry operations if `fit_to_structure`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tensor_names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ALL_ELASTIC_TENSOR_NAMES</span> <span class="k">if</span> <span class="n">tensor_names</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span> <span class="k">else</span> <span class="n">list_strings</span><span class="p">(</span><span class="n">tensor_names</span><span class="p">)</span>
+        <span class="n">do_fits</span> <span class="o">=</span> <span class="p">[</span><span class="kc">False</span><span class="p">]</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">fit_to_structure</span> <span class="k">else</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">]</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">tensor</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">name_tensor_list</span><span class="p">(</span><span class="n">tensor_names</span><span class="o">=</span><span class="n">tensor_names</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">do_fit</span> <span class="ow">in</span> <span class="n">do_fits</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">do_fit</span><span class="p">:</span>
+                    <span class="n">tensor</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">.</span><span class="n">fit_to_structure</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">)</span>
+                <span class="n">d</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">.</span><span class="n">get_structure_property_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span>
+                        <span class="n">include_base_props</span><span class="o">=</span><span class="n">include_base_props</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="n">ignore_errors</span><span class="p">)</span>
+                <span class="n">d</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;structure&quot;</span><span class="p">)</span>
+                <span class="c1"># Add column telling whether fit has been performed</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">do_fits</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;fit_to_structure&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">do_fit</span>
+                <span class="n">d</span><span class="p">[</span><span class="s2">&quot;tensor_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
+                <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">rows</span> <span class="k">else</span> <span class="kc">None</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">properties_as_index</span><span class="p">:</span>
+            <span class="c1"># TODO</span>
+            <span class="c1"># Return transpose to have (i,j) as index and tensor names as columns</span>
+            <span class="c1">#columns = df.columns</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="s2">&quot;tensor_name&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;property&quot;</span>
+            <span class="c1">#df.columns = columns</span>
+            <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">df</span></div></div>
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
+      Last updated on Aug 14, 2018.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

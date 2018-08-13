@@ -1,3 +1,3 @@
-g = (sns.jointplot("sepal_length", "sepal_width",
-                   data=iris, color="k")
-        .plot_joint(sns.kdeplot, zorder=0, n_levels=6))
+x, y = np.random.randn(2, 300)
+g = (sns.jointplot(x, y, kind="hex")
+        .set_axis_labels("x", "y"))

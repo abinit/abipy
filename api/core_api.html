@@ -113,7 +113,6 @@
 <li><a class="reference internal" href="#module-abipy.core.skw"><code class="docutils literal"><span class="pre">skw</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.core.structure"><code class="docutils literal"><span class="pre">structure</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.core.symmetries"><code class="docutils literal"><span class="pre">symmetries</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.core.tensor"><code class="docutils literal"><span class="pre">tensor</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.core.testing"><code class="docutils literal"><span class="pre">testing</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.core.wyckoff"><code class="docutils literal"><span class="pre">wyckoff</span></code> Module</a></li>
 </ul>
@@ -185,9 +184,8 @@
 <li><a class="reference internal" href="#module-abipy.core.skw" id="id26"><code class="xref py py-mod docutils literal"><span class="pre">skw</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.core.structure" id="id27"><code class="xref py py-mod docutils literal"><span class="pre">structure</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.core.symmetries" id="id28"><code class="xref py py-mod docutils literal"><span class="pre">symmetries</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.core.tensor" id="id29"><code class="xref py py-mod docutils literal"><span class="pre">tensor</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.core.testing" id="id30"><code class="xref py py-mod docutils literal"><span class="pre">testing</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.core.wyckoff" id="id31"><code class="xref py py-mod docutils literal"><span class="pre">wyckoff</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.core.testing" id="id29"><code class="xref py py-mod docutils literal"><span class="pre">testing</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.core.wyckoff" id="id30"><code class="xref py py-mod docutils literal"><span class="pre">wyckoff</span></code> Module</a></li>
 </ul>
 </li>
 </ul>
@@ -825,7 +823,7 @@ but the calculation is faster.</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a>.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a>.</li>
 <li><strong>exchange_xy</strong> – True to exchange the axis in the plot.</li>
 <li><strong>args</strong> – Positional arguments passed to ax.plot</li>
 <li><strong>yfactor</strong> (<em>xfactor</em><em>,</em>) – xvalues and yvalues are multiplied by this factor before plotting.</li>
@@ -873,7 +871,7 @@ Options can be concatenated with “-“</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</td>
 </tr>
 </tbody>
 </table>
@@ -893,7 +891,7 @@ Options can be concatenated with “-“</td>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a>.</p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a>.</p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -1178,7 +1176,7 @@ instance or a list of <cite>Kpoint</cite> items.</li>
 <dl class="class">
 <dt id="abipy.core.kpoints.Kpoint">
 <em class="property">class </em><code class="descclassname">abipy.core.kpoints.</code><code class="descname">Kpoint</code><span class="sig-paren">(</span><em>frac_coords</em>, <em>lattice</em>, <em>weight=None</em>, <em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpoint" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.util.serialization.html#pymatgen.util.serialization.SlotPickleMixin" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.util.serialization.SlotPickleMixin</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.util.serialization.html#pymatgen.util.serialization.SlotPickleMixin" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.util.serialization.SlotPickleMixin</span></code></a></p>
 <p>Class defining one k-point. This object is immutable and can be used as key in dictionaries</p>
 <dl class="attribute">
 <dt id="abipy.core.kpoints.Kpoint.frac_coords">
@@ -1189,7 +1187,7 @@ instance or a list of <cite>Kpoint</cite> items.</li>
 <dl class="attribute">
 <dt id="abipy.core.kpoints.Kpoint.lattice">
 <code class="descname">lattice</code><a class="headerlink" href="#abipy.core.kpoints.Kpoint.lattice" title="Permalink to this definition">¶</a></dt>
-<dd><p><a class="reference external" href="http://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> object describing the Reciprocal lattice.</p>
+<dd><p><a class="reference external" href="http://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> object describing the Reciprocal lattice.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1244,7 +1242,7 @@ instance or a list of <cite>Kpoint</cite> items.</li>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>obj</strong> – <a class="reference internal" href="#abipy.core.kpoints.Kpoint" title="abipy.core.kpoints.Kpoint"><code class="xref py py-class docutils literal"><span class="pre">Kpoint</span></code></a> instance or array-like with the reduced coordinates.</li>
-<li><strong>lattice</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> object defining the reciprocal lattice.</li>
+<li><strong>lattice</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> object defining the reciprocal lattice.</li>
 </ul>
 </td>
 </tr>
@@ -1356,7 +1354,7 @@ This object is immutable.</p>
 <dl class="attribute">
 <dt id="abipy.core.kpoints.KpointList.reciprocal_lattice">
 <code class="descname">reciprocal_lattice</code><a class="headerlink" href="#abipy.core.kpoints.KpointList.reciprocal_lattice" title="Permalink to this definition">¶</a></dt>
-<dd><p><a class="reference external" href="http://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> object defining the reciprocal lattice.</p>
+<dd><p><a class="reference external" href="http://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> object defining the reciprocal lattice.</p>
 </dd></dl>
 
 <dl class="method">
@@ -2024,7 +2022,7 @@ An AbinitNcFile has a netcdf reader to read data from file and build objects.</p
 <dt id="abipy.core.mixins.AbinitNcFile.params">
 <code class="descname">params</code><a class="headerlink" href="#abipy.core.mixins.AbinitNcFile.params" title="Permalink to this definition">¶</a></dt>
 <dd><p><code class="xref py py-class docutils literal"><span class="pre">OrderedDict</span></code> with the convergence parameters
-Used to construct <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a>.</p>
+Used to construct <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a>.</p>
 </dd></dl>
 
 </dd></dl>
@@ -2154,6 +2152,12 @@ Used to construct <a class="reference external" href="http://pandas-docs.github.
 <dt id="abipy.core.mixins.Has_ElectronBands.plot_ebands_with_edos">
 <code class="descname">plot_ebands_with_edos</code><span class="sig-paren">(</span><em>edos</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/mixins.html#Has_ElectronBands.plot_ebands_with_edos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.mixins.Has_ElectronBands.plot_ebands_with_edos" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot the electron energy bands with DOS. See the <code class="xref py py-func docutils literal"><span class="pre">ElectronBands.plot_with_edos()</span></code> for the signature.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.mixins.Has_ElectronBands.get_edos">
+<code class="descname">get_edos</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/mixins.html#Has_ElectronBands.get_edos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.mixins.Has_ElectronBands.get_edos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the electronic DOS on a linear mesh. Wraps ebands.get_edos.</p>
 </dd></dl>
 
 <dl class="method">
@@ -2357,9 +2361,9 @@ can be changed to other urls implementing a similar interface.</li>
 <dl class="class">
 <dt id="abipy.core.restapi.MyMPRester">
 <em class="property">class </em><code class="descclassname">abipy.core.restapi.</code><code class="descname">MyMPRester</code><span class="sig-paren">(</span><em>api_key=None</em>, <em>endpoint='https://www.materialsproject.org/rest/v2'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/restapi.html#MyMPRester"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.restapi.MyMPRester" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.ext.matproj.html#pymatgen.ext.matproj.MPRester" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.ext.matproj.MPRester</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.ext.matproj.html#pymatgen.ext.matproj.MPRester" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.ext.matproj.MPRester</span></code></a></p>
 <p>Subclass Materials project Rester.
-See <a class="reference internal" href="../zzbiblio.html#jain2013" id="id2">[JOH+13]</a><a class="reference internal" href="../zzbiblio.html#ong2015" id="id3">[OCJ+15]</a>.</p>
+See <a class="reference internal" href="../zzbiblio.html#jain2013" id="id2">[Jain2013]</a><a class="reference internal" href="../zzbiblio.html#ong2015" id="id3">[Ong2015]</a>.</p>
 <p class="rubric">Inheritance Diagram</p>
 <img src="../_images/inheritance-82ddd783129473bfa1b5dcbc50cdf45e35e62555.png" alt="Inheritance diagram of MyMPRester" usemap="#inheritance6fa0732b8a" class="inheritance"/>
 <map id="inheritance6fa0732b8a" name="inheritance6fa0732b8a">
@@ -2396,7 +2400,7 @@ See <a class="reference internal" href="../zzbiblio.html#jain2013" id="id2">[JOH
 <p>Inspired to:</p>
 <blockquote>
 <div><a class="reference external" href="https://anaconda.org/matsci/plotting-and-analyzing-a-phase-diagram-using-the-materials-api/notebook">https://anaconda.org/matsci/plotting-and-analyzing-a-phase-diagram-using-the-materials-api/notebook</a></div></blockquote>
-<p>See also: <a class="reference internal" href="../zzbiblio.html#ong2008" id="id4">[POWKC08]</a><a class="reference internal" href="../zzbiblio.html#ong2010" id="id5">[OJH+10]</a></p>
+<p>See also: <a class="reference internal" href="../zzbiblio.html#ong2008" id="id4">[Ong2008]</a><a class="reference internal" href="../zzbiblio.html#ong2010" id="id5">[Ong2010]</a></p>
 <dl class="method">
 <dt id="abipy.core.restapi.PhaseDiagramResults.plot">
 <code class="descname">plot</code><span class="sig-paren">(</span><em>show_unstable=True</em>, <em>show=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/restapi.html#PhaseDiagramResults.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.restapi.PhaseDiagramResults.plot" title="Permalink to this definition">¶</a></dt>
@@ -2564,7 +2568,7 @@ working directory is created. Return path to the notebook.</p>
 <dt id="abipy.core.restapi.CodStructures">
 <em class="property">class </em><code class="descclassname">abipy.core.restapi.</code><code class="descname">CodStructures</code><span class="sig-paren">(</span><em>structures</em>, <em>ids</em>, <em>data=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/restapi.html#CodStructures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.restapi.CodStructures" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#abipy.core.restapi.DatabaseStructures" title="abipy.core.restapi.DatabaseStructures"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.restapi.DatabaseStructures</span></code></a></p>
-<p>Store the results of a query to the <a class="reference external" href="http://www.crystallography.net/cod/">COD</a> database <a class="reference internal" href="../zzbiblio.html#grazulis2011" id="id6">[GDM+11]</a>.</p>
+<p>Store the results of a query to the <a class="reference external" href="http://www.crystallography.net/cod/">COD</a> database <a class="reference internal" href="../zzbiblio.html#grazulis2011" id="id6">[Grazulis2011]</a>.</p>
 <img src="../_images/inheritance-c021150f804cc465cd6ac8ba02d8e5bbf8a34d2f.png" alt="Inheritance diagram of CodStructures" usemap="#inheritance1fae80e31c" class="inheritance"/>
 <map id="inheritance1fae80e31c" name="inheritance1fae80e31c">
 <area shape="rect" id="node1" href="#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="5,5,219,29"/>
@@ -2579,7 +2583,7 @@ working directory is created. Return path to the notebook.</p>
 <dl class="attribute">
 <dt id="abipy.core.restapi.CodStructures.dataframe">
 <code class="descname">dataframe</code><a class="reference internal" href="../_modules/abipy/core/restapi.html#CodStructures.dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.restapi.CodStructures.dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p><a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> constructed. Essentially geometrical info and space groups found by <a class="reference external" href="https://atztogo.github.io/spglib/">spglib</a>
+<dd><p><a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> constructed. Essentially geometrical info and space groups found by <a class="reference external" href="https://atztogo.github.io/spglib/">spglib</a>
 as COD API is rather limited.</p>
 </dd></dl>
 
@@ -2601,7 +2605,7 @@ as COD API is rather limited.</p>
 <div class="section" id="module-abipy.core.skw">
 <span id="skw-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">skw</span></code> Module</a><a class="headerlink" href="#module-abipy.core.skw" title="Permalink to this headline">¶</a></h2>
 <p>Shankland-Koelling-Wood Fourier interpolation scheme.
-For the theoretical background see <a class="reference internal" href="../zzbiblio.html#euwema1969" id="id7">[ESC+69]</a><a class="reference internal" href="../zzbiblio.html#koelling1986" id="id8">[KW86]</a><a class="reference internal" href="../zzbiblio.html#pickett1988" id="id9">[PKA88]</a><a class="reference internal" href="../zzbiblio.html#madsen2006" id="id10">[MS06]</a>.</p>
+For the theoretical background see <a class="reference internal" href="../zzbiblio.html#euwema1969" id="id7">[Euwema1969]</a><a class="reference internal" href="../zzbiblio.html#koelling1986" id="id8">[Koelling1986]</a><a class="reference internal" href="../zzbiblio.html#pickett1988" id="id9">[Pickett1988]</a><a class="reference internal" href="../zzbiblio.html#madsen2006" id="id10">[Madsen2006]</a>.</p>
 <dl class="function">
 <dt id="abipy.core.skw.n_fermi_dirac">
 <code class="descclassname">abipy.core.skw.</code><code class="descname">n_fermi_dirac</code><span class="sig-paren">(</span><em>enes</em>, <em>mu</em>, <em>temp</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/skw.html#n_fermi_dirac"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.skw.n_fermi_dirac" title="Permalink to this definition">¶</a></dt>
@@ -2879,14 +2883,14 @@ the axis in half of adjacent mesh points irrespective of the mesh numbers. None 
 <li><strong>method</strong> – String defining the method for the computation of the DOS.</li>
 <li><strong>step</strong> – Energy step (eV) of the linear mesh.</li>
 <li><strong>width</strong> – Standard deviation (eV) of the gaussian.</li>
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>fontsize</strong> – Legend and title fontsize.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -2939,14 +2943,14 @@ the axis in half of adjacent mesh points irrespective of the mesh numbers. None 
 <li><strong>method</strong> – String defining the method for the computation of the DOS.</li>
 <li><strong>step</strong> – Energy step (eV) of the linear mesh.</li>
 <li><strong>width</strong> – Standard deviation (eV) of the gaussian.</li>
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>fontsize</strong> – Legend and title fontsize.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -3000,14 +3004,14 @@ divisions along the reciprocal primitive axes.</li>
 <li><strong>line_density</strong> – </li>
 <li><strong>is_shift</strong> – three integers (spglib API). When is_shift is not None, the kmesh is shifted along
 the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.</li>
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>fontsize</strong> – Legend and title fontsize.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -3061,14 +3065,14 @@ divisions along the reciprocal primitive axes.</li>
 <li><strong>line_density</strong> – </li>
 <li><strong>is_shift</strong> – three integers (spglib API). When is_shift is not None, the kmesh is shifted along
 the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.</li>
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>fontsize</strong> – legend and title fontsize.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -3116,13 +3120,13 @@ Default: None i.e. fig is left unchanged.</td>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>vertices_names</strong> – </li>
 <li><strong>line_density</strong> – </li>
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -3425,11 +3429,11 @@ and List of dictionaries with COD data (same order as structures).</p>
 <dl class="class">
 <dt id="abipy.core.structure.Structure">
 <em class="property">class </em><code class="descclassname">abipy.core.structure.</code><code class="descname">Structure</code><span class="sig-paren">(</span><em>lattice</em>, <em>species</em>, <em>coords</em>, <em>charge=None</em>, <em>validate_proximity=False</em>, <em>to_unit_cell=False</em>, <em>coords_are_cartesian=False</em>, <em>site_properties=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.core.structure.html#pymatgen.core.structure.Structure" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.structure.Structure</span></code></a>, <a class="reference internal" href="#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
-<p>Extends <a class="reference external" href="http://pymatgen.org/pymatgen.core.structure.html#pymatgen.core.structure.Structure" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.structure.Structure</span></code></a> with Abinit-specific methods.</p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.core.structure.html#pymatgen.core.structure.Structure" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.structure.Structure</span></code></a>, <a class="reference internal" href="#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
+<p>Extends <a class="reference external" href="http://pymatgen.org/pymatgen.core.structure.html#pymatgen.core.structure.Structure" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.structure.Structure</span></code></a> with Abinit-specific methods.</p>
 <p>A <a class="reference external" href="http://jupyter.org/">jupyter</a> notebook documenting the usage of this object is available at
 &lt;<a class="reference external" href="https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/structure.ipynb">https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/structure.ipynb</a>&gt;</p>
-<p>For the pymatgen project see <a class="reference internal" href="../zzbiblio.html#ong2013" id="id11">[ORJ+13]</a>.</p>
+<p>For the pymatgen project see <a class="reference internal" href="../zzbiblio.html#ong2013" id="id11">[Ong2013]</a>.</p>
 <p class="rubric">Inheritance Diagram</p>
 <img src="../_images/inheritance-df5be106df0cb4d1062bcffd64d10a5be962215b.png" alt="Inheritance diagram of Structure" usemap="#inheritance1cec5e4573" class="inheritance"/>
 <map id="inheritance1cec5e4573" name="inheritance1cec5e4573">
@@ -3604,10 +3608,10 @@ can be changed to other urls implementing a similar interface.</li>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>a</strong> – Lattice parameter (Angstrom if units is not given)</li>
-<li><strong>species</strong> – Chemical species. See __init__ method of <a class="reference external" href="http://pymatgen.org/pymatgen.core.structure.html#pymatgen.core.structure.Structure" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.structure.Structure</span></code></a></li>
+<li><strong>species</strong> – Chemical species. See __init__ method of <a class="reference external" href="http://pymatgen.org/pymatgen.core.structure.html#pymatgen.core.structure.Structure" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.structure.Structure</span></code></a></li>
 <li><strong>primitive</strong> – if True a primitive cell will be produced, otherwise a conventional one</li>
 <li><strong>units</strong> – Units of input lattice parameters e.g. “bohr”, “pm”</li>
-<li><strong>kwargs</strong> – All keyword arguments accepted by <a class="reference external" href="http://pymatgen.org/pymatgen.core.structure.html#pymatgen.core.structure.Structure" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.structure.Structure</span></code></a>.</li>
+<li><strong>kwargs</strong> – All keyword arguments accepted by <a class="reference external" href="http://pymatgen.org/pymatgen.core.structure.html#pymatgen.core.structure.Structure" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.structure.Structure</span></code></a>.</li>
 </ul>
 </td>
 </tr>
@@ -3757,8 +3761,8 @@ can be changed to other urls implementing a similar interface.</li>
 <dt id="abipy.core.structure.Structure.get_conventional_standard_structure">
 <code class="descname">get_conventional_standard_structure</code><span class="sig-paren">(</span><em>international_monoclinic=True</em>, <em>symprec=0.001</em>, <em>angle_tolerance=5</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.get_conventional_standard_structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.get_conventional_standard_structure" title="Permalink to this definition">¶</a></dt>
 <dd><p>Gives a structure with a conventional cell according to certain
-standards. The standards are defined in <a class="reference internal" href="../zzbiblio.html#setyawan2010" id="id12">[SC10]</a>
-They basically enforce as much as possible norm(a1)&lt;norm(a2)&lt;norm(a3)</p>
+standards. The standards are defined in <a class="reference internal" href="../zzbiblio.html#setyawan2010" id="id12">[Setyawan2010]</a>
+They basically enforce as much as possible norm(a1) &lt; norm(a2) &lt; norm(a3)</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -3793,7 +3797,7 @@ They basically enforce as much as possible norm(a1)&lt;norm(a2)&lt;norm(a3)</p>
 <li><strong>symprec</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – Symmetry precision used to refine the structure.</li>
 <li><strong>angle_tolerance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – Tolerance on angles.
 if <code class="docutils literal"><span class="pre">symprec</span></code> is None and <cite>angle_tolerance</cite> is None, no structure refinement is peformed.</li>
-<li><strong>primitive</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – Whether to convert to a primitive cell following <a class="reference internal" href="../zzbiblio.html#setyawan2010" id="id13">[SC10]</a></li>
+<li><strong>primitive</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – Whether to convert to a primitive cell following <a class="reference internal" href="../zzbiblio.html#setyawan2010" id="id13">[Setyawan2010]</a></li>
 <li><strong>primitive_standard</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – Returns most primitive structure found.</li>
 </ul>
 </td>
@@ -3805,7 +3809,7 @@ if <code class="docutils literal"><span class="pre">symprec</span></code> is Non
 <dl class="method">
 <dt id="abipy.core.structure.Structure.get_oxi_state_decorated">
 <code class="descname">get_oxi_state_decorated</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.get_oxi_state_decorated"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.get_oxi_state_decorated" title="Permalink to this definition">¶</a></dt>
-<dd><p>Use <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.bond_valence.html#pymatgen.analysis.bond_valence.BVAnalyzer" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.bond_valence.BVAnalyzer</span></code></a> to estimate oxidation states
+<dd><p>Use <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.bond_valence.html#pymatgen.analysis.bond_valence.BVAnalyzer" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.bond_valence.BVAnalyzer</span></code></a> to estimate oxidation states
 Return oxidation state decorated structure.
 This currently works only for ordered structures only.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -3983,7 +3987,7 @@ Print results.</p>
 <dl class="attribute">
 <dt id="abipy.core.structure.Structure.hsym_kpath">
 <code class="descname">hsym_kpath</code><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.hsym_kpath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.hsym_kpath" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns an instance of <a class="reference external" href="http://pymatgen.org/pymatgen.symmetry.bandstructure.html#pymatgen.symmetry.bandstructure.HighSymmKpath" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.symmetry.bandstructure.HighSymmKpath</span></code></a>.
+<dd><p>Returns an instance of <a class="reference external" href="http://pymatgen.org/pymatgen.symmetry.bandstructure.html#pymatgen.symmetry.bandstructure.HighSymmKpath" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.symmetry.bandstructure.HighSymmKpath</span></code></a>.
 (Database of high symmetry k-points and high symmetry lines).</p>
 </dd></dl>
 
@@ -4174,7 +4178,7 @@ Default: None i.e. fig is left unchanged.</td>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a>.</p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a>.</p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -4243,7 +4247,7 @@ sphere of radius 2 / wavelength.</li>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -4594,7 +4598,7 @@ to keep the shift along the symmetry axis.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pseudos</strong> – List of <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or list of filenames.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pseudos</strong> – List of <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or list of filenames.</td>
 </tr>
 </tbody>
 </table>
@@ -4608,7 +4612,7 @@ to keep the shift along the symmetry axis.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pseudos</strong> – List of <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or list of filenames.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pseudos</strong> – List of <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.pseudos.html#pymatgen.io.abinit.pseudos.Pseudo" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.pseudos.Pseudo</span></code></a> objects or list of filenames.</td>
 </tr>
 </tbody>
 </table>
@@ -4636,14 +4640,14 @@ a list of structures or a list of objects that can be converted into structures.
 <li><strong>struct_objects</strong> – List of objects that can be converted to structure.
 Support filenames, structure objects, Abinit input files, dicts and many more types.
 See <code class="docutils literal"><span class="pre">Structure.as_structure</span></code> for the complete list.</li>
-<li><strong>index</strong> – Index of the <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a>.</li>
+<li><strong>index</strong> – Index of the <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a>.</li>
 <li><strong>with_spglib</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If True, <a class="reference external" href="https://atztogo.github.io/spglib/">spglib</a> is invoked to get the spacegroup symbol and number.</li>
 <li><strong>cart_coords</strong> – True if the <code class="docutils literal"><span class="pre">coords</span></code> dataframe should contain Cartesian cordinates
 instead of Reduced coordinates.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">namedtuple with two <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> named <code class="docutils literal"><span class="pre">lattice</span></code> and <code class="docutils literal"><span class="pre">coords</span></code>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">namedtuple with two <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> named <code class="docutils literal"><span class="pre">lattice</span></code> and <code class="docutils literal"><span class="pre">coords</span></code>
 <code class="docutils literal"><span class="pre">lattice</span></code> contains the lattice parameters. <code class="docutils literal"><span class="pre">coords</span></code> the atomic positions..
 The list of structures is available in the <code class="docutils literal"><span class="pre">structures</span></code> entry.</p>
 </td>
@@ -4774,6 +4778,24 @@ The list of structures is available in the <code class="docutils literal"><span 
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.core.symmetries.AbinitSpaceGroup.symeq">
+<code class="descname">symeq</code><span class="sig-paren">(</span><em>k1_frac_coords</em>, <em>k2_frac_coords</em>, <em>atol=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/symmetries.html#AbinitSpaceGroup.symeq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.symmetries.AbinitSpaceGroup.symeq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test whether two k-points in fractional coordinates are symmetry equivalent
+i.e. if there’s a symmetry operations TO (including time-reversal T, if present)
+such that:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">TO</span><span class="p">(</span><span class="n">k1</span><span class="p">)</span> <span class="o">=</span> <span class="n">k2</span> <span class="o">+</span> <span class="n">G0</span>
+</pre></div>
+</div>
+<p>Return: namedtuple with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">isym</span><span class="p">:</span> <span class="n">The</span> <span class="n">index</span> <span class="n">of</span> <span class="n">the</span> <span class="n">symmetry</span> <span class="n">operation</span> <span class="n">such</span> <span class="n">that</span> <span class="n">TS</span><span class="p">(</span><span class="n">k1</span><span class="p">)</span> <span class="o">=</span> <span class="n">k2</span> <span class="o">+</span> <span class="n">G0</span>
+    <span class="n">Set</span> <span class="n">to</span> <span class="o">-</span><span class="mi">1</span> <span class="k">if</span> <span class="n">k1</span> <span class="ow">and</span> <span class="n">k2</span> <span class="n">are</span> <span class="ow">not</span> <span class="n">related</span> <span class="n">by</span> <span class="n">symmetry</span><span class="o">.</span>
+<span class="n">op</span><span class="p">:</span> <span class="n">Symmetry</span> <span class="n">operation</span><span class="o">.</span>
+<span class="n">g0</span><span class="p">:</span> <span class="n">numpy</span> <span class="n">vector</span><span class="o">.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.core.symmetries.AbinitSpaceGroup.find_little_group">
 <code class="descname">find_little_group</code><span class="sig-paren">(</span><em>kpoint</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/symmetries.html#AbinitSpaceGroup.find_little_group"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.symmetries.AbinitSpaceGroup.find_little_group" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find the little group of the kpoint.</p>
@@ -4862,80 +4884,6 @@ Note use of integer arithmetic. Raise ValueError if not invertible.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="module-abipy.core.tensor">
-<span id="tensor-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">tensor</span></code> Module</a><a class="headerlink" href="#module-abipy.core.tensor" title="Permalink to this headline">¶</a></h2>
-<p>This module contains classes representing tensors and helper functions to change lattice.</p>
-<dl class="class">
-<dt id="abipy.core.tensor.Tensor">
-<em class="property">class </em><code class="descclassname">abipy.core.tensor.</code><code class="descname">Tensor</code><span class="sig-paren">(</span><em>red_tensor</em>, <em>lattice</em>, <em>space='r'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/tensor.html#Tensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.tensor.Tensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
-<p>Representation of a 3x3 tensor</p>
-<dl class="method">
-<dt id="abipy.core.tensor.Tensor.to_string">
-<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em>, <em>with_reduced=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/tensor.html#Tensor.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.tensor.Tensor.to_string" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.core.tensor.Tensor.lattice">
-<code class="descname">lattice</code><a class="headerlink" href="#abipy.core.tensor.Tensor.lattice" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.core.tensor.Tensor.reduced_tensor">
-<code class="descname">reduced_tensor</code><a class="headerlink" href="#abipy.core.tensor.Tensor.reduced_tensor" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.core.tensor.Tensor.is_real_space">
-<code class="descname">is_real_space</code><a class="headerlink" href="#abipy.core.tensor.Tensor.is_real_space" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.core.tensor.Tensor.cartesian_tensor">
-<code class="descname">cartesian_tensor</code><a class="headerlink" href="#abipy.core.tensor.Tensor.cartesian_tensor" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="classmethod">
-<dt id="abipy.core.tensor.Tensor.from_cartesian_tensor">
-<em class="property">classmethod </em><code class="descname">from_cartesian_tensor</code><span class="sig-paren">(</span><em>cartesian_tensor</em>, <em>lattice</em>, <em>space='r'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/tensor.html#Tensor.from_cartesian_tensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.tensor.Tensor.from_cartesian_tensor" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="abipy.core.tensor.Tensor.symmetrize">
-<code class="descname">symmetrize</code><span class="sig-paren">(</span><em>structure</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/tensor.html#Tensor.symmetrize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.tensor.Tensor.symmetrize" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="abipy.core.tensor.SymmetricTensor">
-<em class="property">class </em><code class="descclassname">abipy.core.tensor.</code><code class="descname">SymmetricTensor</code><span class="sig-paren">(</span><em>red_tensor</em>, <em>lattice</em>, <em>space='r'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/tensor.html#SymmetricTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.tensor.SymmetricTensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#abipy.core.tensor.Tensor" title="abipy.core.tensor.Tensor"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.tensor.Tensor</span></code></a></p>
-<p>Representation of a 3x3 symmetric tensor</p>
-<dl class="classmethod">
-<dt id="abipy.core.tensor.SymmetricTensor.from_directions">
-<em class="property">classmethod </em><code class="descname">from_directions</code><span class="sig-paren">(</span><em>qpoints</em>, <em>values</em>, <em>lattice</em>, <em>space</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/tensor.html#SymmetricTensor.from_directions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.tensor.SymmetricTensor.from_directions" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build a <cite>SymmetricTensor</cite> from the values computed along 6 directions.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>qpoints</strong> – fractional coordinates of 6 independent q-directions</li>
-<li><strong>values</strong> – values of (q^T E q)/(q^T q) along the 6 qpoints</li>
-<li><strong>lattice</strong> – <cite>Lattice</cite> object defining the reference system</li>
-<li><strong>space</strong> – “r” if the lattice is a real space lattice
-“g” if the lattice is a reciprocal space lattice</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</dd></dl>
-
-</div>
 <div class="section" id="module-abipy.core.testing">
 <span id="testing-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">testing</span></code> Module</a><a class="headerlink" href="#module-abipy.core.testing" title="Permalink to this headline">¶</a></h2>
 <p>Common test support for all AbiPy test scripts.</p>
@@ -4944,7 +4892,7 @@ in a single location, so that test scripts can just import it and work right awa
 <dl class="class">
 <dt id="abipy.core.testing.AbipyTest">
 <em class="property">class </em><code class="descclassname">abipy.core.testing.</code><code class="descname">AbipyTest</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/testing.html#AbipyTest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.testing.AbipyTest" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.util.testing.html#pymatgen.util.testing.PymatgenTest" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.util.testing.PymatgenTest</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.util.testing.html#pymatgen.util.testing.PymatgenTest" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.util.testing.PymatgenTest</span></code></a></p>
 <p>Extends PymatgenTest with Abinit-specific methods.
 Several helper functions are implemented as static methods so that we
 can easily reuse the code in the pytest integration tests.</p>
@@ -4967,6 +4915,12 @@ instead of raising this directly.</p>
 <dt id="abipy.core.testing.AbipyTest.has_abinit">
 <em class="property">static </em><code class="descname">has_abinit</code><span class="sig-paren">(</span><em>version=None</em>, <em>op='&gt;='</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/testing.html#AbipyTest.has_abinit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.testing.AbipyTest.has_abinit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return True if abinit is in $PATH and version is op min_version.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.testing.AbipyTest.skip_if_abinit_not_ge">
+<code class="descname">skip_if_abinit_not_ge</code><span class="sig-paren">(</span><em>version</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/testing.html#AbipyTest.skip_if_abinit_not_ge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.testing.AbipyTest.skip_if_abinit_not_ge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Skip test if Abinit version is not &gt;= <cite>version</cite></p>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -5031,6 +4985,12 @@ instead of raising this directly.</p>
 <dt id="abipy.core.testing.AbipyTest.has_nbformat">
 <em class="property">static </em><code class="descname">has_nbformat</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/testing.html#AbipyTest.has_nbformat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.testing.AbipyTest.has_nbformat" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return True if nbformat is available and we can test the generation of <a class="reference external" href="http://jupyter.org/">jupyter</a> notebooks.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.testing.AbipyTest.run_nbpath">
+<code class="descname">run_nbpath</code><span class="sig-paren">(</span><em>nbpath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/testing.html#AbipyTest.run_nbpath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.testing.AbipyTest.run_nbpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test that the notebook in question runs all cells correctly.</p>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -5120,10 +5080,16 @@ Print info to stdout if failure before raising AssertionError.</p>
 <dd><p>Invoke Abinit to test validity of a <a class="reference internal" href="abio_api.html#abipy.abio.inputs.MultiDataset" title="abipy.abio.inputs.MultiDataset"><code class="xref py py-class docutils literal"><span class="pre">abipy.abio.inputs.MultiDataset</span></code></a> or a list of <a class="reference internal" href="abio_api.html#abipy.abio.inputs.AbinitInput" title="abipy.abio.inputs.AbinitInput"><code class="xref py py-class docutils literal"><span class="pre">abipy.abio.inputs.AbinitInput</span></code></a> objects.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="abipy.core.testing.AbipyTest.abivalidate_work">
+<code class="descname">abivalidate_work</code><span class="sig-paren">(</span><em>work</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/testing.html#AbipyTest.abivalidate_work"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.testing.AbipyTest.abivalidate_work" title="Permalink to this definition">¶</a></dt>
+<dd><p>Invoke Abinit to test validity of the inputs of a <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
+</dd></dl>
+
 <dl class="staticmethod">
 <dt id="abipy.core.testing.AbipyTest.abivalidate_flow">
 <em class="property">static </em><code class="descname">abivalidate_flow</code><span class="sig-paren">(</span><em>flow</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/testing.html#AbipyTest.abivalidate_flow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.testing.AbipyTest.abivalidate_flow" title="Permalink to this definition">¶</a></dt>
-<dd><p>Invoke Abinit to test validity of the inputs of a <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.flows.html#pymatgen.io.abinit.flows.Flow" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.flows.Flow</span></code></a></p>
+<dd><p>Invoke Abinit to test validity of the inputs of a <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.flows.html#pymatgen.io.abinit.flows.Flow" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.flows.Flow</span></code></a></p>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -5221,7 +5187,7 @@ wyckoff positions computed from the sympy expressions and the input frac_coords<
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 26, 2018.<br/>
+      Last updated on Aug 14, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

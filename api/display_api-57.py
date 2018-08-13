@@ -1,3 +1,2 @@
-ax = sns.violinplot(x="orbital_period", y="method",
-                    data=planets[planets.orbital_period < 1000],
-                    cut=0, scale="width", palette="Set3")
+ax = sns.stripplot(x="total_bill", y="day", data=tips,
+                   jitter=True, linewidth=1)

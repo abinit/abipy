@@ -411,7 +411,7 @@ See <code class="docutils literal"><span class="pre">abinp.py</span> <span class
 <div class="section" id="get-a-quick-look-to-a-file">
 <h2><a class="toc-backref" href="#contents">Get a quick look to a file</a><a class="headerlink" href="#get-a-quick-look-to-a-file" title="Permalink to this headline">¶</a></h2>
 <p>The <a class="reference internal" href="scripts/abiview.html#abiview-py"><span class="std std-ref">abiview.py</span></a> script is especially designed for this task.
-The syntax is <code class="docutils literal"><span class="pre">abistruct.py</span> <span class="pre">COMMAND</span> <span class="pre">FILE</span></code> where <code class="docutils literal"><span class="pre">COMMAND</span></code> is either
+The syntax is <code class="docutils literal"><span class="pre">abiview.py</span> <span class="pre">COMMAND</span> <span class="pre">FILE</span></code> where <code class="docutils literal"><span class="pre">COMMAND</span></code> is either
 the Abinit file extension (without <code class="docutils literal"><span class="pre">.nc</span></code>, if any) or the AbiPy object we want to visualize.</p>
 <p>To get a quick look at the DDB file, use:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">ddb</span> <span class="n">out_DDB</span>
@@ -422,7 +422,7 @@ the Abinit file extension (without <code class="docutils literal"><span class="p
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">ebands</span> <span class="n">out_GSR</span><span class="o">.</span><span class="n">nc</span>
 </pre></div>
 </div>
-<p>to plot the KS eigenvalues (the same command works for other files such as <code class="docutils literal"><span class="pre">WFK.nc</span></code>, <code class="docutils literal"><span class="pre">DEN.nc</span></code> etcetera.</p>
+<p>to plot the KS eigenvalues (the same command works for other files such as <code class="docutils literal"><span class="pre">WFK.nc</span></code>, <code class="docutils literal"><span class="pre">DEN.nc</span></code> etc.</p>
 <p>Note that <a class="reference internal" href="scripts/abiview.html#abiview-py"><span class="std std-ref">abiview.py</span></a> uses a predefined logic to visualize the data.
 There are options to tune some parameters and/or export data in different formats
 but exposing the AbiPy API from the command line is not easy.</p>
@@ -440,7 +440,7 @@ but exposing the AbiPy API from the command line is not easy.</p>
 <div class="section" id="visualize-a-structure">
 <h2><a class="toc-backref" href="#contents">Visualize a structure</a><a class="headerlink" href="#visualize-a-structure" title="Permalink to this headline">¶</a></h2>
 <p>The visualization of the structure is delegated to external graphical applications
-that must be istalled on your machine.
+that must be installed on your machine.
 AbiPy will extract the structure from <code class="docutils literal"><span class="pre">FILE</span></code>, convert it to one of the formats
 supported by the graphical application and finally invoke the executable.
 If you have <a class="reference external" href="http://jp-minerals.org/vesta/en/">vesta</a> installed in one of the standard
@@ -604,7 +604,7 @@ One should take into account these different settings when comparing structural 
 </div>
 <div class="section" id="export-bands-to-xmgrace-format">
 <h2><a class="toc-backref" href="#contents">Export bands to xmgrace format</a><a class="headerlink" href="#export-bands-to-xmgrace-format" title="Permalink to this headline">¶</a></h2>
-<p>But <a class="reference internal" href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands" title="abipy.electrons.ebands.ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.ebands.ElectronBands</span></code></a> and <a class="reference internal" href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBands" title="abipy.dfpt.phonons.PhononBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.dfpt.phonons.PhononBands</span></code></a> provide a <code class="docutils literal"><span class="pre">to_xmgrace</span></code> method to produce <a class="reference external" href="http://plasma-gate.weizmann.ac.il/Grace/">xmgrace</a> files.
+<p>Both <a class="reference internal" href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands" title="abipy.electrons.ebands.ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.ebands.ElectronBands</span></code></a> and <a class="reference internal" href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBands" title="abipy.dfpt.phonons.PhononBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.dfpt.phonons.PhononBands</span></code></a> provide a <code class="docutils literal"><span class="pre">to_xmgrace</span></code> method to produce <a class="reference external" href="http://plasma-gate.weizmann.ac.il/Grace/">xmgrace</a> files.
 To export the data to xmgrace, use <a class="reference internal" href="scripts/abiview.html#abiview-py"><span class="std std-ref">abiview.py</span></a> with the <code class="docutils literal"><span class="pre">--xmgrace</span></code> option.
 For electrons, use:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">ebands</span> <span class="n">out_GSR</span><span class="o">.</span><span class="n">nc</span> <span class="o">--</span><span class="n">xmgrace</span>
@@ -778,7 +778,7 @@ This option could be useful if the script seems to be slow and you need to under
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 26, 2018.<br/>
+      Last updated on Aug 14, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

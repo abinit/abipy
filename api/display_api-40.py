@@ -1,2 +1,2 @@
-ax = sns.boxplot(x="day", y="total_bill", hue="time",
-                 data=tips, linewidth=2.5)
+ax = sns.violinplot(x="day", y="total_bill", hue="smoker",
+                    data=tips, palette="muted")

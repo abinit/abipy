@@ -1,5 +1,2 @@
-g = sns.factorplot(x="sex", y="total_bill",
-                   hue="smoker", col="time",
-                   data=tips, kind="strip",
-                   jitter=True,
-                   size=4, aspect=.7);
+ax = sns.boxplot(x="tip", y="day", data=tips, whis=np.inf)
+ax = sns.swarmplot(x="tip", y="day", data=tips, color=".2")

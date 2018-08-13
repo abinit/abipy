@@ -189,7 +189,7 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>lattice</strong> – Reciprocal-space <a class="reference external" href="http://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> object</li>
+<li><strong>lattice</strong> – Reciprocal-space <a class="reference external" href="http://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> object</li>
 <li><strong>figure</strong> – mayavi figure, None to plot on the curretn figure</li>
 <li><strong>kwargs</strong> – kwargs passed to the mayavi function <code class="docutils literal"><span class="pre">plot3d</span></code>. Color defaults to black
 and line_width to 1.</li>
@@ -231,7 +231,7 @@ and line_width to 1.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>lattice</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> object.</li>
+<li><strong>lattice</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> object.</li>
 <li><strong>figure</strong> – mayavi figure, None if a new figure should be created.</li>
 <li><strong>kwargs</strong> – kwargs passed to the mayavi function <code class="docutils literal"><span class="pre">plot3d</span></code>. Color defaults to black
 and line_width to 1.</li>
@@ -278,7 +278,7 @@ and line_width to 1.</li>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>labels</strong> – dict containing the label as a key and the coordinates as value.</li>
-<li><strong>lattice</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2018.7.23)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> object used to convert from reciprocal to cartesian coordinates</li>
+<li><strong>lattice</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> object used to convert from reciprocal to cartesian coordinates</li>
 <li><strong>coords_are_cartesian</strong> – Set to True if you are providing.
 coordinates in cartesian coordinates. Defaults to False.
 Requires lattice if False.</li>
@@ -345,7 +345,7 @@ PairGrid(data[, hue, hue_order, palette, …])  Subplot grid for plotting pairwi
 JointGrid(x, y[, data, size, ratio, space, …])        Grid for drawing a bivariate plot with marginal univariate plots.</p>
 <dl class="function">
 <dt id="abipy.display.seabornw.jointplot">
-<code class="descclassname">abipy.display.seabornw.</code><code class="descname">jointplot</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>data=None</em>, <em>kind='scatter'</em>, <em>stat_func=&lt;function pearsonr&gt;</em>, <em>color=None</em>, <em>size=6</em>, <em>ratio=5</em>, <em>space=0.2</em>, <em>dropna=True</em>, <em>xlim=None</em>, <em>ylim=None</em>, <em>joint_kws=None</em>, <em>marginal_kws=None</em>, <em>annot_kws=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seaborn/axisgrid.html#jointplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.seabornw.jointplot" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">abipy.display.seabornw.</code><code class="descname">jointplot</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>data=None</em>, <em>kind='scatter'</em>, <em>stat_func=None</em>, <em>color=None</em>, <em>height=6</em>, <em>ratio=5</em>, <em>space=0.2</em>, <em>dropna=True</em>, <em>xlim=None</em>, <em>ylim=None</em>, <em>joint_kws=None</em>, <em>marginal_kws=None</em>, <em>annot_kws=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seaborn/axisgrid.html#jointplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.seabornw.jointplot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Draw a plot of two variables with bivariate and univariate graphs.</p>
 <p>This function provides a convenient interface to the <code class="xref py py-class docutils literal"><span class="pre">JointGrid</span></code>
 class, with several canned plot kinds. This is intended to be a fairly
@@ -359,13 +359,10 @@ lightweight wrapper; if you need more flexibility, you should use
 <li><strong>y</strong> (<em>x</em><em>,</em>) – Data or names of variables in <code class="docutils literal"><span class="pre">data</span></code>.</li>
 <li><strong>data</strong> (<em>DataFrame</em><em>, </em><em>optional</em>) – DataFrame when <code class="docutils literal"><span class="pre">x</span></code> and <code class="docutils literal"><span class="pre">y</span></code> are variable names.</li>
 <li><strong>kind</strong> (<em>{ &quot;scatter&quot; | &quot;reg&quot; | &quot;resid&quot; | &quot;kde&quot; | &quot;hex&quot; }</em><em>, </em><em>optional</em>) – Kind of plot to draw.</li>
-<li><strong>stat_func</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#callable" title="(in Python v3.7)"><em>callable</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.7)"><em>None</em></a><em>, </em><em>optional</em>) – Function used to calculate a statistic about the relationship and
-annotate the plot. Should map <cite>x</cite> and <cite>y</cite> either to a single value
-or to a (value, p) tuple. Set to <code class="docutils literal"><span class="pre">None</span></code> if you don’t want to
-annotate the plot.</li>
+<li><strong>stat_func</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#callable" title="(in Python v3.7)"><em>callable</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.7)"><em>None</em></a><em>, </em><em>optional</em>) – <em>Deprecated</em></li>
 <li><strong>color</strong> (<em>matplotlib color</em><em>, </em><em>optional</em>) – Color used for the plot elements.</li>
-<li><strong>size</strong> (<em>numeric</em><em>, </em><em>optional</em>) – Size of the figure (it will be square).</li>
-<li><strong>ratio</strong> (<em>numeric</em><em>, </em><em>optional</em>) – Ratio of joint axes size to marginal axes height.</li>
+<li><strong>height</strong> (<em>numeric</em><em>, </em><em>optional</em>) – Size of the figure (it will be square).</li>
+<li><strong>ratio</strong> (<em>numeric</em><em>, </em><em>optional</em>) – Ratio of joint axes height to marginal axes height.</li>
 <li><strong>space</strong> (<em>numeric</em><em>, </em><em>optional</em>) – Space between the joint and marginal axes</li>
 <li><strong>dropna</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>optional</em>) – If True, remove observations that are missing from <code class="docutils literal"><span class="pre">x</span></code> and <code class="docutils literal"><span class="pre">y</span></code>.</li>
 <li><strong>y}lim</strong> (<em>{x</em><em>,</em>) – Axis limits to set before plotting.</li>
@@ -413,36 +410,31 @@ the marginal Axes tightly with the joint Axes:</p>
 <div class="figure">
 <img alt="../_images/display_api-4.png" src="../_images/display_api-4.png" />
 </div>
-<p>Use a different statistic for the annotation:</p>
+<p>Draw a scatterplot, then add a joint density estimate:</p>
 <p>(<a class="reference external" href="../api/display_api-5.py">Source code</a>, <a class="reference external" href="../api/display_api-5.png">png</a>, <a class="reference external" href="../api/display_api-5.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-5.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-5.png" src="../_images/display_api-5.png" />
 </div>
-<p>Draw a scatterplot, then add a joint density estimate:</p>
+<p>Pass vectors in directly without using Pandas, then name the axes:</p>
 <p>(<a class="reference external" href="../api/display_api-6.py">Source code</a>, <a class="reference external" href="../api/display_api-6.png">png</a>, <a class="reference external" href="../api/display_api-6.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-6.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-6.png" src="../_images/display_api-6.png" />
 </div>
-<p>Pass vectors in directly without using Pandas, then name the axes:</p>
+<p>Draw a smaller figure with more space devoted to the marginal plots:</p>
 <p>(<a class="reference external" href="../api/display_api-7.py">Source code</a>, <a class="reference external" href="../api/display_api-7.png">png</a>, <a class="reference external" href="../api/display_api-7.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-7.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-7.png" src="../_images/display_api-7.png" />
 </div>
-<p>Draw a smaller figure with more space devoted to the marginal plots:</p>
+<p>Pass keyword arguments down to the underlying plots:</p>
 <p>(<a class="reference external" href="../api/display_api-8.py">Source code</a>, <a class="reference external" href="../api/display_api-8.png">png</a>, <a class="reference external" href="../api/display_api-8.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-8.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-8.png" src="../_images/display_api-8.png" />
-</div>
-<p>Pass keyword arguments down to the underlying plots:</p>
-<p>(<a class="reference external" href="../api/display_api-9.py">Source code</a>, <a class="reference external" href="../api/display_api-9.png">png</a>, <a class="reference external" href="../api/display_api-9.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-9.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-9.png" src="../_images/display_api-9.png" />
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="abipy.display.seabornw.pairplot">
-<code class="descclassname">abipy.display.seabornw.</code><code class="descname">pairplot</code><span class="sig-paren">(</span><em>data</em>, <em>hue=None</em>, <em>hue_order=None</em>, <em>palette=None</em>, <em>vars=None</em>, <em>x_vars=None</em>, <em>y_vars=None</em>, <em>kind='scatter'</em>, <em>diag_kind='hist'</em>, <em>markers=None</em>, <em>size=2.5</em>, <em>aspect=1</em>, <em>dropna=True</em>, <em>plot_kws=None</em>, <em>diag_kws=None</em>, <em>grid_kws=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seaborn/axisgrid.html#pairplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.seabornw.pairplot" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">abipy.display.seabornw.</code><code class="descname">pairplot</code><span class="sig-paren">(</span><em>data</em>, <em>hue=None</em>, <em>hue_order=None</em>, <em>palette=None</em>, <em>vars=None</em>, <em>x_vars=None</em>, <em>y_vars=None</em>, <em>kind='scatter'</em>, <em>diag_kind='auto'</em>, <em>markers=None</em>, <em>height=2.5</em>, <em>aspect=1</em>, <em>dropna=True</em>, <em>plot_kws=None</em>, <em>diag_kws=None</em>, <em>grid_kws=None</em>, <em>size=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seaborn/axisgrid.html#pairplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.seabornw.pairplot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot pairwise relationships in a dataset.</p>
 <p>By default, this function will create a grid of Axes such that each
 variable in <code class="docutils literal"><span class="pre">data</span></code> will by shared in the y-axis across a single row and
@@ -470,13 +462,14 @@ a numeric datatype.</li>
 <li><strong>y}_vars</strong> (<em>{x</em><em>,</em>) – Variables within <code class="docutils literal"><span class="pre">data</span></code> to use separately for the rows and
 columns of the figure; i.e. to make a non-square plot.</li>
 <li><strong>kind</strong> (<em>{'scatter'</em><em>, </em><em>'reg'}</em><em>, </em><em>optional</em>) – Kind of plot for the non-identity relationships.</li>
-<li><strong>diag_kind</strong> (<em>{'hist'</em><em>, </em><em>'kde'}</em><em>, </em><em>optional</em>) – Kind of plot for the diagonal subplots.</li>
+<li><strong>diag_kind</strong> (<em>{'auto'</em><em>, </em><em>'hist'</em><em>, </em><em>'kde'}</em><em>, </em><em>optional</em>) – Kind of plot for the diagonal subplots. The default depends on whether
+<code class="docutils literal"><span class="pre">&quot;hue&quot;</span></code> is used or not.</li>
 <li><strong>markers</strong> (<em>single matplotlib marker code</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a><em>, </em><em>optional</em>) – Either the marker to use for all datapoints or a list of markers with
 a length the same as the number of levels in the hue variable so that
 differently colored points will also have different scatterplot
 markers.</li>
-<li><strong>size</strong> (<em>scalar</em><em>, </em><em>optional</em>) – Height (in inches) of each facet.</li>
-<li><strong>aspect</strong> (<em>scalar</em><em>, </em><em>optional</em>) – Aspect * size gives the width (in inches) of each facet.</li>
+<li><strong>height</strong> (<em>scalar</em><em>, </em><em>optional</em>) – Height (in inches) of each facet.</li>
+<li><strong>aspect</strong> (<em>scalar</em><em>, </em><em>optional</em>) – Aspect * height gives the width (in inches) of each facet.</li>
 <li><strong>dropna</strong> (<em>boolean</em><em>, </em><em>optional</em>) – Drop missing values from the data before plotting.</li>
 <li><strong>diag</strong><strong>, </strong><strong>grid}_kws</strong> (<em>{plot</em><em>,</em>) – Dictionaries of keyword arguments.</li>
 </ul>
@@ -500,62 +493,62 @@ markers.</li>
 <p class="rubric">Examples</p>
 <p>Draw scatterplots for joint relationships and histograms for univariate
 distributions:</p>
+<p>(<a class="reference external" href="../api/display_api-9.py">Source code</a>, <a class="reference external" href="../api/display_api-9.png">png</a>, <a class="reference external" href="../api/display_api-9.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-9.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-9.png" src="../_images/display_api-9.png" />
+</div>
+<p>Show different levels of a categorical variable by the color of plot
+elements:</p>
 <p>(<a class="reference external" href="../api/display_api-10.py">Source code</a>, <a class="reference external" href="../api/display_api-10.png">png</a>, <a class="reference external" href="../api/display_api-10.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-10.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-10.png" src="../_images/display_api-10.png" />
 </div>
-<p>Show different levels of a categorical variable by the color of plot
-elements:</p>
+<p>Use a different color palette:</p>
 <p>(<a class="reference external" href="../api/display_api-11.py">Source code</a>, <a class="reference external" href="../api/display_api-11.png">png</a>, <a class="reference external" href="../api/display_api-11.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-11.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-11.png" src="../_images/display_api-11.png" />
 </div>
-<p>Use a different color palette:</p>
+<p>Use different markers for each level of the hue variable:</p>
 <p>(<a class="reference external" href="../api/display_api-12.py">Source code</a>, <a class="reference external" href="../api/display_api-12.png">png</a>, <a class="reference external" href="../api/display_api-12.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-12.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-12.png" src="../_images/display_api-12.png" />
 </div>
-<p>Use different markers for each level of the hue variable:</p>
+<p>Plot a subset of variables:</p>
 <p>(<a class="reference external" href="../api/display_api-13.py">Source code</a>, <a class="reference external" href="../api/display_api-13.png">png</a>, <a class="reference external" href="../api/display_api-13.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-13.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-13.png" src="../_images/display_api-13.png" />
 </div>
-<p>Plot a subset of variables:</p>
+<p>Draw larger plots:</p>
 <p>(<a class="reference external" href="../api/display_api-14.py">Source code</a>, <a class="reference external" href="../api/display_api-14.png">png</a>, <a class="reference external" href="../api/display_api-14.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-14.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-14.png" src="../_images/display_api-14.png" />
 </div>
-<p>Draw larger plots:</p>
+<p>Plot different variables in the rows and columns:</p>
 <p>(<a class="reference external" href="../api/display_api-15.py">Source code</a>, <a class="reference external" href="../api/display_api-15.png">png</a>, <a class="reference external" href="../api/display_api-15.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-15.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-15.png" src="../_images/display_api-15.png" />
 </div>
-<p>Plot different variables in the rows and columns:</p>
+<p>Use kernel density estimates for univariate plots:</p>
 <p>(<a class="reference external" href="../api/display_api-16.py">Source code</a>, <a class="reference external" href="../api/display_api-16.png">png</a>, <a class="reference external" href="../api/display_api-16.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-16.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-16.png" src="../_images/display_api-16.png" />
 </div>
-<p>Use kernel density estimates for univariate plots:</p>
+<p>Fit linear regression models to the scatter plots:</p>
 <p>(<a class="reference external" href="../api/display_api-17.py">Source code</a>, <a class="reference external" href="../api/display_api-17.png">png</a>, <a class="reference external" href="../api/display_api-17.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-17.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-17.png" src="../_images/display_api-17.png" />
 </div>
-<p>Fit linear regression models to the scatter plots:</p>
+<p>Pass keyword arguments down to the underlying functions (it may be easier
+to use <code class="xref py py-class docutils literal"><span class="pre">PairGrid</span></code> directly):</p>
 <p>(<a class="reference external" href="../api/display_api-18.py">Source code</a>, <a class="reference external" href="../api/display_api-18.png">png</a>, <a class="reference external" href="../api/display_api-18.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-18.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-18.png" src="../_images/display_api-18.png" />
-</div>
-<p>Pass keyword arguments down to the underlying functions (it may be easier
-to use <code class="xref py py-class docutils literal"><span class="pre">PairGrid</span></code> directly):</p>
-<p>(<a class="reference external" href="../api/display_api-19.py">Source code</a>, <a class="reference external" href="../api/display_api-19.png">png</a>, <a class="reference external" href="../api/display_api-19.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-19.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-19.png" src="../_images/display_api-19.png" />
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="abipy.display.seabornw.lmplot">
-<code class="descclassname">abipy.display.seabornw.</code><code class="descname">lmplot</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>data</em>, <em>hue=None</em>, <em>col=None</em>, <em>row=None</em>, <em>palette=None</em>, <em>col_wrap=None</em>, <em>size=5</em>, <em>aspect=1</em>, <em>markers='o'</em>, <em>sharex=True</em>, <em>sharey=True</em>, <em>hue_order=None</em>, <em>col_order=None</em>, <em>row_order=None</em>, <em>legend=True</em>, <em>legend_out=True</em>, <em>x_estimator=None</em>, <em>x_bins=None</em>, <em>x_ci='ci'</em>, <em>scatter=True</em>, <em>fit_reg=True</em>, <em>ci=95</em>, <em>n_boot=1000</em>, <em>units=None</em>, <em>order=1</em>, <em>logistic=False</em>, <em>lowess=False</em>, <em>robust=False</em>, <em>logx=False</em>, <em>x_partial=None</em>, <em>y_partial=None</em>, <em>truncate=False</em>, <em>x_jitter=None</em>, <em>y_jitter=None</em>, <em>scatter_kws=None</em>, <em>line_kws=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seaborn/regression.html#lmplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.seabornw.lmplot" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">abipy.display.seabornw.</code><code class="descname">lmplot</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>data</em>, <em>hue=None</em>, <em>col=None</em>, <em>row=None</em>, <em>palette=None</em>, <em>col_wrap=None</em>, <em>height=5</em>, <em>aspect=1</em>, <em>markers='o'</em>, <em>sharex=True</em>, <em>sharey=True</em>, <em>hue_order=None</em>, <em>col_order=None</em>, <em>row_order=None</em>, <em>legend=True</em>, <em>legend_out=True</em>, <em>x_estimator=None</em>, <em>x_bins=None</em>, <em>x_ci='ci'</em>, <em>scatter=True</em>, <em>fit_reg=True</em>, <em>ci=95</em>, <em>n_boot=1000</em>, <em>units=None</em>, <em>order=1</em>, <em>logistic=False</em>, <em>lowess=False</em>, <em>robust=False</em>, <em>logx=False</em>, <em>x_partial=None</em>, <em>y_partial=None</em>, <em>truncate=False</em>, <em>x_jitter=None</em>, <em>y_jitter=None</em>, <em>scatter_kws=None</em>, <em>line_kws=None</em>, <em>size=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seaborn/regression.html#lmplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.seabornw.lmplot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot data and regression model fits across a FacetGrid.</p>
 <p>This function combines <code class="xref py py-func docutils literal"><span class="pre">regplot()</span></code> and <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>. It is
 intended as a convenient interface to fit regression models across
@@ -566,8 +559,8 @@ comparison, followed by <code class="docutils literal"><span class="pre">col</sp
 your particular dataset and the goals of the visualization you are
 creating.</p>
 <p>There are a number of mutually exclusive options for estimating the
-regression model: <code class="docutils literal"><span class="pre">order</span></code>, <code class="docutils literal"><span class="pre">logistic</span></code>, <code class="docutils literal"><span class="pre">lowess</span></code>, <code class="docutils literal"><span class="pre">robust</span></code>, and
-<code class="docutils literal"><span class="pre">logx</span></code>. See the parameter docs for more information on these options.</p>
+regression model. See the <span class="xref std std-ref">tutorial</span> for more
+information.</p>
 <p>The parameters to this function span most of the options in
 <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>, although there may be occasional cases where you will
 want to use that class and <code class="xref py py-func docutils literal"><span class="pre">regplot()</span></code> directly.</p>
@@ -587,12 +580,12 @@ be something that can be interpreted by <code class="xref py py-func docutils li
 dictionary mapping hue levels to matplotlib colors.</li>
 <li><strong>col_wrap</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em>) – “Wrap” the column variable at this width, so that the column facets
 span multiple rows. Incompatible with a <code class="docutils literal"><span class="pre">row</span></code> facet.</li>
-<li><strong>size</strong> (<em>scalar</em><em>, </em><em>optional</em>) – Height (in inches) of each facet. See also: <code class="docutils literal"><span class="pre">aspect</span></code>.</li>
-<li><strong>aspect</strong> (<em>scalar</em><em>, </em><em>optional</em>) – Aspect ratio of each facet, so that <code class="docutils literal"><span class="pre">aspect</span> <span class="pre">*</span> <span class="pre">size</span></code> gives the width
+<li><strong>height</strong> (<em>scalar</em><em>, </em><em>optional</em>) – Height (in inches) of each facet. See also: <code class="docutils literal"><span class="pre">aspect</span></code>.</li>
+<li><strong>aspect</strong> (<em>scalar</em><em>, </em><em>optional</em>) – Aspect ratio of each facet, so that <code class="docutils literal"><span class="pre">aspect</span> <span class="pre">*</span> <span class="pre">height</span></code> gives the width
 of each facet in inches.</li>
 <li><strong>markers</strong> (<em>matplotlib marker code</em><em> or </em><em>list of marker codes</em><em>, </em><em>optional</em>) – Markers for the scatterplot. If a list, each marker in the list will be
 used for each level of the <code class="docutils literal"><span class="pre">hue</span></code> variable.</li>
-<li><strong>share{x</strong><strong>,</strong><strong>y}</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>optional</em>) – If true, the facets will share y axes across columns and/or x axes
+<li><strong>share{x</strong><strong>,</strong><strong>y}</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>'col'</em><em>, or </em><em>'row' optional</em>) – If true, the facets will share y axes across columns and/or x axes
 across rows.</li>
 <li><strong>{hue</strong><strong>,</strong><strong>col</strong><strong>,</strong><strong>row}_order</strong> (<em>lists</em><em>, </em><em>optional</em>) – Order for the levels of the faceting variables. By default, this will
 be the order that the levels appear in <code class="docutils literal"><span class="pre">data</span></code> or, if the variables
@@ -613,8 +606,8 @@ centers. When this parameter is used, it implies that the default of
 <code class="docutils literal"><span class="pre">x_estimator</span></code> is <code class="docutils literal"><span class="pre">numpy.mean</span></code>.</li>
 <li><strong>x_ci</strong> (<em>&quot;ci&quot;</em><em>, </em><em>&quot;sd&quot;</em><em>, </em><em>int in</em><em> [</em><em>0</em><em>, </em><em>100</em><em>] or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.7)"><em>None</em></a><em>, </em><em>optional</em>) – Size of the confidence interval used when plotting a central tendency
 for discrete values of <code class="docutils literal"><span class="pre">x</span></code>. If <code class="docutils literal"><span class="pre">&quot;ci&quot;</span></code>, defer to the value of the
-<code class="docutils literal"><span class="pre">ci</span></code> parameter. If <code class="docutils literal"><span class="pre">&quot;sd&quot;</span></code>, skip bootstrappig and show the standard
-deviation of the observations in each bin.</li>
+<code class="docutils literal"><span class="pre">ci</span></code> parameter. If <code class="docutils literal"><span class="pre">&quot;sd&quot;</span></code>, skip bootstrapping and show the
+standard deviation of the observations in each bin.</li>
 <li><strong>scatter</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">True</span></code>, draw a scatterplot with the underlying observations (or
 the <code class="docutils literal"><span class="pre">x_estimator</span></code> values).</li>
 <li><strong>fit_reg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">True</span></code>, estimate and plot a regression model relating the <code class="docutils literal"><span class="pre">x</span></code>
@@ -678,18 +671,9 @@ be helpful when plotting variables that take discrete values.</li>
 </dl>
 </div>
 <p class="rubric">Notes</p>
-<p>Understanding the difference between <code class="xref py py-func docutils literal"><span class="pre">regplot()</span></code> and <a class="reference internal" href="#abipy.display.seabornw.lmplot" title="abipy.display.seabornw.lmplot"><code class="xref py py-func docutils literal"><span class="pre">lmplot()</span></code></a> can
-be a bit tricky. In fact, they are closely related, as <a class="reference internal" href="#abipy.display.seabornw.lmplot" title="abipy.display.seabornw.lmplot"><code class="xref py py-func docutils literal"><span class="pre">lmplot()</span></code></a> uses
-<code class="xref py py-func docutils literal"><span class="pre">regplot()</span></code> internally and takes most of its parameters. However,
-<code class="xref py py-func docutils literal"><span class="pre">regplot()</span></code> is an axes-level function, so it draws directly onto an
-axes (either the currently active axes or the one provided by the <code class="docutils literal"><span class="pre">ax</span></code>
-parameter), while <a class="reference internal" href="#abipy.display.seabornw.lmplot" title="abipy.display.seabornw.lmplot"><code class="xref py py-func docutils literal"><span class="pre">lmplot()</span></code></a> is a figure-level function and creates its
-own figure, which is managed through a <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>. This has a few
-consequences, namely that <code class="xref py py-func docutils literal"><span class="pre">regplot()</span></code> can happily coexist in a figure
-with other kinds of plots and will follow the global matplotlib color
-cycle. In contrast, <a class="reference internal" href="#abipy.display.seabornw.lmplot" title="abipy.display.seabornw.lmplot"><code class="xref py py-func docutils literal"><span class="pre">lmplot()</span></code></a> needs to occupy an entire figure, and
-the size and color cycle are controlled through function parameters,
-ignoring the global defaults.</p>
+<p>The <code class="xref py py-func docutils literal"><span class="pre">regplot()</span></code> and <a class="reference internal" href="#abipy.display.seabornw.lmplot" title="abipy.display.seabornw.lmplot"><code class="xref py py-func docutils literal"><span class="pre">lmplot()</span></code></a> functions are closely related, but
+the former is an axes-level function while the latter is a figure-level
+function that combines <code class="xref py py-func docutils literal"><span class="pre">regplot()</span></code> and <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>.</p>
 <p class="rubric">Examples</p>
 <p>These examples focus on basic regression model plots to exhibit the
 various faceting options; see the <code class="xref py py-func docutils literal"><span class="pre">regplot()</span></code> docs for demonstrations
@@ -697,180 +681,63 @@ of the other options for plotting the data and models. There are also
 other examples for how to manipulate plot using the returned object on
 the <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code> docs.</p>
 <p>Plot a simple linear relationship between two variables:</p>
+<p>(<a class="reference external" href="../api/display_api-19.py">Source code</a>, <a class="reference external" href="../api/display_api-19.png">png</a>, <a class="reference external" href="../api/display_api-19.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-19.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-19.png" src="../_images/display_api-19.png" />
+</div>
+<p>Condition on a third variable and plot the levels in different colors:</p>
 <p>(<a class="reference external" href="../api/display_api-20.py">Source code</a>, <a class="reference external" href="../api/display_api-20.png">png</a>, <a class="reference external" href="../api/display_api-20.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-20.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-20.png" src="../_images/display_api-20.png" />
 </div>
-<p>Condition on a third variable and plot the levels in different colors:</p>
+<p>Use different markers as well as colors so the plot will reproduce to
+black-and-white more easily:</p>
 <p>(<a class="reference external" href="../api/display_api-21.py">Source code</a>, <a class="reference external" href="../api/display_api-21.png">png</a>, <a class="reference external" href="../api/display_api-21.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-21.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-21.png" src="../_images/display_api-21.png" />
 </div>
-<p>Use different markers as well as colors so the plot will reproduce to
-black-and-white more easily:</p>
+<p>Use a different color palette:</p>
 <p>(<a class="reference external" href="../api/display_api-22.py">Source code</a>, <a class="reference external" href="../api/display_api-22.png">png</a>, <a class="reference external" href="../api/display_api-22.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-22.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-22.png" src="../_images/display_api-22.png" />
 </div>
-<p>Use a different color palette:</p>
+<p>Map <code class="docutils literal"><span class="pre">hue</span></code> levels to colors with a dictionary:</p>
 <p>(<a class="reference external" href="../api/display_api-23.py">Source code</a>, <a class="reference external" href="../api/display_api-23.png">png</a>, <a class="reference external" href="../api/display_api-23.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-23.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-23.png" src="../_images/display_api-23.png" />
 </div>
-<p>Map <code class="docutils literal"><span class="pre">hue</span></code> levels to colors with a dictionary:</p>
+<p>Plot the levels of the third variable across different columns:</p>
 <p>(<a class="reference external" href="../api/display_api-24.py">Source code</a>, <a class="reference external" href="../api/display_api-24.png">png</a>, <a class="reference external" href="../api/display_api-24.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-24.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-24.png" src="../_images/display_api-24.png" />
 </div>
-<p>Plot the levels of the third variable across different columns:</p>
+<p>Change the height and aspect ratio of the facets:</p>
 <p>(<a class="reference external" href="../api/display_api-25.py">Source code</a>, <a class="reference external" href="../api/display_api-25.png">png</a>, <a class="reference external" href="../api/display_api-25.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-25.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-25.png" src="../_images/display_api-25.png" />
 </div>
-<p>Change the size and aspect ratio of the facets:</p>
+<p>Wrap the levels of the column variable into multiple rows:</p>
 <p>(<a class="reference external" href="../api/display_api-26.py">Source code</a>, <a class="reference external" href="../api/display_api-26.png">png</a>, <a class="reference external" href="../api/display_api-26.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-26.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-26.png" src="../_images/display_api-26.png" />
 </div>
-<p>Wrap the levels of the column variable into multiple rows:</p>
+<p>Condition on two variables to make a full grid:</p>
 <p>(<a class="reference external" href="../api/display_api-27.py">Source code</a>, <a class="reference external" href="../api/display_api-27.png">png</a>, <a class="reference external" href="../api/display_api-27.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-27.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-27.png" src="../_images/display_api-27.png" />
 </div>
-<p>Condition on two variables to make a full grid:</p>
+<p>Use methods on the returned <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code> instance to further tweak
+the plot:</p>
 <p>(<a class="reference external" href="../api/display_api-28.py">Source code</a>, <a class="reference external" href="../api/display_api-28.png">png</a>, <a class="reference external" href="../api/display_api-28.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-28.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-28.png" src="../_images/display_api-28.png" />
-</div>
-<p>Use methods on the returned <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code> instance to further tweak
-the plot:</p>
-<p>(<a class="reference external" href="../api/display_api-29.py">Source code</a>, <a class="reference external" href="../api/display_api-29.png">png</a>, <a class="reference external" href="../api/display_api-29.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-29.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-29.png" src="../_images/display_api-29.png" />
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="abipy.display.seabornw.factorplot">
-<code class="descclassname">abipy.display.seabornw.</code><code class="descname">factorplot</code><span class="sig-paren">(</span><em>x=None</em>, <em>y=None</em>, <em>hue=None</em>, <em>data=None</em>, <em>row=None</em>, <em>col=None</em>, <em>col_wrap=None</em>, <em>estimator=&lt;function mean&gt;</em>, <em>ci=95</em>, <em>n_boot=1000</em>, <em>units=None</em>, <em>order=None</em>, <em>hue_order=None</em>, <em>row_order=None</em>, <em>col_order=None</em>, <em>kind='point'</em>, <em>size=4</em>, <em>aspect=1</em>, <em>orient=None</em>, <em>color=None</em>, <em>palette=None</em>, <em>legend=True</em>, <em>legend_out=True</em>, <em>sharex=True</em>, <em>sharey=True</em>, <em>margin_titles=False</em>, <em>facet_kws=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seaborn/categorical.html#factorplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.seabornw.factorplot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Draw a categorical plot onto a FacetGrid.</p>
-<p>The default plot that is shown is a point plot, but other seaborn
-categorical plots can be chosen with the <code class="docutils literal"><span class="pre">kind</span></code> parameter, including
-box plots, violin plots, bar plots, or strip plots.</p>
-<p>It is important to choose how variables get mapped to the plot structure
-such that the most important comparisons are easiest to make. As a general
-rule, it is easier to compare positions that are closer together, so the
-<code class="docutils literal"><span class="pre">hue</span></code> variable should be used for the most important comparisons. For
-secondary comparisons, try to share the quantitative axis (so, use <code class="docutils literal"><span class="pre">col</span></code>
-for vertical plots and <code class="docutils literal"><span class="pre">row</span></code> for horizontal plots). Note that, although
-it is possible to make rather complex plots using this function, in many
-cases you may be better served by created several smaller and more focused
-plots than by trying to stuff many comparisons into one figure.</p>
-<p>After plotting, the <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code> with the plot is returned and can
-be used directly to tweak supporting plot details or add other layers.</p>
-<p>Note that, unlike when using the underlying plotting functions directly,
-data must be passed in a long-form DataFrame with variables specified by
-passing strings to <code class="docutils literal"><span class="pre">x</span></code>, <code class="docutils literal"><span class="pre">y</span></code>, <code class="docutils literal"><span class="pre">hue</span></code>, and other parameters.</p>
-<p>As in the case with the underlying plot functions, if variables have a
-<code class="docutils literal"><span class="pre">categorical</span></code> data type, the correct orientation of the plot elements,
-the levels of the categorical variables, and their order will be inferred
-from the objects. Otherwise you may have to use the function parameters
-(<code class="docutils literal"><span class="pre">orient</span></code>, <code class="docutils literal"><span class="pre">order</span></code>, <code class="docutils literal"><span class="pre">hue_order</span></code>, etc.) to set up the plot correctly.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>y</strong><strong>, </strong><strong>hue</strong> (<em>x</em><em>,</em>) – Inputs for plotting long-form data. See examples for interpretation.</li>
-<li><strong>data</strong> (<em>DataFrame</em>) – Long-form (tidy) dataset for plotting. Each column should correspond
-to a variable, and each row should correspond to an observation.</li>
-<li><strong>col</strong> (<em>row</em><em>,</em>) – Categorical variables that will determine the faceting of the grid.</li>
-<li><strong>col_wrap</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em>) – “Wrap” the column variable at this width, so that the column facets
-span multiple rows. Incompatible with a <code class="docutils literal"><span class="pre">row</span></code> facet.</li>
-<li><strong>estimator</strong> (<em>callable that maps vector -&gt; scalar</em><em>, </em><em>optional</em>) – Statistical function to estimate within each categorical bin.</li>
-<li><strong>ci</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em> or </em><em>&quot;sd&quot;</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.7)"><em>None</em></a><em>, </em><em>optional</em>) – Size of confidence intervals to draw around estimated values.  If
-“sd”, skip bootstrapping and draw the standard deviation of the
-observations. If <code class="docutils literal"><span class="pre">None</span></code>, no bootstrapping will be performed, and
-error bars will not be drawn.</li>
-<li><strong>n_boot</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em>) – Number of bootstrap iterations to use when computing confidence
-intervals.</li>
-<li><strong>units</strong> (name of variable in <code class="docutils literal"><span class="pre">data</span></code> or vector data, optional) – Identifier of sampling units, which will be used to perform a
-multilevel bootstrap and account for repeated measures design.</li>
-<li><strong>hue_order</strong> (<a class="reference internal" href="core_api.html#abipy.core.symmetries.LatticeRotation.order" title="abipy.core.symmetries.LatticeRotation.order"><em>order</em></a><em>,</em>) – Order to plot the categorical levels in, otherwise the levels are
-inferred from the data objects.</li>
-<li><strong>col_order</strong> (<em>row_order</em><em>,</em>) – Order to organize the rows and/or columns of the grid in, otherwise the
-orders are inferred from the data objects.</li>
-<li><strong>kind</strong> ({<code class="docutils literal"><span class="pre">point</span></code>, <code class="docutils literal"><span class="pre">bar</span></code>, <code class="docutils literal"><span class="pre">count</span></code>, <code class="docutils literal"><span class="pre">box</span></code>, <code class="docutils literal"><span class="pre">violin</span></code>, <code class="docutils literal"><span class="pre">strip</span></code>}) – The kind of plot to draw.</li>
-<li><strong>size</strong> (<em>scalar</em><em>, </em><em>optional</em>) – Height (in inches) of each facet. See also: <code class="docutils literal"><span class="pre">aspect</span></code>.</li>
-<li><strong>aspect</strong> (<em>scalar</em><em>, </em><em>optional</em>) – Aspect ratio of each facet, so that <code class="docutils literal"><span class="pre">aspect</span> <span class="pre">*</span> <span class="pre">size</span></code> gives the width
-of each facet in inches.</li>
-<li><strong>orient</strong> (<em>&quot;v&quot; | &quot;h&quot;</em><em>, </em><em>optional</em>) – Orientation of the plot (vertical or horizontal). This is usually
-inferred from the dtype of the input variables, but can be used to
-specify when the “categorical” variable is a numeric or when plotting
-wide-form data.</li>
-<li><strong>color</strong> (<em>matplotlib color</em><em>, </em><em>optional</em>) – Color for all of the elements, or seed for a gradient palette.</li>
-<li><strong>palette</strong> (<em>palette name</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a><em>, or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
-be something that can be interpreted by <code class="xref py py-func docutils literal"><span class="pre">color_palette()</span></code>, or a
-dictionary mapping hue levels to matplotlib colors.</li>
-<li><strong>legend</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">True</span></code> and there is a <code class="docutils literal"><span class="pre">hue</span></code> variable, draw a legend on the plot.</li>
-<li><strong>legend_out</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">True</span></code>, the figure size will be extended, and the legend will be
-drawn outside the plot on the center right.</li>
-<li><strong>share{x</strong><strong>,</strong><strong>y}</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>optional</em>) – If true, the facets will share y axes across columns and/or x axes
-across rows.</li>
-<li><strong>margin_titles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">True</span></code>, the titles for the row variable are drawn to the right of
-the last column. This option is experimental and may not work in all
-cases.</li>
-<li><strong>facet_kws</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a><em>, </em><em>optional</em>) – Dictionary of other keyword arguments to pass to <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>.</li>
-<li><strong>kwargs</strong> (<em>key</em><em>, </em><em>value pairings</em>) – Other keyword arguments are passed through to the underlying plotting
-function.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>g</strong> – Returns the <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code> object with the plot on it for further
-tweaking.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code></p>
-</td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">Examples</p>
-<p>Draw a single facet to use the <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code> legend placement:</p>
-<p>(<a class="reference external" href="../api/display_api-30.py">Source code</a>, <a class="reference external" href="../api/display_api-30.png">png</a>, <a class="reference external" href="../api/display_api-30.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-30.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-30.png" src="../_images/display_api-30.png" />
-</div>
-<p>Use a different plot kind to visualize the same data:</p>
-<p>(<a class="reference external" href="../api/display_api-31.py">Source code</a>, <a class="reference external" href="../api/display_api-31.png">png</a>, <a class="reference external" href="../api/display_api-31.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-31.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-31.png" src="../_images/display_api-31.png" />
-</div>
-<p>Facet along the columns to show a third categorical variable:</p>
-<p>(<a class="reference external" href="../api/display_api-32.py">Source code</a>, <a class="reference external" href="../api/display_api-32.png">png</a>, <a class="reference external" href="../api/display_api-32.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-32.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-32.png" src="../_images/display_api-32.png" />
-</div>
-<p>Use a different size and aspect ratio for the facets:</p>
-<p>(<a class="reference external" href="../api/display_api-33.py">Source code</a>, <a class="reference external" href="../api/display_api-33.png">png</a>, <a class="reference external" href="../api/display_api-33.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-33.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-33.png" src="../_images/display_api-33.png" />
-</div>
-<p>Make many column facets and wrap them into the rows of the grid:</p>
-<p>(<a class="reference external" href="../api/display_api-34.py">Source code</a>, <a class="reference external" href="../api/display_api-34.png">png</a>, <a class="reference external" href="../api/display_api-34.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-34.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-34.png" src="../_images/display_api-34.png" />
-</div>
-<p>Plot horizontally and pass other keyword arguments to the plot function:</p>
-<p>(<a class="reference external" href="../api/display_api-35.py">Source code</a>, <a class="reference external" href="../api/display_api-35.png">png</a>, <a class="reference external" href="../api/display_api-35.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-35.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-35.png" src="../_images/display_api-35.png" />
-</div>
-<p>Use methods on the returned <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code> to tweak the presentation:</p>
-<p>(<a class="reference external" href="../api/display_api-36.py">Source code</a>, <a class="reference external" href="../api/display_api-36.png">png</a>, <a class="reference external" href="../api/display_api-36.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-36.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-36.png" src="../_images/display_api-36.png" />
-</div>
+<code class="descclassname">abipy.display.seabornw.</code><code class="descname">factorplot</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seaborn/categorical.html#factorplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.seabornw.factorplot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deprecated; please use <cite>catplot</cite> instead.</p>
 </dd></dl>
 
 <dl class="function">
@@ -890,12 +757,16 @@ objects passed directly to the <code class="docutils literal"><span class="pre">
 <li>A “long-form” DataFrame, in which case the <code class="docutils literal"><span class="pre">x</span></code>, <code class="docutils literal"><span class="pre">y</span></code>, and <code class="docutils literal"><span class="pre">hue</span></code>
 variables will determine how the data are plotted.</li>
 <li>A “wide-form” DataFrame, such that each numeric column will be plotted.</li>
-<li>Anything accepted by <code class="docutils literal"><span class="pre">plt.boxplot</span></code> (e.g. a 2d array or list of vectors)</li>
+<li>An array or list of vectors.</li>
 </ul>
 <p>In most cases, it is possible to use numpy or Python objects, but pandas
 objects are preferable because the associated names will be used to
 annotate the axes. Additionally, you can use Categorical types for the
 grouping variables to control the order of plot elements.</p>
+<p>This function always treats one of the variables as categorical and
+draws data at ordinal positions (0, 1, … n) on the relevant axis, even
+when the data has a numeric or date type.</p>
+<p>See the <span class="xref std std-ref">tutorial</span> for more information.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -937,7 +808,7 @@ time.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>ax</strong> – Returns the Axes object with the boxplot drawn onto it.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>ax</strong> – Returns the Axes object with the plot drawn onto it.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">matplotlib Axes</p>
@@ -958,52 +829,52 @@ time.</li>
 </div>
 <p class="rubric">Examples</p>
 <p>Draw a single horizontal boxplot:</p>
+<p>(<a class="reference external" href="../api/display_api-29.py">Source code</a>, <a class="reference external" href="../api/display_api-29.png">png</a>, <a class="reference external" href="../api/display_api-29.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-29.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-29.png" src="../_images/display_api-29.png" />
+</div>
+<p>Draw a vertical boxplot grouped by a categorical variable:</p>
+<p>(<a class="reference external" href="../api/display_api-30.py">Source code</a>, <a class="reference external" href="../api/display_api-30.png">png</a>, <a class="reference external" href="../api/display_api-30.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-30.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-30.png" src="../_images/display_api-30.png" />
+</div>
+<p>Draw a boxplot with nested grouping by two categorical variables:</p>
+<p>(<a class="reference external" href="../api/display_api-31.py">Source code</a>, <a class="reference external" href="../api/display_api-31.png">png</a>, <a class="reference external" href="../api/display_api-31.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-31.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-31.png" src="../_images/display_api-31.png" />
+</div>
+<p>Draw a boxplot with nested grouping when some bins are empty:</p>
+<p>(<a class="reference external" href="../api/display_api-32.py">Source code</a>, <a class="reference external" href="../api/display_api-32.png">png</a>, <a class="reference external" href="../api/display_api-32.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-32.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-32.png" src="../_images/display_api-32.png" />
+</div>
+<p>Control box order by passing an explicit order:</p>
+<p>(<a class="reference external" href="../api/display_api-33.py">Source code</a>, <a class="reference external" href="../api/display_api-33.png">png</a>, <a class="reference external" href="../api/display_api-33.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-33.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-33.png" src="../_images/display_api-33.png" />
+</div>
+<p>Draw a boxplot for each numeric variable in a DataFrame:</p>
+<p>(<a class="reference external" href="../api/display_api-34.py">Source code</a>, <a class="reference external" href="../api/display_api-34.png">png</a>, <a class="reference external" href="../api/display_api-34.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-34.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-34.png" src="../_images/display_api-34.png" />
+</div>
+<p>Use <code class="docutils literal"><span class="pre">hue</span></code> without changing box position or width:</p>
+<p>(<a class="reference external" href="../api/display_api-35.py">Source code</a>, <a class="reference external" href="../api/display_api-35.png">png</a>, <a class="reference external" href="../api/display_api-35.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-35.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-35.png" src="../_images/display_api-35.png" />
+</div>
+<p>Use <a class="reference internal" href="#abipy.display.seabornw.swarmplot" title="abipy.display.seabornw.swarmplot"><code class="xref py py-func docutils literal"><span class="pre">swarmplot()</span></code></a> to show the datapoints on top of the boxes:</p>
+<p>(<a class="reference external" href="../api/display_api-36.py">Source code</a>, <a class="reference external" href="../api/display_api-36.png">png</a>, <a class="reference external" href="../api/display_api-36.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-36.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-36.png" src="../_images/display_api-36.png" />
+</div>
+<p>Use <code class="xref py py-func docutils literal"><span class="pre">catplot()</span></code> to combine a <a class="reference internal" href="#abipy.display.seabornw.pointplot" title="abipy.display.seabornw.pointplot"><code class="xref py py-func docutils literal"><span class="pre">pointplot()</span></code></a> and a
+<code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>. This allows grouping within additional categorical
+variables. Using <code class="xref py py-func docutils literal"><span class="pre">catplot()</span></code> is safer than using <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>
+directly, as it ensures synchronization of variable order across facets:</p>
 <p>(<a class="reference external" href="../api/display_api-37.py">Source code</a>, <a class="reference external" href="../api/display_api-37.png">png</a>, <a class="reference external" href="../api/display_api-37.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-37.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-37.png" src="../_images/display_api-37.png" />
-</div>
-<p>Draw a vertical boxplot grouped by a categorical variable:</p>
-<p>(<a class="reference external" href="../api/display_api-38.py">Source code</a>, <a class="reference external" href="../api/display_api-38.png">png</a>, <a class="reference external" href="../api/display_api-38.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-38.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-38.png" src="../_images/display_api-38.png" />
-</div>
-<p>Draw a boxplot with nested grouping by two categorical variables:</p>
-<p>(<a class="reference external" href="../api/display_api-39.py">Source code</a>, <a class="reference external" href="../api/display_api-39.png">png</a>, <a class="reference external" href="../api/display_api-39.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-39.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-39.png" src="../_images/display_api-39.png" />
-</div>
-<p>Draw a boxplot with nested grouping when some bins are empty:</p>
-<p>(<a class="reference external" href="../api/display_api-40.py">Source code</a>, <a class="reference external" href="../api/display_api-40.png">png</a>, <a class="reference external" href="../api/display_api-40.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-40.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-40.png" src="../_images/display_api-40.png" />
-</div>
-<p>Control box order by passing an explicit order:</p>
-<p>(<a class="reference external" href="../api/display_api-41.py">Source code</a>, <a class="reference external" href="../api/display_api-41.png">png</a>, <a class="reference external" href="../api/display_api-41.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-41.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-41.png" src="../_images/display_api-41.png" />
-</div>
-<p>Draw a boxplot for each numeric variable in a DataFrame:</p>
-<p>(<a class="reference external" href="../api/display_api-42.py">Source code</a>, <a class="reference external" href="../api/display_api-42.png">png</a>, <a class="reference external" href="../api/display_api-42.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-42.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-42.png" src="../_images/display_api-42.png" />
-</div>
-<p>Use <code class="docutils literal"><span class="pre">hue</span></code> without changing box position or width:</p>
-<p>(<a class="reference external" href="../api/display_api-43.py">Source code</a>, <a class="reference external" href="../api/display_api-43.png">png</a>, <a class="reference external" href="../api/display_api-43.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-43.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-43.png" src="../_images/display_api-43.png" />
-</div>
-<p>Use <a class="reference internal" href="#abipy.display.seabornw.swarmplot" title="abipy.display.seabornw.swarmplot"><code class="xref py py-func docutils literal"><span class="pre">swarmplot()</span></code></a> to show the datapoints on top of the boxes:</p>
-<p>(<a class="reference external" href="../api/display_api-44.py">Source code</a>, <a class="reference external" href="../api/display_api-44.png">png</a>, <a class="reference external" href="../api/display_api-44.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-44.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-44.png" src="../_images/display_api-44.png" />
-</div>
-<p>Use <a class="reference internal" href="#abipy.display.seabornw.factorplot" title="abipy.display.seabornw.factorplot"><code class="xref py py-func docutils literal"><span class="pre">factorplot()</span></code></a> to combine a <a class="reference internal" href="#abipy.display.seabornw.boxplot" title="abipy.display.seabornw.boxplot"><code class="xref py py-func docutils literal"><span class="pre">boxplot()</span></code></a> and a
-<code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>. This allows grouping within additional categorical
-variables. Using <a class="reference internal" href="#abipy.display.seabornw.factorplot" title="abipy.display.seabornw.factorplot"><code class="xref py py-func docutils literal"><span class="pre">factorplot()</span></code></a> is safer than using <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>
-directly, as it ensures synchronization of variable order across facets:</p>
-<p>(<a class="reference external" href="../api/display_api-45.py">Source code</a>, <a class="reference external" href="../api/display_api-45.png">png</a>, <a class="reference external" href="../api/display_api-45.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-45.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-45.png" src="../_images/display_api-45.png" />
 </div>
 </dd></dl>
 
@@ -1028,12 +899,16 @@ objects passed directly to the <code class="docutils literal"><span class="pre">
 <li>A “long-form” DataFrame, in which case the <code class="docutils literal"><span class="pre">x</span></code>, <code class="docutils literal"><span class="pre">y</span></code>, and <code class="docutils literal"><span class="pre">hue</span></code>
 variables will determine how the data are plotted.</li>
 <li>A “wide-form” DataFrame, such that each numeric column will be plotted.</li>
-<li>Anything accepted by <code class="docutils literal"><span class="pre">plt.boxplot</span></code> (e.g. a 2d array or list of vectors)</li>
+<li>An array or list of vectors.</li>
 </ul>
 <p>In most cases, it is possible to use numpy or Python objects, but pandas
 objects are preferable because the associated names will be used to
 annotate the axes. Additionally, you can use Categorical types for the
 grouping variables to control the order of plot elements.</p>
+<p>This function always treats one of the variables as categorical and
+draws data at ordinal positions (0, 1, … n) on the relevant axis, even
+when the data has a numeric or date type.</p>
+<p>See the <span class="xref std std-ref">tutorial</span> for more information.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1090,7 +965,7 @@ spec.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>ax</strong> – Returns the Axes object with the boxplot drawn onto it.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>ax</strong> – Returns the Axes object with the plot drawn onto it.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">matplotlib Axes</p>
@@ -1111,83 +986,80 @@ spec.</li>
 </div>
 <p class="rubric">Examples</p>
 <p>Draw a single horizontal violinplot:</p>
+<p>(<a class="reference external" href="../api/display_api-38.py">Source code</a>, <a class="reference external" href="../api/display_api-38.png">png</a>, <a class="reference external" href="../api/display_api-38.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-38.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-38.png" src="../_images/display_api-38.png" />
+</div>
+<p>Draw a vertical violinplot grouped by a categorical variable:</p>
+<p>(<a class="reference external" href="../api/display_api-39.py">Source code</a>, <a class="reference external" href="../api/display_api-39.png">png</a>, <a class="reference external" href="../api/display_api-39.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-39.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-39.png" src="../_images/display_api-39.png" />
+</div>
+<p>Draw a violinplot with nested grouping by two categorical variables:</p>
+<p>(<a class="reference external" href="../api/display_api-40.py">Source code</a>, <a class="reference external" href="../api/display_api-40.png">png</a>, <a class="reference external" href="../api/display_api-40.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-40.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-40.png" src="../_images/display_api-40.png" />
+</div>
+<p>Draw split violins to compare the across the hue variable:</p>
+<p>(<a class="reference external" href="../api/display_api-41.py">Source code</a>, <a class="reference external" href="../api/display_api-41.png">png</a>, <a class="reference external" href="../api/display_api-41.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-41.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-41.png" src="../_images/display_api-41.png" />
+</div>
+<p>Control violin order by passing an explicit order:</p>
+<p>(<a class="reference external" href="../api/display_api-42.py">Source code</a>, <a class="reference external" href="../api/display_api-42.png">png</a>, <a class="reference external" href="../api/display_api-42.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-42.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-42.png" src="../_images/display_api-42.png" />
+</div>
+<p>Scale the violin width by the number of observations in each bin:</p>
+<p>(<a class="reference external" href="../api/display_api-43.py">Source code</a>, <a class="reference external" href="../api/display_api-43.png">png</a>, <a class="reference external" href="../api/display_api-43.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-43.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-43.png" src="../_images/display_api-43.png" />
+</div>
+<p>Draw the quartiles as horizontal lines instead of a mini-box:</p>
+<p>(<a class="reference external" href="../api/display_api-44.py">Source code</a>, <a class="reference external" href="../api/display_api-44.png">png</a>, <a class="reference external" href="../api/display_api-44.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-44.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-44.png" src="../_images/display_api-44.png" />
+</div>
+<p>Show each observation with a stick inside the violin:</p>
+<p>(<a class="reference external" href="../api/display_api-45.py">Source code</a>, <a class="reference external" href="../api/display_api-45.png">png</a>, <a class="reference external" href="../api/display_api-45.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-45.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-45.png" src="../_images/display_api-45.png" />
+</div>
+<p>Scale the density relative to the counts across all bins:</p>
 <p>(<a class="reference external" href="../api/display_api-46.py">Source code</a>, <a class="reference external" href="../api/display_api-46.png">png</a>, <a class="reference external" href="../api/display_api-46.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-46.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-46.png" src="../_images/display_api-46.png" />
 </div>
-<p>Draw a vertical violinplot grouped by a categorical variable:</p>
+<p>Use a narrow bandwidth to reduce the amount of smoothing:</p>
 <p>(<a class="reference external" href="../api/display_api-47.py">Source code</a>, <a class="reference external" href="../api/display_api-47.png">png</a>, <a class="reference external" href="../api/display_api-47.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-47.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-47.png" src="../_images/display_api-47.png" />
 </div>
-<p>Draw a violinplot with nested grouping by two categorical variables:</p>
+<p>Draw horizontal violins:</p>
 <p>(<a class="reference external" href="../api/display_api-48.py">Source code</a>, <a class="reference external" href="../api/display_api-48.png">png</a>, <a class="reference external" href="../api/display_api-48.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-48.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-48.png" src="../_images/display_api-48.png" />
 </div>
-<p>Draw split violins to compare the across the hue variable:</p>
+<p>Don’t let density extend past extreme values in the data:</p>
 <p>(<a class="reference external" href="../api/display_api-49.py">Source code</a>, <a class="reference external" href="../api/display_api-49.png">png</a>, <a class="reference external" href="../api/display_api-49.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-49.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-49.png" src="../_images/display_api-49.png" />
 </div>
-<p>Control violin order by passing an explicit order:</p>
+<p>Use <code class="docutils literal"><span class="pre">hue</span></code> without changing violin position or width:</p>
 <p>(<a class="reference external" href="../api/display_api-50.py">Source code</a>, <a class="reference external" href="../api/display_api-50.png">png</a>, <a class="reference external" href="../api/display_api-50.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-50.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-50.png" src="../_images/display_api-50.png" />
 </div>
-<p>Scale the violin width by the number of observations in each bin:</p>
-<p>(<a class="reference external" href="../api/display_api-51.py">Source code</a>, <a class="reference external" href="../api/display_api-51.png">png</a>, <a class="reference external" href="../api/display_api-51.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-51.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-51.png" src="../_images/display_api-51.png" />
-</div>
-<p>Draw the quartiles as horizontal lines instead of a mini-box:</p>
-<p>(<a class="reference external" href="../api/display_api-52.py">Source code</a>, <a class="reference external" href="../api/display_api-52.png">png</a>, <a class="reference external" href="../api/display_api-52.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-52.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-52.png" src="../_images/display_api-52.png" />
-</div>
-<p>Show each observation with a stick inside the violin:</p>
-<p>(<a class="reference external" href="../api/display_api-53.py">Source code</a>, <a class="reference external" href="../api/display_api-53.png">png</a>, <a class="reference external" href="../api/display_api-53.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-53.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-53.png" src="../_images/display_api-53.png" />
-</div>
-<p>Scale the density relative to the counts across all bins:</p>
-<p>(<a class="reference external" href="../api/display_api-54.py">Source code</a>, <a class="reference external" href="../api/display_api-54.png">png</a>, <a class="reference external" href="../api/display_api-54.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-54.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-54.png" src="../_images/display_api-54.png" />
-</div>
-<p>Use a narrow bandwidth to reduce the amount of smoothing:</p>
-<p>(<a class="reference external" href="../api/display_api-55.py">Source code</a>, <a class="reference external" href="../api/display_api-55.png">png</a>, <a class="reference external" href="../api/display_api-55.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-55.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-55.png" src="../_images/display_api-55.png" />
-</div>
-<p>Draw horizontal violins:</p>
-<p>(<a class="reference external" href="../api/display_api-56.py">Source code</a>, <a class="reference external" href="../api/display_api-56.png">png</a>, <a class="reference external" href="../api/display_api-56.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-56.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-56.png" src="../_images/display_api-56.png" />
-</div>
-<p>Don’t let density extend past extreme values in the data:</p>
-<p>(<a class="reference external" href="../api/display_api-57.py">Source code</a>, <a class="reference external" href="../api/display_api-57.png">png</a>, <a class="reference external" href="../api/display_api-57.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-57.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-57.png" src="../_images/display_api-57.png" />
-</div>
-<p>Use <code class="docutils literal"><span class="pre">hue</span></code> without changing violin position or width:</p>
-<p>(<a class="reference external" href="../api/display_api-58.py">Source code</a>, <a class="reference external" href="../api/display_api-58.png">png</a>, <a class="reference external" href="../api/display_api-58.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-58.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-58.png" src="../_images/display_api-58.png" />
-</div>
-<p>Use <a class="reference internal" href="#abipy.display.seabornw.factorplot" title="abipy.display.seabornw.factorplot"><code class="xref py py-func docutils literal"><span class="pre">factorplot()</span></code></a> to combine a <a class="reference internal" href="#abipy.display.seabornw.violinplot" title="abipy.display.seabornw.violinplot"><code class="xref py py-func docutils literal"><span class="pre">violinplot()</span></code></a> and a
+<p>Use <code class="xref py py-func docutils literal"><span class="pre">catplot()</span></code> to combine a <a class="reference internal" href="#abipy.display.seabornw.violinplot" title="abipy.display.seabornw.violinplot"><code class="xref py py-func docutils literal"><span class="pre">violinplot()</span></code></a> and a
 <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>. This allows grouping within additional categorical
-variables. Using <a class="reference internal" href="#abipy.display.seabornw.factorplot" title="abipy.display.seabornw.factorplot"><code class="xref py py-func docutils literal"><span class="pre">factorplot()</span></code></a> is safer than using <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>
+variables. Using <code class="xref py py-func docutils literal"><span class="pre">catplot()</span></code> is safer than using <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>
 directly, as it ensures synchronization of variable order across facets:</p>
-<p>(<a class="reference external" href="../api/display_api-59.py">Source code</a>, <a class="reference external" href="../api/display_api-59.png">png</a>, <a class="reference external" href="../api/display_api-59.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-59.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-59.png" src="../_images/display_api-59.png" />
-</div>
+<p>(<a class="reference external" href="../api/display_api-51.py">Source code</a>)</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="abipy.display.seabornw.stripplot">
-<code class="descclassname">abipy.display.seabornw.</code><code class="descname">stripplot</code><span class="sig-paren">(</span><em>x=None</em>, <em>y=None</em>, <em>hue=None</em>, <em>data=None</em>, <em>order=None</em>, <em>hue_order=None</em>, <em>jitter=False</em>, <em>dodge=False</em>, <em>orient=None</em>, <em>color=None</em>, <em>palette=None</em>, <em>size=5</em>, <em>edgecolor='gray'</em>, <em>linewidth=0</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seaborn/categorical.html#stripplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.seabornw.stripplot" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">abipy.display.seabornw.</code><code class="descname">stripplot</code><span class="sig-paren">(</span><em>x=None</em>, <em>y=None</em>, <em>hue=None</em>, <em>data=None</em>, <em>order=None</em>, <em>hue_order=None</em>, <em>jitter=True</em>, <em>dodge=False</em>, <em>orient=None</em>, <em>color=None</em>, <em>palette=None</em>, <em>size=5</em>, <em>edgecolor='gray'</em>, <em>linewidth=0</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seaborn/categorical.html#stripplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.seabornw.stripplot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Draw a scatterplot where one variable is categorical.</p>
 <p>A strip plot can be drawn on its own, but it is also a good complement
 to a box or violin plot in cases where you want to show all observations
@@ -1199,12 +1071,16 @@ objects passed directly to the <code class="docutils literal"><span class="pre">
 <li>A “long-form” DataFrame, in which case the <code class="docutils literal"><span class="pre">x</span></code>, <code class="docutils literal"><span class="pre">y</span></code>, and <code class="docutils literal"><span class="pre">hue</span></code>
 variables will determine how the data are plotted.</li>
 <li>A “wide-form” DataFrame, such that each numeric column will be plotted.</li>
-<li>Anything accepted by <code class="docutils literal"><span class="pre">plt.boxplot</span></code> (e.g. a 2d array or list of vectors)</li>
+<li>An array or list of vectors.</li>
 </ul>
 <p>In most cases, it is possible to use numpy or Python objects, but pandas
 objects are preferable because the associated names will be used to
 annotate the axes. Additionally, you can use Categorical types for the
 grouping variables to control the order of plot elements.</p>
+<p>This function always treats one of the variables as categorical and
+draws data at ordinal positions (0, 1, … n) on the relevant axis, even
+when the data has a numeric or date type.</p>
+<p>See the <span class="xref std std-ref">tutorial</span> for more information.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1220,7 +1096,7 @@ can be useful when you have many points and they overlap, so that
 it is easier to see the distribution. You can specify the amount
 of jitter (half the width of the uniform random variable support),
 or just use <code class="docutils literal"><span class="pre">True</span></code> for a good default.</li>
-<li><strong>split</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>optional</em>) – When using <code class="docutils literal"><span class="pre">hue</span></code> nesting, setting this to <code class="docutils literal"><span class="pre">True</span></code> will separate
+<li><strong>dodge</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>optional</em>) – When using <code class="docutils literal"><span class="pre">hue</span></code> nesting, setting this to <code class="docutils literal"><span class="pre">True</span></code> will separate
 the strips for different hue levels along the categorical axis.
 Otherwise, the points for each level will be plotted on top of
 each other.</li>
@@ -1243,7 +1119,7 @@ of the points.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>ax</strong> – Returns the Axes object with the boxplot drawn onto it.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>ax</strong> – Returns the Axes object with the plot drawn onto it.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">matplotlib Axes</p>
@@ -1264,73 +1140,73 @@ of the points.</li>
 </div>
 <p class="rubric">Examples</p>
 <p>Draw a single horizontal strip plot:</p>
+<p>(<a class="reference external" href="../api/display_api-52.py">Source code</a>, <a class="reference external" href="../api/display_api-52.png">png</a>, <a class="reference external" href="../api/display_api-52.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-52.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-52.png" src="../_images/display_api-52.png" />
+</div>
+<p>Group the strips by a categorical variable:</p>
+<p>(<a class="reference external" href="../api/display_api-53.py">Source code</a>, <a class="reference external" href="../api/display_api-53.png">png</a>, <a class="reference external" href="../api/display_api-53.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-53.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-53.png" src="../_images/display_api-53.png" />
+</div>
+<p>Add jitter to bring out the distribution of values:</p>
+<p>(<a class="reference external" href="../api/display_api-54.py">Source code</a>, <a class="reference external" href="../api/display_api-54.png">png</a>, <a class="reference external" href="../api/display_api-54.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-54.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-54.png" src="../_images/display_api-54.png" />
+</div>
+<p>Use a smaller amount of jitter:</p>
+<p>(<a class="reference external" href="../api/display_api-55.py">Source code</a>, <a class="reference external" href="../api/display_api-55.png">png</a>, <a class="reference external" href="../api/display_api-55.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-55.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-55.png" src="../_images/display_api-55.png" />
+</div>
+<p>Draw horizontal strips:</p>
+<p>(<a class="reference external" href="../api/display_api-56.py">Source code</a>, <a class="reference external" href="../api/display_api-56.png">png</a>, <a class="reference external" href="../api/display_api-56.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-56.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-56.png" src="../_images/display_api-56.png" />
+</div>
+<p>Draw outlines around the points:</p>
+<p>(<a class="reference external" href="../api/display_api-57.py">Source code</a>, <a class="reference external" href="../api/display_api-57.png">png</a>, <a class="reference external" href="../api/display_api-57.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-57.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-57.png" src="../_images/display_api-57.png" />
+</div>
+<p>Nest the strips within a second categorical variable:</p>
+<p>(<a class="reference external" href="../api/display_api-58.py">Source code</a>, <a class="reference external" href="../api/display_api-58.png">png</a>, <a class="reference external" href="../api/display_api-58.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-58.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-58.png" src="../_images/display_api-58.png" />
+</div>
+<p>Draw each level of the <code class="docutils literal"><span class="pre">hue</span></code> variable at different locations on the
+major categorical axis:</p>
+<p>(<a class="reference external" href="../api/display_api-59.py">Source code</a>, <a class="reference external" href="../api/display_api-59.png">png</a>, <a class="reference external" href="../api/display_api-59.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-59.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-59.png" src="../_images/display_api-59.png" />
+</div>
+<p>Control strip order by passing an explicit order:</p>
 <p>(<a class="reference external" href="../api/display_api-60.py">Source code</a>, <a class="reference external" href="../api/display_api-60.png">png</a>, <a class="reference external" href="../api/display_api-60.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-60.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-60.png" src="../_images/display_api-60.png" />
 </div>
-<p>Group the strips by a categorical variable:</p>
+<p>Draw strips with large points and different aesthetics:</p>
 <p>(<a class="reference external" href="../api/display_api-61.py">Source code</a>, <a class="reference external" href="../api/display_api-61.png">png</a>, <a class="reference external" href="../api/display_api-61.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-61.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-61.png" src="../_images/display_api-61.png" />
 </div>
-<p>Add jitter to bring out the distribution of values:</p>
+<p>Draw strips of observations on top of a box plot:</p>
 <p>(<a class="reference external" href="../api/display_api-62.py">Source code</a>, <a class="reference external" href="../api/display_api-62.png">png</a>, <a class="reference external" href="../api/display_api-62.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-62.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-62.png" src="../_images/display_api-62.png" />
 </div>
-<p>Use a smaller amount of jitter:</p>
+<p>Draw strips of observations on top of a violin plot:</p>
 <p>(<a class="reference external" href="../api/display_api-63.py">Source code</a>, <a class="reference external" href="../api/display_api-63.png">png</a>, <a class="reference external" href="../api/display_api-63.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-63.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-63.png" src="../_images/display_api-63.png" />
 </div>
-<p>Draw horizontal strips:</p>
+<p>Use <code class="xref py py-func docutils literal"><span class="pre">catplot()</span></code> to combine a <a class="reference internal" href="#abipy.display.seabornw.stripplot" title="abipy.display.seabornw.stripplot"><code class="xref py py-func docutils literal"><span class="pre">stripplot()</span></code></a> and a
+<code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>. This allows grouping within additional categorical
+variables. Using <code class="xref py py-func docutils literal"><span class="pre">catplot()</span></code> is safer than using <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>
+directly, as it ensures synchronization of variable order across facets:</p>
 <p>(<a class="reference external" href="../api/display_api-64.py">Source code</a>, <a class="reference external" href="../api/display_api-64.png">png</a>, <a class="reference external" href="../api/display_api-64.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-64.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-64.png" src="../_images/display_api-64.png" />
-</div>
-<p>Draw outlines around the points:</p>
-<p>(<a class="reference external" href="../api/display_api-65.py">Source code</a>, <a class="reference external" href="../api/display_api-65.png">png</a>, <a class="reference external" href="../api/display_api-65.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-65.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-65.png" src="../_images/display_api-65.png" />
-</div>
-<p>Nest the strips within a second categorical variable:</p>
-<p>(<a class="reference external" href="../api/display_api-66.py">Source code</a>, <a class="reference external" href="../api/display_api-66.png">png</a>, <a class="reference external" href="../api/display_api-66.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-66.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-66.png" src="../_images/display_api-66.png" />
-</div>
-<p>Draw each level of the <code class="docutils literal"><span class="pre">hue</span></code> variable at different locations on the
-major categorical axis:</p>
-<p>(<a class="reference external" href="../api/display_api-67.py">Source code</a>, <a class="reference external" href="../api/display_api-67.png">png</a>, <a class="reference external" href="../api/display_api-67.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-67.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-67.png" src="../_images/display_api-67.png" />
-</div>
-<p>Control strip order by passing an explicit order:</p>
-<p>(<a class="reference external" href="../api/display_api-68.py">Source code</a>, <a class="reference external" href="../api/display_api-68.png">png</a>, <a class="reference external" href="../api/display_api-68.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-68.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-68.png" src="../_images/display_api-68.png" />
-</div>
-<p>Draw strips with large points and different aesthetics:</p>
-<p>(<a class="reference external" href="../api/display_api-69.py">Source code</a>, <a class="reference external" href="../api/display_api-69.png">png</a>, <a class="reference external" href="../api/display_api-69.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-69.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-69.png" src="../_images/display_api-69.png" />
-</div>
-<p>Draw strips of observations on top of a box plot:</p>
-<p>(<a class="reference external" href="../api/display_api-70.py">Source code</a>, <a class="reference external" href="../api/display_api-70.png">png</a>, <a class="reference external" href="../api/display_api-70.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-70.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-70.png" src="../_images/display_api-70.png" />
-</div>
-<p>Draw strips of observations on top of a violin plot:</p>
-<p>(<a class="reference external" href="../api/display_api-71.py">Source code</a>, <a class="reference external" href="../api/display_api-71.png">png</a>, <a class="reference external" href="../api/display_api-71.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-71.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-71.png" src="../_images/display_api-71.png" />
-</div>
-<p>Use <a class="reference internal" href="#abipy.display.seabornw.factorplot" title="abipy.display.seabornw.factorplot"><code class="xref py py-func docutils literal"><span class="pre">factorplot()</span></code></a> to combine a <a class="reference internal" href="#abipy.display.seabornw.stripplot" title="abipy.display.seabornw.stripplot"><code class="xref py py-func docutils literal"><span class="pre">stripplot()</span></code></a> and a
-<code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>. This allows grouping within additional categorical
-variables. Using <a class="reference internal" href="#abipy.display.seabornw.factorplot" title="abipy.display.seabornw.factorplot"><code class="xref py py-func docutils literal"><span class="pre">factorplot()</span></code></a> is safer than using <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>
-directly, as it ensures synchronization of variable order across facets:</p>
-<p>(<a class="reference external" href="../api/display_api-72.py">Source code</a>, <a class="reference external" href="../api/display_api-72.png">png</a>, <a class="reference external" href="../api/display_api-72.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-72.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-72.png" src="../_images/display_api-72.png" />
 </div>
 </dd></dl>
 
@@ -1340,17 +1216,15 @@ directly, as it ensures synchronization of variable order across facets:</p>
 <dd><p>Draw a categorical scatterplot with non-overlapping points.</p>
 <p>This function is similar to <a class="reference internal" href="#abipy.display.seabornw.stripplot" title="abipy.display.seabornw.stripplot"><code class="xref py py-func docutils literal"><span class="pre">stripplot()</span></code></a>, but the points are adjusted
 (only along the categorical axis) so that they don’t overlap. This gives a
-better representation of the distribution of values, although it does not
-scale as well to large numbers of observations (both in terms of the
-ability to show all the points and in terms of the computation needed
-to arrange them).</p>
-<p>This style of plot is often called a “beeswarm”.</p>
+better representation of the distribution of values, but it does not scale
+well to large numbers of observations. This style of plot is sometimes
+called a “beeswarm”.</p>
 <p>A swarm plot can be drawn on its own, but it is also a good complement
 to a box or violin plot in cases where you want to show all observations
 along with some representation of the underlying distribution.</p>
-<p>Note that arranging the points properly requires an accurate transformation
-between data and point coordinates. This means that non-default axis limits
-should be set <em>before</em> drawing the swarm plot.</p>
+<p>Arranging the points properly requires an accurate transformation between
+data and point coordinates. This means that non-default axis limits must
+be set <em>before</em> drawing the plot.</p>
 <p>Input data can be passed in a variety of formats, including:</p>
 <ul class="simple">
 <li>Vectors of data represented as lists, numpy arrays, or pandas Series
@@ -1358,12 +1232,16 @@ objects passed directly to the <code class="docutils literal"><span class="pre">
 <li>A “long-form” DataFrame, in which case the <code class="docutils literal"><span class="pre">x</span></code>, <code class="docutils literal"><span class="pre">y</span></code>, and <code class="docutils literal"><span class="pre">hue</span></code>
 variables will determine how the data are plotted.</li>
 <li>A “wide-form” DataFrame, such that each numeric column will be plotted.</li>
-<li>Anything accepted by <code class="docutils literal"><span class="pre">plt.boxplot</span></code> (e.g. a 2d array or list of vectors)</li>
+<li>An array or list of vectors.</li>
 </ul>
 <p>In most cases, it is possible to use numpy or Python objects, but pandas
 objects are preferable because the associated names will be used to
 annotate the axes. Additionally, you can use Categorical types for the
 grouping variables to control the order of plot elements.</p>
+<p>This function always treats one of the variables as categorical and
+draws data at ordinal positions (0, 1, … n) on the relevant axis, even
+when the data has a numeric or date type.</p>
+<p>See the <span class="xref std std-ref">tutorial</span> for more information.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1374,7 +1252,7 @@ grouping variables to control the order of plot elements.</p>
 interpreted as wide-form. Otherwise it is expected to be long-form.</li>
 <li><strong>hue_order</strong> (<a class="reference internal" href="core_api.html#abipy.core.symmetries.LatticeRotation.order" title="abipy.core.symmetries.LatticeRotation.order"><em>order</em></a><em>,</em>) – Order to plot the categorical levels in, otherwise the levels are
 inferred from the data objects.</li>
-<li><strong>split</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>optional</em>) – When using <code class="docutils literal"><span class="pre">hue</span></code> nesting, setting this to <code class="docutils literal"><span class="pre">True</span></code> will separate
+<li><strong>dodge</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>optional</em>) – When using <code class="docutils literal"><span class="pre">hue</span></code> nesting, setting this to <code class="docutils literal"><span class="pre">True</span></code> will separate
 the strips for different hue levels along the categorical axis.
 Otherwise, the points for each level will be plotted in one swarm.</li>
 <li><strong>orient</strong> (<em>&quot;v&quot; | &quot;h&quot;</em><em>, </em><em>optional</em>) – Orientation of the plot (vertical or horizontal). This is usually
@@ -1396,7 +1274,7 @@ of the points.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>ax</strong> – Returns the Axes object with the boxplot drawn onto it.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>ax</strong> – Returns the Axes object with the plot drawn onto it.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">matplotlib Axes</p>
@@ -1413,63 +1291,63 @@ of the points.</li>
 <dd>A combination of boxplot and kernel density estimation.</dd>
 <dt><a class="reference internal" href="#abipy.display.seabornw.stripplot" title="abipy.display.seabornw.stripplot"><code class="xref py py-func docutils literal"><span class="pre">stripplot()</span></code></a></dt>
 <dd>A scatterplot where one variable is categorical. Can be used in conjunction with other plots to show each observation.</dd>
-<dt><a class="reference internal" href="#abipy.display.seabornw.factorplot" title="abipy.display.seabornw.factorplot"><code class="xref py py-func docutils literal"><span class="pre">factorplot()</span></code></a></dt>
-<dd>Combine categorical plots and a class:<cite>FacetGrid</cite>.</dd>
+<dt><code class="xref py py-func docutils literal"><span class="pre">catplot()</span></code></dt>
+<dd>Combine a categorical plot with a class:<cite>FacetGrid</cite>.</dd>
 </dl>
 </div>
 <p class="rubric">Examples</p>
 <p>Draw a single horizontal swarm plot:</p>
+<p>(<a class="reference external" href="../api/display_api-65.py">Source code</a>, <a class="reference external" href="../api/display_api-65.png">png</a>, <a class="reference external" href="../api/display_api-65.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-65.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-65.png" src="../_images/display_api-65.png" />
+</div>
+<p>Group the swarms by a categorical variable:</p>
+<p>(<a class="reference external" href="../api/display_api-66.py">Source code</a>, <a class="reference external" href="../api/display_api-66.png">png</a>, <a class="reference external" href="../api/display_api-66.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-66.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-66.png" src="../_images/display_api-66.png" />
+</div>
+<p>Draw horizontal swarms:</p>
+<p>(<a class="reference external" href="../api/display_api-67.py">Source code</a>, <a class="reference external" href="../api/display_api-67.png">png</a>, <a class="reference external" href="../api/display_api-67.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-67.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-67.png" src="../_images/display_api-67.png" />
+</div>
+<p>Color the points using a second categorical variable:</p>
+<p>(<a class="reference external" href="../api/display_api-68.py">Source code</a>, <a class="reference external" href="../api/display_api-68.png">png</a>, <a class="reference external" href="../api/display_api-68.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-68.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-68.png" src="../_images/display_api-68.png" />
+</div>
+<p>Split each level of the <code class="docutils literal"><span class="pre">hue</span></code> variable along the categorical axis:</p>
+<p>(<a class="reference external" href="../api/display_api-69.py">Source code</a>, <a class="reference external" href="../api/display_api-69.png">png</a>, <a class="reference external" href="../api/display_api-69.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-69.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-69.png" src="../_images/display_api-69.png" />
+</div>
+<p>Control swarm order by passing an explicit order:</p>
+<p>(<a class="reference external" href="../api/display_api-70.py">Source code</a>, <a class="reference external" href="../api/display_api-70.png">png</a>, <a class="reference external" href="../api/display_api-70.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-70.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-70.png" src="../_images/display_api-70.png" />
+</div>
+<p>Plot using larger points:</p>
+<p>(<a class="reference external" href="../api/display_api-71.py">Source code</a>, <a class="reference external" href="../api/display_api-71.png">png</a>, <a class="reference external" href="../api/display_api-71.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-71.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-71.png" src="../_images/display_api-71.png" />
+</div>
+<p>Draw swarms of observations on top of a box plot:</p>
+<p>(<a class="reference external" href="../api/display_api-72.py">Source code</a>, <a class="reference external" href="../api/display_api-72.png">png</a>, <a class="reference external" href="../api/display_api-72.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-72.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-72.png" src="../_images/display_api-72.png" />
+</div>
+<p>Draw swarms of observations on top of a violin plot:</p>
 <p>(<a class="reference external" href="../api/display_api-73.py">Source code</a>, <a class="reference external" href="../api/display_api-73.png">png</a>, <a class="reference external" href="../api/display_api-73.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-73.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-73.png" src="../_images/display_api-73.png" />
 </div>
-<p>Group the swarms by a categorical variable:</p>
+<p>Use <code class="xref py py-func docutils literal"><span class="pre">catplot()</span></code> to combine a <a class="reference internal" href="#abipy.display.seabornw.swarmplot" title="abipy.display.seabornw.swarmplot"><code class="xref py py-func docutils literal"><span class="pre">swarmplot()</span></code></a> and a
+<code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>. This allows grouping within additional categorical
+variables. Using <code class="xref py py-func docutils literal"><span class="pre">catplot()</span></code> is safer than using <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>
+directly, as it ensures synchronization of variable order across facets:</p>
 <p>(<a class="reference external" href="../api/display_api-74.py">Source code</a>, <a class="reference external" href="../api/display_api-74.png">png</a>, <a class="reference external" href="../api/display_api-74.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-74.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-74.png" src="../_images/display_api-74.png" />
-</div>
-<p>Draw horizontal swarms:</p>
-<p>(<a class="reference external" href="../api/display_api-75.py">Source code</a>, <a class="reference external" href="../api/display_api-75.png">png</a>, <a class="reference external" href="../api/display_api-75.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-75.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-75.png" src="../_images/display_api-75.png" />
-</div>
-<p>Color the points using a second categorical variable:</p>
-<p>(<a class="reference external" href="../api/display_api-76.py">Source code</a>, <a class="reference external" href="../api/display_api-76.png">png</a>, <a class="reference external" href="../api/display_api-76.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-76.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-76.png" src="../_images/display_api-76.png" />
-</div>
-<p>Split each level of the <code class="docutils literal"><span class="pre">hue</span></code> variable along the categorical axis:</p>
-<p>(<a class="reference external" href="../api/display_api-77.py">Source code</a>, <a class="reference external" href="../api/display_api-77.png">png</a>, <a class="reference external" href="../api/display_api-77.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-77.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-77.png" src="../_images/display_api-77.png" />
-</div>
-<p>Control swarm order by passing an explicit order:</p>
-<p>(<a class="reference external" href="../api/display_api-78.py">Source code</a>, <a class="reference external" href="../api/display_api-78.png">png</a>, <a class="reference external" href="../api/display_api-78.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-78.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-78.png" src="../_images/display_api-78.png" />
-</div>
-<p>Plot using larger points:</p>
-<p>(<a class="reference external" href="../api/display_api-79.py">Source code</a>, <a class="reference external" href="../api/display_api-79.png">png</a>, <a class="reference external" href="../api/display_api-79.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-79.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-79.png" src="../_images/display_api-79.png" />
-</div>
-<p>Draw swarms of observations on top of a box plot:</p>
-<p>(<a class="reference external" href="../api/display_api-80.py">Source code</a>, <a class="reference external" href="../api/display_api-80.png">png</a>, <a class="reference external" href="../api/display_api-80.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-80.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-80.png" src="../_images/display_api-80.png" />
-</div>
-<p>Draw swarms of observations on top of a violin plot:</p>
-<p>(<a class="reference external" href="../api/display_api-81.py">Source code</a>, <a class="reference external" href="../api/display_api-81.png">png</a>, <a class="reference external" href="../api/display_api-81.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-81.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-81.png" src="../_images/display_api-81.png" />
-</div>
-<p>Use <a class="reference internal" href="#abipy.display.seabornw.factorplot" title="abipy.display.seabornw.factorplot"><code class="xref py py-func docutils literal"><span class="pre">factorplot()</span></code></a> to combine a <a class="reference internal" href="#abipy.display.seabornw.swarmplot" title="abipy.display.seabornw.swarmplot"><code class="xref py py-func docutils literal"><span class="pre">swarmplot()</span></code></a> and a
-<code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>. This allows grouping within additional categorical
-variables. Using <a class="reference internal" href="#abipy.display.seabornw.factorplot" title="abipy.display.seabornw.factorplot"><code class="xref py py-func docutils literal"><span class="pre">factorplot()</span></code></a> is safer than using <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>
-directly, as it ensures synchronization of variable order across facets:</p>
-<p>(<a class="reference external" href="../api/display_api-82.py">Source code</a>, <a class="reference external" href="../api/display_api-82.png">png</a>, <a class="reference external" href="../api/display_api-82.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-82.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-82.png" src="../_images/display_api-82.png" />
 </div>
 </dd></dl>
 
@@ -1500,12 +1378,16 @@ objects passed directly to the <code class="docutils literal"><span class="pre">
 <li>A “long-form” DataFrame, in which case the <code class="docutils literal"><span class="pre">x</span></code>, <code class="docutils literal"><span class="pre">y</span></code>, and <code class="docutils literal"><span class="pre">hue</span></code>
 variables will determine how the data are plotted.</li>
 <li>A “wide-form” DataFrame, such that each numeric column will be plotted.</li>
-<li>Anything accepted by <code class="docutils literal"><span class="pre">plt.boxplot</span></code> (e.g. a 2d array or list of vectors)</li>
+<li>An array or list of vectors.</li>
 </ul>
 <p>In most cases, it is possible to use numpy or Python objects, but pandas
 objects are preferable because the associated names will be used to
 annotate the axes. Additionally, you can use Categorical types for the
 grouping variables to control the order of plot elements.</p>
+<p>This function always treats one of the variables as categorical and
+draws data at ordinal positions (0, 1, … n) on the relevant axis, even
+when the data has a numeric or date type.</p>
+<p>See the <span class="xref std std-ref">tutorial</span> for more information.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1546,7 +1428,7 @@ dictionary mapping hue levels to matplotlib colors.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>ax</strong> – Returns the Axes object with the boxplot drawn onto it.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>ax</strong> – Returns the Axes object with the plot drawn onto it.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">matplotlib Axes</p>
@@ -1559,83 +1441,83 @@ dictionary mapping hue levels to matplotlib colors.</li>
 <dl class="last docutils">
 <dt><a class="reference internal" href="#abipy.display.seabornw.barplot" title="abipy.display.seabornw.barplot"><code class="xref py py-func docutils literal"><span class="pre">barplot()</span></code></a></dt>
 <dd>Show point estimates and confidence intervals using bars.</dd>
-<dt><a class="reference internal" href="#abipy.display.seabornw.factorplot" title="abipy.display.seabornw.factorplot"><code class="xref py py-func docutils literal"><span class="pre">factorplot()</span></code></a></dt>
-<dd>Combine categorical plots and a class:<cite>FacetGrid</cite>.</dd>
+<dt><code class="xref py py-func docutils literal"><span class="pre">catplot()</span></code></dt>
+<dd>Combine a categorical plot with a class:<cite>FacetGrid</cite>.</dd>
 </dl>
 </div>
 <p class="rubric">Examples</p>
 <p>Draw a set of vertical point plots grouped by a categorical variable:</p>
+<p>(<a class="reference external" href="../api/display_api-75.py">Source code</a>, <a class="reference external" href="../api/display_api-75.png">png</a>, <a class="reference external" href="../api/display_api-75.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-75.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-75.png" src="../_images/display_api-75.png" />
+</div>
+<p>Draw a set of vertical points with nested grouping by a two variables:</p>
+<p>(<a class="reference external" href="../api/display_api-76.py">Source code</a>, <a class="reference external" href="../api/display_api-76.png">png</a>, <a class="reference external" href="../api/display_api-76.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-76.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-76.png" src="../_images/display_api-76.png" />
+</div>
+<p>Separate the points for different hue levels along the categorical axis:</p>
+<p>(<a class="reference external" href="../api/display_api-77.py">Source code</a>, <a class="reference external" href="../api/display_api-77.png">png</a>, <a class="reference external" href="../api/display_api-77.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-77.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-77.png" src="../_images/display_api-77.png" />
+</div>
+<p>Use a different marker and line style for the hue levels:</p>
+<p>(<a class="reference external" href="../api/display_api-78.py">Source code</a>, <a class="reference external" href="../api/display_api-78.png">png</a>, <a class="reference external" href="../api/display_api-78.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-78.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-78.png" src="../_images/display_api-78.png" />
+</div>
+<p>Draw a set of horizontal points:</p>
+<p>(<a class="reference external" href="../api/display_api-79.py">Source code</a>, <a class="reference external" href="../api/display_api-79.png">png</a>, <a class="reference external" href="../api/display_api-79.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-79.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-79.png" src="../_images/display_api-79.png" />
+</div>
+<p>Don’t draw a line connecting each point:</p>
+<p>(<a class="reference external" href="../api/display_api-80.py">Source code</a>, <a class="reference external" href="../api/display_api-80.png">png</a>, <a class="reference external" href="../api/display_api-80.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-80.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-80.png" src="../_images/display_api-80.png" />
+</div>
+<p>Use a different color for a single-layer plot:</p>
+<p>(<a class="reference external" href="../api/display_api-81.py">Source code</a>, <a class="reference external" href="../api/display_api-81.png">png</a>, <a class="reference external" href="../api/display_api-81.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-81.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-81.png" src="../_images/display_api-81.png" />
+</div>
+<p>Use a different color palette for the points:</p>
+<p>(<a class="reference external" href="../api/display_api-82.py">Source code</a>, <a class="reference external" href="../api/display_api-82.png">png</a>, <a class="reference external" href="../api/display_api-82.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-82.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-82.png" src="../_images/display_api-82.png" />
+</div>
+<p>Control point order by passing an explicit order:</p>
 <p>(<a class="reference external" href="../api/display_api-83.py">Source code</a>, <a class="reference external" href="../api/display_api-83.png">png</a>, <a class="reference external" href="../api/display_api-83.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-83.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-83.png" src="../_images/display_api-83.png" />
 </div>
-<p>Draw a set of vertical points with nested grouping by a two variables:</p>
+<p>Use median as the estimate of central tendency:</p>
 <p>(<a class="reference external" href="../api/display_api-84.py">Source code</a>, <a class="reference external" href="../api/display_api-84.png">png</a>, <a class="reference external" href="../api/display_api-84.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-84.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-84.png" src="../_images/display_api-84.png" />
 </div>
-<p>Separate the points for different hue levels along the categorical axis:</p>
+<p>Show the standard error of the mean with the error bars:</p>
 <p>(<a class="reference external" href="../api/display_api-85.py">Source code</a>, <a class="reference external" href="../api/display_api-85.png">png</a>, <a class="reference external" href="../api/display_api-85.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-85.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-85.png" src="../_images/display_api-85.png" />
 </div>
-<p>Use a different marker and line style for the hue levels:</p>
+<p>Show standard deviation of observations instead of a confidence interval:</p>
 <p>(<a class="reference external" href="../api/display_api-86.py">Source code</a>, <a class="reference external" href="../api/display_api-86.png">png</a>, <a class="reference external" href="../api/display_api-86.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-86.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-86.png" src="../_images/display_api-86.png" />
 </div>
-<p>Draw a set of horizontal points:</p>
+<p>Add “caps” to the error bars:</p>
 <p>(<a class="reference external" href="../api/display_api-87.py">Source code</a>, <a class="reference external" href="../api/display_api-87.png">png</a>, <a class="reference external" href="../api/display_api-87.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-87.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-87.png" src="../_images/display_api-87.png" />
 </div>
-<p>Don’t draw a line connecting each point:</p>
+<p>Use <code class="xref py py-func docutils literal"><span class="pre">catplot()</span></code> to combine a <a class="reference internal" href="#abipy.display.seabornw.barplot" title="abipy.display.seabornw.barplot"><code class="xref py py-func docutils literal"><span class="pre">barplot()</span></code></a> and a
+<code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>. This allows grouping within additional categorical
+variables. Using <code class="xref py py-func docutils literal"><span class="pre">catplot()</span></code> is safer than using <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>
+directly, as it ensures synchronization of variable order across facets:</p>
 <p>(<a class="reference external" href="../api/display_api-88.py">Source code</a>, <a class="reference external" href="../api/display_api-88.png">png</a>, <a class="reference external" href="../api/display_api-88.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-88.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-88.png" src="../_images/display_api-88.png" />
-</div>
-<p>Use a different color for a single-layer plot:</p>
-<p>(<a class="reference external" href="../api/display_api-89.py">Source code</a>, <a class="reference external" href="../api/display_api-89.png">png</a>, <a class="reference external" href="../api/display_api-89.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-89.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-89.png" src="../_images/display_api-89.png" />
-</div>
-<p>Use a different color palette for the points:</p>
-<p>(<a class="reference external" href="../api/display_api-90.py">Source code</a>, <a class="reference external" href="../api/display_api-90.png">png</a>, <a class="reference external" href="../api/display_api-90.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-90.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-90.png" src="../_images/display_api-90.png" />
-</div>
-<p>Control point order by passing an explicit order:</p>
-<p>(<a class="reference external" href="../api/display_api-91.py">Source code</a>, <a class="reference external" href="../api/display_api-91.png">png</a>, <a class="reference external" href="../api/display_api-91.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-91.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-91.png" src="../_images/display_api-91.png" />
-</div>
-<p>Use median as the estimate of central tendency:</p>
-<p>(<a class="reference external" href="../api/display_api-92.py">Source code</a>, <a class="reference external" href="../api/display_api-92.png">png</a>, <a class="reference external" href="../api/display_api-92.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-92.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-92.png" src="../_images/display_api-92.png" />
-</div>
-<p>Show the standard error of the mean with the error bars:</p>
-<p>(<a class="reference external" href="../api/display_api-93.py">Source code</a>, <a class="reference external" href="../api/display_api-93.png">png</a>, <a class="reference external" href="../api/display_api-93.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-93.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-93.png" src="../_images/display_api-93.png" />
-</div>
-<p>Show standard deviation of observations instead of a confidence interval:</p>
-<p>(<a class="reference external" href="../api/display_api-94.py">Source code</a>, <a class="reference external" href="../api/display_api-94.png">png</a>, <a class="reference external" href="../api/display_api-94.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-94.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-94.png" src="../_images/display_api-94.png" />
-</div>
-<p>Add “caps” to the error bars:</p>
-<p>(<a class="reference external" href="../api/display_api-95.py">Source code</a>, <a class="reference external" href="../api/display_api-95.png">png</a>, <a class="reference external" href="../api/display_api-95.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-95.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-95.png" src="../_images/display_api-95.png" />
-</div>
-<p>Use <a class="reference internal" href="#abipy.display.seabornw.factorplot" title="abipy.display.seabornw.factorplot"><code class="xref py py-func docutils literal"><span class="pre">factorplot()</span></code></a> to combine a <a class="reference internal" href="#abipy.display.seabornw.barplot" title="abipy.display.seabornw.barplot"><code class="xref py py-func docutils literal"><span class="pre">barplot()</span></code></a> and a
-<code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>. This allows grouping within additional categorical
-variables. Using <a class="reference internal" href="#abipy.display.seabornw.factorplot" title="abipy.display.seabornw.factorplot"><code class="xref py py-func docutils literal"><span class="pre">factorplot()</span></code></a> is safer than using <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>
-directly, as it ensures synchronization of variable order across facets:</p>
-<p>(<a class="reference external" href="../api/display_api-96.py">Source code</a>, <a class="reference external" href="../api/display_api-96.png">png</a>, <a class="reference external" href="../api/display_api-96.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-96.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-96.png" src="../_images/display_api-96.png" />
 </div>
 </dd></dl>
 
@@ -1664,12 +1546,16 @@ objects passed directly to the <code class="docutils literal"><span class="pre">
 <li>A “long-form” DataFrame, in which case the <code class="docutils literal"><span class="pre">x</span></code>, <code class="docutils literal"><span class="pre">y</span></code>, and <code class="docutils literal"><span class="pre">hue</span></code>
 variables will determine how the data are plotted.</li>
 <li>A “wide-form” DataFrame, such that each numeric column will be plotted.</li>
-<li>Anything accepted by <code class="docutils literal"><span class="pre">plt.boxplot</span></code> (e.g. a 2d array or list of vectors)</li>
+<li>An array or list of vectors.</li>
 </ul>
 <p>In most cases, it is possible to use numpy or Python objects, but pandas
 objects are preferable because the associated names will be used to
 annotate the axes. Additionally, you can use Categorical types for the
 grouping variables to control the order of plot elements.</p>
+<p>This function always treats one of the variables as categorical and
+draws data at ordinal positions (0, 1, … n) on the relevant axis, even
+when the data has a numeric or date type.</p>
+<p>See the <span class="xref std std-ref">tutorial</span> for more information.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1712,7 +1598,7 @@ time.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>ax</strong> – Returns the Axes object with the boxplot drawn onto it.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>ax</strong> – Returns the Axes object with the plot drawn onto it.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">matplotlib Axes</p>
@@ -1727,78 +1613,78 @@ time.</li>
 <dd>Show the counts of observations in each categorical bin.</dd>
 <dt><a class="reference internal" href="#abipy.display.seabornw.pointplot" title="abipy.display.seabornw.pointplot"><code class="xref py py-func docutils literal"><span class="pre">pointplot()</span></code></a></dt>
 <dd>Show point estimates and confidence intervals using scatterplot glyphs.</dd>
-<dt><a class="reference internal" href="#abipy.display.seabornw.factorplot" title="abipy.display.seabornw.factorplot"><code class="xref py py-func docutils literal"><span class="pre">factorplot()</span></code></a></dt>
-<dd>Combine categorical plots and a class:<cite>FacetGrid</cite>.</dd>
+<dt><code class="xref py py-func docutils literal"><span class="pre">catplot()</span></code></dt>
+<dd>Combine a categorical plot with a class:<cite>FacetGrid</cite>.</dd>
 </dl>
 </div>
 <p class="rubric">Examples</p>
 <p>Draw a set of vertical bar plots grouped by a categorical variable:</p>
+<p>(<a class="reference external" href="../api/display_api-89.py">Source code</a>, <a class="reference external" href="../api/display_api-89.png">png</a>, <a class="reference external" href="../api/display_api-89.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-89.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-89.png" src="../_images/display_api-89.png" />
+</div>
+<p>Draw a set of vertical bars with nested grouping by a two variables:</p>
+<p>(<a class="reference external" href="../api/display_api-90.py">Source code</a>, <a class="reference external" href="../api/display_api-90.png">png</a>, <a class="reference external" href="../api/display_api-90.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-90.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-90.png" src="../_images/display_api-90.png" />
+</div>
+<p>Draw a set of horizontal bars:</p>
+<p>(<a class="reference external" href="../api/display_api-91.py">Source code</a>, <a class="reference external" href="../api/display_api-91.png">png</a>, <a class="reference external" href="../api/display_api-91.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-91.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-91.png" src="../_images/display_api-91.png" />
+</div>
+<p>Control bar order by passing an explicit order:</p>
+<p>(<a class="reference external" href="../api/display_api-92.py">Source code</a>, <a class="reference external" href="../api/display_api-92.png">png</a>, <a class="reference external" href="../api/display_api-92.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-92.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-92.png" src="../_images/display_api-92.png" />
+</div>
+<p>Use median as the estimate of central tendency:</p>
+<p>(<a class="reference external" href="../api/display_api-93.py">Source code</a>, <a class="reference external" href="../api/display_api-93.png">png</a>, <a class="reference external" href="../api/display_api-93.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-93.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-93.png" src="../_images/display_api-93.png" />
+</div>
+<p>Show the standard error of the mean with the error bars:</p>
+<p>(<a class="reference external" href="../api/display_api-94.py">Source code</a>, <a class="reference external" href="../api/display_api-94.png">png</a>, <a class="reference external" href="../api/display_api-94.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-94.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-94.png" src="../_images/display_api-94.png" />
+</div>
+<p>Show standard deviation of observations instead of a confidence interval:</p>
+<p>(<a class="reference external" href="../api/display_api-95.py">Source code</a>, <a class="reference external" href="../api/display_api-95.png">png</a>, <a class="reference external" href="../api/display_api-95.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-95.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-95.png" src="../_images/display_api-95.png" />
+</div>
+<p>Add “caps” to the error bars:</p>
+<p>(<a class="reference external" href="../api/display_api-96.py">Source code</a>, <a class="reference external" href="../api/display_api-96.png">png</a>, <a class="reference external" href="../api/display_api-96.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-96.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-96.png" src="../_images/display_api-96.png" />
+</div>
+<p>Use a different color palette for the bars:</p>
 <p>(<a class="reference external" href="../api/display_api-97.py">Source code</a>, <a class="reference external" href="../api/display_api-97.png">png</a>, <a class="reference external" href="../api/display_api-97.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-97.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-97.png" src="../_images/display_api-97.png" />
 </div>
-<p>Draw a set of vertical bars with nested grouping by a two variables:</p>
+<p>Use <code class="docutils literal"><span class="pre">hue</span></code> without changing bar position or width:</p>
 <p>(<a class="reference external" href="../api/display_api-98.py">Source code</a>, <a class="reference external" href="../api/display_api-98.png">png</a>, <a class="reference external" href="../api/display_api-98.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-98.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-98.png" src="../_images/display_api-98.png" />
 </div>
-<p>Draw a set of horizontal bars:</p>
+<p>Plot all bars in a single color:</p>
 <p>(<a class="reference external" href="../api/display_api-99.py">Source code</a>, <a class="reference external" href="../api/display_api-99.png">png</a>, <a class="reference external" href="../api/display_api-99.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-99.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-99.png" src="../_images/display_api-99.png" />
 </div>
-<p>Control bar order by passing an explicit order:</p>
+<p>Use <code class="docutils literal"><span class="pre">plt.bar</span></code> keyword arguments to further change the aesthetic:</p>
 <p>(<a class="reference external" href="../api/display_api-100.py">Source code</a>, <a class="reference external" href="../api/display_api-100.png">png</a>, <a class="reference external" href="../api/display_api-100.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-100.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-100.png" src="../_images/display_api-100.png" />
 </div>
-<p>Use median as the estimate of central tendency:</p>
+<p>Use <code class="xref py py-func docutils literal"><span class="pre">catplot()</span></code> to combine a <a class="reference internal" href="#abipy.display.seabornw.barplot" title="abipy.display.seabornw.barplot"><code class="xref py py-func docutils literal"><span class="pre">barplot()</span></code></a> and a <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>.
+This allows grouping within additional categorical variables. Using
+<code class="xref py py-func docutils literal"><span class="pre">catplot()</span></code> is safer than using <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code> directly, as it
+ensures synchronization of variable order across facets:</p>
 <p>(<a class="reference external" href="../api/display_api-101.py">Source code</a>, <a class="reference external" href="../api/display_api-101.png">png</a>, <a class="reference external" href="../api/display_api-101.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-101.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-101.png" src="../_images/display_api-101.png" />
-</div>
-<p>Show the standard error of the mean with the error bars:</p>
-<p>(<a class="reference external" href="../api/display_api-102.py">Source code</a>, <a class="reference external" href="../api/display_api-102.png">png</a>, <a class="reference external" href="../api/display_api-102.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-102.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-102.png" src="../_images/display_api-102.png" />
-</div>
-<p>Show standard deviation of observations instead of a confidence interval:</p>
-<p>(<a class="reference external" href="../api/display_api-103.py">Source code</a>, <a class="reference external" href="../api/display_api-103.png">png</a>, <a class="reference external" href="../api/display_api-103.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-103.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-103.png" src="../_images/display_api-103.png" />
-</div>
-<p>Add “caps” to the error bars:</p>
-<p>(<a class="reference external" href="../api/display_api-104.py">Source code</a>, <a class="reference external" href="../api/display_api-104.png">png</a>, <a class="reference external" href="../api/display_api-104.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-104.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-104.png" src="../_images/display_api-104.png" />
-</div>
-<p>Use a different color palette for the bars:</p>
-<p>(<a class="reference external" href="../api/display_api-105.py">Source code</a>, <a class="reference external" href="../api/display_api-105.png">png</a>, <a class="reference external" href="../api/display_api-105.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-105.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-105.png" src="../_images/display_api-105.png" />
-</div>
-<p>Use <code class="docutils literal"><span class="pre">hue</span></code> without changing bar position or width:</p>
-<p>(<a class="reference external" href="../api/display_api-106.py">Source code</a>, <a class="reference external" href="../api/display_api-106.png">png</a>, <a class="reference external" href="../api/display_api-106.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-106.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-106.png" src="../_images/display_api-106.png" />
-</div>
-<p>Plot all bars in a single color:</p>
-<p>(<a class="reference external" href="../api/display_api-107.py">Source code</a>, <a class="reference external" href="../api/display_api-107.png">png</a>, <a class="reference external" href="../api/display_api-107.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-107.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-107.png" src="../_images/display_api-107.png" />
-</div>
-<p>Use <code class="docutils literal"><span class="pre">plt.bar</span></code> keyword arguments to further change the aesthetic:</p>
-<p>(<a class="reference external" href="../api/display_api-108.py">Source code</a>, <a class="reference external" href="../api/display_api-108.png">png</a>, <a class="reference external" href="../api/display_api-108.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-108.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-108.png" src="../_images/display_api-108.png" />
-</div>
-<p>Use <a class="reference internal" href="#abipy.display.seabornw.factorplot" title="abipy.display.seabornw.factorplot"><code class="xref py py-func docutils literal"><span class="pre">factorplot()</span></code></a> to combine a <a class="reference internal" href="#abipy.display.seabornw.barplot" title="abipy.display.seabornw.barplot"><code class="xref py py-func docutils literal"><span class="pre">barplot()</span></code></a> and a
-<code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>. This allows grouping within additional categorical
-variables. Using <a class="reference internal" href="#abipy.display.seabornw.factorplot" title="abipy.display.seabornw.factorplot"><code class="xref py py-func docutils literal"><span class="pre">factorplot()</span></code></a> is safer than using <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>
-directly, as it ensures synchronization of variable order across facets:</p>
-<p>(<a class="reference external" href="../api/display_api-109.py">Source code</a>, <a class="reference external" href="../api/display_api-109.png">png</a>, <a class="reference external" href="../api/display_api-109.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-109.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-109.png" src="../_images/display_api-109.png" />
 </div>
 </dd></dl>
 
@@ -1816,12 +1702,16 @@ objects passed directly to the <code class="docutils literal"><span class="pre">
 <li>A “long-form” DataFrame, in which case the <code class="docutils literal"><span class="pre">x</span></code>, <code class="docutils literal"><span class="pre">y</span></code>, and <code class="docutils literal"><span class="pre">hue</span></code>
 variables will determine how the data are plotted.</li>
 <li>A “wide-form” DataFrame, such that each numeric column will be plotted.</li>
-<li>Anything accepted by <code class="docutils literal"><span class="pre">plt.boxplot</span></code> (e.g. a 2d array or list of vectors)</li>
+<li>An array or list of vectors.</li>
 </ul>
 <p>In most cases, it is possible to use numpy or Python objects, but pandas
 objects are preferable because the associated names will be used to
 annotate the axes. Additionally, you can use Categorical types for the
 grouping variables to control the order of plot elements.</p>
+<p>This function always treats one of the variables as categorical and
+draws data at ordinal positions (0, 1, … n) on the relevant axis, even
+when the data has a numeric or date type.</p>
+<p>See the <span class="xref std std-ref">tutorial</span> for more information.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1851,7 +1741,7 @@ categorical axis.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>ax</strong> – Returns the Axes object with the boxplot drawn onto it.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>ax</strong> – Returns the Axes object with the plot drawn onto it.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">matplotlib Axes</p>
@@ -1864,43 +1754,43 @@ categorical axis.</li>
 <dl class="last docutils">
 <dt><a class="reference internal" href="#abipy.display.seabornw.barplot" title="abipy.display.seabornw.barplot"><code class="xref py py-func docutils literal"><span class="pre">barplot()</span></code></a></dt>
 <dd>Show point estimates and confidence intervals using bars.</dd>
-<dt><a class="reference internal" href="#abipy.display.seabornw.factorplot" title="abipy.display.seabornw.factorplot"><code class="xref py py-func docutils literal"><span class="pre">factorplot()</span></code></a></dt>
-<dd>Combine categorical plots and a class:<cite>FacetGrid</cite>.</dd>
+<dt><code class="xref py py-func docutils literal"><span class="pre">catplot()</span></code></dt>
+<dd>Combine a categorical plot with a class:<cite>FacetGrid</cite>.</dd>
 </dl>
 </div>
 <p class="rubric">Examples</p>
 <p>Show value counts for a single categorical variable:</p>
-<p>(<a class="reference external" href="../api/display_api-110.py">Source code</a>, <a class="reference external" href="../api/display_api-110.png">png</a>, <a class="reference external" href="../api/display_api-110.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-110.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-102.py">Source code</a>, <a class="reference external" href="../api/display_api-102.png">png</a>, <a class="reference external" href="../api/display_api-102.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-102.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-110.png" src="../_images/display_api-110.png" />
+<img alt="../_images/display_api-102.png" src="../_images/display_api-102.png" />
 </div>
 <p>Show value counts for two categorical variables:</p>
-<p>(<a class="reference external" href="../api/display_api-111.py">Source code</a>, <a class="reference external" href="../api/display_api-111.png">png</a>, <a class="reference external" href="../api/display_api-111.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-111.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-103.py">Source code</a>, <a class="reference external" href="../api/display_api-103.png">png</a>, <a class="reference external" href="../api/display_api-103.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-103.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-111.png" src="../_images/display_api-111.png" />
+<img alt="../_images/display_api-103.png" src="../_images/display_api-103.png" />
 </div>
 <p>Plot the bars horizontally:</p>
-<p>(<a class="reference external" href="../api/display_api-112.py">Source code</a>, <a class="reference external" href="../api/display_api-112.png">png</a>, <a class="reference external" href="../api/display_api-112.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-112.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-104.py">Source code</a>, <a class="reference external" href="../api/display_api-104.png">png</a>, <a class="reference external" href="../api/display_api-104.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-104.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-112.png" src="../_images/display_api-112.png" />
+<img alt="../_images/display_api-104.png" src="../_images/display_api-104.png" />
 </div>
 <p>Use a different color palette:</p>
-<p>(<a class="reference external" href="../api/display_api-113.py">Source code</a>, <a class="reference external" href="../api/display_api-113.png">png</a>, <a class="reference external" href="../api/display_api-113.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-113.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-105.py">Source code</a>, <a class="reference external" href="../api/display_api-105.png">png</a>, <a class="reference external" href="../api/display_api-105.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-105.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-113.png" src="../_images/display_api-113.png" />
+<img alt="../_images/display_api-105.png" src="../_images/display_api-105.png" />
 </div>
 <p>Use <code class="docutils literal"><span class="pre">plt.bar</span></code> keyword arguments for a different look:</p>
-<p>(<a class="reference external" href="../api/display_api-114.py">Source code</a>, <a class="reference external" href="../api/display_api-114.png">png</a>, <a class="reference external" href="../api/display_api-114.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-114.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-106.py">Source code</a>, <a class="reference external" href="../api/display_api-106.png">png</a>, <a class="reference external" href="../api/display_api-106.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-106.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-114.png" src="../_images/display_api-114.png" />
+<img alt="../_images/display_api-106.png" src="../_images/display_api-106.png" />
 </div>
-<p>Use <a class="reference internal" href="#abipy.display.seabornw.factorplot" title="abipy.display.seabornw.factorplot"><code class="xref py py-func docutils literal"><span class="pre">factorplot()</span></code></a> to combine a <a class="reference internal" href="#abipy.display.seabornw.countplot" title="abipy.display.seabornw.countplot"><code class="xref py py-func docutils literal"><span class="pre">countplot()</span></code></a> and a
+<p>Use <code class="xref py py-func docutils literal"><span class="pre">catplot()</span></code> to combine a <a class="reference internal" href="#abipy.display.seabornw.countplot" title="abipy.display.seabornw.countplot"><code class="xref py py-func docutils literal"><span class="pre">countplot()</span></code></a> and a
 <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>. This allows grouping within additional categorical
-variables. Using <a class="reference internal" href="#abipy.display.seabornw.factorplot" title="abipy.display.seabornw.factorplot"><code class="xref py py-func docutils literal"><span class="pre">factorplot()</span></code></a> is safer than using <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>
+variables. Using <code class="xref py py-func docutils literal"><span class="pre">catplot()</span></code> is safer than using <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>
 directly, as it ensures synchronization of variable order across facets:</p>
-<p>(<a class="reference external" href="../api/display_api-115.py">Source code</a>, <a class="reference external" href="../api/display_api-115.png">png</a>, <a class="reference external" href="../api/display_api-115.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-115.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-107.py">Source code</a>, <a class="reference external" href="../api/display_api-107.png">png</a>, <a class="reference external" href="../api/display_api-107.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-107.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-115.png" src="../_images/display_api-115.png" />
+<img alt="../_images/display_api-107.png" src="../_images/display_api-107.png" />
 </div>
 </dd></dl>
 
@@ -1964,7 +1854,7 @@ directly, as it ensures synchronization of variable order across facets:</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 26, 2018.<br/>
+      Last updated on Aug 14, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

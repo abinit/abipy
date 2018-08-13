@@ -133,15 +133,13 @@
 <span></span><span class="sd">&quot;&quot;&quot;Plotting functions for linear models (broadly construed).&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
 <span class="kn">import</span> <span class="nn">copy</span>
-<span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">from</span> <span class="nn">textwrap</span> <span class="k">import</span> <span class="n">dedent</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="k">import</span> <span class="n">distance</span>
 <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-
-<span class="kn">import</span> <span class="nn">warnings</span>
 
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">statsmodels</span>
@@ -151,11 +149,9 @@
     <span class="n">_has_statsmodels</span> <span class="o">=</span> <span class="kc">False</span>
 
 <span class="kn">from</span> <span class="nn">.external.six</span> <span class="k">import</span> <span class="n">string_types</span>
-<span class="kn">from</span> <span class="nn">.external.six.moves</span> <span class="k">import</span> <span class="nb">range</span>
 
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">utils</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">algorithms</span> <span class="k">as</span> <span class="n">algo</span>
-<span class="kn">from</span> <span class="nn">.palettes</span> <span class="k">import</span> <span class="n">color_palette</span>
 <span class="kn">from</span> <span class="nn">.axisgrid</span> <span class="k">import</span> <span class="n">FacetGrid</span><span class="p">,</span> <span class="n">_facet_docs</span>
 
 
@@ -182,6 +178,8 @@
         <span class="k">for</span> <span class="n">var</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">kws</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">string_types</span><span class="p">):</span>
                 <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">val</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
 
@@ -351,9 +349,11 @@
 
     <span class="k">def</span> <span class="nf">fit_fast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grid</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Low-level regression and prediction using linear algebra.&quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">reg_func</span><span class="p">(</span><span class="n">_x</span><span class="p">,</span> <span class="n">_y</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">pinv</span><span class="p">(</span><span class="n">_x</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">_y</span><span class="p">)</span>
+
         <span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">)),</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span>
         <span class="n">grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">grid</span><span class="p">)),</span> <span class="n">grid</span><span class="p">]</span>
-        <span class="n">reg_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">_x</span><span class="p">,</span> <span class="n">_y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">pinv</span><span class="p">(</span><span class="n">_x</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">_y</span><span class="p">)</span>
         <span class="n">yhat</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">reg_func</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ci</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">yhat</span><span class="p">,</span> <span class="kc">None</span>
@@ -365,8 +365,10 @@
 
     <span class="k">def</span> <span class="nf">fit_poly</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">order</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Regression using numpy polyfit for higher-order trends.&quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">reg_func</span><span class="p">(</span><span class="n">_x</span><span class="p">,</span> <span class="n">_y</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">polyval</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span><span class="n">_x</span><span class="p">,</span> <span class="n">_y</span><span class="p">,</span> <span class="n">order</span><span class="p">),</span> <span class="n">grid</span><span class="p">)</span>
+
         <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span>
-        <span class="n">reg_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">_x</span><span class="p">,</span> <span class="n">_y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">polyval</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span><span class="n">_x</span><span class="p">,</span> <span class="n">_y</span><span class="p">,</span> <span class="n">order</span><span class="p">),</span> <span class="n">grid</span><span class="p">)</span>
         <span class="n">yhat</span> <span class="o">=</span> <span class="n">reg_func</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ci</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">yhat</span><span class="p">,</span> <span class="kc">None</span>
@@ -377,9 +379,9 @@
 
     <span class="k">def</span> <span class="nf">fit_statsmodels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;More general regression function using statsmodels objects.&quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">statsmodels.genmod.generalized_linear_model</span> <span class="k">as</span> <span class="nn">glm</span>
         <span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">)),</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span>
         <span class="n">grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">grid</span><span class="p">)),</span> <span class="n">grid</span><span class="p">]</span>
-        <span class="kn">import</span> <span class="nn">statsmodels.genmod.generalized_linear_model</span> <span class="k">as</span> <span class="nn">glm</span>
 
         <span class="k">def</span> <span class="nf">reg_func</span><span class="p">(</span><span class="n">_x</span><span class="p">,</span> <span class="n">_y</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
@@ -527,32 +529,21 @@
         <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">yhat</span><span class="p">,</span> <span class="o">**</span><span class="n">kws</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">err_bands</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="o">*</span><span class="n">err_bands</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="n">fill_color</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=.</span><span class="mi">15</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="o">*</span><span class="n">xlim</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="o">*</span><span class="n">xlim</span><span class="p">,</span> <span class="n">auto</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
 
 <span class="n">_regression_docs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
 
     <span class="n">model_api</span><span class="o">=</span><span class="n">dedent</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
 <span class="s2">    There are a number of mutually exclusive options for estimating the</span>
-<span class="s2">    regression model: ``order``, ``logistic``, ``lowess``, ``robust``, and</span>
-<span class="s2">    ``logx``. See the parameter docs for more information on these options.</span><span class="se">\</span>
+<span class="s2">    regression model. See the :ref:`tutorial &lt;regression_tutorial&gt;` for more</span>
+<span class="s2">    information.</span><span class="se">\</span>
 <span class="s2">    &quot;&quot;&quot;</span><span class="p">),</span>
-
     <span class="n">regplot_vs_lmplot</span><span class="o">=</span><span class="n">dedent</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
-<span class="s2">    Understanding the difference between :func:`regplot` and :func:`lmplot` can</span>
-<span class="s2">    be a bit tricky. In fact, they are closely related, as :func:`lmplot` uses</span>
-<span class="s2">    :func:`regplot` internally and takes most of its parameters. However,</span>
-<span class="s2">    :func:`regplot` is an axes-level function, so it draws directly onto an</span>
-<span class="s2">    axes (either the currently active axes or the one provided by the ``ax``</span>
-<span class="s2">    parameter), while :func:`lmplot` is a figure-level function and creates its</span>
-<span class="s2">    own figure, which is managed through a :class:`FacetGrid`. This has a few</span>
-<span class="s2">    consequences, namely that :func:`regplot` can happily coexist in a figure</span>
-<span class="s2">    with other kinds of plots and will follow the global matplotlib color</span>
-<span class="s2">    cycle. In contrast, :func:`lmplot` needs to occupy an entire figure, and</span>
-<span class="s2">    the size and color cycle are controlled through function parameters,</span>
-<span class="s2">    ignoring the global defaults.</span><span class="se">\</span>
+<span class="s2">    The :func:`regplot` and :func:`lmplot` functions are closely related, but</span>
+<span class="s2">    the former is an axes-level function while the latter is a figure-level</span>
+<span class="s2">    function that combines :func:`regplot` and :class:`FacetGrid`.</span><span class="se">\</span>
 <span class="s2">    &quot;&quot;&quot;</span><span class="p">),</span>
-
     <span class="n">x_estimator</span><span class="o">=</span><span class="n">dedent</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
 <span class="s2">    x_estimator : callable that maps vector -&gt; scalar, optional</span>
 <span class="s2">        Apply this function to each unique value of ``x`` and plot the</span>
@@ -574,8 +565,8 @@
 <span class="s2">    x_ci : &quot;ci&quot;, &quot;sd&quot;, int in [0, 100] or None, optional</span>
 <span class="s2">        Size of the confidence interval used when plotting a central tendency</span>
 <span class="s2">        for discrete values of ``x``. If ``&quot;ci&quot;``, defer to the value of the</span>
-<span class="s2">        ``ci`` parameter. If ``&quot;sd&quot;``, skip bootstrappig and show the standard</span>
-<span class="s2">        deviation of the observations in each bin.</span><span class="se">\</span>
+<span class="s2">        ``ci`` parameter. If ``&quot;sd&quot;``, skip bootstrapping and show the</span>
+<span class="s2">        standard deviation of the observations in each bin.</span><span class="se">\</span>
 <span class="s2">    &quot;&quot;&quot;</span><span class="p">),</span>
     <span class="n">scatter</span><span class="o">=</span><span class="n">dedent</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
 <span class="s2">    scatter : bool, optional</span>
@@ -670,13 +661,21 @@
 
 
 <div class="viewcode-block" id="lmplot"><a class="viewcode-back" href="../../api/display_api.html#abipy.display.seabornw.lmplot">[docs]</a><span class="k">def</span> <span class="nf">lmplot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">hue</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">palette</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-           <span class="n">col_wrap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">markers</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+           <span class="n">col_wrap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">markers</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
            <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">hue_order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">col_order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">row_order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
            <span class="n">legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">legend_out</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">x_estimator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">x_bins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
            <span class="n">x_ci</span><span class="o">=</span><span class="s2">&quot;ci&quot;</span><span class="p">,</span> <span class="n">scatter</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fit_reg</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ci</span><span class="o">=</span><span class="mi">95</span><span class="p">,</span> <span class="n">n_boot</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
            <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">logistic</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">lowess</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">robust</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
            <span class="n">logx</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">x_partial</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y_partial</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">truncate</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-           <span class="n">x_jitter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y_jitter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scatter_kws</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">line_kws</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+           <span class="n">x_jitter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y_jitter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scatter_kws</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">line_kws</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+           <span class="n">size</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+    <span class="c1"># Handle deprecations</span>
+    <span class="k">if</span> <span class="n">size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">height</span> <span class="o">=</span> <span class="n">size</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;The `size` paramter has been renamed to `height`; &quot;</span>
+               <span class="s2">&quot;please update your code.&quot;</span><span class="p">)</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">)</span>
 
     <span class="c1"># Reduce the dataframe to only needed columns</span>
     <span class="n">need_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">hue</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">x_partial</span><span class="p">,</span> <span class="n">y_partial</span><span class="p">]</span>
@@ -686,7 +685,7 @@
     <span class="c1"># Initialize the grid</span>
     <span class="n">facets</span> <span class="o">=</span> <span class="n">FacetGrid</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">hue</span><span class="p">,</span> <span class="n">palette</span><span class="o">=</span><span class="n">palette</span><span class="p">,</span>
                        <span class="n">row_order</span><span class="o">=</span><span class="n">row_order</span><span class="p">,</span> <span class="n">col_order</span><span class="o">=</span><span class="n">col_order</span><span class="p">,</span>
-                       <span class="n">hue_order</span><span class="o">=</span><span class="n">hue_order</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="n">aspect</span><span class="p">,</span>
+                       <span class="n">hue_order</span><span class="o">=</span><span class="n">hue_order</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="n">aspect</span><span class="p">,</span>
                        <span class="n">col_wrap</span><span class="o">=</span><span class="n">col_wrap</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="n">sharex</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="n">sharey</span><span class="p">,</span>
                        <span class="n">legend_out</span><span class="o">=</span><span class="n">legend_out</span><span class="p">)</span>
 
@@ -757,7 +756,7 @@
 <span class="s2">        the order of levels of this variable.</span>
 <span class="s2">    </span><span class="si">{palette}</span><span class="s2"></span>
 <span class="s2">    </span><span class="si">{col_wrap}</span><span class="s2"></span>
-<span class="s2">    </span><span class="si">{size}</span><span class="s2"></span>
+<span class="s2">    </span><span class="si">{height}</span><span class="s2"></span>
 <span class="s2">    </span><span class="si">{aspect}</span><span class="s2"></span>
 <span class="s2">    markers : matplotlib marker code or list of marker codes, optional</span>
 <span class="s2">        Markers for the scatterplot. If a list, each marker in the list will be</span>
@@ -857,13 +856,13 @@
 
 <span class="s2">        &gt;&gt;&gt; g = sns.lmplot(x=&quot;total_bill&quot;, y=&quot;tip&quot;, col=&quot;smoker&quot;, data=tips)</span>
 
-<span class="s2">    Change the size and aspect ratio of the facets:</span>
+<span class="s2">    Change the height and aspect ratio of the facets:</span>
 
 <span class="s2">    .. plot::</span>
 <span class="s2">        :context: close-figs</span>
 
 <span class="s2">        &gt;&gt;&gt; g = sns.lmplot(x=&quot;size&quot;, y=&quot;total_bill&quot;, hue=&quot;day&quot;, col=&quot;day&quot;,</span>
-<span class="s2">        ...                data=tips, aspect=.4, x_jitter=.1)</span>
+<span class="s2">        ...                data=tips, height=6, aspect=.4, x_jitter=.1)</span>
 
 <span class="s2">    Wrap the levels of the column variable into multiple rows:</span>
 
@@ -871,7 +870,7 @@
 <span class="s2">        :context: close-figs</span>
 
 <span class="s2">        &gt;&gt;&gt; g = sns.lmplot(x=&quot;total_bill&quot;, y=&quot;tip&quot;, col=&quot;day&quot;, hue=&quot;day&quot;,</span>
-<span class="s2">        ...                data=tips, col_wrap=2, size=3)</span>
+<span class="s2">        ...                data=tips, col_wrap=2, height=3)</span>
 
 <span class="s2">    Condition on two variables to make a full grid:</span>
 
@@ -879,7 +878,7 @@
 <span class="s2">        :context: close-figs</span>
 
 <span class="s2">        &gt;&gt;&gt; g = sns.lmplot(x=&quot;total_bill&quot;, y=&quot;tip&quot;, row=&quot;sex&quot;, col=&quot;time&quot;,</span>
-<span class="s2">        ...                data=tips, size=3)</span>
+<span class="s2">        ...                data=tips, height=3)</span>
 
 <span class="s2">    Use methods on the returned :class:`FacetGrid` instance to further tweak</span>
 <span class="s2">    the plot:</span>
@@ -888,7 +887,7 @@
 <span class="s2">        :context: close-figs</span>
 
 <span class="s2">        &gt;&gt;&gt; g = sns.lmplot(x=&quot;total_bill&quot;, y=&quot;tip&quot;, row=&quot;sex&quot;, col=&quot;time&quot;,</span>
-<span class="s2">        ...                data=tips, size=3)</span>
+<span class="s2">        ...                data=tips, height=3)</span>
 <span class="s2">        &gt;&gt;&gt; g = (g.set_axis_labels(&quot;Total bill (US Dollars)&quot;, &quot;Tip&quot;)</span>
 <span class="s2">        ...       .set(xlim=(0, 60), ylim=(0, 12),</span>
 <span class="s2">        ...            xticks=[10, 30, 50], yticks=[2, 6, 10])</span>
@@ -921,6 +920,7 @@
     <span class="n">line_kws</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">line_kws</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">line_kws</span><span class="p">)</span>
     <span class="n">plotter</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">scatter_kws</span><span class="p">,</span> <span class="n">line_kws</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">ax</span>
+
 
 <span class="n">regplot</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">dedent</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
 <span class="s2">    Plot data and a linear regression model fit.</span>
@@ -1170,229 +1170,6 @@
     <span class="n">line_kws</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">line_kws</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">line_kws</span>
     <span class="n">plotter</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">scatter_kws</span><span class="p">,</span> <span class="n">line_kws</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">ax</span>
-
-
-<span class="k">def</span> <span class="nf">coefplot</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">groupby</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">intercept</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ci</span><span class="o">=</span><span class="mi">95</span><span class="p">,</span>
-             <span class="n">palette</span><span class="o">=</span><span class="s2">&quot;husl&quot;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Plot the coefficients from a linear model.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    formula : string</span>
-<span class="sd">        patsy formula for ols model</span>
-<span class="sd">    data : dataframe</span>
-<span class="sd">        data for the plot; formula terms must appear in columns</span>
-<span class="sd">    groupby : grouping object, optional</span>
-<span class="sd">        object to group data with to fit conditional models</span>
-<span class="sd">    intercept : bool, optional</span>
-<span class="sd">        if False, strips the intercept term before plotting</span>
-<span class="sd">    ci : float, optional</span>
-<span class="sd">        size of confidence intervals</span>
-<span class="sd">    palette : seaborn color palette, optional</span>
-<span class="sd">        palette for the horizonal plots</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="s2">&quot;The `coefplot` function has been deprecated and will be removed &quot;</span>
-        <span class="s2">&quot;in a future version.&quot;</span>
-    <span class="p">)</span>
-    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">_has_statsmodels</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;The `coefplot` function requires statsmodels&quot;</span><span class="p">)</span>
-    <span class="kn">import</span> <span class="nn">statsmodels.formula.api</span> <span class="k">as</span> <span class="nn">sf</span>
-
-    <span class="n">alpha</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">ci</span> <span class="o">/</span> <span class="mi">100</span>
-    <span class="k">if</span> <span class="n">groupby</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">coefs</span> <span class="o">=</span> <span class="n">sf</span><span class="o">.</span><span class="n">ols</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span><span class="o">.</span><span class="n">params</span>
-        <span class="n">cis</span> <span class="o">=</span> <span class="n">sf</span><span class="o">.</span><span class="n">ols</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span><span class="o">.</span><span class="n">conf_int</span><span class="p">(</span><span class="n">alpha</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">grouped</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">groupby</span><span class="p">)</span>
-        <span class="n">coefs</span> <span class="o">=</span> <span class="n">grouped</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="n">sf</span><span class="o">.</span><span class="n">ols</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
-        <span class="n">cis</span> <span class="o">=</span> <span class="n">grouped</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="n">sf</span><span class="o">.</span><span class="n">ols</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span><span class="o">.</span><span class="n">conf_int</span><span class="p">(</span><span class="n">alpha</span><span class="p">))</span>
-
-    <span class="c1"># Possibly ignore the intercept</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">intercept</span><span class="p">:</span>
-        <span class="n">coefs</span> <span class="o">=</span> <span class="n">coefs</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
-
-    <span class="n">n_terms</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">coefs</span><span class="p">)</span>
-
-    <span class="c1"># Plot seperately depending on groupby</span>
-    <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;figure.figsize&quot;</span><span class="p">]</span>
-    <span class="n">hsize</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="n">n</span> <span class="o">*</span> <span class="p">(</span><span class="n">h</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
-    <span class="n">wsize</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="n">n</span> <span class="o">*</span> <span class="p">(</span><span class="n">w</span> <span class="o">/</span> <span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">/</span> <span class="mi">5</span><span class="p">)))</span>
-    <span class="k">if</span> <span class="n">groupby</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">colors</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">cycle</span><span class="p">(</span><span class="n">color_palette</span><span class="p">(</span><span class="n">palette</span><span class="p">,</span> <span class="n">n_terms</span><span class="p">))</span>
-        <span class="n">f</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="n">wsize</span><span class="p">(</span><span class="n">n_terms</span><span class="p">),</span> <span class="n">hsize</span><span class="p">(</span><span class="mi">1</span><span class="p">)))</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">term</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">coefs</span><span class="o">.</span><span class="n">index</span><span class="p">):</span>
-            <span class="n">color</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">colors</span><span class="p">)</span>
-            <span class="n">low</span><span class="p">,</span> <span class="n">high</span> <span class="o">=</span> <span class="n">cis</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="n">term</span><span class="p">]</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="p">[</span><span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">],</span> <span class="n">c</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
-                    <span class="n">solid_capstyle</span><span class="o">=</span><span class="s2">&quot;round&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">2.5</span><span class="p">)</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">coefs</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="n">term</span><span class="p">],</span> <span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">ms</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="o">-.</span><span class="mi">5</span><span class="p">,</span> <span class="n">n_terms</span> <span class="o">-</span> <span class="o">.</span><span class="mi">5</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;dimgray&quot;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n_terms</span><span class="p">))</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">coefs</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
-
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">n_groups</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">coefs</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
-        <span class="n">f</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">n_terms</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                               <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="n">wsize</span><span class="p">(</span><span class="n">n_groups</span><span class="p">),</span> <span class="n">hsize</span><span class="p">(</span><span class="n">n_terms</span><span class="p">)))</span>
-        <span class="k">if</span> <span class="n">n_terms</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">axes</span> <span class="o">=</span> <span class="p">[</span><span class="n">axes</span><span class="p">]</span>
-        <span class="n">colors</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">cycle</span><span class="p">(</span><span class="n">color_palette</span><span class="p">(</span><span class="n">palette</span><span class="p">,</span> <span class="n">n_groups</span><span class="p">))</span>
-        <span class="k">for</span> <span class="n">ax</span><span class="p">,</span> <span class="n">term</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">coefs</span><span class="o">.</span><span class="n">index</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">group</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">coefs</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
-                <span class="n">color</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">colors</span><span class="p">)</span>
-                <span class="n">low</span><span class="p">,</span> <span class="n">high</span> <span class="o">=</span> <span class="n">cis</span><span class="o">.</span><span class="n">ix</span><span class="p">[(</span><span class="n">group</span><span class="p">,</span> <span class="n">term</span><span class="p">)]</span>
-                <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="p">[</span><span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">],</span> <span class="n">c</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
-                        <span class="n">solid_capstyle</span><span class="o">=</span><span class="s2">&quot;round&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">2.5</span><span class="p">)</span>
-                <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">coefs</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">term</span><span class="p">,</span> <span class="n">group</span><span class="p">],</span> <span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">ms</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="o">-.</span><span class="mi">5</span><span class="p">,</span> <span class="n">n_groups</span> <span class="o">-</span> <span class="o">.</span><span class="mi">5</span><span class="p">)</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;dimgray&quot;</span><span class="p">)</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">term</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">groupby</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n_groups</span><span class="p">))</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">coefs</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
-
-
-<span class="k">def</span> <span class="nf">interactplot</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filled</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">,</span>
-                 <span class="n">colorbar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">logistic</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                 <span class="n">contour_kws</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scatter_kws</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Visualize a continuous two-way interaction with a contour plot.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    x1, x2, y, strings or array-like</span>
-<span class="sd">        Either the two independent variables and the dependent variable,</span>
-<span class="sd">        or keys to extract them from `data`</span>
-<span class="sd">    data : DataFrame</span>
-<span class="sd">        Pandas DataFrame with the data in the columns.</span>
-<span class="sd">    filled : bool</span>
-<span class="sd">        Whether to plot with filled or unfilled contours</span>
-<span class="sd">    cmap : matplotlib colormap</span>
-<span class="sd">        Colormap to represent yhat in the countour plot.</span>
-<span class="sd">    colorbar : bool</span>
-<span class="sd">        Whether to draw the colorbar for interpreting the color values.</span>
-<span class="sd">    levels : int or sequence</span>
-<span class="sd">        Number or position of contour plot levels.</span>
-<span class="sd">    logistic : bool</span>
-<span class="sd">        Fit a logistic regression model instead of linear regression.</span>
-<span class="sd">    contour_kws : dictionary</span>
-<span class="sd">        Keyword arguments for contour[f]().</span>
-<span class="sd">    scatter_kws : dictionary</span>
-<span class="sd">        Keyword arguments for plot().</span>
-<span class="sd">    ax : matplotlib axis</span>
-<span class="sd">        Axis to draw plot in.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    ax : Matplotlib axis</span>
-<span class="sd">        Axis with the contour plot.</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="s2">&quot;The `interactplot` function has been deprecated and will be removed &quot;</span>
-        <span class="s2">&quot;in a future version.&quot;</span>
-    <span class="p">)</span>
-    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">_has_statsmodels</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;The `interactplot` function requires statsmodels&quot;</span><span class="p">)</span>
-    <span class="kn">from</span> <span class="nn">statsmodels.regression.linear_model</span> <span class="k">import</span> <span class="n">OLS</span>
-    <span class="kn">from</span> <span class="nn">statsmodels.genmod.generalized_linear_model</span> <span class="k">import</span> <span class="n">GLM</span>
-    <span class="kn">from</span> <span class="nn">statsmodels.genmod.families</span> <span class="k">import</span> <span class="n">Binomial</span>
-
-    <span class="c1"># Handle the form of the data</span>
-    <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">x1</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">x1</span><span class="p">]</span>
-        <span class="n">x2</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">x2</span><span class="p">]</span>
-        <span class="n">y</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">y</span><span class="p">]</span>
-    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">):</span>
-        <span class="n">xlabel</span> <span class="o">=</span> <span class="n">x1</span><span class="o">.</span><span class="n">name</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">xlabel</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x2</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">):</span>
-        <span class="n">ylabel</span> <span class="o">=</span> <span class="n">x2</span><span class="o">.</span><span class="n">name</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">ylabel</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">):</span>
-        <span class="n">clabel</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">name</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">clabel</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">x1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x1</span><span class="p">)</span>
-    <span class="n">x2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x2</span><span class="p">)</span>
-    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
-
-    <span class="c1"># Initialize the scatter keyword dictionary</span>
-    <span class="k">if</span> <span class="n">scatter_kws</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">scatter_kws</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="s2">&quot;color&quot;</span> <span class="ow">in</span> <span class="n">scatter_kws</span> <span class="ow">or</span> <span class="s2">&quot;c&quot;</span> <span class="ow">in</span> <span class="n">scatter_kws</span><span class="p">):</span>
-        <span class="n">scatter_kws</span><span class="p">[</span><span class="s2">&quot;color&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;#222222&quot;</span>
-    <span class="k">if</span> <span class="s2">&quot;alpha&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">scatter_kws</span><span class="p">:</span>
-        <span class="n">scatter_kws</span><span class="p">[</span><span class="s2">&quot;alpha&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.75</span>
-
-    <span class="c1"># Intialize the contour keyword dictionary</span>
-    <span class="k">if</span> <span class="n">contour_kws</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">contour_kws</span> <span class="o">=</span> <span class="p">{}</span>
-
-    <span class="c1"># Initialize the axis</span>
-    <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
-
-    <span class="c1"># Plot once to let matplotlib sort out the axis limits</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">scatter_kws</span><span class="p">)</span>
-
-    <span class="c1"># Find the plot limits</span>
-    <span class="n">x1min</span><span class="p">,</span> <span class="n">x1max</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_xlim</span><span class="p">()</span>
-    <span class="n">x2min</span><span class="p">,</span> <span class="n">x2max</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_ylim</span><span class="p">()</span>
-
-    <span class="c1"># Make the grid for the contour plot</span>
-    <span class="n">x1_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">x1min</span><span class="p">,</span> <span class="n">x1max</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
-    <span class="n">x2_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">x2min</span><span class="p">,</span> <span class="n">x2max</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
-    <span class="n">xx1</span><span class="p">,</span> <span class="n">xx2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x1_points</span><span class="p">,</span> <span class="n">x2_points</span><span class="p">)</span>
-
-    <span class="c1"># Fit the model with an interaction</span>
-    <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">x1</span><span class="o">.</span><span class="n">size</span><span class="p">),</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">x1</span> <span class="o">*</span> <span class="n">x2</span><span class="p">]</span>
-    <span class="k">if</span> <span class="n">logistic</span><span class="p">:</span>
-        <span class="n">lm</span> <span class="o">=</span> <span class="n">GLM</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="n">Binomial</span><span class="p">())</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">lm</span> <span class="o">=</span> <span class="n">OLS</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
-
-    <span class="c1"># Evaluate the model on the grid</span>
-    <span class="nb">eval</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vectorize</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x1_</span><span class="p">,</span> <span class="n">x2_</span><span class="p">:</span> <span class="n">lm</span><span class="o">.</span><span class="n">predict</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="n">x1_</span><span class="p">,</span> <span class="n">x2_</span><span class="p">,</span> <span class="n">x1_</span> <span class="o">*</span> <span class="n">x2_</span><span class="p">]))</span>
-    <span class="n">yhat</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">xx1</span><span class="p">,</span> <span class="n">xx2</span><span class="p">)</span>
-
-    <span class="c1"># Default color limits put the midpoint at mean(y)</span>
-    <span class="n">y_bar</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
-    <span class="n">c_min</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">yhat</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
-    <span class="n">c_max</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="mi">98</span><span class="p">),</span> <span class="n">yhat</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
-    <span class="n">delta</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">c_max</span> <span class="o">-</span> <span class="n">y_bar</span><span class="p">,</span> <span class="n">y_bar</span> <span class="o">-</span> <span class="n">c_min</span><span class="p">)</span>
-    <span class="n">c_min</span><span class="p">,</span> <span class="n">cmax</span> <span class="o">=</span> <span class="n">y_bar</span> <span class="o">-</span> <span class="n">delta</span><span class="p">,</span> <span class="n">y_bar</span> <span class="o">+</span> <span class="n">delta</span>
-    <span class="n">contour_kws</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;vmin&quot;</span><span class="p">,</span> <span class="n">c_min</span><span class="p">)</span>
-    <span class="n">contour_kws</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;vmax&quot;</span><span class="p">,</span> <span class="n">c_max</span><span class="p">)</span>
-
-    <span class="c1"># Draw the contour plot</span>
-    <span class="n">func_name</span> <span class="o">=</span> <span class="s2">&quot;contourf&quot;</span> <span class="k">if</span> <span class="n">filled</span> <span class="k">else</span> <span class="s2">&quot;contour&quot;</span>
-    <span class="n">contour</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">func_name</span><span class="p">)</span>
-    <span class="n">c</span> <span class="o">=</span> <span class="n">contour</span><span class="p">(</span><span class="n">xx1</span><span class="p">,</span> <span class="n">xx2</span><span class="p">,</span> <span class="n">yhat</span><span class="p">,</span> <span class="n">levels</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="o">**</span><span class="n">contour_kws</span><span class="p">)</span>
-
-    <span class="c1"># Draw the scatter again so it&#39;s visible</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">scatter_kws</span><span class="p">)</span>
-
-    <span class="c1"># Draw a colorbar, maybe</span>
-    <span class="k">if</span> <span class="n">colorbar</span><span class="p">:</span>
-        <span class="n">bar</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
-
-    <span class="c1"># Label the axes</span>
-    <span class="k">if</span> <span class="n">xlabel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">xlabel</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">ylabel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">ylabel</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">clabel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">colorbar</span><span class="p">:</span>
-        <span class="n">clabel</span> <span class="o">=</span> <span class="s2">&quot;P(</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="n">clabel</span> <span class="k">if</span> <span class="n">logistic</span> <span class="k">else</span> <span class="n">clabel</span>
-        <span class="n">bar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="n">clabel</span><span class="p">,</span> <span class="n">labelpad</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">270</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">ax</span>
 </pre></div>
 
     </div>
@@ -1407,7 +1184,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 26, 2018.<br/>
+      Last updated on Aug 14, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

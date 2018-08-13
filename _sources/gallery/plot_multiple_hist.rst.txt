@@ -44,19 +44,15 @@ structure relaxations with the HIST robot.
     sic_relaxation  3.064763  20.355222       None      ...              0.0   
     same_hist       3.064763  20.355222       None      ...              0.0   
 
-                    final_fmax  final_fmean  final_fstd  final_drift  \
-    sic_relaxation         0.0          0.0         0.0          0.0   
-    same_hist              0.0          0.0         0.0          0.0   
+                    final_fmax final_fmean  final_fstd  final_drift  initial_fmin  \
+    sic_relaxation         0.0         0.0         0.0          0.0  1.095144e-29   
+    same_hist              0.0         0.0         0.0          0.0  1.095144e-29   
 
-                    initial_fmin  initial_fmax  initial_fmean  initial_fstd  \
-    sic_relaxation  1.095144e-29  1.095144e-29   1.095144e-29           0.0   
-    same_hist       1.095144e-29  1.095144e-29   1.095144e-29           0.0   
+                    initial_fmax  initial_fmean  initial_fstd  initial_drift  
+    sic_relaxation  1.095144e-29   1.095144e-29           0.0            0.0  
+    same_hist       1.095144e-29   1.095144e-29           0.0            0.0  
 
-                    initial_drift  
-    sic_relaxation            0.0  
-    same_hist                 0.0  
-
-    [2 rows x 25 columns]
+    [2 rows x 26 columns]
 
 
 
@@ -86,7 +82,7 @@ structure relaxations with the HIST robot.
     # (meaningless in this case as we are using the same HIST file).
     robot.combiplot()
 
-**Total running time of the script:** ( 0 minutes  0.615 seconds)
+**Total running time of the script:** ( 0 minutes  1.398 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_multiple_hist.py:

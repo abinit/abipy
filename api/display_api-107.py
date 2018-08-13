@@ -1,2 +1,3 @@
-ax = sns.barplot("size", y="total_bill", data=tips,
-                 color="salmon", saturation=.5)
+g = sns.catplot(x="class", hue="who", col="survived",
+                data=titanic, kind="count",
+                height=4, aspect=.7);

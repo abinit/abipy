@@ -29,7 +29,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Multiple e-DOSes" href="plot_edos_vs_broad.html" />
-    <link rel="prev" title="Phonon Bands with LO-TO" href="plot_phonons_lo_to.html" />
+    <link rel="prev" title="Gruneisen parameters" href="plot_gruneisen.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
@@ -108,7 +108,7 @@
               
                 
   <li>
-    <a href="plot_phonons_lo_to.html" title="Previous Chapter: Phonon Bands with LO-TO"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Phonon Bands ...</span>
+    <a href="plot_gruneisen.html" title="Previous Chapter: Gruneisen parameters"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Gruneisen parameters</span>
     </a>
   </li>
   <li>
@@ -168,19 +168,27 @@ si_nscf_GSR.nc: energies on a k-path in the BZ (used to plot the band dispersion
 BZ sampling       1        1       1    29      8     8.0  5.598453     Si2
 k-path            1        1       1    14      8     8.0  5.598453     Si2
 
-             natom  alpha     ...          volume  abispg_num  spglib_symb  \
-BZ sampling      2   60.0     ...       40.888292         227        Fd-3m
-k-path           2   60.0     ...       40.888292         227        Fd-3m
+             natom  alpha                ...                  occopt  \
+BZ sampling      2   60.0                ...                       1
+k-path           2   60.0                ...                       1
 
-             spglib_num  scheme  occopt tsmear_ev bandwidth_spin0  \
-BZ sampling         227    none       1  0.272114       11.855874
-k-path              227    none       1  0.272114       11.855854
+             tsmear_ev  bandwidth_spin0  fundgap_spin0  dirgap_spin0  \
+BZ sampling   0.272114        11.855874       0.562277      2.531798
+k-path        0.272114        11.855854       0.524340      2.531828
 
-             fundgap_spin0 dirgap_spin0
-BZ sampling       0.562277     2.531798
-k-path            0.524340     2.531828
+             gap_type                     fundgap_kstart  \
+BZ sampling  indirect           [+0.000, +0.000, +0.000]
+k-path       indirect  [+0.000, +0.000, +0.000] $\Gamma$
 
-[2 rows x 25 columns]
+                         fundgap_kend                      dirgap_kstart  \
+BZ sampling  [+0.375, +0.375, +0.000]           [+0.000, +0.000, +0.000]
+k-path       [+0.000, +0.429, +0.429]  [+0.000, +0.000, +0.000] $\Gamma$
+
+                                   dirgap_kend
+BZ sampling           [+0.000, +0.000, +0.000]
+k-path       [+0.000, +0.000, +0.000] $\Gamma$
+
+[2 rows x 31 columns]
 </pre></div>
 </div>
 <div class="line-block">
@@ -214,7 +222,7 @@ k-path            0.524340     2.531828
 <span class="n">plotter</span><span class="o">.</span><span class="n">gridplot</span><span class="p">()</span>
 </pre></div>
 </div>
-<p><strong>Total running time of the script:</strong> ( 0 minutes  4.706 seconds)</p>
+<p><strong>Total running time of the script:</strong> ( 0 minutes  4.963 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-ebands-grid-py">
 <div class="sphx-glr-download docutils container">
 <a class="reference download internal" href="../_downloads/plot_ebands_grid.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_ebands_grid.py</span></code></a></div>
@@ -237,7 +245,7 @@ k-path            0.524340     2.531828
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 26, 2018.<br/>
+      Last updated on Aug 14, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

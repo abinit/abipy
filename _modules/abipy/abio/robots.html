@@ -202,6 +202,11 @@
             <span class="k">if</span> <span class="n">subcls</span><span class="o">.</span><span class="n">EXT</span> <span class="ow">in</span> <span class="p">(</span><span class="n">ext</span><span class="p">,</span> <span class="n">ext</span><span class="o">.</span><span class="n">upper</span><span class="p">()):</span>
                 <span class="k">return</span> <span class="n">subcls</span>
 
+        <span class="c1"># anaddb.nc does not follow the extension rule...</span>
+        <span class="k">if</span> <span class="n">ext</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;anaddb&quot;</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">abipy.dfpt.anaddbnc</span> <span class="k">import</span> <span class="n">AnaddbNcRobot</span> <span class="k">as</span> <span class="n">subcls</span>
+            <span class="k">return</span> <span class="n">subcls</span>
+
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot find Robot subclass associated to extension </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">ext</span> <span class="o">+</span>
                          <span class="s2">&quot;The list of supported extensions (case insensitive) is:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
                          <span class="nb">str</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">get_supported_extensions</span><span class="p">()))</span></div>
@@ -285,6 +290,10 @@
 <div class="viewcode-block" id="Robot.class_handles_filename"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.class_handles_filename">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">class_handles_filename</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;True if robot class handles filename.&quot;&quot;&quot;</span>
+        <span class="c1"># Special treatment of AnaddbNcRobot</span>
+        <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">EXT</span> <span class="o">==</span> <span class="s2">&quot;anaddb&quot;</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;anaddb.nc&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+
         <span class="k">return</span> <span class="p">(</span><span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="bp">cls</span><span class="o">.</span><span class="n">EXT</span> <span class="o">+</span> <span class="s2">&quot;.nc&quot;</span><span class="p">)</span> <span class="ow">or</span>
                 <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="bp">cls</span><span class="o">.</span><span class="n">EXT</span><span class="p">))</span>  <span class="c1"># This for .abo</span></div>
 
@@ -304,7 +313,9 @@
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">filenames</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">abifile</span> <span class="o">=</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Exception while opening file: `</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">f</span><span class="p">),</span> <span class="s2">&quot;red&quot;</span><span class="p">)</span>
+                <span class="n">cprint</span><span class="p">(</span><span class="n">exc</span><span class="p">,</span> <span class="s2">&quot;red&quot;</span><span class="p">)</span>
                 <span class="n">abifile</span> <span class="o">=</span> <span class="kc">None</span>
 
             <span class="k">if</span> <span class="n">abifile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -632,7 +643,7 @@
 
     <span class="k">def</span> <span class="nf">_repr_html_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Integration with jupyter_ notebooks.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="s2">&quot;&lt;ol&gt;</span><span class="se">\n</span><span class="si">{}</span><span class="se">\n</span><span class="s2">&lt;/ol&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;&lt;li&gt;</span><span class="si">%s</span><span class="s2">&lt;/li&gt;&quot;</span> <span class="o">%</span> <span class="n">label</span> <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">abifile</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+        <span class="k">return</span> <span class="s1">&#39;&lt;ol start=&quot;0&quot;&gt;</span><span class="se">\n</span><span class="si">{}</span><span class="se">\n</span><span class="s1">&lt;/ol&gt;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;&lt;li&gt;</span><span class="si">%s</span><span class="s2">&lt;/li&gt;&quot;</span> <span class="o">%</span> <span class="n">label</span> <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">abifile</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">abifiles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1255,7 +1266,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 26, 2018.<br/>
+      Last updated on Aug 14, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

@@ -175,32 +175,18 @@
     <span class="k">return</span> <span class="n">op</span><span class="p">(</span><span class="n">parse_version</span><span class="p">(</span><span class="n">this</span><span class="p">),</span> <span class="n">parse_version</span><span class="p">(</span><span class="n">other</span><span class="p">))</span>
 
 
-<span class="c1">#TODO: Replace with abinit build and manager</span>
-<span class="k">def</span> <span class="nf">has_abinit</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="s2">&quot;&gt;=&quot;</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">has_abinit</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    True if abinit is in $PATH.</span>
-<span class="sd">    If version is not None, abinit version op version is evaluated and the result is returned.</span>
-<span class="sd">    False if condition is not fulfilled or the execution of ``abinit -v`` raised CalledProcessError</span>
+<span class="sd">    True if abinit is available via TaskManager configuration options.</span>
+<span class="sd">    If version is not None, `abinit_version op version` is evaluated and the result is returned.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">abinit</span> <span class="o">=</span> <span class="n">which</span><span class="p">(</span><span class="s2">&quot;abinit&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">abinit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span> <span class="kc">False</span>
-    <span class="k">if</span> <span class="n">version</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span> <span class="n">abinit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">abinit_version</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">([</span><span class="s2">&quot;abinit&quot;</span><span class="p">,</span> <span class="s2">&quot;-v&quot;</span><span class="p">]))</span>
-
-    <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span><span class="p">:</span>
-        <span class="c1"># Some MPI implementations require the mpirunner.</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">abinit_version</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">([</span><span class="s2">&quot;mpirun&quot;</span><span class="p">,</span> <span class="s2">&quot;-n&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;abinit&quot;</span><span class="p">,</span> <span class="s2">&quot;-v&quot;</span><span class="p">])</span>
-        <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">abinit_version</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">([</span><span class="s2">&quot;mpiexec&quot;</span><span class="p">,</span> <span class="s2">&quot;-n&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;abinit&quot;</span><span class="p">,</span> <span class="s2">&quot;-v&quot;</span><span class="p">])</span>
-            <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">exc</span><span class="o">.</span><span class="n">output</span><span class="p">)</span>
-                <span class="k">return</span> <span class="kc">False</span>
-
-    <span class="k">return</span> <span class="n">cmp_version</span><span class="p">(</span><span class="n">abinit_version</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="n">op</span><span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">TaskManager</span><span class="p">,</span> <span class="n">AbinitBuild</span>
+    <span class="n">manager</span> <span class="o">=</span> <span class="n">TaskManager</span><span class="o">.</span><span class="n">from_user_config</span><span class="p">()</span> <span class="k">if</span> <span class="n">manager</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">manager</span>
+    <span class="n">build</span> <span class="o">=</span> <span class="n">AbinitBuild</span><span class="p">(</span><span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">version</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">build</span><span class="o">.</span><span class="n">version</span> <span class="o">!=</span> <span class="s2">&quot;0.0.0&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">cmp_version</span><span class="p">(</span><span class="n">build</span><span class="o">.</span><span class="n">version</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="n">op</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">has_matplotlib</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="s2">&quot;&gt;=&quot;</span><span class="p">):</span>
@@ -424,6 +410,12 @@
         <span class="sd">&quot;&quot;&quot;Return True if abinit is in $PATH and version is op min_version.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">has_abinit</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="n">op</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="AbipyTest.skip_if_abinit_not_ge"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.skip_if_abinit_not_ge">[docs]</a>    <span class="k">def</span> <span class="nf">skip_if_abinit_not_ge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">version</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Skip test if Abinit version is not &gt;= `version`&quot;&quot;&quot;</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="s2">&quot;&gt;=&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_abinit</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="n">op</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">unittest</span><span class="o">.</span><span class="n">SkipTest</span><span class="p">(</span><span class="s2">&quot;This test requires Abinit version </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">version</span><span class="p">))</span></div>
+
 <div class="viewcode-block" id="AbipyTest.has_matplotlib"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.has_matplotlib">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">has_matplotlib</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="s2">&quot;&gt;=&quot;</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">has_matplotlib</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="n">op</span><span class="p">)</span></div>
@@ -516,6 +508,11 @@
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="AbipyTest.run_nbpath"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.run_nbpath">[docs]</a>    <span class="k">def</span> <span class="nf">run_nbpath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Test that the notebook in question runs all cells correctly.&quot;&quot;&quot;</span>
+        <span class="n">nb</span><span class="p">,</span> <span class="n">errors</span> <span class="o">=</span> <span class="n">notebook_run</span><span class="p">(</span><span class="n">nbpath</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">nb</span><span class="p">,</span> <span class="n">errors</span></div>
 
 <div class="viewcode-block" id="AbipyTest.has_ipywidgets"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.has_ipywidgets">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">has_ipywidgets</span><span class="p">():</span>
@@ -647,6 +644,14 @@
 
         <span class="k">assert</span> <span class="ow">not</span> <span class="n">errors</span></div>
 
+<div class="viewcode-block" id="AbipyTest.abivalidate_work"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.abivalidate_work">[docs]</a>    <span class="k">def</span> <span class="nf">abivalidate_work</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">work</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Invoke Abinit to test validity of the inputs of a |Work|&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">Flow</span>
+        <span class="n">tmpdir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()</span>
+        <span class="n">flow</span> <span class="o">=</span> <span class="n">Flow</span><span class="p">(</span><span class="n">workdir</span><span class="o">=</span><span class="n">tmpdir</span><span class="p">)</span>
+        <span class="n">flow</span><span class="o">.</span><span class="n">register_work</span><span class="p">(</span><span class="n">work</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">abivalidate_flow</span><span class="p">(</span><span class="n">flow</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="AbipyTest.abivalidate_flow"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.abivalidate_flow">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">abivalidate_flow</span><span class="p">(</span><span class="n">flow</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -668,6 +673,38 @@
     <span class="nd">@wraps</span><span class="p">(</span><span class="n">get_gsinput_si</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">get_gsinput_si</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">get_gsinput_si</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+
+
+<span class="k">def</span> <span class="nf">notebook_run</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Execute a notebook via nbconvert and collect output.</span>
+
+<span class="sd">    Taken from</span>
+<span class="sd">    https://blog.thedataincubator.com/2016/06/testing-jupyter-notebooks/</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        path (str): file path for the notebook object</span>
+
+<span class="sd">    Returns: (parsed nb object, execution errors)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">nbformat</span>
+    <span class="n">dirname</span><span class="p">,</span> <span class="n">__</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">dirname</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;.ipynb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fout</span><span class="p">:</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;jupyter&quot;</span><span class="p">,</span> <span class="s2">&quot;nbconvert&quot;</span><span class="p">,</span> <span class="s2">&quot;--to&quot;</span><span class="p">,</span> <span class="s2">&quot;notebook&quot;</span><span class="p">,</span> <span class="s2">&quot;--execute&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;--ExecutePreprocessor.timeout=300&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;--ExecutePreprocessor.allow_errors=True&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;--output&quot;</span><span class="p">,</span> <span class="n">fout</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">path</span><span class="p">]</span>
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">check_call</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
+        <span class="n">fout</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">nb</span> <span class="o">=</span> <span class="n">nbformat</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">fout</span><span class="p">,</span> <span class="n">nbformat</span><span class="o">.</span><span class="n">current_nbformat</span><span class="p">)</span>
+
+    <span class="n">errors</span> <span class="o">=</span> <span class="p">[</span><span class="n">output</span> <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">nb</span><span class="o">.</span><span class="n">cells</span> <span class="k">if</span> <span class="s2">&quot;outputs&quot;</span> <span class="ow">in</span> <span class="n">cell</span>
+              <span class="k">for</span> <span class="n">output</span> <span class="ow">in</span> <span class="n">cell</span><span class="p">[</span><span class="s2">&quot;outputs&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="n">output</span><span class="o">.</span><span class="n">output_type</span> <span class="o">==</span> <span class="s2">&quot;error&quot;</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">nb</span><span class="p">,</span> <span class="n">errors</span>
 </pre></div>
 
     </div>
@@ -682,7 +719,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 26, 2018.<br/>
+      Last updated on Aug 14, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

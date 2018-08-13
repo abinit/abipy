@@ -28,8 +28,8 @@
     <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Eliashberg function" href="plot_a2f.html" />
-    <link rel="prev" title="Multiple Bethe-Salpeter calculations" href="plot_multiple_mdf.html" />
+    <link rel="next" title="ElectronBandsPlotter" href="plot_ebands_grid.html" />
+    <link rel="prev" title="Phonon Bands with LO-TO" href="plot_phonons_lo_to.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
@@ -108,11 +108,11 @@
               
                 
   <li>
-    <a href="plot_multiple_mdf.html" title="Previous Chapter: Multiple Bethe-Salpeter calculations"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Multiple Beth...</span>
+    <a href="plot_phonons_lo_to.html" title="Previous Chapter: Phonon Bands with LO-TO"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Phonon Bands ...</span>
     </a>
   </li>
   <li>
-    <a href="plot_a2f.html" title="Next Chapter: Eliashberg function"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Eliashberg function &raquo;</span>
+    <a href="plot_ebands_grid.html" title="Next Chapter: ElectronBandsPlotter"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">ElectronBandsPlotter &raquo;</span>
     </a>
   </li>
               
@@ -161,6 +161,12 @@ computed by anaddb via finite difference. See also v8/Input/t45.in</p>
 </li>
 <li><img alt="../_images/sphx_glr_plot_gruneisen_003.png" class="sphx-glr-multi-img first" src="../_images/sphx_glr_plot_gruneisen_003.png" />
 </li>
+<li><img alt="../_images/sphx_glr_plot_gruneisen_004.png" class="sphx-glr-multi-img first" src="../_images/sphx_glr_plot_gruneisen_004.png" />
+</li>
+<li><img alt="../_images/sphx_glr_plot_gruneisen_005.png" class="sphx-glr-multi-img first" src="../_images/sphx_glr_plot_gruneisen_005.png" />
+</li>
+<li><img alt="../_images/sphx_glr_plot_gruneisen_006.png" class="sphx-glr-multi-img first" src="../_images/sphx_glr_plot_gruneisen_006.png" />
+</li>
 </ul>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span>
 
@@ -179,6 +185,12 @@ computed by anaddb via finite difference. See also v8/Input/t45.in</p>
 <span class="c1"># sphinx_gallery_thumbnail_number = 2</span>
 <span class="n">ncfile</span><span class="o">.</span><span class="n">plot_phbands_with_gruns</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Phonon bands with markers proportional to Gruneisen parameters + DOSes&quot;</span><span class="p">)</span>
 
+<span class="n">ncfile</span><span class="o">.</span><span class="n">plot_gruns_bs</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Gruneisen along high-symmetry path.&quot;</span><span class="p">)</span>
+
+<span class="n">ncfile</span><span class="o">.</span><span class="n">plot_phbands_with_gruns</span><span class="p">(</span><span class="n">fill_with</span><span class="o">=</span><span class="s2">&quot;gruns_fd&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Gruneisen parameters with finite differences.&quot;</span><span class="p">,</span> <span class="n">with_doses</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+
+<span class="n">ncfile</span><span class="o">.</span><span class="n">plot_gruns_scatter</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="s1">&#39;cm-1&#39;</span><span class="p">,</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Scatter plot with Gruneisen parameters&quot;</span><span class="p">)</span>
+
 <span class="c1"># Construct plotter object to analyze multiple phonon bands.</span>
 <span class="n">plotter</span> <span class="o">=</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">get_plotter</span><span class="p">()</span>
 <span class="n">plotter</span><span class="o">.</span><span class="n">combiboxplot</span><span class="p">()</span>
@@ -186,7 +198,7 @@ computed by anaddb via finite difference. See also v8/Input/t45.in</p>
 <span class="n">ncfile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </pre></div>
 </div>
-<p><strong>Total running time of the script:</strong> ( 0 minutes  1.996 seconds)</p>
+<p><strong>Total running time of the script:</strong> ( 0 minutes  2.380 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-gruneisen-py">
 <div class="sphx-glr-download docutils container">
 <a class="reference download internal" href="../_downloads/plot_gruneisen.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_gruneisen.py</span></code></a></div>
@@ -209,7 +221,7 @@ computed by anaddb via finite difference. See also v8/Input/t45.in</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 26, 2018.<br/>
+      Last updated on Aug 14, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

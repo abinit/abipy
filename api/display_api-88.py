@@ -1,1 +1,5 @@
-ax = sns.pointplot(x="tip", y="day", data=tips, join=False)
+g = sns.catplot(x="sex", y="total_bill",
+                hue="smoker", col="time",
+                data=tips, kind="point",
+                dodge=True,
+                height=4, aspect=.7);

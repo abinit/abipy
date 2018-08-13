@@ -149,6 +149,7 @@
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">NotebookWriter</span>
 <span class="kn">from</span> <span class="nn">abipy.abio.robots</span> <span class="k">import</span> <span class="n">Robot</span>
 <span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">ETSF_Reader</span>
+<span class="kn">import</span> <span class="nn">abipy.core.abinit_units</span> <span class="k">as</span> <span class="nn">abu</span>
 
 
 <div class="viewcode-block" id="HistFile"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistFile">[docs]</a><span class="k">class</span> <span class="nc">HistFile</span><span class="p">(</span><span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
@@ -258,7 +259,7 @@
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
         <span class="n">cart_stress_tensors</span><span class="p">,</span> <span class="n">pressures</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_cart_stress_tensors</span><span class="p">()</span>
-        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Stress tensor (Cartesian coordinates in Ha/Bohr**3):</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">cart_stress_tensors</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Stress tensor (Cartesian coordinates in GPa):</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">cart_stress_tensors</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Pressure: </span><span class="si">%.3f</span><span class="s2"> [GPa]&quot;</span> <span class="o">%</span> <span class="n">pressures</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
@@ -299,18 +300,20 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">RelaxationAnalyzer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_structure</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="HistFile.to_xdatcar"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistFile.to_xdatcar">[docs]</a>    <span class="k">def</span> <span class="nf">to_xdatcar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">groupby_type</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="HistFile.to_xdatcar"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistFile.to_xdatcar">[docs]</a>    <span class="k">def</span> <span class="nf">to_xdatcar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">groupby_type</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">to_unit_cell</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return Xdatcar pymatgen object. See write_xdatcar for the meaning of arguments.</span>
 
 <span class="sd">        Args:</span>
+<span class="sd">            to_unit_cell (bool): Whether to translate sites into the unit cell.</span>
 <span class="sd">            kwargs: keywords arguments passed to Xdatcar constructor.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">filepath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">write_xdatcar</span><span class="p">(</span><span class="n">filepath</span><span class="o">=</span><span class="n">filepath</span><span class="p">,</span> <span class="n">groupby_type</span><span class="o">=</span><span class="n">groupby_type</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">write_xdatcar</span><span class="p">(</span><span class="n">filepath</span><span class="o">=</span><span class="n">filepath</span><span class="p">,</span> <span class="n">groupby_type</span><span class="o">=</span><span class="n">groupby_type</span><span class="p">,</span>
+                                      <span class="n">to_unit_cell</span><span class="o">=</span><span class="n">to_unit_cell</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="kn">from</span> <span class="nn">pymatgen.io.vasp.outputs</span> <span class="k">import</span> <span class="n">Xdatcar</span>
         <span class="k">return</span> <span class="n">Xdatcar</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="HistFile.write_xdatcar"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistFile.write_xdatcar">[docs]</a>    <span class="k">def</span> <span class="nf">write_xdatcar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="o">=</span><span class="s2">&quot;XDATCAR&quot;</span><span class="p">,</span> <span class="n">groupby_type</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="HistFile.write_xdatcar"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistFile.write_xdatcar">[docs]</a>    <span class="k">def</span> <span class="nf">write_xdatcar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="o">=</span><span class="s2">&quot;XDATCAR&quot;</span><span class="p">,</span> <span class="n">groupby_type</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">to_unit_cell</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Write Xdatcar file with unit cell and atomic positions to file ``filepath``.</span>
 
@@ -321,6 +324,7 @@
 <span class="sd">                there are post-processing tools (e.g. ovito) that do not work as expected</span>
 <span class="sd">                if the atoms in the structure are not grouped by type.</span>
 <span class="sd">            overwrite: raise RuntimeError, if False and filepath exists.</span>
+<span class="sd">            to_unit_cell (bool): Whether to translate sites into the unit cell.</span>
 
 <span class="sd">        Return:</span>
 <span class="sd">            path to Xdatcar file.</span>
@@ -374,6 +378,9 @@
 
             <span class="c1"># Write atomic positions in reduced coordinates.</span>
             <span class="n">xred_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;xred&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">to_unit_cell</span><span class="p">:</span>
+                <span class="n">xred_list</span> <span class="o">=</span> <span class="n">xred_list</span> <span class="o">%</span> <span class="mi">1</span>
+
             <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_steps</span><span class="p">):</span>
                 <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Direct configuration= </span><span class="si">%d</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">step</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
                 <span class="n">frac_coords</span> <span class="o">=</span> <span class="n">xred_list</span><span class="p">[</span><span class="n">step</span><span class="p">,</span> <span class="n">group_ids</span><span class="p">]</span>
@@ -382,10 +389,13 @@
 
         <span class="k">return</span> <span class="n">filepath</span></div>
 
-<div class="viewcode-block" id="HistFile.visualize"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistFile.visualize">[docs]</a>    <span class="k">def</span> <span class="nf">visualize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s2">&quot;ovito&quot;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+<div class="viewcode-block" id="HistFile.visualize"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistFile.visualize">[docs]</a>    <span class="k">def</span> <span class="nf">visualize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s2">&quot;ovito&quot;</span><span class="p">,</span> <span class="n">to_unit_cell</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Visualize the crystalline structure with visualizer.</span>
 <span class="sd">        See :class:`Visualizer` for the list of applications and formats supported.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            to_unit_cell (bool): Whether to translate sites into the unit cell.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">appname</span> <span class="o">==</span> <span class="s2">&quot;mayavi&quot;</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mayaview</span><span class="p">()</span>
 
@@ -395,7 +405,7 @@
         <span class="k">if</span> <span class="n">visu</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;ovito&quot;</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;visualizer: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">visu</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 
-        <span class="n">filepath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">write_xdatcar</span><span class="p">(</span><span class="n">filepath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">groupby_type</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">write_xdatcar</span><span class="p">(</span><span class="n">filepath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">groupby_type</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">to_unit_cell</span><span class="o">=</span><span class="n">to_unit_cell</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">visu</span><span class="p">(</span><span class="n">filepath</span><span class="p">)()</span></div>
         <span class="c1">#if options.trajectories:</span>
@@ -912,7 +922,7 @@
 
 <div class="viewcode-block" id="HistReader.read_cart_stress_tensors"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistReader.read_cart_stress_tensors">[docs]</a>    <span class="k">def</span> <span class="nf">read_cart_stress_tensors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return the stress tensors (nstep x 3 x 3) in cartesian coordinates (Hartree/Bohr^3)</span>
+<span class="sd">        Return the stress tensors (nstep x 3 x 3) in cartesian coordinates (GPa)</span>
 <span class="sd">        and the list of pressures in GPa unit.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Abinit stores 6 unique components of this symmetric 3x3 tensor:</span>
@@ -926,10 +936,10 @@
                 <span class="n">tensors</span><span class="p">[</span><span class="n">step</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="n">step</span><span class="p">,</span> <span class="mi">3</span><span class="o">+</span><span class="n">p</span><span class="p">]</span>
                 <span class="n">tensors</span><span class="p">[</span><span class="n">step</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="n">step</span><span class="p">,</span> <span class="mi">3</span><span class="o">+</span><span class="n">p</span><span class="p">]</span>
 
-        <span class="n">HaBohr3_GPa</span> <span class="o">=</span> <span class="mf">29421.033</span> <span class="c1"># 1 Ha/Bohr^3, in GPa</span>
+        <span class="n">tensors</span> <span class="o">*=</span> <span class="n">abu</span><span class="o">.</span><span class="n">HaBohr3_GPa</span>
         <span class="n">pressures</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_steps</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">step</span><span class="p">,</span> <span class="n">tensor</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tensors</span><span class="p">):</span>
-            <span class="n">pressures</span><span class="p">[</span><span class="n">step</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span> <span class="p">(</span><span class="n">HaBohr3_GPa</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">tensor</span><span class="o">.</span><span class="n">trace</span><span class="p">()</span>
+            <span class="n">pressures</span><span class="p">[</span><span class="n">step</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span> <span class="n">tensor</span><span class="o">.</span><span class="n">trace</span><span class="p">()</span> <span class="o">/</span> <span class="mi">3</span>
 
         <span class="k">return</span> <span class="n">tensors</span><span class="p">,</span> <span class="n">pressures</span></div></div>
 </pre></div>
@@ -946,7 +956,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 26, 2018.<br/>
+      Last updated on Aug 14, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

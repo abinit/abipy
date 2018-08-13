@@ -36,10 +36,10 @@ obtained with Abinit
     Will call spglib to get symmetry operations.[0m
     [35mStructure object does not have symmetry operations computed from Abinit.
     Will call spglib to get symmetry operations.[0m
-    Downloading DDB for mpid: mp-149
-    Invoking anaddb...
-    Downloading DDB for mpid: mp-66
-    Invoking anaddb...
+    Downloading DDB for mpid mp-149 (Si2) ...
+    Invoking anaddb to compute phonon bands...
+    Downloading DDB for mpid mp-66 (C2) ...
+    Invoking anaddb to compute phonon bands...
 
 
 
@@ -50,8 +50,6 @@ obtained with Abinit
 .. code-block:: python
 
     from abipy import abilab
-    import abipy.data as abidata
-    import os
 
     # List of mp ids for Si, Diamond
     mpids = ["mp-149", "mp-66"]
@@ -61,12 +59,12 @@ obtained with Abinit
 
     # Get list of DDB files from the MP website and run anaddb to get the phonon bands.
     phbands_list = []
-    for mpid in mpids:
-        print("Downloading DDB for mpid:", mpid)
+    for i, mpid in enumerate(mpids):
+        print("Downloading DDB for mpid %s (%s) ..." % (mpid, ebands_list[i].structure.formula))
         ddb = abilab.DdbFile.from_mpid(mpid)
         if ddb is None:
             raise RuntimeError("%d does not provide DDB" % mpid)
-        print("Invoking anaddb...")
+        print("Invoking anaddb to compute phonon bands...")
         phbst, _ = ddb.anaget_phbst_and_phdos_files(nqsmall=0)
         phbands_list.append(phbst.phbands)
         phbst.close()
@@ -92,7 +90,7 @@ obtained with Abinit
 
     plt.show()
 
-**Total running time of the script:** ( 0 minutes  34.857 seconds)
+**Total running time of the script:** ( 0 minutes  40.787 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_eph_from_mp.py:

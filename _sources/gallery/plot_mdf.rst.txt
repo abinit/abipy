@@ -72,7 +72,7 @@ computed in the Bethe-Salpeter code.
 
     mdf_file.close()
 
-**Total running time of the script:** ( 0 minutes  10.785 seconds)
+**Total running time of the script:** ( 0 minutes  11.122 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_mdf.py:

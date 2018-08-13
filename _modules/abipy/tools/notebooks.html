@@ -168,9 +168,36 @@
     <span class="kn">from</span> <span class="nn">pygments.lexers</span> <span class="k">import</span> <span class="n">PythonLexer</span>
     <span class="kn">from</span> <span class="nn">pygments.formatters</span> <span class="k">import</span> <span class="n">HtmlFormatter</span>
     <span class="kn">from</span> <span class="nn">IPython.core.display</span> <span class="k">import</span> <span class="n">HTML</span>
-    <span class="k">if</span> <span class="s2">&quot;full&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;full&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
 
+    <span class="k">if</span> <span class="s2">&quot;full&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;full&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="k">return</span> <span class="n">HTML</span><span class="p">(</span><span class="n">highlight</span><span class="p">(</span><span class="n">getsource</span><span class="p">(</span><span class="n">function</span><span class="p">),</span> <span class="n">PythonLexer</span><span class="p">(),</span> <span class="n">HtmlFormatter</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)))</span></div>
+
+
+<div class="viewcode-block" id="print_doc"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.notebooks.print_doc">[docs]</a><span class="k">def</span> <span class="nf">print_doc</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    For use inside a jupyter_ notebook: given a function, print the docstring.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        **kwargs: Passed to HtmlFormatter</span>
+
+<span class="sd">    Return:</span>
+<span class="sd">        HTML string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">inspect</span> <span class="k">import</span> <span class="n">getsource</span>
+    <span class="kn">from</span> <span class="nn">pygments</span> <span class="k">import</span> <span class="n">highlight</span>
+    <span class="kn">from</span> <span class="nn">pygments.lexers</span> <span class="k">import</span> <span class="n">PythonLexer</span>
+    <span class="kn">from</span> <span class="nn">pygments.formatters</span> <span class="k">import</span> <span class="n">HtmlFormatter</span>
+    <span class="kn">from</span> <span class="nn">IPython.core.display</span> <span class="k">import</span> <span class="n">HTML</span>
+
+    <span class="c1"># Extract source code up to end of docstring.</span>
+    <span class="n">lines</span><span class="p">,</span> <span class="n">count</span> <span class="o">=</span> <span class="p">[],</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">getsource</span><span class="p">(</span><span class="n">function</span><span class="p">)</span><span class="o">.</span><span class="n">splitlines</span><span class="p">():</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">l</span><span class="o">.</span><span class="n">lstrip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;&quot;&quot;&quot;&#39;</span><span class="p">):</span> <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span> <span class="k">break</span>
+
+    <span class="k">if</span> <span class="s2">&quot;full&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;full&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="n">HTML</span><span class="p">(</span><span class="n">highlight</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">),</span> <span class="n">PythonLexer</span><span class="p">(),</span> <span class="n">HtmlFormatter</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)))</span></div>
 
 
 <div class="viewcode-block" id="ipw_listdir"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.notebooks.ipw_listdir">[docs]</a><span class="k">def</span> <span class="nf">ipw_listdir</span><span class="p">(</span><span class="n">top</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="n">recurse</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">widget_type</span><span class="o">=</span><span class="s2">&quot;dropdown&quot;</span><span class="p">):</span>   <span class="c1"># pragma: no cover</span>
@@ -234,7 +261,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 26, 2018.<br/>
+      Last updated on Aug 14, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

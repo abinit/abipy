@@ -1,4 +1,3 @@
-g = sns.factorplot(x="sex", y="total_bill",
-                   hue="smoker", col="time",
-                   data=tips, kind="box",
-                   size=4, aspect=.7);
+ax = sns.violinplot(x="day", y="total_bill", hue="sex",
+                    data=tips, palette="Set2", split=True,
+                    scale="count", inner="stick")

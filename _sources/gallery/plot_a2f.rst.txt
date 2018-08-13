@@ -45,7 +45,7 @@ and the e-ph coupling strenght in metals.
     Name: al_888k_161616q_A2F.nc
     Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/al_eph
     Size: 252.30 kb
-    Access Time: Thu Jul 26 01:16:13 2018
+    Access Time: Mon Aug 13 22:56:22 2018
     Modification Time: Mon Mar 19 21:58:20 2018
     Change Time: Mon Mar 19 21:58:20 2018
 
@@ -113,7 +113,7 @@ and the e-ph coupling strenght in metals.
         # Grid with 3 plots (a2F, F, a2F) with F taken from PHDOS file.
         #ncfile.a2f_qintp.plot_a2(phdos_path)
 
-**Total running time of the script:** ( 0 minutes  10.787 seconds)
+**Total running time of the script:** ( 0 minutes  15.086 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_a2f.py:

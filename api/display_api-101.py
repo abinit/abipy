@@ -1,2 +1,4 @@
-from numpy import median
-ax = sns.barplot(x="day", y="tip", data=tips, estimator=median)
+g = sns.catplot(x="sex", y="total_bill",
+                hue="smoker", col="time",
+                data=tips, kind="bar",
+                height=4, aspect=.7);

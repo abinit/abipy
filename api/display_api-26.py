@@ -1,2 +1,2 @@
-g = sns.lmplot(x="size", y="total_bill", hue="day", col="day",
-               data=tips, aspect=.4, x_jitter=.1)
+g = sns.lmplot(x="total_bill", y="tip", col="day", hue="day",
+               data=tips, col_wrap=2, height=3)

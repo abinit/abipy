@@ -136,7 +136,7 @@
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">.works</span> <span class="k">import</span> <span class="n">Work</span>
+<span class="kn">from</span> <span class="nn">.works</span> <span class="k">import</span> <span class="n">Work</span><span class="p">,</span> <span class="n">MergeDdb</span>
 
 
 <div class="viewcode-block" id="NscfDdksWork"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.dfpt_works.NscfDdksWork">[docs]</a><span class="k">class</span> <span class="nc">NscfDdksWork</span><span class="p">(</span><span class="n">Work</span><span class="p">):</span>
@@ -192,6 +192,114 @@
             <span class="n">new</span><span class="o">.</span><span class="n">ddk_tasks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">new</span></div></div>
+
+
+<div class="viewcode-block" id="ElasticWork"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.dfpt_works.ElasticWork">[docs]</a><span class="k">class</span> <span class="nc">ElasticWork</span><span class="p">(</span><span class="n">Work</span><span class="p">,</span> <span class="n">MergeDdb</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This Work computes the elastic constants and (optionally) the piezoelectric tensor.</span>
+<span class="sd">    It consists of Response function calculations for:</span>
+
+<span class="sd">        * rigid-atom elastic tensor</span>
+<span class="sd">        * rigid-atom piezoelectric tensor</span>
+<span class="sd">        * interatomic force constants at gamma</span>
+<span class="sd">        * Born effective charges</span>
+
+<span class="sd">    The structure is assumed to be already relaxed</span>
+
+<span class="sd">    Create a `Flow` for phonon calculations. The flow has one works with:</span>
+
+<span class="sd">	- 1 GS Task</span>
+<span class="sd">	- 3 DDK Task</span>
+<span class="sd">	- 4 Phonon Tasks (Gamma point)</span>
+<span class="sd">	- 6 Elastic tasks (3 uniaxial + 3 shear strain)</span>
+
+<span class="sd">    The Phonon tasks and the elastic task will read the DDK produced at the beginning</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="ElasticWork.from_scf_input"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.dfpt_works.ElasticWork.from_scf_input">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_scf_input</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">scf_input</span><span class="p">,</span> <span class="n">with_relaxed_ion</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_piezo</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_dde</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                       <span class="n">tolerances</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">den_deps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            scf_input:</span>
+<span class="sd">            with_relaxed_ion:</span>
+<span class="sd">            with_piezo:</span>
+<span class="sd">            with_dde: Compute electric field perturbations.</span>
+<span class="sd">            tolerances: Dict of tolerances</span>
+<span class="sd">            den_deps:</span>
+<span class="sd">            manager:</span>
+
+<span class="sd">        Similar to `from_scf_task`, the difference is that this method requires</span>
+<span class="sd">        an input for SCF calculation instead of a ScfTask. All the tasks (Scf + Phonon)</span>
+<span class="sd">        are packed in a single Work whereas in the previous case we usually have multiple works.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">tolerances</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">tolerances</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
+
+        <span class="c1"># Register task for WFK0 calculation (either SCF or NCSCF if den_deps is given)</span>
+        <span class="k">if</span> <span class="n">den_deps</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">wfk_task</span> <span class="o">=</span> <span class="n">new</span><span class="o">.</span><span class="n">register_scf_task</span><span class="p">(</span><span class="n">scf_input</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tolwfr</span> <span class="o">=</span> <span class="mf">1.0e-20</span>
+            <span class="k">if</span> <span class="s2">&quot;nscf&quot;</span> <span class="ow">in</span> <span class="n">tolerances</span><span class="p">:</span>
+                <span class="n">tolwfr</span> <span class="o">=</span> <span class="n">tolerances</span><span class="p">[</span><span class="s2">&quot;nscf&quot;</span><span class="p">][</span><span class="s2">&quot;tolwfr&quot;</span><span class="p">]</span>
+            <span class="n">nscf_input</span> <span class="o">=</span> <span class="n">scf_input</span><span class="o">.</span><span class="n">new_with_vars</span><span class="p">(</span><span class="n">iscf</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="n">tolwfr</span><span class="o">=</span><span class="n">tolwfr</span><span class="p">)</span>
+            <span class="n">wfk_task</span> <span class="o">=</span> <span class="n">new</span><span class="o">.</span><span class="n">register_nscf_task</span><span class="p">(</span><span class="n">nscf_input</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="n">den_deps</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">with_piezo</span> <span class="ow">or</span> <span class="n">with_dde</span><span class="p">:</span>
+            <span class="c1"># Calculate the ddk wf&#39;s needed for piezoelectric tensor and Born effective charges.</span>
+            <span class="c1">#ddk_tolerance = {&quot;tolwfr&quot;: 1.0e-20}</span>
+            <span class="n">ddk_tolerance</span> <span class="o">=</span> <span class="n">tolerances</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ddk&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">ddk_multi</span> <span class="o">=</span> <span class="n">scf_input</span><span class="o">.</span><span class="n">make_ddk_inputs</span><span class="p">(</span><span class="n">tolerance</span><span class="o">=</span><span class="n">ddk_tolerance</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
+            <span class="n">ddk_tasks</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">inp</span> <span class="ow">in</span> <span class="n">ddk_multi</span><span class="p">:</span>
+                <span class="n">ddk_task</span> <span class="o">=</span> <span class="n">new</span><span class="o">.</span><span class="n">register_ddk_task</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="p">{</span><span class="n">wfk_task</span><span class="p">:</span> <span class="s2">&quot;WFK&quot;</span><span class="p">})</span>
+                <span class="n">ddk_tasks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ddk_task</span><span class="p">)</span>
+            <span class="n">ddk_deps</span> <span class="o">=</span> <span class="p">{</span><span class="n">ddk_task</span><span class="p">:</span> <span class="s2">&quot;DDK&quot;</span> <span class="k">for</span> <span class="n">ddk_task</span> <span class="ow">in</span> <span class="n">ddk_tasks</span><span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">with_dde</span><span class="p">:</span>
+            <span class="c1"># Add tasks for electric field perturbation.</span>
+            <span class="c1">#dde_tolerance = None</span>
+            <span class="n">dde_tolerance</span> <span class="o">=</span> <span class="n">tolerances</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dde&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">dde_multi</span> <span class="o">=</span> <span class="n">scf_input</span><span class="o">.</span><span class="n">make_dde_inputs</span><span class="p">(</span><span class="n">tolerance</span><span class="o">=</span><span class="n">dde_tolerance</span><span class="p">,</span> <span class="n">use_symmetries</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
+            <span class="n">dde_deps</span> <span class="o">=</span> <span class="p">{</span><span class="n">wfk_task</span><span class="p">:</span> <span class="s2">&quot;WFK&quot;</span><span class="p">}</span>
+            <span class="n">dde_deps</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">ddk_deps</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">inp</span> <span class="ow">in</span> <span class="n">dde_multi</span><span class="p">:</span>
+                <span class="n">new</span><span class="o">.</span><span class="n">register_dde_task</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="n">dde_deps</span><span class="p">)</span>
+
+        <span class="c1"># Build input files for strain and (optionally) phonons.</span>
+        <span class="c1">#strain_tolerance = {&quot;tolvrs&quot;: 1e-10}</span>
+        <span class="n">strain_tolerance</span> <span class="o">=</span> <span class="n">tolerances</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;strain&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">strain_multi</span> <span class="o">=</span> <span class="n">scf_input</span><span class="o">.</span><span class="n">make_strain_perts_inputs</span><span class="p">(</span><span class="n">tolerance</span><span class="o">=</span><span class="n">strain_tolerance</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">,</span>
+            <span class="n">phonon_pert</span><span class="o">=</span><span class="n">with_relaxed_ion</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">with_relaxed_ion</span><span class="p">:</span>
+            <span class="c1"># Phonon perturbation (read DDK if piezo).</span>
+            <span class="n">ph_deps</span> <span class="o">=</span> <span class="p">{</span><span class="n">wfk_task</span><span class="p">:</span> <span class="s2">&quot;WFK&quot;</span><span class="p">}</span>
+            <span class="k">if</span> <span class="n">with_piezo</span><span class="p">:</span> <span class="n">ph_deps</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">ddk_deps</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">inp</span> <span class="ow">in</span> <span class="n">strain_multi</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">inp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;rfphon&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">new</span><span class="o">.</span><span class="n">register_phonon_task</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="n">ph_deps</span><span class="p">)</span>
+
+        <span class="c1"># Finally compute strain pertubations (read DDK if piezo).</span>
+        <span class="n">elast_deps</span> <span class="o">=</span> <span class="p">{</span><span class="n">wfk_task</span><span class="p">:</span> <span class="s2">&quot;WFK&quot;</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">with_piezo</span><span class="p">:</span> <span class="n">elast_deps</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">ddk_deps</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">inp</span> <span class="ow">in</span> <span class="n">strain_multi</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">inp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;rfstrs&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">new</span><span class="o">.</span><span class="n">register_elastic_task</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="n">elast_deps</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">new</span></div>
+
+<div class="viewcode-block" id="ElasticWork.on_all_ok"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.dfpt_works.ElasticWork.on_all_ok">[docs]</a>    <span class="k">def</span> <span class="nf">on_all_ok</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is called when all the tasks of the Work reach S_OK.</span>
+<span class="sd">        Ir runs `mrgddb` in sequential on the local machine to produce</span>
+<span class="sd">        the final DDB file in the outdir of the `Work`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Merge DDB files.</span>
+        <span class="n">out_ddb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">merge_ddb_files</span><span class="p">(</span><span class="n">delete_source_ddbs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">only_dfpt_tasks</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Results</span><span class="p">(</span><span class="n">node</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">returncode</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;DDB merge done&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">results</span></div></div>
 </pre></div>
 
     </div>
@@ -206,7 +314,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 26, 2018.<br/>
+      Last updated on Aug 14, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

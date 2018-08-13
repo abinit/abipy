@@ -395,7 +395,7 @@ Optionally compute gradients and Hessian matrices.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>fontsize</strong> – fontsize for legends and titles</li>
 <li><strong>yscale</strong> – Define scale for y-axis. Passed to ax.set_yscale</li>
 <li><strong>kwargs</strong> – options passed to <code class="docutils literal"><span class="pre">ax.plot</span></code>.</li>
@@ -404,7 +404,7 @@ Optionally compute gradients and Hessian matrices.</p>
 </tr>
 </tbody>
 </table>
-<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -466,12 +466,12 @@ It provides helper function to access the most important quantities.</p>
 <dt id="abipy.wannier90.abiwan.AbiwanRobot">
 <em class="property">class </em><code class="descclassname">abipy.wannier90.abiwan.</code><code class="descname">AbiwanRobot</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/wannier90/abiwan.html#AbiwanRobot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.wannier90.abiwan.AbiwanRobot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="abio_api.html#abipy.abio.robots.Robot" title="abipy.abio.robots.Robot"><code class="xref py py-class docutils literal"><span class="pre">abipy.abio.robots.Robot</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.ebands.RobotWithEbands</span></code></p>
-<p>This robot analyzes the results contained in multiple <a href="#id6"><span class="problematic" id="id7">ABIWAN.nc_</span></a> files.</p>
+<p>This robot analyzes the results contained in multiple ABIWAN.nc files.</p>
 <p class="rubric">Inheritance Diagram</p>
-<img src="../_images/inheritance-5311b7f17a5403d29b91f05df2eb11d1d2d5543c.png" alt="Inheritance diagram of AbiwanRobot" usemap="#inheritanced09d992b8d" class="inheritance"/>
+<img src="../_images/inheritance-8dc88ce48473f14c092d9425b8021b252af5d879.png" alt="Inheritance diagram of AbiwanRobot" usemap="#inheritanced09d992b8d" class="inheritance"/>
 <map id="inheritanced09d992b8d" name="inheritanced09d992b8d">
 <area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="298,49,445,71"/>
-<area shape="rect" id="node4" href="#abipy.wannier90.abiwan.AbiwanRobot" target="_top" title="This robot analyzes the results contained in multiple ABIWAN.nc_ files." alt="" coords="538,27,763,49"/>
+<area shape="rect" id="node4" href="#abipy.wannier90.abiwan.AbiwanRobot" target="_top" title="This robot analyzes the results contained in multiple ABIWAN.nc files." alt="" coords="538,27,763,49"/>
 <area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="5,49,205,71"/>
 <area shape="rect" id="node3" title="Mixin class for robots associated to files with |ElectronBands|." alt="" coords="249,5,494,27"/>
 </map>
@@ -483,7 +483,7 @@ It provides helper function to access the most important quantities.</p>
 <dl class="method">
 <dt id="abipy.wannier90.abiwan.AbiwanRobot.get_dataframe">
 <code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>with_geo=True</em>, <em>abspath=False</em>, <em>funcs=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/wannier90/abiwan.html#AbiwanRobot.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.wannier90.abiwan.AbiwanRobot.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important Wannier90 results.
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important Wannier90 results.
 and the filenames as index.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -520,7 +520,7 @@ on the same Axes.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>colormap</strong> – matplotlib color map.</li>
 <li><strong>fontsize</strong> – fontsize for legends and titles</li>
 </ul>
@@ -528,7 +528,7 @@ on the same Axes.</p>
 </tr>
 </tbody>
 </table>
-<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -754,7 +754,7 @@ If None, we use the default high-symmetry k-path defined in the pymatgen databas
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -804,7 +804,7 @@ as function of iteration number</p>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -872,7 +872,7 @@ working directory is created. Return path to the notebook.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 26, 2018.<br/>
+      Last updated on Aug 14, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

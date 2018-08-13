@@ -45,18 +45,7 @@ stored in the SIGRES produced by the GW code (sigma run)
             :class: sphx-glr-multi-img
 
 
-.. rst-class:: sphx-glr-script-out
 
- Out:
-
- .. code-block:: none
-
-    fermie 6.236163146763093
-
-
-
-
-|
 
 
 .. code-block:: python
@@ -81,7 +70,7 @@ stored in the SIGRES produced by the GW code (sigma run)
 
     sigres.close()
 
-**Total running time of the script:** ( 0 minutes  1.896 seconds)
+**Total running time of the script:** ( 0 minutes  1.893 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_qps.py:

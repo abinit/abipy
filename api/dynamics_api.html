@@ -272,13 +272,17 @@
 
 <dl class="method">
 <dt id="abipy.dynamics.hist.HistFile.to_xdatcar">
-<code class="descname">to_xdatcar</code><span class="sig-paren">(</span><em>filepath=None</em>, <em>groupby_type=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.to_xdatcar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.to_xdatcar" title="Permalink to this definition">¶</a></dt>
+<code class="descname">to_xdatcar</code><span class="sig-paren">(</span><em>filepath=None</em>, <em>groupby_type=True</em>, <em>to_unit_cell=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.to_xdatcar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.to_xdatcar" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return Xdatcar pymatgen object. See write_xdatcar for the meaning of arguments.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>kwargs</strong> – keywords arguments passed to Xdatcar constructor.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>to_unit_cell</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – Whether to translate sites into the unit cell.</li>
+<li><strong>kwargs</strong> – keywords arguments passed to Xdatcar constructor.</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -286,7 +290,7 @@
 
 <dl class="method">
 <dt id="abipy.dynamics.hist.HistFile.write_xdatcar">
-<code class="descname">write_xdatcar</code><span class="sig-paren">(</span><em>filepath='XDATCAR'</em>, <em>groupby_type=True</em>, <em>overwrite=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.write_xdatcar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.write_xdatcar" title="Permalink to this definition">¶</a></dt>
+<code class="descname">write_xdatcar</code><span class="sig-paren">(</span><em>filepath='XDATCAR'</em>, <em>groupby_type=True</em>, <em>overwrite=False</em>, <em>to_unit_cell=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.write_xdatcar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.write_xdatcar" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write Xdatcar file with unit cell and atomic positions to file <code class="docutils literal"><span class="pre">filepath</span></code>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -299,6 +303,7 @@ may change the order of the atoms. This option is needed because
 there are post-processing tools (e.g. ovito) that do not work as expected
 if the atoms in the structure are not grouped by type.</li>
 <li><strong>overwrite</strong> – raise RuntimeError, if False and filepath exists.</li>
+<li><strong>to_unit_cell</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – Whether to translate sites into the unit cell.</li>
 </ul>
 </td>
 </tr>
@@ -311,9 +316,17 @@ if the atoms in the structure are not grouped by type.</li>
 
 <dl class="method">
 <dt id="abipy.dynamics.hist.HistFile.visualize">
-<code class="descname">visualize</code><span class="sig-paren">(</span><em>appname='ovito'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.visualize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.visualize" title="Permalink to this definition">¶</a></dt>
+<code class="descname">visualize</code><span class="sig-paren">(</span><em>appname='ovito'</em>, <em>to_unit_cell=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.visualize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.visualize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Visualize the crystalline structure with visualizer.
 See <code class="xref py py-class docutils literal"><span class="pre">Visualizer</span></code> for the list of applications and formats supported.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>to_unit_cell</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – Whether to translate sites into the unit cell.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -344,14 +357,14 @@ as well as pressure, info on forces and total energy.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a>. If None, a new figure is created.</li>
+<li><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a>. If None, a new figure is created.</li>
 <li><strong>fontsize</strong> – fontsize for legend</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -397,14 +410,14 @@ Default: None i.e. fig is left unchanged.</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>fontsize</strong> – Legend and title fontsize.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -493,7 +506,7 @@ working directory is created. Return path to the notebook.</p>
 <dl class="method">
 <dt id="abipy.dynamics.hist.HistRobot.get_dataframe">
 <code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>with_geo=True</em>, <em>index=None</em>, <em>abspath=False</em>, <em>with_spglib=True</em>, <em>funcs=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistRobot.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistRobot.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important final results and the filenames as index.</p>
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important final results and the filenames as index.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -512,7 +525,7 @@ working directory is created. Return path to the notebook.</p>
 <dt>kwargs:</dt>
 <dd><dl class="first last docutils">
 <dt>attrs:</dt>
-<dd>List of additional attributes of the <a class="reference internal" href="electrons_api.html#abipy.electrons.gsr.GsrFile" title="abipy.electrons.gsr.GsrFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.gsr.GsrFile</span></code></a> to add to the <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+357.g2c7c797.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a>.</dd>
+<dd>List of additional attributes of the <a class="reference internal" href="electrons_api.html#abipy.electrons.gsr.GsrFile" title="abipy.electrons.gsr.GsrFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.gsr.GsrFile</span></code></a> to add to the <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a>.</dd>
 <dt>funcs: Function or list of functions to execute to add more data to the DataFrame.</dt>
 <dd>Each function receives a <a class="reference internal" href="electrons_api.html#abipy.electrons.gsr.GsrFile" title="abipy.electrons.gsr.GsrFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.gsr.GsrFile</span></code></a> object and returns a tuple (key, value)
 where key is a string with the name of column and value is the value to be inserted.</dd>
@@ -546,7 +559,7 @@ Must be in [“energy”, “abc”, “angles”, “volume”, “pressure”,
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -600,7 +613,7 @@ Default: None i.e. fig is left unchanged.</td>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a>.</p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a>.</p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -706,7 +719,7 @@ Shape (num_steps, natom, 3)</p>
 <dl class="method">
 <dt id="abipy.dynamics.hist.HistReader.read_cart_stress_tensors">
 <code class="descname">read_cart_stress_tensors</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistReader.read_cart_stress_tensors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistReader.read_cart_stress_tensors" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the stress tensors (nstep x 3 x 3) in cartesian coordinates (Hartree/Bohr^3)
+<dd><p>Return the stress tensors (nstep x 3 x 3) in cartesian coordinates (GPa)
 and the list of pressures in GPa unit.</p>
 </dd></dl>
 
@@ -728,7 +741,7 @@ and the list of pressures in GPa unit.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 26, 2018.<br/>
+      Last updated on Aug 14, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

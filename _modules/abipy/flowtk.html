@@ -152,6 +152,10 @@
 <span class="kn">from</span> <span class="nn">pymatgen.io.abinit.nodes</span> <span class="k">import</span> <span class="n">Status</span>
 <span class="kn">from</span> <span class="nn">pymatgen.io.abinit.tasks</span> <span class="k">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">pymatgen.io.abinit.tasks</span> <span class="k">import</span> <span class="n">EphTask</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">pymatgen.io.abinit.tasks</span> <span class="k">import</span> <span class="n">ElasticTask</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">pass</span>
 <span class="kn">from</span> <span class="nn">pymatgen.io.abinit.works</span> <span class="k">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">pymatgen.io.abinit.flows</span> <span class="k">import</span> <span class="p">(</span><span class="n">Flow</span><span class="p">,</span> <span class="n">G0W0WithQptdmFlow</span><span class="p">,</span> <span class="n">bandstructure_flow</span><span class="p">,</span> <span class="n">PhononFlow</span><span class="p">,</span>
     <span class="n">g0w0_flow</span><span class="p">,</span> <span class="n">phonon_flow</span><span class="p">,</span> <span class="n">phonon_conv_flow</span><span class="p">,</span> <span class="n">NonLinearCoeffFlow</span><span class="p">)</span>
@@ -159,6 +163,8 @@
 <span class="kn">from</span> <span class="nn">pymatgen.io.abinit.abiinspect</span> <span class="k">import</span> <span class="n">GroundStateScfCycle</span><span class="p">,</span> <span class="n">D2DEScfCycle</span>
 
 <span class="kn">from</span> <span class="nn">abipy.flowtk.works</span> <span class="k">import</span> <span class="o">*</span>
+<span class="c1">#from abipy.flowtk.gs_works import EosWork</span>
+<span class="kn">from</span> <span class="nn">abipy.flowtk.dfpt_works</span> <span class="k">import</span> <span class="n">NscfDdksWork</span><span class="p">,</span> <span class="n">ElasticWork</span>
 
 
 <div class="viewcode-block" id="flow_main"><a class="viewcode-back" href="../../api/flowtk_api.html#abipy.flowtk.flow_main">[docs]</a><span class="k">def</span> <span class="nf">flow_main</span><span class="p">(</span><span class="n">main</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
@@ -299,7 +305,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 26, 2018.<br/>
+      Last updated on Aug 14, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

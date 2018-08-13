@@ -147,6 +147,7 @@
 <span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">is_string</span>
 <span class="kn">from</span> <span class="nn">monty.itertools</span> <span class="k">import</span> <span class="n">iuptri</span>
 <span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
+<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">dict2namedtuple</span>
 <span class="kn">from</span> <span class="nn">pymatgen.symmetry.analyzer</span> <span class="k">import</span> <span class="n">SpacegroupAnalyzer</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">pymatgen.util.serialization</span> <span class="k">import</span> <span class="n">SlotPickleMixin</span>
@@ -371,14 +372,17 @@
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="k">def</span> <span class="nf">vec2str</span><span class="p">(</span><span class="n">vec</span><span class="p">):</span>
             <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%2d</span><span class="s2">,</span><span class="si">%2d</span><span class="s2">,</span><span class="si">%2d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">vec</span><span class="p">)</span>
 
         <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
-            <span class="n">s</span> <span class="o">+=</span>  <span class="s2">&quot;[&quot;</span> <span class="o">+</span> <span class="n">vec2str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rot_r</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">+</span> <span class="s2">&quot;, </span><span class="si">%.3f</span><span class="s2">]  &quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;[&quot;</span> <span class="o">+</span> <span class="n">vec2str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rot_g</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">+</span> <span class="s2">&quot;] &quot;</span>
-            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot; time_sign=</span><span class="si">%2d</span><span class="s2">, afm_sign=</span><span class="si">%2d</span><span class="s2">, det=</span><span class="si">%2d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_sign</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">afm_sign</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">det</span><span class="p">)</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;[&quot;</span> <span class="o">+</span> <span class="n">vec2str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rot_r</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">+</span> <span class="s2">&quot;, </span><span class="si">%.3f</span><span class="s2">]  &quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;[&quot;</span> <span class="o">+</span> <span class="n">vec2str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rot_g</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">+</span> <span class="s2">&quot;] &quot;</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;, time_sign = </span><span class="si">%+1d</span><span class="s2">, afm_sign = </span><span class="si">%+1d</span><span class="s2">, det = </span><span class="si">%+1d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_sign</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">afm_sign</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">det</span><span class="p">)</span>
             <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
 
         <span class="k">return</span> <span class="n">s</span>
@@ -865,6 +869,29 @@
                 <span class="n">symmops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sym</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">symmops</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AbinitSpaceGroup.symeq"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.symmetries.AbinitSpaceGroup.symeq">[docs]</a>    <span class="k">def</span> <span class="nf">symeq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k1_frac_coords</span><span class="p">,</span> <span class="n">k2_frac_coords</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Test whether two k-points in fractional coordinates are symmetry equivalent</span>
+<span class="sd">        i.e. if there&#39;s a symmetry operations TO (including time-reversal T, if present)</span>
+<span class="sd">	such that::</span>
+
+<span class="sd">            TO(k1) = k2 + G0</span>
+
+<span class="sd">	Return: namedtuple with::</span>
+
+<span class="sd">            isym: The index of the symmetry operation such that TS(k1) = k2 + G0</span>
+<span class="sd">                Set to -1 if k1 and k2 are not related by symmetry.</span>
+<span class="sd">            op: Symmetry operation.</span>
+<span class="sd">            g0: numpy vector.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">isym</span><span class="p">,</span> <span class="n">sym</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="n">sk_coords</span> <span class="o">=</span> <span class="n">sym</span><span class="o">.</span><span class="n">rotate_k</span><span class="p">(</span><span class="n">k1_frac_coords</span><span class="p">,</span> <span class="n">wrap_tows</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">issamek</span><span class="p">(</span><span class="n">sk_coords</span><span class="p">,</span> <span class="n">k2_frac_coords</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">):</span>
+                <span class="n">g0</span> <span class="o">=</span> <span class="n">sym</span><span class="o">.</span><span class="n">rotate_k</span><span class="p">(</span><span class="n">k1_frac_coords</span><span class="p">)</span> <span class="o">-</span> <span class="n">k2_frac_coords</span>
+                <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">isym</span><span class="o">=</span><span class="n">isym</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="bp">self</span><span class="p">[</span><span class="n">isym</span><span class="p">],</span> <span class="n">g0</span><span class="o">=</span><span class="n">g0</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">isym</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">g0</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AbinitSpaceGroup.find_little_group"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.symmetries.AbinitSpaceGroup.find_little_group">[docs]</a>    <span class="k">def</span> <span class="nf">find_little_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1473,7 +1500,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 26, 2018.<br/>
+      Last updated on Aug 14, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

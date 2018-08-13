@@ -137,6 +137,7 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">pymatgen.core.units</span> <span class="k">as</span> <span class="nn">units</span>
+<span class="kn">import</span> <span class="nn">abipy.core.abinit_units</span> <span class="k">as</span> <span class="nn">abu</span>
 
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">defaultdict</span>
 <span class="kn">from</span> <span class="nn">tabulate</span> <span class="k">import</span> <span class="n">tabulate</span>
@@ -208,7 +209,8 @@
         <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Structure&quot;</span><span class="p">))</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_scf_run</span><span class="p">:</span>
             <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Stress tensor (Cartesian coordinates in Ha/Bohr**3):</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">cart_stress_tensor</span><span class="p">)</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Stress tensor (Cartesian coordinates in GPa):</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">cart_stress_tensor</span><span class="p">)</span>
+            <span class="c1">#app(&quot;Stress tensor (Cartesian coordinates in Ha/Bohr**3):\n%s&quot; % self.cart_stress_tensor / abu.HaBohr3_GPa)</span>
             <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Pressure: </span><span class="si">%.3f</span><span class="s2"> (GPa)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">pressure</span><span class="p">)</span>
             <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Energy: </span><span class="si">%.8f</span><span class="s2"> (eV)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">energy</span><span class="p">)</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
@@ -291,14 +293,13 @@
 
 <div class="viewcode-block" id="GsrFile.cart_stress_tensor"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.cart_stress_tensor">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">cart_stress_tensor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Stress tensor in Ha/Bohr**3&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Stress tensor in GPa.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_cart_stress_tensor</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="GsrFile.pressure"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.pressure">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">pressure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Pressure in Gpa&quot;&quot;&quot;</span>
-        <span class="n">HaBohr3_GPa</span> <span class="o">=</span> <span class="mf">29421.033</span> <span class="c1"># 1 Ha/Bohr^3, in GPa</span>
-        <span class="n">pressure</span> <span class="o">=</span> <span class="o">-</span> <span class="p">(</span><span class="n">HaBohr3_GPa</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">cart_stress_tensor</span><span class="o">.</span><span class="n">trace</span><span class="p">()</span>
+        <span class="sd">&quot;&quot;&quot;Pressure in GPa.&quot;&quot;&quot;</span>
+        <span class="n">pressure</span> <span class="o">=</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">cart_stress_tensor</span><span class="o">.</span><span class="n">trace</span><span class="p">()</span> <span class="o">/</span> <span class="mi">3</span>
         <span class="k">return</span> <span class="n">units</span><span class="o">.</span><span class="n">FloatWithUnit</span><span class="p">(</span><span class="n">pressure</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;GPa&quot;</span><span class="p">,</span> <span class="n">unit_type</span><span class="o">=</span><span class="s2">&quot;pressure&quot;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="GsrFile.residm"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.residm">[docs]</a>    <span class="nd">@lazy_property</span>
@@ -331,6 +332,10 @@
 <div class="viewcode-block" id="GsrFile.close"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
+    <span class="c1"># FIXME: This is deprecated. Must keep it to avoid breaking ScfTask.get_results</span>
+<div class="viewcode-block" id="GsrFile.as_dict"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.as_dict">[docs]</a>    <span class="k">def</span> <span class="nf">as_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{}</span></div>
+
 <div class="viewcode-block" id="GsrFile.get_computed_entry"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.get_computed_entry">[docs]</a>    <span class="k">def</span> <span class="nf">get_computed_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inc_structure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a pymatgen :class:`ComputedStructureEntry` from the GSR file.</span>
@@ -357,33 +362,6 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">ComputedEntry</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">composition</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">energy</span><span class="p">,</span>
                                  <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="GsrFile.as_dict"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.as_dict">[docs]</a>    <span class="k">def</span> <span class="nf">as_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="c1"># TODO: Add info depending on the run_type e.g. max_resid is NSCF</span>
-        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
-            <span class="n">structure</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">as_dict</span><span class="p">(),</span>
-            <span class="n">final_energy</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">energy</span><span class="p">,</span>
-            <span class="n">final_energy_per_atom</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">energy_per_atom</span><span class="p">,</span>
-            <span class="n">max_force</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_force</span><span class="p">,</span>
-            <span class="n">cart_stress_tensor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cart_stress_tensor</span><span class="p">,</span>
-            <span class="n">pressure</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pressure</span><span class="p">,</span>
-            <span class="n">number_of_electrons</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nelect</span><span class="p">,</span>
-        <span class="p">)</span></div>
-            <span class="c1"># FIXME: this call raises</span>
-            <span class="c1">#&gt;       if kpointcbm.label is not None:</span>
-            <span class="c1">#E       AttributeError: &#39;NoneType&#39; object has no attribute &#39;label&#39;</span>
-            <span class="c1">#ebands=self.ebands.to_pymatgen().as_dict(),</span>
-            <span class="c1">#max_residual=</span>
-            <span class="c1">#magnetization=self.magnetization,</span>
-            <span class="c1">#band_gap=</span>
-            <span class="c1">#optical_gap=</span>
-            <span class="c1">#is_direct=</span>
-            <span class="c1">#cbm=</span>
-            <span class="c1">#vbm=</span>
-            <span class="c1">#efermi=</span>
-            <span class="c1">#band_gap:</span>
-            <span class="c1">#optical_gap:</span>
-            <span class="c1">#efermi:</span>
 
 <div class="viewcode-block" id="GsrFile.yield_figs"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.yield_figs">[docs]</a>    <span class="k">def</span> <span class="nf">yield_figs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -503,8 +481,8 @@
 
     <span class="k">def</span> <span class="nf">read_cart_stress_tensor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return the stress tensor (3x3 matrix) in cartesian coordinates (Hartree/Bohr^3)</span>
-<span class="sd">        If MaskedArray (i.e. tensor was not computed  e.g. Nscf run) set it to</span>
+<span class="sd">        Return the stress tensor (3x3 matrix) in cartesian coordinates in GPa.</span>
+<span class="sd">        If MaskedArray (i.e. tensor was not computed  e.g. Nscf run) set it to _INVALID_STRESS_TENSOR</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Abinit stores 6 unique components of this symmetric 3x3 tensor:</span>
         <span class="c1"># Given in order (1,1), (2,2), (3,3), (3,2), (3,1), (2,1).</span>
@@ -519,8 +497,10 @@
             <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">))):</span>
                 <span class="n">tensor</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="mi">3</span> <span class="o">+</span> <span class="n">p</span><span class="p">]</span>
                 <span class="n">tensor</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="mi">3</span> <span class="o">+</span> <span class="n">p</span><span class="p">]</span>
+            <span class="n">tensor</span> <span class="o">*=</span> <span class="n">abu</span><span class="o">.</span><span class="n">HaBohr3_GPa</span>
 
-        <span class="k">return</span> <span class="n">tensor</span>
+        <span class="kn">from</span> <span class="nn">pymatgen.analysis.elasticity.stress</span> <span class="k">import</span> <span class="n">Stress</span>
+        <span class="k">return</span> <span class="n">Stress</span><span class="p">(</span><span class="n">tensor</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">read_energy_terms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -784,7 +764,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 26, 2018.<br/>
+      Last updated on Aug 14, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

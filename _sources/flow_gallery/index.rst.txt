@@ -362,6 +362,26 @@ Use ``--help`` to further information on the available options.
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to use AbiPy to calculate physical properties related to strain for an i...">
+
+.. only:: html
+
+    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_elastic_thumb.png
+
+        :ref:`sphx_glr_flow_gallery_run_elastic.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_elastic
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the LDA+U band structure of NiO with PAW for several values o...">
 
 .. only:: html

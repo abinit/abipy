@@ -1,4 +1,4 @@
-import seaborn as sns
-sns.set_style("whitegrid")
-tips = sns.load_dataset("tips")
-ax = sns.boxplot(x=tips["total_bill"])
+g = sns.catplot(x="sex", y="total_bill",
+                hue="smoker", col="time",
+                data=tips, kind="box",
+                height=4, aspect=.7);

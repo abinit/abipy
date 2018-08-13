@@ -169,7 +169,8 @@
     <span class="s2">&quot;piezo_elastic_inputs_from_gsinput&quot;</span><span class="p">,</span>
     <span class="s2">&quot;scf_piezo_elastic_inputs&quot;</span><span class="p">,</span>
     <span class="s2">&quot;scf_for_phonons&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;dte_from_gsinput&quot;</span>
+    <span class="s2">&quot;dte_from_gsinput&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;dfpt_from_gsinput&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
 
@@ -1006,7 +1007,7 @@
 <span class="sd">        ph_ngqpt: a list of three integers representing the gamma centered q-point grid used for the calculation.</span>
 <span class="sd">            If None and qpoint==None the ngkpt value present in the gs_input will be used.</span>
 <span class="sd">            Incompatible with qpoints.</span>
-<span class="sd">        qpoints: a list of of coordinatesq points in reduced coordinates for which the phonon perturbations will</span>
+<span class="sd">        qpoints: a list of coordinates of q points in reduced coordinates for which the phonon perturbations will</span>
 <span class="sd">            be calculated. Incompatible with ph_ngqpt.</span>
 <span class="sd">        with_ddk: If True, if Gamma is included in the list of qpoints it will add inputs for the calculations of</span>
 <span class="sd">            the DDK.</span>
@@ -1015,13 +1016,13 @@
 <span class="sd">        with_bec: If Truem if Gamma is included in the list of qpoints the DDE will be calculated in the same</span>
 <span class="sd">            input as the phonons. This will allow to determine the BECs.</span>
 <span class="sd">            Automatically sets with_ddk=True and with_dde=False.</span>
-<span class="sd">        ph_tol: a dictionary with a single key defining the type of tolarence used for the phonon calculations and</span>
+<span class="sd">        ph_tol: a dictionary with a single key defining the type of tolerance used for the phonon calculations and</span>
 <span class="sd">            its value. Default: {&quot;tolvrs&quot;: 1.0e-10}.</span>
-<span class="sd">        ddk_tol: a dictionary with a single key defining the type of tolarence used for the DDK calculations and</span>
+<span class="sd">        ddk_tol: a dictionary with a single key defining the type of tolerance used for the DDK calculations and</span>
 <span class="sd">            its value. Default: {&quot;tolwfr&quot;: 1.0e-22}.</span>
-<span class="sd">        dde_tol: a dictionary with a single key defining the type of tolarence used for the DDE calculations and</span>
+<span class="sd">        dde_tol: a dictionary with a single key defining the type of tolerance used for the DDE calculations and</span>
 <span class="sd">            its value. Default: {&quot;tolvrs&quot;: 1.0e-10}.</span>
-<span class="sd">        wfq_tol: a dictionary with a single key defining the type of tolarence used for the NSCF calculations of</span>
+<span class="sd">        wfq_tol: a dictionary with a single key defining the type of tolerance used for the NSCF calculations of</span>
 <span class="sd">            the WFQ and its value. Default {&quot;tolwfr&quot;: 1.0e-22}.</span>
 <span class="sd">        qpoints_to_skip: a list of coordinates of q points in reduced coordinates that will be skipped.</span>
 <span class="sd">            Useful when calculating multiple grids for the same system to avoid duplicate calculations.</span>
@@ -1100,11 +1101,11 @@
                 <span class="n">multi_ddk</span><span class="o">.</span><span class="n">add_tags</span><span class="p">(</span><span class="n">DDK</span><span class="p">)</span>
                 <span class="n">multi</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">multi_ddk</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">with_dde</span><span class="p">:</span>
-                <span class="n">multi_dde</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">make_dde_inputs</span><span class="p">(</span><span class="n">dde_tol</span><span class="p">)</span>
+                <span class="n">multi_dde</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">make_dde_inputs</span><span class="p">(</span><span class="n">dde_tol</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
                 <span class="n">multi_dde</span><span class="o">.</span><span class="n">add_tags</span><span class="p">(</span><span class="n">DDE</span><span class="p">)</span>
                 <span class="n">multi</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">multi_dde</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">with_bec</span><span class="p">:</span>
-                <span class="n">multi_bec</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">make_bec_inputs</span><span class="p">(</span><span class="n">ph_tol</span><span class="p">)</span>
+                <span class="n">multi_bec</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">make_bec_inputs</span><span class="p">(</span><span class="n">ph_tol</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
                 <span class="n">multi_bec</span><span class="o">.</span><span class="n">add_tags</span><span class="p">(</span><span class="n">BEC</span><span class="p">)</span>
                 <span class="n">multi</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">multi_bec</span><span class="p">)</span>
                 <span class="k">continue</span>
@@ -1404,7 +1405,7 @@
     <span class="k">return</span> <span class="n">abiinput</span></div>
 
 
-<div class="viewcode-block" id="dte_from_gsinput"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.factories.dte_from_gsinput">[docs]</a><span class="k">def</span> <span class="nf">dte_from_gsinput</span><span class="p">(</span><span class="n">gs_inp</span><span class="p">,</span> <span class="n">use_phonons</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ph_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ddk_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dde_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dte_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="dte_from_gsinput"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.factories.dte_from_gsinput">[docs]</a><span class="k">def</span> <span class="nf">dte_from_gsinput</span><span class="p">(</span><span class="n">gs_inp</span><span class="p">,</span> <span class="n">use_phonons</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ph_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ddk_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dde_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                      <span class="n">skip_dte_permutations</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns a list of inputs in the form of a |MultiDataset| to perform calculations of non-linear properties, based on</span>
@@ -1416,15 +1417,15 @@
 <span class="sd">    Args:</span>
 <span class="sd">        gs_inp: an |AbinitInput| representing a ground state calculation, likely the SCF performed to get the WFK.</span>
 <span class="sd">        use_phonons: determine wether the phonon perturbations at gamma should be included or not</span>
-<span class="sd">        ph_tol: a dictionary with a single key defining the type of tolarence used for the phonon calculations and</span>
+<span class="sd">        ph_tol: a dictionary with a single key defining the type of tolerance used for the phonon calculations and</span>
 <span class="sd">            its value. Default: {&quot;tolvrs&quot;: 1.0e-22}.</span>
-<span class="sd">        ddk_tol: a dictionary with a single key defining the type of tolarence used for the DDK calculations and</span>
+<span class="sd">        ddk_tol: a dictionary with a single key defining the type of tolerance used for the DDK calculations and</span>
 <span class="sd">            its value. Default: {&quot;tolwfr&quot;: 1.0e-22}.</span>
-<span class="sd">        dde_tol: a dictionary with a single key defining the type of tolarence used for the DDE calculations and</span>
+<span class="sd">        dde_tol: a dictionary with a single key defining the type of tolerance used for the DDE calculations and</span>
 <span class="sd">            its value. Default: {&quot;tolvrs&quot;: 1.0e-22}.</span>
-<span class="sd">        dte_tol: a dictionary with a single key defining the type of tolarence used for the DTE calculations and</span>
-<span class="sd">            its value. Default: {&quot;tolwfr&quot;: 1.0e-20}.</span>
-<span class="sd">        skip_dte_permutations:</span>
+<span class="sd">        skip_dte_permutations: Since the current version of abinit always performs all the permutations of the</span>
+<span class="sd">            perturbations, even if only one is asked, if True avoids the creation of inputs that will produce</span>
+<span class="sd">            duplicated outputs.</span>
 <span class="sd">        manager: |TaskManager| of the task. If None, the manager is initialized from the config file.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">gs_inp</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
@@ -1438,9 +1439,6 @@
 
     <span class="k">if</span> <span class="n">dde_tol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">dde_tol</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tolvrs&quot;</span><span class="p">:</span> <span class="mf">1.0e-22</span><span class="p">}</span>
-
-    <span class="k">if</span> <span class="n">dte_tol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">dte_tol</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tolwfr&quot;</span><span class="p">:</span> <span class="mf">1.0e-20</span><span class="p">}</span>
 
     <span class="n">multi</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -1457,7 +1455,7 @@
         <span class="n">multi</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">multi_ph</span><span class="p">)</span>
 
     <span class="c1"># non-linear calculations do not accept more bands than those in the valence. Set the correct values.</span>
-    <span class="c1"># Do this as last, so not to intrfere with the the generation of the other steps.</span>
+    <span class="c1"># Do this as last, so not to interfere with the the generation of the other steps.</span>
     <span class="n">nval</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">num_valence_electrons</span><span class="p">(</span><span class="n">gs_inp</span><span class="o">.</span><span class="n">pseudos</span><span class="p">)</span>
     <span class="n">nval</span> <span class="o">-=</span> <span class="n">gs_inp</span><span class="p">[</span><span class="s1">&#39;charge&#39;</span><span class="p">]</span>
     <span class="n">nband</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">nval</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>
@@ -1473,6 +1471,107 @@
 
     <span class="k">return</span> <span class="n">multi</span></div>
 
+
+<div class="viewcode-block" id="dfpt_from_gsinput"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.factories.dfpt_from_gsinput">[docs]</a><span class="k">def</span> <span class="nf">dfpt_from_gsinput</span><span class="p">(</span><span class="n">gs_inp</span><span class="p">,</span> <span class="n">ph_ngqpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">qpoints</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">do_ddk</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">do_dde</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">do_strain</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                      <span class="n">do_dte</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ph_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ddk_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dde_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wfq_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">strain_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">skip_dte_permutations</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a list of inputs in the form of a MultiDataset to perform a set of calculations based on DFPT including</span>
+<span class="sd">    phonons, elastic and non-linear properties. Requires a ground state |AbinitInput| as a starting point.</span>
+
+<span class="sd">    It will determine if WFQ files should be calculated for some q points and add the NSCF AbinitInputs to the set.</span>
+<span class="sd">    The original input is included and the inputs have the following tags, according to their function:</span>
+<span class="sd">    &quot;scf&quot;, &quot;ddk&quot;, &quot;dde&quot;, &quot;nscf&quot;, &quot;ph_q_pert&quot;, &quot;strain&quot;, &quot;dte&quot;, &quot;dfpt&quot;.</span>
+
+<span class="sd">    N.B. Currently (version 8.8.3) anaddb does not support a DDB containing both 2nd order derivatives with qpoints</span>
+<span class="sd">    different from gamma AND  3rd oreder derivatives. The calculations could be run, but the global DDB will not</span>
+<span class="sd">    be directly usable as is.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        gs_inp: an |AbinitInput| representing a ground state calculation, likely the SCF performed to get the WFK.</span>
+<span class="sd">        ph_ngqpt: a list of three integers representing the gamma centered q-point grid used for the calculation.</span>
+<span class="sd">            If None and qpoint==None the ngkpt value present in the gs_input will be used.</span>
+<span class="sd">            Incompatible with qpoints.</span>
+<span class="sd">        qpoints: a list of coordinates of q points in reduced coordinates for which the phonon perturbations will</span>
+<span class="sd">            be calculated. Incompatible with ph_ngqpt.</span>
+<span class="sd">        do_ddk: If True, if Gamma is included in the list of qpoints it will add inputs for the calculations of</span>
+<span class="sd">            the DDK.</span>
+<span class="sd">        do_dde: If True, if Gamma is included in the list of qpoints it will add inputs for the calculations of</span>
+<span class="sd">            the DDE. Automatically sets with_ddk=True.</span>
+<span class="sd">        do_strain: If True inputs for the strain perturbations will be included.</span>
+<span class="sd">        do_dte: If True inputs for the non-linear perturbations will be included. The phonon non-linear perturbations</span>
+<span class="sd">            will be included only if a phonon calculation at gamma is present. The caller is responsible for</span>
+<span class="sd">            adding it.</span>
+<span class="sd">        ph_tol: a dictionary with a single key defining the type of tolerance used for the phonon calculations and</span>
+<span class="sd">            its value. Default: {&quot;tolvrs&quot;: 1.0e-10}.</span>
+<span class="sd">        ddk_tol: a dictionary with a single key defining the type of tolerance used for the DDK calculations and</span>
+<span class="sd">            its value. Default: {&quot;tolwfr&quot;: 1.0e-22}.</span>
+<span class="sd">        dde_tol: a dictionary with a single key defining the type of tolerance used for the DDE calculations and</span>
+<span class="sd">            its value. Default: {&quot;tolvrs&quot;: 1.0e-10}.</span>
+<span class="sd">        wfq_tol: a dictionary with a single key defining the type of tolerance used for the NSCF calculations of</span>
+<span class="sd">            the WFQ and its value. Default {&quot;tolwfr&quot;: 1.0e-22}.</span>
+<span class="sd">        strain_tol:  dictionary with a single key defining the type of tolerance used for the strain calculations of</span>
+<span class="sd">            and its value. Default {&quot;tolvrs&quot;: 1.0e-12}.</span>
+<span class="sd">        skip_dte_permutations: Since the current version of abinit always performs all the permutations of the</span>
+<span class="sd">            perturbations, even if only one is asked, if True avoids the creation of inputs that will produce</span>
+<span class="sd">            duplicated outputs.</span>
+<span class="sd">        manager: |TaskManager| of the task. If None, the manager is initialized from the config file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">ph_tol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ph_tol</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tolvrs&quot;</span><span class="p">:</span> <span class="mf">1.0e-10</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">ddk_tol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ddk_tol</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tolwfr&quot;</span><span class="p">:</span> <span class="mf">1.0e-22</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">dde_tol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dde_tol</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tolvrs&quot;</span><span class="p">:</span> <span class="mf">1.0e-10</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">wfq_tol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">wfq_tol</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tolwfr&quot;</span><span class="p">:</span> <span class="mf">1.0e-22</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">strain_tol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">strain_tol</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tolvrs&quot;</span><span class="p">:</span> <span class="mf">1.0e-12</span><span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">do_dde</span><span class="p">:</span>
+        <span class="n">do_ddk</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="n">multi</span> <span class="o">=</span> <span class="n">MultiDataset</span><span class="o">.</span><span class="n">from_inputs</span><span class="p">([</span><span class="n">gs_inp</span><span class="p">])</span>
+    <span class="n">multi</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">add_tags</span><span class="p">(</span><span class="n">SCF</span><span class="p">)</span>
+
+    <span class="n">do_phonons</span> <span class="o">=</span> <span class="n">ph_ngqpt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">qpoints</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="n">has_gamma</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">do_phonons</span><span class="p">:</span>
+        <span class="n">multi</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">phonons_from_gsinput</span><span class="p">(</span><span class="n">gs_inp</span><span class="p">,</span> <span class="n">ph_ngqpt</span><span class="o">=</span><span class="n">ph_ngqpt</span><span class="p">,</span> <span class="n">qpoints</span><span class="o">=</span><span class="n">qpoints</span><span class="p">,</span> <span class="n">with_ddk</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_dde</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                          <span class="n">with_bec</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ph_tol</span><span class="o">=</span><span class="n">ph_tol</span><span class="p">,</span> <span class="n">ddk_tol</span><span class="o">=</span><span class="n">ddk_tol</span><span class="p">,</span> <span class="n">dde_tol</span><span class="o">=</span><span class="n">dde_tol</span><span class="p">,</span>
+                                          <span class="n">wfq_tol</span><span class="o">=</span><span class="n">wfq_tol</span><span class="p">,</span> <span class="n">qpoints_to_skip</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">))</span>
+        <span class="n">has_gamma</span> <span class="o">=</span> <span class="n">ph_ngqpt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">qpoints</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">do_ddk</span><span class="p">:</span>
+        <span class="n">multi_ddk</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">make_ddk_inputs</span><span class="p">(</span><span class="n">tolerance</span><span class="o">=</span><span class="n">ddk_tol</span><span class="p">)</span>
+        <span class="n">multi_ddk</span><span class="o">.</span><span class="n">add_tags</span><span class="p">(</span><span class="n">DDK</span><span class="p">)</span>
+        <span class="n">multi</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">multi_ddk</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">do_dde</span><span class="p">:</span>
+        <span class="n">multi_dde</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">make_dde_inputs</span><span class="p">(</span><span class="n">dde_tol</span><span class="p">,</span> <span class="n">use_symmetries</span><span class="o">=</span><span class="ow">not</span> <span class="n">do_dte</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
+        <span class="n">multi_dde</span><span class="o">.</span><span class="n">add_tags</span><span class="p">(</span><span class="n">DDE</span><span class="p">)</span>
+        <span class="n">multi</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">multi_dde</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">do_strain</span><span class="p">:</span>
+        <span class="n">multi_strain</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">make_strain_perts_inputs</span><span class="p">(</span><span class="n">tolerance</span><span class="o">=</span><span class="n">strain_tol</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">,</span> <span class="n">phonon_pert</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                                       <span class="n">kptopt</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">multi_strain</span><span class="o">.</span><span class="n">add_tags</span><span class="p">([</span><span class="n">DFPT</span><span class="p">,</span> <span class="n">STRAIN</span><span class="p">])</span>
+        <span class="n">multi</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">multi_strain</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">do_dte</span><span class="p">:</span>
+        <span class="c1"># non-linear calculations do not accept more bands than those in the valence. Set the correct values.</span>
+        <span class="n">nval</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">num_valence_electrons</span><span class="p">(</span><span class="n">gs_inp</span><span class="o">.</span><span class="n">pseudos</span><span class="p">)</span>
+        <span class="n">nval</span> <span class="o">-=</span> <span class="n">gs_inp</span><span class="p">[</span><span class="s1">&#39;charge&#39;</span><span class="p">]</span>
+        <span class="n">nband</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">nval</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="n">gs_inp_copy</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
+        <span class="n">gs_inp_copy</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">nband</span><span class="o">=</span><span class="n">nband</span><span class="p">)</span>
+        <span class="n">gs_inp_copy</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;nbdbuf&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">multi_dte</span> <span class="o">=</span> <span class="n">gs_inp_copy</span><span class="o">.</span><span class="n">make_dte_inputs</span><span class="p">(</span><span class="n">phonon_pert</span><span class="o">=</span><span class="n">do_phonons</span> <span class="ow">and</span> <span class="n">has_gamma</span><span class="p">,</span>
+                                           <span class="n">skip_permutations</span><span class="o">=</span><span class="n">skip_dte_permutations</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
+        <span class="n">multi_dte</span><span class="o">.</span><span class="n">add_tags</span><span class="p">([</span><span class="n">DTE</span><span class="p">,</span> <span class="n">DFPT</span><span class="p">])</span>
+        <span class="n">multi</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">multi_dte</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">multi</span></div>
 
 <span class="c1">#FIXME if the pseudos are passed as a PseudoTable the whole table will be serialized,</span>
 <span class="c1"># it would be better to filter on the structure elements</span>
@@ -1569,7 +1668,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 26, 2018.<br/>
+      Last updated on Aug 14, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

@@ -580,11 +580,14 @@
                              <span class="s2">&quot;Use Structure objects to prepare the input file.&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spell_check</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_abivar</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is not a valid ABINIT variable.</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">key</span> <span class="o">+</span>
-                             <span class="s2">&quot;If the name is correct, try to remove ~/.abinit/abipy/abinit_vars.pickle</span><span class="se">\n</span><span class="s2">&quot;</span>
-                             <span class="s2">&quot;and rerun the code. If the problems persists, contact the abipy developers</span><span class="se">\n</span><span class="s2">&quot;</span>
-                             <span class="s2">&quot;or use input.set_spell_check(False)</span><span class="se">\n</span><span class="s2">&quot;</span>
-                             <span class="s2">&quot;or add the variable to ~abipy/data/variables/abinit_vars.json</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">Cannot find variable `</span><span class="si">%s</span><span class="s2">` in internal database.</span>
+<span class="s2">If you think this is not a typo, use:</span>
+
+<span class="s2">    input.set_spell_check(False)</span>
+
+<span class="s2">to disable spell checking. Perhaps the internal database is not in synch</span>
+<span class="s2">with the Abinit version you are using. Please contact the AbiPy developers.&quot;&quot;&quot;</span> <span class="o">%</span> <span class="n">key</span><span class="p">)</span>
 
     <span class="c1">#def __eq__(self, other)</span>
     <span class="c1">#def __ne__(self, other)</span>
@@ -697,7 +700,7 @@
 <span class="sd">        String representation.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            sortmode: &quot;section&quot; if variables should be gruped by sections.</span>
+<span class="sd">            sortmode: &quot;section&quot; if variables should be grouped by sections.</span>
 <span class="sd">                &quot;a&quot; for alphabetical order, None if no sorting is wanted.</span>
 <span class="sd">            with_mnemonics: True if mnemonics should be added.</span>
 <span class="sd">            mode: Either `text` or `html` if HTML output with links is wanted.</span>
@@ -872,7 +875,7 @@
 <div class="viewcode-block" id="AbinitInput.set_phdos_qmesh"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.set_phdos_qmesh">[docs]</a>    <span class="k">def</span> <span class="nf">set_phdos_qmesh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nqsmall</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;tetra&quot;</span><span class="p">,</span> <span class="n">ph_qshift</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set the variables (ngkpt, shift, kptopt) for the computation of the Phonon DOS in Abinit.</span>
-<span class="sd">        Remember that the Phdos is computed via Fourier interpolation so there&#39;s no costraint</span>
+<span class="sd">        Remember that the Phdos is computed via Fourier interpolation so there&#39;s no constraint</span>
 <span class="sd">        of the q-mesh.</span>
 
 <span class="sd">        Args:</span>
@@ -1264,10 +1267,10 @@
 
     <span class="c1">#def pop_relax_vars(self):</span>
     <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    Remove all the `ird*` variables present in self.</span>
+    <span class="c1">#    Remove all the relax variables present in self.</span>
     <span class="c1">#    Return dictionary with the variables that have been removed.</span>
     <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    return scf_input.pop_vars([&quot;ionmov&quot;, &quot;optcell&quot;, &quot;ntime&quot;, &quot;dilatmx&quot;])</span>
+    <span class="c1">#    return self.pop_vars([&quot;ionmov&quot;, &quot;optcell&quot;, &quot;ntime&quot;, &quot;dilatmx&quot;])</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">scf_tolvar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1287,7 +1290,7 @@
 
 <div class="viewcode-block" id="AbinitInput.make_ph_inputs_qpoint"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.make_ph_inputs_qpoint">[docs]</a>    <span class="k">def</span> <span class="nf">make_ph_inputs_qpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpt</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        This functions builds and returns a list of input files</span>
+<span class="sd">        Builds and returns a |MultiDataset| list of input files</span>
 <span class="sd">        for the calculation of phonons at the given q-point `qpt`.</span>
 <span class="sd">        It should be called with an input the represents a GS run.</span>
 
@@ -1296,9 +1299,6 @@
 <span class="sd">            tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.</span>
 <span class="sd">                Defaults to {&quot;tolvrs&quot;: 1.0e-10}.</span>
 <span class="sd">            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.</span>
-
-<span class="sd">        Return:</span>
-<span class="sd">            List of |AbinitInput| objects for DFPT runs.</span>
 
 <span class="sd">        .. WARNING::</span>
 
@@ -1341,15 +1341,18 @@
 
         <span class="k">return</span> <span class="n">ph_inputs</span></div>
 
-<div class="viewcode-block" id="AbinitInput.make_ddk_inputs"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.make_ddk_inputs">[docs]</a>    <span class="k">def</span> <span class="nf">make_ddk_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+<div class="viewcode-block" id="AbinitInput.make_ddk_inputs"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.make_ddk_inputs">[docs]</a>    <span class="k">def</span> <span class="nf">make_ddk_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">only_vk</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return inputs for performing DDK calculations.</span>
 <span class="sd">        This functions should be called with an input the represents a GS run.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            kptopt: 2 to take into account time-reversal symmetry. note that kptopt 1 is not available.</span>
 <span class="sd">            tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.</span>
 <span class="sd">                Defaults to {&quot;tolwfr&quot;: 1.0e-22}.</span>
+<span class="sd">            kptopt: 2 to take into account time-reversal symmetry. note that kptopt 1 is not available.</span>
+<span class="sd">            only_vk: If only matrix elements of the velocity operator are needed.</span>
+<span class="sd">                First-order wavefunctions won&#39;t be converged --&gt; not usable for other DFPT calculations.</span>
+<span class="sd">            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.</span>
 
 <span class="sd">        Return:</span>
 <span class="sd">            List of |AbinitInput| objects for DFPT runs.</span>
@@ -1375,6 +1378,7 @@
         <span class="k">for</span> <span class="n">rfdir</span><span class="p">,</span> <span class="n">ddk_input</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ddk_rfdirs</span><span class="p">,</span> <span class="n">ddk_inputs</span><span class="p">):</span>
             <span class="n">ddk_input</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
                 <span class="n">rfelfd</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>             <span class="c1"># Activate the calculation of the d/dk perturbation</span>
+                                      <span class="c1"># only the derivative of ground-state wavefunctions with respect to k</span>
                 <span class="n">rfdir</span><span class="o">=</span><span class="n">rfdir</span><span class="p">,</span>          <span class="c1"># Direction of the per ddk.</span>
                 <span class="n">nqpt</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>               <span class="c1"># One wavevector is to be considered</span>
                 <span class="n">qpt</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>        <span class="c1"># q-wavevector.</span>
@@ -1385,22 +1389,22 @@
             <span class="n">ddk_input</span><span class="o">.</span><span class="n">pop_tolerances</span><span class="p">()</span>
             <span class="n">ddk_input</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">tolerance</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="n">only_vk</span><span class="p">:</span>
+            <span class="n">ddk_inputs</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">nstep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">nline</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="n">ddk_inputs</span></div>
 
 <div class="viewcode-block" id="AbinitInput.make_dde_inputs"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.make_dde_inputs">[docs]</a>    <span class="k">def</span> <span class="nf">make_dde_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_symmetries</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return inputs for the calculation of the electric field perturbations.</span>
+<span class="sd">        Return |MultiDataset| inputs for the calculation of the electric field perturbations.</span>
 <span class="sd">        This functions should be called with an input the represents a gs run.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.</span>
-<span class="sd">                Defaults to {&quot;tolwfr&quot;: 1.0e-22}.</span>
+<span class="sd">                Defaults to {&quot;tolvrs&quot;: 1.0e-22}.</span>
 <span class="sd">            use_symmetries: boolean that computes the irreducible components of the perturbation.</span>
 <span class="sd">                Default to True. Should be set to False for nonlinear coefficients calculation.</span>
 <span class="sd">            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.</span>
-
-<span class="sd">        Return:</span>
-<span class="sd">            List of |AbinitInput| objects for DFPT runs.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">tolerance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">tolerance</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tolvrs&quot;</span><span class="p">:</span> <span class="mf">1.0e-22</span><span class="p">}</span>
@@ -1440,6 +1444,8 @@
 
         <span class="n">multi</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
             <span class="n">rfelfd</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>       <span class="c1"># Activate the calculation of the electric field perturbation</span>
+                            <span class="c1"># Assuming the data on derivative of ground-state wavefunction with respect</span>
+                            <span class="c1"># to k (DDK) is available on disk and will be read with getddk/irddk</span>
             <span class="n">nqpt</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>         <span class="c1"># One wavevector is to be considered</span>
             <span class="n">qpt</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>  <span class="c1"># q-wavevector.</span>
             <span class="n">kptopt</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>       <span class="c1"># Take into account time-reversal symmetry.</span>
@@ -1452,7 +1458,7 @@
 
 <div class="viewcode-block" id="AbinitInput.make_dte_inputs"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.make_dte_inputs">[docs]</a>    <span class="k">def</span> <span class="nf">make_dte_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phonon_pert</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">skip_permutations</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return inputs for the DTE calculation.</span>
+<span class="sd">        Return |MultiDataset| inputs for DTE calculation.</span>
 <span class="sd">        This functions should be called with an input that represents a GS run.</span>
 
 <span class="sd">        Args:</span>
@@ -1480,7 +1486,6 @@
         <span class="n">multi</span> <span class="o">=</span> <span class="n">MultiDataset</span><span class="o">.</span><span class="n">replicate_input</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">ndtset</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">perts</span><span class="p">))</span>
 
         <span class="c1"># See tutorespfn/Input/tnlo_2.in</span>
-
         <span class="n">na</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">pert</span><span class="p">,</span> <span class="n">inp</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">perts</span><span class="p">,</span> <span class="n">multi</span><span class="p">):</span>
@@ -1519,8 +1524,7 @@
 
 <div class="viewcode-block" id="AbinitInput.make_bec_inputs"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.make_bec_inputs">[docs]</a>    <span class="k">def</span> <span class="nf">make_bec_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return inputs for the calculation of the Born effective charges.</span>
-
+<span class="sd">        Return |MultiDataset| inputs for the calculation of the Born effective charges.</span>
 <span class="sd">        This functions should be called with an input that represents a GS run.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">tolerance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1557,13 +1561,26 @@
 
         <span class="k">return</span> <span class="n">multi</span></div>
 
-<div class="viewcode-block" id="AbinitInput.make_strain_perts_inputs"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.make_strain_perts_inputs">[docs]</a>    <span class="k">def</span> <span class="nf">make_strain_perts_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="AbinitInput.make_strain_perts_inputs"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.make_strain_perts_inputs">[docs]</a>    <span class="k">def</span> <span class="nf">make_strain_perts_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">phonon_pert</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return |MultiDataset| inputs for strain perturbation calculation.</span>
+<span class="sd">        This functions should be called with an input that represents a GS run.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.</span>
+<span class="sd">                Defaults to {&quot;tolvrs&quot;: 1.0e-12}.</span>
+<span class="sd">            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.</span>
+<span class="sd">            phonon_pert: is True also the phonon perturbations will be considered. Default False.</span>
+<span class="sd">            kptopt: 2 to take into account time-reversal symmetry.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">tolerance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">tolerance</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tolvrs&quot;</span><span class="p">:</span> <span class="mf">1.0e-12</span><span class="p">}</span>
+
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tolerance</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_TOLVARS</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">tolerance</span><span class="p">):</span>
             <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;Invalid tolerance: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">tolerance</span><span class="p">)))</span>
 
-        <span class="n">perts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">abiget_irred_strainperts</span><span class="p">(</span><span class="n">kptopt</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
+        <span class="n">perts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">abiget_irred_strainperts</span><span class="p">(</span><span class="n">kptopt</span><span class="o">=</span><span class="n">kptopt</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">,</span> <span class="n">phonon_pert</span><span class="o">=</span><span class="n">phonon_pert</span><span class="p">)</span>
+        <span class="c1">#print(&quot;Stress perts:&quot;, perts)</span>
 
         <span class="c1"># Build list of datasets (one input per perturbation)</span>
         <span class="n">multi</span> <span class="o">=</span> <span class="n">MultiDataset</span><span class="o">.</span><span class="n">replicate_input</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">ndtset</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">perts</span><span class="p">))</span>
@@ -1571,41 +1588,40 @@
         <span class="k">for</span> <span class="n">pert</span><span class="p">,</span> <span class="n">inp</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">perts</span><span class="p">,</span> <span class="n">multi</span><span class="p">):</span>
             <span class="n">rfdir</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">*</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">rfdir</span><span class="p">[</span><span class="n">pert</span><span class="o">.</span><span class="n">idir</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
             <span class="k">if</span> <span class="n">pert</span><span class="o">.</span><span class="n">ipert</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">):</span>
                 <span class="n">inp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">rfphon</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>             <span class="c1"># Activate the calculation of the atomic dispacement perturbations</span>
                              <span class="n">rfatpol</span><span class="o">=</span><span class="p">[</span><span class="n">pert</span><span class="o">.</span><span class="n">ipert</span><span class="p">,</span> <span class="n">pert</span><span class="o">.</span><span class="n">ipert</span><span class="p">],</span>
                              <span class="n">rfdir</span><span class="o">=</span><span class="n">rfdir</span><span class="p">,</span>
                              <span class="n">nqpt</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>               <span class="c1"># One wavevector is to be considered</span>
                              <span class="n">qpt</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>        <span class="c1"># q-wavevector.</span>
-                             <span class="n">kptopt</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>             <span class="c1"># No symmetries</span>
-                             <span class="n">iscf</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
+                             <span class="n">kptopt</span><span class="o">=</span><span class="n">kptopt</span><span class="p">,</span>        <span class="c1"># No symmetries</span>
+                             <span class="c1">#iscf=7,</span>
                              <span class="n">paral_kgb</span><span class="o">=</span><span class="mi">0</span>
                              <span class="p">)</span>
+
             <span class="k">elif</span> <span class="n">pert</span><span class="o">.</span><span class="n">ipert</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span> <span class="o">+</span> <span class="mi">3</span><span class="p">:</span>
                 <span class="n">inp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">rfstrs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>             <span class="c1"># Activate the calculation of the strain perturbations (uniaxial)</span>
                              <span class="n">rfdir</span><span class="o">=</span><span class="n">rfdir</span><span class="p">,</span>
                              <span class="n">nqpt</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>               <span class="c1"># One wavevector is to be considered</span>
                              <span class="n">qpt</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>        <span class="c1"># q-wavevector.</span>
-                             <span class="n">kptopt</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>             <span class="c1"># No symmetries</span>
-                             <span class="n">iscf</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
+                             <span class="n">kptopt</span><span class="o">=</span><span class="n">kptopt</span><span class="p">,</span>        <span class="c1"># No symmetries</span>
+                             <span class="c1">#iscf=7,</span>
                              <span class="n">paral_kgb</span><span class="o">=</span><span class="mi">0</span>
                              <span class="p">)</span>
+
             <span class="k">elif</span> <span class="n">pert</span><span class="o">.</span><span class="n">ipert</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span> <span class="o">+</span> <span class="mi">4</span><span class="p">:</span>
                 <span class="n">inp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">rfstrs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>             <span class="c1"># Activate the calculation of the strain perturbations (shear)</span>
                              <span class="n">rfdir</span><span class="o">=</span><span class="n">rfdir</span><span class="p">,</span>
                              <span class="n">nqpt</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>               <span class="c1"># One wavevector is to be considered</span>
                              <span class="n">qpt</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>        <span class="c1"># q-wavevector.</span>
-                             <span class="n">kptopt</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>             <span class="c1"># No symmetries</span>
-                             <span class="n">iscf</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
+                             <span class="n">kptopt</span><span class="o">=</span><span class="n">kptopt</span><span class="p">,</span>        <span class="c1"># No symmetries</span>
+                             <span class="c1">#iscf=7,</span>
                              <span class="n">paral_kgb</span><span class="o">=</span><span class="mi">0</span>
                              <span class="p">)</span>
 
             <span class="n">inp</span><span class="o">.</span><span class="n">pop_tolerances</span><span class="p">()</span>
             <span class="n">inp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">tolerance</span><span class="p">)</span>
-            <span class="c1"># Adding buffer to help convergence ...</span>
-            <span class="k">if</span> <span class="s1">&#39;nbdbuf&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">inp</span><span class="p">:</span>
-                <span class="n">nbdbuf</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="mf">0.1</span><span class="o">*</span><span class="n">inp</span><span class="p">[</span><span class="s1">&#39;nband&#39;</span><span class="p">]),</span> <span class="mi">4</span><span class="p">)</span>
-                <span class="n">inp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">nband</span><span class="o">=</span><span class="n">inp</span><span class="p">[</span><span class="s1">&#39;nband&#39;</span><span class="p">]</span><span class="o">+</span><span class="n">nbdbuf</span><span class="p">,</span> <span class="n">nbdbuf</span><span class="o">=</span><span class="n">nbdbuf</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">multi</span></div>
 
@@ -1922,7 +1938,8 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_abiget_irred_perts</span><span class="p">(</span><span class="n">dteperts_vars</span><span class="p">,</span> <span class="n">qpt</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">ngkpt</span><span class="o">=</span><span class="n">ngkpt</span><span class="p">,</span> <span class="n">shiftk</span><span class="o">=</span><span class="n">shiftk</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="n">kptopt</span><span class="p">,</span>
                                         <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="AbinitInput.abiget_irred_strainperts"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.abiget_irred_strainperts">[docs]</a>    <span class="k">def</span> <span class="nf">abiget_irred_strainperts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ngkpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shiftk</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="AbinitInput.abiget_irred_strainperts"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.abiget_irred_strainperts">[docs]</a>    <span class="k">def</span> <span class="nf">abiget_irred_strainperts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ngkpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shiftk</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                 <span class="n">phonon_pert</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This function, computes the list of irreducible perturbations for strain perturbations in DFPT.</span>
 <span class="sd">        It should be called with an input file that contains all the mandatory variables required by ABINIT.</span>
@@ -1933,6 +1950,7 @@
 <span class="sd">            kptopt: Option for k-point generation. If None, the value in self is used.</span>
 <span class="sd">            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.</span>
 <span class="sd">            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.</span>
+<span class="sd">            phonon_pert: if True the phonon perturbation at gamma will be included.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            List of dictionaries with the Abinit variables defining the irreducible perturbation</span>
@@ -1942,15 +1960,17 @@
 <span class="sd">            [{&#39;idir&#39;: 1, &#39;ipert&#39;: 4, &#39;qpt&#39;: [0.0, 0.0, 0.0]},</span>
 <span class="sd">             {&#39;idir&#39;: 2, &#39;ipert&#39;: 4, &#39;qpt&#39;: [0.0, 0.0, 0.0]}]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">strainperts_vars</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">rfphon</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>                        <span class="c1"># No phonon-type perturbation</span>
-                                <span class="n">rfatpol</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">)),</span> <span class="c1"># Perturbation of all atoms</span>
-                                <span class="n">rfstrs</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>                        <span class="c1"># Do the strain perturbations</span>
+        <span class="n">strainperts_vars</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">rfstrs</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>                        <span class="c1"># Do the strain perturbations</span>
                                 <span class="n">rfdir</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span>                   <span class="c1"># All directions</span>
                                 <span class="c1"># nqpt=1,                        # One wavevector is to be considered</span>
                                 <span class="c1"># qpt=(0, 0, 0),                 # q-wavevector.</span>
                                 <span class="n">kptopt</span><span class="o">=</span><span class="n">kptopt</span><span class="p">,</span>                   <span class="c1"># Take into account time-reversal symmetry.</span>
                                 <span class="n">iscf</span><span class="o">=</span><span class="mi">7</span>                           <span class="c1"># Just so that it works with PAW ... #TODO: check this</span>
                              <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">phonon_pert</span><span class="p">:</span>
+            <span class="n">strainperts_vars</span><span class="p">[</span><span class="s1">&#39;rfphon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>                        <span class="c1"># No phonon-type perturbation</span>
+            <span class="n">strainperts_vars</span><span class="p">[</span><span class="s1">&#39;rfatpol&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">))</span> <span class="c1"># Perturbation of all atoms</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_abiget_irred_perts</span><span class="p">(</span><span class="n">strainperts_vars</span><span class="p">,</span> <span class="n">qpt</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">ngkpt</span><span class="o">=</span><span class="n">ngkpt</span><span class="p">,</span> <span class="n">shiftk</span><span class="o">=</span><span class="n">shiftk</span><span class="p">,</span>
                                         <span class="n">kptopt</span><span class="o">=</span><span class="n">kptopt</span><span class="p">,</span>
@@ -2202,7 +2222,7 @@
             <span class="n">new_mds</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">new_mds</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Operation not supported&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Operation not supported&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__radd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">AbinitInput</span><span class="p">):</span>
@@ -2212,7 +2232,7 @@
             <span class="n">new_mds</span> <span class="o">=</span> <span class="n">MultiDataset</span><span class="o">.</span><span class="n">from_inputs</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
             <span class="n">new_mds</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Operation not supported&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Operation not supported&quot;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="MultiDataset.append"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.MultiDataset.append">[docs]</a>    <span class="k">def</span> <span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">abinit_input</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Add a |AbinitInput| to the list.&quot;&quot;&quot;</span>
@@ -2447,7 +2467,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_spell_check</span><span class="p">(</span><span class="n">spell_check</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span> <span class="o">=</span> <span class="n">structure</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">comment</span> <span class="o">=</span> <span class="n">comment</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comment</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="k">if</span> <span class="n">comment</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">comment</span><span class="p">)</span>
 
         <span class="n">anaddb_args</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">anaddb_args</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">anaddb_args</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">anaddb_args</span><span class="p">:</span>
@@ -2480,16 +2500,20 @@
 
     <span class="k">def</span> <span class="nf">_check_varname</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spell_check</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_anaddb_var</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is not a registered Anaddb variable</span><span class="se">\n</span><span class="s2">&quot;</span>
-                             <span class="s2">&quot;If you are sure the name is correct, please contact the abipy developers</span><span class="se">\n</span><span class="s2">&quot;</span>
-                             <span class="s2">&quot;or use input.set_spell_check(False)</span><span class="se">\n</span><span class="s2">&quot;</span>
-                             <span class="s2">&quot;or modify the JSON file abipy/data/variables/anaddb_vars.json&quot;</span> <span class="o">%</span> <span class="n">key</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">Cannot find variable `</span><span class="si">%s</span><span class="s2">` in internal database.</span>
+<span class="s2">If you think this is not a typo, use:</span>
+
+<span class="s2">    input.set_spell_check(False)</span>
+
+<span class="s2">to disable spell checking. Perhaps the internal database is not in synch</span>
+<span class="s2">with the Abinit version you are using. Please contact the AbiPy developers.&quot;&quot;&quot;</span> <span class="o">%</span> <span class="n">key</span><span class="p">)</span>
 
 <div class="viewcode-block" id="AnaddbInput.modes_at_qpoint"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput.modes_at_qpoint">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">modes_at_qpoint</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ifcflag</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">lo_to_splitting</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                         <span class="n">directions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">spell_check</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Input file for the calculation of the phonon frequencies at a given q-point.</span>
+<span class="sd">        Build an |AnaddbInput| for the calculation of the phonon frequencies at a given q-point.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            structure: |Structure| object</span>
@@ -2502,17 +2526,13 @@
 <span class="sd">            anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)</span>
 <span class="sd">            spell_check: False to disable spell checking for input variables.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;ANADB input for phonon frequencies at one q-point&quot;</span><span class="p">,</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;ANADDB input for phonon frequencies at one q-point&quot;</span><span class="p">,</span>
                   <span class="n">anaddb_args</span><span class="o">=</span><span class="n">anaddb_args</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="n">anaddb_kwargs</span><span class="p">)</span>
 
         <span class="c1"># We need a numpy array.</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span> <span class="s2">&quot;frac_coords&quot;</span><span class="p">):</span>
-            <span class="n">qpoint</span> <span class="o">=</span> <span class="n">qpoint</span><span class="o">.</span><span class="n">frac_coords</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">qpoint</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">qpoint</span><span class="p">)</span>
+        <span class="n">qpoint</span> <span class="o">=</span> <span class="n">qpoint</span><span class="o">.</span><span class="n">frac_coords</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span> <span class="s2">&quot;frac_coords&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">qpoint</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qpoint</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
-            <span class="c1">#print(type(qpoint), qpoint.shape)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wrong q-point </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">qpoint</span><span class="p">)</span>
 
         <span class="n">new</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
@@ -2540,33 +2560,27 @@
         <span class="k">return</span> <span class="n">new</span></div>
 
 <div class="viewcode-block" id="AnaddbInput.piezo_elastic"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput.piezo_elastic">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">piezo_elastic</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">anaddb_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stress_correction</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Build Anaddb input file for the calculation of piezoelectric and elastic tensor calculations.&quot;&quot;&quot;</span>
-        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;ANADB input for piezoelectric and elastic tensor calculation&quot;</span><span class="p">,</span>
-                  <span class="n">anaddb_args</span><span class="o">=</span><span class="n">anaddb_args</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="n">anaddb_kwargs</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">piezo_elastic</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">relaxed_ion</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stress_correction</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                      <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">anaddb_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build an |AnaddbInput| for the calculation of piezoelectric and elastic tensor calculations.</span>
 
-        <span class="k">if</span> <span class="n">stress_correction</span><span class="p">:</span>
-            <span class="n">elaflag</span> <span class="o">=</span> <span class="mi">5</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">elaflag</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="sd">        Args:</span>
+<span class="sd">            asr, chneut, dipdp: Anaddb input variable. See official documentation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">comment</span> <span class="o">=</span> <span class="s2">&quot;ANADDB input for piezoelectric and elastic tensor calculation&quot;</span>
 
-        <span class="n">new</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
-            <span class="n">elaflag</span><span class="o">=</span><span class="n">elaflag</span><span class="p">,</span>
-            <span class="n">piezoflag</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-            <span class="n">instrflag</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-            <span class="n">chneut</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-            <span class="n">asr</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-            <span class="n">symdynmat</span><span class="o">=</span><span class="mi">1</span>
-        <span class="p">)</span>
-
+        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">dfpt</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">relaxed_ion</span><span class="o">=</span><span class="n">relaxed_ion</span><span class="p">,</span> <span class="n">piezo</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dde</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">strain</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dte</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                       <span class="n">stress_correction</span><span class="o">=</span><span class="n">stress_correction</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="n">asr</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="n">chneut</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="n">dipdip</span><span class="p">,</span>
+                       <span class="n">anaddb_args</span><span class="o">=</span><span class="n">anaddb_args</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="n">anaddb_kwargs</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="n">comment</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">new</span></div>
 
 <div class="viewcode-block" id="AnaddbInput.phbands_and_dos"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput.phbands_and_dos">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">phbands_and_dos</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">ngqpt</span><span class="p">,</span> <span class="n">nqsmall</span><span class="p">,</span> <span class="n">qppa</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">line_density</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">q1shft</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
                         <span class="n">qptbounds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dos_method</span><span class="o">=</span><span class="s2">&quot;tetra&quot;</span><span class="p">,</span> <span class="n">lo_to_splitting</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                        <span class="n">anaddb_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">spell_check</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+                        <span class="n">anaddb_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">spell_check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Build an anaddb input file for the computation of phonon bands and phonon DOS.</span>
+<span class="sd">        Build an |AnaddbInput| for the computation of phonon bands and phonon DOS.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            structure: |Structure| object</span>
@@ -2589,6 +2603,7 @@
 <span class="sd">            anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)</span>
 <span class="sd">            anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)</span>
 <span class="sd">            spell_check: False to disable spell checking for input variables.</span>
+<span class="sd">            comment: Optional string with a comment that will be placed at the beginning of the file.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">dosdeltae</span><span class="p">,</span> <span class="n">dossmear</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
 
@@ -2603,13 +2618,13 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Wrong value for dos_method: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">dos_method</span><span class="p">))</span>
 
-        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;ANADB input for phonon bands and DOS&quot;</span><span class="p">,</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;ANADDB input for phonon bands and DOS&quot;</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">comment</span> <span class="k">else</span> <span class="n">comment</span><span class="p">,</span>
                   <span class="n">anaddb_args</span><span class="o">=</span><span class="n">anaddb_args</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="n">anaddb_kwargs</span><span class="p">,</span> <span class="n">spell_check</span><span class="o">=</span><span class="n">spell_check</span><span class="p">)</span>
 
         <span class="c1"># Parameters for the DOS</span>
         <span class="k">if</span> <span class="n">qppa</span><span class="p">:</span>
             <span class="n">ng2qpt</span> <span class="o">=</span> <span class="n">KSampling</span><span class="o">.</span><span class="n">automatic_density</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">kppa</span><span class="o">=</span><span class="n">qppa</span><span class="p">)</span><span class="o">.</span><span class="n">kpts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="c1">#set new variables</span>
+            <span class="c1"># Set new variables</span>
             <span class="n">new</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">ng2qpt</span><span class="o">=</span><span class="n">ng2qpt</span><span class="p">,</span><span class="n">prtdos</span><span class="o">=</span><span class="n">prtdos</span><span class="p">,</span><span class="n">dossmear</span><span class="o">=</span><span class="n">dossmear</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">new</span><span class="o">.</span><span class="n">set_autoqmesh</span><span class="p">(</span><span class="n">nqsmall</span><span class="p">)</span>
@@ -2617,7 +2632,7 @@
             <span class="k">if</span> <span class="n">nqsmall</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">new</span><span class="p">[</span><span class="s2">&quot;prtdos&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
 
-        <span class="c1"># Parameters for the BS</span>
+        <span class="c1"># Parameters for the Bandstructure.</span>
         <span class="k">if</span> <span class="n">line_density</span><span class="p">:</span>
             <span class="n">hs</span> <span class="o">=</span> <span class="n">HighSymmKpath</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">)</span>
             <span class="n">qpts</span><span class="p">,</span> <span class="n">labels_list</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">get_kpoints</span><span class="p">(</span><span class="n">line_density</span><span class="o">=</span><span class="n">line_density</span><span class="p">,</span> <span class="n">coords_are_cartesian</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -2668,90 +2683,10 @@
 
         <span class="k">return</span> <span class="n">new</span></div>
 
-<div class="viewcode-block" id="AnaddbInput.thermo"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput.thermo">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">thermo</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">ngqpt</span><span class="p">,</span> <span class="n">nqsmall</span><span class="p">,</span> <span class="n">q1shft</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">nchan</span><span class="o">=</span><span class="mi">1250</span><span class="p">,</span> <span class="n">nwchan</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">thmtol</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
-               <span class="n">ntemper</span><span class="o">=</span><span class="mi">199</span><span class="p">,</span> <span class="n">temperinc</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">tempermin</span><span class="o">=</span><span class="mf">5.</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ngrids</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
-               <span class="n">anaddb_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Build an anaddb input file for the computation of phonon bands and phonon DOS.</span>
-<span class="sd">        Note: This method is deprecated because now it&#39;s possible to compute Thermodynamical</span>
-<span class="sd">        properties from PhDos</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            structure: |Structure| object</span>
-<span class="sd">            ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)</span>
-<span class="sd">            nqsmall: Used to generate the (dense) mesh for the DOS.</span>
-<span class="sd">                It defines the number of q-points used to sample the smallest lattice vector.</span>
-<span class="sd">            q1shft: Shifts used for the coarse Q-mesh</span>
-<span class="sd">            nchan:</span>
-<span class="sd">            nwchan:</span>
-<span class="sd">            thmtol:</span>
-<span class="sd">            ntemper:</span>
-<span class="sd">            temperinc:</span>
-<span class="sd">            tempermin:</span>
-<span class="sd">            asr, chneut, dipdp: Anaddb input variable. See official documentation.</span>
-<span class="sd">            ngrids:</span>
-<span class="sd">            anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)</span>
-<span class="sd">            anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)</span>
-
-<span class="sd">            #!Flags</span>
-<span class="sd">            # ifcflag   1     ! Interatomic force constant flag</span>
-<span class="sd">            # thmflag   1     ! Thermodynamical properties flag</span>
-<span class="sd">            #!Wavevector grid number 1 (coarse grid, from DDB)</span>
-<span class="sd">            #  brav    2      ! Bravais Lattice : 1-S.C., 2-F.C., 3-B.C., 4-Hex.)</span>
-<span class="sd">            #  ngqpt   4  4  4   ! Monkhorst-Pack indices</span>
-<span class="sd">            #  nqshft  1         ! number of q-points in repeated basic q-cell</span>
-<span class="sd">            #  q1shft  3*0.0</span>
-<span class="sd">            #!Effective charges</span>
-<span class="sd">            #     asr   1     ! Acoustic Sum Rule. 1 =&gt; imposed asymetrically</span>
-<span class="sd">            #  chneut   1     ! Charge neutrality requirement for effective charges.</span>
-<span class="sd">            #!Interatomic force constant info</span>
-<span class="sd">            #  dipdip  1      ! Dipole-dipole interaction treatment</span>
-<span class="sd">            #!Wavevector grid number 2 (series of fine grids, extrapolated from interat forces)</span>
-<span class="sd">            #  ng2qpt   20 20 20  ! sample the BZ up to ngqpt2</span>
-<span class="sd">            #  ngrids   5         ! number of grids of increasing size#  q2shft   3*0.0</span>
-<span class="sd">            #!Thermal information</span>
-<span class="sd">            #  nchan   1250   ! # of channels for the DOS with channel width 1 cm-1</span>
-<span class="sd">            #  nwchan  5      ! # of different channel widths from this integer down to 1 cm-1</span>
-<span class="sd">            #  thmtol  0.120  ! Tolerance on thermodynamical function fluctuations</span>
-<span class="sd">            #  ntemper 10     ! Number of temperatures</span>
-<span class="sd">            #  temperinc 20.  ! Increment of temperature in K for temperature dependency</span>
-<span class="sd">            #  tempermin 20.  ! Minimal temperature in Kelvin</span>
-<span class="sd">            # This line added when defaults were changed (v5.3) to keep the previous, old behaviour</span>
-<span class="sd">            #  symdynmat 0</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;ANADB input for thermodynamics&quot;</span><span class="p">,</span>
-                  <span class="n">anaddb_args</span><span class="o">=</span><span class="n">anaddb_args</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="n">anaddb_kwargs</span><span class="p">)</span>
-        <span class="n">new</span><span class="o">.</span><span class="n">set_autoqmesh</span><span class="p">(</span><span class="n">nqsmall</span><span class="p">)</span>
-
-        <span class="n">q1shft</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">q1shft</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
-
-        <span class="n">new</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
-            <span class="n">ifcflag</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-            <span class="n">thmflag</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-            <span class="n">ngqpt</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ngqpt</span><span class="p">),</span>
-            <span class="n">ngrids</span><span class="o">=</span><span class="n">ngrids</span><span class="p">,</span>
-            <span class="n">q1shft</span><span class="o">=</span><span class="n">q1shft</span><span class="p">,</span>
-            <span class="n">nqshft</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">q1shft</span><span class="p">),</span>
-            <span class="n">asr</span><span class="o">=</span><span class="n">asr</span><span class="p">,</span>
-            <span class="n">chneut</span><span class="o">=</span><span class="n">chneut</span><span class="p">,</span>
-            <span class="n">dipdip</span><span class="o">=</span><span class="n">dipdip</span><span class="p">,</span>
-            <span class="n">nchan</span><span class="o">=</span><span class="n">nchan</span><span class="p">,</span>
-            <span class="n">nwchan</span><span class="o">=</span><span class="n">nwchan</span><span class="p">,</span>
-            <span class="n">thmtol</span><span class="o">=</span><span class="n">thmtol</span><span class="p">,</span>
-            <span class="n">ntemper</span><span class="o">=</span><span class="n">ntemper</span><span class="p">,</span>
-            <span class="n">temperinc</span><span class="o">=</span><span class="n">temperinc</span><span class="p">,</span>
-            <span class="n">tempermin</span><span class="o">=</span><span class="n">tempermin</span><span class="p">,</span>
-        <span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">new</span></div>
-
 <div class="viewcode-block" id="AnaddbInput.modes"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput.modes">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">modes</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">enunit</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">anaddb_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Build an anaddb input file for the computation of phonon modes.</span>
+<span class="sd">        Build an |AnaddbInput| for the computation of phonon modes.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            Structure: |Structure| object</span>
@@ -2764,27 +2699,8 @@
 <span class="sd">            asr, chneut, dipdp: Anaddb input variable. See official documentation.</span>
 <span class="sd">            anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)</span>
 <span class="sd">            anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)</span>
-
-<span class="sd">        #!General information</span>
-<span class="sd">        #enunit    2</span>
-<span class="sd">        #eivec     1</span>
-<span class="sd">        #!Flags</span>
-<span class="sd">        #dieflag   1</span>
-<span class="sd">        #ifcflag   1</span>
-<span class="sd">        #ngqpt     1 1 1</span>
-<span class="sd">        #!Effective charges</span>
-<span class="sd">        #asr       2</span>
-<span class="sd">        #chneut    2</span>
-<span class="sd">        # Wavevector list number 1</span>
-<span class="sd">        #nph1l     1</span>
-<span class="sd">        #qph1l   0.0  0.0  0.0    1.0   ! (Gamma point)</span>
-<span class="sd">        #!Wavevector list number 2</span>
-<span class="sd">        #nph2l     3      ! number of phonons in list 1</span>
-<span class="sd">        #qph2l   1.0  0.0  0.0    0.0</span>
-<span class="sd">        #        0.0  1.0  0.0    0.0</span>
-<span class="sd">        #        0.0  0.0  1.0    0.0</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;ANADB input for modes&quot;</span><span class="p">,</span> <span class="n">anaddb_args</span><span class="o">=</span><span class="n">anaddb_args</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="n">anaddb_kwargs</span><span class="p">)</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;ANADDB input for modes&quot;</span><span class="p">,</span> <span class="n">anaddb_args</span><span class="o">=</span><span class="n">anaddb_args</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="n">anaddb_kwargs</span><span class="p">)</span>
 
         <span class="n">new</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
             <span class="n">enunit</span><span class="o">=</span><span class="n">enunit</span><span class="p">,</span>
@@ -2806,7 +2722,7 @@
     <span class="k">def</span> <span class="nf">ifc</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">ngqpt</span><span class="p">,</span> <span class="n">ifcout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">q1shft</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">anaddb_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Build an anaddb input file for the computation of interatomic force constants.</span>
+<span class="sd">        Build an |AnaddbInput| for the computation of interatomic force constants.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            structure: |Structure| object</span>
@@ -2817,8 +2733,7 @@
 <span class="sd">            anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)</span>
 <span class="sd">            anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;ANADB input for IFC&quot;</span><span class="p">,</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;ANADDB input for IFC&quot;</span><span class="p">,</span>
                   <span class="n">anaddb_args</span><span class="o">=</span><span class="n">anaddb_args</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="n">anaddb_kwargs</span><span class="p">)</span>
 
         <span class="n">q1shft</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">q1shft</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
@@ -2843,6 +2758,99 @@
         <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">new</span></div>
+
+<div class="viewcode-block" id="AnaddbInput.dfpt"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput.dfpt">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">dfpt</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">ngqpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">relaxed_ion</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">piezo</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dde</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">strain</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dte</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+             <span class="n">stress_correction</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">nqsmall</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">qppa</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">line_density</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">q1shft</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+             <span class="n">qptbounds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dos_method</span><span class="o">=</span><span class="s2">&quot;tetra&quot;</span><span class="p">,</span> <span class="n">anaddb_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Builds an |AnaddbInput| to post-process a generic DFPT calculation.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            structure: |Structure| object.</span>
+<span class="sd">            ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)</span>
+<span class="sd">            stress_correction: True to activate computation of  stress correction in elastic tensor.</span>
+<span class="sd">                Requires DDB with stress entries.</span>
+<span class="sd">            relaxed_ion: True to activate computation of relaxed-ion elastic and piezoelectric tensors.</span>
+<span class="sd">                (assume the DDB has atomic perturbations at Gamma)</span>
+<span class="sd">            piezo: if True the piezoelectric tensor are calculated (requires piezoelectric perturbations)</span>
+<span class="sd">            dde: if True dielectric tensors will be calculated. If phonon band</span>
+<span class="sd">                structure is calculated will also enable the calculation of the lo_to splitting</span>
+<span class="sd">                (requires the DDE perturbations)</span>
+<span class="sd">            strain: if True the elastic tensors will be calculated (requires the strain perturbations)</span>
+<span class="sd">            dte: if True properties related to the nonlinear tensors will be calculated</span>
+<span class="sd">                (requires third orders perturbations)</span>
+<span class="sd">            nqsmall: Used to generate the (dense) mesh for the DOS.</span>
+<span class="sd">                It defines the number of q-points used to sample the smallest lattice vector.</span>
+<span class="sd">            qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per reciproval atom.</span>
+<span class="sd">                Overrides nqsmall.</span>
+<span class="sd">            line_density: Defines the a density of k-points per reciprocal atom to plot the phonon dispersion.</span>
+<span class="sd">                Overrides ndivsm.</span>
+<span class="sd">            ndivsm: Used to generate a normalized path for the phonon bands.</span>
+<span class="sd">                If gives the number of divisions for the smallest segment of the path.</span>
+<span class="sd">            q1shft: Shifts used for the coarse Q-mesh</span>
+<span class="sd">            qptbounds Boundaries of the path. If None, the path is generated from an internal database</span>
+<span class="sd">                depending on the input structure.</span>
+<span class="sd">            asr, chneut, dipdp: Anaddb input variable. See official documentation.</span>
+<span class="sd">            dos_method: Possible choices: &quot;tetra&quot;, &quot;gaussian&quot; or &quot;gaussian:0.001 eV&quot;.</span>
+<span class="sd">                In the later case, the value 0.001 eV is used as gaussian broadening</span>
+<span class="sd">            anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)</span>
+<span class="sd">            anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)</span>
+<span class="sd">            comment: Optional string with a comment that will be placed at the beginning of the file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># use the phonon BS and DOS input as starting point is required, otherwise</span>
+        <span class="k">if</span> <span class="n">ngqpt</span><span class="p">:</span>
+            <span class="n">anaddb_input</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">phbands_and_dos</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="n">structure</span><span class="p">,</span> <span class="n">ngqpt</span><span class="o">=</span><span class="n">ngqpt</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="n">ndivsm</span><span class="p">,</span> <span class="n">nqsmall</span><span class="o">=</span><span class="n">nqsmall</span><span class="p">,</span>
+                                               <span class="n">qppa</span><span class="o">=</span><span class="n">qppa</span><span class="p">,</span> <span class="n">line_density</span><span class="o">=</span><span class="n">line_density</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="n">asr</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="n">chneut</span><span class="p">,</span>
+                                               <span class="n">dipdip</span><span class="o">=</span><span class="n">dipdip</span><span class="p">,</span> <span class="n">qptbounds</span><span class="o">=</span><span class="n">qptbounds</span><span class="p">,</span> <span class="n">dos_method</span><span class="o">=</span><span class="n">dos_method</span><span class="p">,</span>
+                                               <span class="n">lo_to_splitting</span><span class="o">=</span><span class="n">dde</span><span class="p">,</span> <span class="n">q1shft</span><span class="o">=</span><span class="n">q1shft</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="n">comment</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">anaddb_input</span> <span class="o">=</span> <span class="n">AnaddbInput</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="n">comment</span><span class="p">)</span>
+            <span class="n">anaddb_input</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">asr</span><span class="o">=</span><span class="n">asr</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="n">chneut</span><span class="p">)</span>
+
+        <span class="n">dieflag</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">dde</span><span class="p">:</span>
+            <span class="n">dieflag</span> <span class="o">=</span> <span class="mi">3</span> <span class="k">if</span> <span class="p">(</span><span class="n">relaxed_ion</span> <span class="ow">and</span> <span class="n">strain</span><span class="p">)</span> <span class="k">else</span> <span class="mi">2</span>
+
+        <span class="n">elaflag</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">strain</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">relaxed_ion</span><span class="p">:</span>
+                <span class="n">elaflag</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">stress_correction</span><span class="p">:</span>
+                <span class="n">elaflag</span> <span class="o">=</span> <span class="mi">5</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">elaflag</span> <span class="o">=</span> <span class="mi">3</span>
+
+        <span class="n">piezoflag</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">piezo</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">relaxed_ion</span><span class="p">:</span>
+                <span class="n">piezoflag</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">dde</span> <span class="ow">and</span> <span class="n">strain</span><span class="p">:</span>
+                <span class="n">piezoflag</span> <span class="o">=</span> <span class="mi">7</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">piezoflag</span> <span class="o">=</span> <span class="mi">3</span>
+
+        <span class="n">anaddb_input</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">dieflag</span><span class="o">=</span><span class="n">dieflag</span><span class="p">,</span> <span class="n">elaflag</span><span class="o">=</span><span class="n">elaflag</span><span class="p">,</span> <span class="n">piezoflag</span><span class="o">=</span><span class="n">piezoflag</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">dieflag</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="s1">&#39;nph2l&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">anaddb_input</span><span class="p">:</span>
+            <span class="n">anaddb_input</span><span class="p">[</span><span class="s1">&#39;nph2l&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">elaflag</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">anaddb_input</span><span class="p">[</span><span class="s2">&quot;instrflag&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">dte</span><span class="p">:</span>
+            <span class="n">anaddb_input</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">nlflag</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                  <span class="n">ramansr</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                  <span class="n">alphon</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                  <span class="n">prtmbm</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">anaddb_args</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">anaddb_args</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">anaddb_args</span>
+        <span class="n">anaddb_kwargs</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">anaddb_kwargs</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">anaddb_kwargs</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">anaddb_args</span><span class="p">)[:]</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">anaddb_kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+        <span class="n">anaddb_input</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">anaddb_input</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -2872,8 +2880,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported value for sortmode </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">sortmode</span><span class="p">))</span>
 
-        <span class="c1"># https://www.abinit.org/doc/helpfiles/for-v8.4/users/anaddb_help.html#mustar</span>
-        <span class="n">root</span> <span class="o">=</span> <span class="s2">&quot;https://www.abinit.org/doc/helpfiles/for-v8.4/users/anaddb_help.html&quot;</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="s2">&quot;https://docs.abinit.org/variables/anaddb/&quot;</span>
         <span class="k">for</span> <span class="n">varname</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
             <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">varname</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;html&quot;</span><span class="p">:</span> <span class="n">varname</span> <span class="o">=</span> <span class="n">root</span> <span class="o">+</span> <span class="s2">&quot;#</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">varname</span>
@@ -2941,8 +2948,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;The url associated to the variable.&quot;&quot;&quot;</span>
-        <span class="c1"># TODO: root will change once we move to the new website.</span>
-        <span class="n">root</span> <span class="o">=</span> <span class="s2">&quot;https://www.abinit.org/sites/default/files/last/users/optic_help.html&quot;</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="s2">&quot;https://docs.abinit.org/variables/optic/&quot;</span>
         <span class="k">return</span> <span class="n">root</span> <span class="o">+</span> <span class="s2">&quot;#</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
 
 <div class="viewcode-block" id="OpticVar.html_link"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.OpticVar.html_link">[docs]</a>    <span class="k">def</span> <span class="nf">html_link</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -3434,7 +3440,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 26, 2018.<br/>
+      Last updated on Aug 14, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

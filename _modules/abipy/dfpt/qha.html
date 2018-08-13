@@ -135,41 +135,39 @@
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">abc</span>
 <span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="k">import</span> <span class="n">UnivariateSpline</span>
 
 <span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">dict2namedtuple</span>
+<span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
 <span class="kn">from</span> <span class="nn">pymatgen.analysis.eos</span> <span class="k">import</span> <span class="n">EOS</span>
 <span class="kn">from</span> <span class="nn">abipy.core.func1d</span> <span class="k">import</span> <span class="n">Function1D</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span>
 <span class="kn">from</span> <span class="nn">abipy.electrons.gsr</span> <span class="k">import</span> <span class="n">GsrFile</span>
-<span class="kn">from</span> <span class="nn">abipy.dfpt.phonons</span> <span class="k">import</span> <span class="n">PhdosFile</span><span class="p">,</span> <span class="n">PhononBandsPlotter</span>
+<span class="kn">from</span> <span class="nn">abipy.dfpt.phonons</span> <span class="k">import</span> <span class="n">PhononBandsPlotter</span><span class="p">,</span> <span class="n">PhononDos</span>
+<span class="kn">from</span> <span class="nn">abipy.dfpt.gruneisen</span> <span class="k">import</span> <span class="n">GrunsNcFile</span>
 <span class="kn">import</span> <span class="nn">abipy.core.abinit_units</span> <span class="k">as</span> <span class="nn">abu</span>
 
 
-<span class="n">eVA3_GPa</span> <span class="o">=</span> <span class="mf">160.21766208</span> <span class="c1"># 1 eV/A^3 to GPa</span>
-
-
-<div class="viewcode-block" id="QHA"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.QHA">[docs]</a><span class="k">class</span> <span class="nc">QHA</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="AbstractQHA"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA">[docs]</a><span class="k">class</span> <span class="nc">AbstractQHA</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">with_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">,</span> <span class="nb">object</span><span class="p">)):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Object to extract results in the quasi-harmonic approximation from electronic and phonon calculations</span>
-<span class="sd">    at different volumes.</span>
+<span class="sd">    Abstract class for the quasi-harmonic approximation  analysis.</span>
 <span class="sd">    Provides some basic methods and plotting utils, plus a converter to write input files for phonopy-qha or to</span>
 <span class="sd">    generate an instance of phonopy.qha.QHA. These can be used to obtain other quantities and plots.</span>
 <span class="sd">    Does not include electronic entropic contributions for metals.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structures</span><span class="p">,</span> <span class="n">doses</span><span class="p">,</span> <span class="n">energies</span><span class="p">,</span> <span class="n">eos_name</span><span class="o">=</span><span class="s1">&#39;vinet&#39;</span><span class="p">,</span> <span class="n">pressure</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structures</span><span class="p">,</span> <span class="n">energies</span><span class="p">,</span> <span class="n">eos_name</span><span class="o">=</span><span class="s1">&#39;vinet&#39;</span><span class="p">,</span> <span class="n">pressure</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            structures: list of structures at different volumes.</span>
-<span class="sd">            doses: list of |PhononDos| at volumes corresponding to the structures.</span>
 <span class="sd">            energies: list of SCF energies for the structures in eV.</span>
 <span class="sd">            eos_name: string indicating the expression used to fit the energies. See pymatgen.analysis.eos.EOS.</span>
 <span class="sd">            pressure: value of the pressure in GPa that will be considered in the p*V contribution to the energy.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">structures</span> <span class="o">=</span> <span class="n">structures</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">doses</span> <span class="o">=</span> <span class="n">doses</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">energies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">energies</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">eos</span> <span class="o">=</span> <span class="n">EOS</span><span class="p">(</span><span class="n">eos_name</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pressure</span> <span class="o">=</span> <span class="n">pressure</span>
@@ -177,15 +175,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">volumes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">volume</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">structures</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">iv0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">energies</span><span class="p">)</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">nvols</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">volumes</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">natoms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-
-<div class="viewcode-block" id="QHA.fit_energies"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.QHA.fit_energies">[docs]</a>    <span class="k">def</span> <span class="nf">fit_energies</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tstart</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+<div class="viewcode-block" id="AbstractQHA.fit_energies"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA.fit_energies">[docs]</a>    <span class="k">def</span> <span class="nf">fit_energies</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tstart</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Performs a fit of the energies as a function of the volume at different temperatures.</span>
 
@@ -209,9 +199,9 @@
         <span class="n">tmesh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">tstart</span><span class="p">,</span> <span class="n">tstop</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span>
 
         <span class="c1"># array with phonon energies and shape (n_vol, n_temp)</span>
-        <span class="n">ph_energies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">dos</span><span class="o">.</span><span class="n">get_free_energy</span><span class="p">(</span><span class="n">tstart</span><span class="p">,</span> <span class="n">tstop</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span><span class="o">.</span><span class="n">values</span> <span class="k">for</span> <span class="n">dos</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">doses</span><span class="p">])</span>
+        <span class="n">ph_energies</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_vib_free_energies</span><span class="p">(</span><span class="n">tstart</span><span class="p">,</span> <span class="n">tstop</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span>
 
-        <span class="n">tot_en</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">energies</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">ph_energies</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">volumes</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">pressure</span> <span class="o">/</span> <span class="n">eVA3_GPa</span>
+        <span class="n">tot_en</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">energies</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">ph_energies</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">volumes</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">pressure</span> <span class="o">/</span> <span class="n">abu</span><span class="o">.</span><span class="n">eVA3_GPa</span>
 
         <span class="c1"># list of fits objects, one for each temperature</span>
         <span class="n">fits</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">eos</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">volumes</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">tot_en</span><span class="o">.</span><span class="n">T</span><span class="p">]</span>
@@ -222,7 +212,51 @@
 
         <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">tot_en</span><span class="o">=</span><span class="n">tot_en</span><span class="p">,</span> <span class="n">fits</span><span class="o">=</span><span class="n">fits</span><span class="p">,</span> <span class="n">min_en</span><span class="o">=</span><span class="n">min_energies</span><span class="p">,</span> <span class="n">min_vol</span><span class="o">=</span><span class="n">min_volumes</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="n">tmesh</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="QHA.set_eos"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.QHA.set_eos">[docs]</a>    <span class="k">def</span> <span class="nf">set_eos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">eos_name</span><span class="p">):</span>
+<div class="viewcode-block" id="AbstractQHA.get_vib_free_energies"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA.get_vib_free_energies">[docs]</a>    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">get_vib_free_energies</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tstart</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates the vibrational free energy corresponding to all the structures.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tstart: The starting value (in Kelvin) of the temperature mesh.</span>
+<span class="sd">            tstop: The end value (in Kelvin) of the mesh.</span>
+<span class="sd">            num: int, optional Number of samples to generate. Default is 100.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A numpy array of `num` values of of the vibrational contribution to the free energy</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="AbstractQHA.get_thermodynamic_properties"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA.get_thermodynamic_properties">[docs]</a>    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">get_thermodynamic_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tstart</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates all the thermodynamic properties corresponding to all the volumes.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tstart: The starting value (in Kelvin) of the temperature mesh.</span>
+<span class="sd">            tstop: The end value (in Kelvin) of the mesh.</span>
+<span class="sd">            num: int, optional Number of samples to generate. Default is 100.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            `namedtuple` with the following attributes for all the volumes:</span>
+
+<span class="sd">                tmesh: numpy array with the list of temperatures. Shape (num).</span>
+<span class="sd">                cv: constant-volume specific heat, in eV/K. Shape (nvols, num).</span>
+<span class="sd">                free_energy: free energy, in eV. Shape (nvols, num).</span>
+<span class="sd">                entropy: entropy, in eV/K. Shape (nvols, num).</span>
+<span class="sd">                zpe: zero point energy in eV. Shape (nvols).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nvols</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">volumes</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">natoms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+<div class="viewcode-block" id="AbstractQHA.set_eos"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA.set_eos">[docs]</a>    <span class="k">def</span> <span class="nf">set_eos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">eos_name</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Updates the EOS used for the fit.</span>
 
@@ -232,32 +266,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">eos</span> <span class="o">=</span> <span class="n">EOS</span><span class="p">(</span><span class="n">eos_name</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="QHA.from_files"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.QHA.from_files">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_files</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">gsr_files_paths</span><span class="p">,</span> <span class="n">phdos_files_paths</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Creates an instance of QHA from a list og GSR files and a list PHDOS.nc files.</span>
-<span class="sd">        The list should have the same size and the volumes should match.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            gsr_files_paths: list of paths to GSR files</span>
-<span class="sd">            phdos_files_paths: list of paths to PHDOS.nc files</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            A new instance of QHA</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">energies</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">structures</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">gp</span> <span class="ow">in</span> <span class="n">gsr_files_paths</span><span class="p">:</span>
-            <span class="k">with</span> <span class="n">GsrFile</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">gp</span><span class="p">)</span> <span class="k">as</span> <span class="n">g</span><span class="p">:</span>
-                <span class="n">energies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">energy</span><span class="p">)</span>
-                <span class="n">structures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
-
-        <span class="n">doses</span> <span class="o">=</span> <span class="p">[</span><span class="n">PhdosFile</span><span class="p">(</span><span class="n">dp</span><span class="p">)</span><span class="o">.</span><span class="n">phdos</span> <span class="k">for</span> <span class="n">dp</span> <span class="ow">in</span> <span class="n">phdos_files_paths</span><span class="p">]</span>
-
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structures</span><span class="p">,</span> <span class="n">doses</span><span class="p">,</span> <span class="n">energies</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="QHA.plot_energies"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.QHA.plot_energies">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+<div class="viewcode-block" id="AbstractQHA.plot_energies"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA.plot_energies">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot_energies</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tstart</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plots the energies as a function of volume at different temperatures.</span>
@@ -288,7 +297,7 @@
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
-<div class="viewcode-block" id="QHA.get_thermal_expansion_coeff"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.QHA.get_thermal_expansion_coeff">[docs]</a>    <span class="k">def</span> <span class="nf">get_thermal_expansion_coeff</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tstart</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+<div class="viewcode-block" id="AbstractQHA.get_thermal_expansion_coeff"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA.get_thermal_expansion_coeff">[docs]</a>    <span class="k">def</span> <span class="nf">get_thermal_expansion_coeff</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tstart</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculates the thermal expansion coefficient as a function of temperature, using</span>
 <span class="sd">        finite difference on the fitted values of the volume as a function of temperature.</span>
@@ -308,7 +317,7 @@
 
         <span class="k">return</span> <span class="n">Function1D</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">temp</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">alpha</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="QHA.plot_thermal_expansion_coeff"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.QHA.plot_thermal_expansion_coeff">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+<div class="viewcode-block" id="AbstractQHA.plot_thermal_expansion_coeff"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA.plot_thermal_expansion_coeff">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot_thermal_expansion_coeff</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tstart</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plots the thermal expansion coefficient as a function of the temperature.</span>
@@ -342,7 +351,7 @@
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
-<div class="viewcode-block" id="QHA.plot_vol_vs_t"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.QHA.plot_vol_vs_t">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+<div class="viewcode-block" id="AbstractQHA.plot_vol_vs_t"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA.plot_vol_vs_t">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot_vol_vs_t</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tstart</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plots the volume as a function of the temperature.</span>
@@ -372,7 +381,7 @@
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
-<div class="viewcode-block" id="QHA.plot_phbs"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.QHA.plot_phbs">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+<div class="viewcode-block" id="AbstractQHA.plot_phbs"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA.plot_phbs">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot_phbs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phbands</span><span class="p">,</span> <span class="n">temperatures</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">t_max</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="s2">&quot;plasma&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Given a list of |PhononBands| plots the band structures with a color depending on</span>
@@ -412,18 +421,9 @@
 
         <span class="n">fig</span> <span class="o">=</span> <span class="n">pbp</span><span class="o">.</span><span class="n">combiplot</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-        <span class="c1"># ax, fig, plt = get_ax_fig_plt(ax)</span>
-        <span class="c1"># cmap = plt.get_cmap(colormap)</span>
-        <span class="c1"># for b, t in zip(phbands, temperatures):</span>
-        <span class="c1">#     color = cmap(t / max(temperatures))</span>
-        <span class="c1">#     b.plot(ax=ax, units=units, match_bands=True, show=False, color=color, label=&quot;&quot;)</span>
-        <span class="c1">#     ax.lines[-1].set_label(&quot;{%d} K&quot;.format(t))</span>
-        <span class="c1">#</span>
-        <span class="c1"># ax.legend(loc=&quot;best&quot;)</span>
-
         <span class="k">return</span> <span class="n">fig</span></div>
 
-<div class="viewcode-block" id="QHA.get_vol_at_t"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.QHA.get_vol_at_t">[docs]</a>    <span class="k">def</span> <span class="nf">get_vol_at_t</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+<div class="viewcode-block" id="AbstractQHA.get_vol_at_t"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA.get_vol_at_t">[docs]</a>    <span class="k">def</span> <span class="nf">get_vol_at_t</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculates the volume corresponding to a specific temperature.</span>
 
@@ -438,7 +438,7 @@
 
         <span class="k">return</span> <span class="n">f</span><span class="o">.</span><span class="n">min_vol</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="QHA.get_t_for_vols"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.QHA.get_t_for_vols">[docs]</a>    <span class="k">def</span> <span class="nf">get_t_for_vols</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vols</span><span class="p">,</span> <span class="n">t_max</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
+<div class="viewcode-block" id="AbstractQHA.get_t_for_vols"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA.get_t_for_vols">[docs]</a>    <span class="k">def</span> <span class="nf">get_t_for_vols</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vols</span><span class="p">,</span> <span class="n">t_max</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Find the temperatures corresponding to a specific volume.</span>
 <span class="sd">        The search is performed interpolating the V(T) dependence with a spline and</span>
@@ -467,7 +467,7 @@
 
         <span class="k">return</span> <span class="n">temps</span></div>
 
-<div class="viewcode-block" id="QHA.write_phonopy_qha_inputs"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.QHA.write_phonopy_qha_inputs">[docs]</a>    <span class="k">def</span> <span class="nf">write_phonopy_qha_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tstart</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="mi">2100</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">211</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="AbstractQHA.write_phonopy_qha_inputs"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA.write_phonopy_qha_inputs">[docs]</a>    <span class="k">def</span> <span class="nf">write_phonopy_qha_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tstart</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="mi">2100</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">211</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Writes nvols thermal_properties-i.yaml files that can be used as inputs for phonopy-qha.</span>
 <span class="sd">        Notice that phonopy apparently requires the value of the 300 K temperature to be present</span>
@@ -483,11 +483,13 @@
         <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
 
+        <span class="n">thermo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_thermodynamic_properties</span><span class="p">(</span><span class="n">tstart</span><span class="o">=</span><span class="n">tstart</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="n">tstop</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="n">num</span><span class="p">)</span>
+
         <span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;e-v.dat&#39;</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">volumes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">energies</span><span class="p">])</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%.10f</span><span class="s1">&#39;</span><span class="p">)</span>
 
         <span class="c1"># generator for thermal_properties.yaml extracted from phonopy:</span>
         <span class="c1"># phonopy.phonon.thermal_properties.ThermalProperties._get_tp_yaml_lines</span>
-        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doses</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nvols</span><span class="p">):</span>
             <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;# Thermal properties / unit cell (natom)&quot;</span><span class="p">)</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
@@ -503,32 +505,32 @@
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;num_integrated_modes: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="mi">3</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">natoms</span><span class="p">))</span>
 
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;zero_point_energy: </span><span class="si">%15.7f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">zero_point_energy</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">e_Cb</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Avogadro</span> <span class="p">))</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;zero_point_energy: </span><span class="si">%15.7f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">thermo</span><span class="o">.</span><span class="n">zpe</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">e_Cb</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Avogadro</span> <span class="p">))</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;high_T_entropy:    </span><span class="si">%15.7f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="mi">0</span><span class="p">)</span> <span class="c1"># high_T_entropy is not used in QHA</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;thermal_properties:&quot;</span><span class="p">)</span>
-            <span class="n">fe</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get_free_energy</span><span class="p">(</span><span class="n">tstart</span><span class="p">,</span> <span class="n">tstop</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">e_Cb</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Avogadro</span>
-            <span class="n">entropy</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get_entropy</span><span class="p">(</span><span class="n">tstart</span><span class="p">,</span> <span class="n">tstop</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">e_Cb</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Avogadro</span>
-            <span class="n">cv</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get_cv</span><span class="p">(</span><span class="n">tstart</span><span class="p">,</span> <span class="n">tstop</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">e_Cb</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Avogadro</span>
-            <span class="n">temperatures</span> <span class="o">=</span> <span class="n">cv</span><span class="o">.</span><span class="n">mesh</span>
+            <span class="n">fe</span> <span class="o">=</span> <span class="n">thermo</span><span class="o">.</span><span class="n">free_energy</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">e_Cb</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Avogadro</span>
+            <span class="n">entropy</span> <span class="o">=</span> <span class="n">thermo</span><span class="o">.</span><span class="n">entropy</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">e_Cb</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Avogadro</span>
+            <span class="n">cv</span> <span class="o">=</span> <span class="n">thermo</span><span class="o">.</span><span class="n">cv</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">e_Cb</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Avogadro</span>
+            <span class="n">temperatures</span> <span class="o">=</span> <span class="n">thermo</span><span class="o">.</span><span class="n">tmesh</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">temperatures</span><span class="p">):</span>
                 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;- temperature:   </span><span class="si">%15.7f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">t</span><span class="p">)</span>
-                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;  free_energy:   </span><span class="si">%15.7f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fe</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">))</span>
-                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;  entropy:       </span><span class="si">%15.7f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">entropy</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;  free_energy:   </span><span class="si">%15.7f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fe</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">))</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;  entropy:       </span><span class="si">%15.7f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">entropy</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
                 <span class="c1"># Sometimes &#39;nan&#39; of C_V is returned at low temperature.</span>
-                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">cv</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">cv</span><span class="p">[</span><span class="n">i</span><span class="p">]):</span>
                     <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;  heat_capacity: </span><span class="si">%15.7f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="mi">0</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;  heat_capacity: </span><span class="si">%15.7f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">cv</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;  heat_capacity: </span><span class="si">%15.7f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">cv</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
                 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;  energy:        </span><span class="si">%15.7f</span><span class="s2">&quot;</span> <span class="o">%</span>
-                             <span class="p">(</span><span class="n">fe</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="mi">1000</span> <span class="o">+</span> <span class="n">entropy</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">t</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">))</span>
+                             <span class="p">(</span><span class="n">fe</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="mi">1000</span> <span class="o">+</span> <span class="n">entropy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">t</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">))</span>
 
                 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;thermal_properties-</span><span class="si">{}</span><span class="s2">.yaml&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">j</span><span class="p">)),</span> <span class="s1">&#39;wt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                 <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="QHA.get_phonopy_qha"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.QHA.get_phonopy_qha">[docs]</a>    <span class="k">def</span> <span class="nf">get_phonopy_qha</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tstart</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="mi">2100</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">211</span><span class="p">,</span> <span class="n">eos</span><span class="o">=</span><span class="s1">&#39;vinet&#39;</span><span class="p">,</span> <span class="n">t_max</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">energy_plot_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="AbstractQHA.get_phonopy_qha"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA.get_phonopy_qha">[docs]</a>    <span class="k">def</span> <span class="nf">get_phonopy_qha</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tstart</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="mi">2100</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">211</span><span class="p">,</span> <span class="n">eos</span><span class="o">=</span><span class="s1">&#39;vinet&#39;</span><span class="p">,</span> <span class="n">t_max</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">energy_plot_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates an instance of phonopy.qha.QHA that can be used generate further plots and output data.</span>
 <span class="sd">        The object is returned right after the construction. The &quot;run()&quot; method should be executed</span>
@@ -555,20 +557,474 @@
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Phonopy is required to generate the QHA phonopy object&quot;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="n">exc</span>
 
-        <span class="n">fe</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">num</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nvols</span><span class="p">))</span>
-        <span class="n">entropy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">num</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nvols</span><span class="p">))</span>
-        <span class="n">cv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">num</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nvols</span><span class="p">))</span>
-        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doses</span><span class="p">):</span>
-            <span class="n">fe</span><span class="p">[:,</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">get_free_energy</span><span class="p">(</span><span class="n">tstart</span><span class="p">,</span> <span class="n">tstop</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">e_Cb</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Avogadro</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
-            <span class="n">entropy</span><span class="p">[:,</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">get_entropy</span><span class="p">(</span><span class="n">tstart</span><span class="p">,</span> <span class="n">tstop</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">e_Cb</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Avogadro</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
-            <span class="n">cv</span><span class="p">[:,</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">get_cv</span><span class="p">(</span><span class="n">tstart</span><span class="p">,</span> <span class="n">tstop</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">e_Cb</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Avogadro</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
-        <span class="n">temperatures</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">doses</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_cv</span><span class="p">(</span><span class="n">tstart</span><span class="p">,</span> <span class="n">tstop</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span><span class="o">.</span><span class="n">mesh</span>
+        <span class="n">thermo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_thermodynamic_properties</span><span class="p">(</span><span class="n">tstart</span><span class="o">=</span><span class="n">tstart</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="n">tstop</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="n">num</span><span class="p">)</span>
 
-        <span class="n">en</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">energies</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">volumes</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">pressure</span> <span class="o">/</span> <span class="n">eVA3_GPa</span>
+        <span class="n">fe</span> <span class="o">=</span> <span class="n">thermo</span><span class="o">.</span><span class="n">free_energy</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">e_Cb</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Avogadro</span> <span class="o">/</span> <span class="mi">1000</span>
+        <span class="n">entropy</span> <span class="o">=</span> <span class="n">thermo</span><span class="o">.</span><span class="n">entropy</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">e_Cb</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Avogadro</span>
+        <span class="n">cv</span> <span class="o">=</span> <span class="n">thermo</span><span class="o">.</span><span class="n">cv</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">e_Cb</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Avogadro</span>
+        <span class="n">temperatures</span> <span class="o">=</span> <span class="n">thermo</span><span class="o">.</span><span class="n">tmesh</span>
+
+        <span class="n">en</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">energies</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">volumes</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">pressure</span> <span class="o">/</span> <span class="n">abu</span><span class="o">.</span><span class="n">eVA3_GPa</span>
 
         <span class="n">qha_p</span> <span class="o">=</span> <span class="n">QHA_phonopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">volumes</span><span class="p">,</span> <span class="n">en</span><span class="p">,</span> <span class="n">temperatures</span><span class="p">,</span> <span class="n">cv</span><span class="p">,</span> <span class="n">entropy</span><span class="p">,</span> <span class="n">fe</span><span class="p">,</span> <span class="n">eos</span><span class="p">,</span> <span class="n">t_max</span><span class="p">,</span> <span class="n">energy_plot_factor</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">qha_p</span></div></div>
+
+
+<div class="viewcode-block" id="QHA"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.QHA">[docs]</a><span class="k">class</span> <span class="nc">QHA</span><span class="p">(</span><span class="n">AbstractQHA</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Object to extract results in the quasi-harmonic approximation from electronic and phonon calculations</span>
+<span class="sd">    at different volumes.</span>
+<span class="sd">    Provides some basic methods and plotting utils, plus a converter to write input files for phonopy-qha or to</span>
+<span class="sd">    generate an instance of phonopy.qha.QHA. These can be used to obtain other quantities and plots.</span>
+<span class="sd">    Does not include electronic entropic contributions for metals.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structures</span><span class="p">,</span> <span class="n">doses</span><span class="p">,</span> <span class="n">energies</span><span class="p">,</span> <span class="n">eos_name</span><span class="o">=</span><span class="s1">&#39;vinet&#39;</span><span class="p">,</span> <span class="n">pressure</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            structures: list of structures at different volumes.</span>
+<span class="sd">            doses: list of |PhononDos| at volumes corresponding to the structures.</span>
+<span class="sd">            energies: list of SCF energies for the structures in eV.</span>
+<span class="sd">            eos_name: string indicating the expression used to fit the energies. See pymatgen.analysis.eos.EOS.</span>
+<span class="sd">            pressure: value of the pressure in GPa that will be considered in the p*V contribution to the energy.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">QHA</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">structures</span><span class="o">=</span><span class="n">structures</span><span class="p">,</span> <span class="n">energies</span><span class="o">=</span><span class="n">energies</span><span class="p">,</span> <span class="n">eos_name</span><span class="o">=</span><span class="n">eos_name</span><span class="p">,</span> <span class="n">pressure</span><span class="o">=</span><span class="n">pressure</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">doses</span> <span class="o">=</span> <span class="n">doses</span>
+
+<div class="viewcode-block" id="QHA.get_vib_free_energies"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.QHA.get_vib_free_energies">[docs]</a>    <span class="k">def</span> <span class="nf">get_vib_free_energies</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tstart</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates the vibrational free energy from the phonon DOS.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tstart: The starting value (in Kelvin) of the temperature mesh.</span>
+<span class="sd">            tstop: The end value (in Kelvin) of the mesh.</span>
+<span class="sd">            num: int, optional Number of samples to generate. Default is 100.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            AA numpy array of `num` values of of the vibrational contribution to the free energy</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nvols</span><span class="p">,</span> <span class="n">num</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">dos</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doses</span><span class="p">):</span>
+            <span class="n">f</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dos</span><span class="o">.</span><span class="n">get_free_energy</span><span class="p">(</span><span class="n">tstart</span><span class="p">,</span> <span class="n">tstop</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
+
+        <span class="k">return</span> <span class="n">f</span></div>
+
+<div class="viewcode-block" id="QHA.get_thermodynamic_properties"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.QHA.get_thermodynamic_properties">[docs]</a>    <span class="k">def</span> <span class="nf">get_thermodynamic_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tstart</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates all the thermodynamic properties corresponding to all the volumes using the phonon DOS.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tstart: The starting value (in Kelvin) of the temperature mesh.</span>
+<span class="sd">            tstop: The end value (in Kelvin) of the mesh.</span>
+<span class="sd">            num: int, optional Number of samples to generate. Default is 100.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            `namedtuple` with the following attributes for all the volumes:</span>
+
+<span class="sd">                tmesh: numpy array with the list of temperatures. Shape (num).</span>
+<span class="sd">                cv: constant-volume specific heat, in eV/K. Shape (nvols, num).</span>
+<span class="sd">                free_energy: free energy, in eV. Shape (nvols, num).</span>
+<span class="sd">                entropy: entropy, in eV/K. Shape (nvols, num).</span>
+<span class="sd">                zpe: zero point energy in eV. Shape (nvols).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tmesh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">tstart</span><span class="p">,</span> <span class="n">tstop</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span>
+        <span class="n">cv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nvols</span><span class="p">,</span> <span class="n">num</span><span class="p">))</span>
+        <span class="n">free_energy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nvols</span><span class="p">,</span> <span class="n">num</span><span class="p">))</span>
+        <span class="n">entropy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nvols</span><span class="p">,</span> <span class="n">num</span><span class="p">))</span>
+        <span class="n">internal_energy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nvols</span><span class="p">,</span> <span class="n">num</span><span class="p">))</span>
+        <span class="n">zpe</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nvols</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doses</span><span class="p">):</span>
+            <span class="n">cv</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get_cv</span><span class="p">(</span><span class="n">tstart</span><span class="p">,</span> <span class="n">tstop</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
+            <span class="n">free_energy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get_free_energy</span><span class="p">(</span><span class="n">tstart</span><span class="p">,</span> <span class="n">tstop</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
+            <span class="n">entropy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get_entropy</span><span class="p">(</span><span class="n">tstart</span><span class="p">,</span> <span class="n">tstop</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
+            <span class="n">zpe</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">zero_point_energy</span>
+
+        <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">tmesh</span><span class="o">=</span><span class="n">tmesh</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="n">cv</span><span class="p">,</span> <span class="n">free_energy</span><span class="o">=</span><span class="n">free_energy</span><span class="p">,</span> <span class="n">entropy</span><span class="o">=</span><span class="n">entropy</span><span class="p">,</span>
+                               <span class="n">zpe</span><span class="o">=</span><span class="n">zpe</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="QHA.from_files"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.QHA.from_files">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_files</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">gsr_files_paths</span><span class="p">,</span> <span class="n">phdos_files_paths</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates an instance of QHA from a list og GSR files and a list PHDOS.nc files.</span>
+<span class="sd">        The list should have the same size and the volumes should match.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            gsr_files_paths: list of paths to GSR files.</span>
+<span class="sd">            phdos_files_paths: list of paths to PHDOS.nc files.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A new instance of QHA</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">energies</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">structures</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">gp</span> <span class="ow">in</span> <span class="n">gsr_files_paths</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">GsrFile</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">gp</span><span class="p">)</span> <span class="k">as</span> <span class="n">g</span><span class="p">:</span>
+                <span class="n">energies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">energy</span><span class="p">)</span>
+                <span class="n">structures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
+
+        <span class="n">doses</span> <span class="o">=</span> <span class="p">[</span><span class="n">PhononDos</span><span class="o">.</span><span class="n">as_phdos</span><span class="p">(</span><span class="n">dp</span><span class="p">)</span> <span class="k">for</span> <span class="n">dp</span> <span class="ow">in</span> <span class="n">phdos_files_paths</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structures</span><span class="p">,</span> <span class="n">doses</span><span class="p">,</span> <span class="n">energies</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="QHA3PF"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.QHA3PF">[docs]</a><span class="k">class</span> <span class="nc">QHA3PF</span><span class="p">(</span><span class="n">AbstractQHA</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Object to extract results in the quasi-harmonic approximation from several electronic energies at different</span>
+<span class="sd">        volumes and three phonon calculations.</span>
+<span class="sd">        Provides some basic methods and plotting utils, plus a converter to write input files for phonopy-qha or to</span>
+<span class="sd">        generate an instance of phonopy.qha.QHA. These can be used to obtain other quantities and plots.</span>
+<span class="sd">        Does not include electronic entropic contributions for metals.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structures</span><span class="p">,</span> <span class="n">doses</span><span class="p">,</span> <span class="n">energies</span><span class="p">,</span> <span class="n">ind_doses</span><span class="p">,</span> <span class="n">eos_name</span><span class="o">=</span><span class="s1">&#39;vinet&#39;</span><span class="p">,</span> <span class="n">pressure</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">fit_degree</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            structures: list of structures at different volumes.</span>
+<span class="sd">            doses: list of three |PhononDos| at different volumes corresponding to the some of the structures.</span>
+<span class="sd">            energies: list of SCF energies for the structures in eV.</span>
+<span class="sd">            ind_doses: list of three values indicating, for each of the three doses, the index of the</span>
+<span class="sd">                corresponding structure in &quot;structures&quot;.</span>
+<span class="sd">            eos_name: string indicating the expression used to fit the energies. See pymatgen.analysis.eos.EOS.</span>
+<span class="sd">            pressure: value of the pressure in GPa that will be considered in the p*V contribution to the energy.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">QHA3PF</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">structures</span><span class="o">=</span><span class="n">structures</span><span class="p">,</span> <span class="n">energies</span><span class="o">=</span><span class="n">energies</span><span class="p">,</span> <span class="n">eos_name</span><span class="o">=</span><span class="n">eos_name</span><span class="p">,</span> <span class="n">pressure</span><span class="o">=</span><span class="n">pressure</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">doses</span> <span class="o">=</span> <span class="n">doses</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ind_doses</span> <span class="o">=</span> <span class="n">ind_doses</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fit_degree</span> <span class="o">=</span> <span class="n">fit_degree</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ind_energy_only</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">structures</span><span class="p">))</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ind_doses</span><span class="p">]</span>
+
+<div class="viewcode-block" id="QHA3PF.get_thermodynamic_properties"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.QHA3PF.get_thermodynamic_properties">[docs]</a>    <span class="k">def</span> <span class="nf">get_thermodynamic_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tstart</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates all the thermodynamic properties corresponding to all the volumes using the phonon DOS.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tstart: The starting value (in Kelvin) of the temperature mesh.</span>
+<span class="sd">            tstop: The end value (in Kelvin) of the mesh.</span>
+<span class="sd">            num: int, optional Number of samples to generate. Default is 100.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            `namedtuple` with the following attributes for all the volumes:</span>
+
+<span class="sd">                tmesh: numpy array with the list of temperatures. Shape (num).</span>
+<span class="sd">                cv: constant-volume specific heat, in eV/K. Shape (nvols, num).</span>
+<span class="sd">                free_energy: free energy, in eV. Shape (nvols, num).</span>
+<span class="sd">                entropy: entropy, in eV/K. Shape (nvols, num).</span>
+<span class="sd">                zpe: zero point energy in eV. Shape (nvols).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tmesh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">tstart</span><span class="p">,</span> <span class="n">tstop</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span>
+        <span class="n">cv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_thermodynamic_prop</span><span class="p">(</span><span class="s2">&quot;cv&quot;</span><span class="p">,</span> <span class="n">tstart</span><span class="p">,</span> <span class="n">tstop</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span>
+        <span class="n">free_energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_thermodynamic_prop</span><span class="p">(</span><span class="s2">&quot;free_energy&quot;</span><span class="p">,</span> <span class="n">tstart</span><span class="p">,</span> <span class="n">tstop</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span>
+        <span class="n">entropy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_thermodynamic_prop</span><span class="p">(</span><span class="s2">&quot;entropy&quot;</span><span class="p">,</span> <span class="n">tstart</span><span class="p">,</span> <span class="n">tstop</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span>
+        <span class="n">zpe</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nvols</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">dos</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ind_doses</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">doses</span><span class="p">):</span>
+            <span class="n">zpe</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dos</span><span class="o">.</span><span class="n">zero_point_energy</span>
+
+        <span class="n">dos_vols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">volumes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ind_doses</span><span class="p">]</span>
+        <span class="n">missing_vols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">volumes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ind_energy_only</span><span class="p">]</span>
+
+        <span class="n">fit_params</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span><span class="n">dos_vols</span><span class="p">,</span> <span class="n">zpe</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ind_doses</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit_degree</span><span class="p">)</span>
+        <span class="n">zpe</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ind_energy_only</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">poly1d</span><span class="p">(</span><span class="n">fit_params</span><span class="p">)(</span><span class="n">missing_vols</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">tmesh</span><span class="o">=</span><span class="n">tmesh</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="n">cv</span><span class="p">,</span> <span class="n">free_energy</span><span class="o">=</span><span class="n">free_energy</span><span class="p">,</span> <span class="n">entropy</span><span class="o">=</span><span class="n">entropy</span><span class="p">,</span>
+                               <span class="n">zpe</span><span class="o">=</span><span class="n">zpe</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_get_thermodynamic_prop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">tstart</span><span class="p">,</span> <span class="n">tstop</span><span class="p">,</span> <span class="n">num</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Helper function to get a generic thermodynamic property for all the volumes.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name: name of the property to calculate. Possible values in &quot;internal_energy&quot;,</span>
+<span class="sd">                &quot;free_energy&quot;, &quot;entropy&quot;, &quot;c_v&quot;.</span>
+<span class="sd">            tstart: The starting value (in Kelvin) of the temperature mesh.</span>
+<span class="sd">            tstop: The end value (in Kelvin) of the mesh.</span>
+<span class="sd">            num: int, optional Number of samples to generate. Default is 100.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Numpy array with the values of the thermodynamic properties at the different</span>
+<span class="sd">            volumes with size (nvols, num).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">prop_doses</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">getattr</span><span class="p">(</span><span class="n">dos</span><span class="p">,</span> <span class="s2">&quot;get_&quot;</span> <span class="o">+</span> <span class="n">name</span><span class="p">)(</span><span class="n">tstart</span><span class="p">,</span> <span class="n">tstop</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span><span class="o">.</span><span class="n">values</span> <span class="k">for</span> <span class="n">dos</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">doses</span><span class="p">])</span>
+
+        <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nvols</span><span class="p">,</span> <span class="n">num</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">prop_dos</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ind_doses</span><span class="p">,</span> <span class="n">prop_doses</span><span class="p">):</span>
+            <span class="n">p</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">prop_dos</span>
+
+        <span class="n">dos_vols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">volumes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ind_doses</span><span class="p">]</span>
+        <span class="n">missing_vols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">volumes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ind_energy_only</span><span class="p">]</span>
+
+        <span class="c1"># generate fit objects from the known dos values</span>
+        <span class="k">for</span> <span class="n">i_temp</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
+            <span class="n">fit_params</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span><span class="n">dos_vols</span><span class="p">,</span> <span class="n">prop_doses</span><span class="p">[:,</span> <span class="n">i_temp</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit_degree</span><span class="p">)</span>
+            <span class="n">p</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ind_energy_only</span><span class="p">,</span> <span class="n">i_temp</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">poly1d</span><span class="p">(</span><span class="n">fit_params</span><span class="p">)(</span><span class="n">missing_vols</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">p</span>
+
+<div class="viewcode-block" id="QHA3PF.get_vib_free_energies"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.QHA3PF.get_vib_free_energies">[docs]</a>    <span class="k">def</span> <span class="nf">get_vib_free_energies</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tstart</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates the vibrational free energy corresponding to all the structures, either from the phonon DOS</span>
+<span class="sd">        or from a fit of the know values.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tstart: The starting value (in Kelvin) of the temperature mesh.</span>
+<span class="sd">            tstop: The end value (in Kelvin) of the mesh.</span>
+<span class="sd">            num: int, optional Number of samples to generate. Default is 100.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A numpy array of `num` values of of the vibrational contribution to the free energy</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_thermodynamic_prop</span><span class="p">(</span><span class="s2">&quot;free_energy&quot;</span><span class="p">,</span> <span class="n">tstart</span><span class="p">,</span> <span class="n">tstop</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="QHA3PF.from_files"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.QHA3PF.from_files">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_files</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">gsr_files_paths</span><span class="p">,</span> <span class="n">phdos_files_paths</span><span class="p">,</span> <span class="n">ind_doses</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates an instance of QHA from a list og GSR files and a list PHDOS.nc files.</span>
+<span class="sd">        The list should have the same size and the volumes should match.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            gsr_files_paths: list of paths to GSR files.</span>
+<span class="sd">            phdos_files_paths: list of paths to three PHDOS.nc files.</span>
+<span class="sd">            ind_doses: list of three values indicating, for each of the three doses, the index of the</span>
+<span class="sd">                corresponding gsr_file in &quot;gsr_files_paths&quot;.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A new instance of QHA</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">energies</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">structures</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">gp</span> <span class="ow">in</span> <span class="n">gsr_files_paths</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">GsrFile</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">gp</span><span class="p">)</span> <span class="k">as</span> <span class="n">g</span><span class="p">:</span>
+                <span class="n">energies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">energy</span><span class="p">)</span>
+                <span class="n">structures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
+
+        <span class="n">doses</span> <span class="o">=</span> <span class="p">[</span><span class="n">PhononDos</span><span class="o">.</span><span class="n">as_phdos</span><span class="p">(</span><span class="n">dp</span><span class="p">)</span> <span class="k">for</span> <span class="n">dp</span> <span class="ow">in</span> <span class="n">phdos_files_paths</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structures</span><span class="p">,</span> <span class="n">doses</span><span class="p">,</span> <span class="n">energies</span><span class="p">,</span> <span class="n">ind_doses</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="QHA3P"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.QHA3P">[docs]</a><span class="k">class</span> <span class="nc">QHA3P</span><span class="p">(</span><span class="n">AbstractQHA</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Object to extract results in the quasi-harmonic approximation from several electronic energies at different</span>
+<span class="sd">        volumes and three phonon calculations.</span>
+<span class="sd">        Provides some basic methods and plotting utils, plus a converter to write input files for phonopy-qha or to</span>
+<span class="sd">        generate an instance of phonopy.qha.QHA. These can be used to obtain other quantities and plots.</span>
+<span class="sd">        Does not include electronic entropic contributions for metals.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structures</span><span class="p">,</span> <span class="n">gruns</span><span class="p">,</span> <span class="n">energies</span><span class="p">,</span> <span class="n">ind_grun</span><span class="p">,</span> <span class="n">eos_name</span><span class="o">=</span><span class="s1">&#39;vinet&#39;</span><span class="p">,</span> <span class="n">pressure</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            structures: list of structures at different volumes.</span>
+<span class="sd">            doses: list of three |PhononDos| at different volumes corresponding to the some of the structures.</span>
+<span class="sd">            energies: list of SCF energies for the structures in eV.</span>
+<span class="sd">            ind_grun: list of three values indicating, for each of the three doses, the index of the</span>
+<span class="sd">                corresponding structure in &quot;structures&quot;.</span>
+<span class="sd">            eos_name: string indicating the expression used to fit the energies. See pymatgen.analysis.eos.EOS.</span>
+<span class="sd">            pressure: value of the pressure in GPa that will be considered in the p*V contribution to the energy.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">QHA3P</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">structures</span><span class="o">=</span><span class="n">structures</span><span class="p">,</span> <span class="n">energies</span><span class="o">=</span><span class="n">energies</span><span class="p">,</span> <span class="n">eos_name</span><span class="o">=</span><span class="n">eos_name</span><span class="p">,</span> <span class="n">pressure</span><span class="o">=</span><span class="n">pressure</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grun</span> <span class="o">=</span> <span class="n">gruns</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ind_grun</span> <span class="o">=</span> <span class="n">ind_grun</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ind_energy_only</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">structures</span><span class="p">))</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ind_grun</span><span class="p">]</span>
+
+<div class="viewcode-block" id="QHA3P.get_thermodynamic_properties"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.QHA3P.get_thermodynamic_properties">[docs]</a>    <span class="k">def</span> <span class="nf">get_thermodynamic_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tstart</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates the thermodynamic properties corresponding to all the structures, either from the phonon</span>
+<span class="sd">        frequencies or from a fit of the know values..</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tstart: The starting value (in Kelvin) of the temperature mesh.</span>
+<span class="sd">            tstop: The end value (in Kelvin) of the mesh.</span>
+<span class="sd">            num: int, optional Number of samples to generate. Default is 100.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            `namedtuple` with the following attributes for all the volumes:</span>
+
+<span class="sd">                tmesh: numpy array with the list of temperatures. Shape (num).</span>
+<span class="sd">                cv: constant-volume specific heat, in eV/K. Shape (nvols, num).</span>
+<span class="sd">                free_energy: free energy, in eV. Shape (nvols, num).</span>
+<span class="sd">                entropy: entropy, in eV/K. Shape (nvols, num).</span>
+<span class="sd">                zpe: zero point energy in eV. Shape (nvols).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fitted_frequencies</span>
+
+        <span class="n">tmesh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">tstart</span><span class="p">,</span> <span class="n">tstop</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">grun</span><span class="o">.</span><span class="n">doses</span><span class="p">[</span><span class="s1">&#39;qpoints&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">weights</span>
+
+        <span class="n">free_energy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nvols</span><span class="p">,</span> <span class="n">num</span><span class="p">))</span>
+        <span class="n">cv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nvols</span><span class="p">,</span> <span class="n">num</span><span class="p">))</span>
+        <span class="n">entropy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nvols</span><span class="p">,</span> <span class="n">num</span><span class="p">))</span>
+        <span class="n">zpe</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nvols</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nvols</span><span class="p">):</span>
+            <span class="n">free_energy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_free_energy</span><span class="p">(</span><span class="n">w</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">weights</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tmesh</span><span class="p">]</span>
+            <span class="n">cv</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_cv</span><span class="p">(</span><span class="n">w</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">weights</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tmesh</span><span class="p">]</span>
+            <span class="n">entropy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_entropy</span><span class="p">(</span><span class="n">w</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">weights</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tmesh</span><span class="p">]</span>
+            <span class="n">zpe</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_zero_point_energy</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">weights</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">tmesh</span><span class="o">=</span><span class="n">tmesh</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="n">cv</span><span class="p">,</span> <span class="n">free_energy</span><span class="o">=</span><span class="n">free_energy</span><span class="p">,</span> <span class="n">entropy</span><span class="o">=</span><span class="n">entropy</span><span class="p">,</span>
+                               <span class="n">zpe</span><span class="o">=</span><span class="n">zpe</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="QHA3P.fitted_frequencies"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.QHA3P.fitted_frequencies">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">fitted_frequencies</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A numpy array with size (nvols, nqpts_ibz, 3*natoms) containing the phonon frequencies</span>
+<span class="sd">        for all the volumes, either from the original phonon calculations or fitted</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">grun</span><span class="o">.</span><span class="n">wvols_qibz</span>
+        <span class="n">dv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">volumes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ind_grun</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">volumes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ind_grun</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+
+        <span class="n">w0</span> <span class="o">=</span> <span class="n">w</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="n">w2</span> <span class="o">=</span> <span class="n">w</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="n">d1</span> <span class="o">=</span> <span class="p">(</span><span class="n">w2</span> <span class="o">-</span> <span class="n">w0</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">dv</span><span class="p">)</span>
+        <span class="n">w1</span> <span class="o">=</span> <span class="n">w</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="n">d2</span> <span class="o">=</span> <span class="p">(</span><span class="n">w0</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">w1</span> <span class="o">+</span> <span class="n">w2</span><span class="p">)</span> <span class="o">/</span> <span class="n">dv</span> <span class="o">**</span> <span class="mi">2</span>
+        <span class="n">v0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">volumes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ind_grun</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+
+        <span class="n">w_full</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nvols</span><span class="p">,</span> <span class="n">w</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">w</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ig</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ind_grun</span><span class="p">):</span>
+            <span class="n">w_full</span><span class="p">[</span><span class="n">ig</span><span class="p">]</span> <span class="o">=</span> <span class="n">w</span><span class="p">[:,</span> <span class="n">i</span><span class="p">,</span> <span class="p">:]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ind_energy_only</span><span class="p">:</span>
+            <span class="n">dv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">volumes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">v0</span>
+            <span class="n">w_full</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">w1</span> <span class="o">+</span> <span class="n">d1</span> <span class="o">*</span> <span class="n">dv</span> <span class="o">+</span> <span class="n">d2</span> <span class="o">*</span> <span class="n">dv</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="mi">2</span>
+
+        <span class="k">return</span> <span class="n">w_full</span></div>
+
+<div class="viewcode-block" id="QHA3P.get_vib_free_energies"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.QHA3P.get_vib_free_energies">[docs]</a>    <span class="k">def</span> <span class="nf">get_vib_free_energies</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tstart</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates the vibrational free energy corresponding to all the structures, either from the phonon DOS</span>
+<span class="sd">        or from a fit of the know values.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tstart: The starting value (in Kelvin) of the temperature mesh.</span>
+<span class="sd">            tstop: The end value (in Kelvin) of the mesh.</span>
+<span class="sd">            num: int, optional Number of samples to generate. Default is 100.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A numpy array of `num` values of of the vibrational contribution to the free energy</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fitted_frequencies</span>
+
+        <span class="n">tmesh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">tstart</span><span class="p">,</span> <span class="n">tstop</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">grun</span><span class="o">.</span><span class="n">doses</span><span class="p">[</span><span class="s1">&#39;qpoints&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">weights</span>
+
+        <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nvols</span><span class="p">,</span> <span class="n">num</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nvols</span><span class="p">):</span>
+            <span class="n">f</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_free_energy</span><span class="p">(</span><span class="n">w</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">weights</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tmesh</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">f</span></div>
+
+<div class="viewcode-block" id="QHA3P.from_files"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.QHA3P.from_files">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_files</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">gsr_files_paths</span><span class="p">,</span> <span class="n">grun_file_path</span><span class="p">,</span> <span class="n">ind_doses</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates an instance of QHA from a list og GSR files and a list PHDOS.nc files.</span>
+<span class="sd">        The list should have the same size and the volumes should match.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            gsr_files_paths: list of paths to GSR files.</span>
+<span class="sd">            phdos_files_paths: list of paths to three PHDOS.nc files.</span>
+<span class="sd">            ind_doses: list of three values indicating, for each of the three doses, the index of the</span>
+<span class="sd">                corresponding gsr_file in &quot;gsr_files_paths&quot;.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A new instance of QHA</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">energies</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">structures</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">gp</span> <span class="ow">in</span> <span class="n">gsr_files_paths</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">GsrFile</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">gp</span><span class="p">)</span> <span class="k">as</span> <span class="n">g</span><span class="p">:</span>
+                <span class="n">energies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">energy</span><span class="p">)</span>
+                <span class="n">structures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
+
+        <span class="n">gruns</span> <span class="o">=</span> <span class="n">GrunsNcFile</span><span class="p">(</span><span class="n">grun_file_path</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structures</span><span class="p">,</span> <span class="n">gruns</span><span class="p">,</span> <span class="n">energies</span><span class="p">,</span> <span class="n">ind_doses</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="get_free_energy"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.get_free_energy">[docs]</a><span class="k">def</span> <span class="nf">get_free_energy</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the free energy in eV from the phonon frequencies on a regular grid.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">         w: the phonon frequencies</span>
+<span class="sd">         weights: the weights of the q-points</span>
+<span class="sd">         t: the temperature</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">wdkt</span> <span class="o">=</span> <span class="n">w</span> <span class="o">/</span> <span class="p">(</span><span class="n">abu</span><span class="o">.</span><span class="n">kb_eVK</span> <span class="o">*</span> <span class="n">t</span><span class="p">)</span>
+
+    <span class="c1"># if w=0 set fe=0</span>
+    <span class="n">fe</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">choose</span><span class="p">(</span><span class="n">w</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">w</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">abu</span><span class="o">.</span><span class="n">kb_eVK</span> <span class="o">*</span> <span class="n">t</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">wdkt</span><span class="p">))))</span>
+    <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">w</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">weights</span><span class="p">[</span><span class="n">ind</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">fe</span><span class="p">[</span><span class="n">ind</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="get_cv"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.get_cv">[docs]</a><span class="k">def</span> <span class="nf">get_cv</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the constant-volume specific heat in eV/K from the phonon frequencies on a regular grid.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">         w: the phonon frequencies</span>
+<span class="sd">         weights: the weights of the q-points</span>
+<span class="sd">         t: the temperature</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">wdkt</span> <span class="o">=</span> <span class="n">w</span> <span class="o">/</span> <span class="p">(</span><span class="n">abu</span><span class="o">.</span><span class="n">kb_eVK</span> <span class="o">*</span> <span class="n">t</span><span class="p">)</span>
+
+    <span class="c1"># if w=0 set cv=0</span>
+    <span class="n">cv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">choose</span><span class="p">(</span><span class="n">w</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">abu</span><span class="o">.</span><span class="n">kb_eVK</span> <span class="o">*</span> <span class="n">wdkt</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">wdkt</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">wdkt</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">w</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">weights</span><span class="p">[</span><span class="n">ind</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">cv</span><span class="p">[</span><span class="n">ind</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="get_zero_point_energy"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.get_zero_point_energy">[docs]</a><span class="k">def</span> <span class="nf">get_zero_point_energy</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">weights</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the zero point energy in eV from the phonon frequencies on a regular grid.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">         w: the phonon frequencies</span>
+<span class="sd">         weights: the weights of the q-points</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">zpe</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">choose</span><span class="p">(</span><span class="n">w</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">w</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">w</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">weights</span><span class="p">[</span><span class="n">ind</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">zpe</span><span class="p">[</span><span class="n">ind</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="get_entropy"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.qha.get_entropy">[docs]</a><span class="k">def</span> <span class="nf">get_entropy</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the entropy in eV/K from the phonon frequencies on a regular grid.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">         w: the phonon frequencies</span>
+<span class="sd">         weights: the weights of the q-points</span>
+<span class="sd">         t: the temperature</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">wd2kt</span> <span class="o">=</span> <span class="n">w</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">kb_eVK</span> <span class="o">*</span> <span class="n">t</span><span class="p">)</span>
+    <span class="n">coth</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+    <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">choose</span><span class="p">(</span><span class="n">w</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">w</span><span class="o">*</span><span class="n">coth</span><span class="p">(</span><span class="n">wd2kt</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">t</span> <span class="o">-</span> <span class="n">abu</span><span class="o">.</span><span class="n">kb_eVK</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sinh</span><span class="p">(</span><span class="n">wd2kt</span><span class="p">))))</span>
+    <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">w</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">weights</span><span class="p">[</span><span class="n">ind</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">s</span><span class="p">[</span><span class="n">ind</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span></div>
 </pre></div>
 
     </div>
@@ -583,7 +1039,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 26, 2018.<br/>
+      Last updated on Aug 14, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

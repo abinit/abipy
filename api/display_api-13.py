@@ -1,1 +1,1 @@
-g = sns.pairplot(iris, hue="species", markers=["o", "s", "D"])
+g = sns.pairplot(iris, vars=["sepal_width", "sepal_length"])

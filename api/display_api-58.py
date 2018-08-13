@@ -1,3 +1,2 @@
-tips["weekend"] = tips["day"].isin(["Sat", "Sun"])
-ax = sns.violinplot(x="day", y="total_bill", hue="weekend",
-                    data=tips, dodge=False)
+ax = sns.stripplot(x="sex", y="total_bill", hue="day",
+                   data=tips, jitter=True)

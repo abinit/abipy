@@ -724,7 +724,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Gives a structure with a conventional cell according to certain</span>
 <span class="sd">	standards. The standards are defined in :cite:`Setyawan2010`</span>
-<span class="sd">        They basically enforce as much as possible norm(a1)&lt;norm(a2)&lt;norm(a3)</span>
+<span class="sd">        They basically enforce as much as possible norm(a1) &lt; norm(a2) &lt; norm(a3)</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            The structure in a conventional standardized cell</span>
@@ -1124,16 +1124,32 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">from_sites</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">site</span><span class="p">:</span> <span class="n">site</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">Z</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="Structure.findname_in_hsym_stars"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.findname_in_hsym_stars">[docs]</a>    <span class="k">def</span> <span class="nf">findname_in_hsym_stars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the name of the special k-point, None if kpoint is unknown.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the name of the special k-point, None if kpoint is unknown.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">abi_spacegroup</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="kn">from</span> <span class="nn">.kpoints</span> <span class="k">import</span> <span class="n">Kpoint</span>
+        <span class="n">kpoint</span> <span class="o">=</span> <span class="n">Kpoint</span><span class="o">.</span><span class="n">as_kpoint</span><span class="p">(</span><span class="n">kpoint</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="p">)</span>
+
+        <span class="c1"># Try to find kpoint in hsym_stars without taking into accout symmetry operation (compare with base_point)</span>
+        <span class="c1"># Important if there are symmetry equivalent k-points in hsym_kpoints e.g. K and U in FCC lattice</span>
+        <span class="c1"># as U should not be mapped onto K as done in the second loop below.</span>
+        <span class="kn">from</span> <span class="nn">.kpoints</span> <span class="k">import</span> <span class="n">issamek</span>
         <span class="k">for</span> <span class="n">star</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hsym_stars</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">star</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">kpoint</span><span class="p">)</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">issamek</span><span class="p">(</span><span class="n">kpoint</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span> <span class="n">star</span><span class="o">.</span><span class="n">base_point</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">star</span><span class="o">.</span><span class="n">name</span>
+
+	<span class="c1"># Now check if kpoint is in one of the stars.</span>
+        <span class="k">for</span> <span class="n">star</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hsym_stars</span><span class="p">:</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="n">star</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">kpoint</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="c1">#print(&quot;input kpt:&quot;, kpoint, &quot;star image&quot;, star[i], star[i].name)</span>
                 <span class="k">return</span> <span class="n">star</span><span class="o">.</span><span class="n">name</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="Structure.get_symbol2indices"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.get_symbol2indices">[docs]</a>    <span class="k">def</span> <span class="nf">get_symbol2indices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a dictionary mapping chemical symbols to numpy array with the position of the atoms.</span>
 
@@ -1206,14 +1222,17 @@
 <span class="sd">            with_spglib (bool): If True, spglib is invoked to get the spacegroup symbol and number</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">abc</span><span class="p">,</span> <span class="n">angles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">abc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">angles</span>
+
         <span class="c1"># Get spacegroup info from spglib.</span>
-        <span class="n">spglib_symbol</span><span class="p">,</span> <span class="n">spglib_number</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="n">spglib_symbol</span><span class="p">,</span> <span class="n">spglib_number</span><span class="p">,</span> <span class="n">spglib_lattice_type</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">with_spglib</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">spglib_symbol</span><span class="p">,</span> <span class="n">spglib_number</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_space_group_info</span><span class="p">()</span>
+                <span class="n">spglib_lattice_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spget_lattice_type</span><span class="p">()</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
                 <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Spglib couldn&#39;t find space group symbol and number for composition </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">composition</span><span class="p">),</span> <span class="s2">&quot;red&quot;</span><span class="p">)</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Exception:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc</span><span class="p">)</span>
+
         <span class="c1"># Get spacegroup number computed by Abinit if available.</span>
         <span class="n">abispg_number</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">abi_spacegroup</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">abi_spacegroup</span><span class="o">.</span><span class="n">spgid</span>
 
@@ -1226,6 +1245,7 @@
         <span class="k">if</span> <span class="n">with_spglib</span><span class="p">:</span>
             <span class="n">od</span><span class="p">[</span><span class="s2">&quot;spglib_symb&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">spglib_symbol</span>
             <span class="n">od</span><span class="p">[</span><span class="s2">&quot;spglib_num&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">spglib_number</span>
+            <span class="n">od</span><span class="p">[</span><span class="s2">&quot;spglib_lattice_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">spglib_lattice_type</span>
 
         <span class="k">return</span> <span class="n">od</span></div>
 
@@ -1406,6 +1426,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">fmt</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;abivars&quot;</span><span class="p">,</span> <span class="s2">&quot;abinit&quot;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">abi_string</span>
+        <span class="k">elif</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s2">&quot;abipython&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pformat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_abivars</span><span class="p">(),</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s2">&quot;qe&quot;</span><span class="p">:</span>
             <span class="kn">from</span> <span class="nn">pymatgen.io.pwscf</span> <span class="k">import</span> <span class="n">PWInput</span>
             <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">PWInput</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pseudo</span><span class="o">=</span><span class="p">{</span><span class="n">s</span><span class="p">:</span> <span class="n">s</span> <span class="o">+</span> <span class="s2">&quot;.pseudo&quot;</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol_set</span><span class="p">}))</span>
@@ -2322,7 +2344,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 26, 2018.<br/>
+      Last updated on Aug 14, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

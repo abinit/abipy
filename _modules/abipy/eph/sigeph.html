@@ -1039,8 +1039,9 @@
 
     <span class="c1">#def get_dirgaps_dataframe(self):</span>
 
-<div class="viewcode-block" id="SigEPhFile.interpolate"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.sigeph.SigEPhFile.interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">itemp_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lpratio</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;qp&quot;</span><span class="p">,</span> <span class="n">ks_ebands_kpath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ks_ebands_kmesh</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ks_degatol</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span>
-                    <span class="n">vertices_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">line_density</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">filter_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">only_corrections</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span> <span class="c1"># pragma: no cover</span>
+<div class="viewcode-block" id="SigEPhFile.interpolate"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.sigeph.SigEPhFile.interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">itemp_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lpratio</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;qp&quot;</span><span class="p">,</span> <span class="n">ks_ebands_kpath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ks_ebands_kmesh</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">ks_degatol</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span> <span class="n">vertices_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">line_density</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">filter_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">only_corrections</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span> <span class="c1"># pragma: no cover</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Interpolated the self-energy corrections in k-space on a k-path and, optionally, on a k-mesh.</span>
 
@@ -1190,15 +1191,15 @@
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">lw_kpath</span> <span class="o">=</span> <span class="n">qp_corrs</span>
 
-                <span class="k">if</span> <span class="n">ks_ebands_kmesh</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="c1">#interpolate QP energies</span>
-                    <span class="k">if</span> <span class="n">reim</span> <span class="o">==</span> <span class="s2">&quot;real&quot;</span><span class="p">:</span>
-                        <span class="n">eigens_kmesh</span> <span class="o">=</span> <span class="n">skw</span><span class="o">.</span><span class="n">interp_kpts</span><span class="p">(</span><span class="n">dos_kcoords</span><span class="p">)</span><span class="o">.</span><span class="n">eigens</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">linewidths_kmesh</span> <span class="o">=</span> <span class="n">skw</span><span class="o">.</span><span class="n">interp_kpts</span><span class="p">(</span><span class="n">dos_kcoords</span><span class="p">)</span><span class="o">.</span><span class="n">eigens</span>
+                <span class="c1">#if ks_ebands_kmesh is None:</span>
+                <span class="c1">#    # Interpolate QP energies</span>
+                <span class="c1">#    if reim == &quot;real&quot;:</span>
+                <span class="c1">#        eigens_kmesh = skw.interp_kpts(dos_kcoords).eigens</span>
+                <span class="c1">#    else:</span>
+                <span class="c1">#        linewidths_kmesh = skw.interp_kpts(dos_kcoords).eigens</span>
 
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="c1">#interpolate QP energies corrections and add them to KS</span>
+                <span class="k">if</span> <span class="n">ks_ebands_kmesh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="c1"># Interpolate QP energies corrections and add them to KS</span>
                     <span class="n">ref_eigens</span> <span class="o">=</span> <span class="n">ks_ebands_kmesh</span><span class="o">.</span><span class="n">eigens</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">bstart</span><span class="p">:</span><span class="n">bstop</span><span class="p">]</span>
                     <span class="k">if</span> <span class="n">reim</span> <span class="o">==</span> <span class="s2">&quot;real&quot;</span><span class="p">:</span>
                         <span class="n">eigens_kmesh</span> <span class="o">=</span> <span class="n">skw</span><span class="o">.</span><span class="n">interp_kpts_and_enforce_degs</span><span class="p">(</span><span class="n">dos_kcoords</span><span class="p">,</span> <span class="n">ref_eigens</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">ks_degatol</span><span class="p">)</span><span class="o">.</span><span class="n">eigens</span>
@@ -2495,7 +2496,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 26, 2018.<br/>
+      Last updated on Aug 14, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

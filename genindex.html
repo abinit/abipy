@@ -299,8 +299,6 @@
 </li>
       <li><a href="api/core_api.html#module-abipy.core.symmetries">abipy.core.symmetries (module)</a>
 </li>
-      <li><a href="api/core_api.html#module-abipy.core.tensor">abipy.core.tensor (module)</a>
-</li>
       <li><a href="api/core_api.html#module-abipy.core.testing">abipy.core.testing (module)</a>
 </li>
       <li><a href="api/core_api.html#module-abipy.core.wyckoff">abipy.core.wyckoff (module)</a>
@@ -312,6 +310,8 @@
       <li><a href="api/dfpt_api.html#module-abipy.dfpt.anaddbnc">abipy.dfpt.anaddbnc (module)</a>
 </li>
       <li><a href="api/dfpt_api.html#module-abipy.dfpt.ddb">abipy.dfpt.ddb (module)</a>
+</li>
+      <li><a href="api/dfpt_api.html#module-abipy.dfpt.elastic">abipy.dfpt.elastic (module)</a>
 </li>
       <li><a href="api/dfpt_api.html#module-abipy.dfpt.frozen_phonons">abipy.dfpt.frozen_phonons (module)</a>
 </li>
@@ -371,6 +371,8 @@
 </li>
       <li><a href="api/eph_api.html#module-abipy.eph.a2f">abipy.eph.a2f (module)</a>
 </li>
+      <li><a href="api/eph_api.html#module-abipy.eph.common">abipy.eph.common (module)</a>
+</li>
       <li><a href="api/eph_api.html#module-abipy.eph.sigeph">abipy.eph.sigeph (module)</a>
 </li>
       <li><a href="api/flowtk_api.html#module-abipy.flowtk">abipy.flowtk (module)</a>
@@ -409,8 +411,6 @@
 </li>
       <li><a href="api/flowtk_api.html#module-abipy.flowtk.wrappers">abipy.flowtk.wrappers (module)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/iotools_api.html#module-abipy.iotools">abipy.iotools (module)</a>
 </li>
       <li><a href="api/iotools_api.html#module-abipy.iotools.visualizer">abipy.iotools.visualizer (module)</a>
@@ -419,6 +419,8 @@
 </li>
       <li><a href="api/tools_api.html#module-abipy.tools">abipy.tools (module)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/tools_api.html#module-abipy.tools.bessel">abipy.tools.bessel (module)</a>
 </li>
       <li><a href="api/tools_api.html#module-abipy.tools.decorators">abipy.tools.decorators (module)</a>
@@ -481,6 +483,8 @@
 </li>
       <li><a href="api/core_api.html#abipy.core.testing.AbipyTest.abivalidate_multi">abivalidate_multi() (abipy.core.testing.AbipyTest static method)</a>
 </li>
+      <li><a href="api/core_api.html#abipy.core.testing.AbipyTest.abivalidate_work">abivalidate_work() (abipy.core.testing.AbipyTest method)</a>
+</li>
       <li><a href="api/wannier90_api.html#abipy.wannier90.abiwan.AbiwanFile">AbiwanFile (class in abipy.wannier90.abiwan)</a>
 </li>
       <li><a href="api/wannier90_api.html#abipy.wannier90.abiwan.AbiwanReader">AbiwanReader (class in abipy.wannier90.abiwan)</a>
@@ -494,6 +498,8 @@
       <li><a href="api/core_api.html#abipy.core.func1d.Function1D.abs">abs() (abipy.core.func1d.Function1D method)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbstractInput">AbstractInput (class in abipy.abio.inputs)</a>
+</li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA">AbstractQHA (class in abipy.dfpt.qha)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.lobster.LobsterInput.accepted_basis_sets">accepted_basis_sets (abipy.electrons.lobster.LobsterInput attribute)</a>
 </li>
@@ -557,7 +563,13 @@
 </li>
       <li><a href="api/core_api.html#abipy.core.symmetries.AbinitSpaceGroup.afm_symmops">afm_symmops (abipy.core.symmetries.AbinitSpaceGroup attribute)</a>
 </li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.ALL_ELASTIC_TENSOR_NAMES">ALL_ELASTIC_TENSOR_NAMES (abipy.dfpt.elastic.ElasticData attribute)</a>
+</li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.ALL_PIEZOELECTRIC_TENSOR_NAMES">ALL_PIEZOELECTRIC_TENSOR_NAMES (abipy.dfpt.elastic.ElasticData attribute)</a>
+</li>
       <li><a href="api/eph_api.html#abipy.eph.a2f.A2fRobot.all_qsamps">all_qsamps (abipy.eph.a2f.A2fRobot attribute)</a>
+</li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.ALL_TENSOR_NAMES">ALL_TENSOR_NAMES (abipy.dfpt.elastic.ElasticData attribute)</a>
 </li>
       <li><a href="api/iotools_api.html#abipy.iotools.visualizer.Visualizer.all_visunames">all_visunames() (abipy.iotools.visualizer.Visualizer class method)</a>
 </li>
@@ -565,9 +577,15 @@
 </li>
       <li><a href="api/tools_api.html#abipy.tools.numtools.alternate">alternate() (in module abipy.tools.numtools)</a>
 </li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.amu_symbol">amu_symbol (abipy.dfpt.gruneisen.GrunsNcFile attribute)</a>
+</li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.anacompare_asr">anacompare_asr() (abipy.dfpt.ddb.DdbFile method)</a>
 </li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DdbRobot.anacompare_becs">anacompare_becs() (abipy.dfpt.ddb.DdbRobot method)</a>
+</li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.anacompare_dipdip">anacompare_dipdip() (abipy.dfpt.ddb.DdbFile method)</a>
+</li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DdbRobot.anacompare_elastic">anacompare_elastic() (abipy.dfpt.ddb.DdbRobot method)</a>
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.anacompare_phdos">anacompare_phdos() (abipy.dfpt.ddb.DdbFile method)</a>
 </li>
@@ -579,7 +597,11 @@
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcFile">AnaddbNcFile (class in abipy.dfpt.anaddbnc)</a>
 </li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcRobot">AnaddbNcRobot (class in abipy.dfpt.anaddbnc)</a>
+</li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.anaget_dielectric_tensor_generator">anaget_dielectric_tensor_generator() (abipy.dfpt.ddb.DdbFile method)</a>
+</li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.anaget_elastic">anaget_elastic() (abipy.dfpt.ddb.DdbFile method)</a>
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.anaget_emacro_and_becs">anaget_emacro_and_becs() (abipy.dfpt.ddb.DdbFile method)</a>
 </li>
@@ -627,8 +649,6 @@
         <li><a href="api/abio_api.html#abipy.abio.inputs.OpticInput.as_dict">(abipy.abio.inputs.OpticInput method)</a>
 </li>
         <li><a href="api/core_api.html#abipy.core.kpoints.KpointList.as_dict">(abipy.core.kpoints.KpointList method)</a>
-</li>
-        <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.ElasticComplianceTensor.as_dict">(abipy.dfpt.ddb.ElasticComplianceTensor method)</a>
 </li>
         <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.as_dict">(abipy.electrons.ebands.ElectronBands method)</a>
 </li>
@@ -691,6 +711,8 @@
 </li>
       <li><a href="api/core_api.html#abipy.core.kpoints.KpointStar.base_point">base_point (abipy.core.kpoints.KpointStar attribute)</a>
 </li>
+      <li><a href="api/eph_api.html#abipy.eph.common.BaseEphReader">BaseEphReader (class in abipy.eph.common)</a>
+</li>
       <li><a href="api/abio_api.html#abipy.abio.variable.InputVariable.basename">basename (abipy.abio.variable.InputVariable attribute)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.structure.Structure.bcc">bcc() (abipy.core.structure.Structure class method)</a>
@@ -705,10 +727,10 @@
 </li>
       <li><a href="api/tools_api.html#abipy.tools.numtools.BlochRegularGridInterpolator">BlochRegularGridInterpolator (class in abipy.tools.numtools)</a>
 </li>
-      <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.blocks">blocks (abipy.dfpt.ddb.DdbFile attribute)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.blocks">blocks (abipy.dfpt.ddb.DdbFile attribute)</a>
+</li>
       <li><a href="api/core_api.html#abipy.core.func1d.Function1D.bma">bma (abipy.core.func1d.Function1D attribute)</a>
 </li>
       <li><a href="api/flowtk_api.html#abipy.flowtk.tasks.BoxcuttedPhononTask">BoxcuttedPhononTask (class in abipy.flowtk.tasks)</a>
@@ -755,16 +777,24 @@
 </li>
       <li><a href="api/core_api.html#abipy.core.structure.Structure.calc_shiftk">calc_shiftk() (abipy.core.structure.Structure method)</a>
 </li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.gruneisen.calculate_gruns_finite_differences">calculate_gruns_finite_differences() (in module abipy.dfpt.gruneisen)</a>
+</li>
       <li><a href="api/core_api.html#abipy.core.kpoints.Kpath.cart_bounds">cart_bounds (abipy.core.kpoints.Kpath attribute)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.kpoints.Kpoint.cart_coords">cart_coords (abipy.core.kpoints.Kpoint attribute)</a>
 </li>
-      <li><a href="api/electrons_api.html#abipy.electrons.gsr.GsrFile.cart_forces">cart_forces (abipy.electrons.gsr.GsrFile attribute)</a>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.cart_forces">cart_forces (abipy.dfpt.ddb.DdbFile attribute)</a>
+
+      <ul>
+        <li><a href="api/electrons_api.html#abipy.electrons.gsr.GsrFile.cart_forces">(abipy.electrons.gsr.GsrFile attribute)</a>
 </li>
-      <li><a href="api/electrons_api.html#abipy.electrons.gsr.GsrFile.cart_stress_tensor">cart_stress_tensor (abipy.electrons.gsr.GsrFile attribute)</a>
+      </ul></li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.cart_stress_tensor">cart_stress_tensor (abipy.dfpt.ddb.DdbFile attribute)</a>
+
+      <ul>
+        <li><a href="api/electrons_api.html#abipy.electrons.gsr.GsrFile.cart_stress_tensor">(abipy.electrons.gsr.GsrFile attribute)</a>
 </li>
-      <li><a href="api/core_api.html#abipy.core.tensor.Tensor.cartesian_tensor">cartesian_tensor (abipy.core.tensor.Tensor attribute)</a>
-</li>
+      </ul></li>
       <li><a href="api/core_api.html#abipy.core.gsphere.GSphere.cempty">cempty() (abipy.core.gsphere.GSphere method)</a>
 
       <ul>
@@ -776,8 +806,6 @@
       <li><a href="api/flowtk_api.html#abipy.flowtk.mocks.change_task_start">change_task_start() (in module abipy.flowtk.mocks)</a>
 </li>
       <li><a href="api/flowtk_api.html#abipy.flowtk.mocks.InfiniteFlow.check_status">check_status() (abipy.flowtk.mocks.InfiniteFlow method)</a>
-</li>
-      <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.Becs.check_sumrule">check_sumrule() (abipy.dfpt.ddb.Becs method)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.kpoints.KpointList.check_weights">check_weights() (abipy.core.kpoints.KpointList method)</a>
 </li>
@@ -881,6 +909,8 @@
       </ul></li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.comment">comment (abipy.abio.inputs.AbinitInput attribute)</a>
 </li>
+      <li><a href="api/eph_api.html#abipy.eph.common.BaseEphReader.common_eph_params">common_eph_params (abipy.eph.common.BaseEphReader attribute)</a>
+</li>
       <li><a href="api/electrons_api.html#abipy.electrons.psps.PspsFile.compare">compare() (abipy.electrons.psps.PspsFile method)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.outputs.AbinitOutputFile.compare_d2de_scf_cycles">compare_d2de_scf_cycles() (abipy.abio.outputs.AbinitOutputFile method)</a>
@@ -898,6 +928,8 @@
       <li><a href="api/core_api.html#abipy.core.func1d.Function1D.conjugate">conjugate() (abipy.core.func1d.Function1D method)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.structure.Structure.convert">convert() (abipy.core.structure.Structure method)</a>
+</li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.convert_to_ieee">convert_to_ieee() (abipy.dfpt.elastic.ElasticData method)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.restapi.DatabaseStructures.coords_dataframe">coords_dataframe (abipy.core.restapi.DatabaseStructures attribute)</a>
 </li>
@@ -979,6 +1011,8 @@
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcFile.dchidt">dchidt (abipy.dfpt.anaddbnc.AnaddbNcFile attribute)</a>
 </li>
+      <li><a href="api/eph_api.html#abipy.eph.common.BaseEphReader.ddb_ngqpt">ddb_ngqpt (abipy.eph.common.BaseEphReader attribute)</a>
+</li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DdbError">DdbError</a>
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DdbFile">DdbFile (class in abipy.dfpt.ddb)</a>
@@ -1042,6 +1076,10 @@
       <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.derivatives">derivatives() (abipy.electrons.ebands.ElectronBands method)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.symmetries.LatticeRotation.det">det (abipy.core.symmetries.LatticeRotation attribute)</a>
+</li>
+      <li><a href="api/abio_api.html#abipy.abio.inputs.AnaddbInput.dfpt">dfpt() (abipy.abio.inputs.AnaddbInput class method)</a>
+</li>
+      <li><a href="api/abio_api.html#abipy.abio.factories.dfpt_from_gsinput">dfpt_from_gsinput() (in module abipy.abio.factories)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.bse.DielectricFunction">DielectricFunction (class in abipy.electrons.bse)</a>
 
@@ -1163,7 +1201,11 @@
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.eigens">eigens (abipy.electrons.ebands.ElectronBands attribute)</a>
 </li>
-      <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.ElasticComplianceTensor">ElasticComplianceTensor (class in abipy.dfpt.ddb)</a>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcFile.elastic_data">elastic_data (abipy.dfpt.anaddbnc.AnaddbNcFile attribute)</a>
+</li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.elastic.ElasticData">ElasticData (class in abipy.dfpt.elastic)</a>
+</li>
+      <li><a href="api/flowtk_api.html#abipy.flowtk.dfpt_works.ElasticWork">ElasticWork (class in abipy.flowtk.dfpt_works)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands">ElectronBands (class in abipy.electrons.ebands)</a>
 </li>
@@ -1208,6 +1250,8 @@
       <li><a href="api/electrons_api.html#abipy.electrons.gsr.GsrFile.energy_terms">energy_terms (abipy.electrons.gsr.GsrFile attribute)</a>
 </li>
       <li><a href="api/flowtk_api.html#abipy.flowtk.gs_works.EosWork">EosWork (class in abipy.flowtk.gs_works)</a>
+</li>
+      <li><a href="api/eph_api.html#abipy.eph.common.BaseEphReader.eph_ngqpt_fine">eph_ngqpt_fine (abipy.eph.common.BaseEphReader attribute)</a>
 </li>
       <li><a href="api/eph_api.html#abipy.eph.sigeph.EphSelfEnergy">EphSelfEnergy (class in abipy.eph.sigeph)</a>
 </li>
@@ -1288,6 +1332,8 @@
       <li><a href="api/abio_api.html#abipy.abio.outputs.AboRobot.EXT">EXT (abipy.abio.outputs.AboRobot attribute)</a>
 
       <ul>
+        <li><a href="api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcRobot.EXT">(abipy.dfpt.anaddbnc.AnaddbNcRobot attribute)</a>
+</li>
         <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DdbRobot.EXT">(abipy.dfpt.ddb.DdbRobot attribute)</a>
 </li>
         <li><a href="api/dynamics_api.html#abipy.dynamics.hist.HistRobot.EXT">(abipy.dynamics.hist.HistRobot attribute)</a>
@@ -1309,8 +1355,6 @@
         <li><a href="api/tools_api.html#abipy.tools.plotting.Marker.extend">(abipy.tools.plotting.Marker method)</a>
 </li>
       </ul></li>
-      <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.ElasticComplianceTensor.extended_dict">extended_dict() (abipy.dfpt.ddb.ElasticComplianceTensor method)</a>
-</li>
       <li><a href="api/core_api.html#abipy.core.skw.extract_point_group">extract_point_group() (in module abipy.core.skw)</a>
 </li>
   </ul></td>
@@ -1407,9 +1451,13 @@
         <li><a href="api/tools_api.html#abipy.tools.derivatives.finite_diff">(in module abipy.tools.derivatives)</a>
 </li>
       </ul></li>
-      <li><a href="api/dfpt_api.html#abipy.dfpt.qha.QHA.fit_energies">fit_energies() (abipy.dfpt.qha.QHA method)</a>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA.fit_energies">fit_energies() (abipy.dfpt.qha.AbstractQHA method)</a>
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.frozen_phonons.FrozenPhonon.fit_to_frequency">fit_to_frequency() (abipy.dfpt.frozen_phonons.FrozenPhonon method)</a>
+</li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.fit_to_structure">fit_to_structure() (abipy.dfpt.elastic.ElasticData method)</a>
+</li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.qha.QHA3P.fitted_frequencies">fitted_frequencies (abipy.dfpt.qha.QHA3P attribute)</a>
 </li>
       <li><a href="api/flowtk_api.html#abipy.flowtk.flow_main">flow_main() (in module abipy.flowtk)</a>
 </li>
@@ -1438,8 +1486,6 @@
       <li><a href="api/core_api.html#abipy.core.structure.Structure.from_abivars">from_abivars() (abipy.core.structure.Structure class method)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.structure.Structure.from_ase_atoms">from_ase_atoms() (abipy.core.structure.Structure class method)</a>
-</li>
-      <li><a href="api/core_api.html#abipy.core.tensor.Tensor.from_cartesian_tensor">from_cartesian_tensor() (abipy.core.tensor.Tensor class method)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.fields.Density.from_chgcar_poscar">from_chgcar_poscar() (abipy.core.fields.Density class method)</a>
 </li>
@@ -1472,8 +1518,6 @@
 </li>
         <li><a href="api/core_api.html#abipy.core.kpoints.KpointList.from_dict">(abipy.core.kpoints.KpointList class method)</a>
 </li>
-        <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.ElasticComplianceTensor.from_dict">(abipy.dfpt.ddb.ElasticComplianceTensor class method)</a>
-</li>
         <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.from_dict">(abipy.electrons.ebands.ElectronBands class method)</a>
 </li>
       </ul></li>
@@ -1489,11 +1533,7 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/abio_api.html#abipy.abio.robots.Robot.from_dir_glob">from_dir_glob() (abipy.abio.robots.Robot class method)</a>
 </li>
-      <li><a href="api/core_api.html#abipy.core.tensor.SymmetricTensor.from_directions">from_directions() (abipy.core.tensor.SymmetricTensor class method)</a>
-</li>
       <li><a href="api/abio_api.html#abipy.abio.robots.Robot.from_dirs">from_dirs() (abipy.abio.robots.Robot class method)</a>
-</li>
-      <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.ElasticComplianceTensor.from_ec_nc_file">from_ec_nc_file() (abipy.dfpt.ddb.ElasticComplianceTensor class method)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.func1d.Function1D.from_file">from_file() (abipy.core.func1d.Function1D class method)</a>
 
@@ -1505,6 +1545,8 @@
         <li><a href="api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcFile.from_file">(abipy.dfpt.anaddbnc.AnaddbNcFile class method)</a>
 </li>
         <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.from_file">(abipy.dfpt.ddb.DdbFile class method)</a>
+</li>
+        <li><a href="api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.from_file">(abipy.dfpt.elastic.ElasticData class method)</a>
 </li>
         <li><a href="api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.from_file">(abipy.dfpt.gruneisen.GrunsNcFile class method)</a>
 </li>
@@ -1558,6 +1600,10 @@
 </li>
         <li><a href="api/dfpt_api.html#abipy.dfpt.qha.QHA.from_files">(abipy.dfpt.qha.QHA class method)</a>
 </li>
+        <li><a href="api/dfpt_api.html#abipy.dfpt.qha.QHA3P.from_files">(abipy.dfpt.qha.QHA3P class method)</a>
+</li>
+        <li><a href="api/dfpt_api.html#abipy.dfpt.qha.QHA3PF.from_files">(abipy.dfpt.qha.QHA3PF class method)</a>
+</li>
         <li><a href="api/electrons_api.html#abipy.electrons.charges.BaderCharges.from_files">(abipy.electrons.charges.BaderCharges class method)</a>
 </li>
         <li><a href="api/tools_api.html#abipy.tools.plotting.GenericDataFilesPlotter.from_files">(abipy.tools.plotting.GenericDataFilesPlotter class method)</a>
@@ -1599,6 +1645,8 @@
 </li>
       <li><a href="api/core_api.html#abipy.core.kpoints.Kpath.from_names">from_names() (abipy.core.kpoints.Kpath class method)</a>
 </li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.from_ncreader">from_ncreader() (abipy.dfpt.elastic.ElasticData class method)</a>
+</li>
       <li><a href="api/core_api.html#abipy.core.kpoints.IrredZone.from_ngkpt">from_ngkpt() (abipy.core.kpoints.IrredZone class method)</a>
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DielectricTensorGenerator.from_objects">from_objects() (abipy.dfpt.ddb.DielectricTensorGenerator class method)</a>
@@ -1607,8 +1655,12 @@
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.from_pymatgen">from_pymatgen() (abipy.electrons.ebands.ElectronBands class method)</a>
 </li>
-      <li><a href="api/flowtk_api.html#abipy.flowtk.gs_works.EosWork.from_scf_input">from_scf_input() (abipy.flowtk.gs_works.EosWork class method)</a>
+      <li><a href="api/flowtk_api.html#abipy.flowtk.dfpt_works.ElasticWork.from_scf_input">from_scf_input() (abipy.flowtk.dfpt_works.ElasticWork class method)</a>
+
+      <ul>
+        <li><a href="api/flowtk_api.html#abipy.flowtk.gs_works.EosWork.from_scf_input">(abipy.flowtk.gs_works.EosWork class method)</a>
 </li>
+      </ul></li>
       <li><a href="api/flowtk_api.html#abipy.flowtk.dfpt_works.NscfDdksWork.from_scf_task">from_scf_task() (abipy.flowtk.dfpt_works.NscfDdksWork class method)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.abivars.AbinitInputFile.from_string">from_string() (abipy.abio.abivars.AbinitInputFile class method)</a>
@@ -1702,10 +1754,16 @@
       <li><a href="api/abio_api.html#abipy.abio.robots.Robot.get_coords_dataframe">get_coords_dataframe() (abipy.abio.robots.Robot method)</a>
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononDos.get_cv">get_cv() (abipy.dfpt.phonons.PhononDos method)</a>
+
+      <ul>
+        <li><a href="api/dfpt_api.html#abipy.dfpt.qha.get_cv">(in module abipy.dfpt.qha)</a>
 </li>
+      </ul></li>
       <li><a href="api/abio_api.html#abipy.abio.outputs.AboRobot.get_dataframe">get_dataframe() (abipy.abio.outputs.AboRobot method)</a>
 
       <ul>
+        <li><a href="api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcRobot.get_dataframe">(abipy.dfpt.anaddbnc.AnaddbNcRobot method)</a>
+</li>
         <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.get_dataframe">(abipy.dfpt.phonons.PhononBands method)</a>
 </li>
         <li><a href="api/dynamics_api.html#abipy.dynamics.hist.HistRobot.get_dataframe">(abipy.dynamics.hist.HistRobot method)</a>
@@ -1771,9 +1829,11 @@
 </li>
       <li><a href="api/eph_api.html#abipy.eph.sigeph.TdepElectronBands.get_ebands_plotter">get_ebands_plotter() (abipy.eph.sigeph.TdepElectronBands method)</a>
 </li>
-      <li><a href="api/core_api.html#abipy.core.skw.ElectronInterpolator.get_edos">get_edos() (abipy.core.skw.ElectronInterpolator method)</a>
+      <li><a href="api/core_api.html#abipy.core.mixins.Has_ElectronBands.get_edos">get_edos() (abipy.core.mixins.Has_ElectronBands method)</a>
 
       <ul>
+        <li><a href="api/core_api.html#abipy.core.skw.ElectronInterpolator.get_edos">(abipy.core.skw.ElectronInterpolator method)</a>
+</li>
         <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.get_edos">(abipy.electrons.ebands.ElectronBands method)</a>
 </li>
       </ul></li>
@@ -1781,8 +1841,20 @@
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.get_ejdos">get_ejdos() (abipy.electrons.ebands.ElectronBands method)</a>
 </li>
-      <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononDos.get_entropy">get_entropy() (abipy.dfpt.phonons.PhononDos method)</a>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcRobot.get_elastic_dataframe">get_elastic_dataframe() (abipy.dfpt.anaddbnc.AnaddbNcRobot method)</a>
 </li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.get_elastic_properties_dataframe">get_elastic_properties_dataframe() (abipy.dfpt.elastic.ElasticData method)</a>
+</li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.get_elastic_tensor_dataframe">get_elastic_tensor_dataframe() (abipy.dfpt.elastic.ElasticData method)</a>
+</li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.get_elastic_voigt_dataframe">get_elastic_voigt_dataframe() (abipy.dfpt.elastic.ElasticData method)</a>
+</li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononDos.get_entropy">get_entropy() (abipy.dfpt.phonons.PhononDos method)</a>
+
+      <ul>
+        <li><a href="api/dfpt_api.html#abipy.dfpt.qha.get_entropy">(in module abipy.dfpt.qha)</a>
+</li>
+      </ul></li>
       <li><a href="api/eph_api.html#abipy.eph.sigeph.QpTempList.get_field_itemp">get_field_itemp() (abipy.eph.sigeph.QpTempList method)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.gw.QPState.get_fields">get_fields() (abipy.electrons.gw.QPState class method)</a>
@@ -1800,7 +1872,11 @@
       <li><a href="api/display_api.html#abipy.display.mvtk.get_fig_mlab">get_fig_mlab() (in module abipy.display.mvtk)</a>
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononDos.get_free_energy">get_free_energy() (abipy.dfpt.phonons.PhononDos method)</a>
+
+      <ul>
+        <li><a href="api/dfpt_api.html#abipy.dfpt.qha.get_free_energy">(in module abipy.dfpt.qha)</a>
 </li>
+      </ul></li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.get_frozen_phonons">get_frozen_phonons() (abipy.dfpt.phonons.PhononBands method)</a>
 </li>
       <li><a href="api/dynamics_api.html#abipy.dynamics.hist.HistFile.get_fstats_dict">get_fstats_dict() (abipy.dynamics.hist.HistFile method)</a>
@@ -1837,8 +1913,6 @@
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.psps.PspsReader.get_lnlist_for_type">get_lnlist_for_type() (abipy.electrons.psps.PspsReader method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/electrons_api.html#abipy.electrons.gw.SigresFile.get_marker">get_marker() (abipy.electrons.gw.SigresFile method)</a>
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.get_maxfreq_mode">get_maxfreq_mode() (abipy.dfpt.phonons.PhononBands method)</a>
@@ -1847,6 +1921,8 @@
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.bse.MdfFile.get_mdf">get_mdf() (abipy.electrons.bse.MdfFile method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.get_minfreq_mode">get_minfreq_mode() (abipy.dfpt.phonons.PhononBands method)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.testing.AbipyTest.get_mock_module">get_mock_module() (abipy.core.testing.AbipyTest static method)</a>
@@ -1885,13 +1961,15 @@
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhbstFile.get_phmode">get_phmode() (abipy.dfpt.phonons.PhbstFile method)</a>
 </li>
-      <li><a href="api/dfpt_api.html#abipy.dfpt.qha.QHA.get_phonopy_qha">get_phonopy_qha() (abipy.dfpt.qha.QHA method)</a>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA.get_phonopy_qha">get_phonopy_qha() (abipy.dfpt.qha.AbstractQHA method)</a>
+</li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.get_piezo_voigt_dataframe">get_piezo_voigt_dataframe() (abipy.dfpt.elastic.ElasticData method)</a>
+</li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.get_piezoelectric_tensor_dataframe">get_piezoelectric_tensor_dataframe() (abipy.dfpt.elastic.ElasticData method)</a>
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.get_plotter">get_plotter() (abipy.dfpt.gruneisen.GrunsNcFile method)</a>
 </li>
       <li><a href="api/wannier90_api.html#abipy.wannier90.abiwan.AbiwanFile.get_plotter_from_ebands">get_plotter_from_ebands() (abipy.wannier90.abiwan.AbiwanFile method)</a>
-</li>
-      <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.ElasticComplianceTensor.get_pmg_elastic_tensor">get_pmg_elastic_tensor() (abipy.dfpt.ddb.ElasticComplianceTensor method)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.gw.SigresFile.get_points_from_ebands">get_points_from_ebands() (abipy.electrons.gw.SigresFile method)</a>
 </li>
@@ -1933,12 +2011,26 @@
 </li>
       <li><a href="api/core_api.html#abipy.core.structure.Structure.get_symbol2indices">get_symbol2indices() (abipy.core.structure.Structure method)</a>
 </li>
-      <li><a href="api/dfpt_api.html#abipy.dfpt.qha.QHA.get_t_for_vols">get_t_for_vols() (abipy.dfpt.qha.QHA method)</a>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA.get_t_for_vols">get_t_for_vols() (abipy.dfpt.qha.AbstractQHA method)</a>
 </li>
-      <li><a href="api/electrons_api.html#abipy.electrons.bse.MdfFile.get_tensor">get_tensor() (abipy.electrons.bse.MdfFile method)</a>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.get_tensor">get_tensor() (abipy.dfpt.elastic.ElasticData method)</a>
+
+      <ul>
+        <li><a href="api/electrons_api.html#abipy.electrons.bse.MdfFile.get_tensor">(abipy.electrons.bse.MdfFile method)</a>
 </li>
-      <li><a href="api/dfpt_api.html#abipy.dfpt.qha.QHA.get_thermal_expansion_coeff">get_thermal_expansion_coeff() (abipy.dfpt.qha.QHA method)</a>
+      </ul></li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA.get_thermal_expansion_coeff">get_thermal_expansion_coeff() (abipy.dfpt.qha.AbstractQHA method)</a>
 </li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA.get_thermodynamic_properties">get_thermodynamic_properties() (abipy.dfpt.qha.AbstractQHA method)</a>
+
+      <ul>
+        <li><a href="api/dfpt_api.html#abipy.dfpt.qha.QHA.get_thermodynamic_properties">(abipy.dfpt.qha.QHA method)</a>
+</li>
+        <li><a href="api/dfpt_api.html#abipy.dfpt.qha.QHA3P.get_thermodynamic_properties">(abipy.dfpt.qha.QHA3P method)</a>
+</li>
+        <li><a href="api/dfpt_api.html#abipy.dfpt.qha.QHA3PF.get_thermodynamic_properties">(abipy.dfpt.qha.QHA3PF method)</a>
+</li>
+      </ul></li>
       <li><a href="api/abio_api.html#abipy.abio.outputs.AboRobot.get_time_dataframe">get_time_dataframe() (abipy.abio.outputs.AboRobot method)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.outputs.AbinitTextFile.get_timer">get_timer() (abipy.abio.outputs.AbinitTextFile method)</a>
@@ -1953,7 +2045,27 @@
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.MultiDataset.get_vars_dataframe">get_vars_dataframe() (abipy.abio.inputs.MultiDataset method)</a>
 </li>
-      <li><a href="api/dfpt_api.html#abipy.dfpt.qha.QHA.get_vol_at_t">get_vol_at_t() (abipy.dfpt.qha.QHA method)</a>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA.get_vib_free_energies">get_vib_free_energies() (abipy.dfpt.qha.AbstractQHA method)</a>
+
+      <ul>
+        <li><a href="api/dfpt_api.html#abipy.dfpt.qha.QHA.get_vib_free_energies">(abipy.dfpt.qha.QHA method)</a>
+</li>
+        <li><a href="api/dfpt_api.html#abipy.dfpt.qha.QHA3P.get_vib_free_energies">(abipy.dfpt.qha.QHA3P method)</a>
+</li>
+        <li><a href="api/dfpt_api.html#abipy.dfpt.qha.QHA3PF.get_vib_free_energies">(abipy.dfpt.qha.QHA3PF method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.Becs.get_voigt_dataframe">get_voigt_dataframe() (abipy.dfpt.ddb.Becs method)</a>
+
+      <ul>
+        <li><a href="api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.get_voigt_dataframe">(abipy.dfpt.elastic.ElasticData method)</a>
+</li>
+        <li><a href="api/dfpt_api.html#abipy.dfpt.elastic.MyElasticTensor.get_voigt_dataframe">(abipy.dfpt.elastic.MyElasticTensor method)</a>
+</li>
+        <li><a href="api/dfpt_api.html#abipy.dfpt.elastic.MyPiezoTensor.get_voigt_dataframe">(abipy.dfpt.elastic.MyPiezoTensor method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA.get_vol_at_t">get_vol_at_t() (abipy.dfpt.qha.AbstractQHA method)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.get_w_symbol">get_w_symbol() (abipy.electrons.fatbands.FatBandsFile method)</a>
 </li>
@@ -1962,6 +2074,8 @@
       <li><a href="api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.get_wl_atom">get_wl_atom() (abipy.electrons.fatbands.FatBandsFile method)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.get_wl_symbol">get_wl_symbol() (abipy.electrons.fatbands.FatBandsFile method)</a>
+</li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.qha.get_zero_point_energy">get_zero_point_energy() (in module abipy.dfpt.qha)</a>
 </li>
       <li><a href="api/tools_api.html#abipy.tools.getattrd">getattrd() (in module abipy.tools)</a>
 </li>
@@ -1991,6 +2105,8 @@
 </li>
       <li><a href="api/tools_api.html#abipy.tools.numtools.grouper">grouper() (in module abipy.tools.numtools)</a>
 </li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.grun_vals_finite_differences">grun_vals_finite_differences (abipy.dfpt.gruneisen.GrunsNcFile attribute)</a>
+</li>
       <li><a href="api/flowtk_api.html#abipy.flowtk.gruneisen.GruneseinenFlow">GruneseinenFlow (class in abipy.flowtk.gruneisen)</a>
 </li>
       <li><a href="api/flowtk_api.html#abipy.flowtk.gruneisen.GruneseinenWork">GruneseinenWork (class in abipy.flowtk.gruneisen)</a>
@@ -2010,6 +2126,8 @@
       <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.guessed_ngqpt">guessed_ngqpt (abipy.dfpt.ddb.DdbFile attribute)</a>
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.gvals_qibz">gvals_qibz (abipy.dfpt.gruneisen.GrunsNcFile attribute)</a>
+</li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.gvals_qibz_finite_differences">gvals_qibz_finite_differences (abipy.dfpt.gruneisen.GrunsNcFile attribute)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.gsphere.GSphere.gvecs">gvecs (abipy.core.gsphere.GSphere attribute)</a>
 
@@ -2035,6 +2153,8 @@
 </li>
       <li><a href="api/core_api.html#abipy.core.testing.AbipyTest.has_ase">has_ase() (abipy.core.testing.AbipyTest static method)</a>
 </li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.has_at_least_one_atomic_perturbation">has_at_least_one_atomic_perturbation (abipy.dfpt.ddb.DdbFile attribute)</a>
+</li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.has_bec_terms">has_bec_terms (abipy.dfpt.ddb.DdbFile attribute)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.has_bzmesh">has_bzmesh (abipy.electrons.ebands.ElectronBands attribute)</a>
@@ -2043,11 +2163,19 @@
 </li>
       <li><a href="api/abio_api.html#abipy.abio.robots.Robot.has_different_structures">has_different_structures() (abipy.abio.robots.Robot method)</a>
 </li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcFile.has_elastic_data">has_elastic_data (abipy.dfpt.anaddbnc.AnaddbNcFile attribute)</a>
+
+      <ul>
+        <li><a href="api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcRobot.has_elastic_data">(abipy.dfpt.anaddbnc.AnaddbNcRobot attribute)</a>
+</li>
+      </ul></li>
       <li><a href="api/core_api.html#abipy.core.mixins.Has_ElectronBands">Has_ElectronBands (class in abipy.core.mixins)</a>
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.has_emacro_terms">has_emacro_terms (abipy.dfpt.ddb.DdbFile attribute)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.mixins.Has_Header">Has_Header (class in abipy.core.mixins)</a>
+</li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.has_internalstrain_terms">has_internalstrain_terms (abipy.dfpt.ddb.DdbFile attribute)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.testing.AbipyTest.has_ipywidgets">has_ipywidgets() (abipy.core.testing.AbipyTest static method)</a>
 </li>
@@ -2079,16 +2207,20 @@
 </li>
       <li><a href="api/core_api.html#abipy.core.mixins.Has_PhononBands">Has_PhononBands (class in abipy.core.mixins)</a>
 </li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcFile.has_piezoelectric_data">has_piezoelectric_data (abipy.dfpt.anaddbnc.AnaddbNcFile attribute)</a>
+</li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.has_piezoelectric_terms">has_piezoelectric_terms (abipy.dfpt.ddb.DdbFile attribute)</a>
+</li>
       <li><a href="api/core_api.html#abipy.core.testing.AbipyTest.has_python_graphviz">has_python_graphviz() (abipy.core.testing.AbipyTest static method)</a>
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.has_qpoint">has_qpoint() (abipy.dfpt.ddb.DdbFile method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/abio_api.html#abipy.abio.outputs.AbinitOutputFile.has_same_final_structures">has_same_final_structures (abipy.abio.outputs.AbinitOutputFile attribute)</a>
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBandsPlotter.has_same_formula">has_same_formula() (abipy.dfpt.phonons.PhononBandsPlotter method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/abio_api.html#abipy.abio.outputs.AbinitOutputFile.has_same_initial_structures">has_same_initial_structures (abipy.abio.outputs.AbinitOutputFile attribute)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.func1d.Function1D.has_same_mesh">has_same_mesh() (abipy.core.func1d.Function1D method)</a>
@@ -2107,6 +2239,8 @@
         <li><a href="api/eph_api.html#abipy.eph.sigeph.SigEPhFile.has_spectral_function">(abipy.eph.sigeph.SigEPhFile attribute)</a>
 </li>
       </ul></li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.has_strain_terms">has_strain_terms (abipy.dfpt.ddb.DdbFile attribute)</a>
+</li>
       <li><a href="api/core_api.html#abipy.core.mixins.Has_Structure">Has_Structure (class in abipy.core.mixins)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.symmetries.AbinitSpaceGroup.has_timerev">has_timerev (abipy.core.symmetries.AbinitSpaceGroup attribute)</a>
@@ -2295,8 +2429,6 @@
 </li>
       <li><a href="api/core_api.html#abipy.core.symmetries.LatticeRotation.is_proper">is_proper (abipy.core.symmetries.LatticeRotation attribute)</a>
 </li>
-      <li><a href="api/core_api.html#abipy.core.tensor.Tensor.is_real_space">is_real_space (abipy.core.tensor.Tensor attribute)</a>
-</li>
       <li><a href="api/electrons_api.html#abipy.electrons.gsr.GsrFile.is_scf_run">is_scf_run (abipy.electrons.gsr.GsrFile attribute)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.kpoints.Ktables.is_shift">is_shift (abipy.core.kpoints.Ktables attribute)</a>
@@ -2462,11 +2594,7 @@
       <li><a href="api/eph_api.html#abipy.eph.sigeph.EphSelfEnergy.latex_symbol">latex_symbol (abipy.eph.sigeph.EphSelfEnergy attribute)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.kpoints.Kpoint.lattice">lattice (abipy.core.kpoints.Kpoint attribute)</a>
-
-      <ul>
-        <li><a href="api/core_api.html#abipy.core.tensor.Tensor.lattice">(abipy.core.tensor.Tensor attribute)</a>
 </li>
-      </ul></li>
       <li><a href="api/core_api.html#abipy.core.restapi.DatabaseStructures.lattice_dataframe">lattice_dataframe (abipy.core.restapi.DatabaseStructures attribute)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.structure.Structure.lattice_vectors">lattice_vectors() (abipy.core.structure.Structure method)</a>
@@ -2593,10 +2721,10 @@
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.bse.MultipleMdfPlotter.MDF_TYPECPLX2TEX">MDF_TYPECPLX2TEX (abipy.electrons.bse.MultipleMdfPlotter attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/electrons_api.html#abipy.electrons.bse.MultipleMdfPlotter.MDF_TYPES">MDF_TYPES (abipy.electrons.bse.MultipleMdfPlotter attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/electrons_api.html#abipy.electrons.bse.MdfFile">MdfFile (class in abipy.electrons.bse)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.bse.MdfPlotter">MdfPlotter (class in abipy.electrons.bse)</a>
@@ -2651,7 +2779,11 @@
 </li>
       <li><a href="api/wannier90_api.html#abipy.wannier90.abiwan.AbiwanFile.mwan">mwan (abipy.wannier90.abiwan.AbiwanFile attribute)</a>
 </li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.elastic.MyElasticTensor">MyElasticTensor (class in abipy.dfpt.elastic)</a>
+</li>
       <li><a href="api/core_api.html#abipy.core.restapi.MyMPRester">MyMPRester (class in abipy.core.restapi)</a>
+</li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.elastic.MyPiezoTensor">MyPiezoTensor (class in abipy.dfpt.elastic)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -2675,6 +2807,8 @@
         <li><a href="api/core_api.html#abipy.core.symmetries.LatticeRotation.name">(abipy.core.symmetries.LatticeRotation attribute)</a>
 </li>
       </ul></li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.name_tensor_list">name_tensor_list() (abipy.dfpt.elastic.ElasticData method)</a>
+</li>
       <li><a href="api/core_api.html#abipy.core.kpoints.KpointList.names">names (abipy.core.kpoints.KpointList attribute)</a>
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.natom">natom (abipy.dfpt.ddb.DdbFile attribute)</a>
@@ -2683,7 +2817,7 @@
         <li><a href="api/dynamics_api.html#abipy.dynamics.hist.HistReader.natom">(abipy.dynamics.hist.HistReader attribute)</a>
 </li>
       </ul></li>
-      <li><a href="api/dfpt_api.html#abipy.dfpt.qha.QHA.natoms">natoms (abipy.dfpt.qha.QHA attribute)</a>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA.natoms">natoms (abipy.dfpt.qha.AbstractQHA attribute)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.mixins.Has_ElectronBands.nband">nband (abipy.core.mixins.Has_ElectronBands attribute)</a>
 
@@ -2736,6 +2870,8 @@
       <li><a href="api/abio_api.html#abipy.abio.outputs.AbinitOutputFile.next_gs_scf_cycle">next_gs_scf_cycle() (abipy.abio.outputs.AbinitOutputFile method)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.scr.ScrFile.ng">ng (abipy.electrons.scr.ScrFile attribute)</a>
+</li>
+      <li><a href="api/eph_api.html#abipy.eph.common.BaseEphReader.ngqpt">ngqpt (abipy.eph.common.BaseEphReader attribute)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.kpoints.Ktables.nibz">nibz (abipy.core.kpoints.Ktables attribute)</a>
 </li>
@@ -2809,8 +2945,12 @@
 </li>
       <li><a href="api/tools_api.html#abipy.tools.text.nums_and_text">nums_and_text() (in module abipy.tools.text)</a>
 </li>
-      <li><a href="api/dfpt_api.html#abipy.dfpt.qha.QHA.nvols">nvols (abipy.dfpt.qha.QHA attribute)</a>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.nvols">nvols (abipy.dfpt.gruneisen.GrunsNcFile attribute)</a>
+
+      <ul>
+        <li><a href="api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA.nvols">(abipy.dfpt.qha.AbstractQHA attribute)</a>
 </li>
+      </ul></li>
       <li><a href="api/electrons_api.html#abipy.electrons.scr.ScrFile.nw">nw (abipy.electrons.scr.ScrFile attribute)</a>
 </li>
       <li><a href="api/wannier90_api.html#abipy.wannier90.abiwan.AbiwanFile.nwan_spin">nwan_spin (abipy.wannier90.abiwan.AbiwanFile attribute)</a>
@@ -2838,6 +2978,8 @@
       <ul>
         <li><a href="api/flowtk_api.html#abipy.flowtk.abiphonopy.PhonopyWork.on_all_ok">(abipy.flowtk.abiphonopy.PhonopyWork method)</a>
 </li>
+        <li><a href="api/flowtk_api.html#abipy.flowtk.dfpt_works.ElasticWork.on_all_ok">(abipy.flowtk.dfpt_works.ElasticWork method)</a>
+</li>
         <li><a href="api/flowtk_api.html#abipy.flowtk.gruneisen.GruneseinenWork.on_all_ok">(abipy.flowtk.gruneisen.GruneseinenWork method)</a>
 </li>
         <li><a href="api/flowtk_api.html#abipy.flowtk.gs_works.EosWork.on_all_ok">(abipy.flowtk.gs_works.EosWork method)</a>
@@ -2849,14 +2991,14 @@
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.OpticInput.only_independent_chi_components">only_independent_chi_components() (abipy.abio.inputs.OpticInput method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/core_api.html#abipy.core.restapi.MpStructures.open_browser">open_browser() (abipy.core.restapi.MpStructures method)</a>
 
       <ul>
         <li><a href="api/tools_api.html#abipy.tools.devtools.HtmlDiff.open_browser">(abipy.tools.devtools.HtmlDiff method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/abio_api.html#abipy.abio.inputs.OpticError">OpticError</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.OpticInput">OpticInput (class in abipy.abio.inputs)</a>
@@ -2943,6 +3085,8 @@
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.lobster.LobsterDoscarFile.pdos">pdos (abipy.electrons.lobster.LobsterDoscarFile attribute)</a>
 </li>
+      <li><a href="api/eph_api.html#abipy.eph.common.BaseEphReader.ph_ngqpt">ph_ngqpt (abipy.eph.common.BaseEphReader attribute)</a>
+</li>
       <li><a href="api/core_api.html#abipy.core.restapi.PhaseDiagramResults">PhaseDiagramResults (class in abipy.core.restapi)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.mixins.Has_PhononBands.phbands">phbands (abipy.core.mixins.Has_PhononBands attribute)</a>
@@ -2962,6 +3106,8 @@
       <li><a href="api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.phbands_qpath_vol">phbands_qpath_vol (abipy.dfpt.gruneisen.GrunsNcFile attribute)</a>
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhbstFile">PhbstFile (class in abipy.dfpt.phonons)</a>
+</li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.phdispl_cart_qibz">phdispl_cart_qibz (abipy.dfpt.gruneisen.GrunsNcFile attribute)</a>
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.phdos">phdos (abipy.dfpt.gruneisen.GrunsNcFile attribute)</a>
 
@@ -3179,9 +3325,11 @@
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.plot_ejdosvc">plot_ejdosvc() (abipy.electrons.ebands.ElectronBands method)</a>
 </li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcRobot.plot_elastic_properties">plot_elastic_properties() (abipy.dfpt.anaddbnc.AnaddbNcRobot method)</a>
+</li>
       <li><a href="api/electrons_api.html#abipy.electrons.scr.ScrFile.plot_emacro">plot_emacro() (abipy.electrons.scr.ScrFile method)</a>
 </li>
-      <li><a href="api/dfpt_api.html#abipy.dfpt.qha.QHA.plot_energies">plot_energies() (abipy.dfpt.qha.QHA method)</a>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA.plot_energies">plot_energies() (abipy.dfpt.qha.AbstractQHA method)</a>
 
       <ul>
         <li><a href="api/dynamics_api.html#abipy.dynamics.hist.HistFile.plot_energies">(abipy.dynamics.hist.HistFile method)</a>
@@ -3275,7 +3423,7 @@
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.plot_phbands_with_gruns">plot_phbands_with_gruns() (abipy.dfpt.gruneisen.GrunsNcFile method)</a>
 </li>
-      <li><a href="api/dfpt_api.html#abipy.dfpt.qha.QHA.plot_phbs">plot_phbs() (abipy.dfpt.qha.QHA method)</a>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA.plot_phbs">plot_phbs() (abipy.dfpt.qha.AbstractQHA method)</a>
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.plot_phdispl">plot_phdispl() (abipy.dfpt.phonons.PhononBands method)</a>
 
@@ -3367,7 +3515,7 @@
 </li>
       <li><a href="api/eph_api.html#abipy.eph.sigeph.EphSelfEnergy.plot_tdep">plot_tdep() (abipy.eph.sigeph.EphSelfEnergy method)</a>
 </li>
-      <li><a href="api/dfpt_api.html#abipy.dfpt.qha.QHA.plot_thermal_expansion_coeff">plot_thermal_expansion_coeff() (abipy.dfpt.qha.QHA method)</a>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA.plot_thermal_expansion_coeff">plot_thermal_expansion_coeff() (abipy.dfpt.qha.AbstractQHA method)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.plot_transitions">plot_transitions() (abipy.electrons.ebands.ElectronBands method)</a>
 </li>
@@ -3385,7 +3533,7 @@
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.psps.PspsFile.plot_vlocq">plot_vlocq() (abipy.electrons.psps.PspsFile method)</a>
 </li>
-      <li><a href="api/dfpt_api.html#abipy.dfpt.qha.QHA.plot_vol_vs_t">plot_vol_vs_t() (abipy.dfpt.qha.QHA method)</a>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA.plot_vol_vs_t">plot_vol_vs_t() (abipy.dfpt.qha.AbstractQHA method)</a>
 </li>
       <li><a href="api/eph_api.html#abipy.eph.sigeph.QpTempList.plot_vs_e0">plot_vs_e0() (abipy.eph.sigeph.QpTempList method)</a>
 </li>
@@ -3428,6 +3576,8 @@
       <li><a href="api/core_api.html#abipy.core.kpoints.Ktables.print_bz2ibz">print_bz2ibz() (abipy.core.kpoints.Ktables method)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.restapi.PhaseDiagramResults.print_dataframes">print_dataframes() (abipy.core.restapi.PhaseDiagramResults method)</a>
+</li>
+      <li><a href="api/tools_api.html#abipy.tools.notebooks.print_doc">print_doc() (in module abipy.tools.notebooks)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.structure.Structure.print_neighbors">print_neighbors() (abipy.core.structure.Structure method)</a>
 </li>
@@ -3479,6 +3629,10 @@
       </ul></li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.qha.QHA">QHA (class in abipy.dfpt.qha)</a>
 </li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.qha.QHA3P">QHA3P (class in abipy.dfpt.qha)</a>
+</li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.qha.QHA3PF">QHA3PF (class in abipy.dfpt.qha)</a>
+</li>
       <li><a href="api/flowtk_api.html#abipy.flowtk.qha.QhaFlow">QhaFlow (class in abipy.flowtk.qha)</a>
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.qibz">qibz (abipy.dfpt.gruneisen.GrunsNcFile attribute)</a>
@@ -3499,14 +3653,14 @@
       </ul></li>
       <li><a href="api/eph_api.html#abipy.eph.sigeph.SigEPhFile.qp_dirgaps_t">qp_dirgaps_t (abipy.eph.sigeph.SigEPhFile attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/electrons_api.html#abipy.electrons.gw.QPState.qpeme0">qpeme0 (abipy.electrons.gw.QPState attribute)</a>
 
       <ul>
         <li><a href="api/eph_api.html#abipy.eph.sigeph.QpTempState.qpeme0">(abipy.eph.sigeph.QpTempState attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/electrons_api.html#abipy.electrons.gw.SigresFile.qpgaps">qpgaps (abipy.electrons.gw.SigresFile attribute)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.gw.SigresFile.qplist_spin">qplist_spin (abipy.electrons.gw.SigresFile attribute)</a>
@@ -3637,6 +3791,8 @@
 </li>
       <li><a href="api/iotools_api.html#abipy.iotools.ETSF_Reader.read_structure">read_structure() (abipy.iotools.ETSF_Reader method)</a>
 </li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsReader.read_structures">read_structures() (abipy.dfpt.gruneisen.GrunsReader method)</a>
+</li>
       <li><a href="api/electrons_api.html#abipy.electrons.psps.PspsReader.read_tcorespl">read_tcorespl() (abipy.electrons.psps.PspsReader method)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.optic.OpticReader.read_tensor3_terms">read_tensor3_terms() (abipy.electrons.optic.OpticReader method)</a>
@@ -3659,8 +3815,6 @@
         <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.reciprocal_lattice">(abipy.electrons.ebands.ElectronBands attribute)</a>
 </li>
       </ul></li>
-      <li><a href="api/core_api.html#abipy.core.tensor.Tensor.reduced_tensor">reduced_tensor (abipy.core.tensor.Tensor attribute)</a>
-</li>
       <li><a href="api/data_api.html#abipy.data.ref_file">ref_file() (in module abipy.data)</a>
 </li>
       <li><a href="api/data_api.html#abipy.data.ref_files">ref_files() (in module abipy.data)</a>
@@ -3714,6 +3868,8 @@
       <li><a href="api/core_api.html#abipy.core.mesh3d.Mesh3D.rpoints">rpoints (abipy.core.mesh3d.Mesh3D attribute)</a>
 </li>
       <li><a href="api/tools_api.html#abipy.tools.text.rreplace">rreplace() (in module abipy.tools.text)</a>
+</li>
+      <li><a href="api/core_api.html#abipy.core.testing.AbipyTest.run_nbpath">run_nbpath() (abipy.core.testing.AbipyTest method)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.runlevel">runlevel (abipy.abio.inputs.AbinitInput attribute)</a>
 </li>
@@ -3769,9 +3925,17 @@
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.set_comment">set_comment() (abipy.abio.inputs.AbinitInput method)</a>
 </li>
-      <li><a href="api/dfpt_api.html#abipy.dfpt.qha.QHA.set_eos">set_eos() (abipy.dfpt.qha.QHA method)</a>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA.set_eos">set_eos() (abipy.dfpt.qha.AbstractQHA method)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.skw.ElectronInterpolator.set_fermie">set_fermie() (abipy.core.skw.ElectronInterpolator method)</a>
+
+      <ul>
+        <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.set_fermie">(abipy.electrons.ebands.ElectronBands method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.set_fermie_from_edos">set_fermie_from_edos() (abipy.electrons.ebands.ElectronBands method)</a>
+</li>
+      <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.set_fermie_to_vbm">set_fermie_to_vbm() (abipy.electrons.ebands.ElectronBands method)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.set_gamma_sampling">set_gamma_sampling() (abipy.abio.inputs.AbinitInput method)</a>
 </li>
@@ -3867,6 +4031,8 @@
       </ul></li>
       <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.skb_iter">skb_iter() (abipy.electrons.ebands.ElectronBands method)</a>
 </li>
+      <li><a href="api/core_api.html#abipy.core.testing.AbipyTest.skip_if_abinit_not_ge">skip_if_abinit_not_ge() (abipy.core.testing.AbipyTest method)</a>
+</li>
       <li><a href="api/core_api.html#abipy.core.testing.AbipyTest.skip_if_not_phonopy">skip_if_not_phonopy() (abipy.core.testing.AbipyTest static method)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.testing.AbipyTest.skip_if_not_pseudodojo">skip_if_not_pseudodojo() (abipy.core.testing.AbipyTest static method)</a>
@@ -3897,10 +4063,10 @@
         <li><a href="api/wannier90_api.html#abipy.wannier90.win.Wannier90Input.spell_check">(abipy.wannier90.win.Wannier90Input attribute)</a>
 </li>
       </ul></li>
-      <li><a href="api/core_api.html#abipy.core.structure.Structure.spget_equivalent_atoms">spget_equivalent_atoms() (abipy.core.structure.Structure method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/core_api.html#abipy.core.structure.Structure.spget_equivalent_atoms">spget_equivalent_atoms() (abipy.core.structure.Structure method)</a>
+</li>
       <li><a href="api/core_api.html#abipy.core.structure.Structure.spget_lattice_type">spget_lattice_type() (abipy.core.structure.Structure method)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.structure.Structure.spget_summary">spget_summary() (abipy.core.structure.Structure method)</a>
@@ -3934,6 +4100,8 @@
       <li><a href="api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.split_dwdq">split_dwdq (abipy.dfpt.gruneisen.GrunsNcFile attribute)</a>
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.split_gruns">split_gruns (abipy.dfpt.gruneisen.GrunsNcFile attribute)</a>
+</li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.split_gruns_finite_differences">split_gruns_finite_differences (abipy.dfpt.gruneisen.GrunsNcFile attribute)</a>
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.split_matched_indices">split_matched_indices (abipy.dfpt.phonons.PhononBands attribute)</a>
 </li>
@@ -3974,7 +4142,7 @@
 </li>
         <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DielectricTensorGenerator.structure">(abipy.dfpt.ddb.DielectricTensorGenerator attribute)</a>
 </li>
-        <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.ElasticComplianceTensor.structure">(abipy.dfpt.ddb.ElasticComplianceTensor attribute)</a>
+        <li><a href="api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.structure">(abipy.dfpt.elastic.ElasticData attribute)</a>
 </li>
         <li><a href="api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.structure">(abipy.dfpt.gruneisen.GrunsNcFile attribute)</a>
 </li>
@@ -4027,8 +4195,12 @@
 </li>
       <li><a href="api/data_api.html#abipy.data.structure_from_ucell">structure_from_ucell() (in module abipy.data)</a>
 </li>
-      <li><a href="api/dynamics_api.html#abipy.dynamics.hist.HistFile.structures">structures (abipy.dynamics.hist.HistFile attribute)</a>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.structures">structures (abipy.dfpt.gruneisen.GrunsNcFile attribute)</a>
+
+      <ul>
+        <li><a href="api/dynamics_api.html#abipy.dynamics.hist.HistFile.structures">(abipy.dynamics.hist.HistFile attribute)</a>
 </li>
+      </ul></li>
       <li><a href="api/core_api.html#abipy.core.kpoints.KpointList.subclass_from_name">subclass_from_name() (abipy.core.kpoints.KpointList class method)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.kpoints.KpointList.sum_weights">sum_weights() (abipy.core.kpoints.KpointList method)</a>
@@ -4049,14 +4221,10 @@
         <li><a href="api/flowtk_api.html#abipy.flowtk.abiobjects.LexxParams.symbols_by_typat">(abipy.flowtk.abiobjects.LexxParams attribute)</a>
 </li>
       </ul></li>
-      <li><a href="api/core_api.html#abipy.core.tensor.SymmetricTensor">SymmetricTensor (class in abipy.core.tensor)</a>
+      <li><a href="api/core_api.html#abipy.core.symmetries.AbinitSpaceGroup.symeq">symeq() (abipy.core.symmetries.AbinitSpaceGroup method)</a>
 </li>
-      <li><a href="api/core_api.html#abipy.core.tensor.Tensor.symmetrize">symmetrize() (abipy.core.tensor.Tensor method)</a>
-
-      <ul>
-        <li><a href="api/electrons_api.html#abipy.electrons.bse.DielectricTensor.symmetrize">(abipy.electrons.bse.DielectricTensor method)</a>
+      <li><a href="api/electrons_api.html#abipy.electrons.bse.DielectricTensor.symmetrize">symmetrize() (abipy.electrons.bse.DielectricTensor method)</a>
 </li>
-      </ul></li>
       <li><a href="api/core_api.html#abipy.core.symmetries.AbinitSpaceGroup.symmops">symmops() (abipy.core.symmetries.AbinitSpaceGroup method)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.skw.ElectronInterpolator.symprec">symprec (abipy.core.skw.ElectronInterpolator attribute)</a>
@@ -4073,15 +4241,13 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/eph_api.html#abipy.eph.sigeph.TdepElectronBands">TdepElectronBands (class in abipy.eph.sigeph)</a>
 </li>
-      <li><a href="api/core_api.html#abipy.core.tensor.Tensor">Tensor (class in abipy.core.tensor)</a>
-</li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DielectricTensorGenerator.tensor_at_frequency">tensor_at_frequency() (abipy.dfpt.ddb.DielectricTensorGenerator method)</a>
+</li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.TENSOR_META">TENSOR_META (abipy.dfpt.elastic.ElasticData attribute)</a>
 </li>
       <li><a href="api/tools_api.html#abipy.tools.fftprof.FFTBenchmark.tests_with_fftalg">tests_with_fftalg() (abipy.tools.fftprof.FFTBenchmark method)</a>
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.thermal_conductivity_slack">thermal_conductivity_slack() (abipy.dfpt.gruneisen.GrunsNcFile method)</a>
-</li>
-      <li><a href="api/abio_api.html#abipy.abio.inputs.AnaddbInput.thermo">thermo() (abipy.abio.inputs.AnaddbInput class method)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.gw.QPState.tips">tips (abipy.electrons.gw.QPState attribute)</a>
 </li>
@@ -4188,13 +4354,13 @@
 </li>
         <li><a href="api/core_api.html#abipy.core.symmetries.AbinitSpaceGroup.to_string">(abipy.core.symmetries.AbinitSpaceGroup method)</a>
 </li>
-        <li><a href="api/core_api.html#abipy.core.tensor.Tensor.to_string">(abipy.core.tensor.Tensor method)</a>
-</li>
         <li><a href="api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcFile.to_string">(abipy.dfpt.anaddbnc.AnaddbNcFile method)</a>
 </li>
         <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.Becs.to_string">(abipy.dfpt.ddb.Becs method)</a>
 </li>
         <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.to_string">(abipy.dfpt.ddb.DdbFile method)</a>
+</li>
+        <li><a href="api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.to_string">(abipy.dfpt.elastic.ElasticData method)</a>
 </li>
         <li><a href="api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.to_string">(abipy.dfpt.gruneisen.GrunsNcFile method)</a>
 </li>
@@ -4297,6 +4463,8 @@
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.lobster.LobsterDoscarFile.total_dos">total_dos (abipy.electrons.lobster.LobsterDoscarFile attribute)</a>
 </li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.total_energy">total_energy (abipy.dfpt.ddb.DdbFile attribute)</a>
+</li>
       <li><a href="api/core_api.html#abipy.core.fields.Density.total_rhog">total_rhog (abipy.core.fields.Density attribute)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.fields.Density.total_rhor">total_rhor (abipy.core.fields.Density attribute)</a>
@@ -4310,6 +4478,8 @@
       <li><a href="api/abio_api.html#abipy.abio.robots.Robot.trim_paths">trim_paths() (abipy.abio.robots.Robot method)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.mixins.Has_ElectronBands.tsmear">tsmear (abipy.core.mixins.Has_ElectronBands attribute)</a>
+</li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.TYPE2NAMES">TYPE2NAMES (abipy.dfpt.elastic.ElasticData attribute)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.lobster.CoxpFile.type_of_index">type_of_index (abipy.electrons.lobster.CoxpFile attribute)</a>
 
@@ -4433,6 +4603,8 @@
 </li>
       <li><a href="api/display_api.html#abipy.display.mvtk.MayaviFieldAnimator.volume_animate">volume_animate() (abipy.display.mvtk.MayaviFieldAnimator method)</a>
 </li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.volumes">volumes (abipy.dfpt.gruneisen.GrunsNcFile attribute)</a>
+</li>
       <li><a href="api/core_api.html#abipy.core.structure.Structure.vtkview">vtkview() (abipy.core.structure.Structure method)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.denpot.VxcNcFile.vxc">vxc (abipy.electrons.denpot.VxcNcFile attribute)</a>
@@ -4536,6 +4708,8 @@
 </li>
         <li><a href="api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcFile.write_notebook">(abipy.dfpt.anaddbnc.AnaddbNcFile method)</a>
 </li>
+        <li><a href="api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcRobot.write_notebook">(abipy.dfpt.anaddbnc.AnaddbNcRobot method)</a>
+</li>
         <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.write_notebook">(abipy.dfpt.ddb.DdbFile method)</a>
 </li>
         <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DdbRobot.write_notebook">(abipy.dfpt.ddb.DdbRobot method)</a>
@@ -4605,7 +4779,7 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/dfpt_api.html#abipy.dfpt.qha.QHA.write_phonopy_qha_inputs">write_phonopy_qha_inputs() (abipy.dfpt.qha.QHA method)</a>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.qha.AbstractQHA.write_phonopy_qha_inputs">write_phonopy_qha_inputs() (abipy.dfpt.qha.AbstractQHA method)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.structure.Structure.write_vib_file">write_vib_file() (abipy.core.structure.Structure method)</a>
 </li>
@@ -4661,6 +4835,8 @@
         <li><a href="api/core_api.html#abipy.core.structure.Structure.yield_figs">(abipy.core.structure.Structure method)</a>
 </li>
         <li><a href="api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcFile.yield_figs">(abipy.dfpt.anaddbnc.AnaddbNcFile method)</a>
+</li>
+        <li><a href="api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcRobot.yield_figs">(abipy.dfpt.anaddbnc.AnaddbNcRobot method)</a>
 </li>
         <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.yield_figs">(abipy.dfpt.ddb.DdbFile method)</a>
 </li>
@@ -4772,7 +4948,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jul 26, 2018.<br/>
+      Last updated on Aug 14, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>
