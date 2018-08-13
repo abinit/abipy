@@ -17,7 +17,6 @@ import shutil
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
 ABIPY_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
-#print(ABIPY_ROOT)
 
 sys.path.insert(0, ABIPY_ROOT)
 
@@ -442,22 +441,21 @@ autodoc_member_order = "bysource"
 # pybtex provides a very powerful way to create and register new styles, using setuptools entry points,
 # as documented here: http://docs.pybtex.org/api/plugins.html
 
-#from pybtex.style.formatting.unsrt import Style as UnsrtStyle
-#from pybtex.style.template import toplevel # ... and anything else needed
-#from pybtex.plugin import register_plugin
+from pybtex.style.formatting.plain import Style
+from pybtex.style.labels.alpha import LabelStyle
 
-#class MyStyle(UnsrtStyle):
-#    def format_label(self, entry):
-#        print("hello")
-#        return "APA"
-#
-#    #def format_XXX(self, e):
-#    #    template = toplevel [
-#    #        # etc.
-#    #    ]
-#    #    return template.format_data(e)
 
-#register_plugin('pybtex.style.formatting', 'mystyle', MyStyle)
+class AbiPyLabelStyle(LabelStyle):
+    def format_label(self, entry):
+        return entry.key
+
+class AbiPyStyle(Style):
+    default_label_style = 'abipy'
+
+from pybtex.plugin import register_plugin
+register_plugin('pybtex.style.labels', 'abipy', AbiPyLabelStyle)
+register_plugin('pybtex.style.formatting', 'abipystyle', AbiPyStyle)
+
 
 # This is for releases http://releases.readthedocs.io/en/latest/usage.html
 releases_github_path = "abinit/abipy"

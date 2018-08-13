@@ -419,7 +419,7 @@ def get_parser(with_epilog=False):
         help="Use the row index as x-value in the plot. By default the plotter uses the first column as x-values")
 
     # Subparser for abo command.
-    p_abo = subparsers.add_parser('abo', parents=[copts_parser], help=abiview_abo.__doc__)
+    #p_abo = subparsers.add_parser('abo', parents=[copts_parser], help=abiview_abo.__doc__)
 
     # Subparser for log command.
     p_dirviz = subparsers.add_parser('dirviz', parents=[copts_parser], help=abiview_dirviz.__doc__)

@@ -632,8 +632,7 @@ class ElectronBands(Has_Structure):
         that underestimates the Fermi energy because e.g. the IBZ sampling
         is shifted whereas the true VMB is at Gamma.
 
-        Return:
-            New fermi energy in eV.
+        Return: New fermi energy in eV.
 
         .. warning:
 
@@ -649,11 +648,9 @@ class ElectronBands(Has_Structure):
 
          Args:
             edos: |ElectronDos| object.
-            nelect: Number of electrons.
-                If None, the number of electrons in self. is used
+            nelect: Number of electrons. If None, the number of electrons in self. is used
 
-        Return:
-            New fermi energy in eV.
+        Return: New fermi energy in eV.
         """
         if nelect is None:
             new_fermie = edos.find_mu(self.nelect)

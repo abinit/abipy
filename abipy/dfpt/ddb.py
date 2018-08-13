@@ -1265,14 +1265,16 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return DielectricTensorGenerator.from_files(os.path.join(task.workdir, "run.abo_PHBST.nc"),
                                                     os.path.join(task.workdir, "anaddb.nc"))
 
-    def anaget_elastic(self, relaxed_ion="automatic", piezo="automatic", dde=False, stress_correction=False,
-			asr=2, chneut=1, mpi_procs=1, workdir=None, manager=None, verbose=0, retpath=False):
+    def anaget_elastic(self, relaxed_ion="automatic", piezo="automatic",
+                        dde=False, stress_correction=False, asr=2, chneut=1,
+                        mpi_procs=1, workdir=None, manager=None, verbose=0, retpath=False):
         """
         Call anaddb to compute elastic and piezoelectric tensors. Require DDB with strain terms.
 
 	By default, this method sets the anaddb input variables automatically
 	by looking at the 2nd-order derivatives available in the DDB file.
-	This behaviour can be changed by setting explicitly the value of: `relaxed_ion` and `piezo`.
+	This behaviour can be changed by setting explicitly the value of:
+        `relaxed_ion` and `piezo`.
 
         Args:
             relaxed_ion: Activate computation of relaxed-ion tensors.

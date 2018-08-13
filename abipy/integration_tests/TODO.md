@@ -2,7 +2,7 @@ TODO list:
 
 ## High priority
 
-* DONE Remove all the abiview commands that are now implemented in abiopen. 
+* Get rid of readthedocs
 
 * DONE Add ebands.method to fix the fermi level in semiconductors
   Remember that ebands is immutable
@@ -16,12 +16,6 @@ TODO list:
 * introduce new staus WAITING_FOR_RESTART
   so that we don't have to restart task in callbacks
 
-* DONE Check PJDOS in abinit@gitlab
-
-* DONE Add mpirun_args see e.g nic4 and mpirun --bind-to None
-
-* DONE Re-implement max_njobs in the queue using a counter local to the Launcher.
-
 * Fix annoying warnings about k-point sampling.
 
 * Reorganize modules in flowtk to prepare future migration. Modules with gs_works, dfpt_works ...
@@ -31,8 +25,7 @@ TODO list:
 
 * Almost DONE: Add support for https://mybinder.readthedocs.io/en/latest/sample_repos.html#conda-environment-with-environment-yml
 
-* ALMOST DONE Add https://github.com/mcmtroffaes/sphinxcontrib-bibtex
-  Change bibtex style.
+* DONE Add https://github.com/mcmtroffaes/sphinxcontrib-bibtex Change bibtex style.
 
 * DONE Add support for DVDV, DDB in plot_networkx (but graphviz is much better)
 
@@ -52,7 +45,7 @@ TODO list:
 
 * remove phononflow
 
-* Add DOS to GSR file (useful if tetra)  Create Dosfile ?
+* Add DOS to GSR file (useful if tetra)  Create Dosfile ? Fortran exec?
 
 * Add with_becs to PhononWork
 
@@ -72,8 +65,6 @@ TODO list:
 * DONE: Autodetect presence of data for lo_to_splitting in DDB.
 
 * DONE Solve problem with visualize in jupyter notebooks (files should be produced in workdir)
-
-* DONE Change shifts default value in g0w0_with_ppmodel_inputs
 
 * Scheduler should report info on exceptions (especially if at the end when on_all_ok is invoked)
 
@@ -102,12 +93,8 @@ TODO list:
 
 * XG remarks:
 
-    - Improve abipy/docs/README.rst mentions 
+    - Improve abipy/docs/README.rst
     - Change bibtex style (use same format as abidocs)
-
-	open _build/html/index.html
-
-    - Band structure and Fermi level
 
 ## Low priority
 
