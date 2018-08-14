@@ -22,7 +22,7 @@ TODO list:
 
 * Check Positive gw_qprange in EPH (Fixed by Henrique)
 
-* abicomp should accept tolsym args
+* TODO abicomp should accept tolsym args
 
 * Add support for PSML/UPF format
 

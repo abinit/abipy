@@ -1515,18 +1515,21 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         return dict2namedtuple(retcode=retcode, output_file=task.output_file, log_file=task.log_file,
                                stderr_file=task.stderr_file, task=task)
 
-    def abiget_spacegroup(self, tolsym=None, workdir=None, manager=None):
+    def abiget_spacegroup(self, tolsym=None, retdict=False, workdir=None, manager=None, verbose=0):
         """
         This function invokes Abinit to get the space group (as detected by Abinit, not by spglib)
         It should be called with an input file that contains all the mandatory variables required by ABINIT.
 
         Args:
             tolsym: Abinit tolsym input variable. None correspondes to the default value.
+            retdict: True to return dictionary with space group information instead of Structure.
             workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
+	    verbose: Verbosity level.
 
         Return:
-            |Structure| object with AbinitSpaceGroup obtained from the main output file.
+            |Structure| object with AbinitSpaceGroup obtained from the main output file if retdict is False
+	    else dict with e.g. {'bravais': 'Bravais cF (face-center cubic)', 'spg_number': 227, 'spg_symbol': 'Fd-3m'}.
         """
         # Avoid modifications in self.
         inp = self.deepcopy()
@@ -1545,7 +1548,12 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         from abipy.abio.outputs import AbinitOutputFile
         try:
             with AbinitOutputFile(task.output_file.path) as out:
-                return out.initial_structure
+                if not retdict:
+                    return out.initial_structure
+                else:
+                    dims_dataset, spginfo_dataset = out.get_dims_spginfo_dataset(verbose=verbose)
+                    return spginfo_dataset[1]
+
         except Exception as exc:
             self._handle_task_exception(task, exc)
 

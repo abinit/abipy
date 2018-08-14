@@ -165,6 +165,12 @@ class TestStructure(AbipyTest):
         si = Structure.from_mpid("mp-149")
         assert si.formula == "Si2"
 
+        # Test abiget_spginfo
+        d = si.abiget_spginfo(tolsym=None, pre="abi_")
+        assert d["abi_spg_symbol"] == "Fd-3m"
+        assert d["abi_spg_number"] == 227
+        assert d["abi_bravais"] == "Bravais cF (face-center cubic)"
+
         mgb2_cod = Structure.from_cod_id(1526507, primitive=True)
         assert mgb2_cod.formula == "Mg1 B2"
         assert mgb2_cod.spget_lattice_type() == "hexagonal"

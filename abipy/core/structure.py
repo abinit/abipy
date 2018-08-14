@@ -895,6 +895,23 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         return abispg
 
+    def abiget_spginfo(self, tolsym=None, pre=None):
+        """
+	Call Abinit to get spacegroup information.
+	Return dictionary with e.g. {'bravais': 'Bravais cF (face-center cubic)', 'spg_number': 227, 'spg_symbol': 'Fd-3m'}.
+
+	Args:
+            tolsym: Abinit tolsym input variable. None correspondes to the default value.
+	    pre: Keywords in dictionary are prepended with this string
+        """
+        from abipy.data.hgh_pseudos import HGH_TABLE
+        from abipy.abio import factories
+        gsinp = factories.gs_input(self, HGH_TABLE, spin_mode="unpolarized")
+        gsinp["chkprim"] = 0
+        d = gsinp.abiget_spacegroup(tolsym=tolsym, retdict=True)
+        if pre: d = {pre + k: v for k, v in d.items()}
+        return d
+
     def print_neighbors(self, radius=2.0):
         """
         Get neighbors for each atom in the unit cell, out to a distance ``radius`` in Angstrom

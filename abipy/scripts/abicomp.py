@@ -11,6 +11,7 @@ import os
 import argparse
 import numpy as np
 
+from collections import OrderedDict
 from pprint import pprint
 from monty.functools import prof_main
 from monty.termcolor import cprint
@@ -116,7 +117,7 @@ from abipy import abilab"""),
         for i, p in enumerate(paths):
             print("%d: %s" % (i, p))
         print()
-        print("Spglib options. symprec:", options.symprec, "angle_tolerance:", options.angle_tolerance)
+        print("Spglib options: symprec=", options.symprec, "angle_tolerance=", options.angle_tolerance)
         abilab.print_dataframe(dfs.lattice, title="Lattice parameters:")
         df_to_clipboard(options, dfs.lattice)
 
@@ -133,7 +134,6 @@ def compare_structures(options):
         print("You need more than one structure to compare!")
         return 1
 
-    structures = []
     try:
         structures = [abilab.Structure.from_file(p) for p in paths]
     except Exception as ex:
@@ -156,6 +156,42 @@ def compare_structures(options):
 
     if options.verbose:
         pprint(m.as_dict())
+
+
+def abicomp_spg(options):
+    """
+    Compare the space group found by Abinit with the spglib results
+    for a set of crystalline structure(s) read from FILE(s).
+    """
+    try:
+        structures = [abilab.Structure.from_file(p) for p in options.paths]
+    except Exception as ex:
+        print("Error reading structures from files. Are they in the right format?")
+        print(str(ex))
+        return 1
+
+    rows, index = [], []
+    symprec, angle_tolerance = options.symprec, options.angle_tolerance
+    for structure in structures:
+        index.append(structure.formula)
+        # Call Abinit
+        row = structure.abiget_spginfo(tolsym=options.tolsym, pre="abi_")
+        # Call spglib.
+        spglib_symbol, spglib_number = structure.get_space_group_info(symprec=symprec, angle_tolerance=angle_tolerance)
+        spglib_lattice_type = structure.spget_lattice_type(symprec=symprec, angle_tolerance=angle_tolerance)
+        row.update(spglib_symbol=spglib_symbol, spglib_number=spglib_number, spglib_lattice=spglib_lattice_type)
+        rows.append(row)
+
+    import pandas as pd
+    df = pd.DataFrame(rows, index=index, columns=list(rows[0].keys()) if rows else None)
+
+    print("Spglib options: symprec=", options.symprec, "angle_tolerance=", options.angle_tolerance)
+    print("Abinit options: tolsym=", options.tolsym)
+    print("")
+    abilab.print_dataframe(df, title="Spacegroup found by Abinit and Spglib:")
+    df_to_clipboard(options, df)
+
+    return 0
 
 
 def abicomp_mp_structure(options):
@@ -534,7 +570,6 @@ def dataframe_from_pseudos(pseudos, index=None):
     pseudos = PseudoTable.as_table(pseudos)
 
     import pandas as pd
-    from collections import OrderedDict
     attname = ["Z_val", "l_max", "l_local", "nlcc_radius", "xc", "supports_soc", "type"]
     rows = []
     for p in pseudos:
@@ -732,6 +767,7 @@ Usage example:
 
   abicomp.py structure */*/outdata/out_GSR.nc   => Compare structures in multiple files.
                                                    Use `--group` to compare for similarity.
+  abicomp.py spg si.cif out_GSR.nc              => Compare spacegroup(s) found by Abinit and spglib.
   abicomp.py hist FILE(s)                       => Compare final structures read from HIST.nc files.
   abicomp.py mp_structure FILE(s)               => Compare structure(s) read from FILE(s) with the one(s)
                                                    given in the materials project database.
@@ -918,6 +954,15 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
         help="Compare a set of structures for similarity.")
     p_struct.add_argument("-a", "--anonymous", default=False, action="store_true",
         help="Whether to use anonymous mode in StructureMatcher. Default False")
+
+    # Subparser for spg command.
+    p_spg = subparsers.add_parser('spg', parents=[copts_parser, spgopt_parser, pandas_parser],
+            help=abicomp_spg.__doc__)
+    p_spg.add_argument("-t", "--tolsym", type=float, default=None, help="""\
+Gives the tolerance on the atomic positions (reduced coordinates), primitive vectors, or magnetization,
+to be considered equivalent, thanks to symmetry operations. This is used in the recognition of the set
+of symmetries of the system, or the application of the symmetry operations to generate from a reduced set of atoms,
+the full set of atoms. Note that a value larger than 0.01 is considered to be unacceptable.""")
 
     # Subparser for mp_structure command.
     p_mpstruct = subparsers.add_parser('mp_structure', parents=[copts_parser, nb_parser],
