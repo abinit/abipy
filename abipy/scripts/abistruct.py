@@ -52,6 +52,17 @@ def save_structure(structure, options):
 
     structure.to(filename=options.savefile)
 
+
+def check_ordered_structure(structure):
+    """Print a warning and sys.exit 1 if structure is disordered."""
+    if not structure.is_ordered:
+        cprint("""
+Cannot handle disordered structure with fractional site occupancies.
+Use OrderDisorderedStructureTransformation or EnumerateStructureTransformation
+to build an appropriate supercell from partial occupancies.""", color="magenta")
+        sys.exit(1)
+
+
 def get_epilog():
     return """\
 Usage example:
@@ -465,6 +476,7 @@ def main():
 
     elif options.command == "abispg":
         structure = abilab.Structure.from_file(options.filepath)
+        check_ordered_structure(structure)
         spgrp = structure.abi_spacegroup
 
         if spgrp is not None:

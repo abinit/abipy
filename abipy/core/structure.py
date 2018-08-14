@@ -1919,7 +1919,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         """
         nval, table = 0, PseudoTable.as_table(pseudos)
         for site in self:
-            pseudo = table.pseudo_with_symbol(site.species_string)
+            pseudo = table.pseudo_with_symbol(site.specie.symbol)
             nval += pseudo.Z_val
 
         return int(nval) if int(nval) == nval else nval
@@ -1934,7 +1934,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         table = PseudoTable.as_table(pseudos)
         psp_valences = []
         for site in self:
-            pseudo = table.pseudo_with_symbol(site.species_string)
+            pseudo = table.pseudo_with_symbol(site.specie.symbol)
             psp_valences.append(pseudo.Z_val)
 
         return psp_valences

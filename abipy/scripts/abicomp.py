@@ -47,6 +47,17 @@ def sort_paths(options):
     print("Use --no-sort to disable automatic sorting.")
 
 
+def remove_disordered(structures, paths):
+    """Remove disordered structures and print warning message."""
+    slist = []
+    for s, p in zip(structures, paths):
+        if not s.is_ordered:
+            cprint("Removing disordered structure: %s found in %s" % (s.formula, p), "magenta")
+        else:
+            slist.append(s)
+    return slist
+
+
 def df_to_clipboard(options, df):
     """Copy dataframe to clipboard if options.clipboard."""
     if getattr(options, "clipboard", False):
@@ -169,6 +180,9 @@ def abicomp_spg(options):
         print("Error reading structures from files. Are they in the right format?")
         print(str(ex))
         return 1
+
+    # Remove disordered structures.
+    structures = remove_disordered(structures, options.paths)
 
     rows, index = [], []
     symprec, angle_tolerance = options.symprec, options.angle_tolerance
