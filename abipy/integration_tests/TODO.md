@@ -2,7 +2,7 @@ TODO list:
 
 ## High priority
 
-* Get rid of readthedocs
+* DONE Get rid of readthedocs
 
 * Reorganize modules in flowtk to prepare future migration. Modules with gs_works, dfpt_works ...
   qadapter package ... (postponed to v0.7)
@@ -13,7 +13,7 @@ TODO list:
 * introduce new status for tasks that are removed at runtime e.g. S_CANCELLED
   and handle new case in flow machinery. Be careful with pickle, status comparison and ordering though.
 
-* introduce new staus WAITING_FOR_RESTART
+* introduce new status WAITING_FOR_RESTART
   so that we don't have to restart task in callbacks
 
 * Fix annoying warnings about k-point sampling.

@@ -166,6 +166,6 @@
      :target: https://requires.io/github/abinit/abipy/requirements/?branch=develop
      :alt: Requirements Status
 
-.. |docs-github| image:: https://img.shields.io/badge/docs-devel_version-ff69b4.svg
-     :alt: Documentation development version
+.. |docs-github| image:: https://img.shields.io/badge/docs-ff69b4.svg
+     :alt: AbiPy Documentation
      :target: http://abinit.github.io/abipy

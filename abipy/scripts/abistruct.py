@@ -153,6 +153,7 @@ def get_parser(with_epilog=False):
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
 
+    # Parser for commands that need to call spglib.
     spgopt_parser = argparse.ArgumentParser(add_help=False)
     spgopt_parser.add_argument('--symprec', default=1e-3, type=float,
         help="""\

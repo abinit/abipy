@@ -46,6 +46,14 @@ def sort_paths(options):
     print("Use --no-sort to disable automatic sorting.")
 
 
+def df_to_clipboard(options, df):
+    """Copy dataframe to clipboard if options.clipboard."""
+    if getattr(options, "clipboard", False):
+        cprint("Copying dataframe to the system clipboard.", "green")
+        cprint("This can be pasted into Excel, for example", "green")
+        df.to_clipboard()
+
+
 def abiview_fields(options):
     """Animate fields with Mayavi. Accept any file with density or potential ..."""
     from abipy.display.mvtk import MayaviFieldAnimator
@@ -97,7 +105,8 @@ from abipy import abilab"""),
         cmd = "jupyter notebook %s" % nbpath
         return os.system(cmd)
 
-    dfs = abilab.dataframes_from_structures(paths, index=index)
+    dfs = abilab.dataframes_from_structures(paths, index=index,
+            symprec=options.symprec, angle_tolerance=options.angle_tolerance)
 
     if options.ipython:
         import IPython
@@ -105,9 +114,12 @@ from abipy import abilab"""),
     else:
         print("File list:")
         for i, p in enumerate(paths):
-            print("%d %s" % (i, p))
+            print("%d: %s" % (i, p))
         print()
+        print("Spglib options. symprec:", options.symprec, "angle_tolerance:", options.angle_tolerance)
         abilab.print_dataframe(dfs.lattice, title="Lattice parameters:")
+        df_to_clipboard(options, dfs.lattice)
+
         if options.verbose:
             abilab.print_dataframe(dfs.coords, title="Atomic positions (columns give the site index):")
 
@@ -251,11 +263,7 @@ def abicomp_ebands(options):
         # Print pandas Dataframe.
         frame = plotter.get_ebands_frame()
         abilab.print_dataframe(frame)
-
-        if options.clipboard:
-            cprint("Copying dataframe to the system clipboard.", "green")
-            cprint("This can be pasted into Excel, for example", "green")
-            frame.to_clipboard()
+        df_to_clipboard(options, frame)
 
         # Optionally, print info on gaps and their location
         if not options.verbose:
@@ -599,10 +607,7 @@ def _invoke_robot(options):
             try:
                 df = robot.get_dataframe()
                 abilab.print_dataframe(df, title="Output of robot.get_dataframe():")
-                if options.clipboard:
-                    cprint("Copying dataframe to the system clipboard.", "green")
-                    cprint("This can be pasted into Excel, for example", "green")
-                    df.to_clipboard()
+                df_to_clipboard(options, df)
 
             except Exception as exc:
                 cprint("Exception:\n%s\n\nwhile invoking get_dataframe. Falling back to to_string" % str(exc), "red")
@@ -859,6 +864,23 @@ def get_parser(with_epilog=False):
     copts_parser.add_argument('--loglevel', default="ERROR", type=str,
         help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.")
 
+    # Parent parser for commands calling spglib.
+    spgopt_parser = argparse.ArgumentParser(add_help=False)
+    spgopt_parser.add_argument('--symprec', default=1e-3, type=float,
+        help="""\
+symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
+which is fairly strict and works well for properly refined structures with atoms in the proper symmetry coordinates.
+For structures with slight deviations from their proper atomic positions (e.g., structures relaxed with electronic structure
+codes), a looser tolerance of 0.1 (the value used in Materials Project) is often needed.""")
+    spgopt_parser.add_argument('--angle-tolerance', default=5.0, type=float,
+        help="angle_tolerance (float): Angle tolerance for symmetry finding. Default: 5.0")
+    #spgopt_parser.add_argument("--no-time-reversal", default=False, action="store_true", help="Don't use time-reversal.")
+
+    # Parent parser for commands that operating on pandas dataframes
+    pandas_parser = argparse.ArgumentParser(add_help=False)
+    pandas_parser.add_argument("-c", '--clipboard', default=False, action="store_true",
+            help="Copy dataframe to the system clipboard. This can be pasted into Excel, for example")
+
     # Parent parser for commands supporting (ipython/jupyter)
     ipy_parser = argparse.ArgumentParser(add_help=False)
     ipy_parser.add_argument('-nb', '--notebook', default=False, action="store_true", help='Generate jupyter notebook.')
@@ -890,7 +912,8 @@ def get_parser(with_epilog=False):
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
     # Subparser for structure command.
-    p_struct = subparsers.add_parser('structure', parents=[copts_parser, ipy_parser], help=abicomp_structure.__doc__)
+    p_struct = subparsers.add_parser('structure', parents=[copts_parser, ipy_parser, spgopt_parser, pandas_parser],
+            help=abicomp_structure.__doc__)
     p_struct.add_argument("-g", "--group", default=False, action="store_true",
         help="Compare a set of structures for similarity.")
     p_struct.add_argument("-a", "--anonymous", default=False, action="store_true",
@@ -928,14 +951,13 @@ def get_parser(with_epilog=False):
         help="Use the row index as x-value in the plot. By default the plotter uses the first column as x-values")
 
     # Subparser for ebands command.
-    p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, ipy_parser], help=abicomp_ebands.__doc__)
+    p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, ipy_parser, pandas_parser],
+            help=abicomp_ebands.__doc__)
     p_ebands.add_argument("-p", "--plot-mode", default="gridplot",
         choices=["gridplot", "combiplot", "boxplot", "combiboxplot", "animate", "None"],
         help="Plot mode e.g. `-p combiplot` to plot bands on the same figure. Default is `gridplot`.")
     p_ebands.add_argument("-e0", default="fermie", choices=["fermie", "None"],
         help="Option used to define the zero of energy in the band structure plot. Default is `fermie`.")
-    p_ebands.add_argument("-c", '--clipboard', default=False, action="store_true",
-            help="Copy dataframe to the system clipboard. This can be pasted into Excel, for example")
 
     # Subparser for edos command.
     p_edos = subparsers.add_parser('edos', parents=[copts_parser, ipy_parser, expose_parser],
@@ -977,10 +999,8 @@ def get_parser(with_epilog=False):
     # Parent parser for *robot* commands
     robot_parser = argparse.ArgumentParser(add_help=False)
     robot_parser.add_argument('--no-walk', default=False, action="store_true", help="Don't enter subdirectories.")
-    robot_parser.add_argument("-c", '--clipboard', default=False, action="store_true",
-            help="Copy dataframe to the system clipboard. This can be pasted into Excel, for example")
 
-    robot_parents = [copts_parser, robot_ipy_parser, robot_parser, expose_parser]
+    robot_parents = [copts_parser, robot_ipy_parser, robot_parser, expose_parser, pandas_parser]
     p_gsr = subparsers.add_parser('gsr', parents=robot_parents, help=abicomp_gsr.__doc__)
     p_hist = subparsers.add_parser('hist', parents=robot_parents, help=abicomp_hist.__doc__)
     p_ddb = subparsers.add_parser('ddb', parents=robot_parents, help=abicomp_ddb.__doc__)

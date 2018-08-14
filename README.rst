@@ -78,7 +78,7 @@ Create a new conda_ environment (let's call it ``abienv``) based on python3.6 wi
 
 and activate it with::
 
-    source activate abipy3.6
+    source activate abienv
 
 You should see the name of the conda environment in the shell prompt.
 
@@ -113,10 +113,11 @@ For pip, use::
     pip install -r requirements.txt
     pip install -r requirements-optional.txt
 
-If you are using conda_ (see `Installing conda`_ to install conda itself),  create a new environment (``abienv``) based on python3.6 with::
+If you are using conda_ (see `Installing conda`_ to install conda itself),  create a new environment (``abienv``) 
+based on python3.6 with::
 
     conda create -n abienv python=3.6
-    source activate abipy3.6
+    source activate abienv
 
 Add ``conda-forge``, ``matsci`` and ``abinit`` to your channels with::
 
@@ -485,6 +486,6 @@ AbiPy is released under the GNU GPL license. For more details see the LICENSE fi
      :target: https://requires.io/github/abinit/abipy/requirements/?branch=develop
      :alt: Requirements Status
 
-.. |docs-github| image:: https://img.shields.io/badge/docs-devel_version-ff69b4.svg
-     :alt: Documentation development version
+.. |docs-github| image:: https://img.shields.io/badge/docs-ff69b4.svg
+     :alt: AbiPy Documentation
      :target: http://abinit.github.io/abipy
