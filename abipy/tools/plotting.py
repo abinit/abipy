@@ -537,10 +537,8 @@ def plot_unit_cell(lattice, ax=None, **kwargs):
     """
     ax, fig, plt = get_ax3d_fig_plt(ax)
 
-    if "color" not in kwargs:
-        kwargs["color"] = "k"
-    if "linewidth" not in kwargs:
-        kwargs["linewidth"] = 3
+    if "color" not in kwargs: kwargs["color"] = "k"
+    if "linewidth" not in kwargs: kwargs["linewidth"] = 3
 
     v = 8 * [None]
     v[0] = lattice.get_cartesian_coords([0.0, 0.0, 0.0])
@@ -556,7 +554,43 @@ def plot_unit_cell(lattice, ax=None, **kwargs):
                  (6, 7), (7, 4), (0, 7), (1, 6), (2, 5), (3, 4)):
         ax.plot(*zip(v[i], v[j]), **kwargs)
 
+    # Plot cartesian frame
+    ax_add_cartesian_frame(ax)
+
     return fig, ax
+
+
+def ax_add_cartesian_frame(ax, start=(0, 0, 0)):
+    """
+    Add cartesian frame to 3d axis at point `start`.
+    """
+    # https://stackoverflow.com/questions/22867620/putting-arrowheads-on-vectors-in-matplotlibs-3d-plot
+    from matplotlib.patches import FancyArrowPatch
+    from mpl_toolkits.mplot3d import proj3d
+    arrow_opts = {"color": "k"}
+    arrow_opts.update(dict(lw=1, arrowstyle="-|>",))
+
+    class Arrow3D(FancyArrowPatch):
+        def __init__(self, xs, ys, zs, *args, **kwargs):
+            FancyArrowPatch.__init__(self, (0, 0), (0, 0), *args, **kwargs)
+            self._verts3d = xs, ys, zs
+
+        def draw(self, renderer):
+            xs3d, ys3d, zs3d = self._verts3d
+            xs, ys, zs = proj3d.proj_transform(xs3d, ys3d, zs3d, renderer.M)
+            self.set_positions((xs[0], ys[0]), (xs[1], ys[1]))
+            FancyArrowPatch.draw(self, renderer)
+
+    start = np.array(start)
+    for end in ((1, 0, 0), (0, 1, 0), (0, 0, 1)):
+        end = start + np.array(end)
+        xs, ys, zs = list(zip(start, end))
+        p = Arrow3D(xs, ys, zs,
+                   connectionstyle='arc3', mutation_scale=20,
+                   alpha=0.8, **arrow_opts)
+        ax.add_artist(p)
+
+    return ax
 
 
 def plot_structure(structure, ax=None, to_unit_cell=False, alpha=0.7,
