@@ -25,7 +25,12 @@ class MyElasticTensor(ElasticTensor):
         return self.get_voigt_dataframe()._repr_html_()
 
     def get_voigt_dataframe(self, tol=1e-5):
-        tensor = self.zeroed(tol) if tol else self
+        """
+        Return |pandas-DataFrame| with Voigt indices as colums (C-indexing starting from 0).
+        Useful to analyze the converge of individual elements of the tensor(s)
+        Elements below tol are set to zero.
+        """
+        tensor = self.zeroed(tol=tol)
         columns = ["xx", "yy", "zz", "yz", "xz", "xy"]
         #columns = ["1", "2", "3", "4", "5", "6"]
         rows = []
@@ -42,7 +47,12 @@ class MyPiezoTensor(PiezoTensor):
         return self.get_voigt_dataframe()._repr_html_()
 
     def get_voigt_dataframe(self, tol=1e-5):
-        tensor = self.zeroed(tol) if tol else self
+        """
+        Return |pandas-DataFrame| with Voigt indices as colums (C-indexing starting from 0).
+        Useful to analyze the converge of individual elements of the tensor(s)
+        Elements below tol are set to zero.
+        """
+        tensor = self.zeroed(tol=tol)
         index = ["Px", "Py", "Pz"]
         columns = ["xx", "yy", "zz", "yz", "xz", "xy"]
         #index = ["P1", "P2", "P3"]
@@ -267,7 +277,7 @@ class ElasticData(Has_Structure, MSONable):
         """
         tensor = getattr(self, tensor_name)
         if tensor is None: return None
-        if tol is not None: tensor = tensor.zeroed(tol)
+        if tol is not None: tensor = tensor.zeroed(tol=tol)
         return tensor
 
     def name_tensor_list(self, tensor_names=None, tensor_type="all", tol=None):
@@ -382,7 +392,7 @@ class ElasticData(Has_Structure, MSONable):
 
     def get_voigt_dataframe(self, tensor_names, voigt_as_index=True, tol=None):
         """
-        Return a |pandas-DataFrame| with Voigt indices as colums (C-indexing starting from 0).
+        Return |pandas-DataFrame| with Voigt indices as colums (C-indexing starting from 0).
         Useful to analyze the converge of individual elements of the tensor(s)
 
         Args:

@@ -1670,6 +1670,9 @@ def list_of_dict_with_vars(task):
             else:  # Work
                 node = flow[w_pos]
 
+        #node.graphviz_imshow(dpi=600)
+        #return 0
+
         directory = tempfile.mkdtemp()
         print("Producing source files in:", directory)
 

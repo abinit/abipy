@@ -17,6 +17,7 @@ from collections import OrderedDict, namedtuple
 from monty.string import list_strings
 from monty.functools import lazy_property
 from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt, get_ax3d_fig_plt, get_axarray_fig_plt
+from .numtools import data_from_cplx_mode
 
 
 __all__ = [
@@ -136,24 +137,6 @@ def rotate_ticklabels(ax, rotation, axname="x"):
     if "y" in axname:
         for tick in ax.get_yticklabels():
             tick.set_rotation(rotation)
-
-
-def data_from_cplx_mode(cplx_mode, arr):
-    """
-    Extract the data from the numpy array ``arr`` depending on the values of ``cplx_mode``.
-
-    Args:
-        cplx_mode: Possible values in ("re", "im", "abs", "angle")
-            "re" for the real part,
-            "im" for the imaginary part.
-            "abs" means that the absolute value of the complex number is shown.
-            "angle" will display the phase of the complex number in radians.
-    """
-    if cplx_mode == "re": return arr.real
-    if cplx_mode == "im": return arr.imag
-    if cplx_mode == "abs": return np.abs(arr)
-    if cplx_mode == "angle": return np.angle(arr, deg=False)
-    raise ValueError("Unsupported mode `%s`" % str(cplx_mode))
 
 
 @add_fig_kwargs

@@ -110,6 +110,7 @@
 .. |AnaddbNcFile| replace:: :class:`abipy.dfpt.anaddb.AnaddbNcFile`
 .. |pmg-Tensor| replace:: :class:`pymatgen.analysis.elasticity.tensors.Tensor` 
 .. |pmg-Stress| replace:: :class:`pymatgen.analysis.elasticity.stress.Stress` 
+.. |DielectricTensor| replace:: :class:`abipy.dfpt.tensors.DielectricTensor` 
 .. |ElasticData| replace:: :class:`abipy.dfpt.elastic.ElasticData`
 .. |PhbstFile| replace:: :class:`abipy.dfpt.phonons.PhbstFile`
 .. |PhdosFile| replace:: :class:`abipy.dfpt.phonons.PhdosFile`

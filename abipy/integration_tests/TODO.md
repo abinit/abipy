@@ -28,13 +28,15 @@ TODO list:
 
 * Add iscf to GSR.nc so that we know if we have SCF|NSCF run.
 
+* Improve exception handling in NetcdfReader
+
+* Read forces in read_structure ?
+
 ## Medium priority
 
 * remove phononflow
 
 * Add DOS to GSR file (useful if tetra)  Create Dosfile ? Fortran exec?
-
-* Add with_becs to PhononWork
 
 * videos in README (atom and hydrogen)
 
@@ -90,6 +92,8 @@ TODO list:
 
 * DONE plot_networkx does not work with flows containing callbacks e.g. run_qptdm_flow
   FIXED with graphviz
+
+* Use graphvix in flow sphinx-gallery 
 
 * Check xsf_write_data and visualization of potentials.
 

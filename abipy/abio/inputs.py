@@ -1280,7 +1280,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
             raise self.Error("Invalid tolerance: %s" % str(tolerance))
 
-        if use_symmetries == True:
+        if use_symmetries:
             # Call Abinit to get the list of irred perts.
             perts = self.abiget_irred_ddeperts(manager=manager)
 
