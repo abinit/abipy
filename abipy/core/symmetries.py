@@ -742,11 +742,12 @@ class AbinitSpaceGroup(OpSequence):
         """
         Test whether two k-points in fractional coordinates are symmetry equivalent
         i.e. if there's a symmetry operations TO (including time-reversal T, if present)
-        such that:
+	such that::
 
             TO(k1) = k2 + G0
 
-        Return: namedtuple with:
+	Return: namedtuple with::
+
             isym: The index of the symmetry operation such that TS(k1) = k2 + G0
                 Set to -1 if k1 and k2 are not related by symmetry.
             op: Symmetry operation.

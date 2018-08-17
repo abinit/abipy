@@ -5,6 +5,7 @@ AnaddbNcFile provides a high-level interface to the data stored in the anaddb.nc
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import pandas as pd
+import warnings
 
 from collections import OrderedDict
 from monty.functools import lazy_property
@@ -29,7 +30,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         |Structure| object.
 
-    .. attribute:: emacro
+    .. attribute:: epsinf
 
         Macroscopic dielectric tensor. None if the file does not contain this information.
 
@@ -110,14 +111,15 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
                 df = self.elastic_data.get_voigt_dataframe()
                 app(df.T.to_string())
 
-        if self.emacro is not None:
-            app("Macroscopic dielectric tensor (Cartesian coords)")
-            app(str(self.emacro))
+        tol = 1e-3
+        if self.epsinf is not None:
+            app("Electronic dielectric tensor (eps_inf) in Cartesian coordinates. Set to zero below %.2e." % tol)
+            app(self.epsinf.get_dataframe(tol=tol).to_string())
             app("")
 
-        if self.emacro_rlx is not None:
-            app("Relaxed ion Macroscopic dielectric tensor (Cartesian coords)")
-            app(str(self.emacro_rlx))
+        if self.eps0 is not None:
+            app("Zero-frequency dielectric tensor (eps_zero) in Cartesian coordinates. Set to zero below %.2e." % tol)
+            app(self.eps0.get_dataframe(tol=tol).to_string())
             app("")
 
         #if self.becs is not None:
@@ -138,28 +140,44 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return "\n".join(lines)
 
     @lazy_property
-    def emacro(self):
+    def epsinf(self):
         """
-        Macroscopic dielectric tensor.
+        Macroscopic electronic |DielectricTensor| in Cartesian coordinates (a.k.a. epsilon_infinity)
         None if the file does not contain this information.
         """
         try:
-            return DielectricTensor(self.reader.read_value("emacro_cart"))
+            return DielectricTensor(self.reader.read_value("emacro_cart").T.copy())
         except Exception as exc:
             #print(exc, "Returning None", sep="\n")
             return None
 
+    # FIXME To maintain backward compatibility
+    @property
+    def emacro(self):
+        msg = "emacro is deprecated. It will removed in abipy 0.8. Use epsinf"
+        warnings.simplefilter('default')
+        warnings.warn(msg, DeprecationWarning, stacklevel=2)
+        return self.epsinf
+
     @lazy_property
-    def emacro_rlx(self):
+    def eps0(self):
         """
-        Relaxed ion Macroscopic dielectric tensor.
+        Relaxed ion macroscopic |DielectricTensor| in Cartesian coordinates (a.k.a. epsilon_zero)
         None if the file does not contain this information.
         """
         try:
-            return DielectricTensor(self.reader.read_value("emacro_cart_rlx"))
+            return DielectricTensor(self.reader.read_value("emacro_cart_rlx").T.copy())
         except Exception as exc:
             #print(exc, "Requires dieflag > 0", "Returning None", sep="\n")
             return None
+
+    # FIXME To maintain backward compatibility
+    @property
+    def emacro_rlx(self):
+        msg = "emacro_rlx is deprecated and will removed in abipy 0.8. Use epsinf"
+        warnings.simplefilter('default')
+        warnings.warn(msg, DeprecationWarning, stacklevel=2)
+        return self.eps0
 
     @lazy_property
     def becs(self):

@@ -127,7 +127,7 @@ class DdbTest(AbipyTest):
 
         assert ddb.has_bec_terms(select="at_least_one")
         assert not ddb.has_bec_terms(select="all")
-        assert not ddb.has_emacro_terms()
+        assert not ddb.has_epsinf_terms()
         assert not ddb.has_lo_to_data()
         assert not ddb.has_internalstrain_terms()
         assert not ddb.has_piezoelectric_terms()
@@ -228,7 +228,7 @@ class DdbTest(AbipyTest):
             assert ddb.has_bec_terms(select="at_least_one")
             assert ddb.has_bec_terms(select="all")
             assert ddb.has_bec_terms(select="all")
-            assert ddb.has_emacro_terms()
+            assert ddb.has_epsinf_terms()
             assert ddb.has_lo_to_data()
 
             # Get emacro and becs
@@ -264,6 +264,7 @@ class DdbTest(AbipyTest):
             # get the dielectric tensor generator from anaddb
             dtg = ddb.anaget_dielectric_tensor_generator(verbose=2)
             assert dtg is not None and hasattr(dtg, "phfreqs")
+            assert dtg.to_string(verbose=2)
 
     def test_mgo_becs_emacro(self):
         """
@@ -273,8 +274,8 @@ class DdbTest(AbipyTest):
         with abilab.abiopen(abidata.ref_file("mp-1009129-9x9x10q_ebecs_DDB")) as ddb:
             assert ddb.structure.formula == "Mg1 O1"
             assert len(ddb.qpoints) == 72
-            assert ddb.has_emacro_terms()
-            assert ddb.has_emacro_terms(select="at_least_one_diagoterm")
+            assert ddb.has_epsinf_terms()
+            assert ddb.has_epsinf_terms(select="at_least_one_diagoterm")
             assert ddb.has_bec_terms()
 
             if self.has_matplotlib():
@@ -371,14 +372,23 @@ class DielectricTensorGeneratorTest(AbipyTest):
         phbstnc_fname = abidata.ref_file("AlAs_nl_dte_PHBST.nc")
 
         d = DielectricTensorGenerator.from_files(phbstnc_fname, anaddbnc_fname)
-        repr(d); str(d)
+        assert d.eps0.shape == (3, 3)
+        df = d.epsinf.get_dataframe()
+        assert d.epsinf._repr_html_()
 
-        self.assertAlmostEqual(d.tensor_at_frequency(0.001, units='Ha')[0,0], 11.917178540635028)
+        repr(d); str(d)
+        assert d.to_string(verbose=2)
+
+        df = d.get_oscillator_dataframe(reim="all", tol=1e-8)
+        df = d.get_oscillator_dataframe(reim="im", tol=1e-8)
+        df = d.get_oscillator_dataframe(reim="re", tol=1e-8)
+
+        self.assertAlmostEqual(d.tensor_at_frequency(0.001, units='Ha', gamma_ev=0.0)[0, 0], 11.917178540635028)
 
         d = DielectricTensorGenerator.from_objects(PhononBands.from_file(phbstnc_fname),
                                                    AnaddbNcFile.from_file(anaddbnc_fname))
 
-        self.assertAlmostEqual(d.tensor_at_frequency(0.001, units='Ha')[0,0], 11.917178540635028)
+        self.assertAlmostEqual(d.tensor_at_frequency(0.001, units='Ha', gamma_ev=0.0)[0, 0], 11.917178540635028)
 
         if self.has_matplotlib():
             assert d.plot_vs_w(w_min=0.0001, w_max=0.01, num=10, units="Ha", show=False)
@@ -427,8 +437,9 @@ class DdbRobotTest(AbipyTest):
 
             # Test anacompare_elastic
             ddb_header_keys=["nkpt", "tsmear"]
-            df, edata_list = robot.anacompare_elastic(ddb_header_keys=ddb_header_keys,
+            r = robot.anacompare_elastic(ddb_header_keys=ddb_header_keys,
                 with_structure=True, with_spglib=False, relaxed_ion="automatic", piezo="automatic", verbose=1)
+            df, edata_list = r.df, r.elastdata_list
             assert "tensor_name" in df.keys()
             assert "ddb_path" in df
             for k in ddb_header_keys:
@@ -436,11 +447,11 @@ class DdbRobotTest(AbipyTest):
             assert len(edata_list) == 2
 
             # Test anacompare_becs
-            df, becs_list = robot.anacompare_becs(ddb_header_keys=ddb_header_keys, chneut=1, verbose=2)
+            r = robot.anacompare_becs(ddb_header_keys=ddb_header_keys, chneut=1, verbose=2)
             for k in ddb_header_keys:
-                assert k in df
-            #assert "ddb_path" in df and (0, 0) in df
-            assert len(becs_list) == 2
+                assert k in r.df
+            #assert "ddb_path" in r.df and (0, 0) in r.df
+            assert len(r.becs_list) == 2
 
             # Test anacompare_emacro
             #df, emacro_list = robot.anacompare_emacro(ddb_header_keys=ddb_header_keys, verbose=2)

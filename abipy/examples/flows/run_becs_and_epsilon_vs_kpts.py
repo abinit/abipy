@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 r"""
-Flow for phonons with DFPT
-==========================
+Flow for Born effective charges and dielectric tensors with DFPT
+================================================================
 
-This example shows how to compute the phonon band structure of AlAs with AbiPy flows.
-Symmetries are taken into account: only q-points in the IBZ are generated and
-for each q-point only the independent atomic perturbations are computed.
-The final results (out_DDB, out_DVDB) will be produced automatically at the end of the run
-and saved in ``flow_phonons/outdata/``.
+This example shows how to compute the Born effective charges and
+the dielectric tensors (e0, einf) of AlAs with AbiPy flows.
+We perform multiple calculations by varying the number of k-points
+to analyze the convergence of the results wrt nkpt
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 
@@ -18,9 +17,9 @@ import abipy.data as abidata
 
 from abipy import flowtk
 
-def make_scf_input(paral_kgb=0):
+def make_scf_input(ngkpt, paral_kgb=0):
     """
-    This function constructs the input file for the GS calculation:
+    This function constructs the input file for the GS calculation for a given IBZ sampling.
     """
     # Crystalline AlAs: computation of the second derivative of the total energy
     structure = abidata.structure_from_ucell("AlAs")
@@ -30,7 +29,7 @@ def make_scf_input(paral_kgb=0):
     gs_inp.set_vars(
         nband=4,
         ecut=2.0,
-        ngkpt=[4, 4, 4],
+        ngkpt=ngkpt,
         nshiftk=4,
         shiftk=[0.0, 0.0, 0.5,   # This gives the usual fcc Monkhorst-Pack grid
                 0.0, 0.5, 0.0,
@@ -61,14 +60,16 @@ def build_flow(options):
     if not options.workdir:
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
-    # Build input for GS calculation
-    scf_input = make_scf_input()
+    flow = flowtk.Flow(workdir=options.workdir)
 
-    # Create flow to compute all the independent atomic perturbations
-    # corresponding to a [4, 4, 4] q-mesh.
-    # Electric field and Born effective charges are also computed.
-    flow = flowtk.PhononFlow.from_scf_input(options.workdir, scf_input,
-                                            ph_ngqpt=(4, 4, 4), with_becs=True)
+    for ngkpt in [(2, 2, 2), (4, 4, 4), (8, 8, 8)]:
+        # Build input for GS calculation
+        scf_input = make_scf_input(ngkpt=ngkpt)
+        flow.register_scf_task(scf_input, append=True)
+
+    for scf_task in flow[0]:
+        bec_work = flowtk.BecWork.from_scf_task(scf_task)
+        flow.register_work(bec_work)
 
     return flow
 
@@ -79,7 +80,19 @@ if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-    build_flow(options).plot_networkx(with_edge_labels=False, tight_layout=True)
+    #build_flow(options).plot_networkx(with_edge_labels=False, tight_layout=True)
+    #options = flowtk.build_flow_main_parser().parse_args(["-w", os.getcwd()])
+    build_flow(options).graphviz_imshow(dpi=600) #, tight_layout=True)
+
+    #graph = build_flow(options).get_graphviz()
+    #graph.format = "png"
+    #graph.attr(dpi="600")
+    #path = graph.render("bar", view=False, cleanup=True)
+    #import matplotlib.pyplot as plt
+    #import matplotlib.image as mpimg
+    #plt.imshow(mpimg.imread(path))
+    #plt.axis("off")
+    #plt.show()
 
 
 @flowtk.flow_main
@@ -100,35 +113,27 @@ if __name__ == "__main__":
 #
 # Run the script with:
 #
-#     run_phonons.py -s
+#     run_becs_and_epsilon_vs_kpts.py -s
 #
-# then use:
+# Use:
 #
-#    abirun.py flow_phonons history
+#   abirun.py flow_becs_and_epsilon_vs_kpts/ listext DDB
 #
-# to get the list of actions perfomed by AbiPy to complete the flow.
-# Note how the ``PhononWork`` has merged all the partial DDB files produced by the PhononTasks
+# to list all the DDB files produced by the flow.
 #
-# .. code-block:: bash
+# Now use abicomp.py to create a DdbRobot to analyze the DDB files produced by the 3 Works:
 #
-#    ===================================================================================================================================
-#    ====================================== <PhononWork, node_id=241274, workdir=flow_phonons/w1> ======================================
-#    ===================================================================================================================================
-#    [Thu Dec  7 22:55:02 2017] Finalized set to True
-#    [Thu Dec  7 22:55:02 2017] Will call mrgddb to merge [ .... ]
+#    abicomp.py ddb flow_becs_and_epsilon_vs_kpts/w*/outdata/out_DDB
 #
-# Now open the final DDB file with:
-#
-#    abiopen.py flow_phonons/outdata/out_DDB
-#
-# and invoke anaddb to compute the phonon band structure and the phonon DOS with:
+# the inside the ipython terminal use the anacompare methods to analyze the results. e.g.
 #
 # .. code-block:: ipython
 #
-#     In [1]: phbst_file, phdos_file = abifile.anaget_phbst_and_phdos_files()
-#     In [2]: %matplotlib
-#     In [3]: phbst_file.plot_phbands()
-#
-# .. image:: https://github.com/abinit/abipy_assets/blob/master/run_phonons.png?raw=true
-#    :alt: Phonon band structure of AlAs.
+#     In [1]: r = robot.anacompare_epsinf()
+#     In [2]: r.df
+#     Out[2]:
+#               xx         yy         zz   yz   xz   xy  formula  chneut  \
+#     0  13.584082  13.584082  13.584082  0.0  0.0  0.0  Al1 As1       1
+#     0   9.268425   9.268425   9.268425  0.0  0.0  0.0  Al1 As1       1
+#     0   8.873178   8.873178   8.873178  0.0  0.0  0.0  Al1 As1       1
 #

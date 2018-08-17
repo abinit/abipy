@@ -895,6 +895,23 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         return abispg
 
+    def abiget_spginfo(self, tolsym=None, pre=None):
+        """
+	Call Abinit to get spacegroup information.
+	Return dictionary with e.g. {'bravais': 'Bravais cF (face-center cubic)', 'spg_number': 227, 'spg_symbol': 'Fd-3m'}.
+
+	Args:
+            tolsym: Abinit tolsym input variable. None correspondes to the default value.
+	    pre: Keywords in dictionary are prepended with this string
+        """
+        from abipy.data.hgh_pseudos import HGH_TABLE
+        from abipy.abio import factories
+        gsinp = factories.gs_input(self, HGH_TABLE, spin_mode="unpolarized")
+        gsinp["chkprim"] = 0
+        d = gsinp.abiget_spacegroup(tolsym=tolsym, retdict=True)
+        if pre: d = {pre + k: v for k, v in d.items()}
+        return d
+
     def print_neighbors(self, radius=2.0):
         """
         Get neighbors for each atom in the unit cell, out to a distance ``radius`` in Angstrom
@@ -1075,7 +1092,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         """
         return np.sqrt(self.dot(coords, coords, space=space, frac_coords=frac_coords))
 
-    def get_dict4pandas(self, with_spglib=True):
+    def get_dict4pandas(self, symprec=1e-2, angle_tolerance=5.0, with_spglib=True):
         """
         Return a :class:`OrderedDict` with the most important structural parameters:
 
@@ -1088,6 +1105,8 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         Args:
             with_spglib (bool): If True, spglib is invoked to get the spacegroup symbol and number
+            symprec (float): Symmetry precision used to refine the structure.
+            angle_tolerance (float): Tolerance on angles.
         """
         abc, angles = self.lattice.abc, self.lattice.angles
 
@@ -1095,8 +1114,8 @@ class Structure(pymatgen.Structure, NotebookWriter):
         spglib_symbol, spglib_number, spglib_lattice_type = None, None, None
         if with_spglib:
             try:
-                spglib_symbol, spglib_number = self.get_space_group_info()
-                spglib_lattice_type = self.spget_lattice_type()
+                spglib_symbol, spglib_number = self.get_space_group_info(symprec=symprec, angle_tolerance=angle_tolerance)
+                spglib_lattice_type = self.spget_lattice_type(symprec=symprec, angle_tolerance=angle_tolerance)
             except Exception as exc:
                 cprint("Spglib couldn't find space group symbol and number for composition %s" % str(self.composition), "red")
                 print("Exception:\n", exc)
@@ -1900,7 +1919,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         """
         nval, table = 0, PseudoTable.as_table(pseudos)
         for site in self:
-            pseudo = table.pseudo_with_symbol(site.species_string)
+            pseudo = table.pseudo_with_symbol(site.specie.symbol)
             nval += pseudo.Z_val
 
         return int(nval) if int(nval) == nval else nval
@@ -1915,7 +1934,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         table = PseudoTable.as_table(pseudos)
         psp_valences = []
         for site in self:
-            pseudo = table.pseudo_with_symbol(site.species_string)
+            pseudo = table.pseudo_with_symbol(site.specie.symbol)
             psp_valences.append(pseudo.Z_val)
 
         return psp_valences
@@ -1951,7 +1970,8 @@ class Structure(pymatgen.Structure, NotebookWriter):
         return self._write_nb_nbpath(nb, nbpath)
 
 
-def dataframes_from_structures(struct_objects, index=None, with_spglib=True, cart_coords=False):
+def dataframes_from_structures(struct_objects, index=None, symprec=1e-2, angle_tolerance=5,
+	                       with_spglib=True, cart_coords=False):
     """
     Build two pandas Dataframes_ with the most important geometrical parameters associated to
     a list of structures or a list of objects that can be converted into structures.
@@ -1961,6 +1981,8 @@ def dataframes_from_structures(struct_objects, index=None, with_spglib=True, car
             Support filenames, structure objects, Abinit input files, dicts and many more types.
             See ``Structure.as_structure`` for the complete list.
         index: Index of the |pandas-DataFrame|.
+        symprec (float): Symmetry precision used to refine the structure.
+        angle_tolerance (float): Tolerance on angles.
         with_spglib (bool): If True, spglib_ is invoked to get the spacegroup symbol and number.
         cart_coords: True if the ``coords`` dataframe should contain Cartesian cordinates
             instead of Reduced coordinates.
@@ -1981,7 +2003,8 @@ def dataframes_from_structures(struct_objects, index=None, with_spglib=True, car
     structures = [Structure.as_structure(obj) for obj in struct_objects]
     # Build Frame with lattice parameters.
     # Use OrderedDict to have columns ordered nicely.
-    odict_list = [(structure.get_dict4pandas(with_spglib=with_spglib)) for structure in structures]
+    odict_list = [(structure.get_dict4pandas(with_spglib=with_spglib, symprec=symprec, angle_tolerance=angle_tolerance))
+	          for structure in structures]
 
     import pandas as pd
     lattice_frame = pd.DataFrame(odict_list, index=index,

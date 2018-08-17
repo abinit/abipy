@@ -468,7 +468,7 @@ class TestAbinitInput(AbipyTest):
             # Validate with Abinit
             self.abivalidate_multi(dte_inputs)
 
-    def TestInputCheckSum(self):
+    def test_input_check_sum(self):
         """Testing the hash method of AbinitInput"""
         inp = ebands_input(abidata.cif_file("si.cif"), abidata.pseudos("14si.pspnc"), kppa=10, ecut=2)[0]
         inp_cs = inp.variable_checksum()

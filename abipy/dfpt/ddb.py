@@ -16,19 +16,21 @@ from monty.string import marquee, list_strings
 from monty.collections import AttrDict, dict2namedtuple, tree
 from monty.functools import lazy_property
 from monty.termcolor import cprint
+from monty.dev import deprecated
 from pymatgen.analysis.elasticity import Tensor, Stress
-from pymatgen.core.units import eV_to_Ha, bohr_to_angstrom, Energy
+from pymatgen.core.units import eV_to_Ha, bohr_to_angstrom, ang_to_bohr, Energy
 from abipy.flowtk import NetcdfReader, AnaddbTask
 from abipy.core.mixins import TextFile, Has_Structure, NotebookWriter
 from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.core.structure import Structure
 from abipy.core.kpoints import KpointList, Kpoint
 from abipy.iotools import ETSF_Reader
+from abipy.tools.numtools import data_from_cplx_mode
 from abipy.abio.inputs import AnaddbInput
 from abipy.dfpt.phonons import PhononDosPlotter, PhononBandsPlotter, InteratomicForceConstants
 from abipy.dfpt.tensors import DielectricTensor
 from abipy.dfpt.elastic import ElasticData
-from abipy.core.abinit_units import phfactor_ev2units, phunit_tag #Ha_cmm1,
+from abipy.core.abinit_units import phfactor_ev2units, phunit_tag
 from abipy.tools.plotting import Marker, add_fig_kwargs, get_ax_fig_plt, set_axlims
 from abipy.tools import duck
 from abipy.abio.robots import Robot
@@ -75,11 +77,11 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     * idir in [1, 2, 3] gives the direction (usually reduced direction, cart for strain)
     * ipert in [1, 2, ..., mpert] where mpert = natom + 6
 
-        * ipert in [1, ..., natom] corresponds to atomic perturbations
-        * ipert = natom + 1 gives d/dk
+        * ipert in [1, ..., natom] corresponds to atomic perturbations  (reduced dirs)
+        * ipert = natom + 1 gives d/dk  (reduced dirs)
         * ipert = natom + 2 gives the electric field
-        * ipert = natom + 3 gives the uniaxial stress
-        * ipert = natom + 4 gives the shear stree.
+        * ipert = natom + 3 gives the uniaxial stress (cartesian dirs)
+        * ipert = natom + 4 gives the shear strees.   (cartesian dirs)
 
     .. rubric:: Inheritance
     .. inheritance-diagram:: DdbFile
@@ -169,9 +171,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             app("Has stress tensor: %s" % (self.cart_stress_tensor is not None))
         app("")
         app("Has (at least one) atomic pertubation: %s" % self.has_at_least_one_atomic_perturbation())
-        #app("Has (at least one) electric-field perturbation: %s" % self.has_emacro_terms(select="at_least_one"))
-        #app("Has (all) electric-field perturbation: %s" % self.has_emacro_terms(select="all"))
-        app("Has (at least one diagonal) electric-field perturbation: %s" % self.has_emacro_terms(select="at_least_one_diagoterm"))
+        #app("Has (at least one) electric-field perturbation: %s" % self.has_epsinf_terms(select="at_least_one"))
+        #app("Has (all) electric-field perturbation: %s" % self.has_epsinf_terms(select="all"))
+        app("Has (at least one diagonal) electric-field perturbation: %s" % self.has_epsinf_terms(select="at_least_one_diagoterm"))
         app("Has (at least one) Born effective charge: %s" % self.has_bec_terms(select="at_least_one"))
         app("Has (all) strain terms: %s" % self.has_strain_terms(select="all"))
         app("Has (all) internal strain terms: %s" % self.has_internalstrain_terms(select="all"))
@@ -293,7 +295,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 print("While Trying to reshape", k)
                 raise exc
 
-        # Transpose symrel because Abinit write matrices by colums.
+        # Transpose symrel because Abinit write matrices by columns.
         h.symrel = np.array([s.T for s in h.symrel])
 
         return h
@@ -596,7 +598,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """
         True if the DDB file contains the data required to compute the LO-TO splitting.
         """
-        return self.has_emacro_terms(select=select) and self.has_bec_terms(select=select)
+        return self.has_epsinf_terms(select=select) and self.has_bec_terms(select=select)
 
     @lru_cache(typed=True)
     def has_at_least_one_atomic_perturbation(self, qpt=None):
@@ -619,7 +621,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return False
 
     @lru_cache(typed=True)
-    def has_emacro_terms(self, select="at_least_one"):
+    def has_epsinf_terms(self, select="at_least_one"):
         """
         True if the DDB file contains info on the electric-field perturbation.
 
@@ -654,6 +656,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                     raise ValueError("Wrong select %s" % str(select))
 
         return False if select in ("at_least_one", "at_least_one_diagoterm") else True
+
+    @deprecated(message="has_emacro_terms is deprecated and will be removed in abipy 0.8, use has_epsinf_terms")
+    def has_emacro_terms(self, **kwargs):
+        return self.has_epsinf_terms(**kwargs)
 
     @lru_cache(typed=True)
     def has_bec_terms(self, select="at_least_one"):
@@ -879,7 +885,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             lo_to_splitting = self.has_lo_to_data() and qpoint.is_gamma() and dipdip != 0
 
         if lo_to_splitting and qpoint.is_gamma() and not self.has_lo_to_data():
-            cprint("lo_to_splitting set to True but Emacro and Becs are not available in DDB %s:" % self.filepath)
+            cprint("lo_to_splitting set to True but Eps_inf and Becs are not available in DDB %s:" % self.filepath)
 
         inp = AnaddbInput.modes_at_qpoint(self.structure, qpoint, asr=asr, chneut=chneut, dipdip=dipdip,
                                           lo_to_splitting=lo_to_splitting, directions=directions,
@@ -935,7 +941,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             lo_to_splitting = self.has_lo_to_data() and dipdip != 0
 
         if lo_to_splitting and not self.has_lo_to_data():
-            cprint("lo_to_splitting is True but Emacro and Becs are not available in DDB: %s" % self.filepath, "yellow")
+            cprint("lo_to_splitting is True but Eps_inf and Becs are not available in DDB: %s" % self.filepath, "yellow")
 
         inp = AnaddbInput.phbands_and_dos(
             self.structure, ngqpt=ngqpt, ndivsm=ndivsm, line_density=line_density,
@@ -1176,7 +1182,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return dict2namedtuple(phdoses=phdoses, plotter=plotter)
 
-    def anaget_emacro_and_becs(self, chneut=1, mpi_procs=1, workdir=None, manager=None, verbose=0):
+    def anaget_epsinf_and_becs(self, chneut=1, mpi_procs=1, workdir=None, manager=None, verbose=0):
         """
         Call anaddb to compute the macroscopic electronic dielectric tensor (e_inf)
         in Cartesian coordinates and the Born effective charges.
@@ -1187,8 +1193,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             mpi_procs: Number of MPI processes to use.
             verbose: verbosity level. Set it to a value > 0 to get more information
 
-        Return:
-            (emacro, becs)
+        Return: ``namedtuple`` with the following attributes::
+            epsinf: |DielectricTensor| object.
+            becs: Becs objects.
         """
         if not self.has_lo_to_data():
             cprint("Dielectric tensor and Becs are not available in DDB: %s" % self.filepath, "yellow")
@@ -1199,11 +1206,15 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         # Read data from the netcdf output file produced by anaddb.
         with ETSF_Reader(os.path.join(task.workdir, "anaddb.nc")) as r:
+            epsinf = DielectricTensor(r.read_value("emacro_cart"))
             structure = r.read_structure()
-            emacro = DielectricTensor(r.read_value("emacro_cart"))
             becs = Becs(r.read_value("becs_cart"), structure, chneut=inp["chneut"], order="f")
+            return dict2namedtuple(epsinf=epsinf, becs=becs)
 
-            return emacro, becs
+    @deprecated(message="anaget_emacro_and_becs is deprecated and will be removed in abipy 0.8, use anaget_epsinf_and_becs")
+    def anaget_emacro_and_becs(self, **kwargs):
+        r = self.anaget_epsinf_and_becs(**kwargs)
+        return r.epsinf, r.becs
 
     def anaget_ifc(self, ifcout=None, asr=2, chneut=1, dipdip=1, ngqpt=None,
                    mpi_procs=1, workdir=None, manager=None, verbose=0, anaddb_kwargs=None):
@@ -1265,14 +1276,16 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return DielectricTensorGenerator.from_files(os.path.join(task.workdir, "run.abo_PHBST.nc"),
                                                     os.path.join(task.workdir, "anaddb.nc"))
 
-    def anaget_elastic(self, relaxed_ion="automatic", piezo="automatic", dde=False, stress_correction=False,
-			asr=2, chneut=1, mpi_procs=1, workdir=None, manager=None, verbose=0, retpath=False):
+    def anaget_elastic(self, relaxed_ion="automatic", piezo="automatic",
+                        dde=False, stress_correction=False, asr=2, chneut=1,
+                        mpi_procs=1, workdir=None, manager=None, verbose=0, retpath=False):
         """
         Call anaddb to compute elastic and piezoelectric tensors. Require DDB with strain terms.
 
 	By default, this method sets the anaddb input variables automatically
 	by looking at the 2nd-order derivatives available in the DDB file.
-	This behaviour can be changed by setting explicitly the value of: `relaxed_ion` and `piezo`.
+	This behaviour can be changed by setting explicitly the value of:
+        `relaxed_ion` and `piezo`.
 
         Args:
             relaxed_ion: Activate computation of relaxed-ion tensors.
@@ -1320,9 +1333,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         #select = "all"
         select = "at_least_one_diagoterm"
         if dde == "automatic":
-            dde = self.has_emacro_terms(select=select)
+            dde = self.has_epsinf_terms(select=select)
 
-        if dde and not self.has_emacro_terms(select=select):
+        if dde and not self.has_epsinf_terms(select=select):
             cprint("Requiring `dde` but dielectric tensor not available in DDB: %s" % self.filepath, "yellow")
 
         if stress_correction == "automatic":
@@ -1459,8 +1472,8 @@ phbands, phdos = bstfile.phbands, phdosfile.phdos"""),
             nbv.new_markdown_cell("## Macroscopic dielectric tensor and Born effective charges"),
             nbv.new_code_cell("""\
 if False:
-    emacro, becs = ddb.anaget_emacro_and_becs()
-    print(emacro)
+    einf, becs = ddb.anaget_epsinf_and_becs()
+    print(einf)
     print(becs)"""),
 
             nbv.new_markdown_cell("## Call `anaddb` to compute phonons and DOS with/without ASR"),
@@ -1528,7 +1541,7 @@ class Becs(Has_Structure):
             if order.lower() == "f": mat = mat.T.copy()
             self.values[i] = mat
 
-        self.zstars = [Tensor(mat) for mat in self.values]
+        self.zstars = [ZstarTensor(mat) for mat in self.values]
 
     @property
     def structure(self):
@@ -1579,16 +1592,21 @@ class Becs(Has_Structure):
 
         columns = ["xx", "yy", "zz", "yz", "xz", "xy"]
         rows = []
-        for site, zstar in zip(self.structure, self.zstars):
+        for isite, (site, zstar) in enumerate(zip(self.structure, self.zstars)):
             if select_symbols is not None and site.specie.symbol not in select_symbols: continue
             d = OrderedDict()
             d["element"] = site.specie.symbol
+            d["site_index"] = isite
             d["frac_coords"] = site.frac_coords
             for k, v in zip(columns, zstar.voigt):
                 d[k] = v
             rows.append(d)
 
         return pd.DataFrame(rows, index=None, columns=list(rows[0].keys()))
+
+
+class ZstarTensor(Tensor):
+    pass
 
 
 class DielectricTensorGenerator(Has_Structure):
@@ -1602,47 +1620,28 @@ class DielectricTensorGenerator(Has_Structure):
     See the definitions Eq.(53-54) in :cite:`Gonze1997` PRB55, 10355 (1997).
     """
 
-    def __init__(self, phfreqs, oscillator_strength, emacro, structure):
-        """
-        Args:
-             phfreqs: a numpy array containing the 3 * num_atoms phonon frequencies at gamma
-             oscillator_strength: a complex numpy array with shape (number of phonon modes, 3, 3) in atomic units
-             emacro: a numpy array containing the dielectric tensor without frequency dependence
-                (at infinite frequency)
-             structure: |Structure| object.
-        """
-        self.phfreqs = phfreqs
-        self.oscillator_strength = oscillator_strength
-        self.emacro = emacro
-        self._structure = structure
-
-    @property
-    def structure(self):
-        """|Structure| object."""
-        return self._structure
-
     @classmethod
     def from_files(cls, phbst_filepath, anaddbnc_filepath):
         """
         Generates the object from the files that contain the phonon frequencies, oscillator strength and
         static dielectric tensor, i.e. the PHBST.nc and anaddb.nc netcdf files, respectively.
         """
-        with ETSF_Reader(phbst_filepath) as reader_phbst:
-            qpts = reader_phbst.read_value("qpoints")
-            full_phfreqs = reader_phbst.read_value("phfreqs")
+        with ETSF_Reader(phbst_filepath) as reader:
+            qpts = reader.read_value("qpoints")
+            full_phfreqs = reader.read_value("phfreqs")
 
         for i, q in enumerate(qpts):
             if np.array_equal(q, [0, 0, 0]):
+                phfreqs = full_phfreqs[i].copy()
                 break
         else:
             raise ValueError('The PHBST does not contain frequencies at gamma')
 
-        phfreqs = full_phfreqs[i].copy()
-
-        with ETSF_Reader(anaddbnc_filepath) as reader_anaddbnc:
-            emacro = reader_anaddbnc.read_value("emacro_cart")
+        with ETSF_Reader(anaddbnc_filepath) as reader:
+            epsinf = DielectricTensor(reader.read_value("emacro_cart").T.copy())
+            eps0 = DielectricTensor(reader.read_value("emacro_cart_rlx").T.copy())
             try:
-                oscillator_strength = reader_anaddbnc.read_value("oscillator_strength", cmode="c")
+                oscillator_strength = reader.read_value("oscillator_strength", cmode="c")
             except Exception as exc:
                 import traceback
                 msg = traceback.format_exc()
@@ -1650,9 +1649,9 @@ class DielectricTensorGenerator(Has_Structure):
                         "Verify that dieflag == 1, 3 or 4 in anaddb\n")
                 raise ValueError(msg)
 
-            structure = reader_anaddbnc.read_structure()
+            structure = reader.read_structure()
 
-        return cls(phfreqs, oscillator_strength, emacro, structure)
+        return cls(phfreqs, oscillator_strength, eps0, epsinf, structure)
 
     @classmethod
     def from_objects(cls, phbands, anaddbnc):
@@ -1663,43 +1662,139 @@ class DielectricTensorGenerator(Has_Structure):
 
         phfreqs = phbands.phfreqs[gamma_index]
 
-        emacro = anaddbnc.emacro
+        epsinf = anaddbnc.epsinf
+        eps0 = anaddbnc.eps0
         oscillator_strength = anaddbnc.oscillator_strength
 
-        return cls(phfreqs, oscillator_strength, emacro, anaddbnc.structure)
+        return cls(phfreqs, oscillator_strength, eps0, epsinf, anaddbnc.structure)
 
-    def tensor_at_frequency(self, w, units='eV'):
+    def __init__(self, phfreqs, oscillator_strength, eps0, epsinf, structure):
         """
-        Returns a :class:`DielectricTensor` object representing
+        Args:
+             phfreqs: numpy array containing the 3 * num_atoms phonon frequencies at gamma
+             oscillator_strength: complex numpy array with shape (number of phonon modes, 3, 3) in atomic units
+             eps0: numpy array containing the e0 dielectric tensor without frequency dependence
+             epsinf: numpy array with the electronic dielectric tensor (einf) without frequency dependence
+             structure: |Structure| object.
+        """
+        self.phfreqs = phfreqs
+        self.oscillator_strength = oscillator_strength
+        self.eps0 = eps0
+        self.epsinf = epsinf
+        self._structure = structure
+
+    @property
+    def structure(self):
+        """|Structure| object."""
+        return self._structure
+
+    def __str__(self):
+        return self.to_string()
+
+    def to_string(self, verbose=0):
+        """String representation with verbosity level `verbose`."""
+        lines = []
+        app = lines.append
+        app(self.structure.to_string(verbose=verbose, title="Structure"))
+        app("")
+        app(marquee("Oscillator strength", mark="="))
+        tol = 1e-8
+        app("Real part in a.u.; 1 a.u. = 253.2638413 m3/s2. Set to zero below %.2e." % tol)
+        app(self.get_oscillator_dataframe(reim="re", tol=tol).to_string())
+        if verbose:
+            app("")
+            app("Imaginary part in a.u.; 1 a.u. = 253.2638413 m3/s2. Set to zero below %.2e." % tol)
+            app(self.get_oscillator_dataframe(reim="im", tol=tol).to_string())
+            app("")
+            app("Trace of oscillator strength, for each phonon mode:")
+            traces = [o.trace() for o in self.oscillator_strength]
+            app(str(traces))
+        app("")
+
+        tol = 1e-3
+        app(marquee("Dielectric Tensors", mark="="))
+        app("Electronic dielectric tensor (eps_inf) in Cartesian coordinates. Set to zero below %.2e." % tol)
+        app(self.epsinf.get_dataframe(tol=tol).to_string())
+        app("")
+        app("Zero-frequency dielectric tensor (eps_zero) in Cartesian coordinates. Set to zero below %.2e." % tol)
+        app(self.eps0.get_dataframe(tol=tol).to_string())
+
+        return "\n".join(lines)
+
+    def get_oscillator_dataframe(self, reim="all", tol=1e-8):
+        """
+        Return |pandas-Dataframe| with oscillator matrix elements
+
+        Args:
+            reim: "re" for real part, "im" for imaginary part, "all" for both.
+            tol: Entries are set to zero below this value
+        """
+        dmap = dict(xx=(0, 0), yy=(1, 1), zz=(2, 2), yz=(1, 2), xz=(0, 2), xy=(0, 1))
+
+        rows, index = [], []
+        for nu in range(3 * len(self.structure)):
+            d = {k: data_from_cplx_mode(reim, self.oscillator_strength[nu][t], tol=tol) for k, t in dmap.items()}
+            rows.append(d)
+            index.append(nu)
+
+        df = pd.DataFrame(rows, index=index, columns=list(rows[0].keys()))
+        df.index.name = "mode"
+        return df
+
+    def tensor_at_frequency(self, w, gamma_ev=1e-4, units='eV'):
+        """
+        Returns a |DielectricTensor| object representing
         the dielectric tensor in atomic units at the specified frequency w.
         Eq.(53-54) in PRB55, 10355 (1997).
 
         Args:
             w: frequency
+            gamma_ev: Phonon damping factor in eV (full width). Poles are shifted by phfreq * gamma_ev.
+                Accept scalar or [nfreq] array.
             units: string specifying the units used for ph frequencies.  Possible values in
             ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
         """
         w =  w / phfactor_ev2units(units)
 
+        # Note that the acoustic modes are not included: their oscillator strength should be exactly zero
+        # Also, only the real part of the oscillators is taken into account:
+        # the possible imaginary parts of degenerate modes will cancel.
+        if duck.is_listlike(gamma_ev):
+            gammas = np.asarray(gammas)
+            assert len(gammas) == len(phfreqs)
+        else:
+            gammas = np.ones_like(self.phfreqs) * float(gamma_ev)
+
         t = np.zeros((3, 3))
         for i in range(3, len(self.phfreqs)):
-            t += self.oscillator_strength[i].real/(self.phfreqs[i]**2 - w**2)
+            g =  gammas[i] * self.phfreqs[i]
+            t += (self.oscillator_strength[i].real / (self.phfreqs[i]**2 - w**2 - 1j*g)).real
 
         vol = self.structure.volume / bohr_to_angstrom ** 3
-        t = 4*np.pi*t/vol/eV_to_Ha**2
+        t = 4*np.pi * t / vol / eV_to_Ha**2
+        t += self.epsinf
 
-        t += self.emacro
+        #t = np.zeros((3, 3))
+        #w = w * eV_to_Ha
+        #for i in range(3, len(self.phfreqs)):
+        #    phw = self.phfreqs[i] * eV_to_Ha
+        #    t += self.oscillator_strength[i].real / (phw**2 - w**2)
+        #t *= 4 * np.pi / (self.structure.volume * ang_to_bohr ** 3)
+        #t += self.epsinf
 
         return DielectricTensor(t)
 
     @add_fig_kwargs
-    def plot_vs_w(self, w_min=0, w_max=None, num=100, component='diag', units='eV', ax=None, fontsize=12, **kwargs):
+    def plot_vs_w(self, w_min=0, w_max=None, gamma_ev=1e-4, num=100, component='diag', units='eV',
+                  with_phfreqs=True, ax=None, fontsize=12, **kwargs):
         """
-        Plots the selected components of the dielectric tensor as a function of the frequency.
+        Plots the selected components of the dielectric tensor as a function of frequency.
 
         Args:
-            w_min: minimum frequency.
-            w_max: maximum frequency. If None it will be set to the value of the maximum frequecy, increased by 10%.
+            w_min: minimum frequency in units `units`.
+            w_max: maximum frequency. If None it will be set to the value of the maximum frequency * 4.
+            gamma_ev: Phonon damping factor in eV (full width). Poles are shifted by phfreq * gamma_ev.
+                Accept scalar or [nfreq] array.
             num: number of values of the frequencies between w_min and w_max.
             component: determine which components of the tensor will be displayed. Can be a list/tuple of two
                 elements, indicating the indices [i, j] of the desired component or a string among:
@@ -1708,20 +1803,22 @@ class DielectricTensorGenerator(Has_Structure):
                 * 'all' to plot all the components
                 * 'diag_av' to plot the average of the components on the diagonal
 
-            units: string specifying the units used for ph frequencies. Possible values in
+            units: string specifying the units used for phonon frequencies. Possible values in
                 ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            with_phfreqs: True to show phonon frequencies with dots.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: Legend and label fontsize.
 
         Return: |matplotlib-Figure|
         """
         if w_max is None:
-            w_max = np.max(self.phfreqs) * 1.1 * phfactor_ev2units(units)
+            w_max = np.max(self.phfreqs) * 4 * phfactor_ev2units(units)
 
         w_range = np.linspace(w_min, w_max, num, endpoint=True)
 
-        t = np.zeros((num,3,3))
+        t = np.zeros((num, 3, 3))
         for i, w in enumerate(w_range):
-            t[i] = self.tensor_at_frequency(w, units=units)
+            t[i] = self.tensor_at_frequency(w, units=units, gamma_ev=gamma_ev)
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
@@ -1729,7 +1826,8 @@ class DielectricTensorGenerator(Has_Structure):
             kwargs['linewidth'] = 2
 
         ax.set_xlabel('Frequency {}'.format(phunit_tag(units)))
-        ax.set_ylabel(r'$\varepsilon$')
+        ax.set_ylabel(r'$\varepsilon_{1}(\omega)$')
+        ax.grid(True)
 
         if isinstance(component, (list, tuple)):
             ax.plot(w_range, t[:,component[0], component[1]], label='[{},{}]'.format(*component), **kwargs)
@@ -1745,6 +1843,11 @@ class DielectricTensorGenerator(Has_Structure):
                 ax.plot(w_range, np.trace(t, axis1=1, axis2=2)/3, label='[{},{}]'.format(i, i), **kwargs)
         else:
             raise ValueError('Unkwnown component {}'.format(component))
+
+        # Add points showing phonon energies.
+        if with_phfreqs:
+            wvals = self.phfreqs * phfactor_ev2units(units)
+            ax.scatter(wvals, np.zeros_like(wvals), s=30, marker="o", c="blue")
 
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
@@ -1971,7 +2074,7 @@ class DdbRobot(Robot):
         return dict2namedtuple(phbands_plotter=phbands_plotter, phdos_plotter=phdos_plotter)
 
     def anacompare_elastic(self, ddb_header_keys=None, with_structure=True,
-	    with_spglib=True, manager=None, verbose=0, **kwargs):
+	                   with_spglib=True, manager=None, verbose=0, **kwargs):
         """
         Compute elastic and piezoelectric properties for all DDBs in the robot and build DataFrame.
 
@@ -1997,7 +2100,8 @@ class DdbRobot(Robot):
             df = edata.get_elastic_properties_dataframe()
 
             # Add metadata to the dataframe.
-            for k in list_strings(ddb_header_keys):
+            df["formula"] = ddb.structure.formula
+            for k in ddb_header_keys:
                 df[k] = ddb.header[k]
 
             # Add structural parameters to the dataframe.
@@ -2010,31 +2114,35 @@ class DdbRobot(Robot):
             df_list.append(df)
 
         # Concatenate dataframes.
-        return pd.concat(df_list), elastdata_list
+        return dict2namedtuple(df=pd.concat(df_list), elastdata_list=elastdata_list)
 
     def anacompare_becs(self, ddb_header_keys=None, chneut=1, verbose=0):
         """
         Compute Born effective charges for all DDBs in the robot and build DataFrame.
-        with Voigt indices as colums + metadata. Useful for convergence studies.
+        with Voigt indices as columns + metadata. Useful for convergence studies.
 
         Args:
             ddb_header_keys: List of keywords in the header of the DDB file
                 whose value will be added to the Dataframe.
             verbose: verbosity level. Set it to a value > 0 to get more information
 
-        Return: DataFrame and list of Becs objects
+        Return: ``namedtuple`` with the following attributes::
+
+            df: DataFrame with Voigt as columns.
+            becs_list: list of Becs objects.
         """
         ddb_header_keys = [] if ddb_header_keys is None else list_strings(ddb_header_keys)
         df_list, becs_list = [], []
         for label, ddb in self.items():
             # Invoke anaddb to compute Becs
-            _, becs = ddb.anaget_emacro_and_becs(chneut=chneut, verbose=verbose)
+            _, becs = ddb.anaget_epsinf_and_becs(chneut=chneut, verbose=verbose)
             becs_list.append(becs)
             df = becs.get_voigt_dataframe()
 
             # Add metadata to the dataframe.
+            df["formula"] = ddb.structure.formula
             df["chneut"] = chneut
-            for k in list_strings(ddb_header_keys):
+            for k in ddb_header_keys:
                 df[k] = ddb.header[k]
 
             # Add path to the DDB file.
@@ -2042,38 +2150,87 @@ class DdbRobot(Robot):
             df_list.append(df)
 
         # Concatenate dataframes.
-        return pd.concat(df_list), becs_list
+        return dict2namedtuple(df=pd.concat(df_list), becs_list=becs_list)
 
-    #def anacompare_emacro(self, ddb_header_keys=None, verbose=0):
-    #    """
-    #    Compute Born effective charges for all DDBs in the robot and build DataFrame.
-    #    with Voigt indices as colums + metadata. Useful for convergence studies.
+    def anacompare_epsinf(self, ddb_header_keys=None, chneut=1, tol=1e-3, verbose=0):
+        """
+        Compute (eps^\inf) electronic dielectric tensor for all DDBs in the robot and build DataFrame.
+        with Voigt indices as columns + metadata. Useful for convergence studies.
 
-    #    Args:
-    #        ddb_header_keys: List of keywords in the header of the DDB file
-    #            whose value will be added to the Dataframe.
-    #        verbose: verbosity level. Set it to a value > 0 to get more information
+        Args:
+            ddb_header_keys: List of keywords in the header of the DDB file
+                whose value will be added to the Dataframe.
+            chneut: Anaddb input variable. See official documentation.
+            tol: Elements below this value are set to zero.
+            verbose: verbosity level. Set it to a value > 0 to get more information
 
-    #    Return: DataFrame and list of DielectricTensor objects
-    #    """
-    #    ddb_header_keys = [] if ddb_header_keys is None else list_strings(ddb_header_keys)
-    #    df_list, emacro_list = [], []
-    #    for label, ddb in self.items():
-    #        # Invoke anaddb to compute Becs
-    #        emacro, _ = ddb.anaget_emacro_and_becs(chneut=chneut, verbose=verbose)
-    #        emacro_list.append(emacro)
-    #        df = emacro.get_voigt_dataframe()
+        Return: ``namedtuple`` with the following attributes::
 
-    #        # Add metadata to the dataframe.
-    #        for k in list_strings(ddb_header_keys):
-    #            df[k] = ddb.header[k]
+            df: DataFrame with Voigt indices as columns.
+            epsinf_list: List of |DielectricTensor| objects with eps^{inf}
+        """
+        ddb_header_keys = [] if ddb_header_keys is None else list_strings(ddb_header_keys)
+        df_list, epsinf_list = [], []
+        for label, ddb in self.items():
+            # Invoke anaddb to compute e_inf
+            einf, _ = ddb.anaget_epsinf_and_becs(chneut=chneut, verbose=verbose)
+            epsinf_list.append(einf)
+            df = einf.get_voigt_dataframe(tol=tol)
 
-    #        # Add path to the DDB file.
-    #        df["ddb_path"] = ddb.filepath
-    #        df_list.append(df)
+            # Add metadata to the dataframe.
+            df["formula"] = ddb.structure.formula
+            df["chneut"] = chneut
+            for k in ddb_header_keys:
+                df[k] = ddb.header[k]
 
-    #    # Concatenate dataframes.
-    #    return pd.concat(df_list), emacro_list
+            # Add path to the DDB file.
+            df["ddb_path"] = ddb.filepath
+            df_list.append(df)
+
+        # Concatenate dataframes.
+        return dict2namedtuple(df=pd.concat(df_list), epsinf_list=epsinf_list)
+
+    def anacompare_eps0(self, ddb_header_keys=None, asr=2, chneut=1, tol=1e-3, verbose=0):
+        """
+        Compute (eps^0) dielectric tensor for all DDBs in the robot and build DataFrame.
+        with Voigt indices as columns + metadata. Useful for convergence studies.
+
+        Args:
+            ddb_header_keys: List of keywords in the header of the DDB file
+                whose value will be added to the Dataframe.
+            asr, chneut, dipdip: Anaddb input variable. See official documentation.
+            tol: Elements below this value are set to zero.
+            verbose: verbosity level. Set it to a value > 0 to get more information
+
+        Return: ``namedtuple`` with the following attributes::
+
+            df: DataFrame with Voigt as columns.
+            eps0_list: List of |DielectricTensor| objects with eps^0.
+            dgen_list: List of DielectricTensorGenerator.
+        """
+        ddb_header_keys = [] if ddb_header_keys is None else list_strings(ddb_header_keys)
+        df_list, eps0_list, dgen_list = [], [], []
+        for label, ddb in self.items():
+            # Invoke anaddb to compute e_0
+            gen = ddb.anaget_dielectric_tensor_generator(asr=asr, chneut=chneut, dipdip=1, verbose=verbose)
+            dgen_list.append(gen)
+            eps0_list.append(gen.eps0)
+            df = gen.eps0.get_voigt_dataframe(tol=tol)
+
+            # Add metadata to the dataframe.
+            df["formula"] = ddb.structure.formula
+            df["asr"] = asr
+            df["chneut"] = chneut
+            #df["dipdip"] = dipdip
+            for k in ddb_header_keys:
+                df[k] = ddb.header[k]
+
+            # Add path to the DDB file.
+            df["ddb_path"] = ddb.filepath
+            df_list.append(df)
+
+        # Concatenate dataframes.
+        return dict2namedtuple(df=pd.concat(df_list), eps0_list=eps0_list, dgen_list=dgen_list)
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """

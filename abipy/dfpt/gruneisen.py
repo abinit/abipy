@@ -780,7 +780,6 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         Splits the values of the finite differences gruneisen along a path like for the phonon bands
         """
-
         try:
             return self._split_gruns_fd
         except AttributeError:
@@ -965,6 +964,7 @@ def calculate_gruns_finite_differences(phfreqs, eig, iv0, volume, dv):
     """
     Calculates the Gruneisen parameters from finite differences on the phonon frequencies. Uses the eigenvectors
     to match the frequencies at different volumes.
+
     Args:
         phfreqs: numpy array with the phonon frequencies at different volumes. Shape (nvols, nqpts, 3*natoms)
         eig: numpy array with the phonon eigenvectors at the different volumes. Shape (nvols, nqpts, 3*natoms, 3*natoms)
@@ -972,6 +972,7 @@ def calculate_gruns_finite_differences(phfreqs, eig, iv0, volume, dv):
         iv0: index of the 0 volume.
         volume: volume of the structure at the central volume.
         dv: volume variation.
+
     Returns:
         A numpy array with the gruneisen parameters. Shape (nqpts, 3*natoms)
     """
