@@ -83,39 +83,38 @@ extensions += [
 # Spinx Gallery Settings
 #########################
 
-import matplotlib as mpl
+mpl = matplotlib
 mpl.use("Agg")
 mpl.rcParams['figure.dpi'] = 300
 
 
-def reset_mpl(gallery_conf, fname):
-    """reset matplotlib to always use the seaborn style."""
-    # https://542-25860190-gh.circle-artifacts.com/0/rtd_html/advanced_configuration.html#resetting-modules
-    #from matplotlib import style
-    #style.use('ggplot')
-    import seaborn as sns
-    rc = {'figure.dpi': 300}
-    sns.set(context='talk', style='darkgrid', palette='deep', font='sans-serif', font_scale=1, color_codes=True, rc=rc)
+#def reset_mpl(gallery_conf, fname):
+#    """reset matplotlib to always use the seaborn style."""
+#    # https://542-25860190-gh.circle-artifacts.com/0/rtd_html/advanced_configuration.html#resetting-modules
+#    #from matplotlib import style
+#    #style.use('ggplot')
+#    import seaborn as sns
+#    rc = {'figure.dpi': 300}
+#    sns.set(context='talk', style='darkgrid', palette='deep', font='sans-serif', font_scale=1, color_codes=True, rc=rc)
 
-import glob
-import shutil
-from sphinx_gallery.gen_rst import figure_rst
-
-class PNGScraper(object):
-    # https://sphinx-gallery.readthedocs.io/en/latest/advanced_configuration.html#image-scrapers
-    def __init__(self):
-        self.seen = set()
-
-    def __call__(self, block, block_vars, gallery_conf):
-        pngs = sorted(glob.glob(os.path.join(os.getcwd(), '*.png')))
-        image_names = []
-        image_path_iterator = block_vars['image_path_iterator']
-        for png in pngs:
-            if png not in self.seen:
-                self.seen |= set(png)
-                image_names.append(image_path_iterator.next())
-                shutil.copyfile(png, image_names[-1])
-        return figure_rst(image_names, gallery_conf['src_dir'])
+#import glob
+#from sphinx_gallery.gen_rst import figure_rst
+#
+#class PNGScraper(object):
+#    # https://sphinx-gallery.readthedocs.io/en/latest/advanced_configuration.html#image-scrapers
+#    def __init__(self):
+#        self.seen = set()
+#
+#    def __call__(self, block, block_vars, gallery_conf):
+#        pngs = sorted(glob.glob(os.path.join(os.getcwd(), '*.png')))
+#        image_names = []
+#        image_path_iterator = block_vars['image_path_iterator']
+#        for png in pngs:
+#            if png not in self.seen:
+#                self.seen |= set(png)
+#                image_names.append(image_path_iterator.next())
+#                shutil.copyfile(png, image_names[-1])
+#        return figure_rst(image_names, gallery_conf['src_dir'])
 
 
 from sphinx_gallery.sorting import FileNameSortKey, NumberOfCodeLinesSortKey

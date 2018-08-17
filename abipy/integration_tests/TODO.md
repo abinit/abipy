@@ -70,7 +70,7 @@ TODO list:
 
 * Investigate NaN issue in BECS reported by Ahn if tolvrs instead of tolwfr (tolwfr could activate nbdbuf)
 
-* Check infra-red dielectric function from DDB.
+* DONE Check infra-red dielectric function from DDB.
 
 * Add input file to NC files (?)
 
@@ -86,14 +86,14 @@ TODO list:
 * Add python API to support discontinuous paths (Abinit is not able to handle that
   but python code should be agnostic
 
-* Finalize DDK.nc  (EVK.nc)
+* Finalize DDK.nc (EVK.nc)
 
 * Fix issue with DOJO_REPORT and PAW XML files.
 
 * DONE plot_networkx does not work with flows containing callbacks e.g. run_qptdm_flow
   FIXED with graphviz
 
-* Use graphvix in flow sphinx-gallery 
+* DONE Use graphvix in flow sphinx-gallery 
 
 * Check xsf_write_data and visualization of potentials.
 

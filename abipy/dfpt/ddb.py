@@ -1760,7 +1760,7 @@ class DielectricTensorGenerator(Has_Structure):
         # Also, only the real part of the oscillators is taken into account:
         # the possible imaginary parts of degenerate modes will cancel.
         if duck.is_listlike(gamma_ev):
-            gammas = np.asarray(gammas)
+            gammas = np.asarray(gamma_ev)
             assert len(gammas) == len(phfreqs)
         else:
             gammas = np.ones_like(self.phfreqs) * float(gamma_ev)
