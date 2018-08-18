@@ -17,7 +17,6 @@ from monty.collections import AttrDict, dict2namedtuple, tree
 from monty.functools import lazy_property
 from monty.termcolor import cprint
 from monty.dev import deprecated
-from pymatgen.analysis.elasticity import Tensor, Stress
 from pymatgen.core.units import eV_to_Ha, bohr_to_angstrom, ang_to_bohr, Energy
 from abipy.flowtk import NetcdfReader, AnaddbTask
 from abipy.core.mixins import TextFile, Has_Structure, NotebookWriter
@@ -28,11 +27,11 @@ from abipy.iotools import ETSF_Reader
 from abipy.tools.numtools import data_from_cplx_mode
 from abipy.abio.inputs import AnaddbInput
 from abipy.dfpt.phonons import PhononDosPlotter, PhononBandsPlotter, InteratomicForceConstants
-from abipy.dfpt.tensors import DielectricTensor
 from abipy.dfpt.elastic import ElasticData
 from abipy.core.abinit_units import phfactor_ev2units, phunit_tag
 from abipy.tools.plotting import Marker, add_fig_kwargs, get_ax_fig_plt, set_axlims
 from abipy.tools import duck
+from abipy.tools.tensors import DielectricTensor, ZstarTensor, Stress
 from abipy.abio.robots import Robot
 
 try:
@@ -566,7 +565,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     @lazy_property
     def cart_stress_tensor(self):
         """
-        |pmg-Stress| tensor in cartesian coordinates (GPa units).
+        |Stress| tensor in cartesian coordinates (GPa units).
         None if not available.
         """
         for block in self.blocks:
@@ -1206,7 +1205,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         # Read data from the netcdf output file produced by anaddb.
         with ETSF_Reader(os.path.join(task.workdir, "anaddb.nc")) as r:
-            epsinf = DielectricTensor(r.read_value("emacro_cart"))
+            epsinf = DielectricTensor(r.read_value("emacro_cart").T.copy())
             structure = r.read_structure()
             becs = Becs(r.read_value("becs_cart"), structure, chneut=inp["chneut"], order="f")
             return dict2namedtuple(epsinf=epsinf, becs=becs)
@@ -1580,11 +1579,12 @@ class Becs(Has_Structure):
         """Integration with jupyter notebooks."""
         return self.get_voigt_dataframe()._repr_html_()
 
-    def get_voigt_dataframe(self, select_symbols=None):
+    def get_voigt_dataframe(self, tol=1e-3, select_symbols=None):
         """
         Return |pandas-DataFrame| with Voigt indices as columns and natom rows.
 
         Args:
+            tol: Entries are set to zero below this value
             select_symbols: String or list of strings with chemical symbols.
                 Used to select only atoms of this type.
         """
@@ -1598,15 +1598,12 @@ class Becs(Has_Structure):
             d["element"] = site.specie.symbol
             d["site_index"] = isite
             d["frac_coords"] = site.frac_coords
+            zstar = zstar.zeroed(tol=tol)
             for k, v in zip(columns, zstar.voigt):
                 d[k] = v
             rows.append(d)
 
         return pd.DataFrame(rows, index=None, columns=list(rows[0].keys()))
-
-
-class ZstarTensor(Tensor):
-    pass
 
 
 class DielectricTensorGenerator(Has_Structure):
@@ -1642,6 +1639,7 @@ class DielectricTensorGenerator(Has_Structure):
             eps0 = DielectricTensor(reader.read_value("emacro_cart_rlx").T.copy())
             try:
                 oscillator_strength = reader.read_value("oscillator_strength", cmode="c")
+                oscillator_strength = oscillator_strength.transpose((0, 2, 1)).copy()
             except Exception as exc:
                 import traceback
                 msg = traceback.format_exc()
@@ -1672,7 +1670,7 @@ class DielectricTensorGenerator(Has_Structure):
         """
         Args:
              phfreqs: numpy array containing the 3 * num_atoms phonon frequencies at gamma
-             oscillator_strength: complex numpy array with shape (number of phonon modes, 3, 3) in atomic units
+             oscillator_strength: complex numpy array with shape [number of phonon modes, 3, 3] in atomic units
              eps0: numpy array containing the e0 dielectric tensor without frequency dependence
              epsinf: numpy array with the electronic dielectric tensor (einf) without frequency dependence
              structure: |Structure| object.
@@ -1723,7 +1721,7 @@ class DielectricTensorGenerator(Has_Structure):
 
     def get_oscillator_dataframe(self, reim="all", tol=1e-8):
         """
-        Return |pandas-Dataframe| with oscillator matrix elements
+        Return |pandas-Dataframe| with oscillator matrix elements.
 
         Args:
             reim: "re" for real part, "im" for imaginary part, "all" for both.
@@ -1763,7 +1761,7 @@ class DielectricTensorGenerator(Has_Structure):
             gammas = np.asarray(gamma_ev)
             assert len(gammas) == len(phfreqs)
         else:
-            gammas = np.ones_like(self.phfreqs) * float(gamma_ev)
+            gammas = np.ones(len(self.phfreqs)) * float(gamma_ev)
 
         t = np.zeros((3, 3))
         for i in range(3, len(self.phfreqs)):
@@ -1771,7 +1769,7 @@ class DielectricTensorGenerator(Has_Structure):
             t += (self.oscillator_strength[i].real / (self.phfreqs[i]**2 - w**2 - 1j*g)).real
 
         vol = self.structure.volume / bohr_to_angstrom ** 3
-        t = 4*np.pi * t / vol / eV_to_Ha**2
+        t = 4 * np.pi * t / vol / eV_to_Ha**2
         t += self.epsinf
 
         #t = np.zeros((3, 3))
@@ -2073,8 +2071,8 @@ class DdbRobot(Robot):
 
         return dict2namedtuple(phbands_plotter=phbands_plotter, phdos_plotter=phdos_plotter)
 
-    def anacompare_elastic(self, ddb_header_keys=None, with_structure=True,
-	                   with_spglib=True, manager=None, verbose=0, **kwargs):
+    def anacompare_elastic(self, ddb_header_keys=None, with_structure=True, with_spglib=True,
+                           with_path=False, manager=None, verbose=0, **kwargs):
         """
         Compute elastic and piezoelectric properties for all DDBs in the robot and build DataFrame.
 
@@ -2083,6 +2081,7 @@ class DdbRobot(Robot):
                 whose value will be added to the Dataframe.
             with_structure: True to add structure parameters to the DataFrame.
 	    with_spglib: True to compute sgplib space group and add it to the DataFrame.
+            with_path: True to add DDB path to dataframe
             manager: |TaskManager| object. If None, the object is initialized from the configuration file
             verbose: verbosity level. Set it to a value > 0 to get more information
             kwargs: Keyword arguments passed to `ddb.anaget_elastic`.
@@ -2110,13 +2109,15 @@ class DdbRobot(Robot):
                     df[skey] = svalue
 
             # Add path to the DDB file.
-            df["ddb_path"] = ddb.filepath
+            if with_path: df["ddb_path"] = ddb.filepath
+
             df_list.append(df)
 
         # Concatenate dataframes.
-        return dict2namedtuple(df=pd.concat(df_list), elastdata_list=elastdata_list)
+        return dict2namedtuple(df=pd.concat(df_list, ignore_index=True),
+                               elastdata_list=elastdata_list)
 
-    def anacompare_becs(self, ddb_header_keys=None, chneut=1, verbose=0):
+    def anacompare_becs(self, ddb_header_keys=None, chneut=1, tol=1e-3, with_path=False, verbose=0):
         """
         Compute Born effective charges for all DDBs in the robot and build DataFrame.
         with Voigt indices as columns + metadata. Useful for convergence studies.
@@ -2124,6 +2125,9 @@ class DdbRobot(Robot):
         Args:
             ddb_header_keys: List of keywords in the header of the DDB file
                 whose value will be added to the Dataframe.
+            chneut: Anaddb input variable. See official documentation.
+            tol: Elements below this value are set to zero.
+            with_path: True to add DDB path to dataframe
             verbose: verbosity level. Set it to a value > 0 to get more information
 
         Return: ``namedtuple`` with the following attributes::
@@ -2137,7 +2141,7 @@ class DdbRobot(Robot):
             # Invoke anaddb to compute Becs
             _, becs = ddb.anaget_epsinf_and_becs(chneut=chneut, verbose=verbose)
             becs_list.append(becs)
-            df = becs.get_voigt_dataframe()
+            df = becs.get_voigt_dataframe(tol=tol)
 
             # Add metadata to the dataframe.
             df["formula"] = ddb.structure.formula
@@ -2146,14 +2150,16 @@ class DdbRobot(Robot):
                 df[k] = ddb.header[k]
 
             # Add path to the DDB file.
-            df["ddb_path"] = ddb.filepath
+            if with_path: df["ddb_path"] = ddb.filepath
+
             df_list.append(df)
 
         # Concatenate dataframes.
-        return dict2namedtuple(df=pd.concat(df_list), becs_list=becs_list)
+        return dict2namedtuple(df=pd.concat(df_list, ignore_index=True).sort_values(by="site_index"),
+                               becs_list=becs_list)
 
-    def anacompare_epsinf(self, ddb_header_keys=None, chneut=1, tol=1e-3, verbose=0):
-        """
+    def anacompare_epsinf(self, ddb_header_keys=None, chneut=1, tol=1e-3, with_path=False, verbose=0):
+        r"""
         Compute (eps^\inf) electronic dielectric tensor for all DDBs in the robot and build DataFrame.
         with Voigt indices as columns + metadata. Useful for convergence studies.
 
@@ -2162,6 +2168,7 @@ class DdbRobot(Robot):
                 whose value will be added to the Dataframe.
             chneut: Anaddb input variable. See official documentation.
             tol: Elements below this value are set to zero.
+            with_path: True to add DDB path to dataframe
             verbose: verbosity level. Set it to a value > 0 to get more information
 
         Return: ``namedtuple`` with the following attributes::
@@ -2184,13 +2191,15 @@ class DdbRobot(Robot):
                 df[k] = ddb.header[k]
 
             # Add path to the DDB file.
-            df["ddb_path"] = ddb.filepath
+            if with_path: df["ddb_path"] = ddb.filepath
+
             df_list.append(df)
 
         # Concatenate dataframes.
-        return dict2namedtuple(df=pd.concat(df_list), epsinf_list=epsinf_list)
+        return dict2namedtuple(df=pd.concat(df_list, ignore_index=True),
+                               epsinf_list=epsinf_list)
 
-    def anacompare_eps0(self, ddb_header_keys=None, asr=2, chneut=1, tol=1e-3, verbose=0):
+    def anacompare_eps0(self, ddb_header_keys=None, asr=2, chneut=1, tol=1e-3, with_path=False, verbose=0):
         """
         Compute (eps^0) dielectric tensor for all DDBs in the robot and build DataFrame.
         with Voigt indices as columns + metadata. Useful for convergence studies.
@@ -2200,6 +2209,7 @@ class DdbRobot(Robot):
                 whose value will be added to the Dataframe.
             asr, chneut, dipdip: Anaddb input variable. See official documentation.
             tol: Elements below this value are set to zero.
+            with_path: True to add DDB path to dataframe
             verbose: verbosity level. Set it to a value > 0 to get more information
 
         Return: ``namedtuple`` with the following attributes::
@@ -2226,11 +2236,13 @@ class DdbRobot(Robot):
                 df[k] = ddb.header[k]
 
             # Add path to the DDB file.
-            df["ddb_path"] = ddb.filepath
+            if with_path: df["ddb_path"] = ddb.filepath
+
             df_list.append(df)
 
         # Concatenate dataframes.
-        return dict2namedtuple(df=pd.concat(df_list), eps0_list=eps0_list, dgen_list=dgen_list)
+        return dict2namedtuple(df=pd.concat(df_list, ignore_index=True),
+                               eps0_list=eps0_list, dgen_list=dgen_list)
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """

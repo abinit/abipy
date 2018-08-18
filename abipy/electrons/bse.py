@@ -24,7 +24,6 @@ from abipy.electrons.ebands import RobotWithEbands
 
 
 __all__ = [
-    "DielectricTensor",
     "DielectricFunction",
     "MdfFile",
     "MdfReader",
@@ -33,7 +32,8 @@ __all__ = [
 ]
 
 
-class DielectricTensor(object):
+# Deprecated: should be rewritten from scratch.
+class _DielectricTensor(object):
     """
     This object stores the frequency-dependent macroscopic dielectric tensor
     obtained from the dielectric functions for different q-directions.
@@ -459,7 +459,7 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     def get_tensor(self, mdf_type="exc"):
         """Get the macroscopic dielectric tensor from the MDF."""
-        return DielectricTensor(self.get_mdf(mdf_type), self.structure)
+        return _DielectricTensor(self.get_mdf(mdf_type), self.structure)
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """

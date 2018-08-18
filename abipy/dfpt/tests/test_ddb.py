@@ -446,17 +446,29 @@ class DdbRobotTest(AbipyTest):
                 assert k in df
             assert len(edata_list) == 2
 
-            # Test anacompare_becs
-            r = robot.anacompare_becs(ddb_header_keys=ddb_header_keys, chneut=1, verbose=2)
-            for k in ddb_header_keys:
-                assert k in r.df
-            #assert "ddb_path" in r.df and (0, 0) in r.df
-            assert len(r.becs_list) == 2
+    def test_robot_becs_eps(self):
+        """Test DdbRobot with anacompare_becs and eps methods."""
+        paths = ["out_ngkpt222_DDB", "out_ngkpt444_DDB", "out_ngkpt888_DDB"]
+        paths = [os.path.join(abidata.dirpath, "refs", "alas_eps_and_becs_vs_ngkpt", f) for f in paths]
 
-            # Test anacompare_emacro
-            #df, emacro_list = robot.anacompare_emacro(ddb_header_keys=ddb_header_keys, verbose=2)
-            #assert "ddb_path" in df and (0, 0) in df
-            #assert len(emacro_list) == 2
+        with abilab.DdbRobot.from_files(paths) as robot:
+            # Test anacompare_epsinf
+            rinf = robot.anacompare_epsinf(ddb_header_keys="nkpt", chneut=0, with_path=True, verbose=2)
+            assert "nkpt" in rinf.df
+            assert "ddb_path" in rinf.df
+            assert len(rinf.epsinf_list) == len(robot)
+
+            # Test anacompare_eps0
+            r0 = robot.anacompare_eps0(ddb_header_keys=["nkpt", "tsmear"], asr=0, tol=1e-5, with_path=True, verbose=2)
+            assert len(r0.eps0_list) == len(robot)
+            assert len(r0.dgen_list) == len(robot)
+            assert "ddb_path" in r0.df
+
+            # Test anacompare_becs
+            rb = robot.anacompare_becs(ddb_header_keys=["nkpt", "tsmear"], chneut=0, tol=1e-5, with_path=True, verbose=2)
+            assert len(rb.becs_list) == len(robot)
+            for k in ["nkpt", "tsmear", "ddb_path"]:
+                assert k in rb.df
 
 
 class PhononComputationTest(AbipyTest):
