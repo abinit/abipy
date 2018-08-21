@@ -49,7 +49,7 @@ See also lesson tgw2_4
 
     sigres.close()
 
-**Total running time of the script:** ( 0 minutes  0.650 seconds)
+**Total running time of the script:** ( 0 minutes  0.810 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_gw_spectral_functions.py:

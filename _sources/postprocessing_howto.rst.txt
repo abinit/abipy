@@ -530,3 +530,12 @@ To list all the variables depending on the ``natom`` dimension, use::
     abidoc.py withdim natom
 
 More options are available. See ``abidoc.py --help``.
+
+Avoid transfering files from the cluster to localhost just to use matplotlib
+----------------------------------------------------------------------------
+
+Use `SSHFS <https://www.digitalocean.com/community/tutorials/how-to-use-sshfs-to-mount-remote-file-systems-over-ssh>`_
+to mount the remote file system over SSH. 
+Now one can execute the AbiPy scripts in a terminal running on the local machine.
+to open/visualize the files stored on the cluster.
+

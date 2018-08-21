@@ -98,7 +98,8 @@ The SOC term can be deactivated with the input variable `so_psp`.
         __name__ = None
         import tempfile
         options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-        build_flow(options).plot_networkx(with_edge_labels=True, tight_layout=True)
+        #build_flow(options).plot_networkx(with_edge_labels=True, tight_layout=True)
+        build_flow(options).graphviz_imshow()
 
 
     @flowtk.flow_main
@@ -152,7 +153,7 @@ and then plot the two band structure on the same figure with:
    :alt: Band structure of GaAs without/with SOC on the same graph
 
 
-**Total running time of the script:** ( 0 minutes  0.152 seconds)
+**Total running time of the script:** ( 0 minutes  1.412 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_gaas_ebands_soc.py:

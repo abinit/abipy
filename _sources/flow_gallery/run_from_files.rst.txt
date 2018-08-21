@@ -102,7 +102,8 @@ in which the dependency is given by an external density file.
         __name__ = None
         import tempfile
         options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-        build_flow(options).plot_networkx(tight_layout=True)
+        #build_flow(options).plot_networkx(tight_layout=True)
+        build_flow(options).graphviz_imshow()
 
 
     @flowtk.flow_main
@@ -118,7 +119,7 @@ in which the dependency is given by an external density file.
     if __name__ == "__main__":
         sys.exit(main())
 
-**Total running time of the script:** ( 0 minutes  0.102 seconds)
+**Total running time of the script:** ( 0 minutes  0.394 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_from_files.py:

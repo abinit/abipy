@@ -126,7 +126,8 @@ with PAW for several values of U-J.
         __name__ = None
         import tempfile
         options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-        build_flow(options).plot_networkx(with_edge_labels=True, tight_layout=True)
+        #build_flow(options).plot_networkx(with_edge_labels=True, tight_layout=True)
+        build_flow(options).graphviz_imshow()
 
 
     @flowtk.flow_main
@@ -215,7 +216,7 @@ and we can compare the results of these two task by specifying the node identifi
 
 
 
-**Total running time of the script:** ( 0 minutes  0.267 seconds)
+**Total running time of the script:** ( 0 minutes  1.040 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_ldaus.py:

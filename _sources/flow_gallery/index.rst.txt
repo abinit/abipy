@@ -9,7 +9,7 @@ This gallery contains python scripts to generate AbiPy flows from the command li
 
 Run the scripts to generate the directory with the flow and then use :ref:`abirun.py` to execute the flow.
 Alternatively, one can use the ``-s`` option to generate the flow and run it immediately with the scheduler. 
-Use ``--help`` to further information on the available options.
+Use ``--help`` for further information on the available options.
 
 .. warning::
 
@@ -262,6 +262,46 @@ Use ``--help`` to further information on the available options.
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the Born effective charges and the dielectric tensors (e0, ei...">
+
+.. only:: html
+
+    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_becs_and_epsilon_vs_kpts_thumb.png
+
+        :ref:`sphx_glr_flow_gallery_run_becs_and_epsilon_vs_kpts.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_becs_and_epsilon_vs_kpts
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the phonon band structure of AlAs with AbiPy flows. Symmetrie...">
+
+.. only:: html
+
+    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_phonons_thumb.png
+
+        :ref:`sphx_glr_flow_gallery_run_phonons.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_phonons
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="Electronic band structure of silicon in a distorted geometry (frozen phonon at q=0) ">
 
 .. only:: html
@@ -319,26 +359,6 @@ Use ``--help`` to further information on the available options.
    :hidden:
 
    /flow_gallery/run_mgb2_phonons_nkpt_tsmear
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the phonon band structure of AlAs with AbiPy flows. Symmetrie...">
-
-.. only:: html
-
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_phonons_thumb.png
-
-        :ref:`sphx_glr_flow_gallery_run_phonons.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /flow_gallery/run_phonons
 
 .. raw:: html
 

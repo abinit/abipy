@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Flows How-To &#8212; abipy 0.6.0.dev documentation</title>
+    <title>Flows How-To &#8212; abipy 0.6.0 documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.6.0.dev',
+        VERSION:     '0.6.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.6.0.dev</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.6.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -168,10 +168,10 @@ Please consult the documentation available via the abidoc.py script. See FAQ bel
 <p>Suggestions:</p>
 <ul class="simple">
 <li>Start with the examples available in examples/flows before embarking on large scale calculations.</li>
-<li>Make sure the Abinit executable compiled on the machine can be executed both on the frontend
+<li>Make sure the Abinit executable compiled on the machine can be executed both on the front end
 and the compute node (ask your sysadmin)</li>
 <li>If you are running on clusters in which the architecture of the compute node is completely different
-from the one available on the frontend, use <code class="docutils literal"><span class="pre">shell_runner</span></code></li>
+from the one available on the front end, use <code class="docutils literal"><span class="pre">shell_runner</span></code></li>
 <li>Use the <code class="docutils literal"><span class="pre">debug</span></code> command</li>
 </ul>
 <p>Do not:</p>
@@ -247,7 +247,7 @@ these files to extract data and/or fix runtime errors.</p>
 <p>When running many calculations,
 Use <code class="docutils literal"><span class="pre">prtwf</span> <span class="pre">-1</span></code> to tell Abinit to produce the wavefunction file only
 if SCF cycle didn’t converged so that AbiPy can reuse the file to restart the calculation.</p>
-<p>Note that it’s possibile to use:</p>
+<p>Note that it’s possible to use:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">flow</span><span class="o">.</span><span class="n">use_smartio</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -256,9 +256,20 @@ for their children.</p>
 </div>
 <div class="section" id="how-to-extend-tasks-works-with-specialized-code">
 <h2><a class="toc-backref" href="#contents">How to extend tasks/works with specialized code</a><a class="headerlink" href="#how-to-extend-tasks-works-with-specialized-code" title="Permalink to this headline">¶</a></h2>
-<p>Remember that <a class="reference external" href="https://docs.python.org/3/library/pickle.html#module-pickle">pickle</a> does not support classes defined inside scripts.
-If you need to subclass one of the AbiPy Tasks/Works/Flows, define the subclass
-in a separated python module and import the module inside your script.</p>
+<p>Remember that <a class="reference external" href="https://docs.python.org/3/library/pickle.html#module-pickle">pickle</a> does not support classes defined inside scripts (<cite>__main__</cite>).
+This means that <cite>abirun.py</cite> will likely raise an exception when trying to
+reconstruct the object from the pickle file:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="ne">AttributeError</span><span class="p">:</span> <span class="n">Cannot</span> <span class="n">get</span> <span class="n">attribute</span> <span class="s1">&#39;MyWork&#39;</span> <span class="n">on</span> <span class="o">&lt;</span><span class="n">module</span> <span class="s1">&#39;__main__&#39;</span>
+</pre></div>
+</div>
+<p>If you need to subclass one of the AbiPy Tasks/Works/Flows, define the subclass
+in a separated python module and import the module inside your script.
+We suggest to create a python module in the AbiPy package e.g. <cite>abipy/flowtk/my_works.py</cite>
+in order to have an absolute import that allows one to use</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">abipy.flowtk.my_works</span> <span class="kn">import</span> <span class="n">MyWork</span>
+</pre></div>
+</div>
+<p>in the script without worrying about relative paths and relative imports.</p>
 </div>
 <div class="section" id="kill-a-scheduler-running-in-background">
 <h2><a class="toc-backref" href="#contents">Kill a scheduler running in background</a><a class="headerlink" href="#kill-a-scheduler-running-in-background" title="Permalink to this headline">¶</a></h2>
@@ -275,9 +286,9 @@ in a separated python module and import the module inside your script.</p>
 <div class="section" id="try-to-understand-why-a-task-failed">
 <h2><a class="toc-backref" href="#contents">Try to understand why a task failed</a><a class="headerlink" href="#try-to-understand-why-a-task-failed" title="Permalink to this headline">¶</a></h2>
 <p>There are several reasons why a task could fail.
-Some of these reasons could be related to hardaware failure, disk quota,
-OS or resource manager errors.
-others are related to Abinit-specific errors.</p>
+Some of these reasons could be related to hardware failure, disk quota,
+OS errors or resource manager errors.
+Others are related to Abinit-specific errors.</p>
 </div>
 </div>
 
@@ -294,7 +305,7 @@ others are related to Abinit-specific errors.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Aug 14, 2018.<br/>
+      Last updated on Aug 22, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>tools Package &#8212; abipy 0.6.0.dev documentation</title>
+    <title>tools Package &#8212; abipy 0.6.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.6.0.dev',
+        VERSION:     '0.6.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.6.0.dev</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.6.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -110,6 +110,7 @@
 <li><a class="reference internal" href="#module-abipy.tools.notebooks"><code class="docutils literal"><span class="pre">notebooks</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.tools.numtools"><code class="docutils literal"><span class="pre">numtools</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.tools.plotting"><code class="docutils literal"><span class="pre">plotting</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.tools.tensors"><code class="docutils literal"><span class="pre">tensors</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.tools.text"><code class="docutils literal"><span class="pre">text</span></code> Module</a></li>
 </ul>
 </li>
@@ -177,7 +178,8 @@
 <li><a class="reference internal" href="#module-abipy.tools.notebooks" id="id10"><code class="xref py py-mod docutils literal"><span class="pre">notebooks</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.tools.numtools" id="id11"><code class="xref py py-mod docutils literal"><span class="pre">numtools</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.tools.plotting" id="id12"><code class="xref py py-mod docutils literal"><span class="pre">plotting</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.tools.text" id="id13"><code class="xref py py-mod docutils literal"><span class="pre">text</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.tools.tensors" id="id13"><code class="xref py py-mod docutils literal"><span class="pre">tensors</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.tools.text" id="id14"><code class="xref py py-mod docutils literal"><span class="pre">text</span></code> Module</a></li>
 </ul>
 </li>
 </ul>
@@ -604,6 +606,29 @@ and print info on the corresponding file inside the notebook.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="abipy.tools.numtools.data_from_cplx_mode">
+<code class="descclassname">abipy.tools.numtools.</code><code class="descname">data_from_cplx_mode</code><span class="sig-paren">(</span><em>cplx_mode</em>, <em>arr</em>, <em>tol=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#data_from_cplx_mode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.data_from_cplx_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract the data from the numpy array <code class="docutils literal"><span class="pre">arr</span></code> depending on the values of <code class="docutils literal"><span class="pre">cplx_mode</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>cplx_mode</strong> – Possible values in (“re”, “im”, “abs”, “angle”)
+“re” for the real part,
+“im” for the imaginary part.
+“all” for both re and im.
+“abs” means that the absolute value of the complex number is shown.
+“angle” will display the phase of the complex number in radians.</li>
+<li><strong>tol</strong> – If not None, values below tol are set to zero. Cannot be used with “angle”</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="abipy.tools.numtools.alternate">
 <code class="descclassname">abipy.tools.numtools.</code><code class="descname">alternate</code><span class="sig-paren">(</span><em>*iterables</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#alternate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.alternate" title="Permalink to this definition">¶</a></dt>
 <dd><p>[a[0], b[0], … , a[1], b[1], …, a[n], b[n] …]
@@ -849,24 +874,6 @@ values: numpy array of shape [ndt, num] with interpolated values.</dd>
 </tbody>
 </table>
 <p>Return: (left, right)</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="abipy.tools.plotting.data_from_cplx_mode">
-<code class="descclassname">abipy.tools.plotting.</code><code class="descname">data_from_cplx_mode</code><span class="sig-paren">(</span><em>cplx_mode</em>, <em>arr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#data_from_cplx_mode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.data_from_cplx_mode" title="Permalink to this definition">¶</a></dt>
-<dd><p>Extract the data from the numpy array <code class="docutils literal"><span class="pre">arr</span></code> depending on the values of <code class="docutils literal"><span class="pre">cplx_mode</span></code>.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cplx_mode</strong> – Possible values in (“re”, “im”, “abs”, “angle”)
-“re” for the real part,
-“im” for the imaginary part.
-“abs” means that the absolute value of the complex number is shown.
-“angle” will display the phase of the complex number in radians.</td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
 <dl class="function">
@@ -1231,7 +1238,7 @@ Default: None i.e. fig is left unchanged.</td>
 
 <dl class="function">
 <dt id="abipy.tools.plotting.get_ax_fig_plt">
-<code class="descclassname">abipy.tools.plotting.</code><code class="descname">get_ax_fig_plt</code><span class="sig-paren">(</span><em>ax=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pymatgen/util/plotting.html#get_ax_fig_plt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.get_ax_fig_plt" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">abipy.tools.plotting.</code><code class="descname">get_ax_fig_plt</code><span class="sig-paren">(</span><em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pymatgen/util/plotting.html#get_ax_fig_plt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.get_ax_fig_plt" title="Permalink to this definition">¶</a></dt>
 <dd><p>Helper function used in plot functions supporting an optional Axes argument.
 If ax is None, we build the <cite>matplotlib</cite> figure and create the Axes else
 we return the current active figure.</p>
@@ -1239,11 +1246,13 @@ we return the current active figure.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> object
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>kwargs</strong> – keyword arguments are passed to plt.figure if ax is not None.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> object
 figure: matplotlib figure
 plt: matplotlib pyplot module.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">ax</td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">ax</td>
 </tr>
 </tbody>
 </table>
@@ -1251,7 +1260,7 @@ plt: matplotlib pyplot module.</td>
 
 <dl class="function">
 <dt id="abipy.tools.plotting.get_ax3d_fig_plt">
-<code class="descclassname">abipy.tools.plotting.</code><code class="descname">get_ax3d_fig_plt</code><span class="sig-paren">(</span><em>ax=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pymatgen/util/plotting.html#get_ax3d_fig_plt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.get_ax3d_fig_plt" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">abipy.tools.plotting.</code><code class="descname">get_ax3d_fig_plt</code><span class="sig-paren">(</span><em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pymatgen/util/plotting.html#get_ax3d_fig_plt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.get_ax3d_fig_plt" title="Permalink to this definition">¶</a></dt>
 <dd><p>Helper function used in plot functions supporting an optional Axes3D
 argument. If ax is None, we build the <cite>matplotlib</cite> figure and create the
 Axes3D else we return the current active figure.</p>
@@ -1259,14 +1268,124 @@ Axes3D else we return the current active figure.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> object
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>kwargs</strong> – keyword arguments are passed to plt.figure if ax is not None.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> object
 figure: matplotlib figure
 plt: matplotlib pyplot module.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">ax</td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">ax</td>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.tools.plotting.data_from_cplx_mode">
+<code class="descclassname">abipy.tools.plotting.</code><code class="descname">data_from_cplx_mode</code><span class="sig-paren">(</span><em>cplx_mode</em>, <em>arr</em>, <em>tol=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#data_from_cplx_mode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.data_from_cplx_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract the data from the numpy array <code class="docutils literal"><span class="pre">arr</span></code> depending on the values of <code class="docutils literal"><span class="pre">cplx_mode</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>cplx_mode</strong> – Possible values in (“re”, “im”, “abs”, “angle”)
+“re” for the real part,
+“im” for the imaginary part.
+“all” for both re and im.
+“abs” means that the absolute value of the complex number is shown.
+“angle” will display the phase of the complex number in radians.</li>
+<li><strong>tol</strong> – If not None, values below tol are set to zero. Cannot be used with “angle”</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-abipy.tools.tensors">
+<span id="tensors-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">tensors</span></code> Module</a><a class="headerlink" href="#module-abipy.tools.tensors" title="Permalink to this headline">¶</a></h2>
+<p>This modules provides subclasses of pymatgen tensor objects.</p>
+<dl class="class">
+<dt id="abipy.tools.tensors.Stress">
+<em class="property">class </em><code class="descclassname">abipy.tools.tensors.</code><code class="descname">Stress</code><a class="reference internal" href="../_modules/abipy/tools/tensors.html#Stress"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.tensors.Stress" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.stress.html#pymatgen.analysis.elasticity.stress.Stress" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.stress.Stress</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">abipy.tools.tensors._Tensor33</span></code></p>
+<p>Stress tensor. rank2 symmetric tensor with shape [3, 3].</p>
+<p class="rubric">Inheritance Diagram</p>
+<img src="../_images/inheritance-9aa84b2a1423cb7295b6ccf22dbf66597566d45d.png" alt="Inheritance diagram of Stress" usemap="#inheritancee0818c4a88" class="inheritance"/>
+<map id="inheritancee0818c4a88" name="inheritancee0818c4a88">
+<area shape="rect" id="node1" href="#abipy.tools.tensors.Stress" target="_top" title="Stress tensor. rank2 symmetric tensor with shape [3, 3]." alt="" coords="670,16,765,29"/>
+<area shape="rect" id="node2" title="This class extends SquareTensor as a representation of the" alt="" coords="496,16,643,29"/>
+<area shape="rect" id="node3" title="This is a mix&#45;in base class specifying an API for msonable objects. MSON" alt="" coords="3,3,88,16"/>
+<area shape="rect" id="node6" title="Base class for doing useful general operations on Nth order tensors," alt="" coords="114,16,267,29"/>
+<area shape="rect" id="node4" title="ndarray(shape, dtype=float, buffer=None, offset=0," alt="" coords="15,29,75,43"/>
+<area shape="rect" id="node5" title="Base class for doing useful general operations on second rank tensors" alt="" coords="293,16,470,29"/>
+</map>
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.tools.tensors.DielectricTensor">
+<em class="property">class </em><code class="descclassname">abipy.tools.tensors.</code><code class="descname">DielectricTensor</code><a class="reference internal" href="../_modules/abipy/tools/tensors.html#DielectricTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.tensors.DielectricTensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.SquareTensor" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.SquareTensor</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">abipy.tools.tensors._Tensor33</span></code></p>
+<p>Subclass of <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.Tensor" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.Tensor</span></code></a> describing a dielectric tensor.
+rank2 symmetric tensor with shape [3, 3].</p>
+<p class="rubric">Inheritance Diagram</p>
+<img src="../_images/inheritance-10d5351d548aa164a2014889a8dce2e64de3fedf.png" alt="Inheritance diagram of DielectricTensor" usemap="#inheritance9126c67f60" class="inheritance"/>
+<map id="inheritance9126c67f60" name="inheritance9126c67f60">
+<area shape="rect" id="node1" href="#abipy.tools.tensors.DielectricTensor" target="_top" title="Subclass of |pmg&#45;Tensor| describing a dielectric tensor." alt="" coords="609,20,764,36"/>
+<area shape="rect" id="node2" title="Base class for doing useful general operations on second rank tensors" alt="" coords="360,20,576,36"/>
+<area shape="rect" id="node3" title="This is a mix&#45;in base class specifying an API for msonable objects. MSON" alt="" coords="4,4,108,20"/>
+<area shape="rect" id="node5" title="Base class for doing useful general operations on Nth order tensors," alt="" coords="140,20,327,36"/>
+<area shape="rect" id="node4" title="ndarray(shape, dtype=float, buffer=None, offset=0," alt="" coords="19,36,93,52"/>
+</map>
+<dl class="method">
+<dt id="abipy.tools.tensors.DielectricTensor.reflectivity">
+<code class="descname">reflectivity</code><span class="sig-paren">(</span><em>n1=1</em>, <em>tol=1e-06</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/tensors.html#DielectricTensor.reflectivity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.tensors.DielectricTensor.reflectivity" title="Permalink to this definition">¶</a></dt>
+<dd><p>If the tensor is diagonal (with off diagonal elements smaller than tol)
+returns the three components of the reflectivity</p>
+<blockquote>
+<div><span class="math">\(|n1 - n2| / | n1 + n2 |\)</span></div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.tools.tensors.ZstarTensor">
+<em class="property">class </em><code class="descclassname">abipy.tools.tensors.</code><code class="descname">ZstarTensor</code><a class="reference internal" href="../_modules/abipy/tools/tensors.html#ZstarTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.tensors.ZstarTensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.SquareTensor" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.SquareTensor</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">abipy.tools.tensors._Tensor33</span></code></p>
+<p>Born effective charge tensor (for a single atom).</p>
+<p class="rubric">Inheritance Diagram</p>
+<img src="../_images/inheritance-e0791382ac68c2db14bf620ae7a4fee835346fa2.png" alt="Inheritance diagram of ZstarTensor" usemap="#inheritance44d2641f3b" class="inheritance"/>
+<map id="inheritance44d2641f3b" name="inheritance44d2641f3b">
+<area shape="rect" id="node1" href="#abipy.tools.tensors.ZstarTensor" target="_top" title="Born effective charge tensor (for a single atom)." alt="" coords="622,20,764,37"/>
+<area shape="rect" id="node2" title="Base class for doing useful general operations on second rank tensors" alt="" coords="368,20,589,37"/>
+<area shape="rect" id="node3" title="This is a mix&#45;in base class specifying an API for msonable objects. MSON" alt="" coords="4,4,110,20"/>
+<area shape="rect" id="node5" title="Base class for doing useful general operations on Nth order tensors," alt="" coords="143,20,335,37"/>
+<area shape="rect" id="node4" title="ndarray(shape, dtype=float, buffer=None, offset=0," alt="" coords="19,37,95,53"/>
+</map>
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.tools.tensors.NLOpticalSusceptibilityTensor">
+<em class="property">class </em><code class="descclassname">abipy.tools.tensors.</code><code class="descname">NLOpticalSusceptibilityTensor</code><a class="reference internal" href="../_modules/abipy/tools/tensors.html#NLOpticalSusceptibilityTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.tensors.NLOpticalSusceptibilityTensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.Tensor" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.Tensor</span></code></a></p>
+<p>Subclass of <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.Tensor" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.Tensor</span></code></a> containing the non-linear optical susceptibility tensor.</p>
+<p class="rubric">Inheritance Diagram</p>
+<img src="../_images/inheritance-bb29ac31a87d7dd00741cd95b6aa47ad8423997a.png" alt="Inheritance diagram of NLOpticalSusceptibilityTensor" usemap="#inheritance32ca961597" class="inheritance"/>
+<map id="inheritance32ca961597" name="inheritance32ca961597">
+<area shape="rect" id="node1" href="#abipy.tools.tensors.NLOpticalSusceptibilityTensor" target="_top" title="Subclass of |pmg&#45;Tensor| containing the non&#45;linear optical susceptibility tensor." alt="" coords="481,27,763,48"/>
+<area shape="rect" id="node2" title="Base class for doing useful general operations on Nth order tensors," alt="" coords="187,27,438,48"/>
+<area shape="rect" id="node3" title="This is a mix&#45;in base class specifying an API for msonable objects. MSON" alt="" coords="5,5,144,27"/>
+<area shape="rect" id="node4" title="ndarray(shape, dtype=float, buffer=None, offset=0," alt="" coords="25,48,124,70"/>
+</map>
+<dl class="classmethod">
+<dt id="abipy.tools.tensors.NLOpticalSusceptibilityTensor.from_file">
+<em class="property">classmethod </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/tensors.html#NLOpticalSusceptibilityTensor.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.tensors.NLOpticalSusceptibilityTensor.from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the tensor from an anaddb.nc netcdf file containing <code class="docutils literal"><span class="pre">dchide</span></code>.
+This requires to run anaddb with <code class="docutils literal"><span class="pre">tnlflag</span></code> &gt; 0</p>
+</dd></dl>
+
 </dd></dl>
 
 </div>
@@ -1315,7 +1434,7 @@ as replace does, starting from the end.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Aug 14, 2018.<br/>
+      Last updated on Aug 22, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

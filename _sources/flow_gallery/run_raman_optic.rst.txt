@@ -172,7 +172,10 @@ included with the BSE formalism.
         __name__ = None
         import tempfile
         options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-        build_flow(options).plot_networkx(with_edge_labels=False, tight_layout=True)
+        #build_flow(options).plot_networkx(with_edge_labels=False, tight_layout=True)
+        #dpi = 96
+        #build_flow(options).graphviz_imshow(figsize=(800/dpi, 800/dpi), dpi=dpi)
+        build_flow(options).graphviz_imshow()
 
 
     @flowtk.flow_main
@@ -188,7 +191,7 @@ included with the BSE formalism.
     if __name__ == "__main__":
         sys.exit(main())
 
-**Total running time of the script:** ( 0 minutes  0.131 seconds)
+**Total running time of the script:** ( 0 minutes  1.534 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_raman_optic.py:

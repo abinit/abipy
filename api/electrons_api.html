@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>electrons Package &#8212; abipy 0.6.0.dev documentation</title>
+    <title>electrons Package &#8212; abipy 0.6.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.6.0.dev',
+        VERSION:     '0.6.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.6.0.dev</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.6.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -195,152 +195,6 @@
 <div class="section" id="module-abipy.electrons.bse">
 <span id="bse-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">bse</span></code> Module</a><a class="headerlink" href="#module-abipy.electrons.bse" title="Permalink to this headline">¶</a></h2>
 <p>Classes for the analysis of BSE calculations</p>
-<dl class="class">
-<dt id="abipy.electrons.bse.DielectricTensor">
-<em class="property">class </em><code class="descclassname">abipy.electrons.bse.</code><code class="descname">DielectricTensor</code><span class="sig-paren">(</span><em>mdf</em>, <em>structure</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/bse.html#DielectricTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.bse.DielectricTensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
-<p>This object stores the frequency-dependent macroscopic dielectric tensor
-obtained from the dielectric functions for different q-directions.</p>
-<dl class="method">
-<dt id="abipy.electrons.bse.DielectricTensor.to_array">
-<code class="descname">to_array</code><span class="sig-paren">(</span><em>red_coords=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/bse.html#DielectricTensor.to_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.bse.DielectricTensor.to_array" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.15)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> with a copy of the data.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>red_coords</strong> – True for tensors in reduced coordinates else Cartesian.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.electrons.bse.DielectricTensor.symmetrize">
-<code class="descname">symmetrize</code><span class="sig-paren">(</span><em>structure</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/bse.html#DielectricTensor.symmetrize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.bse.DielectricTensor.symmetrize" title="Permalink to this definition">¶</a></dt>
-<dd><p>Symmetrize the tensor using the symmetry operations in structure.
-Change the object in place.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.electrons.bse.DielectricTensor.to_func1d">
-<code class="descname">to_func1d</code><span class="sig-paren">(</span><em>red_coords=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/bse.html#DielectricTensor.to_func1d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.bse.DielectricTensor.to_func1d" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return list of Function.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.electrons.bse.DielectricTensor.plot">
-<code class="descname">plot</code><span class="sig-paren">(</span><em>ax=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/bse.html#DielectricTensor.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.bse.DielectricTensor.plot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plot all the components of the tensor.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</td>
-</tr>
-</tbody>
-</table>
-<table border="1" class="docutils">
-<colgroup>
-<col width="18%" />
-<col width="82%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">kwargs</th>
-<th class="head">Meaning</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>red_coords</td>
-<td>True to plot the reduced coordinate tensor (Default: True)</td>
-</tr>
-</tbody>
-</table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
-<p>Keyword arguments controlling the display of the figure:</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="23%" />
-<col width="77%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">kwargs</th>
-<th class="head">Meaning</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>title</td>
-<td>Title of the plot (Default: None).</td>
-</tr>
-<tr class="row-odd"><td>show</td>
-<td>True to show the figure (default: True).</td>
-</tr>
-<tr class="row-even"><td>savefig</td>
-<td>“abc.png” or “abc.eps” to save the figure to a file.</td>
-</tr>
-<tr class="row-odd"><td>size_kwargs</td>
-<td>Dictionary with options passed to fig.set_size_inches
-e.g. size_kwargs=dict(w=3, h=4)</td>
-</tr>
-<tr class="row-even"><td>ax_grid</td>
-<td>True (False) to add (remove) grid from all axes in fig.
-Default: None i.e. fig is left unchanged.</td>
-</tr>
-<tr class="row-odd"><td>tight_layout</td>
-<td>True to call fig.tight_layout (default: False)</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.electrons.bse.DielectricTensor.plot_ax">
-<code class="descname">plot_ax</code><span class="sig-paren">(</span><em>ax</em>, <em>what</em>, <em>red_coords</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/bse.html#DielectricTensor.plot_ax"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.bse.DielectricTensor.plot_ax" title="Permalink to this definition">¶</a></dt>
-<dd><p>Helper function to plot data on the axis ax.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a></li>
-<li><strong>what</strong> – Sequential index of the tensor matrix element.</li>
-<li><strong>args</strong> – Positional arguments passed to <code class="docutils literal"><span class="pre">ax.plot</span></code></li>
-<li><strong>kwargs</strong> – Keyword arguments passed to matplotlib. Accepts also:</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<table border="1" class="docutils">
-<colgroup>
-<col width="18%" />
-<col width="82%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">kwargs</th>
-<th class="head">Meaning</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>cplx_mode:</td>
-<td><p class="first">string defining the data to print (case-insensitive).
-Possible choices are:</p>
-<blockquote>
-<div><ul class="simple">
-<li>“re”  for real part</li>
-<li>“im” for imaginary part only.</li>
-<li>“abs’ for the absolute value</li>
-</ul>
-</div></blockquote>
-<p class="last">Options can be concated with “-“.</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</dd></dl>
-
 <dl class="class">
 <dt id="abipy.electrons.bse.DielectricFunction">
 <em class="property">class </em><code class="descclassname">abipy.electrons.bse.</code><code class="descname">DielectricFunction</code><span class="sig-paren">(</span><em>structure</em>, <em>qpoints</em>, <em>wmesh</em>, <em>emacros_q</em>, <em>info</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/bse.html#DielectricFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.bse.DielectricFunction" title="Permalink to this definition">¶</a></dt>
@@ -1736,7 +1590,7 @@ the energy, the occupation and the location of the dispersionless band.</p>
 <dl class="method">
 <dt id="abipy.electrons.ebands.ElectronBands.get_dataframe">
 <code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>e0='fermie'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the following columns:</p>
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the following columns:</p>
 <blockquote>
 <div>[‘spin’, ‘kidx’, ‘band’, ‘eig’, ‘occ’, ‘kpoint’]</div></blockquote>
 <p>where:</p>
@@ -2758,7 +2612,7 @@ See <code class="docutils literal"><span class="pre">ElectronBands.as_ebands</sp
 </tr>
 </tbody>
 </table>
-<p>Return: <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a></p>
+<p>Return: <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a></p>
 </dd></dl>
 
 <dl class="class">
@@ -2796,7 +2650,7 @@ Supports plots on the same graph or separated plots.</p>
 <dl class="method">
 <dt id="abipy.electrons.ebands.ElectronBandsPlotter.get_ebands_frame">
 <code class="descname">get_ebands_frame</code><span class="sig-paren">(</span><em>with_spglib=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBandsPlotter.get_ebands_frame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBandsPlotter.get_ebands_frame" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important results available in the band structures.
+<dd><p>Build a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important results available in the band structures.
 Useful to analyze band-gaps.</p>
 </dd></dl>
 
@@ -5461,7 +5315,7 @@ Default: None i.e. fig is left unchanged.</td>
 <dl class="method">
 <dt id="abipy.electrons.gw.SigresFile.get_dataframe">
 <code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>ignore_imag=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/gw.html#SigresFile.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.gw.SigresFile.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for all k-points included in the GW calculation</p>
+<dd><p>Returns <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for all k-points included in the GW calculation</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -5475,7 +5329,7 @@ Default: None i.e. fig is left unchanged.</td>
 <dl class="method">
 <dt id="abipy.electrons.gw.SigresFile.to_dataframe">
 <code class="descname">to_dataframe</code><span class="sig-paren">(</span><em>ignore_imag=False</em><span class="sig-paren">)</span><a class="headerlink" href="#abipy.electrons.gw.SigresFile.to_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for all k-points included in the GW calculation</p>
+<dd><p>Returns <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for all k-points included in the GW calculation</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -5489,7 +5343,7 @@ Default: None i.e. fig is left unchanged.</td>
 <dl class="method">
 <dt id="abipy.electrons.gw.SigresFile.get_dataframe_sk">
 <code class="descname">get_dataframe_sk</code><span class="sig-paren">(</span><em>spin</em>, <em>kpoint</em>, <em>index=None</em>, <em>ignore_imag=False</em>, <em>with_params=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/gw.html#SigresFile.get_dataframe_sk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.gw.SigresFile.get_dataframe_sk" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for the given (spin, k-point).</p>
+<dd><p>Returns <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for the given (spin, k-point).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -5602,7 +5456,7 @@ working directory is created. Return path to the notebook.</p>
 <dl class="method">
 <dt id="abipy.electrons.gw.SigresRobot.get_qpgaps_dataframe">
 <code class="descname">get_qpgaps_dataframe</code><span class="sig-paren">(</span><em>spin=None</em>, <em>kpoint=None</em>, <em>with_geo=False</em>, <em>abspath=False</em>, <em>funcs=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/gw.html#SigresRobot.get_qpgaps_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.gw.SigresRobot.get_qpgaps_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the QP gaps for all files in the robot.</p>
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the QP gaps for all files in the robot.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -5625,7 +5479,7 @@ where key is a string with the name of column and value is the value to be inser
 <dl class="method">
 <dt id="abipy.electrons.gw.SigresRobot.get_dataframe">
 <code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>spin=None</em>, <em>kpoint=None</em>, <em>with_geo=False</em>, <em>abspath=False</em>, <em>funcs=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#abipy.electrons.gw.SigresRobot.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the QP gaps for all files in the robot.</p>
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the QP gaps for all files in the robot.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -6337,7 +6191,7 @@ Accepts gzipped files.</p>
 <dl class="attribute">
 <dt id="abipy.electrons.lobster.ICoxpFile.dataframe">
 <code class="descname">dataframe</code><a class="reference internal" href="../_modules/abipy/electrons/lobster.html#ICoxpFile.dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.lobster.ICoxpFile.dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p><a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with results.</p>
+<dd><p><a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with results.</p>
 </dd></dl>
 
 <dl class="method">
@@ -6584,7 +6438,7 @@ working directory is created. Return path to the notebook.</p>
 
 <dl class="attribute">
 <dt id="abipy.electrons.lobster.LobsterInput.available_advanced_options">
-<code class="descname">available_advanced_options</code><em class="property"> = {'skipReOrthonormalization', 'doNotOrthogonalizeBasis', 'doNotUseAbsoluteSpilling', 'noSymmetryCorrection', 'writeBasisFunctions', 'useDecimalPlaces', 'forceEnergyRange', 'onlyReadVasprun.xml', 'skipPAWOrthonormalityTest', 'forceV1HMatrix', 'basisRotation', 'noMemoryMappedFiles', 'doNotIgnoreExcessiveBands', 'useOriginalTetrahedronMethod', 'symmetryDetectionPrecision'}</em><a class="headerlink" href="#abipy.electrons.lobster.LobsterInput.available_advanced_options" title="Permalink to this definition">¶</a></dt>
+<code class="descname">available_advanced_options</code><em class="property"> = {'skipReOrthonormalization', 'useOriginalTetrahedronMethod', 'onlyReadVasprun.xml', 'noMemoryMappedFiles', 'basisRotation', 'forceEnergyRange', 'doNotUseAbsoluteSpilling', 'doNotIgnoreExcessiveBands', 'doNotOrthogonalizeBasis', 'forceV1HMatrix', 'symmetryDetectionPrecision', 'useDecimalPlaces', 'noSymmetryCorrection', 'writeBasisFunctions', 'skipPAWOrthonormalityTest'}</em><a class="headerlink" href="#abipy.electrons.lobster.LobsterInput.available_advanced_options" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -8614,7 +8468,7 @@ Accepts <a class="reference internal" href="core_api.html#abipy.core.kpoints.Kpo
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Aug 14, 2018.<br/>
+      Last updated on Aug 22, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

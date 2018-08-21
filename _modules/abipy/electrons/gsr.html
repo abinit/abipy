@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.electrons.gsr &#8212; abipy 0.6.0.dev documentation</title>
+    <title>abipy.electrons.gsr &#8212; abipy 0.6.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.6.0.dev',
+        VERSION:     '0.6.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.6.0.dev</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.6.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -149,6 +149,7 @@
 <span class="kn">from</span> <span class="nn">pymatgen.entries.computed_entries</span> <span class="k">import</span> <span class="n">ComputedEntry</span><span class="p">,</span> <span class="n">ComputedStructureEntry</span>
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Header</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_ElectronBands</span><span class="p">,</span> <span class="n">NotebookWriter</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_axarray_fig_plt</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.tensors</span> <span class="k">import</span> <span class="n">Stress</span>
 <span class="kn">from</span> <span class="nn">abipy.abio.robots</span> <span class="k">import</span> <span class="n">Robot</span>
 <span class="kn">from</span> <span class="nn">abipy.electrons.ebands</span> <span class="k">import</span> <span class="n">ElectronsReader</span><span class="p">,</span> <span class="n">RobotWithEbands</span>
 
@@ -210,7 +211,9 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_scf_run</span><span class="p">:</span>
             <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
             <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Stress tensor (Cartesian coordinates in GPa):</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">cart_stress_tensor</span><span class="p">)</span>
-            <span class="c1">#app(&quot;Stress tensor (Cartesian coordinates in Ha/Bohr**3):\n%s&quot; % self.cart_stress_tensor / abu.HaBohr3_GPa)</span>
+            <span class="c1">#if verbose:</span>
+            <span class="c1">#    app(&quot;Stress tensor (Cartesian coordinates in Ha/Bohr**3):\n%s&quot; % self.cart_stress_tensor / abu.HaBohr3_GPa)</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
             <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Pressure: </span><span class="si">%.3f</span><span class="s2"> (GPa)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">pressure</span><span class="p">)</span>
             <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Energy: </span><span class="si">%.8f</span><span class="s2"> (eV)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">energy</span><span class="p">)</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
@@ -499,7 +502,6 @@
                 <span class="n">tensor</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="mi">3</span> <span class="o">+</span> <span class="n">p</span><span class="p">]</span>
             <span class="n">tensor</span> <span class="o">*=</span> <span class="n">abu</span><span class="o">.</span><span class="n">HaBohr3_GPa</span>
 
-        <span class="kn">from</span> <span class="nn">pymatgen.analysis.elasticity.stress</span> <span class="k">import</span> <span class="n">Stress</span>
         <span class="k">return</span> <span class="n">Stress</span><span class="p">(</span><span class="n">tensor</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">read_energy_terms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">):</span>
@@ -764,7 +766,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Aug 14, 2018.<br/>
+      Last updated on Aug 22, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

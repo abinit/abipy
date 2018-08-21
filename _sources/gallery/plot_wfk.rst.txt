@@ -40,7 +40,7 @@ stored in the WFK.nc file.
     Name: si_nscf_WFK.nc
     Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/si_ebands
     Size: 389.84 kb
-    Access Time: Mon Aug 13 22:58:07 2018
+    Access Time: Tue Aug 21 23:54:28 2018
     Modification Time: Wed Nov  8 01:06:20 2017
     Change Time: Wed Nov  8 01:06:20 2017
 
@@ -127,7 +127,7 @@ stored in the WFK.nc file.
 
     ncfile.close()
 
-**Total running time of the script:** ( 0 minutes  1.382 seconds)
+**Total running time of the script:** ( 0 minutes  1.383 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_wfk.py:

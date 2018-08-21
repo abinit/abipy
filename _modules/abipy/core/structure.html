@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.core.structure &#8212; abipy 0.6.0.dev documentation</title>
+    <title>abipy.core.structure &#8212; abipy 0.6.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.6.0.dev',
+        VERSION:     '0.6.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.6.0.dev</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.6.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -1027,6 +1027,23 @@
 
         <span class="k">return</span> <span class="n">abispg</span></div>
 
+<div class="viewcode-block" id="Structure.abiget_spginfo"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.abiget_spginfo">[docs]</a>    <span class="k">def</span> <span class="nf">abiget_spginfo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tolsym</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pre</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Call Abinit to get spacegroup information.</span>
+<span class="sd">	Return dictionary with e.g. {&#39;bravais&#39;: &#39;Bravais cF (face-center cubic)&#39;, &#39;spg_number&#39;: 227, &#39;spg_symbol&#39;: &#39;Fd-3m&#39;}.</span>
+
+<span class="sd">	Args:</span>
+<span class="sd">            tolsym: Abinit tolsym input variable. None correspondes to the default value.</span>
+<span class="sd">	    pre: Keywords in dictionary are prepended with this string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">abipy.data.hgh_pseudos</span> <span class="k">import</span> <span class="n">HGH_TABLE</span>
+        <span class="kn">from</span> <span class="nn">abipy.abio</span> <span class="k">import</span> <span class="n">factories</span>
+        <span class="n">gsinp</span> <span class="o">=</span> <span class="n">factories</span><span class="o">.</span><span class="n">gs_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">HGH_TABLE</span><span class="p">,</span> <span class="n">spin_mode</span><span class="o">=</span><span class="s2">&quot;unpolarized&quot;</span><span class="p">)</span>
+        <span class="n">gsinp</span><span class="p">[</span><span class="s2">&quot;chkprim&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">gsinp</span><span class="o">.</span><span class="n">abiget_spacegroup</span><span class="p">(</span><span class="n">tolsym</span><span class="o">=</span><span class="n">tolsym</span><span class="p">,</span> <span class="n">retdict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pre</span><span class="p">:</span> <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="n">pre</span> <span class="o">+</span> <span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="k">return</span> <span class="n">d</span></div>
+
 <div class="viewcode-block" id="Structure.print_neighbors"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.print_neighbors">[docs]</a>    <span class="k">def</span> <span class="nf">print_neighbors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mf">2.0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get neighbors for each atom in the unit cell, out to a distance ``radius`` in Angstrom</span>
@@ -1207,7 +1224,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">space</span><span class="o">=</span><span class="n">space</span><span class="p">,</span> <span class="n">frac_coords</span><span class="o">=</span><span class="n">frac_coords</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="Structure.get_dict4pandas"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.get_dict4pandas">[docs]</a>    <span class="k">def</span> <span class="nf">get_dict4pandas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="Structure.get_dict4pandas"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.get_dict4pandas">[docs]</a>    <span class="k">def</span> <span class="nf">get_dict4pandas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a :class:`OrderedDict` with the most important structural parameters:</span>
 
@@ -1220,6 +1237,8 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            with_spglib (bool): If True, spglib is invoked to get the spacegroup symbol and number</span>
+<span class="sd">            symprec (float): Symmetry precision used to refine the structure.</span>
+<span class="sd">            angle_tolerance (float): Tolerance on angles.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">abc</span><span class="p">,</span> <span class="n">angles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">abc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">angles</span>
 
@@ -1227,8 +1246,8 @@
         <span class="n">spglib_symbol</span><span class="p">,</span> <span class="n">spglib_number</span><span class="p">,</span> <span class="n">spglib_lattice_type</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">with_spglib</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">spglib_symbol</span><span class="p">,</span> <span class="n">spglib_number</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_space_group_info</span><span class="p">()</span>
-                <span class="n">spglib_lattice_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spget_lattice_type</span><span class="p">()</span>
+                <span class="n">spglib_symbol</span><span class="p">,</span> <span class="n">spglib_number</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_space_group_info</span><span class="p">(</span><span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="n">angle_tolerance</span><span class="p">)</span>
+                <span class="n">spglib_lattice_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spget_lattice_type</span><span class="p">(</span><span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="n">angle_tolerance</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
                 <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Spglib couldn&#39;t find space group symbol and number for composition </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">composition</span><span class="p">),</span> <span class="s2">&quot;red&quot;</span><span class="p">)</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Exception:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc</span><span class="p">)</span>
@@ -2032,7 +2051,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">nval</span><span class="p">,</span> <span class="n">table</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">PseudoTable</span><span class="o">.</span><span class="n">as_table</span><span class="p">(</span><span class="n">pseudos</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
-            <span class="n">pseudo</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">pseudo_with_symbol</span><span class="p">(</span><span class="n">site</span><span class="o">.</span><span class="n">species_string</span><span class="p">)</span>
+            <span class="n">pseudo</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">pseudo_with_symbol</span><span class="p">(</span><span class="n">site</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">symbol</span><span class="p">)</span>
             <span class="n">nval</span> <span class="o">+=</span> <span class="n">pseudo</span><span class="o">.</span><span class="n">Z_val</span>
 
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">nval</span><span class="p">)</span> <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">nval</span><span class="p">)</span> <span class="o">==</span> <span class="n">nval</span> <span class="k">else</span> <span class="n">nval</span></div>
@@ -2047,7 +2066,7 @@
         <span class="n">table</span> <span class="o">=</span> <span class="n">PseudoTable</span><span class="o">.</span><span class="n">as_table</span><span class="p">(</span><span class="n">pseudos</span><span class="p">)</span>
         <span class="n">psp_valences</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
-            <span class="n">pseudo</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">pseudo_with_symbol</span><span class="p">(</span><span class="n">site</span><span class="o">.</span><span class="n">species_string</span><span class="p">)</span>
+            <span class="n">pseudo</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">pseudo_with_symbol</span><span class="p">(</span><span class="n">site</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">symbol</span><span class="p">)</span>
             <span class="n">psp_valences</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pseudo</span><span class="o">.</span><span class="n">Z_val</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">psp_valences</span></div>
@@ -2083,7 +2102,8 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="dataframes_from_structures"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.dataframes_from_structures">[docs]</a><span class="k">def</span> <span class="nf">dataframes_from_structures</span><span class="p">(</span><span class="n">struct_objects</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">cart_coords</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="dataframes_from_structures"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.dataframes_from_structures">[docs]</a><span class="k">def</span> <span class="nf">dataframes_from_structures</span><span class="p">(</span><span class="n">struct_objects</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+	                       <span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">cart_coords</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Build two pandas Dataframes_ with the most important geometrical parameters associated to</span>
 <span class="sd">    a list of structures or a list of objects that can be converted into structures.</span>
@@ -2093,6 +2113,8 @@
 <span class="sd">            Support filenames, structure objects, Abinit input files, dicts and many more types.</span>
 <span class="sd">            See ``Structure.as_structure`` for the complete list.</span>
 <span class="sd">        index: Index of the |pandas-DataFrame|.</span>
+<span class="sd">        symprec (float): Symmetry precision used to refine the structure.</span>
+<span class="sd">        angle_tolerance (float): Tolerance on angles.</span>
 <span class="sd">        with_spglib (bool): If True, spglib_ is invoked to get the spacegroup symbol and number.</span>
 <span class="sd">        cart_coords: True if the ``coords`` dataframe should contain Cartesian cordinates</span>
 <span class="sd">            instead of Reduced coordinates.</span>
@@ -2113,7 +2135,8 @@
     <span class="n">structures</span> <span class="o">=</span> <span class="p">[</span><span class="n">Structure</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">struct_objects</span><span class="p">]</span>
     <span class="c1"># Build Frame with lattice parameters.</span>
     <span class="c1"># Use OrderedDict to have columns ordered nicely.</span>
-    <span class="n">odict_list</span> <span class="o">=</span> <span class="p">[(</span><span class="n">structure</span><span class="o">.</span><span class="n">get_dict4pandas</span><span class="p">(</span><span class="n">with_spglib</span><span class="o">=</span><span class="n">with_spglib</span><span class="p">))</span> <span class="k">for</span> <span class="n">structure</span> <span class="ow">in</span> <span class="n">structures</span><span class="p">]</span>
+    <span class="n">odict_list</span> <span class="o">=</span> <span class="p">[(</span><span class="n">structure</span><span class="o">.</span><span class="n">get_dict4pandas</span><span class="p">(</span><span class="n">with_spglib</span><span class="o">=</span><span class="n">with_spglib</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="n">angle_tolerance</span><span class="p">))</span>
+	          <span class="k">for</span> <span class="n">structure</span> <span class="ow">in</span> <span class="n">structures</span><span class="p">]</span>
 
     <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
     <span class="n">lattice_frame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">odict_list</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span>
@@ -2344,7 +2367,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Aug 14, 2018.<br/>
+      Last updated on Aug 22, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

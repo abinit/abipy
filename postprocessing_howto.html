@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Post-processing How-To &#8212; abipy 0.6.0.dev documentation</title>
+    <title>Post-processing How-To &#8212; abipy 0.6.0 documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.6.0.dev',
+        VERSION:     '0.6.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.6.0.dev</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.6.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -119,6 +119,7 @@
 <li><a class="reference internal" href="#compare-multiple-files">Compare multiple files</a></li>
 <li><a class="reference internal" href="#profile-the-scripts">Profile the scripts</a></li>
 <li><a class="reference internal" href="#get-the-description-of-a-variable">Get the description of a variable</a></li>
+<li><a class="reference internal" href="#avoid-transfering-files-from-the-cluster-to-localhost-just-to-use-matplotlib">Avoid transfering files from the cluster to localhost just to use matplotlib</a></li>
 </ul>
 </li>
 </ul>
@@ -196,6 +197,7 @@ Feel free to suggest new entries!</p>
 <li><a class="reference internal" href="#compare-multiple-files" id="id19">Compare multiple files</a></li>
 <li><a class="reference internal" href="#profile-the-scripts" id="id20">Profile the scripts</a></li>
 <li><a class="reference internal" href="#get-the-description-of-a-variable" id="id21">Get the description of a variable</a></li>
+<li><a class="reference internal" href="#avoid-transfering-files-from-the-cluster-to-localhost-just-to-use-matplotlib" id="id22">Avoid transfering files from the cluster to localhost just to use matplotlib</a></li>
 </ul>
 </li>
 </ul>
@@ -763,6 +765,13 @@ This option could be useful if the script seems to be slow and you need to under
 </div>
 <p>More options are available. See <code class="docutils literal"><span class="pre">abidoc.py</span> <span class="pre">--help</span></code>.</p>
 </div>
+<div class="section" id="avoid-transfering-files-from-the-cluster-to-localhost-just-to-use-matplotlib">
+<h2><a class="toc-backref" href="#contents">Avoid transfering files from the cluster to localhost just to use matplotlib</a><a class="headerlink" href="#avoid-transfering-files-from-the-cluster-to-localhost-just-to-use-matplotlib" title="Permalink to this headline">¶</a></h2>
+<p>Use <a class="reference external" href="https://www.digitalocean.com/community/tutorials/how-to-use-sshfs-to-mount-remote-file-systems-over-ssh">SSHFS</a>
+to mount the remote file system over SSH.
+Now one can execute the AbiPy scripts in a terminal running on the local machine.
+to open/visualize the files stored on the cluster.</p>
+</div>
 </div>
 
 
@@ -778,7 +787,7 @@ This option could be useful if the script seems to be slow and you need to under
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Aug 14, 2018.<br/>
+      Last updated on Aug 22, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

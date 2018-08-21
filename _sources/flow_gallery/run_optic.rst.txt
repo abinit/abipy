@@ -105,7 +105,8 @@ a convergence study with respect to the k-point sampling.
         __name__ = None
         import tempfile
         options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-        build_flow(options).plot_networkx(with_edge_labels=False, tight_layout=True)
+        #build_flow(options).plot_networkx(with_edge_labels=False, tight_layout=True)
+        build_flow(options).graphviz_imshow()
 
 
     @flowtk.flow_main
@@ -150,7 +151,7 @@ to create a robot for OPTIC.nc files. Then inside the ipytho shell type:
 
 
 
-**Total running time of the script:** ( 0 minutes  0.233 seconds)
+**Total running time of the script:** ( 0 minutes  1.576 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_optic.py:

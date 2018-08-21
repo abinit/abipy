@@ -104,7 +104,8 @@ If you replace GGA with LDA, you will observe that LDA tends to underestimate th
         __name__ = None
         import tempfile
         options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-        build_flow(options).plot_networkx(with_edge_labels=True, tight_layout=True)
+        #build_flow(options).plot_networkx(with_edge_labels=True, tight_layout=True)
+        build_flow(options).graphviz_imshow()
 
 
     @flowtk.flow_main
@@ -193,7 +194,7 @@ Run the script with:
 
 
 
-**Total running time of the script:** ( 0 minutes  0.793 seconds)
+**Total running time of the script:** ( 0 minutes  1.866 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_relax_vs_kpts_tsmear.py:

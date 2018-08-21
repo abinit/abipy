@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.dfpt.elastic &#8212; abipy 0.6.0.dev documentation</title>
+    <title>abipy.dfpt.elastic &#8212; abipy 0.6.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.6.0.dev',
+        VERSION:     '0.6.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.6.0.dev</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.6.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -157,14 +157,21 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_voigt_dataframe</span><span class="p">()</span><span class="o">.</span><span class="n">_repr_html_</span><span class="p">()</span>
 
 <div class="viewcode-block" id="MyElasticTensor.get_voigt_dataframe"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.elastic.MyElasticTensor.get_voigt_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">get_voigt_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
-        <span class="n">tensor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">zeroed</span><span class="p">(</span><span class="n">tol</span><span class="p">)</span> <span class="k">if</span> <span class="n">tol</span> <span class="k">else</span> <span class="bp">self</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return |pandas-DataFrame| with Voigt indices as colums (C-indexing starting from 0).</span>
+<span class="sd">        Useful to analyze the converge of individual elements of the tensor(s)</span>
+<span class="sd">        Elements below tol are set to zero.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tensor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">zeroed</span><span class="p">(</span><span class="n">tol</span><span class="o">=</span><span class="n">tol</span><span class="p">)</span>
         <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;xx&quot;</span><span class="p">,</span> <span class="s2">&quot;yy&quot;</span><span class="p">,</span> <span class="s2">&quot;zz&quot;</span><span class="p">,</span> <span class="s2">&quot;yz&quot;</span><span class="p">,</span> <span class="s2">&quot;xz&quot;</span><span class="p">,</span> <span class="s2">&quot;xy&quot;</span><span class="p">]</span>
         <span class="c1">#columns = [&quot;1&quot;, &quot;2&quot;, &quot;3&quot;, &quot;4&quot;, &quot;5&quot;, &quot;6&quot;]</span>
         <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">tensor</span><span class="o">.</span><span class="n">voigt</span><span class="p">:</span>
             <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="n">row</span><span class="p">)})</span>
 
-        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span></div></div>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Voigt index&quot;</span>
+        <span class="k">return</span> <span class="n">df</span></div></div>
 
 
 <div class="viewcode-block" id="MyPiezoTensor"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.elastic.MyPiezoTensor">[docs]</a><span class="k">class</span> <span class="nc">MyPiezoTensor</span><span class="p">(</span><span class="n">PiezoTensor</span><span class="p">):</span>
@@ -174,7 +181,12 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_voigt_dataframe</span><span class="p">()</span><span class="o">.</span><span class="n">_repr_html_</span><span class="p">()</span>
 
 <div class="viewcode-block" id="MyPiezoTensor.get_voigt_dataframe"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.elastic.MyPiezoTensor.get_voigt_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">get_voigt_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
-        <span class="n">tensor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">zeroed</span><span class="p">(</span><span class="n">tol</span><span class="p">)</span> <span class="k">if</span> <span class="n">tol</span> <span class="k">else</span> <span class="bp">self</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return |pandas-DataFrame| with Voigt indices as colums (C-indexing starting from 0).</span>
+<span class="sd">        Useful to analyze the converge of individual elements of the tensor(s)</span>
+<span class="sd">        Elements below tol are set to zero.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tensor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">zeroed</span><span class="p">(</span><span class="n">tol</span><span class="o">=</span><span class="n">tol</span><span class="p">)</span>
         <span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Px&quot;</span><span class="p">,</span> <span class="s2">&quot;Py&quot;</span><span class="p">,</span> <span class="s2">&quot;Pz&quot;</span><span class="p">]</span>
         <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;xx&quot;</span><span class="p">,</span> <span class="s2">&quot;yy&quot;</span><span class="p">,</span> <span class="s2">&quot;zz&quot;</span><span class="p">,</span> <span class="s2">&quot;yz&quot;</span><span class="p">,</span> <span class="s2">&quot;xz&quot;</span><span class="p">,</span> <span class="s2">&quot;xy&quot;</span><span class="p">]</span>
         <span class="c1">#index = [&quot;P1&quot;, &quot;P2&quot;, &quot;P3&quot;]</span>
@@ -183,7 +195,9 @@
         <span class="k">for</span> <span class="n">irow</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tensor</span><span class="o">.</span><span class="n">voigt</span><span class="p">):</span>
             <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="n">row</span><span class="p">)})</span>
 
-        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span></div></div>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Voigt index&quot;</span>
+        <span class="k">return</span> <span class="n">df</span></div></div>
 
 
 <div class="viewcode-block" id="ElasticData"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.elastic.ElasticData">[docs]</a><span class="k">class</span> <span class="nc">ElasticData</span><span class="p">(</span><span class="n">Has_Structure</span><span class="p">,</span> <span class="n">MSONable</span><span class="p">):</span>
@@ -191,8 +205,8 @@
 <span class="sd">    Container with the different elastic and piezoelectric tensors</span>
 <span class="sd">    computed by anaddb. Data is stored in pymatgen tensor objects.</span>
 
-<span class="sd">    Provides methods to analyze/tabule data</span>
-<span class="sd">    http://progs.coudert.name/elate/mp?query=mp-2172</span>
+<span class="sd">    Provides methods to analyze/tabulate data</span>
+<span class="sd">    Se also http://progs.coudert.name/elate/mp?query=mp-2172 for a web interface.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">ALL_ELASTIC_TENSOR_NAMES</span> <span class="o">=</span> <span class="p">(</span>
@@ -399,7 +413,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">tensor</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tensor_name</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">tensor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="n">tol</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">tensor</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">.</span><span class="n">zeroed</span><span class="p">(</span><span class="n">tol</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tol</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">tensor</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">.</span><span class="n">zeroed</span><span class="p">(</span><span class="n">tol</span><span class="o">=</span><span class="n">tol</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">tensor</span></div>
 
 <div class="viewcode-block" id="ElasticData.name_tensor_list"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.name_tensor_list">[docs]</a>    <span class="k">def</span> <span class="nf">name_tensor_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tensor_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tensor_type</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -514,7 +528,7 @@
 
 <div class="viewcode-block" id="ElasticData.get_voigt_dataframe"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.get_voigt_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">get_voigt_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tensor_names</span><span class="p">,</span> <span class="n">voigt_as_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return a |pandas-DataFrame| with Voigt indices as colums (C-indexing starting from 0).</span>
+<span class="sd">        Return |pandas-DataFrame| with Voigt indices as colums (C-indexing starting from 0).</span>
 <span class="sd">        Useful to analyze the converge of individual elements of the tensor(s)</span>
 
 <span class="sd">        Args:</span>
@@ -602,7 +616,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Aug 14, 2018.<br/>
+      Last updated on Aug 22, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

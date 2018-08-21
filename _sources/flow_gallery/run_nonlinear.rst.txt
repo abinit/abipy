@@ -15,6 +15,9 @@ Flow to compute non-linear optical properties with DFPT (static limit).
 
 
 
+.. image:: /flow_gallery/images/sphx_glr_run_nonlinear_001.png
+    :class: sphx-glr-single-img
+
 
 
 
@@ -86,6 +89,7 @@ Flow to compute non-linear optical properties with DFPT (static limit).
         # Temporarily disabled in v8.8.2
         options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
         #build_flow(options).plot_networkx(with_edge_labels=False, tight_layout=True)
+        build_flow(options).graphviz_imshow()
 
 
 
@@ -104,7 +108,7 @@ Flow to compute non-linear optical properties with DFPT (static limit).
     if __name__ == "__main__":
         sys.exit(main())
 
-**Total running time of the script:** ( 0 minutes  0.005 seconds)
+**Total running time of the script:** ( 0 minutes  1.379 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_nonlinear.py:

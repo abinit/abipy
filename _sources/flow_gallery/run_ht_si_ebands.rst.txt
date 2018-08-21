@@ -55,7 +55,8 @@ Input files are automatically generated with factory functions designed for auto
         __name__ = None
         import tempfile
         options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-        build_flow(options).plot_networkx(with_edge_labels=True, tight_layout=True)
+        #build_flow(options).plot_networkx(with_edge_labels=True, tight_layout=True)
+        build_flow(options).graphviz_imshow()
 
 
     @flowtk.flow_main
@@ -118,7 +119,7 @@ To print the connections among the tasks.
 
 
 
-**Total running time of the script:** ( 0 minutes  1.554 seconds)
+**Total running time of the script:** ( 0 minutes  1.669 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_ht_si_ebands.py:

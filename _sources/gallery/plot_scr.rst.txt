@@ -45,7 +45,7 @@ computed in the GW code (optdriver 3)
     Name: sio2_SCR.nc
     Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/sio2_screening
     Size: 426.16 kb
-    Access Time: Mon Aug 13 22:56:17 2018
+    Access Time: Tue Aug 21 23:52:22 2018
     Modification Time: Thu Feb 22 21:38:00 2018
     Change Time: Thu Feb 22 21:38:00 2018
 
@@ -108,7 +108,7 @@ computed in the GW code (optdriver 3)
 
         ncfile.plot_eelf(title="Electron Energy Loss Function of $SiO_2$")
 
-**Total running time of the script:** ( 0 minutes  0.436 seconds)
+**Total running time of the script:** ( 0 minutes  0.437 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_scr.py:

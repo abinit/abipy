@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>dfpt Package &#8212; abipy 0.6.0.dev documentation</title>
+    <title>dfpt Package &#8212; abipy 0.6.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.6.0.dev',
+        VERSION:     '0.6.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.6.0.dev</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.6.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -107,7 +107,6 @@
 <li><a class="reference internal" href="#module-abipy.dfpt.gruneisen"><code class="docutils literal"><span class="pre">gruneisen</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.dfpt.phonons"><code class="docutils literal"><span class="pre">phonons</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.dfpt.qha"><code class="docutils literal"><span class="pre">qha</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.dfpt.tensors"><code class="docutils literal"><span class="pre">tensors</span></code> Module</a></li>
 </ul>
 </li>
 </ul>
@@ -171,7 +170,6 @@
 <li><a class="reference internal" href="#module-abipy.dfpt.gruneisen" id="id9"><code class="xref py py-mod docutils literal"><span class="pre">gruneisen</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.dfpt.phonons" id="id10"><code class="xref py py-mod docutils literal"><span class="pre">phonons</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.dfpt.qha" id="id11"><code class="xref py py-mod docutils literal"><span class="pre">qha</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.dfpt.tensors" id="id12"><code class="xref py py-mod docutils literal"><span class="pre">tensors</span></code> Module</a></li>
 </ul>
 </li>
 </ul>
@@ -196,8 +194,8 @@ This object is usually instanciated with <cite>abiopen(“anaddb.nc”)</cite>.<
 </dd></dl>
 
 <dl class="attribute">
-<dt id="abipy.dfpt.anaddbnc.AnaddbNcFile.emacro">
-<code class="descname">emacro</code><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcFile.emacro"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcFile.emacro" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.dfpt.anaddbnc.AnaddbNcFile.epsinf">
+<code class="descname">epsinf</code><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcFile.epsinf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcFile.epsinf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Macroscopic dielectric tensor. None if the file does not contain this information.</p>
 </dd></dl>
 
@@ -260,17 +258,27 @@ None, if the netcdf file does not contain the IFCs.</p>
 
 <dl class="attribute">
 <dt>
-<code class="descname">emacro</code><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcFile.emacro"><span class="viewcode-link">[source]</span></a></dt>
-<dd><p>Macroscopic dielectric tensor.
+<code class="descname">epsinf</code><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcFile.epsinf"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Macroscopic electronic <a class="reference internal" href="tools_api.html#abipy.tools.tensors.DielectricTensor" title="abipy.tools.tensors.DielectricTensor"><code class="xref py py-class docutils literal"><span class="pre">abipy.tools.tensors.DielectricTensor</span></code></a> in Cartesian coordinates (a.k.a. epsilon_infinity)
+None if the file does not contain this information.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.anaddbnc.AnaddbNcFile.emacro">
+<code class="descname">emacro</code><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcFile.emacro" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.anaddbnc.AnaddbNcFile.eps0">
+<code class="descname">eps0</code><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcFile.eps0"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcFile.eps0" title="Permalink to this definition">¶</a></dt>
+<dd><p>Relaxed ion macroscopic <a class="reference internal" href="tools_api.html#abipy.tools.tensors.DielectricTensor" title="abipy.tools.tensors.DielectricTensor"><code class="xref py py-class docutils literal"><span class="pre">abipy.tools.tensors.DielectricTensor</span></code></a> in Cartesian coordinates (a.k.a. epsilon_zero)
 None if the file does not contain this information.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="abipy.dfpt.anaddbnc.AnaddbNcFile.emacro_rlx">
-<code class="descname">emacro_rlx</code><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcFile.emacro_rlx"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcFile.emacro_rlx" title="Permalink to this definition">¶</a></dt>
-<dd><p>Relaxed ion Macroscopic dielectric tensor.
-None if the file does not contain this information.</p>
-</dd></dl>
+<code class="descname">emacro_rlx</code><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcFile.emacro_rlx" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt>
@@ -306,7 +314,7 @@ None if the file does not contain this information.</p>
 <dl class="attribute">
 <dt id="abipy.dfpt.anaddbnc.AnaddbNcFile.oscillator_strength">
 <code class="descname">oscillator_strength</code><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcFile.oscillator_strength"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcFile.oscillator_strength" title="Permalink to this definition">¶</a></dt>
-<dd><p>A complex <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.15)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> containing the oscillator strengths with shape (number of phonon modes, 3, 3),
+<dd><p>A complex <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.15)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> containing the oscillator strengths with shape [number of phonon modes, 3, 3],
 in a.u. (1 a.u.=253.2638413 m3/s2).
 None if the file does not contain this information.</p>
 </dd></dl>
@@ -376,7 +384,7 @@ working directory is created. Return path to the notebook.</p>
 <dl class="method">
 <dt id="abipy.dfpt.anaddbnc.AnaddbNcRobot.get_elastic_dataframe">
 <code class="descname">get_elastic_dataframe</code><span class="sig-paren">(</span><em>with_geo=True</em>, <em>abspath=False</em>, <em>with_params=False</em>, <em>funcs=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcRobot.get_elastic_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcRobot.get_elastic_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with properties derived from the elastic tensor
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with properties derived from the elastic tensor
 and an associated structure. Filename is used as index.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -501,11 +509,11 @@ as well as methods to compute phonon band structures, phonon DOS, thermodinamica
 <li><p class="first">ipert in [1, 2, …, mpert] where mpert = natom + 6</p>
 <blockquote>
 <div><ul class="simple">
-<li>ipert in [1, …, natom] corresponds to atomic perturbations</li>
-<li>ipert = natom + 1 gives d/dk</li>
+<li>ipert in [1, …, natom] corresponds to atomic perturbations  (reduced dirs)</li>
+<li>ipert = natom + 1 gives d/dk  (reduced dirs)</li>
 <li>ipert = natom + 2 gives the electric field</li>
-<li>ipert = natom + 3 gives the uniaxial stress</li>
-<li>ipert = natom + 4 gives the shear stree.</li>
+<li>ipert = natom + 3 gives the uniaxial stress (cartesian dirs)</li>
+<li>ipert = natom + 4 gives the shear strees.   (cartesian dirs)</li>
 </ul>
 </div></blockquote>
 </li>
@@ -597,7 +605,7 @@ Use e.g. <code class="docutils literal"><span class="pre">ddb.header.ecut</span>
 <dt id="abipy.dfpt.ddb.DdbFile.computed_dynmat">
 <code class="descname">computed_dynmat</code><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.computed_dynmat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.computed_dynmat" title="Permalink to this definition">¶</a></dt>
 <dd><p><code class="xref py py-class docutils literal"><span class="pre">OrderedDict</span></code> mapping q-point object to –&gt; pandas Dataframe.
-The <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> contains the columns: “idir1”, “ipert1”, “idir2”, “ipert2”, “cvalue”
+The <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> contains the columns: “idir1”, “ipert1”, “idir2”, “ipert2”, “cvalue”
 and (idir1, ipert1, idir2, ipert2) as index.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -666,7 +674,7 @@ None if not available i.e. if the GS DDB has not been merged.</p>
 <dl class="attribute">
 <dt id="abipy.dfpt.ddb.DdbFile.cart_stress_tensor">
 <code class="descname">cart_stress_tensor</code><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.cart_stress_tensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.cart_stress_tensor" title="Permalink to this definition">¶</a></dt>
-<dd><p><a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.stress.html#pymatgen.analysis.elasticity.stress.Stress" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.stress.Stress</span></code></a> tensor in cartesian coordinates (GPa units).
+<dd><p><a class="reference internal" href="tools_api.html#abipy.tools.tensors.Stress" title="abipy.tools.tensors.Stress"><code class="xref py py-class docutils literal"><span class="pre">abipy.tools.tensors.Stress</span></code></a> tensor in cartesian coordinates (GPa units).
 None if not available.</p>
 </dd></dl>
 
@@ -684,8 +692,8 @@ If the coordinates of a q point are provided only the specified qpt will be cons
 </dd></dl>
 
 <dl class="attribute">
-<dt id="abipy.dfpt.ddb.DdbFile.has_emacro_terms">
-<code class="descname">has_emacro_terms</code><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.has_emacro_terms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.has_emacro_terms" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.dfpt.ddb.DdbFile.has_epsinf_terms">
+<code class="descname">has_epsinf_terms</code><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.has_epsinf_terms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.has_epsinf_terms" title="Permalink to this definition">¶</a></dt>
 <dd><p>True if the DDB file contains info on the electric-field perturbation.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -700,6 +708,11 @@ If select == “all”, all tensor components must be present in the DDB file.</
 </tbody>
 </table>
 </dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.ddb.DdbFile.has_emacro_terms">
+<code class="descname">has_emacro_terms</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.has_emacro_terms" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="abipy.dfpt.ddb.DdbFile.has_bec_terms">
@@ -1017,15 +1030,15 @@ plotter: |PhononDosPlotter| object.
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.dfpt.ddb.DdbFile.anaget_emacro_and_becs">
-<code class="descname">anaget_emacro_and_becs</code><span class="sig-paren">(</span><em>chneut=1</em>, <em>mpi_procs=1</em>, <em>workdir=None</em>, <em>manager=None</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.anaget_emacro_and_becs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.anaget_emacro_and_becs" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.dfpt.ddb.DdbFile.anaget_epsinf_and_becs">
+<code class="descname">anaget_epsinf_and_becs</code><span class="sig-paren">(</span><em>chneut=1</em>, <em>mpi_procs=1</em>, <em>workdir=None</em>, <em>manager=None</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.anaget_epsinf_and_becs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.anaget_epsinf_and_becs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Call anaddb to compute the macroscopic electronic dielectric tensor (e_inf)
 in Cartesian coordinates and the Born effective charges.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>chneut</strong> – Anaddb input variable. See official documentation.</li>
 <li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
 <li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
@@ -1033,12 +1046,19 @@ in Cartesian coordinates and the Born effective charges.</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">(emacro, becs)</p>
-</td>
-</tr>
 </tbody>
 </table>
+<dl class="docutils">
+<dt>Return: <code class="docutils literal"><span class="pre">namedtuple</span></code> with the following attributes::</dt>
+<dd>epsinf: <a class="reference internal" href="tools_api.html#abipy.tools.tensors.DielectricTensor" title="abipy.tools.tensors.DielectricTensor"><code class="xref py py-class docutils literal"><span class="pre">abipy.tools.tensors.DielectricTensor</span></code></a> object.
+becs: Becs objects.</dd>
+</dl>
 </dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.ddb.DdbFile.anaget_emacro_and_becs">
+<code class="descname">anaget_emacro_and_becs</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.anaget_emacro_and_becs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="abipy.dfpt.ddb.DdbFile.anaget_ifc">
@@ -1197,14 +1217,18 @@ working directory is created. Return path to the notebook.</p>
 
 <dl class="method">
 <dt id="abipy.dfpt.ddb.Becs.get_voigt_dataframe">
-<code class="descname">get_voigt_dataframe</code><span class="sig-paren">(</span><em>select_symbols=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#Becs.get_voigt_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.Becs.get_voigt_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with Voigt indices as columns and natom rows.</p>
+<code class="descname">get_voigt_dataframe</code><span class="sig-paren">(</span><em>tol=0.001</em>, <em>select_symbols=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#Becs.get_voigt_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.Becs.get_voigt_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with Voigt indices as columns and natom rows.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>select_symbols</strong> – String or list of strings with chemical symbols.
-Used to select only atoms of this type.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>tol</strong> – Entries are set to zero below this value</li>
+<li><strong>select_symbols</strong> – String or list of strings with chemical symbols.
+Used to select only atoms of this type.</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -1214,7 +1238,7 @@ Used to select only atoms of this type.</td>
 
 <dl class="class">
 <dt id="abipy.dfpt.ddb.DielectricTensorGenerator">
-<em class="property">class </em><code class="descclassname">abipy.dfpt.ddb.</code><code class="descname">DielectricTensorGenerator</code><span class="sig-paren">(</span><em>phfreqs</em>, <em>oscillator_strength</em>, <em>emacro</em>, <em>structure</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DielectricTensorGenerator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DielectricTensorGenerator" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">abipy.dfpt.ddb.</code><code class="descname">DielectricTensorGenerator</code><span class="sig-paren">(</span><em>phfreqs</em>, <em>oscillator_strength</em>, <em>eps0</em>, <em>epsinf</em>, <em>structure</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DielectricTensorGenerator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DielectricTensorGenerator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a></p>
 <p>Object used to generate frequency dependent dielectric tensors as obtained
 from DFPT calculations. The values are calculated on the fly
@@ -1222,12 +1246,6 @@ based on the phonon frequencies at gamma and oscillator strengths.
 The first three frequencies would be considered as acoustic modes and
 ignored in the calculation. No checks would be performed.</p>
 <p>See the definitions Eq.(53-54) in <a class="reference internal" href="../zzbiblio.html#gonze1997" id="id1">[Gonze1997]</a> PRB55, 10355 (1997).</p>
-<dl class="attribute">
-<dt id="abipy.dfpt.ddb.DielectricTensorGenerator.structure">
-<code class="descname">structure</code><a class="headerlink" href="#abipy.dfpt.ddb.DielectricTensorGenerator.structure" title="Permalink to this definition">¶</a></dt>
-<dd><p><a class="reference internal" href="core_api.html#abipy.core.structure.Structure" title="abipy.core.structure.Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.structure.Structure</span></code></a> object.</p>
-</dd></dl>
-
 <dl class="classmethod">
 <dt id="abipy.dfpt.ddb.DielectricTensorGenerator.from_files">
 <em class="property">classmethod </em><code class="descname">from_files</code><span class="sig-paren">(</span><em>phbst_filepath</em>, <em>anaddbnc_filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DielectricTensorGenerator.from_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DielectricTensorGenerator.from_files" title="Permalink to this definition">¶</a></dt>
@@ -1241,10 +1259,40 @@ static dielectric tensor, i.e. the PHBST.nc and anaddb.nc netcdf files, respecti
 <dd><p>Generates the object from the objects <a class="reference internal" href="#abipy.dfpt.phonons.PhononBands" title="abipy.dfpt.phonons.PhononBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.dfpt.phonons.PhononBands</span></code></a> object and AnaddbNcFile</p>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="abipy.dfpt.ddb.DielectricTensorGenerator.structure">
+<code class="descname">structure</code><a class="headerlink" href="#abipy.dfpt.ddb.DielectricTensorGenerator.structure" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="core_api.html#abipy.core.structure.Structure" title="abipy.core.structure.Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.structure.Structure</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.ddb.DielectricTensorGenerator.to_string">
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DielectricTensorGenerator.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DielectricTensorGenerator.to_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>String representation with verbosity level <cite>verbose</cite>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.ddb.DielectricTensorGenerator.get_oscillator_dataframe">
+<code class="descname">get_oscillator_dataframe</code><span class="sig-paren">(</span><em>reim='all'</em>, <em>tol=1e-08</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DielectricTensorGenerator.get_oscillator_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DielectricTensorGenerator.get_oscillator_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with oscillator matrix elements.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>reim</strong> – “re” for real part, “im” for imaginary part, “all” for both.</li>
+<li><strong>tol</strong> – Entries are set to zero below this value</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="method">
 <dt id="abipy.dfpt.ddb.DielectricTensorGenerator.tensor_at_frequency">
-<code class="descname">tensor_at_frequency</code><span class="sig-paren">(</span><em>w</em>, <em>units='eV'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DielectricTensorGenerator.tensor_at_frequency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DielectricTensorGenerator.tensor_at_frequency" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a <code class="xref py py-class docutils literal"><span class="pre">DielectricTensor</span></code> object representing
+<code class="descname">tensor_at_frequency</code><span class="sig-paren">(</span><em>w</em>, <em>gamma_ev=0.0001</em>, <em>units='eV'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DielectricTensorGenerator.tensor_at_frequency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DielectricTensorGenerator.tensor_at_frequency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a <a class="reference internal" href="tools_api.html#abipy.tools.tensors.DielectricTensor" title="abipy.tools.tensors.DielectricTensor"><code class="xref py py-class docutils literal"><span class="pre">abipy.tools.tensors.DielectricTensor</span></code></a> object representing
 the dielectric tensor in atomic units at the specified frequency w.
 Eq.(53-54) in PRB55, 10355 (1997).</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -1253,6 +1301,8 @@ Eq.(53-54) in PRB55, 10355 (1997).</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>w</strong> – frequency</li>
+<li><strong>gamma_ev</strong> – Phonon damping factor in eV (full width). Poles are shifted by phfreq * gamma_ev.
+Accept scalar or [nfreq] array.</li>
 <li><strong>units</strong> – string specifying the units used for ph frequencies.  Possible values in</li>
 <li><strong>&quot;meV&quot;</strong><strong>, </strong><strong>&quot;Ha&quot;</strong><strong>, </strong><strong>&quot;cm-1&quot;</strong><strong>, </strong><strong>&quot;Thz&quot;</strong><strong>)</strong><strong> Case-insensitive.</strong> (<em>(</em><em>&quot;eV&quot;</em><em>,</em>) – </li>
 </ul>
@@ -1264,15 +1314,17 @@ Eq.(53-54) in PRB55, 10355 (1997).</p>
 
 <dl class="method">
 <dt id="abipy.dfpt.ddb.DielectricTensorGenerator.plot_vs_w">
-<code class="descname">plot_vs_w</code><span class="sig-paren">(</span><em>w_min=0</em>, <em>w_max=None</em>, <em>num=100</em>, <em>component='diag'</em>, <em>units='eV'</em>, <em>ax=None</em>, <em>fontsize=12</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DielectricTensorGenerator.plot_vs_w"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DielectricTensorGenerator.plot_vs_w" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plots the selected components of the dielectric tensor as a function of the frequency.</p>
+<code class="descname">plot_vs_w</code><span class="sig-paren">(</span><em>w_min=0</em>, <em>w_max=None</em>, <em>gamma_ev=0.0001</em>, <em>num=100</em>, <em>component='diag'</em>, <em>units='eV'</em>, <em>with_phfreqs=True</em>, <em>ax=None</em>, <em>fontsize=12</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DielectricTensorGenerator.plot_vs_w"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DielectricTensorGenerator.plot_vs_w" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the selected components of the dielectric tensor as a function of frequency.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>w_min</strong> – minimum frequency.</li>
-<li><strong>w_max</strong> – maximum frequency. If None it will be set to the value of the maximum frequecy, increased by 10%.</li>
+<li><strong>w_min</strong> – minimum frequency in units <cite>units</cite>.</li>
+<li><strong>w_max</strong> – maximum frequency. If None it will be set to the value of the maximum frequency * 4.</li>
+<li><strong>gamma_ev</strong> – Phonon damping factor in eV (full width). Poles are shifted by phfreq * gamma_ev.
+Accept scalar or [nfreq] array.</li>
 <li><strong>num</strong> – number of values of the frequencies between w_min and w_max.</li>
 <li><strong>component</strong> – <p>determine which components of the tensor will be displayed. Can be a list/tuple of two
 elements, indicating the indices [i, j] of the desired component or a string among:</p>
@@ -1282,8 +1334,10 @@ elements, indicating the indices [i, j] of the desired component or a string amo
 <li>’diag_av’ to plot the average of the components on the diagonal</li>
 </ul>
 </li>
-<li><strong>units</strong> – string specifying the units used for ph frequencies. Possible values in
+<li><strong>units</strong> – string specifying the units used for phonon frequencies. Possible values in
 (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.</li>
+<li><strong>with_phfreqs</strong> – True to show phonon frequencies with dots.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>fontsize</strong> – Legend and label fontsize.</li>
 </ul>
 </td>
@@ -1378,7 +1432,7 @@ Defaults to the standard Materials Project REST address</li>
 <code class="descname">get_dataframe_at_qpoint</code><span class="sig-paren">(</span><em>qpoint=None</em>, <em>units='eV'</em>, <em>asr=2</em>, <em>chneut=1</em>, <em>dipdip=1</em>, <em>with_geo=True</em>, <em>with_spglib=True</em>, <em>abspath=False</em>, <em>funcs=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbRobot.get_dataframe_at_qpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbRobot.get_dataframe_at_qpoint" title="Permalink to this definition">¶</a></dt>
 <dd><p>Call anaddb to compute the phonon frequencies at a single q-point using the DDB files treated
 by the robot and the given anaddb input arguments. LO-TO splitting is not included.
-Build and return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with results</p>
+Build and return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with results</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1389,7 +1443,7 @@ Build and return a <a class="reference external" href="http://pandas-docs.github
 (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.</li>
 <li><strong>chneut</strong><strong>, </strong><strong>dipdip</strong> (<em>asr</em><em>,</em>) – Anaddb input variable. See official documentation.</li>
 <li><strong>with_geo</strong> – True if structure info should be added to the dataframe</li>
-<li><strong>with_spglib</strong> – True to compute sgplib space group and add it to the DataFrame.</li>
+<li><strong>with_spglib</strong> – True to compute spglib space group and add it to the DataFrame.</li>
 <li><strong>abspath</strong> – True if paths in index should be absolute. Default: Relative to getcwd().</li>
 <li><strong>funcs</strong> – Function or list of functions to execute to add more data to the DataFrame.
 Each function receives a <a class="reference internal" href="#abipy.dfpt.ddb.DdbFile" title="abipy.dfpt.ddb.DdbFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.dfpt.ddb.DdbFile</span></code></a> object and returns a tuple (key, value)
@@ -1397,7 +1451,7 @@ where key is a string with the name of column and value is the value to be inser
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a></p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a></p>
 </td>
 </tr>
 </tbody>
@@ -1416,7 +1470,7 @@ phdos_plotter: <a class="reference internal" href="#abipy.dfpt.phonons.PhononDos
 
 <dl class="method">
 <dt id="abipy.dfpt.ddb.DdbRobot.anacompare_elastic">
-<code class="descname">anacompare_elastic</code><span class="sig-paren">(</span><em>ddb_header_keys=None</em>, <em>with_structure=True</em>, <em>with_spglib=True</em>, <em>manager=None</em>, <em>verbose=0</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbRobot.anacompare_elastic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbRobot.anacompare_elastic" title="Permalink to this definition">¶</a></dt>
+<code class="descname">anacompare_elastic</code><span class="sig-paren">(</span><em>ddb_header_keys=None</em>, <em>with_structure=True</em>, <em>with_spglib=True</em>, <em>with_path=False</em>, <em>manager=None</em>, <em>verbose=0</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbRobot.anacompare_elastic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbRobot.anacompare_elastic" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute elastic and piezoelectric properties for all DDBs in the robot and build DataFrame.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1426,7 +1480,8 @@ phdos_plotter: <a class="reference internal" href="#abipy.dfpt.phonons.PhononDos
 <li><strong>ddb_header_keys</strong> – List of keywords in the header of the DDB file
 whose value will be added to the Dataframe.</li>
 <li><strong>with_structure</strong> – True to add structure parameters to the DataFrame.</li>
-<li><strong>with_spglib</strong> – True to compute sgplib space group and add it to the DataFrame.</li>
+<li><strong>with_spglib</strong> – True to compute spglib space group and add it to the DataFrame.</li>
+<li><strong>with_path</strong> – True to add DDB path to dataframe</li>
 <li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
 <li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information</li>
 <li><strong>kwargs</strong> – Keyword arguments passed to <cite>ddb.anaget_elastic</cite>.</li>
@@ -1440,9 +1495,9 @@ whose value will be added to the Dataframe.</li>
 
 <dl class="method">
 <dt id="abipy.dfpt.ddb.DdbRobot.anacompare_becs">
-<code class="descname">anacompare_becs</code><span class="sig-paren">(</span><em>ddb_header_keys=None</em>, <em>chneut=1</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbRobot.anacompare_becs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbRobot.anacompare_becs" title="Permalink to this definition">¶</a></dt>
+<code class="descname">anacompare_becs</code><span class="sig-paren">(</span><em>ddb_header_keys=None</em>, <em>chneut=1</em>, <em>tol=0.001</em>, <em>with_path=False</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbRobot.anacompare_becs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbRobot.anacompare_becs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute Born effective charges for all DDBs in the robot and build DataFrame.
-with Voigt indices as colums + metadata. Useful for convergence studies.</p>
+with Voigt indices as columns + metadata. Useful for convergence studies.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1450,13 +1505,77 @@ with Voigt indices as colums + metadata. Useful for convergence studies.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>ddb_header_keys</strong> – List of keywords in the header of the DDB file
 whose value will be added to the Dataframe.</li>
+<li><strong>chneut</strong> – Anaddb input variable. See official documentation.</li>
+<li><strong>tol</strong> – Elements below this value are set to zero.</li>
+<li><strong>with_path</strong> – True to add DDB path to dataframe</li>
 <li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>Return: DataFrame and list of Becs objects</p>
+<p>Return: <code class="docutils literal"><span class="pre">namedtuple</span></code> with the following attributes:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="k">with</span> <span class="n">Voigt</span> <span class="k">as</span> <span class="n">columns</span><span class="o">.</span>
+<span class="n">becs_list</span><span class="p">:</span> <span class="nb">list</span> <span class="n">of</span> <span class="n">Becs</span> <span class="n">objects</span><span class="o">.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.ddb.DdbRobot.anacompare_epsinf">
+<code class="descname">anacompare_epsinf</code><span class="sig-paren">(</span><em>ddb_header_keys=None</em>, <em>chneut=1</em>, <em>tol=0.001</em>, <em>with_path=False</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbRobot.anacompare_epsinf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbRobot.anacompare_epsinf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute (eps^inf) electronic dielectric tensor for all DDBs in the robot and build DataFrame.
+with Voigt indices as columns + metadata. Useful for convergence studies.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ddb_header_keys</strong> – List of keywords in the header of the DDB file
+whose value will be added to the Dataframe.</li>
+<li><strong>chneut</strong> – Anaddb input variable. See official documentation.</li>
+<li><strong>tol</strong> – Elements below this value are set to zero.</li>
+<li><strong>with_path</strong> – True to add DDB path to dataframe</li>
+<li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Return: <code class="docutils literal"><span class="pre">namedtuple</span></code> with the following attributes:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="k">with</span> <span class="n">Voigt</span> <span class="n">indices</span> <span class="k">as</span> <span class="n">columns</span><span class="o">.</span>
+<span class="n">epsinf_list</span><span class="p">:</span> <span class="n">List</span> <span class="n">of</span> <span class="o">|</span><span class="n">DielectricTensor</span><span class="o">|</span> <span class="n">objects</span> <span class="k">with</span> <span class="n">eps</span><span class="o">^</span><span class="p">{</span><span class="n">inf</span><span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.ddb.DdbRobot.anacompare_eps0">
+<code class="descname">anacompare_eps0</code><span class="sig-paren">(</span><em>ddb_header_keys=None</em>, <em>asr=2</em>, <em>chneut=1</em>, <em>tol=0.001</em>, <em>with_path=False</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbRobot.anacompare_eps0"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbRobot.anacompare_eps0" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute (eps^0) dielectric tensor for all DDBs in the robot and build DataFrame.
+with Voigt indices as columns + metadata. Useful for convergence studies.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ddb_header_keys</strong> – List of keywords in the header of the DDB file
+whose value will be added to the Dataframe.</li>
+<li><strong>chneut</strong><strong>, </strong><strong>dipdip</strong> (<em>asr</em><em>,</em>) – Anaddb input variable. See official documentation.</li>
+<li><strong>tol</strong> – Elements below this value are set to zero.</li>
+<li><strong>with_path</strong> – True to add DDB path to dataframe</li>
+<li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Return: <code class="docutils literal"><span class="pre">namedtuple</span></code> with the following attributes:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="k">with</span> <span class="n">Voigt</span> <span class="k">as</span> <span class="n">columns</span><span class="o">.</span>
+<span class="n">eps0_list</span><span class="p">:</span> <span class="n">List</span> <span class="n">of</span> <span class="o">|</span><span class="n">DielectricTensor</span><span class="o">|</span> <span class="n">objects</span> <span class="k">with</span> <span class="n">eps</span><span class="o">^</span><span class="mf">0.</span>
+<span class="n">dgen_list</span><span class="p">:</span> <span class="n">List</span> <span class="n">of</span> <span class="n">DielectricTensorGenerator</span><span class="o">.</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -1468,7 +1587,7 @@ whose value will be added to the Dataframe.</li>
 <dl class="method">
 <dt id="abipy.dfpt.ddb.DdbRobot.write_notebook">
 <code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbRobot.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbRobot.write_notebook" title="Permalink to this definition">¶</a></dt>
-<dd><p>Write a <a class="reference external" href="http://jupyter.org/">jupyter</a> notebook to nbpath. If <code class="docutils literal"><span class="pre">nbpath</span></code> is None, a temporay file in the current
+<dd><p>Write a <a class="reference external" href="http://jupyter.org/">jupyter</a> notebook to nbpath. If <code class="docutils literal"><span class="pre">nbpath</span></code> is None, a temporary file in the current
 working directory is created. Return path to the notebook.</p>
 </dd></dl>
 
@@ -1485,7 +1604,10 @@ working directory is created. Return path to the notebook.</p>
 <dl class="method">
 <dt id="abipy.dfpt.elastic.MyElasticTensor.get_voigt_dataframe">
 <code class="descname">get_voigt_dataframe</code><span class="sig-paren">(</span><em>tol=1e-05</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#MyElasticTensor.get_voigt_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.elastic.MyElasticTensor.get_voigt_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with Voigt indices as colums (C-indexing starting from 0).
+Useful to analyze the converge of individual elements of the tensor(s)
+Elements below tol are set to zero.</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -1496,7 +1618,10 @@ working directory is created. Return path to the notebook.</p>
 <dl class="method">
 <dt id="abipy.dfpt.elastic.MyPiezoTensor.get_voigt_dataframe">
 <code class="descname">get_voigt_dataframe</code><span class="sig-paren">(</span><em>tol=1e-05</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#MyPiezoTensor.get_voigt_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.elastic.MyPiezoTensor.get_voigt_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with Voigt indices as colums (C-indexing starting from 0).
+Useful to analyze the converge of individual elements of the tensor(s)
+Elements below tol are set to zero.</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -1506,8 +1631,8 @@ working directory is created. Return path to the notebook.</p>
 <dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a>, <a class="reference external" href="https://pythonhosted.org/monty/monty.html#monty.json.MSONable" title="(in monty v1.0.0)"><code class="xref py py-class docutils literal"><span class="pre">monty.json.MSONable</span></code></a></p>
 <p>Container with the different elastic and piezoelectric tensors
 computed by anaddb. Data is stored in pymatgen tensor objects.</p>
-<p>Provides methods to analyze/tabule data
-<a class="reference external" href="http://progs.coudert.name/elate/mp?query=mp-2172">http://progs.coudert.name/elate/mp?query=mp-2172</a></p>
+<p>Provides methods to analyze/tabulate data
+Se also <a class="reference external" href="http://progs.coudert.name/elate/mp?query=mp-2172">http://progs.coudert.name/elate/mp?query=mp-2172</a> for a web interface.</p>
 <dl class="attribute">
 <dt id="abipy.dfpt.elastic.ElasticData.ALL_ELASTIC_TENSOR_NAMES">
 <code class="descname">ALL_ELASTIC_TENSOR_NAMES</code><em class="property"> = ('elastic_relaxed', 'elastic_clamped', 'elastic_stress_corr', 'elastic_relaxed_fixed_D')</em><a class="headerlink" href="#abipy.dfpt.elastic.ElasticData.ALL_ELASTIC_TENSOR_NAMES" title="Permalink to this definition">¶</a></dt>
@@ -1678,7 +1803,7 @@ produced by the ieee transform generator, default True</li>
 <dl class="method">
 <dt id="abipy.dfpt.elastic.ElasticData.get_voigt_dataframe">
 <code class="descname">get_voigt_dataframe</code><span class="sig-paren">(</span><em>tensor_names</em>, <em>voigt_as_index=True</em>, <em>tol=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#ElasticData.get_voigt_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.elastic.ElasticData.get_voigt_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with Voigt indices as colums (C-indexing starting from 0).
+<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with Voigt indices as colums (C-indexing starting from 0).
 Useful to analyze the converge of individual elements of the tensor(s)</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1697,7 +1822,7 @@ Useful to analyze the converge of individual elements of the tensor(s)</p>
 <dl class="method">
 <dt id="abipy.dfpt.elastic.ElasticData.get_elastic_properties_dataframe">
 <code class="descname">get_elastic_properties_dataframe</code><span class="sig-paren">(</span><em>tensor_names='all'</em>, <em>properties_as_index=False</em>, <em>include_base_props=True</em>, <em>ignore_errors=False</em>, <em>fit_to_structure=False</em>, <em>symprec=0.1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#ElasticData.get_elastic_properties_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.elastic.ElasticData.get_elastic_properties_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with properties derived from the elastic tensor
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with properties derived from the elastic tensor
 and the associated structure</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2085,7 +2210,7 @@ This file contains Grunesein parameters computed via finite difference.</p>
 <dl class="method">
 <dt id="abipy.dfpt.gruneisen.GrunsNcFile.to_dataframe">
 <code class="descname">to_dataframe</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.to_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.to_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the following columns:</p>
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the following columns:</p>
 <blockquote>
 <div>[‘qidx’, ‘mode’, ‘freq’, ‘qpoint’]</div></blockquote>
 <p>where:</p>
@@ -3402,7 +3527,7 @@ Default: None i.e. fig is left unchanged.</td>
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhononBands.get_dataframe">
 <code class="descname">get_dataframe</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the following columns:</p>
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the following columns:</p>
 <blockquote>
 <div>[‘qidx’, ‘mode’, ‘freq’, ‘qpoint’]</div></blockquote>
 <p>where:</p>
@@ -3660,7 +3785,7 @@ Accepts integer, vector with reduced coordinates or <a class="reference internal
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhbstFile.get_phframe">
 <code class="descname">get_phframe</code><span class="sig-paren">(</span><em>qpoint</em>, <em>with_structure=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhbstFile.get_phframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhbstFile.get_phframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the phonon frequencies at the given q-point and
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the phonon frequencies at the given q-point and
 information on the crystal structure (used for convergence studies).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -4100,7 +4225,7 @@ Provides helper function to visualize/extract data.</p>
 <dt id="abipy.dfpt.phonons.PhdosFile.params">
 <code class="descname">params</code><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhdosFile.params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhdosFile.params" title="Permalink to this definition">¶</a></dt>
 <dd><p><code class="xref py py-class docutils literal"><span class="pre">OrderedDict</span></code> with the convergence parameters
-Used to construct <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a>.</p>
+Used to construct <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -4381,7 +4506,7 @@ Supports plots on the same graph or separated plots.</p>
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhononBandsPlotter.get_phbands_frame">
 <code class="descname">get_phbands_frame</code><span class="sig-paren">(</span><em>with_spglib=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBandsPlotter.get_phbands_frame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBandsPlotter.get_phbands_frame" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+461.g601d71f.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important results available in the band structures.</p>
+<dd><p>Build a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important results available in the band structures.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -5891,38 +6016,6 @@ corresponding gsr_file in “gsr_files_paths”.</li>
 </dd></dl>
 
 </div>
-<div class="section" id="module-abipy.dfpt.tensors">
-<span id="tensors-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">tensors</span></code> Module</a><a class="headerlink" href="#module-abipy.dfpt.tensors" title="Permalink to this headline">¶</a></h2>
-<p>This modules provides tensors objects produced by DFPT calculations.</p>
-<dl class="class">
-<dt id="abipy.dfpt.tensors.NLOpticalSusceptibilityTensor">
-<em class="property">class </em><code class="descclassname">abipy.dfpt.tensors.</code><code class="descname">NLOpticalSusceptibilityTensor</code><a class="reference internal" href="../_modules/abipy/dfpt/tensors.html#NLOpticalSusceptibilityTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.tensors.NLOpticalSusceptibilityTensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.Tensor" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.Tensor</span></code></a></p>
-<p>Subclass of <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.Tensor" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.Tensor</span></code></a> containing the non-linear optical susceptibility tensor.</p>
-<dl class="classmethod">
-<dt id="abipy.dfpt.tensors.NLOpticalSusceptibilityTensor.from_file">
-<em class="property">classmethod </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/tensors.html#NLOpticalSusceptibilityTensor.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.tensors.NLOpticalSusceptibilityTensor.from_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates the tensor from an anaddb.nc netcdf file containing <code class="docutils literal"><span class="pre">dchide</span></code>.
-This requires to run anaddb with <code class="docutils literal"><span class="pre">tnlflag</span></code> &gt; 0</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="abipy.dfpt.tensors.DielectricTensor">
-<em class="property">class </em><code class="descclassname">abipy.dfpt.tensors.</code><code class="descname">DielectricTensor</code><a class="reference internal" href="../_modules/abipy/dfpt/tensors.html#DielectricTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.tensors.DielectricTensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.SquareTensor" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.SquareTensor</span></code></a></p>
-<p>Subclass of <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.Tensor" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.Tensor</span></code></a> describing a dielectric tensor.</p>
-<dl class="method">
-<dt id="abipy.dfpt.tensors.DielectricTensor.reflectivity">
-<code class="descname">reflectivity</code><span class="sig-paren">(</span><em>tol=1e-06</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/tensors.html#DielectricTensor.reflectivity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.tensors.DielectricTensor.reflectivity" title="Permalink to this definition">¶</a></dt>
-<dd><p>If the tensor is diagonal (with off diagonal elements smaller than tol)
-returns the three components of the reflectivity.</p>
-</dd></dl>
-
-</dd></dl>
-
-</div>
 </div>
 
 
@@ -5938,7 +6031,7 @@ returns the three components of the reflectivity.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Aug 14, 2018.<br/>
+      Last updated on Aug 22, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

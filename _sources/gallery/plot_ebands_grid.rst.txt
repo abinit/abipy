@@ -40,29 +40,9 @@ We use two GSR files:
 
  .. code-block:: none
 
-    nsppol  nspinor  nspden  nkpt  nband  nelect    fermie formula  \
-    BZ sampling       1        1       1    29      8     8.0  5.598453     Si2   
-    k-path            1        1       1    14      8     8.0  5.598453     Si2   
-
-                 natom  alpha                ...                  occopt  \
-    BZ sampling      2   60.0                ...                       1   
-    k-path           2   60.0                ...                       1   
-
-                 tsmear_ev  bandwidth_spin0  fundgap_spin0  dirgap_spin0  \
-    BZ sampling   0.272114        11.855874       0.562277      2.531798   
-    k-path        0.272114        11.855854       0.524340      2.531828   
-
-                 gap_type                     fundgap_kstart  \
-    BZ sampling  indirect           [+0.000, +0.000, +0.000]   
-    k-path       indirect  [+0.000, +0.000, +0.000] $\Gamma$   
-
-                             fundgap_kend                      dirgap_kstart  \
-    BZ sampling  [+0.375, +0.375, +0.000]           [+0.000, +0.000, +0.000]   
-    k-path       [+0.000, +0.429, +0.429]  [+0.000, +0.000, +0.000] $\Gamma$   
-
-                                       dirgap_kend  
-    BZ sampling           [+0.000, +0.000, +0.000]  
-    k-path       [+0.000, +0.000, +0.000] $\Gamma$  
+    nsppol                ...                                        dirgap_kend
+    BZ sampling       1                ...                           [+0.000, +0.000, +0.000]
+    k-path            1                ...                  [+0.000, +0.000, +0.000] $\Gamma$
 
     [2 rows x 31 columns]
 
@@ -101,7 +81,7 @@ We use two GSR files:
     plotter.add_ebands("Same data", ref_file("si_nscf_GSR.nc"), edos=ref_file("si_scf_GSR.nc"))
     plotter.gridplot()
 
-**Total running time of the script:** ( 0 minutes  4.963 seconds)
+**Total running time of the script:** ( 0 minutes  5.325 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_ebands_grid.py:

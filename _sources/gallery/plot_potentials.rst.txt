@@ -83,7 +83,7 @@ Use the input variables `prtpot`, `prtvha`, `prtvhxc`, `prtvxc` with
     # and all the neighbors within a sphere of radius 3 Angstrom:
     #vxc.plot_line_neighbors(site_index=0, radius=3)
 
-**Total running time of the script:** ( 0 minutes  0.275 seconds)
+**Total running time of the script:** ( 0 minutes  0.270 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_potentials.py:
