@@ -32,6 +32,8 @@ TODO list:
 
 * Read forces in read_structure ?
 
+* Automate CHANGELOG creation.
+
 ## Medium priority
 
 * remove phononflow
@@ -93,8 +95,6 @@ TODO list:
 * DONE plot_networkx does not work with flows containing callbacks e.g. run_qptdm_flow
   FIXED with graphviz
 
-* DONE Use graphvix in flow sphinx-gallery 
-
 * Check xsf_write_data and visualization of potentials.
 
 * Add phbands.to_bxsf and histogram for phonon modes at a given q-point.
@@ -132,8 +132,6 @@ TODO list:
 
 * Remove GUI code.
 
-* _repr_html_ for structure and other basic objects (pymatgen/and abipy)
-
 * nbjsmol (build system, refactor API?)
 
 * fatbands with SOC (waiting for Matthieu's refactoring)
@@ -150,3 +148,7 @@ TODO list:
 * Replace SIGRES with new fileformat based on SIGEPH (long-term)
 
 * Update spack recipe, add support for EasyBuild, revamp homebrew (?)
+
+* Classification of phonons/electrons
+
+* Error handler for tolwfr to increase nband / nbdduf and resubmit

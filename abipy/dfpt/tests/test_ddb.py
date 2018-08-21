@@ -437,7 +437,7 @@ class DdbRobotTest(AbipyTest):
 
             # Test anacompare_elastic
             ddb_header_keys=["nkpt", "tsmear"]
-            r = robot.anacompare_elastic(ddb_header_keys=ddb_header_keys,
+            r = robot.anacompare_elastic(ddb_header_keys=ddb_header_keys, with_path=True,
                 with_structure=True, with_spglib=False, relaxed_ion="automatic", piezo="automatic", verbose=1)
             df, edata_list = r.df, r.elastdata_list
             assert "tensor_name" in df.keys()

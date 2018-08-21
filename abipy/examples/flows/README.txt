@@ -7,7 +7,7 @@ This gallery contains python scripts to generate AbiPy flows from the command li
 
 Run the scripts to generate the directory with the flow and then use :ref:`abirun.py` to execute the flow.
 Alternatively, one can use the ``-s`` option to generate the flow and run it immediately with the scheduler. 
-Use ``--help`` to further information on the available options.
+Use ``--help`` for further information on the available options.
 
 .. warning::
 

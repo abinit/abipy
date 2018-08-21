@@ -1991,7 +1991,7 @@ class DdbRobot(Robot):
                 ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             asr, chneut, dipdip: Anaddb input variable. See official documentation.
             with_geo: True if structure info should be added to the dataframe
-	    with_spglib: True to compute sgplib space group and add it to the DataFrame.
+	    with_spglib: True to compute spglib space group and add it to the DataFrame.
             abspath: True if paths in index should be absolute. Default: Relative to getcwd().
             funcs: Function or list of functions to execute to add more data to the DataFrame.
                 Each function receives a |DdbFile| object and returns a tuple (key, value)
@@ -2080,7 +2080,7 @@ class DdbRobot(Robot):
             ddb_header_keys: List of keywords in the header of the DDB file
                 whose value will be added to the Dataframe.
             with_structure: True to add structure parameters to the DataFrame.
-	    with_spglib: True to compute sgplib space group and add it to the DataFrame.
+	    with_spglib: True to compute spglib space group and add it to the DataFrame.
             with_path: True to add DDB path to dataframe
             manager: |TaskManager| object. If None, the object is initialized from the configuration file
             verbose: verbosity level. Set it to a value > 0 to get more information
@@ -2256,7 +2256,7 @@ class DdbRobot(Robot):
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporay file in the current
+        Write a jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
