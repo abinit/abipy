@@ -81,18 +81,7 @@ if os.getenv("READTHEDOCS", False):
     import tempfile
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     #build_flow(options).plot_networkx(with_edge_labels=False, tight_layout=True)
-    #options = flowtk.build_flow_main_parser().parse_args(["-w", os.getcwd()])
-    build_flow(options).graphviz_imshow(dpi=600) #, tight_layout=True)
-
-    #graph = build_flow(options).get_graphviz()
-    #graph.format = "png"
-    #graph.attr(dpi="600")
-    #path = graph.render("bar", view=False, cleanup=True)
-    #import matplotlib.pyplot as plt
-    #import matplotlib.image as mpimg
-    #plt.imshow(mpimg.imread(path))
-    #plt.axis("off")
-    #plt.show()
+    build_flow(options).graphviz_imshow()
 
 
 @flowtk.flow_main

@@ -15,7 +15,7 @@ conda install nomkl
 conda install -y --file ./requirements.txt
 conda install -y --file ./requirements-optional.txt
 
-conda install -c conda-forge graphviz python-graphviz
+conda install -y -c conda-forge graphviz python-graphviz
 
 echo "Installing bader executable (http://theory.cm.utexas.edu/henkelman/code/bader/) from matsci ..."
 conda install -y -c matsci bader

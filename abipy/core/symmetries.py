@@ -11,7 +11,7 @@ import numpy as np
 import spglib
 
 from six.moves import cStringIO
-from tabulate import tabulate
+
 from monty.string import is_string
 from monty.itertools import iuptri
 from monty.functools import lazy_property
@@ -119,7 +119,7 @@ def _get_det(mat):
 class Operation(object):
     """
     Abstract base class that defines the methods that must be
-    implememted by the concrete class representing some sort of operation
+    implemented by the concrete class representing some sort of operation
     """
     @abc.abstractmethod
     def __eq__(self, other):
@@ -147,6 +147,17 @@ class Operation(object):
     @abc.abstractproperty
     def isE(self):
         """True if self is the identity operator"""
+
+    #def commute(self, other)
+    #    return self * other == other * self
+
+    #def commutator(self, other)
+    #    return self * other - other * self
+
+    #def anticommute(self, other)
+    #    return self * other == - other * self
+
+    #def direct_product(self, other)
 
 
 class SymmOp(Operation, SlotPickleMixin):
@@ -235,6 +246,18 @@ class SymmOp(Operation, SlotPickleMixin):
                 self.time_sign == 1 and
                 self.afm_sign == 1)
     # end operator protocol.
+
+    #@lazy_property
+    #def order(self):
+    #    """Order of the operation."""
+    #    n = 0
+    #    o = self
+    #    while m < 1000:
+    #        if o.isE: return n
+    #        n += 1
+    #        o = self * o
+    #    else:
+    #        raise ValueError("Cannot find order")
 
     def __repr__(self):
         return str(self)
@@ -431,7 +454,7 @@ class OpSequence(collections.Sequence):
             return -1
 
     def is_group(self):
-        """True if the list of operations represent a group."""
+        """True if this set of operations represent a group."""
         check = 0
 
         # Identity must be present.
@@ -454,7 +477,7 @@ class OpSequence(collections.Sequence):
         return check == 0
 
     def is_commutative(self):
-        """True if operations in self commute with each other."""
+        """True if all operations commute with each other."""
         for op1, op2 in iuptri(self, diago=False):
             if op1 * op2 != op2 * op1:
                 return False
@@ -462,7 +485,7 @@ class OpSequence(collections.Sequence):
         return True
 
     def is_abelian_group(self):
-        """True if self is a commutative group."""
+        """True if commutative group."""
         return self.is_commutative() and self.is_group()
 
     def asdict(self):
@@ -471,6 +494,15 @@ class OpSequence(collections.Sequence):
         the values are the indices of the operations in the iterable.
         """
         return {op: idx for idx, op in enumerate(self)}
+
+    #def is_subset(self, other)
+    #    indmap = {}
+    #    for i, op in self:
+    #        j = other.find(op)
+    #        if j != -1: indmap[i] = j
+    #    return indmap
+
+    #def is_superset(self, other)
 
     @lazy_property
     def mult_table(self):
@@ -849,7 +881,7 @@ class LittleGroup(OpSequence):
 
         # Add character_table from Bilbao database.
         bilbao_ptgrp = bilbao_ptgroup(self.kgroup.sch_symbol)
-        lines.extend(l.strip() for l in bilbao_ptgrp.to_string().splitlines())
+        app(bilbao_ptgrp.to_string(verbose=verbose))
         app("")
 
         # Write warning if non-symmorphic little group with k-point at zone border.
@@ -1073,6 +1105,9 @@ class LatticeRotation(Operation):
     #    return t
 
 
+# TODO: Need to find an easy way to map classes in internal database
+# onto classes computed by client code when calculation has been done
+# with non-conventional settings (spglib?)
 class Irrep(object):
     """
     This object represents an irreducible representation.
@@ -1116,6 +1151,9 @@ class Irrep(object):
     @property
     def character(self):
         return self._character
+
+    #@lazy_property
+    #def dataframe(self):
 
 
 def bilbao_ptgroup(sch_symbol):
@@ -1184,29 +1222,58 @@ class BilbaoPointGroup(object):
         """List with the names of the irreps."""
         return list(self.irreps_by_name.keys())
 
-    @property
+    @lazy_property
     def character_table(self):
-        """Table of strings with the character of the irreps."""
+        """
+        Dataframe with irreps.
+        """
         # 1st row: ptgroup_name class names and multiplicity of each class
+        #name_mult = [name + " [" + str(mult) + "]" for (name, mult) in zip(self.class_names, self.class_len)]
+        #table = [[self.sch_symbol] + name_mult]
+        #app = table.append
+
+        ## Add row: irrep_name, character.
+        #for irrep in self.irreps:
+        #    character = list(map(str, irrep.character))
+        #    app([irrep.name] + character)
+
+        #from tabulate import tabulate
+        #s = tabulate(table[1:], headers=table[0], tablefmt="simple", numalign="left")
+        #print(s)
+
+        # Caveat: class names are not necessarly unique --> use np.stack
+        import pandas as pd
         name_mult = [name + " [" + str(mult) + "]" for (name, mult) in zip(self.class_names, self.class_len)]
-        table = [[self.sch_symbol] + name_mult]
-        app = table.append
+        columns = ["name"] + name_mult
 
-        # Add row: irrep_name, character.
-        for irrep in self.irreps:
-            character = list(map(str, irrep.character))
-            app([irrep.name] + character)
+        stack = np.stack([irrep.character for irrep in self.irreps])
+        index = [irrep.name for irrep in self.irreps]
+        df = pd.DataFrame(stack, columns=name_mult, index=index)
+        df.index.name = "Irrep"
+        df.columns.name = self.sch_symbol
 
-        return table
+	# TODO
+        #print(df)
+        # Convert complex --> real if all entries in a colums are real.
+        #for k in name_mult:
+        #    if np.all(np.isreal(df[k].values)):
+        #        #df[k] = df[k].values.real
+        #        df[k] = df[k].astype(float)
 
-    def to_string(self, tablefmt="simple", numalign="left"):
+        return df
+
+    def to_string(self, verbose=0):
         """
-        Write a string with the character_table to the given ``stream``.
-        ``tablefmt`` and ``numalign`` options are passed to ``tabulate``.
+        Return string with the character_table
         """
-        s = tabulate(self.character_table[1:], headers=self.character_table[0],
-                     tablefmt=tablefmt, numalign=numalign)
-        return s
+        return self.character_table.to_string()
+
+    #def decompose(self, character):
+    #   od = collections.OrderedDict()
+    #   for irrep in self.irreps:
+    #       irrep.name
+    #       irrep.character
+    #   return od
 
     #def show_irrep(self, irrep_name):
     #    """Show the mapping rotation --> irrep mat."""

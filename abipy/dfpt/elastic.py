@@ -37,7 +37,9 @@ class MyElasticTensor(ElasticTensor):
         for row in tensor.voigt:
             rows.append({k: v for k, v in zip(columns, row)})
 
-        return pd.DataFrame(rows, index=columns, columns=columns)
+        df = pd.DataFrame(rows, index=columns, columns=columns)
+        df.index.name = "Voigt index"
+        return df
 
 
 class MyPiezoTensor(PiezoTensor):
@@ -61,7 +63,9 @@ class MyPiezoTensor(PiezoTensor):
         for irow, row in enumerate(tensor.voigt):
             rows.append({k: v for k, v in zip(columns, row)})
 
-        return pd.DataFrame(rows, index=index, columns=columns)
+        df = pd.DataFrame(rows, index=index, columns=columns)
+        df.index.name = "Voigt index"
+        return df
 
 
 class ElasticData(Has_Structure, MSONable):
@@ -69,8 +73,8 @@ class ElasticData(Has_Structure, MSONable):
     Container with the different elastic and piezoelectric tensors
     computed by anaddb. Data is stored in pymatgen tensor objects.
 
-    Provides methods to analyze/tabule data
-    http://progs.coudert.name/elate/mp?query=mp-2172
+    Provides methods to analyze/tabulate data
+    Se also http://progs.coudert.name/elate/mp?query=mp-2172 for a web interface.
     """
 
     ALL_ELASTIC_TENSOR_NAMES = (

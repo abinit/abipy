@@ -70,6 +70,7 @@ if os.getenv("READTHEDOCS", False):
     # Temporarily disabled in v8.8.2
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     #build_flow(options).plot_networkx(with_edge_labels=False, tight_layout=True)
+    build_flow(options).graphviz_imshow()
 
 
 

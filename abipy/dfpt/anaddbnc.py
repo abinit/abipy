@@ -15,9 +15,9 @@ from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
 from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
 from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt, rotate_ticklabels
+from abipy.tools.tensors import Tensor, DielectricTensor, NLOpticalSusceptibilityTensor
 from abipy.dfpt.phonons import InteratomicForceConstants
 from abipy.dfpt.ddb import Becs
-from abipy.dfpt.tensors import Tensor, DielectricTensor, NLOpticalSusceptibilityTensor
 from abipy.dfpt.elastic import ElasticData
 
 
@@ -244,12 +244,14 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     @lazy_property
     def oscillator_strength(self):
         """
-        A complex |numpy-array| containing the oscillator strengths with shape (number of phonon modes, 3, 3),
+        A complex |numpy-array| containing the oscillator strengths with shape [number of phonon modes, 3, 3],
         in a.u. (1 a.u.=253.2638413 m3/s2).
         None if the file does not contain this information.
         """
         try:
-            return self.reader.read_value("oscillator_strength", cmode="c")
+            carr = self.reader.read_value("oscillator_strength", cmode="c")
+            carr = carr.transpose((0, 2, 1)).copy()
+            return carr
         except Exception as exc:
             #print(exc, "Oscillator strengths require dieflag == 1, 3 or 4", "Returning None", sep="\n")
             return None
