@@ -1059,14 +1059,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                     else:
                         lw_kpath = qp_corrs
 
-                if ks_ebands_kmesh is None: 
-                    #interpolate QP energies
-                    if reim == "real":
-                        eigens_kmesh = skw.interp_kpts(dos_kcoords).eigens
-                    else:
-                        linewidths_kmesh = skw.interp_kpts(dos_kcoords).eigens
-
-                else:
+                if ks_ebands_kmesh is not None: 
                     #interpolate QP energies corrections and add them to KS
                     ref_eigens = ks_ebands_kmesh.eigens[:, :, bstart:bstop]
                     if reim == "real":
