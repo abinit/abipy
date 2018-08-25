@@ -188,47 +188,47 @@ class SigEPhFileTest(AbipyTest):
         sigeph.close()
 
     # TODO: Need new files with IBZ.
-    #def test_sigeph_interpolation(self):
-    #    """Test interpolation and TdepElectronBands"""
-    #    sigeph = abilab.abiopen(abidata.ref_file("diamond_444q_SIGEPH.nc"))
+    def test_sigeph_interpolation(self):
+        """Test interpolation and TdepElectronBands"""
+        sigeph = abilab.abiopen(abidata.ref_file("diamond_444q_full_SIGEPH.nc"))
 
-    #    # Test interpolation without KS bands.
-    #    tdep_nopath = sigeph.interpolate(itemp_list=0)
-    #    repr(tdep_nopath); str(tdep_nopath)
-    #    assert tdep_nopath.to_string(verbose=2)
-    #    assert tdep_nopath.ntemp == 1
-    #    assert not tdep_nopath.has_kpath
-    #    assert not tdep_nopath.ks_ebands_kpath is None
-    #    assert not tdep_nopath.has_kmesh
-    #    assert not tdep_nopath.ks_ebands_kmesh is None
-    #    same_tdep_nopath = tdep_nopath.__class__.pickle_load(tdep_nopath.pickle_dump())
+        # Test interpolation without KS bands.
+        tdep_nopath = sigeph.interpolate(itemp_list=0)
+        repr(tdep_nopath); str(tdep_nopath)
+        assert tdep_nopath.to_string(verbose=2)
+        assert tdep_nopath.ntemp == 1
+        #assert not tdep_nopath.has_kpath
+        #assert not tdep_nopath.ks_ebands_kpath is None
+        #assert not tdep_nopath.has_kmesh
+        #assert not tdep_nopath.ks_ebands_kmesh is None
+        same_tdep_nopath = tdep_nopath.__class__.pickle_load(tdep_nopath.pickle_dump())
 
-    #    if self.has_matplotlib():
-    #        assert tdep_nopath.plot_itemp(itemp=0, fontsize=8, show=False)
-    #        assert tdep_nopath.plot(show=False)
-    #        assert tdep_nopath.plot_lws_vs_e0(itemp_list=[0, -1], show=False)
-    #        assert tdep_nopath.get_ebands_plotter()
-    #        assert tdep_nopath.get_edos_plotter() is None
+        if self.has_matplotlib():
+            assert tdep_nopath.plot_itemp(itemp=0, fontsize=8, show=False)
+            assert tdep_nopath.plot(show=False)
+            assert tdep_nopath.plot_lws_vs_e0(itemp_list=[0, -1], show=False)
+            assert tdep_nopath.get_ebands_plotter()
+            #assert tdep_nopath.get_edos_plotter() is None
 
-    #    # Test interpolation with KS bands.
-    #    #tdep = sigeph.interpolate(self, itemp_list=None, lpratio=5, ks_ebands_kpath=None, ks_ebands_kmesh=None, ks_degatol=1e-4,
-    #    #            vertices_names=None, line_density=20, filter_params=None, only_corrections=False, verbose=0)
-    #    #repr(tdep); str(tdep)
-    #    #assert tdep.to_string(verbose=2)
-    #    #assert tdep_nopath.ntemp == 1
-    #    #assert not tdep_nopath.ks_ebands_kpath is None
-    #    #assert tdep.has_kpath
-    #    #assert not tdep_nopath.has_kmesh
-    #    #assert not tdep_nopath.ks_ebands_kmesh is None
+        # Test interpolation with KS bands.
+        tdep = sigeph.interpolate(itemp_list=None, lpratio=5, ks_ebands_kpath=None, ks_ebands_kmesh=None, ks_degatol=1e-4,
+                    vertices_names=None, line_density=20, filter_params=None, only_corrections=False, verbose=0)
+        repr(tdep); str(tdep)
+        assert tdep.to_string(verbose=2)
+        assert tdep_nopath.ntemp == 1
+        #assert not tdep_nopath.ks_ebands_kpath is None
+        #assert tdep.has_kpath
+        #assert not tdep_nopath.has_kmesh
+        #assert not tdep_nopath.ks_ebands_kmesh is None
 
-    #    #if self.has_matplotlib():
-    #    #    assert tdep_nopath.plot_itemp(itemp=0, fontsize=8, show=False)
-    #    #    assert tdep_nopath.plot(show=False)
-    #    #    assert tdep_nopath.plot_lws_vs_e0(itemp_list=[0, -1], show=False)
-    #    #    assert tdep.get_ebands_plotter()
-    #    #    assert tdep.get_edos_plotter() is None
+        if self.has_matplotlib():
+            assert tdep_nopath.plot_itemp(itemp=0, fontsize=8, show=False)
+            assert tdep_nopath.plot(show=False)
+            assert tdep_nopath.plot_lws_vs_e0(itemp_list=[0, -1], show=False)
+            assert tdep.get_ebands_plotter()
+            #assert tdep.get_edos_plotter() is None
 
-    #    sigeph.close()
+        sigeph.close()
 
     def test_sigeph_robot(self):
         """Tests for SigEPhRobot."""
