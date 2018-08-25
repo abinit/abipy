@@ -908,6 +908,93 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     
     #def get_dirgaps_dataframe(self):
 
+        # Note there's no guarantee that the sigma_kpoints and the corrections have the same k-point index.
+        # Be careful because the order of the k-points and the band range stored in the SIGRES file may differ ...
+        # HM: Map the bands from sigeph to the electronic bandstructure
+        nkpoints = len(self.sigma_kpoints)
+        nbands = self.reader.bstop_sk.max()
+        qpes_new = np.zeros((self.nsppol,nkpoints,nbands,self.ntemp),dtype=np.complex)
+        for spin in range(self.nsppol):
+            for ik in self.kcalc2ibz:
+                for nb,band in enumerate(range(self.bstart_sk[spin, ik], self.bstop_sk[spin, ik])):
+                    qpes_new[spin,ik,band] = qpes[spin,ik,nb]
+
+    def get_qp_array(self,ks_ebands_kpath=None,mode="qp"):
+        """
+        Get the lifetimes in an array with spin, kpoint and band dimensions
+        """
+        if mode == "qp":
+            # Read QP energies from file (real + imag part) and compute corrections if ks_ebands_kpath.
+            # nctkarr_t("qp_enes", "dp", "two, ntemp, max_nbcalc, nkcalc, nsppol")
+            qpes = self.reader.read_value("qp_enes", cmode="c") * units.Ha_to_eV
+        elif mode == "ks+lifetimes":
+            qpes_im = self.reader.read_value("vals_e0ks", cmode="c").imag * units.Ha_to_eV
+            qpes_re = self.reader.read_value("ks_enes") * units.Ha_to_eV
+            qpes = qpes_re[:,:,:,np.newaxis] + 1j*qpes_im        
+        else:
+            raise ValueError("Invalid interpolation mode: %s can be either 'qp' or 'ks+lifetimes'")
+
+        if ks_ebands_kpath is not None:
+            if ks_ebands_kpath.structure != self.structure:
+                cprint("sigres.structure and ks_ebands_kpath.structures differ. Check your files!", "red")
+            # nctkarr_t("ks_enes", "dp", "max_nbcalc, nkcalc, nsppol")
+            ks_enes = self.reader.read_value("ks_enes") * units.Ha_to_eV
+            for itemp in range(self.ntemp):
+                qpes[:, :, :, itemp] -= ks_enes
+
+        # Note there's no guarantee that the sigma_kpoints and the corrections have the same k-point index.
+        # Be careful because the order of the k-points and the band range stored in the SIGRES file may differ ...
+        # HM: Map the bands from sigeph to the electronic bandstructure
+        nkpoints = len(self.sigma_kpoints)
+        nbands = self.reader.bstop_sk.max()
+        qpes_new = np.zeros((self.nsppol,nkpoints,nbands,self.ntemp),dtype=np.complex)
+        for spin in range(self.nsppol):
+            for ik in self.kcalc2ibz:
+                for nb,band in enumerate(range(self.bstart_sk[spin, ik], self.bstop_sk[spin, ik])):
+                    qpes_new[spin,ik,band] = qpes[spin,ik,nb]
+        return qpes_new
+
+    def get_lifetimes_boltztrap(self,basename):
+        """
+        Get basename.tau and basename.energy text files to be used in Boltztrap code
+        for transport calculations 
+        
+        Args:
+            basename: The basename of the files to be produced
+        """
+        #get the lifetimes as an array
+        qpes = self.get_qp_array(mode='ks+lifetimes')
+
+        eV_Ry = abu.eV_Ha * 2
+        #TODO: check this conversion
+        inv_eV_s = 1.0/(abu.eV_to_THz*1e12)
+ 
+        # read
+        nkpt        = self.nkpt
+        nspn        = self.nspden
+        nband_start = np.min(self.bstart_sk)
+        nband_stop  = np.min(self.bstop_sk)
+        ntemp = self.ntemp
+        fermie = self.ebands.fermie * eV_Ry
+
+        filename_tau = basename+'.tau'
+        filename_ene = basename+'.energy'
+
+        # write
+        with open(filename_tau,'w') as ftau, open(filename_ene,'w') as fene:
+            ftau.write('{0}    {1}              ! nk, nspin : lifetimes below in s \n'.format(nkpt,nspn))
+            fene.write('{0}    {1}    {2}       ! nk, nspin, Fermi level (Ry) : energies below in Ry \n'.format(nkpt,nspn,fermie))
+            for itemp in range(ntemp):
+                for ispin in range(nspn):
+                    for ik in range(nkpt):
+                        kpt = self.kpoints[ik]
+                        fmt = '%12.8lf '*3+'!kpt\n'
+                        ftau.write(fmt%tuple(kpt))
+                        fene.write(fmt%tuple(kpt))
+                        for ibnd in range(nband_start,nband_stop):
+                            fene.write('%16.12e\n'%(qpes[ispin,ik,ibnd,itemp].real*eV_Ry))
+                            ftau.write('%16.12e\n'%(inv_eV_s/abs(qpes[ispin,ik,ibnd,itemp].imag)))
+
     def interpolate(self, itemp_list=None, lpratio=5, mode="qp", ks_ebands_kpath=None, ks_ebands_kmesh=None, ks_degatol=1e-4,
                     vertices_names=None, line_density=20, filter_params=None, only_corrections=False, verbose=0): # pragma: no cover
         """
@@ -995,36 +1082,38 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         # and re-apply them on top of the KS band structure.
         gw_kcoords = [k.frac_coords for k in self.sigma_kpoints]
 
-        if mode == "qp":
-            # Read QP energies from file (real + imag part) and compute corrections if ks_ebands_kpath.
-            # nctkarr_t("qp_enes", "dp", "two, ntemp, max_nbcalc, nkcalc, nsppol")
-            qpes = self.reader.read_value("qp_enes", cmode="c") * units.Ha_to_eV
-        elif mode == "ks+lifetimes":
-            qpes_im = self.reader.read_value("vals_e0ks", cmode="c").imag * units.Ha_to_eV
-            qpes_re = self.reader.read_value("ks_enes") * units.Ha_to_eV
-            qpes = qpes_re[:,:,:,np.newaxis] + 1j*qpes_im        
-        else:
-            raise ValueError("Invalid interpolation mode: %s can be either 'qp' or 'ks+lifetimes'")
+        if 0:
+            if mode == "qp":
+                # Read QP energies from file (real + imag part) and compute corrections if ks_ebands_kpath.
+                # nctkarr_t("qp_enes", "dp", "two, ntemp, max_nbcalc, nkcalc, nsppol")
+                qpes = self.reader.read_value("qp_enes", cmode="c") * units.Ha_to_eV
+            elif mode == "ks+lifetimes":
+                qpes_im = self.reader.read_value("vals_e0ks", cmode="c").imag * units.Ha_to_eV
+                qpes_re = self.reader.read_value("ks_enes") * units.Ha_to_eV
+                qpes = qpes_re[:,:,:,np.newaxis] + 1j*qpes_im        
+            else:
+                raise ValueError("Invalid interpolation mode: %s can be either 'qp' or 'ks+lifetimes'")
 
-        if ks_ebands_kpath is not None:
-            if ks_ebands_kpath.structure != self.structure:
-                cprint("sigres.structure and ks_ebands_kpath.structures differ. Check your files!", "red")
-            # nctkarr_t("ks_enes", "dp", "max_nbcalc, nkcalc, nsppol")
-            ks_enes = self.reader.read_value("ks_enes") * units.Ha_to_eV
-            for itemp in range(self.ntemp):
-                qpes[:, :, :, itemp] -= ks_enes
+            if ks_ebands_kpath is not None:
+                if ks_ebands_kpath.structure != self.structure:
+                    cprint("sigres.structure and ks_ebands_kpath.structures differ. Check your files!", "red")
+                # nctkarr_t("ks_enes", "dp", "max_nbcalc, nkcalc, nsppol")
+                ks_enes = self.reader.read_value("ks_enes") * units.Ha_to_eV
+                for itemp in range(self.ntemp):
+                    qpes[:, :, :, itemp] -= ks_enes
 
-        # Note there's no guarantee that the sigma_kpoints and the corrections have the same k-point index.
-        # Be careful because the order of the k-points and the band range stored in the SIGRES file may differ ...
-        # HM: Map the bands from sigeph to the electronic bandstructure
-        nkpoints = len(self.sigma_kpoints)
-        nbands = self.reader.bstop_sk.max()
-        qpes_new = np.zeros((self.nsppol,nkpoints,nbands,self.ntemp),dtype=np.complex)
-        for spin in range(self.nsppol):
-            for ik in self.kcalc2ibz:
-                for nb,band in enumerate(range(self.bstart_sk[spin, ik], self.bstop_sk[spin, ik])):
-                    qpes_new[spin,ik,band] = qpes[spin,ik,nb]
-        qpes = qpes_new
+            # Note there's no guarantee that the sigma_kpoints and the corrections have the same k-point index.
+            # Be careful because the order of the k-points and the band range stored in the SIGRES file may differ ...
+            # HM: Map the bands from sigeph to the electronic bandstructure
+            nkpoints = len(self.sigma_kpoints)
+            nbands = self.reader.bstop_sk.max()
+            qpes_new = np.zeros((self.nsppol,nkpoints,nbands,self.ntemp),dtype=np.complex)
+            for spin in range(self.nsppol):
+                for ik in self.kcalc2ibz:
+                    for nb,band in enumerate(range(self.bstart_sk[spin, ik], self.bstop_sk[spin, ik])):
+                        qpes_new[spin,ik,band] = qpes[spin,ik,nb]
+            qpes = qpes_new
+        qpes = self.get_qp_array(ks_ebands_kpath=ks_ebands_kpath,mode=mode)
 
         # Build interpolator for QP corrections.
         from abipy.core.skw import SkwInterpolator

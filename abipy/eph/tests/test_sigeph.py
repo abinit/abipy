@@ -232,6 +232,12 @@ class SigEPhFileTest(AbipyTest):
 
         sigeph.close()
 
+    # TODO: Need new files with IBZ.
+    def test_sigeph_boltztrap(self):
+        """Test boltztrap interpolation"""
+        sigeph = abilab.abiopen(abidata.ref_file("diamond_444q_full_SIGEPH.nc"))
+        sigeph.get_lifetimes_boltztrap("diamond")
+
     def test_sigeph_robot(self):
         """Tests for SigEPhRobot."""
         #raise self.SkipTest("Disabled")
