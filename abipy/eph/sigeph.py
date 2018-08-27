@@ -965,10 +965,9 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         #get the lifetimes as an array
         qpes = self.get_qp_array(mode='ks+lifetimes')
 
-        eV_Ry = abu.eV_Ha * 2
-        #TODO: check this conversion
-        inv_eV_s = 1.0/(abu.eV_to_THz*1e12)
- 
+        eV_Ry = 2 * abu.eV_Ha
+        eV_s = abu.eV_to_THz*1e12 * 2*np.pi
+
         # read
         nkpt        = self.nkpt
         nspn        = self.nspden
@@ -979,9 +978,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         # write tau
         for itemp in range(ntemp):
-
             filename_tau = basename+'_%dK.tau'%self.tmesh[itemp]
-
             with open(filename_tau,'w') as ftau:
                 ftau.write('{0}    {1}              ! nk, nspin : lifetimes below in s \n'.format(nkpt,nspn))
                 for ispin in range(nspn):
@@ -990,7 +987,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                         fmt = '%18.12e '*3+'%d !kpt nband\n'%(nband_stop-nband_start)
                         ftau.write(fmt%tuple(kpt))
                         for ibnd in range(nband_start,nband_stop):
-                            ftau.write('%18.12e\n'%(inv_eV_s/abs(qpes[ispin,ik,ibnd,itemp].imag)))
+                            ftau.write('%18.12e\n'%(1.0/(2*abs(qpes[ispin,ik,ibnd,itemp].imag)*eV_s)))
         #write energies
         filename_ene = basename+'.energy'
         with open(filename_ene,'w') as fene:
