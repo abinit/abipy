@@ -972,28 +972,36 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         # read
         nkpt        = self.nkpt
         nspn        = self.nspden
-        nband_start = np.min(self.bstart_sk)
+        nband_start = np.max(self.bstart_sk)
         nband_stop  = np.min(self.bstop_sk)
         ntemp = self.ntemp
         fermie = self.ebands.fermie * eV_Ry
 
-        filename_tau = basename+'.tau'
-        filename_ene = basename+'.energy'
+        # write tau
+        for itemp in range(ntemp):
 
-        # write
-        with open(filename_tau,'w') as ftau, open(filename_ene,'w') as fene:
-            ftau.write('{0}    {1}              ! nk, nspin : lifetimes below in s \n'.format(nkpt,nspn))
-            fene.write('{0}    {1}    {2}       ! nk, nspin, Fermi level (Ry) : energies below in Ry \n'.format(nkpt,nspn,fermie))
-            for itemp in range(ntemp):
+            filename_tau = basename+'_%dK.tau'%self.tmesh[itemp]
+
+            with open(filename_tau,'w') as ftau:
+                ftau.write('{0}    {1}              ! nk, nspin : lifetimes below in s \n'.format(nkpt,nspn))
                 for ispin in range(nspn):
                     for ik in range(nkpt):
                         kpt = self.kpoints[ik]
-                        fmt = '%12.8lf '*3+'!kpt\n'
+                        fmt = '%18.12e '*3+'%d !kpt nband\n'%(nband_stop-nband_start)
                         ftau.write(fmt%tuple(kpt))
-                        fene.write(fmt%tuple(kpt))
                         for ibnd in range(nband_start,nband_stop):
-                            fene.write('%16.12e\n'%(qpes[ispin,ik,ibnd,itemp].real*eV_Ry))
-                            ftau.write('%16.12e\n'%(inv_eV_s/abs(qpes[ispin,ik,ibnd,itemp].imag)))
+                            ftau.write('%18.12e\n'%(inv_eV_s/abs(qpes[ispin,ik,ibnd,itemp].imag)))
+        #write energies
+        filename_ene = basename+'.energy'
+        with open(filename_ene,'w') as fene:
+            fene.write('{0}    {1}    {2}       ! nk, nspin, Fermi level (Ry) : energies below in Ry \n'.format(nkpt,nspn,fermie))
+            for ispin in range(nspn):
+                for ik in range(nkpt):
+                    kpt = self.kpoints[ik]
+                    fmt = '%18.10e '*3+'%d !kpt nband\n'%(nband_stop-nband_start)
+                    fene.write(fmt%tuple(kpt))
+                    for ibnd in range(nband_start,nband_stop):
+                        fene.write('%18.10e\n'%(qpes[ispin,ik,ibnd,itemp].real*eV_Ry))
 
     def interpolate(self, itemp_list=None, lpratio=5, mode="qp", ks_ebands_kpath=None, ks_ebands_kmesh=None, ks_degatol=1e-4,
                     vertices_names=None, line_density=20, filter_params=None, only_corrections=False, verbose=0): # pragma: no cover
