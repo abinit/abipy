@@ -342,7 +342,7 @@ class PhononBands(object):
 
     @property
     def maxfreq(self):
-        """Maximum phonon frequency."""
+        """Maximum phonon frequency in eV."""
         return self.get_maxfreq_mode()
 
     def get_minfreq_mode(self, mode=None):
@@ -2160,6 +2160,8 @@ class PhononDos(Function1D):
         """
         tmesh = np.linspace(tstart, tstop, num=num)
         w, gw = self.mesh[self.iw0:], self.values[self.iw0:]
+        if w[0] < 1e-12:
+            w, gw = self.mesh[self.iw0+1:], self.values[self.iw0+1:]
         coth = lambda x: 1.0 / np.tanh(x)
 
         vals = np.empty(len(tmesh))
@@ -2169,6 +2171,7 @@ class PhononDos(Function1D):
             else:
                 wd2kt = w / (2 * abu.kb_eVK * temp)
                 vals[it] = 0.5 * np.trapz(w * coth(wd2kt) * gw, x=w)
+            #print(vals[it])
 
         return Function1D(tmesh, vals)
 
@@ -2185,6 +2188,8 @@ class PhononDos(Function1D):
         """
         tmesh = np.linspace(tstart, tstop, num=num)
         w, gw = self.mesh[self.iw0:], self.values[self.iw0:]
+        if w[0] < 1e-12:
+            w, gw = self.mesh[self.iw0+1:], self.values[self.iw0+1:]
         coth = lambda x: 1.0 / np.tanh(x)
 
         vals = np.empty(len(tmesh))
@@ -2228,6 +2233,8 @@ class PhononDos(Function1D):
         """
         tmesh = np.linspace(tstart, tstop, num=num)
         w, gw = self.mesh[self.iw0:], self.values[self.iw0:]
+        if w[0] < 1e-12:
+            w, gw = self.mesh[self.iw0+1:], self.values[self.iw0+1:]
         csch2 = lambda x: 1.0 / (np.sinh(x) ** 2)
 
         vals = np.empty(len(tmesh))
@@ -2287,9 +2294,8 @@ class PhononDos(Function1D):
             ax.grid(True)
             ax.set_xlabel("Temperature (K)", fontsize=fontsize)
             ax.set_ylabel(_THERMO_YLABELS[qname][units], fontsize=fontsize)
-            ax.legend(loc="best", fontsize=fontsize, shadow=True)
+            #ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
-        #fig.tight_layout()
         return fig
 
     def to_pymatgen(self):
@@ -2305,7 +2311,6 @@ class PhononDos(Function1D):
         """
         Debye temperature in K.
         """
-
         integrals = (self * self.mesh ** 2).spline_integral() / self.spline_integral()
         t_d = np.sqrt(5/3*integrals)/abu.kb_eVK
 
@@ -2318,7 +2323,6 @@ class PhononDos(Function1D):
         Args:
             nsites: the number of sites in the cell.
         """
-
         return self.debye_temp/nsites**(1/3)
 
 
@@ -4057,7 +4061,7 @@ class InteratomicForceConstants(Has_Structure):
 
 
 # TODO: amu should become mandatory.
-def get_dyn_mat_eigenvec(phdispl, structure, amu=None):
+def get_dyn_mat_eigenvec(phdispl, structure, amu=None, amu_symbol=None):
     """
     Converts the phonon displacements to the orthonormal eigenvectors of the dynamical matrix.
     Small discrepancies with the original values may be expected due to the different values of the atomic masses in
@@ -4075,20 +4079,29 @@ def get_dyn_mat_eigenvec(phdispl, structure, amu=None):
             should match the q points.
         structure: |Structure| object.
         amu: dictionary that associates the atomic numbers present in the structure to the values of the atomic
-            mass units used for the calculation. If None, values from pymatgen will be used. Note that this will
-            almost always lead to inaccuracies in the conversion.
+            mass units used for the calculation. Incompatible with amu_sumbol. If None and amu_symbol is None, values
+            from pymatgen will be used.  Note that this will almost always lead to inaccuracies in the conversion.
+        amu_symbol: dictionary that associates the symbol present in the structure to the values of the atomic
+            mass units used for the calculation. Incompatible with amu. If None and amu_symbol is None, values from
+            pymatgen will be used. that this will almost always lead to inaccuracies in the conversion.
 
     Returns:
         A |numpy-array| of the same shape as phdispl containing the eigenvectors of the dynamical matrix
     """
     eigvec = np.zeros(np.shape(phdispl), dtype=np.complex)
 
-    if amu is None:
+    if amu is not None and amu_symbol is not None:
+        raise ValueError("Only one between amu and amu_symbol should be provided!")
+
+    if amu is not None:
+        amu_symbol = {Element.from_Z(n).symbol: v for n, v in amu.items()}
+
+    if amu_symbol is None:
         warnings.warn("get_dyn_mat_eigenvec has been called with amu=None. Eigenvectors may not be orthonormal.")
-        amu = {e.number: e.atomic_mass for e in structure.composition.elements}
+        amu_symbol = {e.symbol: e.atomic_mass for e in structure.composition.elements}
 
     for j, a in enumerate(structure):
-        eigvec[...,3*j:3*(j+1)] = phdispl[...,3*j:3*(j+1)] * np.sqrt(amu[a.specie.number]*abu.amu_emass) / abu.Bohr_Ang
+        eigvec[...,3*j:3*(j+1)] = phdispl[...,3*j:3*(j+1)] * np.sqrt(amu_symbol[a.specie.symbol]*abu.amu_emass) / abu.Bohr_Ang
 
     return eigvec
 

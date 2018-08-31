@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 r"""
-Band structure plot
+Wannier90 wout file
 ===================
 
 This example shows how to plot the convergence

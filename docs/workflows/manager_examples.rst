@@ -559,6 +559,7 @@ Travis
 	        mpi_runner: mpirun
 	        pre_run:
 	            - source activate test-environment
+	            - ulimit -s unlimited
 	      limits:
 	         min_cores: 1
 	         max_cores: 2

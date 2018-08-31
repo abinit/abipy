@@ -17,6 +17,7 @@ from collections import OrderedDict, namedtuple
 from monty.string import list_strings
 from monty.functools import lazy_property
 from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt, get_ax3d_fig_plt, get_axarray_fig_plt
+from .numtools import data_from_cplx_mode
 
 
 __all__ = [
@@ -138,24 +139,6 @@ def rotate_ticklabels(ax, rotation, axname="x"):
             tick.set_rotation(rotation)
 
 
-def data_from_cplx_mode(cplx_mode, arr):
-    """
-    Extract the data from the numpy array ``arr`` depending on the values of ``cplx_mode``.
-
-    Args:
-        cplx_mode: Possible values in ("re", "im", "abs", "angle")
-            "re" for the real part,
-            "im" for the imaginary part.
-            "abs" means that the absolute value of the complex number is shown.
-            "angle" will display the phase of the complex number in radians.
-    """
-    if cplx_mode == "re": return arr.real
-    if cplx_mode == "im": return arr.imag
-    if cplx_mode == "abs": return np.abs(arr)
-    if cplx_mode == "angle": return np.angle(arr, deg=False)
-    raise ValueError("Unsupported mode `%s`" % str(cplx_mode))
-
-
 @add_fig_kwargs
 def plot_xy_with_hue(data, x, y, hue, decimals=None, ax=None,
                      xlims=None, ylims=None, fontsize=12, **kwargs):
@@ -166,7 +149,7 @@ def plot_xy_with_hue(data, x, y, hue, decimals=None, ax=None,
     Args:
         data: |pandas-DataFrame| containing columns `x`, `y`, and `hue`.
         x: Name of the column used as x-value
-        y: Name of the column used as y-value
+        y: Name of the column(s) used as y-value
         hue: Variable that define subsets of the data, which will be drawn on separate lines
         decimals: Number of decimal places to round `hue` columns. Ignore if None
         ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -177,6 +160,24 @@ def plot_xy_with_hue(data, x, y, hue, decimals=None, ax=None,
 
     Returns: |matplotlib-Figure|
     """
+    if isinstance(y, (list, tuple)):
+        # Recursive call for each ax in ax_list.
+        num_plots, ncols, nrows = len(y), 1, 1
+        if num_plots > 1:
+            ncols = 2
+            nrows = (num_plots // ncols) + (num_plots % ncols)
+
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=False, sharey=False, squeeze=False)
+
+        ax_list = ax_list.ravel()
+        if num_plots % ncols != 0: ax_list[-1].axis('off')
+
+        for yname, ax in zip(y, ax_list):
+            plot_xy_with_hue(data, x, str(yname), hue, decimals=decimals, ax=ax,
+                             xlims=xlims, ylims=ylims, fontsize=fontsize, show=False, **kwargs)
+        return fig
+
     # Check here because pandas error messages are a bit criptic.
     miss = [k for k in (x, y, hue) if k not in data]
     if miss:
@@ -192,7 +193,8 @@ def plot_xy_with_hue(data, x, y, hue, decimals=None, ax=None,
         xy = np.array(sorted(zip(grp[x], grp[y]), key=lambda t: t[0]))
         xvals, yvals = xy[:, 0], xy[:, 1]
 
-        label = "{} = {}".format(hue, key)
+        #label = "{} = {}".format(hue, key)
+        label = "%s" % (str(key))
         if not kwargs:
             ax.plot(xvals, yvals, 'o-', label=label)
         else:
@@ -518,10 +520,8 @@ def plot_unit_cell(lattice, ax=None, **kwargs):
     """
     ax, fig, plt = get_ax3d_fig_plt(ax)
 
-    if "color" not in kwargs:
-        kwargs["color"] = "k"
-    if "linewidth" not in kwargs:
-        kwargs["linewidth"] = 3
+    if "color" not in kwargs: kwargs["color"] = "k"
+    if "linewidth" not in kwargs: kwargs["linewidth"] = 3
 
     v = 8 * [None]
     v[0] = lattice.get_cartesian_coords([0.0, 0.0, 0.0])
@@ -537,7 +537,43 @@ def plot_unit_cell(lattice, ax=None, **kwargs):
                  (6, 7), (7, 4), (0, 7), (1, 6), (2, 5), (3, 4)):
         ax.plot(*zip(v[i], v[j]), **kwargs)
 
+    # Plot cartesian frame
+    ax_add_cartesian_frame(ax)
+
     return fig, ax
+
+
+def ax_add_cartesian_frame(ax, start=(0, 0, 0)):
+    """
+    Add cartesian frame to 3d axis at point `start`.
+    """
+    # https://stackoverflow.com/questions/22867620/putting-arrowheads-on-vectors-in-matplotlibs-3d-plot
+    from matplotlib.patches import FancyArrowPatch
+    from mpl_toolkits.mplot3d import proj3d
+    arrow_opts = {"color": "k"}
+    arrow_opts.update(dict(lw=1, arrowstyle="-|>",))
+
+    class Arrow3D(FancyArrowPatch):
+        def __init__(self, xs, ys, zs, *args, **kwargs):
+            FancyArrowPatch.__init__(self, (0, 0), (0, 0), *args, **kwargs)
+            self._verts3d = xs, ys, zs
+
+        def draw(self, renderer):
+            xs3d, ys3d, zs3d = self._verts3d
+            xs, ys, zs = proj3d.proj_transform(xs3d, ys3d, zs3d, renderer.M)
+            self.set_positions((xs[0], ys[0]), (xs[1], ys[1]))
+            FancyArrowPatch.draw(self, renderer)
+
+    start = np.array(start)
+    for end in ((1, 0, 0), (0, 1, 0), (0, 0, 1)):
+        end = start + np.array(end)
+        xs, ys, zs = list(zip(start, end))
+        p = Arrow3D(xs, ys, zs,
+                   connectionstyle='arc3', mutation_scale=20,
+                   alpha=0.8, **arrow_opts)
+        ax.add_artist(p)
+
+    return ax
 
 
 def plot_structure(structure, ax=None, to_unit_cell=False, alpha=0.7,

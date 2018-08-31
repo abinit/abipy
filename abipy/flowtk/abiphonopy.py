@@ -132,8 +132,8 @@ class PhonopyWork(Work):
 	# Write yaml file with displacements.
         supercell = phonon.get_supercell()
         displacements = phonon.get_displacements()
-        directions = phonon.get_displacement_directions()
-        file_IO.write_disp_yaml(displacements, supercell, directions=directions,
+        #directions = phonon.get_displacement_directions()
+        file_IO.write_disp_yaml(displacements, supercell, # directions=directions,
                                 filename=self.outdir.path_in('disp.yaml'))
 
         # Extract forces from the main Abinit output files.

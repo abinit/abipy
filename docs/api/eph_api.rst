@@ -20,6 +20,14 @@ eph Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`common` Module
+--------------------
+
+.. automodule:: abipy.eph.common
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`sigeph` Module
 --------------------
 

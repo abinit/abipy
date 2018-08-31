@@ -20,6 +20,10 @@ except ImportError:
 from pymatgen.io.abinit.nodes import Status
 from pymatgen.io.abinit.tasks import *
 from pymatgen.io.abinit.tasks import EphTask
+try:
+    from pymatgen.io.abinit.tasks import ElasticTask
+except ImportError:
+    pass
 from pymatgen.io.abinit.works import *
 from pymatgen.io.abinit.flows import (Flow, G0W0WithQptdmFlow, bandstructure_flow, PhononFlow,
     g0w0_flow, phonon_flow, phonon_conv_flow, NonLinearCoeffFlow)
@@ -27,6 +31,8 @@ from pymatgen.io.abinit.abitimer import AbinitTimerParser, AbinitTimerSection
 from pymatgen.io.abinit.abiinspect import GroundStateScfCycle, D2DEScfCycle
 
 from abipy.flowtk.works import *
+#from abipy.flowtk.gs_works import EosWork
+from abipy.flowtk.dfpt_works import NscfDdksWork, ElasticWork
 
 
 def flow_main(main):  # pragma: no cover

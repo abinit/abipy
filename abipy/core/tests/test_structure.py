@@ -72,6 +72,10 @@ class TestStructure(AbipyTest):
         with self.assertRaises(ValueError):
             si_wfk.spgset_abi_spacegroup(has_timerev=True)
 
+        # K and U are equivalent. [5/8, 1/4, 5/8] should return U
+        assert si_wfk.findname_in_hsym_stars([3/8, 3/8, 3/4]) == "K"
+        assert si_wfk.findname_in_hsym_stars([5/8, 1/4, 5/8]) == "U"
+
         # TODO: Fix order of atoms in supercells.
         # Test __mul__, __rmul__ (should return Abipy structures)
         assert si_wfk == 1 * si_wfk
@@ -161,6 +165,17 @@ class TestStructure(AbipyTest):
         si = Structure.from_mpid("mp-149")
         assert si.formula == "Si2"
 
+        # Test abiget_spginfo
+        d = si.abiget_spginfo(tolsym=None, pre="abi_")
+        assert d["abi_spg_symbol"] == "Fd-3m"
+        assert d["abi_spg_number"] == 227
+        assert d["abi_bravais"] == "Bravais cF (face-center cubic)"
+
+        llzo = Structure.from_file(abidata.cif_file("LLZO_oxi.cif"))
+        assert llzo.is_ordered
+        d = llzo.abiget_spginfo(tolsym=0.001)
+        assert d["spg_number"] == 142
+
         mgb2_cod = Structure.from_cod_id(1526507, primitive=True)
         assert mgb2_cod.formula == "Mg1 B2"
         assert mgb2_cod.spget_lattice_type() == "hexagonal"
@@ -238,7 +253,7 @@ class TestStructure(AbipyTest):
 
         # Test notebook generation.
         if self.has_nbformat():
-            mgb2.write_notebook(nbpath=self.get_tmpname(text=True))
+            assert mgb2.write_notebook(nbpath=self.get_tmpname(text=True))
 
     def test_dataframes_from_structures(self):
         """Testing dataframes from structures."""

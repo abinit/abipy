@@ -9,15 +9,13 @@ from __future__ import print_function, absolute_import, unicode_literals, divisi
 import sys
 import os
 import shutil
-#import matplotlib as mpl
-#mpl.use("Agg")
+
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
 ABIPY_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
-#print(ABIPY_ROOT)
 
 sys.path.insert(0, ABIPY_ROOT)
 
@@ -67,6 +65,7 @@ extensions = [
 # Add any Sphinx extension module names here, as strings. They can
 # be extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 import matplotlib
+
 extensions += [
     'matplotlib.sphinxext.only_directives',
     'matplotlib.sphinxext.plot_directive',
@@ -80,6 +79,44 @@ extensions += [
     'youtube',
 ]
 
+#########################
+# Spinx Gallery Settings
+#########################
+
+mpl = matplotlib
+mpl.use("Agg")
+mpl.rcParams['figure.dpi'] = 300
+
+
+#def reset_mpl(gallery_conf, fname):
+#    """reset matplotlib to always use the seaborn style."""
+#    # https://542-25860190-gh.circle-artifacts.com/0/rtd_html/advanced_configuration.html#resetting-modules
+#    #from matplotlib import style
+#    #style.use('ggplot')
+#    import seaborn as sns
+#    rc = {'figure.dpi': 300}
+#    sns.set(context='talk', style='darkgrid', palette='deep', font='sans-serif', font_scale=1, color_codes=True, rc=rc)
+
+#import glob
+#from sphinx_gallery.gen_rst import figure_rst
+#
+#class PNGScraper(object):
+#    # https://sphinx-gallery.readthedocs.io/en/latest/advanced_configuration.html#image-scrapers
+#    def __init__(self):
+#        self.seen = set()
+#
+#    def __call__(self, block, block_vars, gallery_conf):
+#        pngs = sorted(glob.glob(os.path.join(os.getcwd(), '*.png')))
+#        image_names = []
+#        image_path_iterator = block_vars['image_path_iterator']
+#        for png in pngs:
+#            if png not in self.seen:
+#                self.seen |= set(png)
+#                image_names.append(image_path_iterator.next())
+#                shutil.copyfile(png, image_names[-1])
+#        return figure_rst(image_names, gallery_conf['src_dir'])
+
+
 from sphinx_gallery.sorting import FileNameSortKey, NumberOfCodeLinesSortKey
 sphinx_gallery_conf = {
     # path to your examples scripts
@@ -90,6 +127,7 @@ sphinx_gallery_conf = {
     'default_thumb_file': '_static/abipy_logo.png',
     'within_subsection_order': NumberOfCodeLinesSortKey,
     'backreferences_dir': False,
+    #'reset_modules': (reset_mpl,),
     #'find_mayavi_figures': True,
     'reference_url': {
         'abipy': None,  # The module you locally document uses None
@@ -98,6 +136,9 @@ sphinx_gallery_conf = {
         'pandas': "http://pandas-docs.github.io/pandas-docs-travis/",
         "pymatgen": "http://pymatgen.org/",
     },
+    #'image_scrapers': ('matplotlib',),
+    #'image_scrapers': ('matplotlib', 'mayavi'),
+    #'image_scrapers': ('matplotlib', PNGScraper()),
     # TODO
     #https://sphinx-gallery.github.io/advanced_configuration.html#generate-binder-links-for-gallery-notebooks-experimental
     #'binder': {
@@ -442,22 +483,21 @@ autodoc_member_order = "bysource"
 # pybtex provides a very powerful way to create and register new styles, using setuptools entry points,
 # as documented here: http://docs.pybtex.org/api/plugins.html
 
-#from pybtex.style.formatting.unsrt import Style as UnsrtStyle
-#from pybtex.style.template import toplevel # ... and anything else needed
-#from pybtex.plugin import register_plugin
+from pybtex.style.formatting.plain import Style
+from pybtex.style.labels.alpha import LabelStyle
 
-#class MyStyle(UnsrtStyle):
-#    def format_label(self, entry):
-#        print("hello")
-#        return "APA"
-#
-#    #def format_XXX(self, e):
-#    #    template = toplevel [
-#    #        # etc.
-#    #    ]
-#    #    return template.format_data(e)
 
-#register_plugin('pybtex.style.formatting', 'mystyle', MyStyle)
+class AbiPyLabelStyle(LabelStyle):
+    def format_label(self, entry):
+        return entry.key
+
+class AbiPyStyle(Style):
+    default_label_style = 'abipy'
+
+from pybtex.plugin import register_plugin
+register_plugin('pybtex.style.labels', 'abipy', AbiPyLabelStyle)
+register_plugin('pybtex.style.formatting', 'abipystyle', AbiPyStyle)
+
 
 # This is for releases http://releases.readthedocs.io/en/latest/usage.html
 releases_github_path = "abinit/abipy"

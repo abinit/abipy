@@ -52,6 +52,17 @@ def save_structure(structure, options):
 
     structure.to(filename=options.savefile)
 
+
+def check_ordered_structure(structure):
+    """Print a warning and sys.exit 1 if structure is disordered."""
+    if not structure.is_ordered:
+        cprint("""
+Cannot handle disordered structure with fractional site occupancies.
+Use OrderDisorderedStructureTransformation or EnumerateStructureTransformation
+to build an appropriate supercell from partial occupancies.""", color="magenta")
+        sys.exit(1)
+
+
 def get_epilog():
     return """\
 Usage example:
@@ -92,6 +103,8 @@ Usage example:
   abistruct.py lgk FILE -k 0.25 0 0        => Read structure from FILE, find little group of k-point,
                                               print Bilbao character table.
   abistruct.py kstar FILE -k 0.25 0 0      => Read structure from FILE, print star of k-point.
+  abistruct.py keq FILE -k 0.5 0 0 0 0.5 0  => Read structure from FILE, test whether k1 and k2 are
+                                               symmetry equivalent k-points.
 
 ###############
 # Miscelleanous
@@ -151,6 +164,7 @@ def get_parser(with_epilog=False):
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
 
+    # Parser for commands that need to call spglib.
     spgopt_parser = argparse.ArgumentParser(add_help=False)
     spgopt_parser.add_argument('--symprec', default=1e-3, type=float,
         help="""\
@@ -348,6 +362,12 @@ closest points in this particular structure. This is usually what you want in a 
     p_kstar.add_argument("-k", "--kpoint", nargs=3, required=True, type=float,
         help="K-point in reduced coordinates e.g. 0.25 0 0")
 
+    # Subparser for keq.
+    p_keq = subparsers.add_parser('keq', parents=[copts_parser, path_selector, spgopt_parser],
+        help="Read structure from file, check whether two k-points are equivalent by symmetry.")
+    p_keq.add_argument("-k", "--kpoints", nargs=6, required=True, type=float,
+        help="K-points in reduced coordinates e.g. 0.25 0 0 0 0.25 0")
+
     # Subparser for visualize command.
     p_visualize = subparsers.add_parser('visualize', parents=[copts_parser, path_selector],
         help=("Visualize the structure with the specified application. "
@@ -358,14 +378,14 @@ closest points in this particular structure. This is usually what you want in a 
     # Options for commands accessing the materials project database.
     mp_rest_parser = argparse.ArgumentParser(add_help=False)
     mp_rest_parser.add_argument("--mapi-key", default=None,
-        help="Pymatgen MAPI_KEY. Use value in .pmgrc.yaml if not specified.")
+        help="Pymatgen PMG_MAPI_KEY. Use value in .pmgrc.yaml if not specified.")
     mp_rest_parser.add_argument("--endpoint", help="Pymatgen database.", default="https://www.materialsproject.org/rest/v2")
     mp_rest_parser.add_argument("-b", "--browser", default=False, action='store_true',
         help="Open materials-project webpages in browser")
 
     # Subparser for mp_id command.
     p_mpid = subparsers.add_parser('mp_id', parents=[copts_parser, mp_rest_parser],
-        help="Get structure from the pymatgen database. Export to format. Requires internet connection and MAPI_KEY.")
+        help="Get structure from the pymatgen database. Export to format. Requires internet connection and PMG_MAPI_KEY.")
     p_mpid.add_argument("mpid", type=str, default=None, help="Pymatgen identifier.")
     add_format_arg(p_mpid, default="cif")
 
@@ -413,7 +433,7 @@ ehull < show_unstable will be shown.""")
 
     # Subparser for animate command.
     p_animate = subparsers.add_parser('animate', parents=[copts_parser, path_selector],
-        help="Read structures from HIST.nc or XDATCAR. Print structures in Xrysden AXSF format to stdout.")
+        help="Read structures from HIST.nc or XDATCAR. Print structures in Xcrysden AXSF format to stdout.")
 
     return parser
 
@@ -456,6 +476,7 @@ def main():
 
     elif options.command == "abispg":
         structure = abilab.Structure.from_file(options.filepath)
+        check_ordered_structure(structure)
         spgrp = structure.abi_spacegroup
 
         if spgrp is not None:
@@ -703,9 +724,6 @@ def main():
     elif options.command == "kstar":
         structure = abilab.Structure.from_file(options.filepath)
 
-        # TODO
-        #kstar = structure.get_star_kpoint(options.kpoint, has_timerev=not options.no_time_reversal)
-
         # Call spglib to get spacegroup if Abinit spacegroup is not available.
         if structure.abi_spacegroup is None:
             structure.spgset_abi_spacegroup(has_timerev=not options.no_time_reversal)
@@ -715,6 +733,23 @@ def main():
         print("Found %s points in the star of %s\n" % (len(kstar), repr(kpoint)))
         for k in kstar:
             print(4 * " ", repr(k))
+
+    elif options.command == "keq":
+        structure = abilab.Structure.from_file(options.filepath)
+
+        # Call spglib to get spacegroup if Abinit spacegroup is not available.
+        if structure.abi_spacegroup is None:
+            structure.spgset_abi_spacegroup(has_timerev=not options.no_time_reversal)
+
+        k1, k2 = options.kpoints[:3], options.kpoints[3:6]
+        k1tab = structure.abi_spacegroup.symeq(k1, k2)
+
+        if k1tab.isym != -1:
+            print("\nk1:", k1, "and k2:", k2, "are symmetry equivalent k-points\n")
+            print("Related by the symmetry operation (reduced coords):\n", k1tab.op)
+            print("With umklapp vector Go = TO(k1) - k2 =", k1tab.g0)
+        else:
+            print(k1, "and", k2, "are NOT symmetry equivalent")
 
     elif options.command == "mp_id":
         # Get the Structure corresponding to material_id.

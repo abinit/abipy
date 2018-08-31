@@ -1,0 +1,244 @@
+{
+  "structure": {
+    "@module": "abipy.core.structure",
+    "@class": "Structure",
+    "charge": null,
+    "lattice": {
+      "matrix": [
+        [
+          3.21629013,
+          0.0,
+          1.9694097064168623e-16
+        ],
+        [
+          -1.608145070001309,
+          2.7853889599984156,
+          1.9694097087314446e-16
+        ],
+        [
+          0.0,
+          0.0,
+          5.23996246
+        ]
+      ],
+      "a": 3.21629013,
+      "b": 3.21629013378,
+      "c": 5.23996246,
+      "alpha": 90.0,
+      "beta": 90.0,
+      "gamma": 120.000000064,
+      "volume": 46.94282735957225
+    },
+    "sites": [
+      {
+        "species": [
+          {
+            "element": "Ga",
+            "occu": 1.0
+          }
+        ],
+        "abc": [
+          0.666667,
+          0.333333,
+          0.49912
+        ],
+        "xyz": [
+          1.608146671477964,
+          0.9284620582031519,
+          2.6153700630352
+        ],
+        "label": "Ga"
+      },
+      {
+        "species": [
+          {
+            "element": "Ga",
+            "occu": 1.0
+          }
+        ],
+        "abc": [
+          0.333333,
+          0.666667,
+          0.99912
+        ],
+        "xyz": [
+          -1.6114792726321182e-06,
+          1.8569269017952639,
+          5.2353512930352
+        ],
+        "label": "Ga"
+      },
+      {
+        "species": [
+          {
+            "element": "N",
+            "occu": 1.0
+          }
+        ],
+        "abc": [
+          0.666667,
+          0.333333,
+          0.87588
+        ],
+        "xyz": [
+          1.608146671477964,
+          0.9284620582031519,
+          4.5895783194648
+        ],
+        "label": "N"
+      },
+      {
+        "species": [
+          {
+            "element": "N",
+            "occu": 1.0
+          }
+        ],
+        "abc": [
+          0.333333,
+          0.666667,
+          0.37588
+        ],
+        "xyz": [
+          -1.6114792726321182e-06,
+          1.8569269017952639,
+          1.9695970894648003
+        ],
+        "label": "N"
+      }
+    ]
+  },
+  "pseudos": [
+    {
+      "basename": "7n.pspnc",
+      "type": "NcAbinitPseudo",
+      "symbol": "N",
+      "Z": 7,
+      "Z_val": 5.0,
+      "l_max": 1,
+      "md5": "b32922f6e50fd55b78b426e2f84d8459",
+      "filepath": "/home/guido/programming/python/develop/mat_proj/abipy/abipy/abipy/data/pseudos/7n.pspnc",
+      "@module": "pymatgen.io.abinit.pseudos",
+      "@class": "NcAbinitPseudo"
+    },
+    {
+      "basename": "31ga.pspnc",
+      "type": "NcAbinitPseudo",
+      "symbol": "Ga",
+      "Z": 31,
+      "Z_val": 3.0,
+      "l_max": 1,
+      "md5": "f0d760aad874ea3f64d5f4b40adef9bd",
+      "filepath": "/home/guido/programming/python/develop/mat_proj/abipy/abipy/abipy/data/pseudos/31ga.pspnc",
+      "@module": "pymatgen.io.abinit.pseudos",
+      "@class": "NcAbinitPseudo"
+    }
+  ],
+  "comment": null,
+  "decorators": [],
+  "abi_args": [
+    [
+      "ecut",
+      2
+    ],
+    [
+      "pawecutdg",
+      null
+    ],
+    [
+      "ngkpt",
+      [
+        7,
+        7,
+        5
+      ]
+    ],
+    [
+      "shiftk",
+      [
+        [
+          0.5,
+          0.5,
+          0.5
+        ]
+      ]
+    ],
+    [
+      "nshiftk",
+      1
+    ],
+    [
+      "kptopt",
+      2
+    ],
+    [
+      "chksymbreak",
+      0
+    ],
+    [
+      "nsppol",
+      1
+    ],
+    [
+      "nspinor",
+      1
+    ],
+    [
+      "nspden",
+      1
+    ],
+    [
+      "nband",
+      12
+    ],
+    [
+      "fband",
+      null
+    ],
+    [
+      "charge",
+      0.0
+    ],
+    [
+      "ixc",
+      7
+    ],
+    [
+      "rfdir",
+      [
+        1,
+        0,
+        0
+      ]
+    ],
+    [
+      "prepanl",
+      1
+    ],
+    [
+      "rfelfd",
+      3
+    ],
+    [
+      "nqpt",
+      1
+    ],
+    [
+      "qpt",
+      [
+        0,
+        0,
+        0
+      ]
+    ],
+    [
+      "tolvrs",
+      1e-10
+    ]
+  ],
+  "tags": [
+    "dde"
+  ],
+  "@module": "abipy.abio.inputs",
+  "@class": "AbinitInput"
+}

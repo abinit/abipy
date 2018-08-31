@@ -4,6 +4,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import os
 import numpy as np
 import abipy.data as abidata
+import abipy.core.abinit_units as abu
 
 from abipy import abilab
 from abipy.core.testing import AbipyTest
@@ -36,6 +37,9 @@ class DdbTest(AbipyTest):
             assert h.xred.shape == (h.natom, 3) and h.kpt.shape == (h.nkpt, 3)
             self.assert_equal(h.znucl, [13, 33])
             assert ddb.version == 100401
+            assert ddb.total_energy is None
+            assert ddb.cart_forces is None
+            assert ddb.cart_stress_tensor is None
 
             assert np.all(h.symrel[1].T.ravel() == [0, -1, 1, 0, -1, 0, 1, -1, 0])
             assert np.all(h.symrel[2].T.ravel() == [-1, 0, 0, -1, 0, 1, -1, 1, 0])
@@ -71,12 +75,13 @@ class DdbTest(AbipyTest):
 
             # Test notebook
             if self.has_nbformat():
-                ddb.write_notebook(nbpath=self.get_tmpname(text=True))
+                assert ddb.write_notebook(nbpath=self.get_tmpname(text=True))
 
             # Test block parsing.
             blocks = ddb._read_blocks()
             assert len(blocks) == 1
             assert blocks[0]["qpt"] == [0.25, 0, 0]
+            assert blocks[0]["dord"] == 2
 
             lines = blocks[0]["data"]
             assert lines[0].rstrip() == " 2nd derivatives (non-stat.)  - # elements :      36"
@@ -122,8 +127,12 @@ class DdbTest(AbipyTest):
 
         assert ddb.has_bec_terms(select="at_least_one")
         assert not ddb.has_bec_terms(select="all")
-        assert not ddb.has_emacro_terms()
+        assert not ddb.has_epsinf_terms()
         assert not ddb.has_lo_to_data()
+        assert not ddb.has_internalstrain_terms()
+        assert not ddb.has_piezoelectric_terms()
+        assert not ddb.has_strain_terms()
+        assert ddb.has_at_least_one_atomic_perturbation()
 
         ref_qpoints = np.reshape([
                  0.00000000E+00,  0.00000000E+00,  0.00000000E+00,
@@ -182,6 +191,7 @@ class DdbTest(AbipyTest):
         # Execute anaddb to compute the interatomic forces.
         ifc = ddb.anaget_ifc()
         str(ifc); repr(ifc)
+        #assert ifc.to_string(verbose=2)
         assert ifc.structure == ddb.structure
         assert ifc.number_of_atoms == len(ddb.structure)
 
@@ -216,9 +226,9 @@ class DdbTest(AbipyTest):
             # Test Lru_cache as well
             assert ddb.has_bec_terms(select="at_least_one")
             assert ddb.has_bec_terms(select="at_least_one")
-            assert not ddb.has_bec_terms(select="all")
-            assert not ddb.has_bec_terms(select="all")
-            assert ddb.has_emacro_terms()
+            assert ddb.has_bec_terms(select="all")
+            assert ddb.has_bec_terms(select="all")
+            assert ddb.has_epsinf_terms()
             assert ddb.has_lo_to_data()
 
             # Get emacro and becs
@@ -238,14 +248,23 @@ class DdbTest(AbipyTest):
                  [  5.66391495e-24,   2.28904397e-24,  -2.19362823e+00]]
                 ]
 
+            ref_emacro = [[ 5.42055574e+00,  8.88178420e-16, -1.30717901e-25],
+                          [-8.88178420e-16,  5.42055574e+00, -2.26410045e-25],
+                          [-1.30717901e-25,  2.26410045e-25,  4.98835236e+00]]
+
             self.assert_almost_equal(becs.values, ref_becs_values)
-            #self.assert_almost_equal(emacro.values, ref_emacro_values)
+            self.assert_almost_equal(emacro, ref_emacro)
             repr(becs); str(becs)
             assert becs.to_string(verbose=2)
+            for arr, z in zip(becs.values, becs.zstars):
+                self.assert_equal(arr, z)
+            df = becs.get_voigt_dataframe(select_symbols="O")
+            assert len(df) == 2
 
             # get the dielectric tensor generator from anaddb
             dtg = ddb.anaget_dielectric_tensor_generator(verbose=2)
             assert dtg is not None and hasattr(dtg, "phfreqs")
+            assert dtg.to_string(verbose=2)
 
     def test_mgo_becs_emacro(self):
         """
@@ -255,7 +274,8 @@ class DdbTest(AbipyTest):
         with abilab.abiopen(abidata.ref_file("mp-1009129-9x9x10q_ebecs_DDB")) as ddb:
             assert ddb.structure.formula == "Mg1 O1"
             assert len(ddb.qpoints) == 72
-            assert ddb.has_emacro_terms()
+            assert ddb.has_epsinf_terms()
+            assert ddb.has_epsinf_terms(select="at_least_one_diagoterm")
             assert ddb.has_bec_terms()
 
             if self.has_matplotlib():
@@ -319,6 +339,30 @@ class DdbTest(AbipyTest):
         assert robot.abifiles[1].structure.formula == "Li1 F1"
         assert robot.abifiles[1].header["ixc"] == -116133
 
+    def test_alas_with_third_order(self):
+        """
+        Testing DDB containing also third order derivatives.
+        """
+        with abilab.abiopen(abidata.ref_file("refs/alas_nl_dfpt/AlAs_nl_dte_DDB")) as ddb:
+            repr(ddb); str(ddb)
+            assert ddb.to_string(verbose=2)
+            self.assert_almost_equal(ddb.total_energy.to("Ha"), -0.10085769246152e+02)
+            assert ddb.cart_forces is not None
+            stress = ddb.cart_stress_tensor
+            # Ha/Bohr^3 from DDB
+            ref_voigt = np.array([-0.31110177329142E-05, -0.31110177329142E-05, -0.31110177329146E-05,
+                                  0.00000000000000E+00, 0.00000000000000E+00, 0.00000000000000E+00])
+            # AbiPy stress is in GPa
+            self.assert_almost_equal(stress[0, 0], ref_voigt[0] * abu.HaBohr3_GPa)
+            self.assert_almost_equal(stress[1, 1], ref_voigt[1] * abu.HaBohr3_GPa)
+            self.assert_almost_equal(stress[2, 2], ref_voigt[2] * abu.HaBohr3_GPa)
+            self.assert_almost_equal(stress[1, 2], ref_voigt[3] * abu.HaBohr3_GPa)
+            self.assert_almost_equal(stress[0, 2], ref_voigt[4] * abu.HaBohr3_GPa)
+            self.assert_almost_equal(stress[0, 1], ref_voigt[5] * abu.HaBohr3_GPa)
+
+            for qpoint in ddb.qpoints:
+                assert qpoint in ddb.computed_dynmat
+
 
 class DielectricTensorGeneratorTest(AbipyTest):
 
@@ -328,14 +372,23 @@ class DielectricTensorGeneratorTest(AbipyTest):
         phbstnc_fname = abidata.ref_file("AlAs_nl_dte_PHBST.nc")
 
         d = DielectricTensorGenerator.from_files(phbstnc_fname, anaddbnc_fname)
-        repr(d); str(d)
+        assert d.eps0.shape == (3, 3)
+        df = d.epsinf.get_dataframe()
+        assert d.epsinf._repr_html_()
 
-        self.assertAlmostEqual(d.tensor_at_frequency(0.001, units='Ha')[0,0], 11.917178540635028)
+        repr(d); str(d)
+        assert d.to_string(verbose=2)
+
+        df = d.get_oscillator_dataframe(reim="all", tol=1e-8)
+        df = d.get_oscillator_dataframe(reim="im", tol=1e-8)
+        df = d.get_oscillator_dataframe(reim="re", tol=1e-8)
+
+        self.assertAlmostEqual(d.tensor_at_frequency(0.001, units='Ha', gamma_ev=0.0)[0, 0], 11.917178540635028)
 
         d = DielectricTensorGenerator.from_objects(PhononBands.from_file(phbstnc_fname),
                                                    AnaddbNcFile.from_file(anaddbnc_fname))
 
-        self.assertAlmostEqual(d.tensor_at_frequency(0.001, units='Ha')[0,0], 11.917178540635028)
+        self.assertAlmostEqual(d.tensor_at_frequency(0.001, units='Ha', gamma_ev=0.0)[0, 0], 11.917178540635028)
 
         if self.has_matplotlib():
             assert d.plot_vs_w(w_min=0.0001, w_max=0.01, num=10, units="Ha", show=False)
@@ -369,9 +422,53 @@ class DdbRobotTest(AbipyTest):
             assert r.phdos_plotter.gridplot(show=False)
 
         if self.has_nbformat():
-            robot.write_notebook(nbpath=self.get_tmpname(text=True))
+            assert robot.write_notebook(nbpath=self.get_tmpname(text=True))
 
         robot.close()
+
+    def test_robot_elastic(self):
+        """Test DdbRobot with anacompare_elastic method."""
+        self.skip_if_abinit_not_ge("8.9.3")
+        filepaths = [abidata.ref_file("refs/alas_elastic_dfpt/AlAs_elastic_DDB")]
+
+        with abilab.DdbRobot.from_files(filepaths) as robot:
+            robot.add_file("samefile", filepaths[0])
+            assert len(robot) == 2
+
+            # Test anacompare_elastic
+            ddb_header_keys=["nkpt", "tsmear"]
+            r = robot.anacompare_elastic(ddb_header_keys=ddb_header_keys, with_path=True,
+                with_structure=True, with_spglib=False, relaxed_ion="automatic", piezo="automatic", verbose=1)
+            df, edata_list = r.df, r.elastdata_list
+            assert "tensor_name" in df.keys()
+            assert "ddb_path" in df
+            for k in ddb_header_keys:
+                assert k in df
+            assert len(edata_list) == 2
+
+    def test_robot_becs_eps(self):
+        """Test DdbRobot with anacompare_becs and eps methods."""
+        paths = ["out_ngkpt222_DDB", "out_ngkpt444_DDB", "out_ngkpt888_DDB"]
+        paths = [os.path.join(abidata.dirpath, "refs", "alas_eps_and_becs_vs_ngkpt", f) for f in paths]
+
+        with abilab.DdbRobot.from_files(paths) as robot:
+            # Test anacompare_epsinf
+            rinf = robot.anacompare_epsinf(ddb_header_keys="nkpt", chneut=0, with_path=True, verbose=2)
+            assert "nkpt" in rinf.df
+            assert "ddb_path" in rinf.df
+            assert len(rinf.epsinf_list) == len(robot)
+
+            # Test anacompare_eps0
+            r0 = robot.anacompare_eps0(ddb_header_keys=["nkpt", "tsmear"], asr=0, tol=1e-5, with_path=True, verbose=2)
+            assert len(r0.eps0_list) == len(robot)
+            assert len(r0.dgen_list) == len(robot)
+            assert "ddb_path" in r0.df
+
+            # Test anacompare_becs
+            rb = robot.anacompare_becs(ddb_header_keys=["nkpt", "tsmear"], chneut=0, tol=1e-5, with_path=True, verbose=2)
+            assert len(rb.becs_list) == len(robot)
+            for k in ["nkpt", "tsmear", "ddb_path"]:
+                assert k in rb.df
 
 
 class PhononComputationTest(AbipyTest):
@@ -381,8 +478,6 @@ class PhononComputationTest(AbipyTest):
         path = os.path.join(abidata.dirpath, "refs", "mgb2_phonons_nkpt_tsmear", "mgb2_121212k_0.04tsmear_DDB")
         ddb = abilab.abiopen(path)
 
-        #for dos_method in ("gaussian",):
-        #for dos_method in ("tetra",):
         for dos_method in ("tetra", "gaussian"):
             # Get phonon bands and Dos with anaddb.
             phbands_file, phdos_file = ddb.anaget_phbst_and_phdos_files(nqsmall=4, ndivsm=2,

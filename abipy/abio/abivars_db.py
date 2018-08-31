@@ -21,9 +21,10 @@ def get_abinit_variables():
     return get_codevars()["abinit"]
 
 
-def docvar(varname):
+def docvar(varname, executable="abinit"):
     """Return the `Variable` object associated to this name."""
-    return get_abinit_variables()[varname]
+    from abipy.abio.abivar_database.variables import get_codevars
+    return get_codevars()[executable][varname]
 
 
 def abinit_help(varname, info=True, stream=sys.stdout):

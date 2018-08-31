@@ -34,17 +34,8 @@ class TestPlotting(AbipyTest):
         assert left_right == (1, 2)
 
     def test_data_from_cplx_mode(self):
-        """Testing data_from_cplx_mode."""
+        """Testing plot_array."""
         carr = np.empty((2, 4), dtype=np.complex)
-
-        self.assert_equal(data_from_cplx_mode("re", carr), carr.real)
-        self.assert_equal(data_from_cplx_mode("im", carr), carr.imag)
-        self.assert_equal(data_from_cplx_mode("abs", carr), np.abs(carr))
-        self.assert_equal(data_from_cplx_mode("angle", carr), np.angle(carr))
-        with self.assertRaises(ValueError):
-            data_from_cplx_mode("foo", carr)
-
-        # Test plot_array
         if self.has_matplotlib():
             assert plot_array(carr, cplx_mode="abs", show=False)
             cvec = np.empty(10, dtype=np.complex)
@@ -80,6 +71,9 @@ class TestPlotting(AbipyTest):
                                     color="red", marker="v")
             with self.assertRaises(ValueError):
                 plot_xy_with_hue(data=df, x="foo", y="y", hue="bar", ax=None, show=False)
+
+            assert plot_xy_with_hue(data=df, x="x", y=["y", "y"], hue="z", decimals=0, ax=None, show=False,
+                                    color="red", marker="v")
 
     def test_array_plotter(self):
         """Testing array plotter."""

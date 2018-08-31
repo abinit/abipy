@@ -12,7 +12,6 @@ from abipy.tools import duck
 # Array tools
 #########################################################################################
 
-
 def transpose_last3dims(arr):
     """
     Transpose the last three dimensions of arr: (...,x,y,z) --> (...,z,y,x).
@@ -61,6 +60,37 @@ def add_periodic_replicas(arr):
         oarr[..., x + 1, :, :] = oarr[..., 0, :, :]
 
     return oarr
+
+
+def data_from_cplx_mode(cplx_mode, arr, tol=None):
+    """
+    Extract the data from the numpy array ``arr`` depending on the values of ``cplx_mode``.
+
+    Args:
+        cplx_mode: Possible values in ("re", "im", "abs", "angle")
+            "re" for the real part,
+            "im" for the imaginary part.
+            "all" for both re and im.
+            "abs" means that the absolute value of the complex number is shown.
+            "angle" will display the phase of the complex number in radians.
+	tol: If not None, values below tol are set to zero. Cannot be used with "angle"
+    """
+    if cplx_mode == "re":
+        val = arr.real
+    elif cplx_mode == "im":
+        val = arr.imag
+    elif cplx_mode == "all":
+        val = arr
+    elif cplx_mode == "abs":
+        val = np.abs(arr)
+    elif cplx_mode == "angle":
+        val = np.angle(arr, deg=False)
+        if tol is not None:
+            raise ValueError("Tol cannot be used with cplx_mode = angle")
+    else:
+        raise ValueError("Unsupported mode `%s`" % str(cplx_mode))
+
+    return val if tol is None else np.where(np.abs(val) > tol, val, 0)
 
 #########################################################################################
 # Tools to facilitate iterations

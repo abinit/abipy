@@ -6,10 +6,10 @@ sudo: false
 
 env:
   global:
-    - ABINIT_VERSION=8.8.2
-    - ABIPY_PYTEST=yes
-    - OPENBLAS_NUM_THREADS=1
-    - OMP_NUM_THREADS=1
+  - ABINIT_VERSION=8.8.2
+  - ABIPY_PYTEST=yes
+  - OPENBLAS_NUM_THREADS=1
+  - OMP_NUM_THREADS=1
 
 matrix:
   include:
@@ -56,6 +56,8 @@ install:
         sed -i '/pymatgen/d' requirements.txt
         travis_wait pip install -r requirements.txt
         travis_wait pip install -r requirements-optional.txt
+        conda install -y -c conda-forge graphviz python-graphviz
+        #pip install graphviz
         #travis_wait pip uninstall -y pymatgen
 
       elif [ "${ABIPY_INSTALLER}" == "conda" ]; then
@@ -67,7 +69,7 @@ install:
       fi
 
   - if [[ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]]; then conda install mock; fi
-  #- pip install graphviz
+
 
   # Mayavi (optional requirement)
   #- if [[ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]]; then conda install mayavi; fi

@@ -7,7 +7,7 @@ This example shows how to compute the phonon band structure of AlAs with AbiPy f
 Symmetries are taken into account: only q-points in the IBZ are generated and
 for each q-point only the independent atomic perturbations are computed.
 The final results (out_DDB, out_DVDB) will be produced automatically at the end of the run
-and saved in ``flow_phonons/w1/outdata/``.
+and saved in ``flow_phonons/outdata/``.
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 
@@ -20,8 +20,7 @@ from abipy import flowtk
 
 def make_scf_input(paral_kgb=0):
     """
-    This function constructs the input files for the phonon calculation:
-    GS input + the input files for the phonon calculation.
+    This function constructs the input file for the GS calculation:
     """
     # Crystalline AlAs: computation of the second derivative of the total energy
     structure = abidata.structure_from_ucell("AlAs")
@@ -42,7 +41,7 @@ def make_scf_input(paral_kgb=0):
         tolvrs=1.0e-10,
         ixc=1,
         diemac=9.0,
-        iomode=3,
+        #iomode=3,
     )
 
     return gs_inp
@@ -53,7 +52,7 @@ def build_flow(options):
     Create a `Flow` for phonon calculations. The flow has two works.
 
     The first work contains a single GS task that produces the WFK file used in DFPT
-    The second work contains multiple PhononTasks that are generated automatically
+    Then we have multiple Works that are generated automatically
     in order to compute the dynamical matrix on a [4, 4, 4] mesh.
     Symmetries are taken into account: only q-points in the IBZ are generated and
     for each q-point only the independent atomic perturbations are computed.
@@ -62,16 +61,14 @@ def build_flow(options):
     if not options.workdir:
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
-    flow = flowtk.Flow(workdir=options.workdir)
-
-    # Build input for GS calculation and register the first work.
+    # Build input for GS calculation
     scf_input = make_scf_input()
-    work0 = flow.register_scf_task(scf_input)
 
-    # This call uses the information reported in the GS task (work0[0]) to
-    # compute all the independent atomic perturbations corresponding to a [4, 4, 4] q-mesh.
-    ph_work = flowtk.PhononWork.from_scf_task(work0[0], qpoints=[4, 4, 4], is_ngqpt=True)
-    flow.register_work(ph_work)
+    # Create flow to compute all the independent atomic perturbations
+    # corresponding to a [4, 4, 4] q-mesh.
+    # Electric field and Born effective charges are also computed.
+    flow = flowtk.PhononFlow.from_scf_input(options.workdir, scf_input,
+                                            ph_ngqpt=(4, 4, 4), with_becs=True)
 
     return flow
 
@@ -82,7 +79,8 @@ if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-    build_flow(options).plot_networkx(with_edge_labels=False, tight_layout=True)
+    #build_flow(options).plot_networkx(with_edge_labels=False, tight_layout=True)
+    build_flow(options).graphviz_imshow()
 
 
 @flowtk.flow_main
@@ -122,7 +120,7 @@ if __name__ == "__main__":
 #
 # Now open the final DDB file with:
 #
-#    abiopen.py flow_phonons/w1/outdata/out_DDB
+#    abiopen.py flow_phonons/outdata/out_DDB
 #
 # and invoke anaddb to compute the phonon band structure and the phonon DOS with:
 #

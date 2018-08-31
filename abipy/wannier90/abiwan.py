@@ -525,7 +525,7 @@ class AbiwanReader(ElectronsReader):
 
 class AbiwanRobot(Robot, RobotWithEbands):
     """
-    This robot analyzes the results contained in multiple ABIWAN.nc_ files.
+    This robot analyzes the results contained in multiple ABIWAN.nc files.
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: AbiwanRobot

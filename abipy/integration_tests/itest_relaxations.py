@@ -221,7 +221,8 @@ def itest_relaxation_with_target_dilatmx(fwp, tvars):
     # Use small value for ntime to trigger restart, then disable the output of the WFK file.
     ion_input, ioncell_input = make_ion_ioncell_inputs(tvars, dilatmx=1.05)
 
-    relax_work = flowtk.RelaxWork(ion_input, ioncell_input, target_dilatmx=1.03)
+    target_dilatmx = 1.03
+    relax_work = flowtk.RelaxWork(ion_input, ioncell_input, target_dilatmx=target_dilatmx)
     flow.register_work(relax_work)
 
     assert flow.make_scheduler().start() == 0
@@ -229,6 +230,7 @@ def itest_relaxation_with_target_dilatmx(fwp, tvars):
 
     assert all(work.finalized for work in flow)
     assert flow.all_ok
+    #assert relax_work.last_dilatmx <= target_dilatmx
 
     # we should have (0, 1) restarts
     for i, task in enumerate(relax_work):

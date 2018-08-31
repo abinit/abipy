@@ -448,11 +448,14 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
                              "Use Structure objects to prepare the input file.")
 
         if self.spell_check and not is_abivar(key):
-            raise self.Error("%s is not a valid ABINIT variable.\n" % key +
-                             "If the name is correct, try to remove ~/.abinit/abipy/abinit_vars.pickle\n"
-                             "and rerun the code. If the problems persists, contact the abipy developers\n"
-                             "or use input.set_spell_check(False)\n"
-                             "or add the variable to ~abipy/data/variables/abinit_vars.json\n")
+            raise self.Error("""
+Cannot find variable `%s` in internal database.
+If you think this is not a typo, use:
+
+    input.set_spell_check(False)
+
+to disable spell checking. Perhaps the internal database is not in synch
+with the Abinit version you are using. Please contact the AbiPy developers.""" % key)
 
     #def __eq__(self, other)
     #def __ne__(self, other)
@@ -565,7 +568,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
         String representation.
 
         Args:
-            sortmode: "section" if variables should be gruped by sections.
+            sortmode: "section" if variables should be grouped by sections.
                 "a" for alphabetical order, None if no sorting is wanted.
             with_mnemonics: True if mnemonics should be added.
             mode: Either `text` or `html` if HTML output with links is wanted.
@@ -740,7 +743,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
     def set_phdos_qmesh(self, nqsmall, method="tetra", ph_qshift=(0, 0, 0)):
         """
         Set the variables (ngkpt, shift, kptopt) for the computation of the Phonon DOS in Abinit.
-        Remember that the Phdos is computed via Fourier interpolation so there's no costraint
+        Remember that the Phdos is computed via Fourier interpolation so there's no constraint
         of the q-mesh.
 
         Args:
@@ -1132,10 +1135,10 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
 
     #def pop_relax_vars(self):
     #    """
-    #    Remove all the `ird*` variables present in self.
+    #    Remove all the relax variables present in self.
     #    Return dictionary with the variables that have been removed.
     #    """
-    #    return scf_input.pop_vars(["ionmov", "optcell", "ntime", "dilatmx"])
+    #    return self.pop_vars(["ionmov", "optcell", "ntime", "dilatmx"])
 
     @property
     def scf_tolvar(self):
@@ -1155,7 +1158,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
 
     def make_ph_inputs_qpoint(self, qpt, tolerance=None, manager=None):
         """
-        This functions builds and returns a list of input files
+        Builds and returns a |MultiDataset| list of input files
         for the calculation of phonons at the given q-point `qpt`.
         It should be called with an input the represents a GS run.
 
@@ -1164,9 +1167,6 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
             tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.
                 Defaults to {"tolvrs": 1.0e-10}.
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
-
-        Return:
-            List of |AbinitInput| objects for DFPT runs.
 
         .. WARNING::
 
@@ -1209,15 +1209,18 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
 
         return ph_inputs
 
-    def make_ddk_inputs(self, tolerance=None, kptopt=2):
+    def make_ddk_inputs(self, tolerance=None, kptopt=2, only_vk=False, manager=None):
         """
         Return inputs for performing DDK calculations.
         This functions should be called with an input the represents a GS run.
 
         Args:
-            kptopt: 2 to take into account time-reversal symmetry. note that kptopt 1 is not available.
             tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.
                 Defaults to {"tolwfr": 1.0e-22}.
+            kptopt: 2 to take into account time-reversal symmetry. note that kptopt 1 is not available.
+            only_vk: If only matrix elements of the velocity operator are needed.
+                First-order wavefunctions won't be converged --> not usable for other DFPT calculations.
+            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
 
         Return:
             List of |AbinitInput| objects for DFPT runs.
@@ -1243,6 +1246,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
         for rfdir, ddk_input in zip(ddk_rfdirs, ddk_inputs):
             ddk_input.set_vars(
                 rfelfd=2,             # Activate the calculation of the d/dk perturbation
+                                      # only the derivative of ground-state wavefunctions with respect to k
                 rfdir=rfdir,          # Direction of the per ddk.
                 nqpt=1,               # One wavevector is to be considered
                 qpt=(0, 0, 0),        # q-wavevector.
@@ -1253,22 +1257,22 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
             ddk_input.pop_tolerances()
             ddk_input.set_vars(tolerance)
 
+        if only_vk:
+            ddk_inputs.set_vars(nstep=1, nline=1)
+
         return ddk_inputs
 
     def make_dde_inputs(self, tolerance=None, use_symmetries=True, manager=None):
         """
-        Return inputs for the calculation of the electric field perturbations.
+        Return |MultiDataset| inputs for the calculation of the electric field perturbations.
         This functions should be called with an input the represents a gs run.
 
         Args:
             tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.
-                Defaults to {"tolwfr": 1.0e-22}.
+                Defaults to {"tolvrs": 1.0e-22}.
             use_symmetries: boolean that computes the irreducible components of the perturbation.
                 Default to True. Should be set to False for nonlinear coefficients calculation.
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
-
-        Return:
-            List of |AbinitInput| objects for DFPT runs.
         """
         if tolerance is None:
             tolerance = {"tolvrs": 1.0e-22}
@@ -1276,7 +1280,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
             raise self.Error("Invalid tolerance: %s" % str(tolerance))
 
-        if use_symmetries == True:
+        if use_symmetries:
             # Call Abinit to get the list of irred perts.
             perts = self.abiget_irred_ddeperts(manager=manager)
 
@@ -1308,6 +1312,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
 
         multi.set_vars(
             rfelfd=3,       # Activate the calculation of the electric field perturbation
+                            # Assuming the data on derivative of ground-state wavefunction with respect
+                            # to k (DDK) is available on disk and will be read with getddk/irddk
             nqpt=1,         # One wavevector is to be considered
             qpt=(0, 0, 0),  # q-wavevector.
             kptopt=2,       # Take into account time-reversal symmetry.
@@ -1320,7 +1326,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
 
     def make_dte_inputs(self, phonon_pert=False, skip_permutations=False, manager=None):
         """
-        Return inputs for the DTE calculation.
+        Return |MultiDataset| inputs for DTE calculation.
         This functions should be called with an input that represents a GS run.
 
         Args:
@@ -1348,7 +1354,6 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
         multi = MultiDataset.replicate_input(input=self, ndtset=len(perts))
 
         # See tutorespfn/Input/tnlo_2.in
-
         na = len(self.structure)
 
         for pert, inp in zip(perts, multi):
@@ -1387,8 +1392,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
 
     def make_bec_inputs(self, tolerance=None, manager=None):
         """
-        Return inputs for the calculation of the Born effective charges.
-
+        Return |MultiDataset| inputs for the calculation of the Born effective charges.
         This functions should be called with an input that represents a GS run.
         """
         if tolerance is None:
@@ -1425,13 +1429,26 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
 
         return multi
 
-    def make_strain_perts_inputs(self, tolerance=None, manager=None):
+    def make_strain_perts_inputs(self, tolerance=None, phonon_pert=True, kptopt=2, manager=None):
+        """
+        Return |MultiDataset| inputs for strain perturbation calculation.
+        This functions should be called with an input that represents a GS run.
+
+        Args:
+            tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.
+                Defaults to {"tolvrs": 1.0e-12}.
+            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
+            phonon_pert: is True also the phonon perturbations will be considered. Default False.
+            kptopt: 2 to take into account time-reversal symmetry.
+        """
         if tolerance is None:
             tolerance = {"tolvrs": 1.0e-12}
+
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
             raise self.Error("Invalid tolerance: {}".format(str(tolerance)))
 
-        perts = self.abiget_irred_strainperts(kptopt=2, manager=manager)
+        perts = self.abiget_irred_strainperts(kptopt=kptopt, manager=manager, phonon_pert=phonon_pert)
+        #print("Stress perts:", perts)
 
         # Build list of datasets (one input per perturbation)
         multi = MultiDataset.replicate_input(input=self, ndtset=len(perts))
@@ -1439,41 +1456,40 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
         for pert, inp in zip(perts, multi):
             rfdir = 3 * [0]
             rfdir[pert.idir -1] = 1
+
             if pert.ipert <= len(self.structure):
                 inp.set_vars(rfphon=1,             # Activate the calculation of the atomic dispacement perturbations
                              rfatpol=[pert.ipert, pert.ipert],
                              rfdir=rfdir,
                              nqpt=1,               # One wavevector is to be considered
                              qpt=(0, 0, 0),        # q-wavevector.
-                             kptopt=3,             # No symmetries
-                             iscf=7,
+                             kptopt=kptopt,        # No symmetries
+                             #iscf=7,
                              paral_kgb=0
                              )
+
             elif pert.ipert == len(self.structure) + 3:
                 inp.set_vars(rfstrs=1,             # Activate the calculation of the strain perturbations (uniaxial)
                              rfdir=rfdir,
                              nqpt=1,               # One wavevector is to be considered
                              qpt=(0, 0, 0),        # q-wavevector.
-                             kptopt=3,             # No symmetries
-                             iscf=7,
+                             kptopt=kptopt,        # No symmetries
+                             #iscf=7,
                              paral_kgb=0
                              )
+
             elif pert.ipert == len(self.structure) + 4:
                 inp.set_vars(rfstrs=2,             # Activate the calculation of the strain perturbations (shear)
                              rfdir=rfdir,
                              nqpt=1,               # One wavevector is to be considered
                              qpt=(0, 0, 0),        # q-wavevector.
-                             kptopt=3,             # No symmetries
-                             iscf=7,
+                             kptopt=kptopt,        # No symmetries
+                             #iscf=7,
                              paral_kgb=0
                              )
 
             inp.pop_tolerances()
             inp.set_vars(tolerance)
-            # Adding buffer to help convergence ...
-            if 'nbdbuf' not in inp:
-                nbdbuf = max(int(0.1*inp['nband']), 4)
-                inp.set_vars(nband=inp['nband']+nbdbuf, nbdbuf=nbdbuf)
 
         return multi
 
@@ -1499,18 +1515,21 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
         return dict2namedtuple(retcode=retcode, output_file=task.output_file, log_file=task.log_file,
                                stderr_file=task.stderr_file, task=task)
 
-    def abiget_spacegroup(self, tolsym=None, workdir=None, manager=None):
+    def abiget_spacegroup(self, tolsym=None, retdict=False, workdir=None, manager=None, verbose=0):
         """
         This function invokes Abinit to get the space group (as detected by Abinit, not by spglib)
         It should be called with an input file that contains all the mandatory variables required by ABINIT.
 
         Args:
             tolsym: Abinit tolsym input variable. None correspondes to the default value.
+            retdict: True to return dictionary with space group information instead of Structure.
             workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
+	    verbose: Verbosity level.
 
         Return:
-            |Structure| object with AbinitSpaceGroup obtained from the main output file.
+            |Structure| object with AbinitSpaceGroup obtained from the main output file if retdict is False
+	    else dict with e.g. {'bravais': 'Bravais cF (face-center cubic)', 'spg_number': 227, 'spg_symbol': 'Fd-3m'}.
         """
         # Avoid modifications in self.
         inp = self.deepcopy()
@@ -1529,7 +1548,12 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
         from abipy.abio.outputs import AbinitOutputFile
         try:
             with AbinitOutputFile(task.output_file.path) as out:
-                return out.initial_structure
+                if not retdict:
+                    return out.initial_structure
+                else:
+                    dims_dataset, spginfo_dataset = out.get_dims_spginfo_dataset(verbose=verbose)
+                    return spginfo_dataset[1]
+
         except Exception as exc:
             self._handle_task_exception(task, exc)
 
@@ -1790,7 +1814,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
         return self._abiget_irred_perts(dteperts_vars, qpt=(0, 0, 0), ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt,
                                         workdir=workdir, manager=manager)
 
-    def abiget_irred_strainperts(self, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
+    def abiget_irred_strainperts(self, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None,
+                                 phonon_pert=True):
         """
         This function, computes the list of irreducible perturbations for strain perturbations in DFPT.
         It should be called with an input file that contains all the mandatory variables required by ABINIT.
@@ -1801,6 +1826,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
             kptopt: Option for k-point generation. If None, the value in self is used.
             workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
+            phonon_pert: if True the phonon perturbation at gamma will be included.
 
         Returns:
             List of dictionaries with the Abinit variables defining the irreducible perturbation
@@ -1810,15 +1836,17 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
             [{'idir': 1, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]},
              {'idir': 2, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]}]
         """
-        strainperts_vars = dict(rfphon=1,                        # No phonon-type perturbation
-                                rfatpol=(1,len(self.structure)), # Perturbation of all atoms
-                                rfstrs=3,                        # Do the strain perturbations
+        strainperts_vars = dict(rfstrs=3,                        # Do the strain perturbations
                                 rfdir=(1,1,1),                   # All directions
                                 # nqpt=1,                        # One wavevector is to be considered
                                 # qpt=(0, 0, 0),                 # q-wavevector.
                                 kptopt=kptopt,                   # Take into account time-reversal symmetry.
                                 iscf=7                           # Just so that it works with PAW ... #TODO: check this
                              )
+
+        if phonon_pert:
+            strainperts_vars['rfphon'] = 1                        # No phonon-type perturbation
+            strainperts_vars['rfatpol'] = (1,len(self.structure)) # Perturbation of all atoms
 
         return self._abiget_irred_perts(strainperts_vars, qpt=(0, 0, 0), ngkpt=ngkpt, shiftk=shiftk,
                                         kptopt=kptopt,
@@ -2070,7 +2098,7 @@ class MultiDataset(object):
             new_mds.extend(other)
             return new_mds
         else:
-            return NotImplementedError("Operation not supported")
+            raise NotImplementedError("Operation not supported")
 
     def __radd__(self, other):
         if isinstance(other, AbinitInput):
@@ -2080,7 +2108,7 @@ class MultiDataset(object):
             new_mds = MultiDataset.from_inputs(other)
             new_mds.extend(self)
         else:
-            return NotImplementedError("Operation not supported")
+            raise NotImplementedError("Operation not supported")
 
     def append(self, abinit_input):
         """Add a |AbinitInput| to the list."""
@@ -2315,7 +2343,7 @@ class AnaddbInput(AbiAbstractInput, Has_Structure):
         """
         self.set_spell_check(spell_check)
         self._structure = structure
-        self.comment = comment
+        self.comment = "" if comment is None else str(comment)
 
         anaddb_args = [] if anaddb_args is None else anaddb_args
         for key, value in anaddb_args:
@@ -2348,16 +2376,20 @@ class AnaddbInput(AbiAbstractInput, Has_Structure):
 
     def _check_varname(self, key):
         if self.spell_check and not is_anaddb_var(key):
-            raise self.Error("%s is not a registered Anaddb variable\n"
-                             "If you are sure the name is correct, please contact the abipy developers\n"
-                             "or use input.set_spell_check(False)\n"
-                             "or modify the JSON file abipy/data/variables/anaddb_vars.json" % key)
+            raise self.Error("""
+Cannot find variable `%s` in internal database.
+If you think this is not a typo, use:
+
+    input.set_spell_check(False)
+
+to disable spell checking. Perhaps the internal database is not in synch
+with the Abinit version you are using. Please contact the AbiPy developers.""" % key)
 
     @classmethod
     def modes_at_qpoint(cls, structure, qpoint, asr=2, chneut=1, dipdip=1, ifcflag=0, lo_to_splitting=False,
                         directions=None, anaddb_args=None, anaddb_kwargs=None, spell_check=False):
         """
-        Input file for the calculation of the phonon frequencies at a given q-point.
+        Build an |AnaddbInput| for the calculation of the phonon frequencies at a given q-point.
 
         Args:
             structure: |Structure| object
@@ -2370,17 +2402,13 @@ class AnaddbInput(AbiAbstractInput, Has_Structure):
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
             spell_check: False to disable spell checking for input variables.
         """
-        new = cls(structure, comment="ANADB input for phonon frequencies at one q-point",
+        new = cls(structure, comment="ANADDB input for phonon frequencies at one q-point",
                   anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
 
         # We need a numpy array.
-        if hasattr(qpoint, "frac_coords"):
-            qpoint = qpoint.frac_coords
-        else:
-            qpoint = np.array(qpoint)
+        qpoint = qpoint.frac_coords if hasattr(qpoint, "frac_coords") else np.array(qpoint)
 
         if len(qpoint) != 3:
-            #print(type(qpoint), qpoint.shape)
             raise ValueError("Wrong q-point %s" % qpoint)
 
         new.set_vars(
@@ -2408,33 +2436,27 @@ class AnaddbInput(AbiAbstractInput, Has_Structure):
         return new
 
     @classmethod
-    def piezo_elastic(cls, structure, anaddb_args=None, anaddb_kwargs=None, stress_correction=False):
-        """Build Anaddb input file for the calculation of piezoelectric and elastic tensor calculations."""
-        new = cls(structure, comment="ANADB input for piezoelectric and elastic tensor calculation",
-                  anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
+    def piezo_elastic(cls, structure, relaxed_ion=True, stress_correction=False,
+                      asr=2, chneut=1, dipdip=1, anaddb_args=None, anaddb_kwargs=None):
+        """
+        Build an |AnaddbInput| for the calculation of piezoelectric and elastic tensor calculations.
 
-        if stress_correction:
-            elaflag = 5
-        else:
-            elaflag = 3
+        Args:
+            asr, chneut, dipdp: Anaddb input variable. See official documentation.
+        """
+        comment = "ANADDB input for piezoelectric and elastic tensor calculation"
 
-        new.set_vars(
-            elaflag=elaflag,
-            piezoflag=3,
-            instrflag=1,
-            chneut=1,
-            asr=0,
-            symdynmat=1
-        )
-
+        new = cls.dfpt(structure, relaxed_ion=relaxed_ion, piezo=True, dde=False, strain=True, dte=False,
+                       stress_correction=stress_correction, asr=asr, chneut=chneut, dipdip=dipdip,
+                       anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs, comment=comment)
         return new
 
     @classmethod
     def phbands_and_dos(cls, structure, ngqpt, nqsmall, qppa=None, ndivsm=20, line_density=None, q1shft=(0, 0, 0),
                         qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method="tetra", lo_to_splitting=False,
-                        anaddb_args=None, anaddb_kwargs=None, spell_check=False):
+                        anaddb_args=None, anaddb_kwargs=None, spell_check=False, comment=None):
         """
-        Build an anaddb input file for the computation of phonon bands and phonon DOS.
+        Build an |AnaddbInput| for the computation of phonon bands and phonon DOS.
 
         Args:
             structure: |Structure| object
@@ -2457,6 +2479,7 @@ class AnaddbInput(AbiAbstractInput, Has_Structure):
             anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
             spell_check: False to disable spell checking for input variables.
+            comment: Optional string with a comment that will be placed at the beginning of the file.
         """
         dosdeltae, dossmear = None, None
 
@@ -2471,13 +2494,13 @@ class AnaddbInput(AbiAbstractInput, Has_Structure):
         else:
             raise NotImplementedError("Wrong value for dos_method: %s" % str(dos_method))
 
-        new = cls(structure, comment="ANADB input for phonon bands and DOS",
+        new = cls(structure, comment="ANADDB input for phonon bands and DOS" if not comment else comment,
                   anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs, spell_check=spell_check)
 
         # Parameters for the DOS
         if qppa:
             ng2qpt = KSampling.automatic_density(structure, kppa=qppa).kpts[0]
-            #set new variables
+            # Set new variables
             new.set_vars(ng2qpt=ng2qpt,prtdos=prtdos,dossmear=dossmear)
         else:
             new.set_autoqmesh(nqsmall)
@@ -2485,7 +2508,7 @@ class AnaddbInput(AbiAbstractInput, Has_Structure):
             if nqsmall == 0:
                 new["prtdos"] = 0
 
-        # Parameters for the BS
+        # Parameters for the Bandstructure.
         if line_density:
             hs = HighSymmKpath(structure, symprec=1e-2)
             qpts, labels_list = hs.get_kpoints(line_density=line_density, coords_are_cartesian=False)
@@ -2537,89 +2560,9 @@ class AnaddbInput(AbiAbstractInput, Has_Structure):
         return new
 
     @classmethod
-    def thermo(cls, structure, ngqpt, nqsmall, q1shft=(0, 0, 0), nchan=1250, nwchan=5, thmtol=0.5,
-               ntemper=199, temperinc=5, tempermin=5., asr=2, chneut=1, dipdip=1, ngrids=10,
-               anaddb_args=None, anaddb_kwargs=None):
-
-        """
-        Build an anaddb input file for the computation of phonon bands and phonon DOS.
-        Note: This method is deprecated because now it's possible to compute Thermodynamical
-        properties from PhDos
-
-        Args:
-            structure: |Structure| object
-            ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
-            nqsmall: Used to generate the (dense) mesh for the DOS.
-                It defines the number of q-points used to sample the smallest lattice vector.
-            q1shft: Shifts used for the coarse Q-mesh
-            nchan:
-            nwchan:
-            thmtol:
-            ntemper:
-            temperinc:
-            tempermin:
-            asr, chneut, dipdp: Anaddb input variable. See official documentation.
-            ngrids:
-            anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
-            anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
-
-            #!Flags
-            # ifcflag   1     ! Interatomic force constant flag
-            # thmflag   1     ! Thermodynamical properties flag
-            #!Wavevector grid number 1 (coarse grid, from DDB)
-            #  brav    2      ! Bravais Lattice : 1-S.C., 2-F.C., 3-B.C., 4-Hex.)
-            #  ngqpt   4  4  4   ! Monkhorst-Pack indices
-            #  nqshft  1         ! number of q-points in repeated basic q-cell
-            #  q1shft  3*0.0
-            #!Effective charges
-            #     asr   1     ! Acoustic Sum Rule. 1 => imposed asymetrically
-            #  chneut   1     ! Charge neutrality requirement for effective charges.
-            #!Interatomic force constant info
-            #  dipdip  1      ! Dipole-dipole interaction treatment
-            #!Wavevector grid number 2 (series of fine grids, extrapolated from interat forces)
-            #  ng2qpt   20 20 20  ! sample the BZ up to ngqpt2
-            #  ngrids   5         ! number of grids of increasing size#  q2shft   3*0.0
-            #!Thermal information
-            #  nchan   1250   ! # of channels for the DOS with channel width 1 cm-1
-            #  nwchan  5      ! # of different channel widths from this integer down to 1 cm-1
-            #  thmtol  0.120  ! Tolerance on thermodynamical function fluctuations
-            #  ntemper 10     ! Number of temperatures
-            #  temperinc 20.  ! Increment of temperature in K for temperature dependency
-            #  tempermin 20.  ! Minimal temperature in Kelvin
-            # This line added when defaults were changed (v5.3) to keep the previous, old behaviour
-            #  symdynmat 0
-
-        """
-        new = cls(structure, comment="ANADB input for thermodynamics",
-                  anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
-        new.set_autoqmesh(nqsmall)
-
-        q1shft = np.reshape(q1shft, (-1, 3))
-
-        new.set_vars(
-            ifcflag=1,
-            thmflag=1,
-            ngqpt=np.array(ngqpt),
-            ngrids=ngrids,
-            q1shft=q1shft,
-            nqshft=len(q1shft),
-            asr=asr,
-            chneut=chneut,
-            dipdip=dipdip,
-            nchan=nchan,
-            nwchan=nwchan,
-            thmtol=thmtol,
-            ntemper=ntemper,
-            temperinc=temperinc,
-            tempermin=tempermin,
-        )
-
-        return new
-
-    @classmethod
     def modes(cls, structure, enunit=2, asr=2, chneut=1, anaddb_args=None, anaddb_kwargs=None):
         """
-        Build an anaddb input file for the computation of phonon modes.
+        Build an |AnaddbInput| for the computation of phonon modes.
 
         Args:
             Structure: |Structure| object
@@ -2632,27 +2575,8 @@ class AnaddbInput(AbiAbstractInput, Has_Structure):
             asr, chneut, dipdp: Anaddb input variable. See official documentation.
             anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
-
-        #!General information
-        #enunit    2
-        #eivec     1
-        #!Flags
-        #dieflag   1
-        #ifcflag   1
-        #ngqpt     1 1 1
-        #!Effective charges
-        #asr       2
-        #chneut    2
-        # Wavevector list number 1
-        #nph1l     1
-        #qph1l   0.0  0.0  0.0    1.0   ! (Gamma point)
-        #!Wavevector list number 2
-        #nph2l     3      ! number of phonons in list 1
-        #qph2l   1.0  0.0  0.0    0.0
-        #        0.0  1.0  0.0    0.0
-        #        0.0  0.0  1.0    0.0
         """
-        new = cls(structure, comment="ANADB input for modes", anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
+        new = cls(structure, comment="ANADDB input for modes", anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
 
         new.set_vars(
             enunit=enunit,
@@ -2674,7 +2598,7 @@ class AnaddbInput(AbiAbstractInput, Has_Structure):
     def ifc(cls, structure, ngqpt, ifcout=None, q1shft=(0, 0, 0), asr=2, chneut=1, dipdip=1, anaddb_args=None,
             anaddb_kwargs=None):
         """
-        Build an anaddb input file for the computation of interatomic force constants.
+        Build an |AnaddbInput| for the computation of interatomic force constants.
 
         Args:
             structure: |Structure| object
@@ -2685,8 +2609,7 @@ class AnaddbInput(AbiAbstractInput, Has_Structure):
             anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
         """
-
-        new = cls(structure, comment="ANADB input for IFC",
+        new = cls(structure, comment="ANADDB input for IFC",
                   anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
 
         q1shft = np.reshape(q1shft, (-1, 3))
@@ -2711,6 +2634,99 @@ class AnaddbInput(AbiAbstractInput, Has_Structure):
         )
 
         return new
+
+    @classmethod
+    def dfpt(cls, structure, ngqpt=None, relaxed_ion=False, piezo=False, dde=False, strain=False, dte=False,
+             stress_correction=False, nqsmall=None, qppa=None, ndivsm=20, line_density=None, q1shft=(0, 0, 0),
+             qptbounds=None, asr=2, chneut=1, dipdip=1, dos_method="tetra", anaddb_args=None, anaddb_kwargs=None, comment=None):
+        """
+        Builds an |AnaddbInput| to post-process a generic DFPT calculation.
+
+        Args:
+            structure: |Structure| object.
+            ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
+            stress_correction: True to activate computation of  stress correction in elastic tensor.
+                Requires DDB with stress entries.
+            relaxed_ion: True to activate computation of relaxed-ion elastic and piezoelectric tensors.
+                (assume the DDB has atomic perturbations at Gamma)
+            piezo: if True the piezoelectric tensor are calculated (requires piezoelectric perturbations)
+            dde: if True dielectric tensors will be calculated. If phonon band
+                structure is calculated will also enable the calculation of the lo_to splitting
+                (requires the DDE perturbations)
+            strain: if True the elastic tensors will be calculated (requires the strain perturbations)
+            dte: if True properties related to the nonlinear tensors will be calculated
+                (requires third orders perturbations)
+            nqsmall: Used to generate the (dense) mesh for the DOS.
+                It defines the number of q-points used to sample the smallest lattice vector.
+            qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per reciproval atom.
+                Overrides nqsmall.
+            line_density: Defines the a density of k-points per reciprocal atom to plot the phonon dispersion.
+                Overrides ndivsm.
+            ndivsm: Used to generate a normalized path for the phonon bands.
+                If gives the number of divisions for the smallest segment of the path.
+            q1shft: Shifts used for the coarse Q-mesh
+            qptbounds Boundaries of the path. If None, the path is generated from an internal database
+                depending on the input structure.
+            asr, chneut, dipdp: Anaddb input variable. See official documentation.
+            dos_method: Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
+                In the later case, the value 0.001 eV is used as gaussian broadening
+            anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
+            anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
+            comment: Optional string with a comment that will be placed at the beginning of the file.
+        """
+        # use the phonon BS and DOS input as starting point is required, otherwise
+        if ngqpt:
+            anaddb_input = cls.phbands_and_dos(structure=structure, ngqpt=ngqpt, ndivsm=ndivsm, nqsmall=nqsmall,
+                                               qppa=qppa, line_density=line_density, asr=asr, chneut=chneut,
+                                               dipdip=dipdip, qptbounds=qptbounds, dos_method=dos_method,
+                                               lo_to_splitting=dde, q1shft=q1shft, comment=comment)
+        else:
+            anaddb_input = AnaddbInput(structure, comment=comment)
+            anaddb_input.set_vars(asr=asr, chneut=chneut)
+
+        dieflag = 0
+        if dde:
+            dieflag = 3 if (relaxed_ion and strain) else 2
+
+        elaflag = 0
+        if strain:
+            if not relaxed_ion:
+                elaflag = 1
+            elif stress_correction:
+                elaflag = 5
+            else:
+                elaflag = 3
+
+        piezoflag = 0
+        if piezo:
+            if not relaxed_ion:
+                piezoflag = 1
+            elif dde and strain:
+                piezoflag = 7
+            else:
+                piezoflag = 3
+
+        anaddb_input.set_vars(dieflag=dieflag, elaflag=elaflag, piezoflag=piezoflag)
+
+        if dieflag == 3 and 'nph2l' not in anaddb_input:
+            anaddb_input['nph2l'] = 1
+
+        if elaflag > 1:
+            anaddb_input["instrflag"] = 1
+
+        if dte:
+            anaddb_input.set_vars(nlflag=1,
+                                  ramansr=1,
+                                  alphon=1,
+                                  prtmbm=1)
+
+        anaddb_args = [] if anaddb_args is None else anaddb_args
+        anaddb_kwargs = {} if anaddb_kwargs is None else anaddb_kwargs
+        args = list(anaddb_args)[:]
+        args.extend(list(anaddb_kwargs.items()))
+        anaddb_input.set_vars(args)
+
+        return anaddb_input
 
     @property
     def structure(self):
@@ -2740,8 +2756,7 @@ class AnaddbInput(AbiAbstractInput, Has_Structure):
         else:
             raise ValueError("Unsupported value for sortmode %s" % str(sortmode))
 
-        # https://www.abinit.org/doc/helpfiles/for-v8.4/users/anaddb_help.html#mustar
-        root = "https://www.abinit.org/doc/helpfiles/for-v8.4/users/anaddb_help.html"
+        root = "https://docs.abinit.org/variables/anaddb/"
         for varname in keys:
             value = self[varname]
             if mode == "html": varname = root + "#%s" % varname
@@ -2809,8 +2824,7 @@ class OpticVar(collections.namedtuple("OpticVar", "name default group help")):
     @property
     def url(self):
         """The url associated to the variable."""
-        # TODO: root will change once we move to the new website.
-        root = "https://www.abinit.org/sites/default/files/last/users/optic_help.html"
+        root = "https://docs.abinit.org/variables/optic/"
         return root + "#%s" % self.name
 
     def html_link(self, label=None):

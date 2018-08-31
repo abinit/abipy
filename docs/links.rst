@@ -88,6 +88,7 @@
 .. |pymatgen-Structure| replace:: :class:`pymatgen.core.structure.Structure`
 .. |Lattice| replace:: :class:`pymatgen.core.lattice.Lattice`
 .. |AbinitInput| replace:: :class:`abipy.abio.inputs.AbinitInput`
+.. |AnaddbInput| replace:: :class:`abipy.abio.inputs.AnaddbInput`
 .. |MultiDataset| replace:: :class:`abipy.abio.inputs.MultiDataset`
 .. |ElectronBands| replace:: :class:`abipy.electrons.ebands.ElectronBands`
 .. |ElectronBandsPlotter| replace:: :class:`abipy.electrons.ebands.ElectronBandsPlotter`
@@ -107,6 +108,10 @@
 .. |DielectricTensorGenerator| replace:: :class:`abipy.dfpt.ddb.DielectricTensorGenerator`
 .. |DdbRobot| replace:: :class:`abipy.dfpt.ddb.DdbRobot`
 .. |AnaddbNcFile| replace:: :class:`abipy.dfpt.anaddb.AnaddbNcFile`
+.. |pmg-Tensor| replace:: :class:`pymatgen.analysis.elasticity.tensors.Tensor` 
+.. |Stress| replace:: :class:`abipy.tools.tensors.Stress` 
+.. |DielectricTensor| replace:: :class:`abipy.tools.tensors.DielectricTensor` 
+.. |ElasticData| replace:: :class:`abipy.dfpt.elastic.ElasticData`
 .. |PhbstFile| replace:: :class:`abipy.dfpt.phonons.PhbstFile`
 .. |PhdosFile| replace:: :class:`abipy.dfpt.phonons.PhdosFile`
 .. |PhononDos| replace:: :class:`abipy.dfpt.phonons.PhononDos`
@@ -162,10 +167,6 @@
      :target: https://requires.io/github/abinit/abipy/requirements/?branch=develop
      :alt: Requirements Status
 
-.. |docs-stable| image:: https://img.shields.io/badge/docs-stable_version-blue.svg
-     :alt: Documentation stable version
-     :target: http://pythonhosted.org/abipy/
-
-.. |docs-devel| image:: https://img.shields.io/badge/docs-devel_version-ff69b4.svg
-     :alt: Documentation development version
+.. |docs-github| image:: https://img.shields.io/badge/docs-ff69b4.svg
+     :alt: AbiPy Documentation
      :target: http://abinit.github.io/abipy
