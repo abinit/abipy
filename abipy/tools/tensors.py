@@ -8,9 +8,10 @@ import numpy as np
 import pandas as pd
 
 try:
-    from pymatgen.core.tensors import SquareTensor
-except ImportError
-    from pymatgen.analysis.elasticity.tensors import SquareTensor
+    from pymatgen.core.tensors import Tensor, SquareTensor
+except ImportError:
+    # Can be removed in v2019.1.1
+    from pymatgen.analysis.elasticity.tensors import Tensor, SquareTensor
 
 from pymatgen.analysis.elasticity.tensors import SquareTensor
 from pymatgen.analysis.elasticity.stress import Stress as pmg_Stress
