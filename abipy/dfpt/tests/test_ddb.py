@@ -166,10 +166,10 @@ class DdbTest(AbipyTest):
                 title="Phonon bands and DOS of %s" % phbands.structure.formula)
             assert phbands_file.plot_phbands(show=False)
 
-        # Get emacro and becs
-        emacro, becs = ddb.anaget_emacro_and_becs(chneut=1, verbose=1)
+        # Get epsinf and becs
+        r = ddb.anaget_epsinf_and_becs(chneut=1, verbose=1)
+        epsinf, becs = r.epsinf, r.becs
         assert np.all(becs.values == 0)
-        #assert np.all(emacro.values == 0)
         repr(becs); str(becs)
         assert becs.to_string(verbose=2)
 
@@ -231,8 +231,9 @@ class DdbTest(AbipyTest):
             assert ddb.has_epsinf_terms()
             assert ddb.has_lo_to_data()
 
-            # Get emacro and becs
-            emacro, becs = ddb.anaget_emacro_and_becs(chneut=1, verbose=1)
+            # Get epsinf and becs
+            epsinf, becs = ddb.anaget_epsinf_and_becs(chneut=1, verbose=1)
+
             ref_becs_values = [
                 [[  2.15646571e+00,   0.00000000e+00,   3.26402110e-25],
                  [  0.00000000e+00,   2.15646571e+00,  -5.46500204e-24],
@@ -248,12 +249,12 @@ class DdbTest(AbipyTest):
                  [  5.66391495e-24,   2.28904397e-24,  -2.19362823e+00]]
                 ]
 
-            ref_emacro = [[ 5.42055574e+00,  8.88178420e-16, -1.30717901e-25],
+            ref_epsinf = [[ 5.42055574e+00,  8.88178420e-16, -1.30717901e-25],
                           [-8.88178420e-16,  5.42055574e+00, -2.26410045e-25],
                           [-1.30717901e-25,  2.26410045e-25,  4.98835236e+00]]
 
             self.assert_almost_equal(becs.values, ref_becs_values)
-            self.assert_almost_equal(emacro, ref_emacro)
+            self.assert_almost_equal(np.array(epsinf), ref_epsinf)
             repr(becs); str(becs)
             assert becs.to_string(verbose=2)
             for arr, z in zip(becs.values, becs.zstars):
@@ -266,7 +267,7 @@ class DdbTest(AbipyTest):
             assert dtg is not None and hasattr(dtg, "phfreqs")
             assert dtg.to_string(verbose=2)
 
-    def test_mgo_becs_emacro(self):
+    def test_mgo_becs_epsinf(self):
         """
         Testing DDB for MgO with with Born effective charges and E_macro.
         Large breaking of the ASR.

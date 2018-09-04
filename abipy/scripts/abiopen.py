@@ -166,6 +166,13 @@ def main():
     if not os.path.exists(options.filepath):
         raise RuntimeError("%s: no such file" % options.filepath)
 
+    #if options.filepath.endswith(".ipynb"):
+    #    import papermill as pm
+    #    nb = pm.read_notebook('notebook.ipynb')
+    #    import IPython
+    #    IPython.embed(header="The Abinit file is bound to the `nb` variable.\n")
+    #    return 0
+
     if not options.notebook:
         abifile = abilab.abiopen(options.filepath)
 

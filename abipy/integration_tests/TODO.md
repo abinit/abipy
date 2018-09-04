@@ -34,6 +34,10 @@ TODO list:
 
 * Automate CHANGELOG creation.
 
+* Fix DFPT with iomode 3 (make_links logic)
+
+* Refactor S_QCRITICAL logic (logic injected by user, since qcritical errors are cluster-specific)
+
 ## Medium priority
 
 * remove phononflow

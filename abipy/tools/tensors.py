@@ -7,7 +7,12 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import numpy as np
 import pandas as pd
 
-from pymatgen.analysis.elasticity.tensors import Tensor, SquareTensor
+try:
+    from pymatgen.core.tensors import SquareTensor
+except ImportError
+    from pymatgen.analysis.elasticity.tensors import SquareTensor
+
+from pymatgen.analysis.elasticity.tensors import SquareTensor
 from pymatgen.analysis.elasticity.stress import Stress as pmg_Stress
 from abipy.iotools import ETSF_Reader
 
