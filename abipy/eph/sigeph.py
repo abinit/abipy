@@ -14,7 +14,6 @@ import tempfile
 import pickle
 import numpy as np
 import pandas as pd
-import pymatgen.core.units as units
 import abipy.core.abinit_units as abu
 
 from collections import OrderedDict, namedtuple, Iterable
@@ -402,6 +401,7 @@ class QpTempList(list):
 
         return fig
 
+
 class EphSelfEnergy(object):
     r"""
     Electron self-energy due to phonon interaction :math:`\Sigma_{nk}(\omega,T)`
@@ -550,6 +550,7 @@ class EphSelfEnergy(object):
 class _MyQpkindsList(list):
     """Returned by find_qpkinds."""
 
+
 class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
     This file contains the Fan-Migdal Debye-Waller self-energy, the |ElectronBands| on the k-mesh.
@@ -602,7 +603,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         ib_homo = ib_lumo - 1
 
         # nctkarr_t("qp_enes", "dp", "two, ntemp, max_nbcalc, nkcalc, nsppol")
-        qpes = self.reader.read_value("qp_enes", cmode="c").real * units.Ha_to_eV
+        qpes = self.reader.read_value("qp_enes", cmode="c").real * abu.Ha_eV
         for spin in range(self.nsppol):
             for ikc, kpoint in enumerate(self.sigma_kpoints):
                 qpes[spin, ikc, :, :]
@@ -617,7 +618,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             ik_homo = self.sigkpt2index(kset.in_state.kpoint)
             ik_lumo = self.sigkpt2index(kset.out_state.kpoint)
             # nctkarr_t("qp_enes", "dp", "two, ntemp, max_nbcalc, nkcalc, nsppol")
-            qpes = self.reader.read_value("qp_enes", cmode="c") * units.Ha_to_eV
+            qpes = self.reader.read_value("qp_enes", cmode="c") * units.Ha_eV
             qpes[spin, ik_homo, ib_homo].real
             qpes[spin, ik_lumo, ib_lumo].real
     """
@@ -645,7 +646,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         app("K-mesh for electrons:")
         app(self.ebands.kpoints.ksampling.to_string(verbose=verbose))
         app("Number of bands included in self-energy: %d" % (self.nbsum))
-        app("zcut: %.3f [Ha], %.3f (eV)" % (self.zcut, self.zcut * units.Ha_to_eV))
+        app("zcut: %.3f [Ha], %.3f (eV)" % (self.zcut, self.zcut * abu.Ha_eV))
         app("Number of temperatures: %d, from %.1f to %.1f (K)" % (self.ntemp, self.tmesh[0], self.tmesh[-1]))
         app("symsigma: %s" % (self.symsigma))
         app("Has Spectral function: %s" % (self.has_spectral_function))
@@ -727,19 +728,19 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         """
         |numpy-array| of shape [nsppol, nkcalc] with the KS gaps in eV ordered as kcalc.
         """
-        return self.reader.read_value("ks_gaps") * units.Ha_to_eV
+        return self.reader.read_value("ks_gaps") * abu.Ha_eV
 
     @lazy_property
     def qp_dirgaps_t(self):
         """
         |numpy-array| of shape [nsppol, nkcalc, ntemp] with the QP gaps in eV ordered as kcalc.
         """
-        return self.reader.read_value("qp_gaps") * units.Ha_to_eV
+        return self.reader.read_value("qp_gaps") * abu.Ha_to_eV
 
     @lazy_property
     def mu_e(self):
         """mu_e[ntemp] chemical potential (eV) of electrons for the different temperatures."""
-        return self.reader.read_value("mu_e") * units.Ha_to_eV
+        return self.reader.read_value("mu_e") * abu.Ha_eV
 
     def sigkpt2index(self, kpoint):
         """
@@ -998,10 +999,10 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         if mode == "qp":
             # Read QP energies from file (real + imag part) and compute corrections if ks_ebands_kpath.
             # nctkarr_t("qp_enes", "dp", "two, ntemp, max_nbcalc, nkcalc, nsppol")
-            qpes = self.reader.read_value("qp_enes", cmode="c") * units.Ha_to_eV
+            qpes = self.reader.read_value("qp_enes", cmode="c") * abu.Ha_eV
         elif mode == "ks+lifetimes":
-            qpes_im = self.reader.read_value("vals_e0ks", cmode="c").imag * units.Ha_to_eV
-            qpes_re = self.reader.read_value("ks_enes") * units.Ha_to_eV
+            qpes_im = self.reader.read_value("vals_e0ks", cmode="c").imag * abu.Ha_to_eV
+            qpes_re = self.reader.read_value("ks_enes") * abu.Ha_eV
             qpes = qpes_re[:,:,:,np.newaxis] + 1j*qpes_im
         else:
             raise ValueError("Invalid interpolation mode: %s can be either 'qp' or 'ks+lifetimes'")
@@ -1010,7 +1011,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             if ks_ebands_kpath.structure != self.structure:
                 cprint("sigres.structure and ks_ebands_kpath.structures differ. Check your files!", "red")
             # nctkarr_t("ks_enes", "dp", "max_nbcalc, nkcalc, nsppol")
-            ks_enes = self.reader.read_value("ks_enes") * units.Ha_to_eV
+            ks_enes = self.reader.read_value("ks_enes") * abu.Ha_eV
             for itemp in range(self.ntemp):
                 qpes[:, :, :, itemp] -= ks_enes
 
@@ -1281,7 +1282,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         cmap = plt.get_cmap(colormap)
 
         # Read QP energies: nctkarr_t("qp_enes", "dp", "two, ntemp, max_nbcalc, nkcalc, nsppol")
-        qpes = self.reader.read_value("qp_enes", cmode="c") * units.Ha_to_eV
+        qpes = self.reader.read_value("qp_enes", cmode="c") * abu.Ha_eV
         band_range = (self.reader.max_bstart, self.reader.min_bstop)
 
         for spin, ax in zip(range(self.nsppol), ax_list):
@@ -1299,6 +1300,79 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             set_axlims(ax, ylims, "y")
             if spin == 0:
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_a2fw_skb(self, spin, kpoint, band, ax=None, fontsize=12, units="meV", **kwargs):
+        """
+        Plot the Eliashberg function a2F_{n,k,spin}(w) (gkk2/Fan-Migdal/DW/Total contribution)
+        for a given (spin, kpoint, band)
+
+        Args:
+            spin: Spin index
+            kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
+            band: Band index.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: legend and title fontsize.
+
+        Returns: |matplotlib-Figure|
+        """
+        #nctkarr_t("gfw_mesh", "dp", "gfw_nomega")
+        #nctkarr_t("gfw_vals", "dp", "gfw_nomega, three, max_nbcalc, nkcalc, nsppol") &
+
+        # Read mesh in Ha and convert to units.
+        try:
+            wmesh = self.reader.read_value("gfw_mesh") * abu.Ha_eV * abu.phfactor_ev2units(units)
+        except:
+            cprint("SIGEPH file does not have Eliashberg function", "red")
+            return None
+
+        # Get a2f_{sbk}(w)
+        spin, ikc, ibc, kpoint = self.reader.get_sigma_skb_kpoint(spin, kpoint, band)
+        var = self.reader.read_variable("gfw_vals")
+        values = var[spin, ikc, ibc]
+        gkk2, fan, dw = values[0], values[1], values[2]
+
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        ax.grid(True)
+
+        if "marker" not in kwargs:
+            kwargs["marker"] = None if self.nsppol == 1 else marker_spin[spin]
+
+        ax.plot(wmesh, gkk2, label="gkk2", **kwargs)
+        ax.plot(wmesh, fan, label="Fan", **kwargs)
+        ax.plot(wmesh, dw, label="DW", **kwargs)
+        ax.plot(wmesh, fan + dw, label="Fan+DW", **kwargs)
+
+        ax.set_xlabel(abu.wlabel_from_units(units))
+        ax.set_ylabel(r"$\alpha^2F(\omega)$")
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_a2fw_all(self, fontsize=8, units="meV", **kwargs):
+
+        # Build plot grid with (CBM, VBM) on each col. k-points along rows
+        num_plots, ncols, nrows = self.nkcalc * 2, 2, self.nkcalc
+
+        axmat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=False, squeeze=False)
+
+        marker_spin = {0: "^", 1: "v"}
+        for ikc, kpoint in enumerate(self.sigma_kpoints):
+            for spin in range(self.nsppol):
+                # Assume non magnetic semiconductor.
+                iv = int(self.nelect) // 2 - 1
+
+                ax = axmat[ikc, 0]
+                self.plot_a2fw_skb(spin, kpoint, iv, ax=ax, fontsize=fontsize, units=units, show=False)
+                ax.set_title("k:%s, band:%d" % (repr(kpoint), iv), fontsize=fontsize)
+                ax = axmat[ikc, 1]
+                self.plot_a2fw_skb(spin, kpoint, iv + 1, ax=ax, fontsize=fontsize, units=units, show=False)
+                ax.set_title("k:%s, band:%d" % (repr(kpoint), iv + 1), fontsize=fontsize)
 
         return fig
 
@@ -2164,7 +2238,7 @@ class SigmaPhReader(BaseEphReader):
         # T and frequency meshes.
         self.ktmesh = self.read_value("kTmesh")
         self.tmesh = self.ktmesh / abu.kb_HaK
-        self.ktmesh *= units.Ha_to_eV
+        self.ktmesh *= abu.Ha_eV
 
         # The K-points where QP corrections have been calculated.
         structure = self.read_structure()
@@ -2249,31 +2323,31 @@ class SigmaPhReader(BaseEphReader):
         # wrmesh_b(nwr, max_nbcalc, nkcalc, nsppol)
         # Frequency mesh along the real axis (Ha units) used for the different bands
         #print(spin, ikc, ib, self.read_variable("wrmesh_b").shape)
-        wmesh = self.read_variable("wrmesh_b")[spin, ikc, ib, :] * units.Ha_to_eV
+        wmesh = self.read_variable("wrmesh_b")[spin, ikc, ib, :] * abu.Ha_eV
 
         # complex(dpc) :: vals_e0ks(ntemp, max_nbcalc, nkcalc, nsppol)
         # Sigma_eph(omega=eKS, kT, band)
-        vals_e0ks = self.read_variable("vals_e0ks")[spin, ikc, ib, :, :] * units.Ha_to_eV
+        vals_e0ks = self.read_variable("vals_e0ks")[spin, ikc, ib, :, :] * abu.Ha_eV
         vals_e0ks = vals_e0ks[:, 0] + 1j * vals_e0ks[:, 1]
 
         # complex(dpc) :: dvals_de0ks(ntemp, max_nbcalc, nkcalc, nsppol)
         # d Sigma_eph(omega, kT, band, kcalc, spin) / d omega (omega=eKS)
-        dvals_de0ks = self.read_variable("dvals_de0ks")[spin, ikc, ib, :, :] * units.Ha_to_eV
+        dvals_de0ks = self.read_variable("dvals_de0ks")[spin, ikc, ib, :, :] * abu.Ha_eV
         dvals_de0ks = dvals_de0ks[:, 0] + 1j * dvals_de0ks[:, 1]
 
         # real(dp) :: dw_vals(ntemp, max_nbcalc, nkcalc, nsppol)
         # Debye-Waller term (static).
-        dw_vals = self.read_variable("dw_vals")[spin, ikc, ib, :] * units.Ha_to_eV
+        dw_vals = self.read_variable("dw_vals")[spin, ikc, ib, :] * abu.Ha_eV
 
         # complex(dpc) :: vals_wr(nwr, ntemp, max_nbcalc, nkcalc, nsppol)
         # Sigma_eph(omega, kT, band) for given (k, spin).
         # Note: enk_KS corresponds to nwr/2 + 1.
-        vals_wr = self.read_variable("vals_wr")[spin, ikc, ib, :, :, :] * units.Ha_to_eV
+        vals_wr = self.read_variable("vals_wr")[spin, ikc, ib, :, :, :] * abu.Ha_eV
         vals_wr = vals_wr[:, :, 0] + 1j * vals_wr[:, :, 1]
 
         # Spectral function
         # nctkarr_t("spfunc_wr", "dp", "nwr, ntemp, max_nbcalc, nkcalc, nsppol")
-        spfunc_wr = self.read_variable("spfunc_wr")[spin, ikc, ib, :, :] / units.Ha_to_eV
+        spfunc_wr = self.read_variable("spfunc_wr")[spin, ikc, ib, :, :] / abu.Ha_eV
 
         # Read QP data. Note band instead of ib index.
         qp = self.read_qp(spin, ikc, band)
@@ -2293,27 +2367,27 @@ class SigmaPhReader(BaseEphReader):
         # (Complex) QP energies computed with the dynamic formalism.
         # nctkarr_t("qp_enes", "dp", "two, ntemp, max_nbcalc, nkcalc, nsppol")
         var = self.read_variable("qp_enes")
-        qpe = (var[spin, ikc, ibc, :, 0] + 1j * var[spin, ikc, ibc, :, 1]) * units.Ha_to_eV
+        qpe = (var[spin, ikc, ibc, :, 0] + 1j * var[spin, ikc, ibc, :, 1]) * abu.Ha_eV
 
         # Adiabatic energies.
         # nctkarr_t("qpadb_enes", "dp", "two, ntemp, max_nbcalc, nkcalc, nsppol")
         var = self.read_variable("qpadb_enes")
-        qpe_adb = var[spin, ikc, ibc, :, 0] * units.Ha_to_eV
+        qpe_adb = var[spin, ikc, ibc, :, 0] * abu.Ha_eV
 
         # Debye-Waller term (static).
         # nctkarr_t("dw_vals", "dp", "ntemp, max_nbcalc, nkcalc, nsppol"),
         var = self.read_variable("dw_vals")
-        dw = var[spin, ikc, ibc, :] * units.Ha_to_eV
+        dw = var[spin, ikc, ibc, :] * abu.Ha_eV
 
         # Sigma_eph(omega=eKS, kT, band, ikcalc, spin)
         # nctkarr_t("vals_e0ks", "dp", "two, ntemp, max_nbcalc, nkcalc, nsppol")
         # TODO: Add Fan0 instead of computing Sigma - DW?
         var = self.read_variable("vals_e0ks")
-        sigc = (var[spin, ikc, ibc, :, 0] + 1j * var[spin, ikc, ibc, :, 1]) * units.Ha_to_eV
+        sigc = (var[spin, ikc, ibc, :, 0] + 1j * var[spin, ikc, ibc, :, 1]) * abu.Ha_eV
         fan0 = sigc - dw
 
         # nctkarr_t("ks_enes", "dp", "max_nbcalc, nkcalc, nsppol")
-        e0 = self.read_variable("ks_enes")[spin, ikc, ibc] * units.Ha_to_eV
+        e0 = self.read_variable("ks_enes")[spin, ikc, ibc] * abu.Ha_eV
 
         # nctkarr_t("ze0_vals", "dp", "ntemp, max_nbcalc, nkcalc, nsppol")
         ze0 = self.read_variable("ze0_vals")[spin, ikc, ibc]
@@ -2348,5 +2422,3 @@ class SigmaPhReader(BaseEphReader):
             qps_spin[spin] = QpTempList(qps)
 
         return tuple(qps_spin)
-
-
