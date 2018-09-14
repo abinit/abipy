@@ -130,7 +130,7 @@ class QpTempState(namedtuple("QpTempState", "spin kpoint band tmesh e0 qpe ze0 f
         Return: |pandas-DataFrame|
         """
         od = OrderedDict()
-        for k in "tmesh e0 qpe qpeme0 ze0 spin kpoint band".split():
+        for k in "tmesh e0 qpe qpeme0 fan0 ze0 spin kpoint band".split():
             if k in ("e0", "spin", "kpoint", "band"):
                 od[k] = [getattr(self, k)] * len(self.tmesh)
             else:
@@ -939,8 +939,8 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         nbands = self.reader.bstop_sk.max()
         qpes_new = np.zeros((self.nsppol,nkpoints,nbands,self.ntemp),dtype=np.complex)
         for spin in range(self.nsppol):
-            for ik in self.kcalc2ibz:
-                for nb,band in enumerate(range(self.bstart_sk[spin, ik], self.bstop_sk[spin, ik])):
+            for i,ik in enumerate(self.kcalc2ibz):
+                for nb,band in enumerate(range(self.bstart_sk[spin, i], self.bstop_sk[spin, i])):
                     qpes_new[spin,ik,band] = qpes[spin,ik,nb]
         return qpes_new
 
@@ -959,11 +959,11 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         eV_s = abu.eV_to_THz*1e12 * 2*np.pi
 
         # read
-        nkpt        = self.nkpt
-        nspn        = self.nspden
-        nband_start = np.max(self.bstart_sk)
-        nband_stop  = np.min(self.bstop_sk)
-        ntemp = self.ntemp
+        nkpt   = self.nkpt
+        nspn   = self.nspden
+        bstart = self.reader.max_bstart
+        bstop  = self.reader.min_bstop
+        ntemp  = self.ntemp
         fermie = self.ebands.fermie * eV_Ry
 
         def write_file(filename,tag,function,T=None):
@@ -975,9 +975,9 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 for ispin in range(nspn):
                     for ik in range(nkpt):
                         kpt = self.kpoints[ik]
-                        fmt = '%20.12e '*3+'%d !kpt nband\n'%(nband_stop-nband_start)
+                        fmt = '%20.12e '*3+'%d !kpt nband\n'%(bstop-bstart)
                         f.write(fmt%tuple(kpt))
-                        for ibnd in range(nband_start,nband_stop):
+                        for ibnd in range(bstart,bstop):
                             f.write('%20.12e\n'%(function(qpes[ispin,ik,ibnd,itemp])))
 
         # write tau
@@ -1003,6 +1003,91 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             f.write("%d\n"%len(structure))
             for atom in structure:
                 f.write("%s "%atom.specie+fmt3%tuple(atom.coords))
+
+    def call_boltztrap2(self,lpratio=100,npts=1000,itemp_list=None,filter_params=None,verbose=0):
+        """
+        If Boltztrap2 is installed use it to compute transport related quantities
+        """
+        import BoltzTraP2.bandlib as BL
+
+        eV_Ry = 2 * abu.eV_Ha
+        eV_s = abu.eV_to_THz*1e12 * 2*np.pi
+
+        #get the lifetimes as an array
+        qpes = self.get_qp_array(mode='ks+lifetimes')
+        bstart = self.reader.max_bstart
+        bstop  = self.reader.min_bstop
+
+        from BoltzTraP2 import sphere
+        from BoltzTraP2 import fite
+        from BoltzTraP2 import dft
+        from BoltzTraP2 import units as btp_units
+        import matplotlib.pyplot as plt
+        # Obtain each piece of information from the corresponding function.
+        fermie = self.ebands.fermie*eV_Ry
+        atoms = self.ebands.structure.to_ase_atoms()
+        volume = self.ebands.structure.volume
+        nelect = 6
+        kpoints = [k.frac_coords for k in self.sigma_kpoints]
+        #TODO handle spin
+        eig = qpes[0,:,bstart:bstop,0].T*eV_Ry
+
+        #prepare band interpolation
+        data = AbipyBoltztrap(fermie, atoms, nelect, kpoints, eig)
+        lattvec = data.get_lattvec()
+        equivalences = sphere.get_equivalences(data.atoms, lpratio * len(data.kpoints))
+        coeffs = fite.fitde3D(data, equivalences)
+
+        #interpolate electronic bands
+        eig_fine, vvband, cband = fite.getBTPbands(equivalences, coeffs, lattvec, curvature=False)
+
+        itemp_list = list(range(self.ntemp)) if itemp_list is None else duck.list_ints(itemp_list)
+        for itemp in itemp_list:
+
+            #TODO handle spin
+            linewidth = qpes[0, :, bstart:bstop, itemp].imag.T*eV_Ry
+
+            #prepare lifetimes interpolation
+            data = AbipyBoltztrap(fermie, atoms, nelect, kpoints, linewidth)
+            coeffs = fite.fitde3D(data, equivalences)
+
+            #interpolate lifetimes
+            linewidth_fine, _, cband = fite.getBTPbands(equivalences, coeffs, lattvec, curvature=False)
+            tau_fine = 1.0/np.abs(linewidth_fine)
+
+            #get DOS
+            erange = (fermie-0.2,fermie+0.2)
+            wmesh, dos, vvdos_tau, _ = BL.BTPDOS( eig_fine, vvband, erange=erange, npts=npts, scattering_model=tau_fine)
+            wmesh, dos, vvdos, _ = BL.BTPDOS( eig_fine, vvband, erange=erange, npts=npts)
+
+            if 1:
+                fig = plt.figure()
+                plt.plot(wmesh,dos,label='dos')
+                plt.plot(wmesh,vvdos[0,0],label='velocities')
+                plt.plot(wmesh,vvdos_tau[0,0],label='velocities tau')
+                plt.axvline(fermie)
+                plt.legend()
+                plt.show()
+
+            #plots
+            Tr = np.linspace(100., 600., num=10)
+            margin = 10. * btp_units.BOLTZMANN * Tr.max()
+            mur_indices = np.logical_and(wmesh > wmesh.min() + margin,
+                                         wmesh < wmesh.max() - margin)
+            mur = wmesh[mur_indices]
+
+            N, L0, L1, L2, Lm11 = BL.fermiintegrals(wmesh, dos, vvdos_tau, mur=mur, Tr=Tr)
+            sigma, seebeck, kappa, Hall = BL.calc_Onsager_coefficients(L0, L1, L2, mur, Tr, volume)
+
+            fig = plt.figure()
+            plt.plot((mur - fermie), sigma[0, :, 0, 0], label="conductivity")
+            plt.legend()
+
+            fig = plt.figure()
+            plt.plot((mur - fermie), seebeck[0, :, 0, 0], label="seebeck")
+            plt.legend()
+            plt.show()
+            exit()
 
     def interpolate(self, itemp_list=None, lpratio=5, mode="qp", ks_ebands_kpath=None, ks_ebands_kmesh=None,
                     ks_degatol=1e-4, vertices_names=None, line_density=20, filter_params=None,
@@ -1404,6 +1489,23 @@ for spin in range(ncfile.nsppol):
 
         return self._write_nb_nbpath(nb, nbpath)
 
+class AbipyBoltztrap():
+    def __init__(self,fermi,atoms,nelect,kpoints,eig,tau=None):
+        self.fermi = fermi
+        self.atoms = atoms
+        self.nelect = nelect
+        self.kpoints = kpoints
+        self.ebands = eig
+        self.tau = tau
+        self.mommat = None
+   
+    def get_lattvec(self):
+        import abipy.core.abinit_units as abu
+        try:
+            self.lattvec
+        except AttributeError:
+            self.lattvec = self.atoms.get_cell().T / abu.Bohr_Ang
+        return self.lattvec
 
 class SigEPhRobot(Robot, RobotWithEbands):
     """
@@ -1484,6 +1586,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
         for label, ncfile in self.items():
             df = ncfile.get_dataframe_sk(spin, kpoint, index=None,
                                          with_params=with_params, ignore_imag=ignore_imag)
+            app(df)
         return pd.concat(df_list)
 
     def get_dataframe(self, with_params=True, ignore_imag=False):
