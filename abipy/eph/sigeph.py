@@ -27,7 +27,7 @@ from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fi
     rotate_ticklabels, ax_append_title)
 from abipy.tools import gaussian, duck
 from abipy.electrons.ebands import ElectronBands, ElectronDos, RobotWithEbands, ElectronBandsPlotter, ElectronDosPlotter
-#from abipy.dfpt.phonons import PhononBands, RobotWithPhbands, factor_ev2units, unit_tag, dos_label_from_units
+from abipy.dfpt.phonons import PhononDos #PhononBands, RobotWithPhbands, factor_ev2units, unit_tag, dos_label_from_units
 from abipy.abio.robots import Robot
 from abipy.eph.common import BaseEphReader
 
@@ -128,6 +128,7 @@ class QpTempState(namedtuple("QpTempState", "spin kpoint band tmesh e0 qpe ze0 f
 
         Return: |pandas-DataFrame|
         """
+        # TODO Add more entries
         od = OrderedDict()
         for k in "tmesh e0 qpe qpeme0 ze0 spin kpoint band".split():
             if k in ("e0", "spin", "kpoint", "band"):
@@ -588,6 +589,9 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         self.ngqpt = r.ngqpt
 
         self.symsigma = r.read_value("symsigma")
+        # 4 for FAN+DW, -4 for Fan Imaginary part
+        #self.eph_task == r.read_value("eph_task", default=4)
+        self.imag_only = r.read_value("imag_only", default=0) == 1
         # TODO zcut?
         self.zcut = r.read_value("eta")
         self.nbsum = int(r.read_value("nbsum"))
@@ -640,6 +644,10 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         app("")
         # SigmaEPh section.
         app(marquee("SigmaEPh calculation", mark="="))
+        if self.imag_only:
+            app("Calculation type: Imaginary part of SigmaEPh")
+        else:
+            app("Calculation type: Real + Imaginary part of SigmaEPh")
         app("Number of k-points computed: %d" % (self.nkcalc))
         app("Max bstart: %d, min bstop: %d" % (self.reader.max_bstart, self.reader.min_bstop))
         app("Q-mesh: nqibz: %s, nqbz: %s, ngqpt: %s" % (self.nqibz, self.nqbz, str(self.ngqpt)))
@@ -649,6 +657,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         app("zcut: %.3f [Ha], %.3f (eV)" % (self.zcut, self.zcut * abu.Ha_eV))
         app("Number of temperatures: %d, from %.1f to %.1f (K)" % (self.ntemp, self.tmesh[0], self.tmesh[-1]))
         app("symsigma: %s" % (self.symsigma))
+        app("Has Eliashberg function: %s" % (self.has_eliashberg_function))
         app("Has Spectral function: %s" % (self.has_spectral_function))
 
         # Build Table with direct gaps. Only the results for the first and the last T are shown if not verbose.
@@ -693,10 +702,15 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         """Close the file."""
         self.reader.close()
 
-    @property
+    @lazy_property
     def has_spectral_function(self):
         """True if file contains spectral function data."""
         return self.reader.nwr != 0
+
+    @lazy_property
+    def has_eliashberg_function(self):
+        """True if file contains Eliashberg functions."""
+        return self.reader.read_dimvalue("gfw_nomega", default=0) > 0
 
     @property
     def sigma_kpoints(self):
@@ -838,6 +852,42 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         return pd.concat(df_list)
 
+    def get_gaps_dataframe(self, itemp=None, with_params=False, ignore_imag=False):
+        """
+        Returns |pandas-DataFrame| with QP results for the VBM and CBM.
+
+        Args:
+            with_params: False to exclude calculation parameters from the dataframe.
+            itemp: Temperature index, if None all temperatures are returned.
+            ignore_imag: Only real part is returned if ``ignore_imag``.
+        """
+        ebands = self.ebands
+        # Assume non magnetic semiconductor.
+        #iv = int(ebands.nelect) // 2 - 1
+
+        #enough_bands = (ebands.mband > ebands.nspinor * ebands.nelect // 2)
+        #if enough_bands and not ebands.has_metallic_scheme:
+        spin = 0
+
+        gap = ebands.direct_gaps[spin]
+        #kpoint = gap.kpoint
+        #gap.in_state.band
+        #gap.out_state.band
+        #fgap = ebands.fundamental_gaps[spin].energy
+        #ignore_imag = True
+        #ikc = self.sigkpt2index(kpoint)
+
+        rows = []
+        for state in (gap.in_state, gap.out_state):
+            # Read QP data.
+            qp = self.reader.read_qp(spin, state.kpoint, state.band, ignore_imag=ignore_imag)
+            # Convert to dataframe and add other entries useful when comparing different calculations.
+            rows.append(qp.get_dataframe(params=self.params if with_params else None))
+
+        df = pd.concat(rows)
+        if itemp is not None: df = df[df["tmesh"] == self.tmesh[itemp]]
+        return df
+
     def get_dataframe_sk(self, spin, kpoint, itemp=None, index=None, with_params=False, ignore_imag=False):
         """
         Returns |pandas-DataFrame| with QP results for the given (spin, k-point).
@@ -905,8 +955,6 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             raise NotImplementedError("Method %s is not supported" % method)
 
         return [ElectronDos(mesh, dos_t, nelect, fermie=fermie) for dos_t in dos]
-
-    #def get_dirgaps_dataframe(self):
 
     def interpolate(self, itemp_list=None, lpratio=5, mode="qp", ks_ebands_kpath=None, ks_ebands_kmesh=None,
                     ks_degatol=1e-4, vertices_names=None, line_density=20, filter_params=None,
@@ -1304,36 +1352,39 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         return fig
 
     @add_fig_kwargs
-    def plot_a2fw_skb(self, spin, kpoint, band, ax=None, fontsize=12, units="meV", **kwargs):
+    def plot_a2fw_skb(self, spin, kpoint, band, phdos=None, ax=None, fontsize=12, units="meV", **kwargs):
         """
-        Plot the Eliashberg function a2F_{n,k,spin}(w) (gkk2/Fan-Migdal/DW/Total contribution)
+        Plot the Eliashberg function a2F_{n,k,spin}(w) (gkq2/Fan-Migdal/DW/Total contribution)
         for a given (spin, kpoint, band)
 
         Args:
             spin: Spin index
             kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
             band: Band index.
+            phdos: An instance of |PhononDos| or a netcdf file providing a PhononDos object.
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: legend and title fontsize.
 
         Returns: |matplotlib-Figure|
         """
-        #nctkarr_t("gfw_mesh", "dp", "gfw_nomega")
-        #nctkarr_t("gfw_vals", "dp", "gfw_nomega, three, max_nbcalc, nkcalc, nsppol") &
-
         # Read mesh in Ha and convert to units.
-        try:
-            wmesh = self.reader.read_value("gfw_mesh") * abu.Ha_eV * abu.phfactor_ev2units(units)
-        except:
+        if not self.has_eliashberg_function:
             cprint("SIGEPH file does not have Eliashberg function", "red")
             return None
+
+        if phdos is not None:
+            phdos = PhononDos.as_phdos(phdos, phdos_kwargs=None)
+
+        #nctkarr_t("gfw_mesh", "dp", "gfw_nomega")
+        #nctkarr_t("gfw_vals", "dp", "gfw_nomega, three, max_nbcalc, nkcalc, nsppol")
+        wmesh = self.reader.read_value("gfw_mesh") * abu.Ha_eV * abu.phfactor_ev2units(units)
 
         # Get a2f_{sbk}(w)
         spin, ikc, ibc, kpoint = self.reader.get_sigma_skb_kpoint(spin, kpoint, band)
         var = self.reader.read_variable("gfw_vals")
         values = var[spin, ikc, ibc]
-        gkk2, fan, dw = values[0], values[1], values[2]
+        gkq2, fan, dw = values[0], values[1], values[2]
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
@@ -1341,10 +1392,19 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         if "marker" not in kwargs:
             kwargs["marker"] = None if self.nsppol == 1 else marker_spin[spin]
 
-        ax.plot(wmesh, gkk2, label="gkk2", **kwargs)
-        ax.plot(wmesh, fan, label="Fan", **kwargs)
-        ax.plot(wmesh, dw, label="DW", **kwargs)
-        ax.plot(wmesh, fan + dw, label="Fan+DW", **kwargs)
+        if self.imag_only:
+            ax.plot(wmesh, gkq2, label=r"$g({\bf{k},\bf{q})|^2$", **kwargs)
+        else:
+            ax.plot(wmesh, gkq2, label="gkq2", **kwargs)
+            ax.plot(wmesh, fan, label="Fan", **kwargs)
+            ax.plot(wmesh, dw, label="DW", **kwargs)
+            ax.plot(wmesh, fan + dw, label="Fan + DW", **kwargs)
+
+        # Plot Phonon DOS
+        # TODO: Should rescale the values to be visibile
+        if phdos is not None:
+            #phdos = 50 * phdos
+            lines = phdos.plot_dos_idos(ax, what="d", units=units, exchange_xy=False, label="PHDOS")
 
         ax.set_xlabel(abu.wlabel_from_units(units))
         ax.set_ylabel(r"$\alpha^2F(\omega)$")
@@ -1352,14 +1412,31 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         return fig
 
+    #@add_fig_kwargs
+    #def plot_a2fw_ksum(self, units="meV", phdos=None, sharey=True, fontsize=8, **kwargs):
+
     @add_fig_kwargs
-    def plot_a2fw_all(self, fontsize=8, units="meV", **kwargs):
+    def plot_a2fw_all(self, units="meV", phdos=None, sharey=True, fontsize=8, **kwargs):
+        """
+        Plot the Eliashberg function a2F_{n,k,spin}(w) (gkq2/Fan-Migdal/DW/Total contribution)
+        for all k-points, spin and the VBM/CBM
+
+        Args:
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            phdos: An instance of |PhononDos| or a netcdf file providing a PhononDos object.
+            sharey: True if Y axes should be shared.
+            fontsize: legend and title fontsize.
+
+        Returns: |matplotlib-Figure|
+        """
+        if phdos is not None:
+            phdos = PhononDos.as_phdos(phdos, phdos_kwargs=None)
 
         # Build plot grid with (CBM, VBM) on each col. k-points along rows
         num_plots, ncols, nrows = self.nkcalc * 2, 2, self.nkcalc
 
         axmat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=True, sharey=False, squeeze=False)
+                                              sharex=True, sharey=sharey, squeeze=False)
 
         marker_spin = {0: "^", 1: "v"}
         for ikc, kpoint in enumerate(self.sigma_kpoints):
@@ -1368,10 +1445,10 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 iv = int(self.nelect) // 2 - 1
 
                 ax = axmat[ikc, 0]
-                self.plot_a2fw_skb(spin, kpoint, iv, ax=ax, fontsize=fontsize, units=units, show=False)
+                self.plot_a2fw_skb(spin, kpoint, iv, ax=ax, fontsize=fontsize, units=units, phdos=phdos, show=False)
                 ax.set_title("k:%s, band:%d" % (repr(kpoint), iv), fontsize=fontsize)
                 ax = axmat[ikc, 1]
-                self.plot_a2fw_skb(spin, kpoint, iv + 1, ax=ax, fontsize=fontsize, units=units, show=False)
+                self.plot_a2fw_skb(spin, kpoint, iv + 1, ax=ax, fontsize=fontsize, units=units, phdos=phdos, show=False)
                 ax.set_title("k:%s, band:%d" % (repr(kpoint), iv + 1), fontsize=fontsize)
 
         return fig
@@ -1405,7 +1482,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             nbv.new_code_cell("print(ncfile)"),
             nbv.new_code_cell("ncfile.ebands.plot();"),
             #nbv.new_code_cell("ncfile.get_dirgaps_dataframe()"),
-            #nbv.new_code_cell("alldata = ncfile.get_dataframe()\nalldata"),
+            #nbv.new_code_cell("ncfile.get_dataframe()"),
             nbv.new_code_cell("ncfile.plot_qpgaps_t();"),
             nbv.new_code_cell("#ncfile.plot_qpgaps_t(plot_qpmks=True);"),
             nbv.new_code_cell("ncfile.plot_qps_vs_e0();"),
@@ -2356,7 +2433,8 @@ class SigmaPhReader(BaseEphReader):
 
     def read_qp(self, spin, kpoint, band, ignore_imag=False):
         """
-        Return :class:`QpTempState` for the given (spin, kpoint, band).
+        Return :class:`QpTempState` for the given (spin, kpoint, band)
+        (NB: band is a global index i.e. unshifted)
         Only real part is returned if ``ignore_imag``.
         """
         spin, ikc, ibc, kpoint = self.get_sigma_skb_kpoint(spin, kpoint, band)

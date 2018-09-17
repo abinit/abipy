@@ -13,8 +13,9 @@ except ImportError:
     # Can be removed in v2019.1.1
     from pymatgen.analysis.elasticity.tensors import Tensor, SquareTensor
 
-from pymatgen.analysis.elasticity.tensors import SquareTensor
+from pymatgen.analysis.elasticity.elastic import ElasticTensor
 from pymatgen.analysis.elasticity.stress import Stress as pmg_Stress
+from pymatgen.analysis.piezo import PiezoTensor
 from abipy.iotools import ETSF_Reader
 
 

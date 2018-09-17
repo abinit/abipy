@@ -176,6 +176,21 @@ class TestAbinitInput(AbipyTest):
         inp.set_kmesh(ngkpt=(1, 2, 3), shiftk=(1, 2, 3, 4, 5, 6))
         assert inp["kptopt"] == 1 and inp["nshiftk"] == 2
         assert inp.uses_ktimereversal
+        ngkpt, shiftk = inp.get_ngkpt_shiftk()
+        assert ngkpt.tolist() == [1, 2, 3]
+        assert len(shiftk) == 2 and shiftk.ravel().tolist() == [1, 2, 3, 4, 5, 6]
+
+        inp.pop("ngkpt")
+        kptrlatt = [1, 0, 0, 0, 4, 0, 0, 0, 8]
+        shiftk = (0.5, 0.0, 0.0)
+        inp.set_vars(kptrlatt=kptrlatt, nshiftk=1, shiftk=shiftk)
+        ngkpt, shiftk = inp.get_ngkpt_shiftk()
+        assert ngkpt.tolist() == [1, 4, 8]
+        assert len(shiftk) == 1 and shiftk.ravel().tolist() == [0.5, 0.0, 0.0]
+
+        inp.set_vars(kptrlatt = [1, 2, 0, 0, 4, 0, 0, 0, 8], nshiftk=1, shiftk=shiftk)
+        ngkpt, shiftk = inp.get_ngkpt_shiftk()
+        assert ngkpt is None
 
         inp.set_gamma_sampling()
         assert inp["kptopt"] == 1 and inp["nshiftk"] == 1

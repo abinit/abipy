@@ -25,6 +25,7 @@ class SigEPhFileTest(AbipyTest):
 
         assert sigeph.nkcalc == 2
         self.assert_equal(sigeph.ngqpt.flatten(), [4, 4, 4])
+        assert not sigeph.imag_only
         assert sigeph.symsigma == 0
         assert sigeph.ntemp ==  6
         assert sigeph.nband == 54
@@ -33,6 +34,7 @@ class SigEPhFileTest(AbipyTest):
         # FIXME
         #self.assert_almost_equal(sigeph.zcut, 0.001)
         assert sigeph.has_spectral_function and sigeph.reader.nwr == 101
+        assert not sigeph.has_eliashberg_function
         assert len(sigeph.mu_e) == sigeph.ntemp
         assert "nbsum" in sigeph.params
         assert "eph_fsewin" in sigeph.params

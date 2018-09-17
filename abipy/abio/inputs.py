@@ -24,6 +24,8 @@ try:
     from pymatgen.util.serialization import pmg_serialize
 except ImportError:
     from pymatgen.serializers.json_coders import pmg_serialize
+
+from abipy.tools.numtools import is_diagonal
 from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure
 from abipy.core.kpoints import has_timrev_from_kptopt
@@ -721,7 +723,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             shiftk: List of shifts.
             kptopt: Option for the generation of the mesh.
         """
-        shiftk = np.reshape(shiftk, (-1,3))
+        shiftk = np.reshape(shiftk, (-1, 3))
         return self.set_vars(ngkpt=ngkpt, kptopt=kptopt, nshiftk=len(shiftk), shiftk=shiftk)
 
     def set_gamma_sampling(self):
@@ -739,6 +741,29 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         shiftk = self.structure.calc_shiftk()
         return self.set_vars(ngkpt=self.structure.calc_ngkpt(nksmall), kptopt=kptopt,
                              nshiftk=len(shiftk), shiftk=shiftk)
+
+    def get_ngkpt_shiftk(self):
+        """
+        Return info on the k-point sampling from the input file,
+        more specifically a tuple with nkgpt and shift.
+        ngkpt is set to None if the BZ sampling cannot be described in terms of
+        three divisions + one shift.
+        """
+        # ngkpt and kptrlatt are mutually exclusive.
+        nshiftk = self.get("nshiftk", 1)
+        shiftk = np.reshape(self.get("shiftk", [0.5, 0.5, 0.5]), (-1, 3))[:nshiftk, :]
+
+        kptrlatt = self.get("kptrlatt", None)
+        if kptrlatt is not None:
+            kptrlatt = np.reshape(kptrlatt, (3, 3))
+            # Check whether is diagonal with one shift.
+            ngkpt = None
+            if nshiftk == 1 and is_diagonal(kptrlatt):
+                ngkpt = np.diag(kptrlatt)
+        else:
+            ngkpt = np.array(self.get("ngkpt"))
+
+        return ngkpt, shiftk
 
     def set_phdos_qmesh(self, nqsmall, method="tetra", ph_qshift=(0, 0, 0)):
         """
@@ -1217,7 +1242,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         Args:
             tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.
                 Defaults to {"tolwfr": 1.0e-22}.
-            kptopt: 2 to take into account time-reversal symmetry. note that kptopt 1 is not available.
+            kptopt: 2 to take into account time-reversal symmetry. Note that kptopt 1 is not available.
             only_vk: If only matrix elements of the velocity operator are needed.
                 First-order wavefunctions won't be converged --> not usable for other DFPT calculations.
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
@@ -1225,8 +1250,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         Return:
             List of |AbinitInput| objects for DFPT runs.
         """
-        if tolerance is None:
-            tolerance = {"tolwfr": 1.0e-22}
+        if tolerance is None: tolerance = {"tolwfr": 1.0e-22}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
             raise self.Error("Invalid tolerance: %s" % str(tolerance))
@@ -1395,8 +1419,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         Return |MultiDataset| inputs for the calculation of the Born effective charges.
         This functions should be called with an input that represents a GS run.
         """
-        if tolerance is None:
-            tolerance = {"tolvrs": 1.0e-10}
+        if tolerance is None: tolerance = {"tolvrs": 1.0e-10}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
             raise self.Error("Invalid tolerance: %s" % str(tolerance))
