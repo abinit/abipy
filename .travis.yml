@@ -54,6 +54,8 @@ install:
         abinit --build
 
         sed -i '/pymatgen/d' requirements.txt
+        # https://github.com/pypa/pipenv/issues/2596
+        #pipenv lock --clear
         travis_wait pip install -r requirements.txt
         travis_wait pip install -r requirements-optional.txt
         conda install -y -c conda-forge graphviz python-graphviz

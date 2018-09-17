@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 r"""
-Phonons with WFKQ files (q-mesh denser than k-mesh)
-===================================================
+Phonons with WFQ files (q-mesh denser than k-mesh)
+==================================================
 
-This example shows how to compute phonons with arbitrary q-points and WFKQ files.
-Symmetries are taken into account: only q-points in the IBZ are generated and
-for each q-point only the independent atomic perturbations are computed.
+This example shows how to compute phonons with arbitrary q-points and WFQ files.
+Symmetries are taken into account: only q-points in the IBZ are generated.
+Moreover WFQ file are computed only if k + q does not belong to the initial mesh and,
+for each q-point, only the independent atomic perturbations are computed.
 The final results (out_DDB, out_DVDB) will be produced automatically at the end of the run
 and saved in the ``outdata/`` of the work.
 """
@@ -49,12 +50,6 @@ def make_scf_input(paral_kgb=0):
 def build_flow(options):
     """
     Create a `Flow` for phonon calculations. The flow has two works.
-
-    The first work contains a single GS task that produces the WFK file used in DFPT
-    Then we have multiple Works that are generated automatically
-    in order to compute the dynamical matrix on a [4, 4, 4] mesh.
-    Symmetries are taken into account: only q-points in the IBZ are generated and
-    for each q-point only the independent atomic perturbations are computed.
     """
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
@@ -110,19 +105,20 @@ if __name__ == "__main__":
 #    abirun.py flow_phonons_wkq history
 #
 # to get the list of actions perfomed by AbiPy to complete the flow.
-# Note how the ``PhononWork`` has merged all the partial DDB files produced by the PhononTasks
+# Note how the ``PhononWfkqWork`` has merged all the partial DDB/DVDB files
+# and removed the WFQ files at runtime to optimize the disk space.
 #
 # .. code-block:: bash
 #
-#    ===================================================================================================================================
-#    ====================================== <PhononWork, node_id=241274, workdir=flow_phonons/w1> ======================================
-#    ===================================================================================================================================
-#    [Thu Dec  7 22:55:02 2017] Finalized set to True
-#    [Thu Dec  7 22:55:02 2017] Will call mrgddb to merge [ .... ]
+#    =========================================================================================================================
+#    ============================= <PhononWfkqWork, node_id=360036, workdir=flow_phonons_wkq/w1> =============================
+#    =========================================================================================================================
+#    [Tue Sep 18 00:04:18 2018] Removing WFQ: flow_phonons_wkq/w1/t5/outdata/out_WFQ
+#    [Tue Sep 18 00:04:54 2018] Removing WFQ: flow_phonons_wkq/w1/t14/outdata/out_WFQ
 #
 # Now open the final DDB file with:
 #
-#    abiopen.py flow_phonons/outdata/out_DDB
+#    abiopen.py flow_phonons_wkq/w1/outdata/out_DDB
 #
 # and invoke anaddb to compute the phonon band structure and the phonon DOS with:
 #

@@ -9,9 +9,9 @@ scikit-image
 phonopy
 #mayavi
 # Unit tests
+python-coveralls
 pytest
 pytest-cov
 pytest-xdist
 pytest-sugar
 scripttest
-python-coveralls
