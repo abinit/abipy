@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.abio.inputs &#8212; abipy 0.6.0 documentation</title>
+    <title>abipy.abio.inputs &#8212; abipy 0.7.0.dev documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.6.0',
+        VERSION:     '0.7.0.dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.6.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.7.0.dev</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -156,6 +156,8 @@
     <span class="kn">from</span> <span class="nn">pymatgen.util.serialization</span> <span class="k">import</span> <span class="n">pmg_serialize</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">pymatgen.serializers.json_coders</span> <span class="k">import</span> <span class="n">pmg_serialize</span>
+
+<span class="kn">from</span> <span class="nn">abipy.tools.numtools</span> <span class="k">import</span> <span class="n">is_diagonal</span>
 <span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="n">Structure</span>
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">Has_Structure</span>
 <span class="kn">from</span> <span class="nn">abipy.core.kpoints</span> <span class="k">import</span> <span class="n">has_timrev_from_kptopt</span>
@@ -853,7 +855,7 @@
 <span class="sd">            shiftk: List of shifts.</span>
 <span class="sd">            kptopt: Option for the generation of the mesh.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">shiftk</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shiftk</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+        <span class="n">shiftk</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shiftk</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">ngkpt</span><span class="o">=</span><span class="n">ngkpt</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="n">kptopt</span><span class="p">,</span> <span class="n">nshiftk</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">shiftk</span><span class="p">),</span> <span class="n">shiftk</span><span class="o">=</span><span class="n">shiftk</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AbinitInput.set_gamma_sampling"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.set_gamma_sampling">[docs]</a>    <span class="k">def</span> <span class="nf">set_gamma_sampling</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -871,6 +873,29 @@
         <span class="n">shiftk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">calc_shiftk</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">ngkpt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">calc_ngkpt</span><span class="p">(</span><span class="n">nksmall</span><span class="p">),</span> <span class="n">kptopt</span><span class="o">=</span><span class="n">kptopt</span><span class="p">,</span>
                              <span class="n">nshiftk</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">shiftk</span><span class="p">),</span> <span class="n">shiftk</span><span class="o">=</span><span class="n">shiftk</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AbinitInput.get_ngkpt_shiftk"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.get_ngkpt_shiftk">[docs]</a>    <span class="k">def</span> <span class="nf">get_ngkpt_shiftk</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return info on the k-point sampling from the input file,</span>
+<span class="sd">        more specifically a tuple with nkgpt and shift.</span>
+<span class="sd">        ngkpt is set to None if the BZ sampling cannot be described in terms of</span>
+<span class="sd">        three divisions + one shift.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># ngkpt and kptrlatt are mutually exclusive.</span>
+        <span class="n">nshiftk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;nshiftk&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">shiftk</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;shiftk&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">]),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))[:</span><span class="n">nshiftk</span><span class="p">,</span> <span class="p">:]</span>
+
+        <span class="n">kptrlatt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;kptrlatt&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">kptrlatt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">kptrlatt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">kptrlatt</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+            <span class="c1"># Check whether is diagonal with one shift.</span>
+            <span class="n">ngkpt</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">nshiftk</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">is_diagonal</span><span class="p">(</span><span class="n">kptrlatt</span><span class="p">):</span>
+                <span class="n">ngkpt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">kptrlatt</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ngkpt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ngkpt&quot;</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">ngkpt</span><span class="p">,</span> <span class="n">shiftk</span></div>
 
 <div class="viewcode-block" id="AbinitInput.set_phdos_qmesh"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.set_phdos_qmesh">[docs]</a>    <span class="k">def</span> <span class="nf">set_phdos_qmesh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nqsmall</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;tetra&quot;</span><span class="p">,</span> <span class="n">ph_qshift</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1349,7 +1374,7 @@
 <span class="sd">        Args:</span>
 <span class="sd">            tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.</span>
 <span class="sd">                Defaults to {&quot;tolwfr&quot;: 1.0e-22}.</span>
-<span class="sd">            kptopt: 2 to take into account time-reversal symmetry. note that kptopt 1 is not available.</span>
+<span class="sd">            kptopt: 2 to take into account time-reversal symmetry. Note that kptopt 1 is not available.</span>
 <span class="sd">            only_vk: If only matrix elements of the velocity operator are needed.</span>
 <span class="sd">                First-order wavefunctions won&#39;t be converged --&gt; not usable for other DFPT calculations.</span>
 <span class="sd">            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.</span>
@@ -1357,8 +1382,7 @@
 <span class="sd">        Return:</span>
 <span class="sd">            List of |AbinitInput| objects for DFPT runs.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">tolerance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">tolerance</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tolwfr&quot;</span><span class="p">:</span> <span class="mf">1.0e-22</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">tolerance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">tolerance</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tolwfr&quot;</span><span class="p">:</span> <span class="mf">1.0e-22</span><span class="p">}</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tolerance</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_TOLVARS</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">tolerance</span><span class="p">):</span>
             <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;Invalid tolerance: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">tolerance</span><span class="p">))</span>
@@ -1527,8 +1551,7 @@
 <span class="sd">        Return |MultiDataset| inputs for the calculation of the Born effective charges.</span>
 <span class="sd">        This functions should be called with an input that represents a GS run.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">tolerance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">tolerance</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tolvrs&quot;</span><span class="p">:</span> <span class="mf">1.0e-10</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">tolerance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">tolerance</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tolvrs&quot;</span><span class="p">:</span> <span class="mf">1.0e-10</span><span class="p">}</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tolerance</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_TOLVARS</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">tolerance</span><span class="p">):</span>
             <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;Invalid tolerance: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">tolerance</span><span class="p">))</span>
@@ -3448,7 +3471,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Aug 22, 2018.<br/>
+      Last updated on Sep 18, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

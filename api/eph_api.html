@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>eph Package &#8212; abipy 0.6.0 documentation</title>
+    <title>eph Package &#8212; abipy 0.7.0.dev documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.6.0',
+        VERSION:     '0.7.0.dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.6.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.7.0.dev</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -955,7 +955,7 @@ working directory is created. Return path to the notebook.</p>
 <dl class="method">
 <dt id="abipy.eph.a2f.A2fRobot.get_dataframe">
 <code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>abspath=False</em>, <em>with_geo=False</em>, <em>with_params=True</em>, <em>funcs=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/a2f.html#A2fRobot.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.a2f.A2fRobot.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build and return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important results.</p>
+<dd><p>Build and return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+588.g9e2039b.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important results.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -972,7 +972,7 @@ where key is a string with the name of column and value is the value to be inser
 </tr>
 </tbody>
 </table>
-<p>Return: <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a></p>
+<p>Return: <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+588.g9e2039b.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a></p>
 </dd></dl>
 
 <dl class="method">
@@ -1424,7 +1424,7 @@ See Abinit docs for the meaning of the variables.</p>
 </tr>
 </tbody>
 </table>
-<p>Return: <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a></p>
+<p>Return: <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+588.g9e2039b.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a></p>
 </dd></dl>
 
 <dl class="classmethod">
@@ -1826,8 +1826,14 @@ Provides methods to analyze and plot results.</p>
 
 <dl class="attribute">
 <dt id="abipy.eph.sigeph.SigEPhFile.has_spectral_function">
-<code class="descname">has_spectral_function</code><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.has_spectral_function" title="Permalink to this definition">¶</a></dt>
+<code class="descname">has_spectral_function</code><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.has_spectral_function"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.has_spectral_function" title="Permalink to this definition">¶</a></dt>
 <dd><p>True if file contains spectral function data.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.eph.sigeph.SigEPhFile.has_eliashberg_function">
+<code class="descname">has_eliashberg_function</code><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.has_eliashberg_function"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.has_eliashberg_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if file contains Eliashberg functions.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1895,7 +1901,7 @@ ikcalc is the index in the nkcalc array..</p>
 <dl class="method">
 <dt id="abipy.eph.sigeph.SigEPhFile.get_dataframe">
 <code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>with_params=True</em>, <em>ignore_imag=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for all k-points, bands and spins
+<dd><p>Returns <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+588.g9e2039b.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for all k-points, bands and spins
 included in the calculation.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1912,9 +1918,28 @@ included in the calculation.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.eph.sigeph.SigEPhFile.get_gaps_dataframe">
+<code class="descname">get_gaps_dataframe</code><span class="sig-paren">(</span><em>itemp=None</em>, <em>with_params=False</em>, <em>ignore_imag=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.get_gaps_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.get_gaps_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+588.g9e2039b.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for the VBM and CBM.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>with_params</strong> – False to exclude calculation parameters from the dataframe.</li>
+<li><strong>itemp</strong> – Temperature index, if None all temperatures are returned.</li>
+<li><strong>ignore_imag</strong> – Only real part is returned if <code class="docutils literal"><span class="pre">ignore_imag</span></code>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.eph.sigeph.SigEPhFile.get_dataframe_sk">
 <code class="descname">get_dataframe_sk</code><span class="sig-paren">(</span><em>spin</em>, <em>kpoint</em>, <em>itemp=None</em>, <em>index=None</em>, <em>with_params=False</em>, <em>ignore_imag=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.get_dataframe_sk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.get_dataframe_sk" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for the given (spin, k-point).</p>
+<dd><p>Returns <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+588.g9e2039b.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for the given (spin, k-point).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -2242,6 +2267,121 @@ Default: None i.e. fig is left unchanged.</td>
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.eph.sigeph.SigEPhFile.plot_a2fw_skb">
+<code class="descname">plot_a2fw_skb</code><span class="sig-paren">(</span><em>spin</em>, <em>kpoint</em>, <em>band</em>, <em>phdos=None</em>, <em>ax=None</em>, <em>fontsize=12</em>, <em>units='meV'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.plot_a2fw_skb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.plot_a2fw_skb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the Eliashberg function a2F_{n,k,spin}(w) (gkq2/Fan-Migdal/DW/Total contribution)
+for a given (spin, kpoint, band)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>spin</strong> – Spin index</li>
+<li><strong>kpoint</strong> – K-point in self-energy. Accepts <a class="reference internal" href="core_api.html#abipy.core.kpoints.Kpoint" title="abipy.core.kpoints.Kpoint"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.kpoints.Kpoint</span></code></a>, vector or index.</li>
+<li><strong>band</strong> – Band index.</li>
+<li><strong>phdos</strong> – An instance of <a class="reference internal" href="dfpt_api.html#abipy.dfpt.phonons.PhononDos" title="abipy.dfpt.phonons.PhononDos"><code class="xref py py-class docutils literal"><span class="pre">abipy.dfpt.phonons.PhononDos</span></code></a> or a netcdf file providing a PhononDos object.</li>
+<li><strong>units</strong> – Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>fontsize</strong> – legend and title fontsize.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>“abc.png” or “abc.eps” to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+e.g. size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
+<td>True to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.eph.sigeph.SigEPhFile.plot_a2fw_all">
+<code class="descname">plot_a2fw_all</code><span class="sig-paren">(</span><em>units='meV'</em>, <em>phdos=None</em>, <em>sharey=True</em>, <em>fontsize=8</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.plot_a2fw_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.plot_a2fw_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the Eliashberg function a2F_{n,k,spin}(w) (gkq2/Fan-Migdal/DW/Total contribution)
+for all k-points, spin and the VBM/CBM</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>units</strong> – Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.</li>
+<li><strong>phdos</strong> – An instance of <a class="reference internal" href="dfpt_api.html#abipy.dfpt.phonons.PhononDos" title="abipy.dfpt.phonons.PhononDos"><code class="xref py py-class docutils literal"><span class="pre">abipy.dfpt.phonons.PhononDos</span></code></a> or a netcdf file providing a PhononDos object.</li>
+<li><strong>sharey</strong> – True if Y axes should be shared.</li>
+<li><strong>fontsize</strong> – legend and title fontsize.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.3)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>“abc.png” or “abc.eps” to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+e.g. size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
+<td>True to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.eph.sigeph.SigEPhFile.yield_figs">
 <code class="descname">yield_figs</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.yield_figs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.yield_figs" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function <em>generates</em> a predefined list of matplotlib figures with minimal input from the user.
@@ -2278,7 +2418,7 @@ working directory is created. Return path to the notebook.</p>
 <dl class="method">
 <dt id="abipy.eph.sigeph.SigEPhRobot.get_dataframe_sk">
 <code class="descname">get_dataframe_sk</code><span class="sig-paren">(</span><em>spin</em>, <em>kpoint</em>, <em>with_params=True</em>, <em>ignore_imag=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhRobot.get_dataframe_sk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhRobot.get_dataframe_sk" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with qp results for this spin, k-point</p>
+<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+588.g9e2039b.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with qp results for this spin, k-point</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -2298,7 +2438,7 @@ working directory is created. Return path to the notebook.</p>
 <dl class="method">
 <dt id="abipy.eph.sigeph.SigEPhRobot.get_dataframe">
 <code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>with_params=True</em>, <em>ignore_imag=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhRobot.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhRobot.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for all k-points, bands and spins
+<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+588.g9e2039b.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for all k-points, bands and spins
 present in the files treated by the robot.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -3044,7 +3184,8 @@ sigma_kpoint can be either an integer or list with reduced coordinates.</p>
 <dl class="method">
 <dt id="abipy.eph.sigeph.SigmaPhReader.read_qp">
 <code class="descname">read_qp</code><span class="sig-paren">(</span><em>spin</em>, <em>kpoint</em>, <em>band</em>, <em>ignore_imag=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigmaPhReader.read_qp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigmaPhReader.read_qp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return <a class="reference internal" href="#abipy.eph.sigeph.QpTempState" title="abipy.eph.sigeph.QpTempState"><code class="xref py py-class docutils literal"><span class="pre">QpTempState</span></code></a> for the given (spin, kpoint, band).
+<dd><p>Return <a class="reference internal" href="#abipy.eph.sigeph.QpTempState" title="abipy.eph.sigeph.QpTempState"><code class="xref py py-class docutils literal"><span class="pre">QpTempState</span></code></a> for the given (spin, kpoint, band)
+(NB: band is a global index i.e. unshifted)
 Only real part is returned if <code class="docutils literal"><span class="pre">ignore_imag</span></code>.</p>
 </dd></dl>
 
@@ -3080,7 +3221,7 @@ Only real part is returned if <code class="docutils literal"><span class="pre">i
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Aug 22, 2018.<br/>
+      Last updated on Sep 18, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

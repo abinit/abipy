@@ -60,7 +60,7 @@ using the results stored in the FATBANDS.nc files produced with prtdos 3.
     Name: ni_kpath_FATBANDS.nc
     Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/ni_ebands
     Size: 619.35 kb
-    Access Time: Tue Aug 21 23:55:22 2018
+    Access Time: Mon Sep 17 23:54:20 2018
     Modification Time: Thu Feb 22 21:38:00 2018
     Change Time: Thu Feb 22 21:38:00 2018
 
@@ -160,7 +160,7 @@ using the results stored in the FATBANDS.nc files produced with prtdos 3.
     fbnc_kpath.close()
     fbnc_kmesh.close()
 
-**Total running time of the script:** ( 0 minutes  6.722 seconds)
+**Total running time of the script:** ( 0 minutes  6.977 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_efatbands_spin.py:

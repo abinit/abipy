@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>tools Package &#8212; abipy 0.6.0 documentation</title>
+    <title>tools Package &#8212; abipy 0.7.0.dev documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.6.0',
+        VERSION:     '0.7.0.dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.6.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.7.0.dev</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -626,6 +626,12 @@ and print info on the corresponding file inside the notebook.</p>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.tools.numtools.is_diagonal">
+<code class="descclassname">abipy.tools.numtools.</code><code class="descname">is_diagonal</code><span class="sig-paren">(</span><em>matrix</em>, <em>atol=1e-12</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#is_diagonal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.is_diagonal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if matrix is diagonal.</p>
 </dd></dl>
 
 <dl class="function">
@@ -1310,34 +1316,34 @@ plt: matplotlib pyplot module.</td>
 <dl class="class">
 <dt id="abipy.tools.tensors.Stress">
 <em class="property">class </em><code class="descclassname">abipy.tools.tensors.</code><code class="descname">Stress</code><a class="reference internal" href="../_modules/abipy/tools/tensors.html#Stress"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.tensors.Stress" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.stress.html#pymatgen.analysis.elasticity.stress.Stress" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.stress.Stress</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">abipy.tools.tensors._Tensor33</span></code></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.stress.html#pymatgen.analysis.elasticity.stress.Stress" title="(in pymatgen v2018.9.12)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.stress.Stress</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">abipy.tools.tensors._Tensor33</span></code></p>
 <p>Stress tensor. rank2 symmetric tensor with shape [3, 3].</p>
 <p class="rubric">Inheritance Diagram</p>
-<img src="../_images/inheritance-9aa84b2a1423cb7295b6ccf22dbf66597566d45d.png" alt="Inheritance diagram of Stress" usemap="#inheritancee0818c4a88" class="inheritance"/>
+<img src="../_images/inheritance-bef67ce883d9a2caad752ac8cfa8b19f23a8586f.png" alt="Inheritance diagram of Stress" usemap="#inheritancee0818c4a88" class="inheritance"/>
 <map id="inheritancee0818c4a88" name="inheritancee0818c4a88">
-<area shape="rect" id="node1" href="#abipy.tools.tensors.Stress" target="_top" title="Stress tensor. rank2 symmetric tensor with shape [3, 3]." alt="" coords="670,16,765,29"/>
-<area shape="rect" id="node2" title="This class extends SquareTensor as a representation of the" alt="" coords="496,16,643,29"/>
-<area shape="rect" id="node3" title="This is a mix&#45;in base class specifying an API for msonable objects. MSON" alt="" coords="3,3,88,16"/>
-<area shape="rect" id="node6" title="Base class for doing useful general operations on Nth order tensors," alt="" coords="114,16,267,29"/>
-<area shape="rect" id="node4" title="ndarray(shape, dtype=float, buffer=None, offset=0," alt="" coords="15,29,75,43"/>
-<area shape="rect" id="node5" title="Base class for doing useful general operations on second rank tensors" alt="" coords="293,16,470,29"/>
+<area shape="rect" id="node1" href="#abipy.tools.tensors.Stress" target="_top" title="Stress tensor. rank2 symmetric tensor with shape [3, 3]." alt="" coords="658,18,765,33"/>
+<area shape="rect" id="node2" title="This class extends SquareTensor as a representation of the" alt="" coords="463,18,628,33"/>
+<area shape="rect" id="node3" title="This is a mix&#45;in base class specifying an API for msonable objects. MSON" alt="" coords="3,3,99,18"/>
+<area shape="rect" id="node6" title="Base class for doing useful general operations on Nth order tensors," alt="" coords="128,18,253,33"/>
+<area shape="rect" id="node4" title="ndarray(shape, dtype=float, buffer=None, offset=0," alt="" coords="17,33,85,48"/>
+<area shape="rect" id="node5" title="Base class for doing useful general operations on second rank tensors" alt="" coords="282,18,433,33"/>
 </map>
 </dd></dl>
 
 <dl class="class">
 <dt id="abipy.tools.tensors.DielectricTensor">
 <em class="property">class </em><code class="descclassname">abipy.tools.tensors.</code><code class="descname">DielectricTensor</code><a class="reference internal" href="../_modules/abipy/tools/tensors.html#DielectricTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.tensors.DielectricTensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.SquareTensor" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.SquareTensor</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">abipy.tools.tensors._Tensor33</span></code></p>
-<p>Subclass of <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.Tensor" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.Tensor</span></code></a> describing a dielectric tensor.
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.core.tensors.html#pymatgen.core.tensors.SquareTensor" title="(in pymatgen v2018.9.12)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.tensors.SquareTensor</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">abipy.tools.tensors._Tensor33</span></code></p>
+<p>Subclass of <code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.Tensor</span></code> describing a dielectric tensor.
 rank2 symmetric tensor with shape [3, 3].</p>
 <p class="rubric">Inheritance Diagram</p>
-<img src="../_images/inheritance-10d5351d548aa164a2014889a8dce2e64de3fedf.png" alt="Inheritance diagram of DielectricTensor" usemap="#inheritance9126c67f60" class="inheritance"/>
+<img src="../_images/inheritance-f7360ca53631a096888f935eed846356cd5753b3.png" alt="Inheritance diagram of DielectricTensor" usemap="#inheritance9126c67f60" class="inheritance"/>
 <map id="inheritance9126c67f60" name="inheritance9126c67f60">
-<area shape="rect" id="node1" href="#abipy.tools.tensors.DielectricTensor" target="_top" title="Subclass of |pmg&#45;Tensor| describing a dielectric tensor." alt="" coords="609,20,764,36"/>
-<area shape="rect" id="node2" title="Base class for doing useful general operations on second rank tensors" alt="" coords="360,20,576,36"/>
-<area shape="rect" id="node3" title="This is a mix&#45;in base class specifying an API for msonable objects. MSON" alt="" coords="4,4,108,20"/>
-<area shape="rect" id="node5" title="Base class for doing useful general operations on Nth order tensors," alt="" coords="140,20,327,36"/>
-<area shape="rect" id="node4" title="ndarray(shape, dtype=float, buffer=None, offset=0," alt="" coords="19,36,93,52"/>
+<area shape="rect" id="node1" href="#abipy.tools.tensors.DielectricTensor" target="_top" title="Subclass of |pmg&#45;Tensor| describing a dielectric tensor." alt="" coords="584,23,764,42"/>
+<area shape="rect" id="node2" title="Base class for doing useful general operations on second rank tensors" alt="" coords="356,23,547,42"/>
+<area shape="rect" id="node3" title="This is a mix&#45;in base class specifying an API for msonable objects. MSON" alt="" coords="4,4,124,23"/>
+<area shape="rect" id="node5" title="Base class for doing useful general operations on Nth order tensors," alt="" coords="162,23,319,42"/>
+<area shape="rect" id="node4" title="ndarray(shape, dtype=float, buffer=None, offset=0," alt="" coords="22,42,107,60"/>
 </map>
 <dl class="method">
 <dt id="abipy.tools.tensors.DielectricTensor.reflectivity">
@@ -1353,31 +1359,31 @@ returns the three components of the reflectivity</p>
 <dl class="class">
 <dt id="abipy.tools.tensors.ZstarTensor">
 <em class="property">class </em><code class="descclassname">abipy.tools.tensors.</code><code class="descname">ZstarTensor</code><a class="reference internal" href="../_modules/abipy/tools/tensors.html#ZstarTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.tensors.ZstarTensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.SquareTensor" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.SquareTensor</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">abipy.tools.tensors._Tensor33</span></code></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.core.tensors.html#pymatgen.core.tensors.SquareTensor" title="(in pymatgen v2018.9.12)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.tensors.SquareTensor</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">abipy.tools.tensors._Tensor33</span></code></p>
 <p>Born effective charge tensor (for a single atom).</p>
 <p class="rubric">Inheritance Diagram</p>
-<img src="../_images/inheritance-e0791382ac68c2db14bf620ae7a4fee835346fa2.png" alt="Inheritance diagram of ZstarTensor" usemap="#inheritance44d2641f3b" class="inheritance"/>
+<img src="../_images/inheritance-c7f774777ea559b20a078a8e5fc0b5038391950a.png" alt="Inheritance diagram of ZstarTensor" usemap="#inheritance44d2641f3b" class="inheritance"/>
 <map id="inheritance44d2641f3b" name="inheritance44d2641f3b">
-<area shape="rect" id="node1" href="#abipy.tools.tensors.ZstarTensor" target="_top" title="Born effective charge tensor (for a single atom)." alt="" coords="622,20,764,37"/>
-<area shape="rect" id="node2" title="Base class for doing useful general operations on second rank tensors" alt="" coords="368,20,589,37"/>
-<area shape="rect" id="node3" title="This is a mix&#45;in base class specifying an API for msonable objects. MSON" alt="" coords="4,4,110,20"/>
-<area shape="rect" id="node5" title="Base class for doing useful general operations on Nth order tensors," alt="" coords="143,20,335,37"/>
-<area shape="rect" id="node4" title="ndarray(shape, dtype=float, buffer=None, offset=0," alt="" coords="19,37,95,53"/>
+<area shape="rect" id="node1" href="#abipy.tools.tensors.ZstarTensor" target="_top" title="Born effective charge tensor (for a single atom)." alt="" coords="599,24,764,43"/>
+<area shape="rect" id="node2" title="Base class for doing useful general operations on second rank tensors" alt="" coords="365,24,560,43"/>
+<area shape="rect" id="node3" title="This is a mix&#45;in base class specifying an API for msonable objects. MSON" alt="" coords="4,4,127,24"/>
+<area shape="rect" id="node5" title="Base class for doing useful general operations on Nth order tensors," alt="" coords="166,24,327,43"/>
+<area shape="rect" id="node4" title="ndarray(shape, dtype=float, buffer=None, offset=0," alt="" coords="22,43,110,62"/>
 </map>
 </dd></dl>
 
 <dl class="class">
 <dt id="abipy.tools.tensors.NLOpticalSusceptibilityTensor">
 <em class="property">class </em><code class="descclassname">abipy.tools.tensors.</code><code class="descname">NLOpticalSusceptibilityTensor</code><a class="reference internal" href="../_modules/abipy/tools/tensors.html#NLOpticalSusceptibilityTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.tensors.NLOpticalSusceptibilityTensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.Tensor" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.Tensor</span></code></a></p>
-<p>Subclass of <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.Tensor" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.Tensor</span></code></a> containing the non-linear optical susceptibility tensor.</p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.core.tensors.html#pymatgen.core.tensors.Tensor" title="(in pymatgen v2018.9.12)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.tensors.Tensor</span></code></a></p>
+<p>Subclass of <code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.Tensor</span></code> containing the non-linear optical susceptibility tensor.</p>
 <p class="rubric">Inheritance Diagram</p>
-<img src="../_images/inheritance-bb29ac31a87d7dd00741cd95b6aa47ad8423997a.png" alt="Inheritance diagram of NLOpticalSusceptibilityTensor" usemap="#inheritance32ca961597" class="inheritance"/>
+<img src="../_images/inheritance-e110d9b3aeac9bdde731c4f32368a9db84f36f79.png" alt="Inheritance diagram of NLOpticalSusceptibilityTensor" usemap="#inheritance32ca961597" class="inheritance"/>
 <map id="inheritance32ca961597" name="inheritance32ca961597">
-<area shape="rect" id="node1" href="#abipy.tools.tensors.NLOpticalSusceptibilityTensor" target="_top" title="Subclass of |pmg&#45;Tensor| containing the non&#45;linear optical susceptibility tensor." alt="" coords="481,27,763,48"/>
-<area shape="rect" id="node2" title="Base class for doing useful general operations on Nth order tensors," alt="" coords="187,27,438,48"/>
-<area shape="rect" id="node3" title="This is a mix&#45;in base class specifying an API for msonable objects. MSON" alt="" coords="5,5,144,27"/>
-<area shape="rect" id="node4" title="ndarray(shape, dtype=float, buffer=None, offset=0," alt="" coords="25,48,124,70"/>
+<area shape="rect" id="node1" href="#abipy.tools.tensors.NLOpticalSusceptibilityTensor" target="_top" title="Subclass of |pmg&#45;Tensor| containing the non&#45;linear optical susceptibility tensor." alt="" coords="453,29,763,53"/>
+<area shape="rect" id="node2" title="Base class for doing useful general operations on Nth order tensors," alt="" coords="206,29,405,53"/>
+<area shape="rect" id="node3" title="This is a mix&#45;in base class specifying an API for msonable objects. MSON" alt="" coords="5,5,158,29"/>
+<area shape="rect" id="node4" title="ndarray(shape, dtype=float, buffer=None, offset=0," alt="" coords="27,53,136,77"/>
 </map>
 <dl class="classmethod">
 <dt id="abipy.tools.tensors.NLOpticalSusceptibilityTensor.from_file">
@@ -1434,7 +1440,7 @@ as replace does, starting from the end.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Aug 22, 2018.<br/>
+      Last updated on Sep 18, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

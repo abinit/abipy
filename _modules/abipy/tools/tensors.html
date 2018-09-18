@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.tools.tensors &#8212; abipy 0.6.0 documentation</title>
+    <title>abipy.tools.tensors &#8212; abipy 0.7.0.dev documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.6.0',
+        VERSION:     '0.7.0.dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.6.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.7.0.dev</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -139,8 +139,15 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
-<span class="kn">from</span> <span class="nn">pymatgen.analysis.elasticity.tensors</span> <span class="k">import</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">SquareTensor</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">pymatgen.core.tensors</span> <span class="k">import</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">SquareTensor</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="c1"># Can be removed in v2019.1.1</span>
+    <span class="kn">from</span> <span class="nn">pymatgen.analysis.elasticity.tensors</span> <span class="k">import</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">SquareTensor</span>
+
+<span class="kn">from</span> <span class="nn">pymatgen.analysis.elasticity.elastic</span> <span class="k">import</span> <span class="n">ElasticTensor</span>
 <span class="kn">from</span> <span class="nn">pymatgen.analysis.elasticity.stress</span> <span class="k">import</span> <span class="n">Stress</span> <span class="k">as</span> <span class="n">pmg_Stress</span>
+<span class="kn">from</span> <span class="nn">pymatgen.analysis.piezo</span> <span class="k">import</span> <span class="n">PiezoTensor</span>
 <span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">ETSF_Reader</span>
 
 
@@ -249,7 +256,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Aug 22, 2018.<br/>
+      Last updated on Sep 18, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

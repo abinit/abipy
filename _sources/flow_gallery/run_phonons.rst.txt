@@ -153,7 +153,7 @@ and invoke anaddb to compute the phonon band structure and the phonon DOS with:
 
 
 
-**Total running time of the script:** ( 0 minutes  4.278 seconds)
+**Total running time of the script:** ( 0 minutes  4.300 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_phonons.py:

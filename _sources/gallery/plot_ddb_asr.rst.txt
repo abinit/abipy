@@ -51,7 +51,7 @@ with and without imposing the acoustic sum rule at the Gamma point.
     plotter = ddb.anacompare_asr(asr_list=(0, 2), nqsmall=0, ndivsm=10)
     plotter.gridplot()
 
-**Total running time of the script:** ( 1 minutes  15.718 seconds)
+**Total running time of the script:** ( 1 minutes  12.038 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_ddb_asr.py:

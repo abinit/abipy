@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>flowtk Package &#8212; abipy 0.6.0 documentation</title>
+    <title>flowtk Package &#8212; abipy 0.7.0.dev documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.6.0',
+        VERSION:     '0.7.0.dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.6.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.7.0.dev</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -352,7 +352,7 @@ channel of the nickel atoms:</p>
 <dl class="class">
 <dt id="abipy.flowtk.abiphonopy.PhonopyWork">
 <em class="property">class </em><code class="descclassname">abipy.flowtk.abiphonopy.</code><code class="descname">PhonopyWork</code><span class="sig-paren">(</span><em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/abiphonopy.html#PhonopyWork"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.abiphonopy.PhonopyWork" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2018.9.12)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
 <p>This work computes the inter-atomic force constants with phonopy.</p>
 <dl class="attribute">
 <dt id="abipy.flowtk.abiphonopy.PhonopyWork.scdims">
@@ -420,7 +420,7 @@ we call phonopy to compute the inter-atomic force constants.</p>
 <dl class="class">
 <dt id="abipy.flowtk.abiphonopy.PhonopyGruneisenWork">
 <em class="property">class </em><code class="descclassname">abipy.flowtk.abiphonopy.</code><code class="descname">PhonopyGruneisenWork</code><span class="sig-paren">(</span><em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/abiphonopy.html#PhonopyGruneisenWork"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.abiphonopy.PhonopyGruneisenWork" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2018.9.12)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
 <p>This work computes the Grüneisen parameters with phonopy. The workflow is as follows:</p>
 <p>It is necessary to run three phonon calculations.
 One is calculated at the equilibrium volume and the remaining two are calculated
@@ -483,7 +483,7 @@ constructed from the new structures, add them to the flow and build new director
 <dl class="class">
 <dt id="abipy.flowtk.dfpt_works.NscfDdksWork">
 <em class="property">class </em><code class="descclassname">abipy.flowtk.dfpt_works.</code><code class="descname">NscfDdksWork</code><span class="sig-paren">(</span><em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/dfpt_works.html#NscfDdksWork"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.dfpt_works.NscfDdksWork" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2018.9.12)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
 <p>This work requires a DEN file and computes the KS energies with a non self-consistent task
 with a dense k-mesh and empty states.
 This task is then followed by the computation of the DDK matrix elements with nstep = 1
@@ -516,7 +516,7 @@ Mainly used to prepare optic calculations or other post-processing steps requiri
 <dl class="class">
 <dt id="abipy.flowtk.dfpt_works.ElasticWork">
 <em class="property">class </em><code class="descclassname">abipy.flowtk.dfpt_works.</code><code class="descname">ElasticWork</code><span class="sig-paren">(</span><em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/dfpt_works.html#ElasticWork"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.dfpt_works.ElasticWork" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.MergeDdb</span></code></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2018.9.12)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.MergeDdb</span></code></p>
 <p>This Work computes the elastic constants and (optionally) the piezoelectric tensor.
 It consists of Response function calculations for:</p>
 <blockquote>
@@ -587,7 +587,7 @@ the final DDB file in the outdir of the <cite>Work</cite>.</p>
 <dl class="class">
 <dt id="abipy.flowtk.gruneisen.GruneseinenFlow">
 <em class="property">class </em><code class="descclassname">abipy.flowtk.gruneisen.</code><code class="descname">GruneseinenFlow</code><span class="sig-paren">(</span><em>workdir</em>, <em>manager=None</em>, <em>pickle_protocol=-1</em>, <em>remove=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/gruneisen.html#GruneseinenFlow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.gruneisen.GruneseinenFlow" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.flows.html#pymatgen.io.abinit.flows.Flow" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.flows.Flow</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.flows.html#pymatgen.io.abinit.flows.Flow" title="(in pymatgen v2018.9.12)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.flows.Flow</span></code></a></p>
 <p>This work compute the Grüneisen parameters with the DFPT part of Abinit and
 finite differences in anaddb.</p>
 <p>It is necessary to run three phonon calculations with DFPT.
@@ -622,7 +622,7 @@ The unitcells at these volumes have to be fully relaxed under the constraint of 
 <dl class="class">
 <dt id="abipy.flowtk.gruneisen.GruneseinenWork">
 <em class="property">class </em><code class="descclassname">abipy.flowtk.gruneisen.</code><code class="descname">GruneseinenWork</code><span class="sig-paren">(</span><em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/gruneisen.html#GruneseinenWork"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.gruneisen.GruneseinenWork" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2018.9.12)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
 <dl class="method">
 <dt id="abipy.flowtk.gruneisen.GruneseinenWork.on_all_ok">
 <code class="descname">on_all_ok</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/gruneisen.html#GruneseinenWork.on_all_ok"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.gruneisen.GruneseinenWork.on_all_ok" title="Permalink to this definition">¶</a></dt>
@@ -646,7 +646,7 @@ constructed from the new structures, add them to the flow and build new director
 <dl class="class">
 <dt id="abipy.flowtk.gs_works.EosWork">
 <em class="property">class </em><code class="descclassname">abipy.flowtk.gs_works.</code><code class="descname">EosWork</code><span class="sig-paren">(</span><em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/gs_works.html#EosWork"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.gs_works.EosWork" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2018.9.12)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
 <p>Work for the computation of the Equation of State
 The EOS is obtained by computing E(V) for several volumes around the input V0,
 The initial volumes are obtained by rescaling the input lattice vectors so that
@@ -718,7 +718,7 @@ JSON file <cite>eos_data.json</cite> in outdata.</p>
 <dl class="class">
 <dt id="abipy.flowtk.mocks.AbinitTaskMockedStart">
 <em class="property">class </em><code class="descclassname">abipy.flowtk.mocks.</code><code class="descname">AbinitTaskMockedStart</code><span class="sig-paren">(</span><em>input</em>, <em>workdir=None</em>, <em>manager=None</em>, <em>deps=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/mocks.html#AbinitTaskMockedStart"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.mocks.AbinitTaskMockedStart" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.AbinitTask" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.AbinitTask</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.AbinitTask" title="(in pymatgen v2018.9.12)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.AbinitTask</span></code></a></p>
 <p>A Task whose status is always self.mocked_status.</p>
 <dl class="method">
 <dt id="abipy.flowtk.mocks.AbinitTaskMockedStart.start">
@@ -736,7 +736,7 @@ JSON file <cite>eos_data.json</cite> in outdata.</p>
 <dl class="class">
 <dt id="abipy.flowtk.mocks.InfiniteFlow">
 <em class="property">class </em><code class="descclassname">abipy.flowtk.mocks.</code><code class="descname">InfiniteFlow</code><span class="sig-paren">(</span><em>workdir</em>, <em>manager=None</em>, <em>pickle_protocol=-1</em>, <em>remove=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/mocks.html#InfiniteFlow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.mocks.InfiniteFlow" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.flows.html#pymatgen.io.abinit.flows.Flow" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.flows.Flow</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.flows.html#pymatgen.io.abinit.flows.Flow" title="(in pymatgen v2018.9.12)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.flows.Flow</span></code></a></p>
 <p>A Flow that will never reach <cite>all_ok</cite></p>
 <dl class="method">
 <dt id="abipy.flowtk.mocks.InfiniteFlow.check_status">
@@ -759,7 +759,7 @@ JSON file <cite>eos_data.json</cite> in outdata.</p>
 <dl class="class">
 <dt id="abipy.flowtk.qha.RelaxAndPhononWork">
 <em class="property">class </em><code class="descclassname">abipy.flowtk.qha.</code><code class="descname">RelaxAndPhononWork</code><span class="sig-paren">(</span><em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/qha.html#RelaxAndPhononWork"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.qha.RelaxAndPhononWork" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.MergeDdb</span></code></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2018.9.12)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.MergeDdb</span></code></p>
 <p>This work perform a structural relaxation and use the relaxed structure to
 compute phonon frequencies with DFPT.</p>
 <dl class="classmethod">
@@ -789,7 +789,7 @@ the final DDB file in the outdir of the <cite>Work</cite>.</p>
 <dl class="class">
 <dt id="abipy.flowtk.qha.QhaFlow">
 <em class="property">class </em><code class="descclassname">abipy.flowtk.qha.</code><code class="descname">QhaFlow</code><span class="sig-paren">(</span><em>workdir</em>, <em>manager=None</em>, <em>pickle_protocol=-1</em>, <em>remove=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/qha.html#QhaFlow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.qha.QhaFlow" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.flows.html#pymatgen.io.abinit.flows.Flow" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.flows.Flow</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.flows.html#pymatgen.io.abinit.flows.Flow" title="(in pymatgen v2018.9.12)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.flows.Flow</span></code></a></p>
 <dl class="classmethod">
 <dt id="abipy.flowtk.qha.QhaFlow.from_gsinp">
 <em class="property">classmethod </em><code class="descname">from_gsinp</code><span class="sig-paren">(</span><em>workdir</em>, <em>gsinp</em>, <em>volumes</em>, <em>ngqpt</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/qha.html#QhaFlow.from_gsinp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.qha.QhaFlow.from_gsinp" title="Permalink to this definition">¶</a></dt>
@@ -829,7 +829,7 @@ some basic post-processing of the results to facilitate further analysis.</p>
 <dl class="class">
 <dt id="abipy.flowtk.tasks.BoxcuttedPhononTask">
 <em class="property">class </em><code class="descclassname">abipy.flowtk.tasks.</code><code class="descname">BoxcuttedPhononTask</code><span class="sig-paren">(</span><em>input</em>, <em>workdir=None</em>, <em>manager=None</em>, <em>deps=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/tasks.html#BoxcuttedPhononTask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.tasks.BoxcuttedPhononTask" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.PhononTask" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.PhononTask</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.PhononTask" title="(in pymatgen v2018.9.12)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.PhononTask</span></code></a></p>
 <p>This task compute phonons with a two-step algorithm.
 The first DFPT run is done with low-accuracy settings for boxcutmin and ecut
 The second DFPT run uses boxcutmin 2.0 and normal ecut and restarts from
@@ -871,7 +871,7 @@ the 1WFK file generated previously.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Aug 22, 2018.<br/>
+      Last updated on Sep 18, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

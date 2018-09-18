@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>dfpt Package &#8212; abipy 0.6.0 documentation</title>
+    <title>dfpt Package &#8212; abipy 0.7.0.dev documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.6.0',
+        VERSION:     '0.7.0.dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.6.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.7.0.dev</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -384,7 +384,7 @@ working directory is created. Return path to the notebook.</p>
 <dl class="method">
 <dt id="abipy.dfpt.anaddbnc.AnaddbNcRobot.get_elastic_dataframe">
 <code class="descname">get_elastic_dataframe</code><span class="sig-paren">(</span><em>with_geo=True</em>, <em>abspath=False</em>, <em>with_params=False</em>, <em>funcs=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcRobot.get_elastic_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcRobot.get_elastic_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with properties derived from the elastic tensor
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+588.g9e2039b.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with properties derived from the elastic tensor
 and an associated structure. Filename is used as index.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -605,7 +605,7 @@ Use e.g. <code class="docutils literal"><span class="pre">ddb.header.ecut</span>
 <dt id="abipy.dfpt.ddb.DdbFile.computed_dynmat">
 <code class="descname">computed_dynmat</code><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.computed_dynmat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.computed_dynmat" title="Permalink to this definition">¶</a></dt>
 <dd><p><code class="xref py py-class docutils literal"><span class="pre">OrderedDict</span></code> mapping q-point object to –&gt; pandas Dataframe.
-The <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> contains the columns: “idir1”, “ipert1”, “idir2”, “ipert2”, “cvalue”
+The <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+588.g9e2039b.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> contains the columns: “idir1”, “ipert1”, “idir2”, “ipert2”, “cvalue”
 and (idir1, ipert1, idir2, ipert2) as index.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -841,7 +841,7 @@ Produce <a class="reference external" href="https://en.wikipedia.org/wiki/JSON">
 <li><strong>chneut</strong><strong>, </strong><strong>dipdip</strong> (<em>asr</em><em>,</em>) – Anaddb input variable. See official documentation.</li>
 <li><strong>workdir</strong> – Working directory. If None, a temporary directory is created.</li>
 <li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.9.12)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
 <li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information.</li>
 <li><strong>lo_to_splitting</strong> – Allowed values are [True, False, “automatic”]. Defaults to False
 If True the LO-TO splitting will be calculated if qpoint == Gamma and the non_anal_directions
@@ -889,7 +889,7 @@ depending on the input structure.</li>
 <li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information.</li>
 <li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
 <li><strong>workdir</strong> – Working directory. If None, a temporary directory is created.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file.</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.9.12)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file.</li>
 </ul>
 </td>
 </tr>
@@ -1040,7 +1040,7 @@ in Cartesian coordinates and the Born effective charges.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>chneut</strong> – Anaddb input variable. See official documentation.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.9.12)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
 <li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
 <li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information</li>
 </ul>
@@ -1074,7 +1074,7 @@ becs: Becs objects.</dd>
 <li><strong>ngqpt</strong> – Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)</li>
 <li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
 <li><strong>workdir</strong> – Working directory. If None, a temporary directory is created.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.9.12)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
 <li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information</li>
 <li><strong>anaddb_kwargs</strong> – additional kwargs for anaddb</li>
 </ul>
@@ -1100,7 +1100,7 @@ Requires phonon perturbations at Gamma and static electric field perturbations.<
 <li><strong>chneut</strong><strong>, </strong><strong>dipdip</strong> (<em>asr</em><em>,</em>) – Anaddb input variable. See official documentation.</li>
 <li><strong>workdir</strong> – Working directory. If None, a temporary directory is created.</li>
 <li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.9.12)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
 <li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information</li>
 <li><strong>anaddb_kwargs</strong> – additional kwargs for anaddb</li>
 </ul>
@@ -1140,7 +1140,7 @@ the stress left inside cell. The DDB must contain the stress tensor.</li>
 <li><strong>chneut</strong> – Anaddb input variable. See official documentation.</li>
 <li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
 <li><strong>workdir</strong> – Working directory. If None, a temporary directory is created.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.9.12)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
 <li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information</li>
 <li><strong>retpath</strong> – True to return path to anaddb.nc file.</li>
 </ul>
@@ -1218,7 +1218,7 @@ working directory is created. Return path to the notebook.</p>
 <dl class="method">
 <dt id="abipy.dfpt.ddb.Becs.get_voigt_dataframe">
 <code class="descname">get_voigt_dataframe</code><span class="sig-paren">(</span><em>tol=0.001</em>, <em>select_symbols=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#Becs.get_voigt_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.Becs.get_voigt_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with Voigt indices as columns and natom rows.</p>
+<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+588.g9e2039b.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with Voigt indices as columns and natom rows.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1274,7 +1274,7 @@ static dielectric tensor, i.e. the PHBST.nc and anaddb.nc netcdf files, respecti
 <dl class="method">
 <dt id="abipy.dfpt.ddb.DielectricTensorGenerator.get_oscillator_dataframe">
 <code class="descname">get_oscillator_dataframe</code><span class="sig-paren">(</span><em>reim='all'</em>, <em>tol=1e-08</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DielectricTensorGenerator.get_oscillator_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DielectricTensorGenerator.get_oscillator_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with oscillator matrix elements.</p>
+<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+588.g9e2039b.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with oscillator matrix elements.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1432,7 +1432,7 @@ Defaults to the standard Materials Project REST address</li>
 <code class="descname">get_dataframe_at_qpoint</code><span class="sig-paren">(</span><em>qpoint=None</em>, <em>units='eV'</em>, <em>asr=2</em>, <em>chneut=1</em>, <em>dipdip=1</em>, <em>with_geo=True</em>, <em>with_spglib=True</em>, <em>abspath=False</em>, <em>funcs=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbRobot.get_dataframe_at_qpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbRobot.get_dataframe_at_qpoint" title="Permalink to this definition">¶</a></dt>
 <dd><p>Call anaddb to compute the phonon frequencies at a single q-point using the DDB files treated
 by the robot and the given anaddb input arguments. LO-TO splitting is not included.
-Build and return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with results</p>
+Build and return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+588.g9e2039b.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with results</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1451,7 +1451,7 @@ where key is a string with the name of column and value is the value to be inser
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a></p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+588.g9e2039b.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a></p>
 </td>
 </tr>
 </tbody>
@@ -1482,7 +1482,7 @@ whose value will be added to the Dataframe.</li>
 <li><strong>with_structure</strong> – True to add structure parameters to the DataFrame.</li>
 <li><strong>with_spglib</strong> – True to compute spglib space group and add it to the DataFrame.</li>
 <li><strong>with_path</strong> – True to add DDB path to dataframe</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.9.12)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
 <li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information</li>
 <li><strong>kwargs</strong> – Keyword arguments passed to <cite>ddb.anaget_elastic</cite>.</li>
 </ul>
@@ -1600,11 +1600,11 @@ working directory is created. Return path to the notebook.</p>
 <dl class="class">
 <dt id="abipy.dfpt.elastic.MyElasticTensor">
 <em class="property">class </em><code class="descclassname">abipy.dfpt.elastic.</code><code class="descname">MyElasticTensor</code><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#MyElasticTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.elastic.MyElasticTensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.elastic.html#pymatgen.analysis.elasticity.elastic.ElasticTensor" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.elastic.ElasticTensor</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.elastic.html#pymatgen.analysis.elasticity.elastic.ElasticTensor" title="(in pymatgen v2018.9.12)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.elastic.ElasticTensor</span></code></a></p>
 <dl class="method">
 <dt id="abipy.dfpt.elastic.MyElasticTensor.get_voigt_dataframe">
 <code class="descname">get_voigt_dataframe</code><span class="sig-paren">(</span><em>tol=1e-05</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#MyElasticTensor.get_voigt_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.elastic.MyElasticTensor.get_voigt_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with Voigt indices as colums (C-indexing starting from 0).
+<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+588.g9e2039b.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with Voigt indices as colums (C-indexing starting from 0).
 Useful to analyze the converge of individual elements of the tensor(s)
 Elements below tol are set to zero.</p>
 </dd></dl>
@@ -1614,11 +1614,11 @@ Elements below tol are set to zero.</p>
 <dl class="class">
 <dt id="abipy.dfpt.elastic.MyPiezoTensor">
 <em class="property">class </em><code class="descclassname">abipy.dfpt.elastic.</code><code class="descname">MyPiezoTensor</code><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#MyPiezoTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.elastic.MyPiezoTensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.piezo.html#pymatgen.analysis.piezo.PiezoTensor" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.piezo.PiezoTensor</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.piezo.html#pymatgen.analysis.piezo.PiezoTensor" title="(in pymatgen v2018.9.12)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.piezo.PiezoTensor</span></code></a></p>
 <dl class="method">
 <dt id="abipy.dfpt.elastic.MyPiezoTensor.get_voigt_dataframe">
 <code class="descname">get_voigt_dataframe</code><span class="sig-paren">(</span><em>tol=1e-05</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#MyPiezoTensor.get_voigt_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.elastic.MyPiezoTensor.get_voigt_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with Voigt indices as colums (C-indexing starting from 0).
+<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+588.g9e2039b.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with Voigt indices as colums (C-indexing starting from 0).
 Useful to analyze the converge of individual elements of the tensor(s)
 Elements below tol are set to zero.</p>
 </dd></dl>
@@ -1803,7 +1803,7 @@ produced by the ieee transform generator, default True</li>
 <dl class="method">
 <dt id="abipy.dfpt.elastic.ElasticData.get_voigt_dataframe">
 <code class="descname">get_voigt_dataframe</code><span class="sig-paren">(</span><em>tensor_names</em>, <em>voigt_as_index=True</em>, <em>tol=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#ElasticData.get_voigt_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.elastic.ElasticData.get_voigt_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with Voigt indices as colums (C-indexing starting from 0).
+<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+588.g9e2039b.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with Voigt indices as colums (C-indexing starting from 0).
 Useful to analyze the converge of individual elements of the tensor(s)</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1822,7 +1822,7 @@ Useful to analyze the converge of individual elements of the tensor(s)</p>
 <dl class="method">
 <dt id="abipy.dfpt.elastic.ElasticData.get_elastic_properties_dataframe">
 <code class="descname">get_elastic_properties_dataframe</code><span class="sig-paren">(</span><em>tensor_names='all'</em>, <em>properties_as_index=False</em>, <em>include_base_props=True</em>, <em>ignore_errors=False</em>, <em>fit_to_structure=False</em>, <em>symprec=0.1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/elastic.html#ElasticData.get_elastic_properties_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.elastic.ElasticData.get_elastic_properties_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with properties derived from the elastic tensor
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+588.g9e2039b.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with properties derived from the elastic tensor
 and the associated structure</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2210,7 +2210,7 @@ This file contains Grunesein parameters computed via finite difference.</p>
 <dl class="method">
 <dt id="abipy.dfpt.gruneisen.GrunsNcFile.to_dataframe">
 <code class="descname">to_dataframe</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.to_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.to_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the following columns:</p>
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+588.g9e2039b.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the following columns:</p>
 <blockquote>
 <div>[‘qidx’, ‘mode’, ‘freq’, ‘qpoint’]</div></blockquote>
 <p>where:</p>
@@ -2627,7 +2627,7 @@ depending on the input structure.</li>
 <li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information.</li>
 <li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
 <li><strong>workdir</strong> – Working directory. If None, a temporary directory is created.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.8.10)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file.</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.9.12)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file.</li>
 </ul>
 </td>
 </tr>
@@ -3527,7 +3527,7 @@ Default: None i.e. fig is left unchanged.</td>
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhononBands.get_dataframe">
 <code class="descname">get_dataframe</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the following columns:</p>
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+588.g9e2039b.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the following columns:</p>
 <blockquote>
 <div>[‘qidx’, ‘mode’, ‘freq’, ‘qpoint’]</div></blockquote>
 <p>where:</p>
@@ -3785,7 +3785,7 @@ Accepts integer, vector with reduced coordinates or <a class="reference internal
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhbstFile.get_phframe">
 <code class="descname">get_phframe</code><span class="sig-paren">(</span><em>qpoint</em>, <em>with_structure=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhbstFile.get_phframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhbstFile.get_phframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the phonon frequencies at the given q-point and
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+588.g9e2039b.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the phonon frequencies at the given q-point and
 information on the crystal structure (used for convergence studies).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -4225,7 +4225,7 @@ Provides helper function to visualize/extract data.</p>
 <dt id="abipy.dfpt.phonons.PhdosFile.params">
 <code class="descname">params</code><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhdosFile.params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhdosFile.params" title="Permalink to this definition">¶</a></dt>
 <dd><p><code class="xref py py-class docutils literal"><span class="pre">OrderedDict</span></code> with the convergence parameters
-Used to construct <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a>.</p>
+Used to construct <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+588.g9e2039b.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -4506,7 +4506,7 @@ Supports plots on the same graph or separated plots.</p>
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhononBandsPlotter.get_phbands_frame">
 <code class="descname">get_phbands_frame</code><span class="sig-paren">(</span><em>with_spglib=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBandsPlotter.get_phbands_frame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBandsPlotter.get_phbands_frame" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+495.g68273a7.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important results available in the band structures.</p>
+<dd><p>Build a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+588.g9e2039b.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important results available in the band structures.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -6031,7 +6031,7 @@ corresponding gsr_file in “gsr_files_paths”.</li>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Aug 22, 2018.<br/>
+      Last updated on Sep 18, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

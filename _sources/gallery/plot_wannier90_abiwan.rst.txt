@@ -47,9 +47,9 @@ the `--expose` option to generate matplotlib figures automatically.
     Name: tw90_4o_DS3_ABIWAN.nc
     Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/wannier90/tutoplugs_tw90_4
     Size: 205.47 kb
-    Access Time: Tue Aug 21 23:54:13 2018
-    Modification Time: Fri Jul 20 00:04:24 2018
-    Change Time: Fri Jul 20 00:04:24 2018
+    Access Time: Mon Sep 17 23:53:02 2018
+    Modification Time: Wed Aug 22 00:30:54 2018
+    Change Time: Wed Aug 22 00:30:54 2018
 
     ================================= Structure =================================
     Full Formula (Si2)
@@ -114,8 +114,8 @@ the `--expose` option to generate matplotlib figures automatically.
     7         [2.47968 2.47968 0.23579]  2.767
 
     HWanR built in 0.016 (s)
-    Interpolation completed in 0.054 [s]
-    Interpolation completed in 0.007 [s]
+    Interpolation completed in 0.052 [s]
+    Interpolation completed in 0.005 [s]
 
 
 
@@ -155,7 +155,7 @@ the `--expose` option to generate matplotlib figures automatically.
     #plotter = abiwan.get_plotter_from_ebands("out_GSR.nc")
     #plotter.combiplot()
 
-**Total running time of the script:** ( 0 minutes  0.887 seconds)
+**Total running time of the script:** ( 0 minutes  0.715 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_wannier90_abiwan.py:

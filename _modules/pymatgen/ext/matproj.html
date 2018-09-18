@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>pymatgen.ext.matproj &#8212; abipy 0.6.0 documentation</title>
+    <title>pymatgen.ext.matproj &#8212; abipy 0.7.0.dev documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.6.0',
+        VERSION:     '0.7.0.dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.6.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.7.0.dev</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -586,7 +586,6 @@
                                 <span class="o">/</span> <span class="n">stable_ref</span><span class="o">.</span><span class="n">composition</span><span class="p">[</span><span class="n">elt</span><span class="p">]</span>
             <span class="n">ion_entry</span><span class="o">.</span><span class="n">energy</span> <span class="o">+=</span> <span class="n">solid_diff</span> <span class="o">*</span> <span class="n">correction_factor</span>
             <span class="n">pbx_entries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PourbaixEntry</span><span class="p">(</span><span class="n">ion_entry</span><span class="p">,</span> <span class="s1">&#39;ion-</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">)))</span>
-            <span class="c1"># import nose; nose.tools.set_trace()</span>
 
         <span class="c1"># Construct the solid pourbaix entries from filtered ion_ref entries</span>
         <span class="n">extra_elts</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ion_ref_elts</span><span class="p">)</span> <span class="o">-</span> <span class="p">{</span><span class="n">Element</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">chemsys</span><span class="p">}</span> \
@@ -603,10 +602,6 @@
                 <span class="n">new_entry</span><span class="o">.</span><span class="n">uncorrected_energy</span> <span class="o">=</span> <span class="n">form_e</span>
                 <span class="n">new_entry</span><span class="o">.</span><span class="n">correction</span> <span class="o">=</span> <span class="mf">0.0</span>
                 <span class="n">pbx_entry</span> <span class="o">=</span> <span class="n">PourbaixEntry</span><span class="p">(</span><span class="n">new_entry</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">entry</span><span class="o">.</span><span class="n">entry_id</span> <span class="o">==</span> <span class="s2">&quot;mp-697146&quot;</span><span class="p">:</span>
-                    <span class="k">pass</span>
-                    <span class="c1"># import nose; nose.tools.set_trace()</span>
-                <span class="c1"># pbx_entry.reduced_entry()</span>
                 <span class="n">pbx_entries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pbx_entry</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">pbx_entries</span>
@@ -1375,7 +1370,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Aug 22, 2018.<br/>
+      Last updated on Sep 18, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

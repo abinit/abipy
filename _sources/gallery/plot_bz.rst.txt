@@ -40,7 +40,7 @@ with pymatgen and matplotlib.
     # Close the wfk file
     wfk_file.close()
 
-**Total running time of the script:** ( 0 minutes  0.502 seconds)
+**Total running time of the script:** ( 0 minutes  0.459 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_bz.py:

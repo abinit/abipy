@@ -85,7 +85,7 @@ See also `plot_scr.py` for the optical spectrum.
         # Plot e^{-1}_{G1, G2} along the imaginary axis.
         em1.plot_gg(wpos="imag")
 
-**Total running time of the script:** ( 0 minutes  1.300 seconds)
+**Total running time of the script:** ( 0 minutes  0.656 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_scr_matrix.py:

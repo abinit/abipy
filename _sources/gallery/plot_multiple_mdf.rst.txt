@@ -55,7 +55,7 @@ This example shows how to analyze multiple MDF files.
 
     robot.close()
 
-**Total running time of the script:** ( 0 minutes  1.830 seconds)
+**Total running time of the script:** ( 0 minutes  1.463 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_multiple_mdf.py:

@@ -133,7 +133,7 @@ This script shows how to perform a structural relaxation in two steps:
     if __name__ == "__main__":
         sys.exit(main())
 
-**Total running time of the script:** ( 0 minutes  0.774 seconds)
+**Total running time of the script:** ( 0 minutes  0.646 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_relax.py:

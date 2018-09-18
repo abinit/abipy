@@ -222,6 +222,26 @@ Use ``--help`` for further information on the available options.
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute phonons with arbitrary q-points and WFQ files. Symmetries are...">
+
+.. only:: html
+
+    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_phonons_wkq_thumb.png
+
+        :ref:`sphx_glr_flow_gallery_run_phonons_wkq.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_phonons_wkq
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="This examples shows how to build a Flow to compute the band structure and the electron DOS of M...">
 
 .. only:: html

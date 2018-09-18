@@ -194,7 +194,7 @@ Run the script with:
 
 
 
-**Total running time of the script:** ( 0 minutes  1.866 seconds)
+**Total running time of the script:** ( 0 minutes  1.322 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_relax_vs_kpts_tsmear.py:
