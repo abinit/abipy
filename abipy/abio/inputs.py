@@ -1181,7 +1181,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return tolvar, value
 
-    def make_ph_inputs_qpoint(self, qpt, tolerance=None, manager=None):
+    def make_ph_inputs_qpoint(self, qpt, tolerance=None, prtwf=-1, manager=None):
         """
         Builds and returns a |MultiDataset| list of input files
         for the calculation of phonons at the given q-point `qpt`.
@@ -1191,6 +1191,9 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             qpt: q-point in reduced coordinates.
             tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.
                 Defaults to {"tolvrs": 1.0e-10}.
+            prtwf: 1WFs are only needed for restarting or non-linear response.
+                Since these files are huge, we use prtwf -1 so that the 1WF file is produced
+                only if the calculation is not converged so that AbiPy can restart it.
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
 
         .. WARNING::
@@ -1229,6 +1232,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 rfdir=rfdir,
                 kptopt=kptopt,
             )
+            #if "prtwf" not in  ph_input: ph_input["prtwf"] = prtwf
             ph_input.pop_tolerances()
             ph_input.set_vars(tolerance)
 
