@@ -31,13 +31,17 @@ class AbipyBoltztrap():
     It creates an instance of Bolztrap2Results to save the data
     Enter with quantities in the IBZ and interpolate to a fine BZ mesh
     """
-    def __init__(self,fermi,atoms,nelect,kpoints,eig,tau=None,bstart=None,bstop=None,lpratio=1,nworkers=1):
+    def __init__(self,fermi,atoms,nelect,kpoints,eig,volume,linewidths=None,tmesh=None,mumesh=None,
+                 bstart=None,bstop=None,lpratio=1,nworkers=1):
         self.fermi = fermi
         self.atoms = atoms
         self.nelect = nelect
         self.kpoints = kpoints
-        self.ebands = eig
-        self.tau = tau
+        self.eig = eig
+        self.volume = volume
+        self.linewidths = linewidths
+        self.tmesh = tmesh
+        self.mumesh = mumesh
         self.mommat = None
         self.bstart = bstart
         self.bstop  = bstop
@@ -66,8 +70,16 @@ class AbipyBoltztrap():
     def nequivalences(self):
         return len(self.equivalences)   
 
+    @property
+    def ncoefficients(self):
+        return len(self.coefficients)
+    
+    @property
+    def ntemps(self):
+        return len(self.linewidths)
+
     @classmethod
-    def from_sigeph(cls,sigeph):
+    def from_sigeph(cls,sigeph,itemp_list=None):
         """Initialize interpolation of the bands and lifetimes from a sigeph object"""
 
         #units conversion
@@ -87,17 +99,30 @@ class AbipyBoltztrap():
         kpoints = [k.frac_coords for k in sigeph.sigma_kpoints]
 
         #TODO handle spin
-        eig = qpes[0,:,bstart:bstop,0].T*eV_Ry
+        eig = qpes[0,:,bstart:bstop,0].real.T*eV_Ry
 
-        return cls(fermie, atoms, nelect, kpoints, eig)
+        itemp_list = list(range(sigeph.ntemp)) if itemp_list is None else duck.list_ints(itemp_list)
+        linewidths = []
+        tmesh = []
+        mumesh = []
+        for itemp in itemp_list:
+            tmesh.append(sigeph.tmesh[itemp])
+            mumesh.append(sigeph.mu_e[itemp])
+            #TODO handle spin
+            linewidth = qpes[0, :, bstart:bstop, itemp].imag.T*eV_Ry
+            linewidths.append(linewidth)
+
+        return cls(fermie, atoms, nelect, kpoints, eig, volume, linewidths, tmesh, mumesh)
 
     def get_lattvec(self):
-        import abipy.core.abinit_units as abu
-        try:
-            self.lattvec
-        except AttributeError:
-            self.lattvec = self.atoms.get_cell().T / abu.Bohr_Ang
+        """this method is required by Bolztrap"""
         return self.lattvec
+
+    @property
+    def lattvec(self):
+        if not hasattr(self,"_lattvec"):
+            self._lattvec = self.atoms.get_cell().T / abu.Bohr_Ang
+        return self._lattvec
 
     def get_interpolation_mesh(self):
         """From the array of equivalences determine the mesh that was used"""
@@ -119,7 +144,59 @@ class AbipyBoltztrap():
     def compute_coefficients(self):
         """Call fitde3D routine from Boltztrap2"""
         from BoltzTraP2 import fite
+        #we will set ebands to compute teh coefficients
+        self.ebands = self.eig
         self._coefficients = fite.fitde3D(self, self.equivalences, nworkers=self.nworkers)
+
+        if self.linewidths:
+            self._linewidth_coefficients = []
+            for itemp in range(self.ntemps):
+                self.ebands = self.linewidths[itemp]
+                coeffs = fite.fitde3D(self, self.equivalences, nworkers=self.nworkers)
+                self._linewidth_coefficients.append(coeffs)
+
+        #at the end we always unset ebands
+        delattr(self,"ebands")
+
+    @timeit
+    def run(self,npts=None,dos_method='gaussian:0.02 eV',verbose=True):
+        """
+        Interpolate the eingenvalues This part is quite memory intensive
+        """
+        eV_s = abu.eV_to_THz*1e12 * 2*np.pi
+        from BoltzTraP2 import fite
+        import BoltzTraP2.bandlib as BL
+
+        #TODO change this!
+        erange = (self.fermi-0.1,self.fermi+0.1)
+
+        #interpolate the electronic structure
+        results = fite.getBTPbands(self.equivalences, self.coefficients, 
+                                   self.lattvec, nworkers=self.nworkers)
+        eig_fine, vvband, cband = results
+        #calculate DOS and VDOS without lifetimes
+        wmesh,dos,vvdos,_ = BL.BTPDOS(eig_fine, vvband, erange=erange, npts=npts, mode=dos_method) 
+
+        #if we have linewidths
+        if self.linewidths:
+            dos_tau_temps = []
+            vvdos_tau_temps = []
+            for itemp in range(self.ntemps):
+                #calculate the lifetimes on the fine grid
+                results = fite.getBTPbands(self.equivalences, self._linewidth_coefficients[itemp], 
+                                           self.lattvec, nworkers=self.nworkers)
+                linewidth_fine, vvband, cband = results
+                tau_fine = 1.0/np.abs(2*linewidth_fine*eV_s) 
+                
+                #calculate vvdos with the lifetimes
+                wmesh, dos_tau, vvdos_tau, _ = BL.BTPDOS(eig_fine, vvband, erange=erange, npts=npts,
+                                                         scattering_model=tau_fine, mode=dos_method)
+                #store results
+                dos_tau_temps.append(dos_tau)
+                vvdos_tau_temps.append(vvdos_tau)
+ 
+        return Boltztrap2Results(wmesh,dos,vvdos,self.mumesh,self.volume,
+                                 dos_tau_temps=dos_tau,vvdos_tau_temps=vvdos_tau_temps,tmesh=self.tmesh)
 
     def __str__(self):
         lines = []; app = lines.append
@@ -132,13 +209,16 @@ class Boltztrap2Results():
     Container for BoltztraP2 results
     Provides a Object oriented interface to BoltztraP2 for plotting, storing and analysing the results
     """
-    def __init__(self,structure,wmesh,dos,vvdos,mumesh,tmesh):
-        self.structure = structure
+    def __init__(self,wmesh,dos,vvdos,mumesh,volume,
+                 dos_tau_temps=None,vvdos_tau_temps=None,tmesh=None):
         self.wmesh = wmesh
         self.mumesh = mumesh
         self.tmesh = tmesh
         self.dos = dos
         self.vvdos = vvdos
+        self.dos_tau_temps = dos_tau_temps
+        self.vvdos_tau_temps = vvdos_tau_temps
+        self.volume = volume
 
     @property
     def L0(self):

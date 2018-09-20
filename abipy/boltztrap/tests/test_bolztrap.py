@@ -19,7 +19,13 @@ class AbipyBoltztrapTest(AbipyTest):
         sigeph = abilab.abiopen(abidata.ref_file("diamond_444q_full_SIGEPH.nc"))
         
         boltztrap = AbipyBoltztrap.from_sigeph(sigeph)
+
+        # get equivalences
         assert boltztrap.rmesh == (5,5,5)
         assert boltztrap.nequivalences == 5
         
+        # get coefficients
+        assert boltztrap.ncoefficients == 53
 
+        #get results
+        boltztrap_results = boltztrap.run()
