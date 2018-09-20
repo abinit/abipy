@@ -755,16 +755,24 @@ class ElectronBands(Has_Structure):
     #                          self.nelect, self.nspinor, self.nspden,
     #                          smearing=self.smearing, linewidths=new_linewidths)
 
-    #@classmethod
-    #def empty_with_ibz(cls, ngkpt, structure, fermie, nelect, nsppol, nspinor, nspden, mband,
-    #                   shiftk=(0, 0, 0), kptopt=1, smearing=None, linewidths=None):
-    #    kpoints = IrredZone.from_ngkpt_or_kppa(structure, ngkpt, shiftk, kptopt=kptopt)
-    #    new_eigens = np.zeros((nsppol, len(kpoints), mband))
-    #    new_occfacts = np.zeros_like(new_eigens)
+    @classmethod
+    def empty_with_ibz(cls, ngkpt, structure, fermie, nelect, nsppol, nspinor, nspden, mband,
+                       shiftk=(0, 0, 0), kptopt=1, smearing=None, linewidths=None):
+        from abipy.abio.factories import gs_input
+        from abipy.data.hgh_pseudos import HGH_TABLE
+        gsinp = gs_input(structure, HGH_TABLE, spin_mode="unpolarized")
+        ibz = gsinp.abiget_ibz(ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt)
+        ksampling = KSamplingInfo.from_mpdivs(ngkpt, shiftk, kptopt)
 
-    #    return cls(structure, kpoints, new_eigens, fermie, new_occfacts,
-    #               nelect, nspinor, nspden,
-    #               smearing=smearing, linewidths=linewidths)
+        kpoints = IrredZone(structure.reciprocal_lattice, ibz.points, weights=ibz.weights,
+                            names=None, ksampling=ksampling)
+
+        new_eigens = np.zeros((nsppol, len(kpoints), mband))
+        new_occfacts = np.zeros_like(new_eigens)
+
+        return cls(structure, kpoints, new_eigens, fermie, new_occfacts,
+                   nelect, nspinor, nspden,
+                   smearing=smearing, linewidths=linewidths)
 
     def get_dict4pandas(self, with_geo=True, with_spglib=True):
         """
