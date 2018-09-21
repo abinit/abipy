@@ -7,7 +7,7 @@ import numpy as np
 import abipy.data as abidata
 
 from abipy.core.testing import AbipyTest
-from abipy.boltztrap.boltztrap import AbipyBoltztrap
+from abipy.boltztrap.boltztrap import AbipyBoltztrap, BoltztrapResults
 from abipy import abilab
 
 
@@ -18,14 +18,25 @@ class AbipyBoltztrapTest(AbipyTest):
         """Test boltztrap interpolation"""
         sigeph = abilab.abiopen(abidata.ref_file("diamond_444q_full_SIGEPH.nc"))
         
-        boltztrap = AbipyBoltztrap.from_sigeph(sigeph)
+        bt = AbipyBoltztrap.from_sigeph(sigeph)
 
         # get equivalences
-        assert boltztrap.rmesh == (5,5,5)
-        assert boltztrap.nequivalences == 5
+        assert bt.rmesh == (5,5,5)
+        assert bt.nequivalences == 5
         
         # get coefficients
-        assert boltztrap.ncoefficients == 53
+        assert bt.ncoefficients == 53
 
         #get results
-        boltztrap_results = boltztrap.run()
+        btr = bt.run()
+
+        #boltztrap_results
+        btr.plot_dos()
+       
+        btr.pickle('diamond.npy') 
+        #fig = plt.figure
+        #ax = fig.add_subplot(1,1,1)
+        #btr.plot_sigma(ax)
+        #btr.plot_seebeck(ax)
+
+

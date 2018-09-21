@@ -4,7 +4,9 @@ This module containes a Bolztrap2 class to interpolate and analyse the results
 It also provides interfaces with Abipy objects allowing to
 initialize the Boltztrap2 calculation from Abinit files
 """
+import pickle
 import numpy as np
+from abipy.tools.plotting import add_fig_kwargs
 import abipy.core.abinit_units as abu
 import time
 
@@ -32,7 +34,7 @@ class AbipyBoltztrap():
     Enter with quantities in the IBZ and interpolate to a fine BZ mesh
     """
     def __init__(self,fermi,atoms,nelect,kpoints,eig,volume,linewidths=None,tmesh=None,mumesh=None,
-                 bstart=None,bstop=None,lpratio=1,nworkers=1):
+                 lpratio=1,nworkers=1):
         self.fermi = fermi
         self.atoms = atoms
         self.nelect = nelect
@@ -43,8 +45,6 @@ class AbipyBoltztrap():
         self.tmesh = tmesh
         self.mumesh = mumesh
         self.mommat = None
-        self.bstart = bstart
-        self.bstop  = bstop
         self.nworkers = nworkers
         self.lpratio = lpratio
 
@@ -79,7 +79,7 @@ class AbipyBoltztrap():
         return len(self.linewidths)
 
     @classmethod
-    def from_sigeph(cls,sigeph,itemp_list=None):
+    def from_sigeph(cls,sigeph,itemp_list=None,bstart=None,bstop=None,lpratio=1):
         """Initialize interpolation of the bands and lifetimes from a sigeph object"""
 
         #units conversion
@@ -90,9 +90,9 @@ class AbipyBoltztrap():
         qpes = sigeph.get_qp_array(mode='ks+lifetimes')
 
         #get other dimensions
-        bstart = sigeph.reader.max_bstart
-        bstop  = sigeph.reader.min_bstop
-        fermie = sigeph.ebands.fermie*eV_Ry
+        if bstart is None: bstart = sigeph.reader.max_bstart
+        if bstop is None:  bstop  = sigeph.reader.min_bstop
+        fermi  = sigeph.ebands.fermie*eV_Ry
         atoms  = sigeph.ebands.structure.to_ase_atoms()
         volume = sigeph.ebands.structure.volume
         nelect = sigeph.ebands.nelect
@@ -112,7 +112,8 @@ class AbipyBoltztrap():
             linewidth = qpes[0, :, bstart:bstop, itemp].imag.T*eV_Ry
             linewidths.append(linewidth)
 
-        return cls(fermie, atoms, nelect, kpoints, eig, volume, linewidths, tmesh, mumesh)
+        return cls(fermi, atoms, nelect, kpoints, eig, volume, linewidths, 
+                   tmesh, mumesh, lpratio=lpratio)
 
     def get_lattvec(self):
         """this method is required by Bolztrap"""
@@ -159,7 +160,7 @@ class AbipyBoltztrap():
         delattr(self,"ebands")
 
     @timeit
-    def run(self,npts=None,dos_method='gaussian:0.02 eV',verbose=True):
+    def run(self,npts=500,dos_method='gaussian:0.1 eV',erange=None,verbose=True):
         """
         Interpolate the eingenvalues This part is quite memory intensive
         """
@@ -168,7 +169,7 @@ class AbipyBoltztrap():
         import BoltzTraP2.bandlib as BL
 
         #TODO change this!
-        erange = (self.fermi-0.1,self.fermi+0.1)
+        if erange is None: erange = (np.min(self.eig),np.max(self.eig))
 
         #interpolate the electronic structure
         results = fite.getBTPbands(self.equivalences, self.coefficients, 
@@ -195,30 +196,38 @@ class AbipyBoltztrap():
                 dos_tau_temps.append(dos_tau)
                 vvdos_tau_temps.append(vvdos_tau)
  
-        return Boltztrap2Results(wmesh,dos,vvdos,self.mumesh,self.volume,
-                                 dos_tau_temps=dos_tau,vvdos_tau_temps=vvdos_tau_temps,tmesh=self.tmesh)
+        return BoltztrapResults(self,wmesh,dos,vvdos,self.fermi,self.mumesh,self.tmesh,self.volume,
+                                dos_tau_temps=dos_tau,vvdos_tau_temps=vvdos_tau_temps)
 
     def __str__(self):
         lines = []; app = lines.append
         app("nequiv: {}".format(self.nequivalences))
-        app("rmesh: {}".format(self.rmesh))
+        app("rmesh:  {}".format(self.rmesh))
         return "\n".join(lines)
 
-class Boltztrap2Results():
+class BoltztrapResults():
     """
     Container for BoltztraP2 results
-    Provides a Object oriented interface to BoltztraP2 for plotting, storing and analysing the results
+    Provides a object oriented interface to BoltztraP2 for plotting, 
+    storing and analysing the results
     """
-    def __init__(self,wmesh,dos,vvdos,mumesh,volume,
-                 dos_tau_temps=None,vvdos_tau_temps=None,tmesh=None):
-        self.wmesh = wmesh
-        self.mumesh = mumesh
-        self.tmesh = tmesh
+    def __init__(self,abipyboltztrap,wmesh,dos,vvdos,fermi,mumesh,tmesh,volume,
+                 dos_tau_temps=None,vvdos_tau_temps=None):
+        self.abipyboltztrap = abipyboltztrap
+        self.fermi  = abipyboltztrap.fermi
+        self.mumesh = abipyboltztrap.mumesh
+        self.volume = abipyboltztrap.volume
+        self.wmesh  = wmesh
+        self.tmesh  = tmesh
+
         self.dos = dos
         self.vvdos = vvdos
-        self.dos_tau_temps = dos_tau_temps
-        self.vvdos_tau_temps = vvdos_tau_temps
-        self.volume = volume
+        self.dos_tau_temps = np.array(dos_tau_temps)
+        self.vvdos_tau_temps = np.array(vvdos_tau_temps)
+
+    @property
+    def ntemps(self):
+        return len(self.tmesh)
 
     @property
     def L0(self):
@@ -249,7 +258,11 @@ class Boltztrap2Results():
         if not hasattr(self,'_seebeck'):
             self.compute_onsager_coefficients()
         return self._seebeck
- 
+
+    @property
+    def powerfactor(self):
+        return self.sigmas * elf.seebeck**2
+     
     @property
     def kappa(self):
         if not hasattr(self,'_kappa'):
@@ -269,18 +282,40 @@ class Boltztrap2Results():
         results = BL.calc_Onsager_coefficients(L0,L1,L2,self.mumesh,self.tmesh,self.volume)
         self._sigma, self._seebeck, self._kappa, self._hall = results
 
-    @classmethod
-    def from_file(self):
+    @staticmethod
+    def from_pickle(filename):
         """load results from file"""
-        return cls()
+        with open(filename,'rb') as f:
+            instance = pickle.load(f)
+        return instance
  
-    def write_file(self):
+    def pickle(self,filename):
         """Write a file with the results from the calculation"""
-        return
- 
-    def plot(self):
+        with open(filename,'wb') as f:
+            pickle.dump(self,f)
+
+    @add_fig_kwargs
+    def plot_dos(self,colormap='viridis'):
         """Plot for all the dopings as a function of temperature"""
-        return
+        from matplotlib import pyplot as plt
+        cmap = plt.get_cmap(colormap)
+
+        fig = plt.figure()
+        ax1 = fig.add_subplot(1,1,1)
+        wmesh = self.wmesh-self.fermi
+        ax1.plot(wmesh,self.dos,label='dos')
+        ax1.plot(wmesh,self.vvdos[0,0],label='velocities')
+
+        if self.vvdos_tau_temps is not None:
+            ax2 = ax1.twinx()
+            #plot as a function of temperatures
+            for itemp,temp in enumerate(self.tmesh):
+                color = cmap(itemp/self.ntemps)
+                label = 'velocities tau %dK'%temp
+                ax2.plot(wmesh,self.vvdos_tau_temps[itemp,0,0],c=color,label=label)
+                ax2.axvline(0)
+        fig.legend()
+        return fig
 
     def __str__(self):
         lines = []; app = lines.append
