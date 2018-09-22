@@ -9,7 +9,7 @@ scikit-image
 phonopy
 #mayavi
 # Unit tests
-python-coveralls
+python-coveralls>=4.4
 pytest
 pytest-cov
 pytest-xdist

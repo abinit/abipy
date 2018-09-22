@@ -54,14 +54,15 @@ class QpTempState(namedtuple("QpTempState", "spin kpoint band tmesh e0 qpe ze0 f
 
         spin: Spin index (C convention, i.e >= 0)
         kpoint: |Kpoint| object.
-        band: band index. (C convention, i.e >= 0).
+        band: band index. Global index in the band structure. (C convention, i.e >= 0).
         tmesh: Temperature mesh in Kelvin.
         e0: Initial KS energy.
         qpe: Quasiparticle energy (complex) computed with the perturbative approach.
-        ze0: Renormalization factor computed at e=e0.
+        ze0: Renormalization factor computed at e = e0.
         fan0: Fan term (complex) at e_KS
-        dw: Debye-Waller
-        qpe_oms: Quasiparticle energy (real) in the on-the-mass-shell approximation.
+        dw: Debye-Waller (static, real)
+        qpe_oms: Quasiparticle energy (real) in the on-the-mass-shell approximation:
+	    qpe_oms = e0 + Sigma(e0)
 
     .. note::
 
@@ -1681,7 +1682,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
             band: Band index.
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
-	    what=: fandw for FAN, DW. gkq2 for |gkq|^2
+	    what=: fandw for FAN, DW. gkq2 for $|gkq|^2$.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: legend and title fontsize.
 
@@ -1707,7 +1708,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         Args:
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
                 Case-insensitive.
-	    what=: fandw for FAN, DW. gkq2 for |gkq|^2
+	    what=: fandw for FAN, DW. gkq2 for $|gkq|^2$
             sharey: True if Y axes should be shared.
             fontsize: legend and title fontsize.
 
@@ -2377,12 +2378,13 @@ class TdepElectronBands(object): # pragma: no cover
                                   function=lambda x: x, fact=10.0, **kwargs):
         """
         Plot bandstructure with linewidth at temperature ``itemp`` and linewidth vs the KS energies.
+
         Args:
-            itemp: Temperature index
+            itemp: Temperature index.
             ax_list: The axes for the bandstructure plot and the DOS plot. If ax_list is None, a new figure
-                is created and the two axes are automatically generated.
+		is created and the two axes are automatically generated.
             width_ratios: Defines the ratio between the band structure plot and the dos plot.
-            function: Apply this function to the values before plotting
+            function: Apply this function to the values before plotting.
 
         Return: |matplotlib-Figure|
         """
@@ -2574,7 +2576,7 @@ class TdepElectronBands(object): # pragma: no cover
             edos_plotter.add_edos("KS", edos=self.ks_ebands_kmesh, edos_kwargs=edos_kwargs)
 
         for itemp in range(self.ntemp):
-            label="T = %.1f K" % self.tmesh[itemp]
+            label = "T = %.1f K" % self.tmesh[itemp]
             edos_plotter.add_edos(label, edos=self.qp_ebands_kmesh_t[itemp], edos_kwargs=edos_kwargs)
 
         return edos_plotter
@@ -2599,7 +2601,7 @@ class SigmaPhReader(BaseEphReader):
         self.nqibz = self.read_dimvalue("nqibz")
         self.ngqpt = self.read_value("ngqpt")
 
-        # T and frequency meshes.
+        # T mesh and frequency meshes.
         self.ktmesh = self.read_value("kTmesh")
         self.tmesh = self.ktmesh / abu.kb_HaK
         self.ktmesh *= abu.Ha_eV
