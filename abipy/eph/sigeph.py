@@ -24,7 +24,7 @@ from monty.termcolor import cprint
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.core.kpoints import Kpoint, KpointList, Kpath, IrredZone, has_timrev_from_kptopt
 from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
-    rotate_ticklabels, ax_append_title)
+    rotate_ticklabels, ax_append_title, set_ax_xylabels)
 from abipy.tools import gaussian, duck
 from abipy.electrons.ebands import ElectronBands, ElectronDos, RobotWithEbands, ElectronBandsPlotter, ElectronDosPlotter
 from abipy.dfpt.phonons import PhononDos #PhononBands, RobotWithPhbands, factor_ev2units, unit_tag, dos_label_from_units
@@ -622,6 +622,45 @@ class A2feph(object):
         self.gkq2, self.fan, self.dw = gkq2, fan, dw
         self.spin, self.kpoint, self.band = spin, kpoint, band
 
+    @add_fig_kwargs
+    def plot(self, ax=None, units="meV", what="fandw", exchange_xy=False, fontsize=12, **kwargs):
+        """
+        Plot the Eliashberg function.
+
+        Args:
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+	    what=: fandw for FAN, DW. gkq2 for |gkq|^2
+            exchange_xy: True to exchange x-y axis.
+            fontsize: legend and title fontsize.
+        """
+        # Read mesh in Ha and convert to units.
+        wmesh = self.mesh * abu.phfactor_ev2units(units)
+
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        ax.grid(True)
+
+        def get_xy(x, y):
+            return (x, y) if not exchange_xy else (y, x)
+
+        if what == "fandw":
+            xs, ys = get_xy(wmesh, self.fan)
+            ax.plot(xs, ys, label=self.latex_symbol["fan"], **kwargs)
+            xs, ys = get_xy(wmesh, self.dw)
+            ax.plot(xs, ys, label=self.latex_symbol["dw"], **kwargs)
+            xs, ys = get_xy(wmesh, self.fan + self.dw)
+            ax.plot(xs, ys, label=self.latex_symbol["tot"], **kwargs)
+            xlabel, ylabel = abu.wlabel_from_units(units), self.latex_symbol["a2f"]
+            set_ax_xylabels(ax, xlabel, ylabel, exchange_xy)
+
+        elif what == "gkq2":
+            ax.plot(wmesh, self.gkq2, label=self.latex_symbol["gkq2"], **kwargs)
+        else:
+            raise NotImplementedError("%s" % what)
+
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        return fig
 
 class _MyQpkindsList(list):
     """Returned by find_qpkinds."""
@@ -799,7 +838,10 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
     @lazy_property
     def kcalc2ibz(self):
-        """Return a mapping of the kpoints at which the self energy was calculated and the ibz"""
+        """
+        Return a mapping of the kpoints at which the self energy was calculated and the ibz
+        i.e. the list of k-points in the band structure used to construct the self-energy.
+        """
         if (len(self.sigma_kpoints) == len(self.ebands.kpoints) and
             all(k1 == k2 for (k1, k2) in zip(self.sigma_kpoints, self.ebands.kpoints))):
             return np.arange(len(self.sigma_kpoints))
@@ -811,6 +853,17 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             kcalc2ibz[ikc] = self.ebands.kpoints.index(sigkpt)
 
         return kcalc2ibz
+
+    @lazy_property
+    def ibz2kcalc(self):
+        """
+        Mapping IBZ --> K-points in self-energy.
+        Set to -1 if IBZ k-point not present.
+        """
+        ibz2kcalc = np.ones(len(self.ebands.kpoints), dtype=np.int)
+        for ikc, ik_ibz in enumerate(self.kcalc2ibz):
+            ibz2kcalc[ik_ibz] = ikc
+        return ibz2kcalc
 
     @lazy_property
     def ks_dirgaps(self):
@@ -988,7 +1041,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         if itemp is not None: df = df[df["tmesh"] == self.tmesh[itemp]]
         return df
 
-    def get_linewidth_dos(self,method="gaussian",e0="fermie",step=0.1,width=0.2):
+    def get_linewidth_dos(self, method="gaussian", e0="fermie", step=0.1, width=0.2):
         """
         Calculate linewidth density of states
 
@@ -1019,14 +1072,14 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         if method == "gaussian":
             dos = np.zeros((ntemp,self.nsppol,nw))
             for spin in range(self.nsppol):
-                for i,ik in enumerate(self.kcalc2ibz):
+                for i, ik in enumerate(self.kcalc2ibz):
                     weight = ebands.kpoints.weights[ik]
                     for band in range(self.bstart_sk[spin, i], self.bstop_sk[spin, i]):
                         qp = self.reader.read_qp(spin,i,band)
                         e0 = qp.e0
                         for it in range(ntemp):
                             linewidth = abs(qp.fan0.imag[it])
-                            dos[it,spin] += weight * linewidth * gaussian(mesh,width,center=e0)
+                            dos[it,spin] += weight * linewidth * gaussian(mesh, width, center=e0)
         else:
             raise NotImplementedError("Method %s is not supported" % method)
 
@@ -1428,7 +1481,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         return fig
 
     @add_fig_kwargs
-    def plot_a2fw_skb(self, spin, kpoint, band, phdos=None, ax=None, fontsize=12, units="meV", **kwargs):
+    def plot_a2fw_skb(self, spin, kpoint, band, ax=None, fontsize=12, units="meV", what="fandw", **kwargs):
         """
         Plot the Eliashberg function a2F_{n,k,spin}(w) (gkq2/Fan-Migdal/DW/Total contribution)
         for a given (spin, kpoint, band)
@@ -1437,8 +1490,8 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             spin: Spin index
             kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
             band: Band index.
-            phdos: An instance of |PhononDos| or a netcdf file providing a PhononDos object.
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+	    what=: fandw for FAN, DW. gkq2 for |gkq|^2
             ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: legend and title fontsize.
 
@@ -1448,45 +1501,15 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             cprint("SIGEPH file does not have Eliashberg function", "red")
             return None
 
-        if phdos is not None:
-            phdos = PhononDos.as_phdos(phdos, phdos_kwargs=None)
-
-        # Read a2f_{sbk}(w)
-        # Read mesh in Ha and convert to units.
+        #if self.imag_only:
         a2f = self.reader.read_a2feph_skb(spin, kpoint, band)
-        wmesh = a2f.mesh * abu.phfactor_ev2units(units)
-
-        ax, fig, plt = get_ax_fig_plt(ax=ax)
-        ax.grid(True)
-
-        if "marker" not in kwargs:
-            kwargs["marker"] = None if self.nsppol == 1 else marker_spin[spin]
-
-        if self.imag_only:
-            ax.plot(a2f.mesh, a2f.gkq2, label=a2f.latex_symbol["gkq2"], **kwargs)
-        else:
-            #ax.plot(wmesh, a2f.gkq2, label=a2f.latex_symbol["gkq2"], **kwargs)
-            ax.plot(wmesh, a2f.fan, label=a2f.latex_symbol["fan"], **kwargs)
-            ax.plot(wmesh, a2f.dw, label=a2f.latex_symbol["dw"], **kwargs)
-            ax.plot(wmesh, a2f.fan + a2f.dw, label=a2f.latex_symbol["tot"], **kwargs)
-
-        # Plot Phonon DOS
-        # TODO: Should rescale the values to be visibile
-        if phdos is not None:
-            #phdos = 50 * phdos
-            lines = phdos.plot_dos_idos(ax, what="d", units=units, exchange_xy=False, label="PHDOS")
-
-        ax.set_xlabel(abu.wlabel_from_units(units))
-        ax.set_ylabel(a2f.latex_symbol["a2f"])
-        ax.legend(loc="best", fontsize=fontsize, shadow=True)
-
-        return fig
+        return a2f.plot(ax=ax, units=units, what=what, fontsize=fontsize, show=False)
 
     #@add_fig_kwargs
-    #def plot_sigeph_vcbm(self, units="meV", phdos=None, sharey=True, fontsize=8, **kwargs):
+    #def plot_sigeph_vcbm(self, units="meV", sharey=True, fontsize=8, **kwargs):
 
     @add_fig_kwargs
-    def plot_a2fw_all(self, units="meV", phdos=None, sharey=True, fontsize=8, **kwargs):
+    def plot_a2fw_all(self, units="meV", what="fandw", sharey=True, fontsize=8, **kwargs):
         """
         Plot the Eliashberg function a2F_{n,k,spin}(w) (gkq2/Fan-Migdal/DW/Total contribution)
         for all k-points, spin and the VBM/CBM for these k-points.
@@ -1494,15 +1517,12 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         Args:
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
                 Case-insensitive.
-            phdos: An instance of |PhononDos| or a netcdf file providing a PhononDos object.
+	    what=: fandw for FAN, DW. gkq2 for |gkq|^2
             sharey: True if Y axes should be shared.
             fontsize: legend and title fontsize.
 
         Returns: |matplotlib-Figure|
         """
-        if phdos is not None:
-            phdos = PhononDos.as_phdos(phdos, phdos_kwargs=None)
-
         # Build plot grid with (CBM, VBM) on each col. k-points along rows
         num_plots, ncols, nrows = self.nkcalc * 2, 2, self.nkcalc
 
@@ -1517,10 +1537,10 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 # Assume non magnetic semiconductor.
                 iv = int(self.nelect) // 2 - 1
                 ax = axmat[ikc, 0]
-                self.plot_a2fw_skb(spin, kpoint, iv, ax=ax, fontsize=fontsize, units=units, phdos=phdos, show=False)
+                self.plot_a2fw_skb(spin, kpoint, iv, ax=ax, fontsize=fontsize, units=units, what=what, show=False)
                 ax.set_title("k:%s, band:%d" % (repr(kpoint), iv), fontsize=fontsize)
                 ax = axmat[ikc, 1]
-                self.plot_a2fw_skb(spin, kpoint, iv + 1, ax=ax, fontsize=fontsize, units=units, phdos=phdos, show=False)
+                self.plot_a2fw_skb(spin, kpoint, iv + 1, ax=ax, fontsize=fontsize, units=units, what=what, show=False)
                 ax.set_title("k:%s, band:%d" % (repr(kpoint), iv + 1), fontsize=fontsize)
                 if count != 0:
                     for ax in axmat[ikc]:
