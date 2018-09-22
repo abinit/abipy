@@ -7,6 +7,7 @@ initialize the Boltztrap2 calculation from Abinit files
 import pickle
 import numpy as np
 from abipy.tools.plotting import add_fig_kwargs
+from abipy.tools import duck
 import abipy.core.abinit_units as abu
 import time
 
@@ -24,6 +25,16 @@ def timeit(method):
         setattr(self,"time_"+method.__name__, (te - ts) * 1000)
         return result
     return timed
+
+def xyz_comp(component):
+    """
+    Take a string in the form xx, xy or xz and 
+    return indexes (0,0) (0,1) and (0,2) respectively  
+    """
+    index = {'x':0,'y':1,'z':2} 
+    i = index[component[0]]
+    j = index[component[0]]
+    return i,j
 
 class AbipyBoltztrap():
     """
@@ -164,6 +175,7 @@ class AbipyBoltztrap():
         """
         Interpolate the eingenvalues This part is quite memory intensive
         """
+        boltztrap_results = []; app = boltztrap_results.append
         eV_s = abu.eV_to_THz*1e12 * 2*np.pi
         from BoltzTraP2 import fite
         import BoltzTraP2.bandlib as BL
@@ -175,13 +187,13 @@ class AbipyBoltztrap():
         results = fite.getBTPbands(self.equivalences, self.coefficients, 
                                    self.lattvec, nworkers=self.nworkers)
         eig_fine, vvband, cband = results
+
         #calculate DOS and VDOS without lifetimes
         wmesh,dos,vvdos,_ = BL.BTPDOS(eig_fine, vvband, erange=erange, npts=npts, mode=dos_method) 
-
+        app(BoltztrapResult(self,wmesh,dos,vvdos,self.fermi,self.mumesh,self.tmesh,self.volume))
+    
         #if we have linewidths
         if self.linewidths:
-            dos_tau_temps = []
-            vvdos_tau_temps = []
             for itemp in range(self.ntemps):
                 #calculate the lifetimes on the fine grid
                 results = fite.getBTPbands(self.equivalences, self._linewidth_coefficients[itemp], 
@@ -193,11 +205,10 @@ class AbipyBoltztrap():
                 wmesh, dos_tau, vvdos_tau, _ = BL.BTPDOS(eig_fine, vvband, erange=erange, npts=npts,
                                                          scattering_model=tau_fine, mode=dos_method)
                 #store results
-                dos_tau_temps.append(dos_tau)
-                vvdos_tau_temps.append(vvdos_tau)
+                app(BoltztrapResult(self,wmesh,dos_tau,vvdos_tau,self.fermi,self.mumesh,self.tmesh,
+                                    self.volume,tau_temp=self.tmesh[itemp]))
  
-        return BoltztrapResults(self,wmesh,dos,vvdos,self.fermi,self.mumesh,self.tmesh,self.volume,
-                                dos_tau_temps=dos_tau,vvdos_tau_temps=vvdos_tau_temps)
+        return BoltztrapResultRobot(boltztrap_results)
 
     def __str__(self):
         lines = []; app = lines.append
@@ -205,28 +216,28 @@ class AbipyBoltztrap():
         app("rmesh:  {}".format(self.rmesh))
         return "\n".join(lines)
 
-class BoltztrapResults():
+class BoltztrapResult():
     """
     Container for BoltztraP2 results
     Provides a object oriented interface to BoltztraP2 for plotting, 
     storing and analysing the results
     """
-    def __init__(self,abipyboltztrap,wmesh,dos,vvdos,fermi,mumesh,tmesh,volume,
-                 dos_tau_temps=None,vvdos_tau_temps=None):
+    def __init__(self,abipyboltztrap,wmesh,dos,vvdos,fermi,mumesh,tmesh,volume,tau_temp=None):
         self.abipyboltztrap = abipyboltztrap
-        self.fermi  = abipyboltztrap.fermi
-        self.mumesh = abipyboltztrap.mumesh
-        self.volume = abipyboltztrap.volume
-        self.wmesh  = wmesh
-        self.tmesh  = tmesh
+
+        self.fermi  = fermi
+        self.mumesh = mumesh
+        self.volume = volume
+        self.wmesh  = np.array(wmesh)
+        self.tmesh  = np.array(tmesh)
+
+        self.tau_temp = tau_temp
 
         self.dos = dos
         self.vvdos = vvdos
-        self.dos_tau_temps = np.array(dos_tau_temps)
-        self.vvdos_tau_temps = np.array(vvdos_tau_temps)
 
     @property
-    def ntemps(self):
+    def ntemp(self):
         return len(self.tmesh)
 
     @property
@@ -261,7 +272,7 @@ class BoltztrapResults():
 
     @property
     def powerfactor(self):
-        return self.sigmas * elf.seebeck**2
+        return self.sigma * self.seebeck**2
      
     @property
     def kappa(self):
@@ -272,14 +283,14 @@ class BoltztrapResults():
     def compute_fermiintegrals(self):
         """Compute and store the results of the Fermi integrals""" 
         import BoltzTraP2.bandlib as BL
-        results = BL.fermiintegrals(self.wmesh, self.dos, self.vvdos, self.mumesh, self.tmesh)
+        results = BL.fermiintegrals(self.wmesh, self.dos, self.vvdos, mur=self.wmesh, Tr=self.tmesh)
         _, self._L0, self._L1, self._L2, self._Lm11 = results
 
     def compute_onsager_coefficients(self):
         """Compute Onsager coefficients"""
         import BoltzTraP2.bandlib as BL
         L0,L1,L2 = self.L0,self.L1,self.L2
-        results = BL.calc_Onsager_coefficients(L0,L1,L2,self.mumesh,self.tmesh,self.volume)
+        results = BL.calc_Onsager_coefficients(L0,L1,L2,self.wmesh,self.tmesh,self.volume)
         self._sigma, self._seebeck, self._kappa, self._hall = results
 
     @staticmethod
@@ -294,29 +305,106 @@ class BoltztrapResults():
         with open(filename,'wb') as f:
             pickle.dump(self,f)
 
-    @add_fig_kwargs
-    def plot_dos(self,colormap='viridis'):
-        """Plot for all the dopings as a function of temperature"""
+    def istensor(self,what):
+        """check if a certain quantity is a tensor"""
+        if not hasattr(self,what): return None
+        return len(getattr(self,what).shape) > 2
+
+    def get_component(self,what,component,itemp):
+        i,j = xyz_comp(component)
+        return getattr(self,what)[itemp,:,i,j]
+   
+    def plot_vvdos_ax(self,ax1,components):
+        """ Plot components of vvdos"""
+        wmesh = (self.wmesh-self.fermi) * abu.Ha_eV
+        for component in components:
+            i,j = xyz_comp(component)
+            label = "vvdos %s"%component
+            if self.tau_temp: label += " $\\tau_T$ = %dK"%self.tau_temp
+            ax1.plot(wmesh,self.vvdos[i,j,:],label=label)
+        ax1.set_xlabel('Energy (eV)')
+
+    def plot_ax(self,ax1,what,components=['xx'],itemp_list=None,colormap='viridis',**kwargs):
+        """Plot the DOS for all the dopings as a function of temperature for an axes"""
         from matplotlib import pyplot as plt
+
+        if what == 'vvdos':
+            self.plot_vvdos_ax(ax1,components)
+            return
+
+        itemp_list = list(range(self.ntemp)) if itemp_list is None else duck.list_ints(itemp_list)
+
         cmap = plt.get_cmap(colormap)
+        color = None
+        wmesh = (self.wmesh-self.fermi) * abu.Ha_eV
+
+        if self.istensor(what):
+            for itemp in itemp_list:
+                for component in components:
+                    y = self.get_component(what,component,itemp)
+                    if len(itemp_list) > 1: color=cmap(itemp/len(itemp_list))
+                    label = "%s %s"%(what,component)
+                    if self.tau_temp: label += " $\\tau_T$ = %dK"%self.tau_temp
+                    ax1.plot(wmesh,y,label=label,c=color,**kwargs)
+        else:
+            ax1.plot(wmesh,getattr(self,what),label=what)
+        ax1.set_xlabel('Energy (eV)')
+
+    @add_fig_kwargs
+    def plot(self,what,colormap='viridis',directions=['xx']):
+        """Plot the DOS for all the dopings as a function of temperature"""
+        from matplotlib import pyplot as plt
 
         fig = plt.figure()
         ax1 = fig.add_subplot(1,1,1)
-        wmesh = self.wmesh-self.fermi
-        ax1.plot(wmesh,self.dos,label='dos')
-        ax1.plot(wmesh,self.vvdos[0,0],label='velocities')
-
-        if self.vvdos_tau_temps is not None:
-            ax2 = ax1.twinx()
-            #plot as a function of temperatures
-            for itemp,temp in enumerate(self.tmesh):
-                color = cmap(itemp/self.ntemps)
-                label = 'velocities tau %dK'%temp
-                ax2.plot(wmesh,self.vvdos_tau_temps[itemp,0,0],c=color,label=label)
-                ax2.axvline(0)
+        if what == 'dos': self.plot_dos_ax(ax1)
+        if what == 'powerfactor': self.plot_powerfactor_ax(ax1)
         fig.legend()
         return fig
 
     def __str__(self):
         lines = []; app = lines.append
         return "".join(lines)
+
+
+class BoltztrapResultRobot():
+    """
+    Robot to analyse multiple Boltztrap calculations
+    """
+    def __init__(self,results):
+        if not all([isinstance(r,BoltztrapResult) for r in results]):
+            raise ValueError('Must provide BolztrapResult instances')
+        self.results = results
+
+    @staticmethod
+    def from_pickle(filename):
+        """load results from file"""
+        with open(filename,'rb') as f:
+            instance = pickle.load(f)
+        return instance
+ 
+    def pickle(self,filename):
+        """Write a file with the results from the calculation"""
+        with open(filename,'wb') as f:
+            pickle.dump(self,f)
+ 
+    def plot_ax(self,ax,what,components=['xx'],itemp_list=None,with_tau=None):
+        """
+        Plot a quantity in an axis for all the results
+        """
+        for result in self.results:
+            if with_tau is True and result.tau_temp == None: continue
+            result.plot_ax(ax,what,components,itemp_list)
+ 
+    @add_fig_kwargs
+    def plot(self,what,itemp_list=None,components=['xx'],with_tau=None):
+        """
+        Plot all the boltztrap results
+        """    
+        from matplotlib import pyplot as plt
+
+        fig = plt.figure()
+        ax1 = fig.add_subplot(1,1,1)
+        self.plot_ax(ax1,what,components=components,itemp_list=itemp_list,with_tau=with_tau)
+        fig.legend()
+        return fig 
