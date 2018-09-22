@@ -6,24 +6,11 @@ initialize the Boltztrap2 calculation from Abinit files
 """
 import pickle
 import numpy as np
-from abipy.tools.plotting import add_fig_kwargs
 import abipy.core.abinit_units as abu
-import time
 
-def timeit(method):
-    """
-    timeit decorator adapted from:
-    https://medium.com/pythonhive/python-decorator-to-measure-the-execution-time-of-methods-fa04cb6bb36d
-    sets the timing of the routine as an attribute of the class
-    """
-    def timed(self, *args, **kw):
-        ts = time.time()
-        result = method(self, *args, **kw)
-        te = time.time()
+from abipy.tools.plotting import add_fig_kwargs
+from abipy.tools.decorators import timeit
 
-        setattr(self,"time_"+method.__name__, (te - ts) * 1000)
-        return result
-    return timed
 
 class AbipyBoltztrap():
     """
@@ -68,12 +55,12 @@ class AbipyBoltztrap():
 
     @property
     def nequivalences(self):
-        return len(self.equivalences)   
+        return len(self.equivalences)
 
     @property
     def ncoefficients(self):
         return len(self.coefficients)
-    
+
     @property
     def ntemps(self):
         return len(self.linewidths)
@@ -112,7 +99,7 @@ class AbipyBoltztrap():
             linewidth = qpes[0, :, bstart:bstop, itemp].imag.T*eV_Ry
             linewidths.append(linewidth)
 
-        return cls(fermi, atoms, nelect, kpoints, eig, volume, linewidths, 
+        return cls(fermi, atoms, nelect, kpoints, eig, volume, linewidths,
                    tmesh, mumesh, lpratio=lpratio)
 
     def get_lattvec(self):
@@ -172,11 +159,11 @@ class AbipyBoltztrap():
         if erange is None: erange = (np.min(self.eig),np.max(self.eig))
 
         #interpolate the electronic structure
-        results = fite.getBTPbands(self.equivalences, self.coefficients, 
+        results = fite.getBTPbands(self.equivalences, self.coefficients,
                                    self.lattvec, nworkers=self.nworkers)
         eig_fine, vvband, cband = results
         #calculate DOS and VDOS without lifetimes
-        wmesh,dos,vvdos,_ = BL.BTPDOS(eig_fine, vvband, erange=erange, npts=npts, mode=dos_method) 
+        wmesh,dos,vvdos,_ = BL.BTPDOS(eig_fine, vvband, erange=erange, npts=npts, mode=dos_method)
 
         #if we have linewidths
         if self.linewidths:
@@ -184,18 +171,18 @@ class AbipyBoltztrap():
             vvdos_tau_temps = []
             for itemp in range(self.ntemps):
                 #calculate the lifetimes on the fine grid
-                results = fite.getBTPbands(self.equivalences, self._linewidth_coefficients[itemp], 
+                results = fite.getBTPbands(self.equivalences, self._linewidth_coefficients[itemp],
                                            self.lattvec, nworkers=self.nworkers)
                 linewidth_fine, vvband, cband = results
-                tau_fine = 1.0/np.abs(2*linewidth_fine*eV_s) 
-                
+                tau_fine = 1.0/np.abs(2*linewidth_fine*eV_s)
+
                 #calculate vvdos with the lifetimes
                 wmesh, dos_tau, vvdos_tau, _ = BL.BTPDOS(eig_fine, vvband, erange=erange, npts=npts,
                                                          scattering_model=tau_fine, mode=dos_method)
                 #store results
                 dos_tau_temps.append(dos_tau)
                 vvdos_tau_temps.append(vvdos_tau)
- 
+
         return BoltztrapResults(self,wmesh,dos,vvdos,self.fermi,self.mumesh,self.tmesh,self.volume,
                                 dos_tau_temps=dos_tau,vvdos_tau_temps=vvdos_tau_temps)
 
@@ -208,7 +195,7 @@ class AbipyBoltztrap():
 class BoltztrapResults():
     """
     Container for BoltztraP2 results
-    Provides a object oriented interface to BoltztraP2 for plotting, 
+    Provides a object oriented interface to BoltztraP2 for plotting,
     storing and analysing the results
     """
     def __init__(self,abipyboltztrap,wmesh,dos,vvdos,fermi,mumesh,tmesh,volume,
@@ -234,7 +221,7 @@ class BoltztrapResults():
         if not hasattr(self,'_L0'):
             self.compute_fermiintegrals()
         return self._L0
- 
+
     @property
     def L1(self):
         if not hasattr(self,'_L1'):
@@ -246,13 +233,13 @@ class BoltztrapResults():
         if not hasattr(self,'_L2'):
             self.compute_fermiintegrals()
         return self._L2
- 
+
     @property
     def sigma(self):
         if not hasattr(self,'_sigma'):
             self.compute_onsager_coefficients()
         return self._sigma
- 
+
     @property
     def seebeck(self):
         if not hasattr(self,'_seebeck'):
@@ -262,15 +249,15 @@ class BoltztrapResults():
     @property
     def powerfactor(self):
         return self.sigmas * elf.seebeck**2
-     
+
     @property
     def kappa(self):
         if not hasattr(self,'_kappa'):
             self.compute_onsager_coefficients()
         return self._kappa
-   
+
     def compute_fermiintegrals(self):
-        """Compute and store the results of the Fermi integrals""" 
+        """Compute and store the results of the Fermi integrals"""
         import BoltzTraP2.bandlib as BL
         results = BL.fermiintegrals(self.wmesh, self.dos, self.vvdos, self.mumesh, self.tmesh)
         _, self._L0, self._L1, self._L2, self._Lm11 = results
@@ -288,7 +275,7 @@ class BoltztrapResults():
         with open(filename,'rb') as f:
             instance = pickle.load(f)
         return instance
- 
+
     def pickle(self,filename):
         """Write a file with the results from the calculation"""
         with open(filename,'wb') as f:

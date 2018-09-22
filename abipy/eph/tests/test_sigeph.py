@@ -238,7 +238,8 @@ class SigEPhFileTest(AbipyTest):
     def test_sigeph_boltztrap(self):
         """Test boltztrap interpolation"""
         sigeph = abilab.abiopen(abidata.ref_file("diamond_444q_full_SIGEPH.nc"))
-        sigeph.get_lifetimes_boltztrap("diamond")
+        sigeph.get_lifetimes_boltztrap("diamond", workdir=self.mkdtemp())
+        sigeph.close()
 
     def test_sigeph_robot(self):
         """Tests for SigEPhRobot."""

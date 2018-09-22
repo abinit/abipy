@@ -453,6 +453,20 @@ class AbipyTest(PymatgenTest):
                 msg = "This test requires phonopy version %s %s" % (op, version)
             raise unittest.SkipTest(msg)
 
+    #@staticmethod
+    #def skip_if_not_bolztrap2(version=None, op=">="):
+    #    """
+    #    Raise SkipTest if bolztrap2 is not installed.
+    #    Use ``version`` and ``op`` to ask for a specific version
+    #    """
+    #        import BoltzTraP2.bandlib as bl
+    #    if not has_bolztrap2(version=version, op=op):
+    #        if version is None:
+    #            msg = "This test requires bolztrap2"
+    #        else:
+    #            msg = "This test requires bolztrap2 version %s %s" % (op, version)
+    #        raise unittest.SkipTest(msg)
+
     @staticmethod
     def skip_if_not_pseudodojo():
         """
