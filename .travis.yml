@@ -71,7 +71,7 @@ install:
       fi
 
   - if [[ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]]; then conda install mock; fi
-
+  - pip install coverage
 
   # Mayavi (optional requirement)
   #- if [[ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]]; then conda install mayavi; fi
