@@ -379,6 +379,8 @@ class PhononDosTest(AbipyTest):
         if self.has_matplotlib():
             assert ncfile.plot_pjdos_type(show=False)
             assert ncfile.plot_pjdos_type(units="cm-1", stacked=False, colormap="viridis", show=False)
+            assert ncfile.plot_pjdos_type(units="eV", stacked=True, colormap="jet",
+                exchange_xy=True, fontsize=8, show=False)
             assert ncfile.plot_pjdos_cartdirs_type(units="Thz", stacked=True, show=False)
             assert ncfile.plot_pjdos_cartdirs_type(units="meV", stacked=False, alpha=0.5, show=False)
             assert ncfile.plot_pjdos_cartdirs_site(units="meV", stacked=False, alpha=0.5, show=False)

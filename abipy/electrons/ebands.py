@@ -1340,21 +1340,31 @@ class ElectronBands(Has_Structure):
 
         return dirgaps
 
-    def get_gaps_string(self):
+    def get_gaps_string(self, with_latex=True):
         """
         Return string with info about fundamental and direct gap (if not metallic scheme)
+
+        Args:
+            with_latex: True to get latex symbols for the gap names else text.
         """
         enough_bands = (self.mband > self.nspinor * self.nelect // 2)
+        dg_name, fg_name = "direct gap", "fundamental gap"
+        if with_latex:
+            dg_name, fg_name = "$E^{dir}_{gap}$", "$E^{fund}_{gap}$"
+
         if enough_bands and not self.has_metallic_scheme:
             if self.nsppol == 1:
-                s = "%s: direct gap = %.2f, fundamental gap = %.2f (eV)" % (
+                s = "%s: %s = %.2f, %s = %.2f (eV)" % (
                     self.structure.latex_formula,
-                    self.direct_gaps[0].energy, self.fundamental_gaps[0].energy)
+                    dg_name, self.direct_gaps[0].energy,
+                    fg_name, self.fundamental_gaps[0].energy)
             else:
                 dgs = [t.energy for t in self.direct_gaps]
                 fgs = [t.energy for t in self.fundamental_gaps]
-                s = "%s: direct gap = %.2f (%.2f), fundamental gap = %.2f (%.2f) (eV)" % (
-                    self.structure.latex_formula, dgs[0], dgs[1], fgs[0], fgs[1])
+                s = "%s: %s = %.2f (%.2f), %s = %.2f (%.2f) (eV)" % (
+                    self.structure.latex_formula,
+                    dg_name, dgs[0], dgs[1],
+                    fg_name, fgs[0], fgs[1])
         else:
             s = ""
 

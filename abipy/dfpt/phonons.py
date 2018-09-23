@@ -25,7 +25,7 @@ from abipy.core.kpoints import Kpoint, Kpath
 from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
 from abipy.tools import gaussian, duck
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims, get_axarray_fig_plt, set_visible
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims, get_axarray_fig_plt, set_visible, set_ax_xylabels
 from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
 from pymatgen.phonon.dos import CompletePhononDos as PmgCompletePhononDos, PhononDos as PmgPhononDos
 
@@ -2469,7 +2469,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return self.reader.read_pjdos_symbol_dict()
 
     @add_fig_kwargs
-    def plot_pjdos_type(self, units="eV", stacked=True, colormap="jet", alpha=0.7,
+    def plot_pjdos_type(self, units="eV", stacked=True, colormap="jet", alpha=0.7, exchange_xy=False,
                         ax=None, xlims=None, ylims=None, fontsize=12, **kwargs):
         """
         Plot type-projected phonon DOS.
@@ -2482,6 +2482,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
                 `here <http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html>`_
                 and decide which one you'd like:
             alpha: The alpha blending value, between 0 (transparent) and 1 (opaque).
+            exchange_xy: True to exchange x-y axis.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used.
             ylims: y-axis limits.
@@ -2498,8 +2499,8 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         ax.grid(True)
         set_axlims(ax, xlims, "x")
         set_axlims(ax, ylims, "y")
-        ax.set_xlabel('Frequency %s' % abu.phunit_tag(units))
-        ax.set_ylabel('PJDOS %s' % abu.phdos_label_from_units(units))
+        xlabel, ylabel = 'Frequency %s' % abu.phunit_tag(units), 'PJDOS %s' % abu.phdos_label_from_units(units)
+        set_ax_xylabels(ax, xlabel, ylabel, exchange_xy)
 
         # Type projected DOSes.
         num_plots = len(self.pjdos_symbol)
@@ -2507,19 +2508,27 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         for i, (symbol, pjdos) in enumerate(self.pjdos_symbol.items()):
             x, y = pjdos.mesh * factor, pjdos.values / factor
+            if exchange_xy: x, y = y, x
             if num_plots != 1:
                 color = cmap(float(i) / (num_plots - 1))
             else:
                 color = cmap(0.0)
+
             if not stacked:
                 ax.plot(x, y, lw=lw, label=symbol, color=color)
             else:
-                ax.plot(x, cumulative + y, lw=lw, label=symbol, color=color)
-                ax.fill_between(x, cumulative, cumulative + y, facecolor=color, alpha=alpha)
-                cumulative += y
+                if not exchange_xy:
+                    ax.plot(x, cumulative + y, lw=lw, label=symbol, color=color)
+                    ax.fill_between(x, cumulative, cumulative + y, facecolor=color, alpha=alpha)
+                    cumulative += y
+                else:
+                    ax.plot(cumulative + x, y, lw=lw, label=symbol, color=color)
+                    ax.fill_betweenx(y, cumulative, cumulative + x, facecolor=color, alpha=alpha)
+                    cumulative += x
 
         # Total PHDOS
         x, y = self.phdos.mesh * factor, self.phdos.values / factor
+        if exchange_xy: x, y = y, x
         ax.plot(x, y, lw=lw, label="Total PHDOS", color='black')
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 

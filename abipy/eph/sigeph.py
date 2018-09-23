@@ -71,8 +71,8 @@ class QpTempState(namedtuple("QpTempState", "spin kpoint band tmesh e0 qpe ze0 f
 
     @lazy_property
     def qpeme0(self):
-        """E_QP[T] - E_0"""
-        return self.qpe - self.e0
+        """E_QP[T] - E_0 (Real part)"""
+        return (self.qpe - self.e0).real
 
     @lazy_property
     def re_qpe(self):
@@ -93,6 +93,16 @@ class QpTempState(namedtuple("QpTempState", "spin kpoint band tmesh e0 qpe ze0 f
     def imag_fan0(self):
         """Imaginary part of the Fan term at KS."""
         return self.fan0.imag
+
+    @lazy_property
+    def re_sig0(self):
+        """Real part of the self-energy computed at the KS energy."""
+        return self.re_fan0 + self.dw
+
+    @lazy_property
+    def imag_sig0(self):
+        """Imaginary part of the self-energy computed at the KS energy."""
+        return self.imag_fan0
 
     @lazy_property
     def skb(self):
@@ -120,22 +130,32 @@ class QpTempState(namedtuple("QpTempState", "spin kpoint band tmesh e0 qpe ze0 f
         s = str(self.get_dataframe())
         return "\n".join([marquee(title, mark="="), s]) if title is not None else s
 
-    def get_dataframe(self, index=None, params=None):
+    def get_dataframe(self, index=None, with_spin=True, params=None):
         """
         Build pandas dataframe with QP data
 
         Args:
             index: dataframe index.
+            with_spin: False if spin index is not wanted.
             params: Optional (Ordered) dictionary with extra parameters.
 
         Return: |pandas-DataFrame|
         """
-        # TODO Add more entries
+        # TODO Add more entries (tau?)
         od = OrderedDict()
-        for k in "tmesh e0 qpe qpeme0 fan0 ze0 spin kpoint band".split():
+        tokens = "band e0 re_qpe qpeme0 re_sig0 imag_sig0 ze0 re_fan0 dw tmesh"
+        if with_spin:
+            tokens = "spin " + tokens
+
+        for k in tokens.split():
             if k in ("e0", "spin", "kpoint", "band"):
+                # This quantities do not depend on temp.
                 od[k] = [getattr(self, k)] * len(self.tmesh)
             else:
+                # TODO
+                #if k == "tmesh":
+                #    od["T"] = getattr(self, k)
+                #else:
                 od[k] = getattr(self, k)
 
         if params is not None: od.update(params)
@@ -581,6 +601,12 @@ class EphSelfEnergy(object):
         ax0.legend(loc="best", fontsize=fontsize, shadow=True)
         set_axlims(ax0, xlims, "x")
 
+        ymin = min(self.vals_wr[itemp].real.min(), self.vals_wr[itemp].imag.min())
+        ymin = ymin - abs(ymin) * 0.2
+        ymax = max(self.vals_wr[itemp].real.max(), self.vals_wr[itemp].imag.max())
+        ymax = ymax + abs(ymax) * 0.2
+        set_axlims(ax0, [ymin, ymax], "y")
+
         ax1.grid(True)
         ax1.plot(xs, self.spfunc_wr[itemp])
         ax1.set_xlabel(xlabel)
@@ -907,7 +933,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         if qp_kpoints is None or (duck.is_string(qp_kpoints) and qp_kpoints == "all"):
             # qp_kpoints in (None, "all")
-            items = self.sigma_kpoints, list(range(self.nkpt))
+            items = self.sigma_kpoints, list(range(self.nkcalc))
 
         elif duck.is_intlike(qp_kpoints):
             # qp_kpoints = 1
@@ -966,7 +992,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     #    arpes_ebands = self.ebands.select_bands(range(minb, maxb), kinds=kinds)
     #    return ArpesPlotter(arpes_ebands, aw, aw_meshes, self.tmesh)
 
-    def get_dataframe(self, itemp=None, with_params=True, ignore_imag=False):
+    def get_dataframe(self, itemp=None, with_params=True, with_spin="auto", ignore_imag=False):
         """
         Returns |pandas-Dataframe| with QP results for all k-points, bands and spins
         included in the calculation.
@@ -977,9 +1003,11 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             ignore_imag: only real part is returned if ``ignore_imag``.
         """
         df_list = []; app = df_list.append
+        with_spin = self.nsppol == 2 if with_spin == "auto" else with_spin
         for spin in range(self.nsppol):
             for ikc, kpoint in enumerate(self.sigma_kpoints):
-                app(self.get_dataframe_sk(spin, ikc, itemp=itemp, with_params=with_params, ignore_imag=ignore_imag))
+                app(self.get_dataframe_sk(spin, ikc, itemp=itemp, with_params=with_params,
+                    with_spin=with_spin, ignore_imag=ignore_imag))
 
         return pd.concat(df_list)
 
@@ -1008,18 +1036,20 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         #ignore_imag = True
         #ikc = self.sigkpt2index(kpoint)
 
+        with_spin = self.nsppol == 2
         rows = []
         for state in (gap.in_state, gap.out_state):
             # Read QP data.
             qp = self.reader.read_qp(spin, state.kpoint, state.band, ignore_imag=ignore_imag)
             # Convert to dataframe and add other entries useful when comparing different calculations.
-            rows.append(qp.get_dataframe(params=self.params if with_params else None))
+            rows.append(qp.get_dataframe(with_spin=with_spin, params=self.params if with_params else None))
 
         df = pd.concat(rows)
         if itemp is not None: df = df[df["tmesh"] == self.tmesh[itemp]]
         return df
 
-    def get_dataframe_sk(self, spin, kpoint, itemp=None, index=None, with_params=False, ignore_imag=False):
+    def get_dataframe_sk(self, spin, kpoint, itemp=None, index=None,
+                         with_params=False, with_spin="auto", ignore_imag=False):
         """
         Returns |pandas-DataFrame| with QP results for the given (spin, k-point).
 
@@ -1029,15 +1059,17 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             itemp: Temperature index, if None all temperatures are returned.
             index: dataframe index.
             with_params: False to exclude calculation parameters from the dataframe.
+            with_spin: True to add column with spin index. "auto" to add it only if nsppol == 2
             ignore_imag: Only real part is returned if ``ignore_imag``.
         """
         ikc = self.sigkpt2index(kpoint)
+        with_spin = self.nsppol == 2 if with_spin == "auto" else with_spin
         rows = []
         for band in range(self.bstart_sk[spin, ikc], self.bstop_sk[spin, ikc]):
             # Read QP data.
             qp = self.reader.read_qp(spin, ikc, band, ignore_imag=ignore_imag)
             # Convert to dataframe and add other entries useful when comparing different calculations.
-            rows.append(qp.get_dataframe(params=self.params if with_params else None))
+            rows.append(qp.get_dataframe(with_spin=with_spin, params=self.params if with_params else None))
 
         df = pd.concat(rows)
         if itemp is not None: df = df[df["tmesh"] == self.tmesh[itemp]]
@@ -1700,7 +1732,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     #def plot_sigeph_vcbm(self, units="meV", sharey=True, fontsize=8, **kwargs):
 
     @add_fig_kwargs
-    def plot_a2fw_all(self, units="meV", what="fandw", sharey=True, fontsize=8, **kwargs):
+    def plot_a2fw_all(self, units="meV", what="fandw", sharey=False, fontsize=8, **kwargs):
         """
         Plot the Eliashberg function a2F_{n,k,spin}(w) (gkq2/Fan-Migdal/DW/Total contribution)
         for all k-points, spin and the VBM/CBM for these k-points.
@@ -1736,9 +1768,17 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 if count != 0:
                     for ax in axmat[ikc]:
                         set_visible(ax, False, "legend")
-                if ikc != len(self.sigma_kpoints) - 1:
-                    for ax in axmat[ikc]:
-                        set_visible(ax, False, "xlabel")
+
+        # Show legend only for the first ax.
+        for i, ax in enumerate(axmat.ravel()):
+            if i != 0: set_visible(ax, False, "legend")
+
+        # Show x(y)labels only if first column (last row)
+        for irow in range(nrows):
+            for icol in range(ncols):
+                ax = axmat[irow, icol]
+                if icol != 0: set_visible(ax, False, "ylabel")
+                if irow != nrows - 1: set_visible(ax, False, "xlabel")
 
         return fig
 
@@ -1855,7 +1895,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
         Args:
             spin: Spin index
             kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
-            with_params:
+            with_params: True to add convergence parameters.
             ignore_imag: only real part is returned if ``ignore_imag``.
         """
         df_list = []; app = df_list.append
@@ -1865,20 +1905,25 @@ class SigEPhRobot(Robot, RobotWithEbands):
             app(df)
         return pd.concat(df_list)
 
-    def get_dataframe(self, with_params=True, ignore_imag=False):
+    def get_dataframe(self, with_params=True, with_spin="auto", ignore_imag=False):
         """
         Return |pandas-Dataframe| with QP results for all k-points, bands and spins
         present in the files treated by the robot.
 
         Args:
             with_params:
+            with_spin: True to add column with spin index. "auto" to add it only if nsppol == 2
             ignore_imag: only real part is returned if ``ignore_imag``.
         """
+        with_spin = any(ncfile.nsppol == 2 for ncfile in self.abifiles) if with_spin == "auto" else with_spin
+
         df_list = []; app = df_list.append
         for label, ncfile in self.items():
             for spin in range(ncfile.nsppol):
                 for ikc, kpoint in enumerate(ncfile.sigma_kpoints):
-                    app(ncfile.get_dataframe_sk(spin, ikc, with_params=with_params, ignore_imag=ignore_imag))
+                    app(ncfile.get_dataframe_sk(spin, ikc, with_params=with_params,
+                        with_spin=with_spin, ignore_imag=ignore_imag))
+
         return pd.concat(df_list)
 
     @add_fig_kwargs
@@ -2011,7 +2056,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
 
         Args:
             qp_kpoints: List of k-points in self-energy. Accept integers (list or scalars), list of vectors,
-                or None to plot all k-points.
+                or "all" to plot all k-points.
             itemp: Temperature index.
             sortby: Define the convergence parameter, sort files and produce plot labels.
                 Can be None, string or function. If None, no sorting is performed.

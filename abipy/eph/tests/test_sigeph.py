@@ -78,10 +78,10 @@ class SigEPhFileTest(AbipyTest):
         assert ksamp.to_string(title="Ksampling")
 
         # Test Dataframe construction.
-        data_sk = sigeph.get_dataframe_sk(spin=0, kpoint=[0.5, 0.0, 0.0])
+        data_sk = sigeph.get_dataframe_sk(spin=0, kpoint=[0.5, 0.0, 0.0], with_spin=True)
         assert "qpeme0" in data_sk
         assert np.all(data_sk["spin"] == 0)
-        self.assert_almost_equal(data_sk["kpoint"].values[0].frac_coords, [0.5, 0.0, 0.0])
+        #self.assert_almost_equal(data_sk["kpoint"].values[0].frac_coords, [0.5, 0.0, 0.0])
 
         itemp = 0
         data_sk = sigeph.get_dataframe_sk(spin=0, kpoint=[0.5, 0.0, 0.0], itemp=itemp)
@@ -127,7 +127,7 @@ class SigEPhFileTest(AbipyTest):
         assert qp.spin == 0 and qp.kpoint == [0, 0, 0] and qp.band == 3
         assert qp.skb == (0, [0, 0, 0], 3)
         #assert len(qp.qpeme0) == qpt.ntemp
-        self.assert_equal(qp.qpeme0, qp.qpe - qp.e0)
+        self.assert_equal(qp.qpeme0, (qp.qpe - qp.e0).real)
         self.assert_equal(qp.re_qpe + 1j * qp.imag_qpe, qp.qpe)
         self.assert_equal(qp.re_fan0 + 1j * qp.imag_fan0, qp.fan0)
         fields = qp.get_fields()
@@ -254,7 +254,7 @@ class SigEPhFileTest(AbipyTest):
             assert len(robot) == 2
 
             data = robot.get_dataframe()
-            assert "qpe" in data
+            assert "re_qpe" in data
 
             # Test plot methods
             if self.has_matplotlib():

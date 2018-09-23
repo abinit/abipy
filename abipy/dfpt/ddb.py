@@ -1783,8 +1783,8 @@ class DielectricTensorGenerator(Has_Structure):
         return DielectricTensor(t)
 
     @add_fig_kwargs
-    def plot_vs_w(self, w_min=0, w_max=None, gamma_ev=1e-4, num=100, component='diag', units='eV',
-                  with_phfreqs=True, ax=None, fontsize=12, **kwargs):
+    def plot(self, w_min=0, w_max=None, gamma_ev=1e-4, num=100, component='diag', units='eV',
+             with_phfreqs=True, ax=None, fontsize=12, **kwargs):
         """
         Plots the selected components of the dielectric tensor as a function of frequency.
 
@@ -1850,6 +1850,9 @@ class DielectricTensorGenerator(Has_Structure):
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
+
+    # To maintain backward compatibility.
+    plot_vs_w = plot
 
 
 class DdbRobot(Robot):
