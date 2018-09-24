@@ -38,6 +38,9 @@ TODO list:
 
 * Refactor S_QCRITICAL logic (logic injected by user, since qcritical errors are cluster-specific)
 
+* Refactor wrappers for mrgddb and mrgdvdb (problems with subprocess when
+  merging large number of partial files (likely due to Popen with large stderr/stdout)
+
 ## Medium priority
 
 * remove phononflow

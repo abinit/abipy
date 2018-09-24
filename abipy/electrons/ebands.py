@@ -1914,7 +1914,7 @@ class ElectronBands(Has_Structure):
                         if need_arrows:
                             ax.add_patch(FancyArrowPatch(posA=posA, posB=posB, **arrow_opts))
 
-            # Trye to set nice limits if not given by user.
+            # Try to set nice limits if not given by user.
             if ylims is None:
                 set_axlims(ax, (-mgap - 5, +mgap + 5), "y")
 

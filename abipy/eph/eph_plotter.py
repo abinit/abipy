@@ -35,10 +35,10 @@ class EphPlotter(object):
     @classmethod
     def from_ddb(cls, ddb, ebands_kpath, ebands_kmesh=None, **kwargs):
         """
-        Build the object from the ddb file, invole anaddb to get phonon properties.
+        Build the object from the ddb file, invoke anaddb to get phonon properties.
         This entry point is needed to have phonon plots with LO-TO splitting
-        as AbiPy will generate an anaddb input with the different q--> directions
-        required by phbands.plot to show the LO-TO splitting.
+        as AbiPy will generate an anaddb input with the different q --> 0 directions
+        required in phbands.plot to plot the LO-TO splitting correctly.
 
         Args:
             ddb: |DdbFile| or filepath.

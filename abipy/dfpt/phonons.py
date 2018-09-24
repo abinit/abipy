@@ -918,7 +918,7 @@ class PhononBands(object):
                 The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
             branch_range: Tuple specifying the minimum and maximum branch index to plot (default: all branches are plotted).
             match_bands: if True the bands will be matched based on the scalar product between the eigenvectors.
-            temp: Temperature in Kelving. If not None, a scatter plot with the Bose-Einstein occupation factor
+            temp: Temperature in Kelvin. If not None, a scatter plot with the Bose-Einstein occupation factor
                 at temperature `temp` is added.
             fontsize: Legend and title fontsize.
 

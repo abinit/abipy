@@ -77,6 +77,10 @@ Usage example:
                                               and save "abisanitized" structure to file.
   abistruct.py conventional FILE           => Read structure from FILE, generate conventional structure
                                               following doi:10.1016/j.commatsci.2010.05.010
+  abistruct.py proto FILE                 => Read structure from FILE, find possible crystallographic prototypes:
+                                             in the AFLOW library of crystallographic prototypes.
+                                             http://doi.org/10.1016/j.commatsci.2017.01.017
+
 ##################
 # Conversion tools
 ##################
@@ -267,6 +271,14 @@ Has to be all integers. Several options are possible:
     p_conventional = subparsers.add_parser('conventional', parents=[copts_parser, path_selector, spgopt_parser, savefile_parser],
         help="Gives a structure with a conventional cell according to certain standards. "
              "The standards are defined in doi:10.1016/j.commatsci.2010.05.010")
+
+    # Subparser for proto.
+    p_proto = subparsers.add_parser('proto', parents=[copts_parser, path_selector],
+        help=("Find prototype in the AFLOW LIBRARY OF CRYSTALLOGRAPHIC PROTOTYPES. "
+              "http://doi.org/10.1016/j.commatsci.2017.01.017"))
+    p_proto.add_argument("--ltol", default=0.2, type=float, help="fractional length tolerance.")
+    p_proto.add_argument("--stol", default=0.3, type=float, help="site tolerance.")
+    p_proto.add_argument("--angle-tol", default=5, type=float, help="angle tolerance.")
 
     # Subparser for neighbors.
     p_neighbors = subparsers.add_parser('neighbors', parents=[copts_parser, path_selector],
@@ -613,6 +625,28 @@ def main():
 
         # Save file.
         save_structure(conv, options)
+
+    elif options.command == "proto":
+        structure = abilab.Structure.from_file(options.filepath)
+        from pymatgen.analysis.aflow_prototypes import AflowPrototypeMatcher
+        m = AflowPrototypeMatcher(initial_ltol=options.ltol, initial_stol=options.stol,
+                                  initial_angle_tol=options.angle_tol)
+        dlist = m.get_prototypes(structure)
+        if not dlist:
+            cprint("Cannot find AFLOW prototype for structure.")
+            print(structure.to_string(verbose=option.verbose))
+            return 1
+        else:
+            cprint("Found %d matches" % len(dlist), "green")
+            for d in dlist:
+                if "snl" in d:
+                    snl = d.pop("snl")
+                    if options.verbose: pprint(snl.as_dict())
+                pprint(d)
+                url = "http://aflow.org/CrystalDatabase/%s.html" % d["tags"]["aflow"]
+                print("AFLOW url: %s\n" % url)
+            if not options.verbose:
+                print("Use --verbose to increase output level")
 
     elif options.command == "neighbors":
         abilab.Structure.from_file(options.filepath).print_neighbors(radius=options.radius)
