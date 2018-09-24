@@ -952,6 +952,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         Args:
             basename: The basename of the files to be produced
         """
+        #TODO move this to AbipyBoltztrap class
         #get the lifetimes as an array
         qpes = self.get_qp_array(mode='ks+lifetimes')
 
@@ -1005,131 +1006,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             f.write("%d\n"%len(struct))
             for atom in struct:
                 f.write("%s "%atom.specie+fmt3%tuple(atom.coords))
-
-    def call_boltztrap2(self,lpratio=100,dos_method="gaussian:0.01 eV",npts=1000,
-                        itemp_list=None,filter_params=None,bstart=None,bstop=None,
-                        nworkers=1,verbose=0):
-        """
-        If Boltztrap2 is installed use it to compute transport related quantities
-        """
-        import BoltzTraP2.bandlib as BL
-
-        eV_Ry = 2 * abu.eV_Ha
-        eV_s = abu.eV_to_THz*1e12 * 2*np.pi
-
-        #get the lifetimes as an array
-        qpes = self.get_qp_array(mode='ks+lifetimes')
-        if bstart is None: bstart = self.reader.max_bstart
-        if bstop  is None: bstop  = self.reader.min_bstop
-
-        from time import time
-        from BoltzTraP2 import sphere
-        from BoltzTraP2 import fite
-        from BoltzTraP2 import units as btp_units
-        import matplotlib.pyplot as plt
-
-        # Obtain each piece of information from the corresponding function.
-        fermie = self.ebands.fermie*eV_Ry
-        atoms = self.ebands.structure.to_ase_atoms()
-        volume = self.ebands.structure.volume
-        nelect = 6
-        kpoints = [k.frac_coords for k in self.sigma_kpoints]
-        #TODO handle spin
-        eig = qpes[0,:,bstart:bstop,0].T*eV_Ry
-
-        #prepare band interpolation
-        print('bands,nkpoints:',eig.shape)
-        data = AbipyBoltztrap(fermie, atoms, nelect, kpoints, eig)
-        lattvec = data.get_lattvec()
-        equivalences = sphere.get_equivalences(data.atoms, lpratio)
-        start_time = time()
-        coeffs = fite.fitde3D(data, equivalences, nworkers=nworkers)
-        nequiv = len(equivalences)
-        max1, max2, max3 = 0,0,0
-        for equiv in equivalences:
-            max1 = max(np.max(equiv[:,0]),max1)
-            max2 = max(np.max(equiv[:,1]),max2)
-            max3 = max(np.max(equiv[:,2]),max3)
-        if verbose:
-            print('nequiv:',nequiv)
-            print('rmesh:',2*max1+1,2*max2+1,2*max3+1)
-            print('fitde3D took %lfs'%(time()-start_time))
-
-        #interpolate electronic bands
-        start_time = time()
-        eig_fine, vvband, cband = fite.getBTPbands(equivalences, coeffs, lattvec, curvature=False, nworkers=nworkers)
-        if verbose: print('getBTPbands took %lfs'%(time()-start_time))
-        print('bands,nkpoints:',eig_fine.shape)
-        itemp_list = list(range(self.ntemp)) if itemp_list is None else duck.list_ints(itemp_list)
-        for itemp in itemp_list:
-
-            #TODO handle spin
-            linewidth = qpes[0, :, bstart:bstop, itemp].imag.T*eV_Ry
-
-            #prepare lifetimes interpolation
-            data = AbipyBoltztrap(fermie, atoms, nelect, kpoints, linewidth)
-            start_time = time()
-            coeffs = fite.fitde3D(data, equivalences)
-            if verbose: print('fitde3D took %lfs'%(time()-start_time))
-
-            #interpolate lifetimes
-            start_time = time()
-            linewidth_fine, _, cband = fite.getBTPbands(equivalences, coeffs, lattvec, curvature=False)
-            if verbose: print('getBTPbands took %lfs'%(time()-start_time))
-            tau_fine = 1.0/np.abs(2*linewidth_fine*eV_s)
-
-            #get DOS
-            erange = (fermie-0.1,fermie+0.1)
-            start_time = time()
-            wmesh, dos, vvdos_tau, _ = BL.BTPDOS(eig_fine, vvband, erange=erange, npts=npts, 
-                                                 scattering_model=tau_fine, mode=dos_method)
-            if verbose: print('BTPDOS took %lfs'%(time()-start_time))
-            start_time = time()
-            wmesh, dos, vvdos, _ = BL.BTPDOS(eig_fine, vvband, erange=erange, npts=npts, mode=dos_method)
-            if verbose: print('BTPDOS took %lfs'%(time()-start_time))
-
-            if 1:
-                fig = plt.figure()
-                ax1 = fig.add_subplot(1,1,1)
-                ax1.set_title('%dK'%self.tmesh[itemp])
-                ax1.plot(wmesh-fermie,dos,label='dos')
-                ax1.plot(wmesh-fermie,vvdos[0,0],label='velocities')
-                ax1.legend()
-                ax2 = ax1.twinx()
-                ax2.plot(wmesh-fermie,vvdos_tau[0,0],label='velocities tau',c='C2')
-                ax2.axvline(0)
-                ax2.legend()
-
-            #plots
-            Tr = np.linspace(100., 600., num=10)
-            margin = 10. * btp_units.BOLTZMANN * Tr.max()
-            mur_indices = np.logical_and(wmesh > wmesh.min() + margin,
-                                         wmesh < wmesh.max() - margin)
-            mur = wmesh[mur_indices]
-
-            N, L0, L1, L2, Lm11 = BL.fermiintegrals(wmesh, dos, vvdos_tau, mur=mur, Tr=Tr)
-            sigma, seebeck, kappa, Hall = BL.calc_Onsager_coefficients(L0, L1, L2, mur, Tr, volume)
-
-            fig = plt.figure()
-            plt.plot(mur-fermie, sigma[0, :, 0, 0], label="conductivity")
-            plt.axvline(0)
-            plt.legend()
-
-            fig = plt.figure()
-            plt.plot(mur-fermie, seebeck[0, :, 0, 0], label="seebeck")
-            plt.axvline(0)
-            plt.legend()
-
-            fig = plt.figure()
-            s = seebeck[0, :, 0, 0]
-            c = sigma[0, :, 0, 0]
-            plt.plot(mur-fermie, s**2*c, label="power factor")
-            plt.axvline(0)
-            plt.legend()
-            
-            plt.show()
-            exit()
-    
+   
     def interpolate(self, itemp_list=None, lpratio=5, mode="qp", ks_ebands_kpath=None, ks_ebands_kmesh=None,
                     ks_degatol=1e-4, vertices_names=None, line_density=20, filter_params=None,
                     only_corrections=False, verbose=0): # pragma: no cover
