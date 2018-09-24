@@ -47,16 +47,17 @@ class AbipyBoltztrap():
     Enter with quantities in the IBZ and interpolate to a fine BZ mesh
     """
     def __init__(self,fermi,atoms,nelect,kpoints,eig,volume,linewidths=None,tmesh=None,
-                 lpratio=1,nworkers=1):
+                 mommat=None,magmom=None,lpratio=1,nworkers=1):
         self.fermi = fermi
         self.atoms = atoms
         self.nelect = nelect
-        self.kpoints = kpoints
+        self.kpoints = np.array(kpoints)
         self.eig = eig
         self.volume = volume
         self.linewidths = linewidths
         self.tmesh = tmesh
-        self.mommat = None
+        self.mommat = mommat
+        self.magmom = magmom
         self.nworkers = nworkers
         self.lpratio = lpratio
 
@@ -123,8 +124,8 @@ class AbipyBoltztrap():
             linewidth = qpes[0, :, bstart:bstop, itemp].imag.T*eV_Ry
             linewidths.append(linewidth)
 
-        return cls(fermi, atoms, nelect, kpoints, eig, volume, linewidths, 
-                   tmesh, lpratio=lpratio)
+        return cls(fermi, atoms, nelect, kpoints, eig, volume, linewidths=linewidths, 
+                   tmesh=tmesh, lpratio=lpratio)
 
     def get_lattvec(self):
         """this method is required by Bolztrap"""
@@ -150,7 +151,7 @@ class AbipyBoltztrap():
     def compute_equivalences(self):
         """Compute equivalent k-points"""
         from BoltzTraP2 import sphere
-        self._equivalences = sphere.get_equivalences(self.atoms, self.lpratio)
+        self._equivalences = sphere.get_equivalences(self.atoms, self.magmom, self.lpratio)
 
     @timeit
     def compute_coefficients(self):
@@ -158,13 +159,13 @@ class AbipyBoltztrap():
         from BoltzTraP2 import fite
         #we will set ebands to compute teh coefficients
         self.ebands = self.eig
-        self._coefficients = fite.fitde3D(self, self.equivalences, nworkers=self.nworkers)
+        self._coefficients = fite.fitde3D(self, self.equivalences)
 
         if self.linewidths:
             self._linewidth_coefficients = []
             for itemp in range(self.ntemps):
                 self.ebands = self.linewidths[itemp]
-                coeffs = fite.fitde3D(self, self.equivalences, nworkers=self.nworkers)
+                coeffs = fite.fitde3D(self, self.equivalences)
                 self._linewidth_coefficients.append(coeffs)
 
         #at the end we always unset ebands

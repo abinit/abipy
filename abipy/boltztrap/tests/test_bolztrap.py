@@ -27,14 +27,23 @@ class AbipyBoltztrapTest(AbipyTest):
         # get coefficients
         assert bt.ncoefficients == 53
 
-        #get boltztrap results
+        #
+        # Get boltztrap results using different DOS methods
+        # 
         btr = bt.run(dos_method="histogram")
         btr = bt.run(npts=500,dos_method="gaussian:0.5 eV")
         btr = bt.run(npts=500,dos_method="lorentzian:0.5 eV")
         btr.pickle('diamond.npy') 
 
+        # 
+        # Plot the density of states and VVDOS for multiple temperatures
+        # 
         fig = btr.plot_dos_vvdos(show=False)
 
+        #
+        # Plot transport related quantities for different combinations of
+        # tau temperature and boltztrap temperature
+        #
         fig = btr.plot('sigma',itemp_list=None,itau_list=[3],show=False)
         fig = btr.plot('seebeck',itemp_list=[3],itau_list=[1,2],show=False)
         fig = btr.plot('powerfactor',itemp_list=[3],itau_list=None,show=False)
