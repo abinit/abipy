@@ -7,7 +7,7 @@ import numpy as np
 import abipy.data as abidata
 
 from abipy.core.testing import AbipyTest
-from abipy.boltztrap.boltztrap import AbipyBoltztrap, BoltztrapResult
+from abipy.boltztrap import AbipyBoltztrap, BoltztrapResult
 from abipy import abilab
 
 
@@ -28,9 +28,14 @@ class AbipyBoltztrapTest(AbipyTest):
         assert bt.ncoefficients == 53
 
         #get boltztrap results
-        btr = bt.run()
+        btr = bt.run(dos_method="histogram")
+        btr = bt.run(npts=500,dos_method="gaussian:0.5 eV")
+        btr = bt.run(npts=500,dos_method="lorentzian:0.5 eV")
         btr.pickle('diamond.npy') 
 
-        fig = btr.plot('vvdos',with_tau=True,show=False)
-        fig = btr.plot('powerfactor',itemp_list=[3],with_tau=True,show=False)
+        fig = btr.plot_dos_vvdos(show=False)
+
+        fig = btr.plot('sigma',itemp_list=None,itau_list=[3],show=False)
+        fig = btr.plot('seebeck',itemp_list=[3],itau_list=[1,2],show=False)
+        fig = btr.plot('powerfactor',itemp_list=[3],itau_list=None,show=False)
 

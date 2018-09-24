@@ -1045,14 +1045,15 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         start_time = time()
         coeffs = fite.fitde3D(data, equivalences, nworkers=nworkers)
         nequiv = len(equivalences)
-        print(nequiv)
         max1, max2, max3 = 0,0,0
         for equiv in equivalences:
             max1 = max(np.max(equiv[:,0]),max1)
             max2 = max(np.max(equiv[:,1]),max2)
             max3 = max(np.max(equiv[:,2]),max3)
-        print(2*max1+1,2*max2+1,2*max3+1)
-        if verbose: print('fitde3D took %lfs'%(time()-start_time))
+        if verbose:
+            print('nequiv:',nequiv)
+            print('rmesh:',2*max1+1,2*max2+1,2*max3+1)
+            print('fitde3D took %lfs'%(time()-start_time))
 
         #interpolate electronic bands
         start_time = time()
