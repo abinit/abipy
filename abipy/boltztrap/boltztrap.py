@@ -200,8 +200,8 @@ class AbipyBoltztrap():
                 results = fite.getBTPbands(self.equivalences, self._linewidth_coefficients[itemp], 
                                            self.lattvec, nworkers=self.nworkers)
                 linewidth_fine, vvband, cband = results
-                tau_fine = 1.0/np.abs(2*linewidth_fine*eV_s) 
-                
+                tau_fine = 1.0/np.abs(2*linewidth_fine*eV_s)
+ 
                 #calculate vvdos with the lifetimes
                 wmesh, dos_tau, vvdos_tau, _ = BL.BTPDOS(eig_fine, vvband, erange=erange, npts=npts,
                                                          scattering_model=tau_fine, mode=dos_method)
@@ -402,17 +402,22 @@ class BoltztrapResultRobot():
     Robot to analyse multiple Boltztrap calculations
     Behaves as a list of BoltztrapResult
     """
-    def __init__(self,results):
+    def __init__(self,results,erange=None):
         if not all([isinstance(r,BoltztrapResult) for r in results]):
             raise ValueError('Must provide BolztrapResult instances.')
 
         #consistency check in the temperature meshes
         res0 = results[0]
         if np.any([res0.tmesh != res.tmesh for res in results]):
-           cprint("Comparing Boltztrapresults with different temperature meshes.", color="yellow")
+           cprint("Comparing BoltztrapResults with different temperature meshes.", color="yellow")
+
+        #consistency check in chemical potential meshes
+        if np.any([res0.wmesh != res.wmesh for res in results]):
+           cprint("Comparing BoltztrapResults with different energy meshes.", color="yellow")
 
         #store the results
         self.results = results
+        self.erange = erange
 
     def __getitem__(self,index):
         """ Acess the results as a list"""
@@ -451,12 +456,12 @@ class BoltztrapResultRobot():
         with open(filename,'wb') as f:
             pickle.dump(self,f)
  
-    def plot_ax(self,ax,what,components=['xx'],itemp_list=None,itau_list=None,**kwargs):
+    def plot_ax(self,ax,what,components=['xx'],itemp_list=None,itau_list=None,erange=None,**kwargs):
         """
         Plot a quantity in an axis for all the results
         """
         from matplotlib import pyplot as plt
-        colormap = kwargs.pop('colormap','viridis')
+        colormap = kwargs.pop('colormap','plasma')
         cmap = plt.get_cmap(colormap)
 
         #get itau_list
@@ -468,11 +473,16 @@ class BoltztrapResultRobot():
         #plot the results
         for itemp,result in enumerate(filtered_results):
             if result.tau_temp not in tau_temps: continue
-            color = cmap(itemp/len(filtered_results))
+            color = kwargs.pop('c',cmap(itemp/len(filtered_results)))
             result.plot_ax(ax,what,components,itemp_list,c=color,**kwargs)
- 
+
+        #set erange
+        erange = erange or self.erange
+        if erange is not None:
+            ax.set_xlim(erange)
+
     @add_fig_kwargs
-    def plot(self,what,itemp_list=None,itau_list=None,components=['xx'],**kwargs):
+    def plot(self,what,itemp_list=None,itau_list=None,components=['xx'],erange=None,**kwargs):
         """
         Plot all the boltztrap results
         """    
@@ -480,12 +490,12 @@ class BoltztrapResultRobot():
 
         fig = plt.figure()
         ax1 = fig.add_subplot(1,1,1)
-        self.plot_ax(ax1,what,components=components,itemp_list=itemp_list,itau_list=itau_list,**kwargs)
+        self.plot_ax(ax1,what,components=components,itemp_list=itemp_list,itau_list=itau_list,erange=erange,**kwargs)
         fig.legend()
         return fig
 
     @add_fig_kwargs
-    def plot_dos_vvdos(self,itemp_list=None,components=['xx'],itau_list=None,**kwargs):
+    def plot_dos_vvdos(self,itemp_list=None,itau_list=None,components=['xx'],dos_color='C0',erange=None,**kwargs):
         """
         Plot the DOS and VVDOS for all the results
         """
@@ -493,11 +503,20 @@ class BoltztrapResultRobot():
 
         fig = plt.figure()
         ax1 = fig.add_subplot(1,1,1)
-        self.plot_ax(ax1,'dos',itau_list=[0],**kwargs)
+        self.plot_ax(ax1,'dos',itau_list=[0],c=dos_color,erange=erange,**kwargs)
         ax2 = ax1.twinx()
-        self.plot_ax(ax2,'vvdos',itemp_list=itemp_list,itau_list=itau_list,**kwargs)
+        self.plot_ax(ax2,'vvdos',itemp_list=itemp_list,itau_list=itau_list,erange=erange,**kwargs)
         fig.legend()
         return fig
+
+    def set_erange(self,margin):
+        """ Get an energy range based on an energy margin above and bellow the fermi level"""
+        self.erange = [-margin,+margin]
+        return self.erange
+
+    def unset_erange(self):
+        """ Unset the energy range"""
+        self.erange = None
 
     def to_string(self):
         """
