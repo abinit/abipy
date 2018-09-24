@@ -638,7 +638,7 @@ class ElectronBands(Has_Structure):
 
             Assume spin-unpolarized band energies.
         """
-        iv = int(self.nelect) // 2 - 1
+        iv = int(self.nelect * self.nspinor) // 2 - 1
         new_fermie = self.eigens[:, :, iv].max()
         return self.set_fermie(new_fermie)
 
@@ -1893,9 +1893,11 @@ class ElectronBands(Has_Structure):
                 scatter_opts.update(marker="o", alpha=1.0, s=80, zorder=100, edgecolor='black')
 
                 # Fundamental gap.
+                mgap = -1
                 for ik1, ik2 in f_gap.all_kinds:
                     posA = (ik1, f_gap.in_state.eig - e0)
                     posB = (ik2, f_gap.out_state.eig - e0)
+                    mgap = max(mgap, posA[1], posB[1])
                     ax.scatter(posA[0], posA[1], **scatter_opts)
                     ax.scatter(posB[0], posB[1], **scatter_opts)
                     if need_arrows:
@@ -1906,10 +1908,15 @@ class ElectronBands(Has_Structure):
                     for ik1, ik2 in d_gap.all_kinds:
                         posA = (ik1, d_gap.in_state.eig - e0)
                         posB = (ik2, d_gap.out_state.eig - e0)
+                        mgap = max(mgap, posA[1], posB[1])
                         ax.scatter(posA[0], posA[1], **scatter_opts)
                         ax.scatter(posB[0], posB[1], **scatter_opts)
                         if need_arrows:
                             ax.add_patch(FancyArrowPatch(posA=posA, posB=posB, **arrow_opts))
+
+            # Trye to set nice limits if not given by user.
+            if ylims is None:
+                set_axlims(ax, (-mgap - 5, +mgap + 5), "y")
 
             gaps_string = self.get_gaps_string()
             if gaps_string:

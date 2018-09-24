@@ -906,7 +906,8 @@ class PhononBands(object):
             ax.set_xlim(ticks[0], ticks[-1])
 
     @add_fig_kwargs
-    def plot(self, ax=None, units="eV", qlabels=None, branch_range=None, match_bands=False, **kwargs):
+    def plot(self, ax=None, units="eV", qlabels=None, branch_range=None, match_bands=False, temp=None,
+             fontsize=12, **kwargs):
         r"""
         Plot the phonon band structure.
 
@@ -917,6 +918,9 @@ class PhononBands(object):
                 The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
             branch_range: Tuple specifying the minimum and maximum branch index to plot (default: all branches are plotted).
             match_bands: if True the bands will be matched based on the scalar product between the eigenvectors.
+            temp: Temperature in Kelving. If not None, a scatter plot with the Bose-Einstein occupation factor
+                at temperature `temp` is added.
+            fontsize: Legend and title fontsize.
 
         Returns: |matplotlib-Figure|
         """
@@ -939,6 +943,22 @@ class PhononBands(object):
 
         # Plot the phonon branches.
         self.plot_ax(ax, branch_range, units=units, match_bands=match_bands, **kwargs)
+
+        if temp is not None:
+            # Scatter plot with Bose-Einstein occupation factor for T = temp
+            factor = abu.phfactor_ev2units(units)
+            if temp < 1: temp = 1
+            ax.set_title("T = %.1f K" % temp, fontsize=fontsize)
+            xs = np.arange(self.num_qpoints)
+            for nu in self.branches:
+                ws = self.phfreqs[:, nu]
+                wkt = self.phfreqs[:, nu] / (abu.kb_eVK * temp)
+                # 1 / (np.exp(1e-6) - 1)) ~ 999999.5
+                wkt = np.where(wkt > 1e-6, wkt, 1e-6)
+                occ = 1.0 / (np.exp(wkt) - 1.0)
+                s = np.where(occ < 2, occ, 2) * 50
+                ax.scatter(xs, ws * factor, s=s, marker="o", c="b", alpha=0.6)
+                #ax.scatter(xs, ws, s=s, marker="o", c=occ, cmap="jet")
 
         return fig
 

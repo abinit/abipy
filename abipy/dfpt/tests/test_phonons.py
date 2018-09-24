@@ -109,7 +109,7 @@ class PhononBandsTest(AbipyTest):
         }
 
         if self.has_matplotlib():
-            assert phbands.plot(units="Thz", show=False)
+            assert phbands.plot(units="Thz", show=False, temp=300)
             assert phbands.plot_fatbands(units="ha", qlabels=qlabels, show=False)
             assert phbands.plot_fatbands(phdos_file=abidata.ref_file("trf2_5.out_PHDOS.nc"), units="thz", show=False)
             assert phbands.plot_colored_matched(units="cm^-1", show=False)

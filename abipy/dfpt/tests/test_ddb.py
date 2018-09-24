@@ -99,6 +99,7 @@ class DdbTest(AbipyTest):
             ddb.write(tmp_file)
             with DdbFile(tmp_file) as new_ddb:
                 assert ddb.qpoints == new_ddb.qpoints
+                assert DdbFile.as_ddb(new_ddb) is new_ddb
                 # Call anaddb to check if we can read new DDB
                 phbands = new_ddb.anaget_phmodes_at_qpoint(qpoint=new_ddb.qpoints[0], verbose=1)
                 assert phbands is not None and hasattr(phbands, "phfreqs")

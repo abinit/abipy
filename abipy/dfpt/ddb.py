@@ -118,6 +118,14 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return cls(tmpfile)
 
+    @classmethod
+    def as_ddb(cls, obj):
+        """
+        Return an instance of |DdbFile| from a generic object `obj`.
+        Accepts: DdbFile or filepath
+        """
+        return obj if isinstance(obj, cls) else cls.from_file(obj)
+
     def __init__(self, filepath):
         super(DdbFile, self).__init__(filepath)
 
@@ -154,6 +162,14 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         app("")
         app("Number of q-points in DDB: %d" % len(self.qpoints))
         app("guessed_ngqpt: %s (guess for the q-mesh divisions made by AbiPy)" % self.guessed_ngqpt)
+        #if verbose:
+        h = self.header
+        #app("Important parameters extracted from the header:")
+        app("ecut = %f, ecutsm = %f, nkpt = %d, nsym = %d, usepaw = %d" % (h.ecut, h.ecutsm, h.nkpt, h.nsym, h.usepaw))
+        app("nsppol %d, nspinor %d, nspden %d, ixc = %d, occopt = %d, tsmear = %f" % (
+            h.nsppol, h.nspinor, h.nspden, h.ixc, h.occopt, h.tsmear))
+        app("")
+
         app("Has total energy: %s, Has forces: %s" % (
             self.total_energy is not None, self.cart_forces is not None))
         if self.total_energy is not None:
@@ -179,9 +195,11 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         app("Has (all) piezoelectric terms: %s" % self.has_piezoelectric_terms(select="all"))
 
         if verbose:
+            # Print q-points
             app(self.qpoints.to_string(verbose=verbose, title="Q-points in DDB"))
 
         if verbose > 1:
+            # Print full header.
             from pprint import pformat
             app(marquee("DDB Header", mark="="))
             app(pformat(self.header))
