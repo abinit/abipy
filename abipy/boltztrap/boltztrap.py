@@ -7,6 +7,7 @@ initialize the Boltztrap2 calculation from Abinit files
 import pickle
 import numpy as np
 from monty.string import marquee
+from monty.termcolor import cprint
 from abipy.tools.plotting import add_fig_kwargs
 from abipy.tools import duck
 import abipy.core.abinit_units as abu
@@ -231,6 +232,12 @@ class BoltztrapResult():
         self.wmesh  = np.array(wmesh)
         self.tmesh  = np.array(tmesh)
 
+        #Temperature fix
+        if any(self.tmesh < 1):
+            cprint("Boltztrap does not handle 0K well.\n" 
+                   "I avoid potential problems by setting all T<1K to T=1K",color="yellow")
+            self.tmesh[self.tmesh < 1] = 1
+
         self.tau_temp = tau_temp
 
         self.dos = dos
@@ -279,7 +286,11 @@ class BoltztrapResult():
         if not hasattr(self,'_kappa'):
             self.compute_onsager_coefficients()
         return self._kappa
-   
+  
+    def set_tmesh(self,tmesh):
+        """ Set the temperature mesh"""    
+        self.tmesh = tmesh
+
     def compute_fermiintegrals(self):
         """Compute and store the results of the Fermi integrals""" 
         import BoltzTraP2.bandlib as BL
@@ -340,6 +351,8 @@ class BoltztrapResult():
             return
 
         itemp_list = list(range(self.ntemp)) if itemp_list is None else duck.list_ints(itemp_list)
+        maxitemp = max(itemp_list) 
+        if maxitemp > self.ntemp: raise ValueError('Invalid itemp_list, should be between 0 and %d. Got %d.'%(self.ntemp,maxitemp))
 
         cmap = plt.get_cmap(colormap)
         color = None
@@ -446,8 +459,7 @@ class BoltztrapResultRobot():
         cmap = plt.get_cmap(colormap)
 
         #get itau_list
-        tau_temps = self.tau_list
-        if itau_list is not None: tau_temps = [ self.tau_list[itau] for itau in itau_list ] 
+        tau_temps = self.tau_list if itau_list is None else [ self.tau_list[itau] for itau in itau_list ]
 
         #filter results by temperature
         filtered_results = [res for res in self.results if res.tau_temp in tau_temps]
@@ -496,6 +508,11 @@ class BoltztrapResultRobot():
         for result in self.results:
             app(result.to_string(mark='-'))
         return "\n".join(lines)
+
+    def set_tmesh(self,tmesh):
+        """ Set the temperature mesh of all the results"""
+        for result in self.results:
+            result.set_tmesh(tmesh)        
 
     def __str__(self):
         return self.to_string()
