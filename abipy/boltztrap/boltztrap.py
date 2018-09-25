@@ -96,32 +96,31 @@ class AbipyBoltztrap():
         """Initialize interpolation of the bands and lifetimes from a sigeph object"""
 
         #units conversion
-        eV_Ry = 2 * abu.eV_Ha
         eV_s = abu.eV_to_THz*1e12 * 2*np.pi
-
+        Ang_Bohr = 1.0/abu.Bohr_Ang
         #get the lifetimes as an array
         qpes = sigeph.get_qp_array(mode='ks+lifetimes')
 
         #get other dimensions
         if bstart is None: bstart = sigeph.reader.max_bstart
         if bstop is None:  bstop  = sigeph.reader.min_bstop
-        fermi  = sigeph.ebands.fermie*eV_Ry
+        fermi  = sigeph.ebands.fermie*abu.eV_Ha
         atoms  = sigeph.ebands.structure.to_ase_atoms()
-        volume = sigeph.ebands.structure.volume
+        volume = sigeph.ebands.structure.volume*Ang_Bohr**3
         nelect = sigeph.ebands.nelect
         kpoints = [k.frac_coords for k in sigeph.sigma_kpoints]
 
         #TODO handle spin
-        eig = qpes[0,:,bstart:bstop,0].real.T*eV_Ry
+        eig = qpes[0,:,bstart:bstop,0].real.T*abu.eV_Ha
 
         itemp_list = list(range(sigeph.ntemp)) if itemp_list is None else duck.list_ints(itemp_list)
         linewidths = []
         tmesh = []
         for itemp in itemp_list:
             tmesh.append(sigeph.tmesh[itemp])
-            fermi = sigeph.mu_e[itemp]*eV_Ry
+            fermi = sigeph.mu_e[itemp]*abu.eV_Ha
             #TODO handle spin
-            linewidth = qpes[0, :, bstart:bstop, itemp].imag.T*eV_Ry
+            linewidth = qpes[0, :, bstart:bstop, itemp].imag.T*abu.eV_Ha
             linewidths.append(linewidth)
 
         return cls(fermi, atoms, nelect, kpoints, eig, volume, linewidths=linewidths, 
