@@ -131,6 +131,11 @@ class AbipyBoltztrap():
         return self.lattvec
 
     @property
+    def nbands(self):
+        nbands, rpoints = self.coefficients.shape
+        return nbands
+
+    @property
     def lattvec(self):
         if not hasattr(self,"_lattvec"):
             self._lattvec = self.atoms.get_cell().T / abu.Bohr_Ang
@@ -145,6 +150,16 @@ class AbipyBoltztrap():
             max3 = max(np.max(equiv[:,2]),max3)
         self._rmesh = (2*max1+1,2*max2+1,2*max3+1)
         return self._rmesh
+
+    def dump_rsphere(self,filename):
+        """ Write a file with the real space points"""
+        with open(filename,'w') as f:
+            for iband in range(self.nbands):
+                for ie,equivalence in enumerate(self.equivalences):
+                    coeff = self.coefficients[iband,ie]
+                    for ip,point in enumerate(equivalence):
+                        f.write("%5d %5d %5d "%tuple(point)+"%lf\n"%((abs(coeff))**(1./5)))
+                f.write("\n\n")
 
     @timeit
     def compute_equivalences(self):
