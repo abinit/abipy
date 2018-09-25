@@ -153,11 +153,10 @@ class AbipyBoltztrap():
             self._lattvec = self.atoms.get_cell().T / abu.Bohr_Ang
         return self._lattvec
 
-    def get_bands(self,kpath=None,line_density=20,vertices_names=None,linewidth=False):
+    def get_bands(self,kpath=None,line_density=20,vertices_names=None,linewidth_itemp=False):
         """Compute the band-structure using the computed coefficients"""
         #electronic structure
         from BoltzTraP2 import fite
-        coeffs = self.coefficients if linewidth is False else self.linewidth_coeddicients[linewitdth]
 
         if kpath is None:
             if vertices_names is None:
@@ -166,17 +165,24 @@ class AbipyBoltztrap():
             kpath = Kpath.from_vertices_and_names(self.structure, vertices_names, line_density=line_density)
 
         #call boltztrap to interpolate
+        coeffs = self.coefficients 
         eigens_kpath, vvband = fite.getBands(kpath.frac_coords, self.equivalences, self.lattvec, coeffs)
-
-        #convert units
-        eigens_kpath = eigens_kpath*abu.Ha_eV
+      
+        linewidths_kpath = None 
+        if linewidth_itemp is not False: 
+            coeffs = self.linewidth_coefficients[linewidth_itemp]
+            linewidths_kpath, vvband = fite.getBands(kpath.frac_coords, self.equivalences, self.lattvec, coeffs)
+            linewidths_kpath = linewidths_kpath.T[np.newaxis,:,:]*abu.Ha_eV
+    
+        #convert units and shape
+        eigens_kpath   = eigens_kpath.T[np.newaxis,:,:]*abu.Ha_eV
         occfacts_kpath = np.zeros_like(eigens_kpath)
         nspinor1 = 1
         nspden1 = 1
 
         #return a ebands object
         return ElectronBands(self.structure, kpath, eigens_kpath, self.fermi*abu.Ha_eV, occfacts_kpath,
-                             self.nelect, nspinor1, nspden1)
+                             self.nelect, nspinor1, nspden1, linewidths=linewidths_kpath)
 
 
     def get_interpolation_mesh(self):
