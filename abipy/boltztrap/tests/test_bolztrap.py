@@ -28,6 +28,11 @@ class AbipyBoltztrapTest(AbipyTest):
         assert bt.ncoefficients == 53
 
         #
+        # get ebands using boltztrap
+        #
+        bt_ebands = bt.get_bands()
+
+        #
         # Get boltztrap results using different DOS methods
         # 
         btr = bt.run(dos_method="histogram")

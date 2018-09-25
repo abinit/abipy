@@ -4,14 +4,17 @@ This module containes a Bolztrap2 class to interpolate and analyse the results
 It also provides interfaces with Abipy objects allowing to
 initialize the Boltztrap2 calculation from Abinit files
 """
+import time
 import pickle
 import numpy as np
 from monty.string import marquee
 from monty.termcolor import cprint
 from abipy.tools.plotting import add_fig_kwargs
 from abipy.tools import duck
+from abipy.electrons.ebands import ElectronBands
+from abipy.core.kpoints import Kpath
 import abipy.core.abinit_units as abu
-import time
+from pymatgen.symmetry.bandstructure import HighSymmKpath
 
 def timeit(method):
     """
@@ -46,18 +49,21 @@ class AbipyBoltztrap():
     It creates an instance of Bolztrap2Results to save the data
     Enter with quantities in the IBZ and interpolate to a fine BZ mesh
     """
-    def __init__(self,fermi,atoms,nelect,kpoints,eig,volume,linewidths=None,tmesh=None,
+    def __init__(self,fermi,structure,nelect,kpoints,eig,volume,linewidths=None,tmesh=None,
                  mommat=None,magmom=None,lpratio=1,nworkers=1):
+        #data needed by boltztrap
         self.fermi = fermi
-        self.atoms = atoms
+        self.atoms = structure.to_ase_atoms()
         self.nelect = nelect
         self.kpoints = np.array(kpoints)
-        self.eig = eig
         self.volume = volume
-        self.linewidths = linewidths
-        self.tmesh = tmesh
         self.mommat = mommat
         self.magmom = magmom
+
+        self.eig = eig
+        self.structure = structure
+        self.linewidths = linewidths
+        self.tmesh = tmesh
         self.nworkers = nworkers
         self.lpratio = lpratio
 
@@ -72,6 +78,12 @@ class AbipyBoltztrap():
         if not hasattr(self,'_coefficients'):
             self.compute_coefficients()
         return self._coefficients
+    
+    @property
+    def linewidth_coefficients(self):
+        if not hasattr(self,'_linewidth_coefficients'):
+            self.compute_coefficients()
+        return self._linewidth_coefficients
 
     @property
     def rmesh(self):
@@ -105,7 +117,7 @@ class AbipyBoltztrap():
         if bstart is None: bstart = sigeph.reader.max_bstart
         if bstop is None:  bstop  = sigeph.reader.min_bstop
         fermi  = sigeph.ebands.fermie*abu.eV_Ha
-        atoms  = sigeph.ebands.structure.to_ase_atoms()
+        structure = sigeph.ebands.structure
         volume = sigeph.ebands.structure.volume*Ang_Bohr**3
         nelect = sigeph.ebands.nelect
         kpoints = [k.frac_coords for k in sigeph.sigma_kpoints]
@@ -123,7 +135,7 @@ class AbipyBoltztrap():
             linewidth = qpes[0, :, bstart:bstop, itemp].imag.T*abu.eV_Ha
             linewidths.append(linewidth)
 
-        return cls(fermi, atoms, nelect, kpoints, eig, volume, linewidths=linewidths, 
+        return cls(fermi, structure, nelect, kpoints, eig, volume, linewidths=linewidths, 
                    tmesh=tmesh, lpratio=lpratio)
 
     def get_lattvec(self):
@@ -140,6 +152,32 @@ class AbipyBoltztrap():
         if not hasattr(self,"_lattvec"):
             self._lattvec = self.atoms.get_cell().T / abu.Bohr_Ang
         return self._lattvec
+
+    def get_bands(self,kpath=None,line_density=20,vertices_names=None,linewidth=False):
+        """Compute the band-structure using the computed coefficients"""
+        #electronic structure
+        from BoltzTraP2 import fite
+        coeffs = self.coefficients if linewidth is False else self.linewidth_coeddicients[linewitdth]
+
+        if kpath is None:
+            if vertices_names is None:
+               vertices_names = [(k.frac_coords, k.name) for k in self.structure.hsym_kpoints]
+
+            kpath = Kpath.from_vertices_and_names(self.structure, vertices_names, line_density=line_density)
+
+        #call boltztrap to interpolate
+        eigens_kpath, vvband = fite.getBands(kpath.frac_coords, self.equivalences, self.lattvec, coeffs)
+
+        #convert units
+        eigens_kpath = eigens_kpath*abu.Ha_eV
+        occfacts_kpath = np.zeros_like(eigens_kpath)
+        nspinor1 = 1
+        nspden1 = 1
+
+        #return a ebands object
+        return ElectronBands(self.structure, kpath, eigens_kpath, self.fermi*abu.Ha_eV, occfacts_kpath,
+                             self.nelect, nspinor1, nspden1)
+
 
     def get_interpolation_mesh(self):
         """From the array of equivalences determine the mesh that was used"""
@@ -158,7 +196,7 @@ class AbipyBoltztrap():
                 for ie,equivalence in enumerate(self.equivalences):
                     coeff = self.coefficients[iband,ie]
                     for ip,point in enumerate(equivalence):
-                        f.write("%5d %5d %5d "%tuple(point)+"%lf\n"%((abs(coeff))**(1./5)))
+                        f.write("%5d %5d %5d "%tuple(point)+"%lf\n"%((abs(coeff))**(1./3)))
                 f.write("\n\n")
 
     @timeit
