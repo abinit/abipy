@@ -230,7 +230,7 @@ class AbipyBoltztrap():
         delattr(self,"ebands")
 
     @timeit
-    def run(self,npts=500,dos_method='gaussian:0.1 eV',erange=None,verbose=True):
+    def run(self,npts=500,dos_method='gaussian:0.1 eV',erange=None,verbose=0):
         """
         Interpolate the eingenvalues This part is quite memory intensive
         """
@@ -243,17 +243,20 @@ class AbipyBoltztrap():
         if erange is None: erange = (np.min(self.eig),np.max(self.eig))
 
         #interpolate the electronic structure
+        if verbose: print('interpolating bands')
         results = fite.getBTPbands(self.equivalences, self.coefficients, 
                                    self.lattvec, nworkers=self.nworkers)
         eig_fine, vvband, cband = results
 
         #calculate DOS and VDOS without lifetimes
+        if verbose: print('calculating dos and vvdos')
         wmesh,dos,vvdos,_ = BL.BTPDOS(eig_fine, vvband, erange=erange, npts=npts, mode=dos_method) 
         app(BoltztrapResult(self,wmesh,dos,vvdos,self.fermi,self.tmesh,self.volume))
     
         #if we have linewidths
         if self.linewidths:
             for itemp in range(self.ntemps):
+                if verbose: print('itemp %d\ninterpolating bands')
                 #calculate the lifetimes on the fine grid
                 results = fite.getBTPbands(self.equivalences, self._linewidth_coefficients[itemp], 
                                            self.lattvec, nworkers=self.nworkers)
@@ -261,6 +264,7 @@ class AbipyBoltztrap():
                 tau_fine = 1.0/np.abs(2*linewidth_fine*eV_s)
  
                 #calculate vvdos with the lifetimes
+                if verbose: print('calculating dos and vvdos')
                 wmesh, dos_tau, vvdos_tau, _ = BL.BTPDOS(eig_fine, vvband, erange=erange, npts=npts,
                                                          scattering_model=tau_fine, mode=dos_method)
                 #store results
@@ -301,6 +305,10 @@ class BoltztrapResult():
 
         self.dos = dos
         self.vvdos = vvdos
+
+    @property
+    def has_tau(self):
+        return self.tau_temp is not None 
 
     @property
     def ntemp(self):
@@ -424,7 +432,7 @@ class BoltztrapResult():
                     y = self.get_component(what,component,itemp)
                     if len(itemp_list) > 1: color=cmap(itemp/len(itemp_list))
                     label = "%s %s $b_T$ = %dK"%(what,component,self.tmesh[itemp])
-                    if self.tau_temp: label += " $\\tau_T$ = %dK"%self.tau_temp
+                    if self.has_tau: label += " $\\tau_T$ = %dK"%self.tau_temp
                     ax1.plot(wmesh,y,label=label,c=color,**kwargs)
         else:
             ax1.plot(wmesh,getattr(self,what),label=what,**kwargs)
@@ -448,7 +456,7 @@ class BoltztrapResult():
         app("fermi:    %8.5lf"%self.fermi)
         app("wmesh:    %8.5lf <-> %8.5lf"%(self.wmesh[0],self.wmesh[-1]))
         app("tmesh:    %s"%self.tmesh)
-        app("has_tau:  %s"%(self.tau_temp is not None))
+        app("has_tau:  %s"%self.has_tau)
         if self.tau_temp: app("tau_temp: %lf"%self.tau_temp)
         return "\n".join(lines)
 
@@ -487,16 +495,24 @@ class BoltztrapResultRobot():
     
     @property
     def tau_list(self):
+        """Get all the results with tau included"""
         return [ res.tau_temp for res in self.results if res.tau_temp is not None ]
+
+    @property
+    def notau_results(self):
+        """Get all the results without the tau included"""
+        instance = self.__class__([ res for res in self.results if res.tau_temp is None ])
+        if self.erange: instance.erange = self.erange
+        return instance 
+
+    @property
+    def tau_results(self):
+        """ Return all the results that have temperature dependence"""
+        return self.__class__([ res for res in self.results if res.tau_temp is None ])
 
     @property
     def nresults(self):
         return len(self.results)
-
-    @property
-    def hastau(self):
-        """ Return all the results that have temperature dependence"""
-        return [result for result in self.results if result.has_tau]
 
     @staticmethod
     def from_pickle(filename):
@@ -514,17 +530,21 @@ class BoltztrapResultRobot():
         with open(filename,'wb') as f:
             pickle.dump(self,f)
  
-    def plot_ax(self,ax,what,components=['xx'],itemp_list=None,itau_list=None,erange=None,**kwargs):
+    def plot_ax(self,ax1,what,components=['xx'],itemp_list=None,itau_list=None,erange=None,**kwargs):
         """
         Plot a quantity in an axis for all the results
         """
         from matplotlib import pyplot as plt
         colormap = kwargs.pop('colormap','plasma')
         cmap = plt.get_cmap(colormap)
-
+ 
+        #set erange
+        erange = erange or self.erange
+        if erange is not None:
+            ax1.set_xlim(erange)
+       
         #get itau_list
         tau_temps = self.tau_list if itau_list is None else [ self.tau_list[itau] for itau in itau_list ]
-
         #filter results by temperature
         filtered_results = [res for res in self.results if res.tau_temp in tau_temps]
 
@@ -532,12 +552,13 @@ class BoltztrapResultRobot():
         for itemp,result in enumerate(filtered_results):
             if result.tau_temp not in tau_temps: continue
             color = kwargs.pop('c',cmap(itemp/len(filtered_results)))
-            result.plot_ax(ax,what,components,itemp_list,c=color,**kwargs)
+            result.plot_ax(ax1,what,components,itemp_list,c=color,**kwargs)
 
-        #set erange
-        erange = erange or self.erange
-        if erange is not None:
-            ax.set_xlim(erange)
+        #plot result without tau
+        filtered_results = [res for res in self.results if not res.has_tau]
+        if len(filtered_results): ax2 = ax1.twinx()
+        for result in filtered_results:
+            result.plot_ax(ax2,what,components,itemp_list,*kwargs)
 
     @add_fig_kwargs
     def plot(self,what,itemp_list=None,itau_list=None,components=['xx'],erange=None,**kwargs):
@@ -548,12 +569,14 @@ class BoltztrapResultRobot():
 
         fig = plt.figure()
         ax1 = fig.add_subplot(1,1,1)
-        self.plot_ax(ax1,what,components=components,itemp_list=itemp_list,itau_list=itau_list,erange=erange,**kwargs)
+        self.plot_ax(ax1,what,components=components,itemp_list=itemp_list,itau_list=itau_list,
+                     erange=erange,**kwargs)
         fig.legend()
         return fig
 
     @add_fig_kwargs
-    def plot_dos_vvdos(self,itemp_list=None,itau_list=None,components=['xx'],dos_color='C0',erange=None,**kwargs):
+    def plot_dos_vvdos(self,itemp_list=None,itau_list=None,components=['xx'],
+                       dos_color='C0',erange=None,**kwargs):
         """
         Plot the DOS and VVDOS for all the results
         """
@@ -561,7 +584,7 @@ class BoltztrapResultRobot():
 
         fig = plt.figure()
         ax1 = fig.add_subplot(1,1,1)
-        self.plot_ax(ax1,'dos',itau_list=[0],c=dos_color,erange=erange,**kwargs)
+        self.plot_ax(ax1,'dos',itau_list=None,c=dos_color,erange=erange,**kwargs)
         ax2 = ax1.twinx()
         self.plot_ax(ax2,'vvdos',itemp_list=itemp_list,itau_list=itau_list,erange=erange,**kwargs)
         fig.legend()
