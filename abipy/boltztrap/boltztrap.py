@@ -13,6 +13,7 @@ from abipy.tools.plotting import add_fig_kwargs
 from abipy.tools import duck
 from abipy.electrons.ebands import ElectronBands
 from abipy.core.kpoints import Kpath
+from abipy.core.structure import Structure
 import abipy.core.abinit_units as abu
 from pymatgen.symmetry.bandstructure import HighSymmKpath
 
@@ -102,6 +103,26 @@ class AbipyBoltztrap():
     @property
     def ntemps(self):
         return len(self.linewidths)
+
+    @classmethod
+    def from_ebands(cls):
+        """Initialize from an ebands obejct"""
+        raise NotImplementedError('TODO')
+
+    @classmethod
+    def from_ddk(cls):
+        """Intialize from a DDK file """
+        raise NotImplementedError('TODO')
+
+    @classmethod
+    def from_dftdata(cls,dftdata,tmesh,lpratio=1,nworkers=1):
+        """Initialize an instance of this class from a dftdata isntance from Boltztrap"""
+       
+        structure = Structure.from_ase_atoms(dftdata.atoms)
+        return cls(dftdata.fermi,structure,dftdata.nelect,dftdata.kpoints,dftdata.ebands,
+                   dftdata.get_volume(),linewidths=None,tmesh=tmesh,
+                   mommat=dftdata.mommat,magmom=None,lpratio=lpratio,nworkers=nworkers)
+
 
     @classmethod
     def from_sigeph(cls,sigeph,itemp_list=None,bstart=None,bstop=None,lpratio=1):
@@ -209,7 +230,10 @@ class AbipyBoltztrap():
     def compute_equivalences(self):
         """Compute equivalent k-points"""
         from BoltzTraP2 import sphere
-        self._equivalences = sphere.get_equivalences(self.atoms, self.magmom, self.lpratio)
+        try:
+            self._equivalences = sphere.get_equivalences(self.atoms, self.magmom, self.lpratio)
+        except TypeError:
+            self._equivalences = sphere.get_equivalences(self.atoms, self.lpratio)
 
     @timeit
     def compute_coefficients(self):
