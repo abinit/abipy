@@ -1138,7 +1138,7 @@ class LobsterInput(object):
             lines.append("COHPSteps {}".format(self.en_steps))
 
         if self.gaussian_smearing:
-            lines.append("gaussianSmearingWidth {}".format(self.gaussing_smearing))
+            lines.append("gaussianSmearingWidth {}".format(self.gaussian_smearing))
 
         if self.bwdf:
             lines.append("BWDF {}".format(self.bwdf))
