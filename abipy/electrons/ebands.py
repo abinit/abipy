@@ -34,7 +34,7 @@ from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader
 from abipy.tools import gaussian, duck
 from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
-    get_ax3d_fig_plt, rotate_ticklabels, set_visible, plot_unit_cell)
+    get_ax3d_fig_plt, rotate_ticklabels, set_visible, plot_unit_cell, set_ax_xylabels)
 
 import logging
 logger = logging.getLogger(__name__)
@@ -2175,7 +2175,7 @@ class ElectronBands(Has_Structure):
     def plot_lws_vs_e0(self, ax=None, e0="fermie", function=lambda x: x, exchange_xy=False,
                        xlims=None, ylims=None, fontsize=12, **kwargs):
         r"""
-        Plot the electronic linewidths vs KS energy.
+        Plot electronic linewidths vs KS energy.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -2452,6 +2452,10 @@ class ElectronBands(Has_Structure):
             abispg = self.structure.spgset_abi_spacegroup(has_timerev=self.has_timrev)
 
         fm_symrel = [s for (s, afm) in zip(abispg.symrel, abispg.symafm) if afm == 1]
+
+        if self.nband > self.nelect and self.nband > 20 and bstart == 0 and bstop is None:
+            cprint("Bands object contains nband %s with nelect %s. You may want to use bstart, bstop to select bands." % (
+                    self.nband, self.nelect), "yellow")
 
         # Build interpolator.
         from abipy.core.skw import SkwInterpolator
@@ -3388,7 +3392,7 @@ class ElectronDos(object):
         return lines
 
     @add_fig_kwargs
-    def plot(self, e0="fermie", spin=None, ax=None, xlims=None, **kwargs):
+    def plot(self, e0="fermie", spin=None, ax=None, exchange_xy=False, xlims=None, ylims=None, **kwargs):
         """
         Plot electronic DOS
 
@@ -3399,8 +3403,10 @@ class ElectronDos(object):
                 - None: Don't shift energies, equivalent to ``e0 = 0``.
             spin: Selects the spin component, None if total DOS is wanted.
             ax: |matplotlib-Axes| or None if a new figure should be created.
+            exchange_xy: True to exchange x-y axis.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                 or scalar e.g. ``left``. If left (right) is None, default values are used
+            ylims: Set data limits for the y-axis.
             kwargs: options passed to ``ax.plot``.
 
         Return: |matplotlib-Figure|
@@ -3414,12 +3420,14 @@ class ElectronDos(object):
             opts.update(kwargs)
             spin_sign = +1 if spin == 0 else -1
             x, y = self.spin_dos[spin].mesh - e0, spin_sign * self.spin_dos[spin].values
+            if exchange_xy: x, y = y, x
             ax.plot(x, y, **opts)
 
         ax.grid(True)
-        ax.set_xlabel('Energy (eV)')
-        ax.set_ylabel('DOS (states/eV)')
+        xlabel, ylabel = 'Energy (eV)', 'DOS (states/eV)'
+        set_ax_xylabels(ax, xlabel, ylabel, exchange_xy)
         set_axlims(ax, xlims, "x")
+        set_axlims(ax, ylims, "y")
 
         return fig
 

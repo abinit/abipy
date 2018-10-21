@@ -43,6 +43,7 @@ class PhononBandsTest(AbipyTest):
             assert phbands.phdispl_cart.shape == (phbands.nqpt, phbands.num_branches, phbands.num_branches)
             # a + b gives plotter
             assert hasattr(same_phbands_nc + phbands, "combiplot")
+            assert phbands.epsinf is None and phbands.zcart is None
 
         self.serialize_with_pickle(phbands, protocols=[-1], test_eq=False)
 

@@ -377,7 +377,14 @@ class GsrReader(ElectronsReader):
         Return a dictionary with the different contributions to the total electronic energy.
         """
         convert = lambda e: units.Energy(e, unit="Ha").to(unit)
-        d = {k: convert(self.read_value(k)) for k in EnergyTerms.ALL_KEYS}
+        d = OrderedDict()
+        for k in EnergyTerms.ALL_KEYS:
+            if k == "e_nonlocalpsp" and k not in self.rootgrp.variables:
+                # Renamed in 8.9
+                d[k] = convert(self.read_value("e_nlpsp_vfock"))
+            else:
+                d[k] = convert(self.read_value(k))
+
         return EnergyTerms(**d)
 
 

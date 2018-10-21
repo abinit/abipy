@@ -25,7 +25,7 @@ from monty.termcolor import cprint
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.core.kpoints import Kpoint, KpointList, Kpath, IrredZone, has_timrev_from_kptopt
 from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
-    rotate_ticklabels, ax_append_title, set_ax_xylabels)
+    rotate_ticklabels, ax_append_title, set_ax_xylabels, linestyles)
 from abipy.tools import gaussian, duck
 from abipy.electrons.ebands import ElectronBands, ElectronDos, RobotWithEbands, ElectronBandsPlotter, ElectronDosPlotter
 from abipy.dfpt.phonons import PhononDos #PhononBands, RobotWithPhbands, factor_ev2units, unit_tag, dos_label_from_units
@@ -341,8 +341,8 @@ class QpTempList(list):
     # TODO: Linewidths
     @add_fig_kwargs
     def plot_vs_e0(self, itemp_list=None, with_fields="all", reim="real", function=lambda x: x,
-                   exclude_fields=None, fermie=None,
-                   colormap="jet", ax_list=None, xlims=None, fontsize=12, **kwargs):
+                   exclude_fields=None, fermie=None, colormap="jet", ax_list=None, xlims=None, ylims=None,
+                   exchange_xy=False, fontsize=12, **kwargs):
         """
         Plot the QP results as a function of the initial KS energy.
 
@@ -357,8 +357,9 @@ class QpTempList(list):
             fermie: Value of the Fermi level used in plot. None for absolute e0s.
             colormap: matplotlib color map.
             ax_list: List of |matplotlib-Axes| for plot. If None, new figure is produced.
-            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+            xlims, ylims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used.
+            exchange_xy: True to exchange x-y axis.
             fontsize: Legend and title fontsize.
             kwargs: linestyle, color, label, marker
 
@@ -367,9 +368,9 @@ class QpTempList(list):
         fields = QpTempState.get_fields_for_plot("e0", with_fields, exclude_fields)
         if not fields: return None
 
-        if   reim == "real": ylabel_mask = r"$\Re(%s)$"
+        if reim == "real": ylabel_mask = r"$\Re(%s)$"
         elif reim == "imag": ylabel_mask = r"$\Im(%s)$"
-        else: return ValueError("Invalid option for reim, should be 'real' or 'imag'")
+        else: raise ValueError("Invalid option for reim, should be 'real' or 'imag'")
 
         num_plots, ncols, nrows = len(fields), 1, 1
         if num_plots > 1:
@@ -399,23 +400,34 @@ class QpTempList(list):
             irow, icol = divmod(ix, ncols)
             ax.grid(True)
             if irow == nrows - 1:
-                ax.set_xlabel(xlabel)
-            ax.set_ylabel(ylabel_mask % field, fontsize=fontsize)
+                if not exchange_xy:
+                    ax.set_xlabel(xlabel)
+                else:
+                    ax.set_ylabel(xlabel)
+
+            if not exchange_xy:
+                ax.set_ylabel(ylabel_mask % field, fontsize=fontsize)
+            else:
+                ax.set_xlabel(ylabel_mask % field, fontsize=fontsize)
+
             has_legend = False
             # Plot different temperatures.
             for itemp in itemp_list:
                 yt = qps.get_field_itemp(field, itemp)
-                yt_reim = getattr(yt,reim)
+                yt_reim = getattr(yt, reim)
                 label = kw_label
                 if kw_label is None:
                     label = "T = %.1f K" % self.tmesh[itemp] if ix == 0 else None
                 has_legend = has_legend or bool(label)
-                ax.plot(e0mesh, function(yt_reim), kw_linestyle,
+                xs = e0mesh
+                ys = function(yt_reim)
+                if exchange_xy: xs, ys = ys, xs
+                ax.plot(xs, ys, kw_linestyle,
                         color=cmap(itemp / self.ntemp) if kw_color is None else kw_color,
                         label=label, **kwargs)
 
             set_axlims(ax, xlims, "x")
-            #print("ix", ix, "has", has_legend, "label", label)
+            set_axlims(ax, ylims, "y")
             if ix == 0 and has_legend:
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
@@ -437,7 +449,8 @@ class EphSelfEnergy(object):
         spfunc=r"$A(\omega)}$",
     )
 
-    def __init__(self, wmesh, qp, vals_e0ks, dvals_de0ks, dw_vals, vals_wr, spfunc_wr):
+    def __init__(self, wmesh, qp, vals_e0ks, dvals_de0ks, dw_vals, vals_wr, spfunc_wr,
+                 frohl_vals_e0ks=None, frohl_dvals_de0ks=None, frohl_spfunc_wr=None):
         """
         Args:
             wmesh: Frequency mesh in eV.
@@ -447,6 +460,8 @@ class EphSelfEnergy(object):
             dw_vals: [ntemp] array with Debye-Waller term (static)
             vals_wr: [ntemp, nwr] complex array with Sigma_eph(omega, kT). enk_KS corresponds to nwr//2 + 1.
             spfunc_wr: [ntemp, nwr] real array with spectral function.
+            frohl_vals_e0ks, frohl_dvals_de0ks, frohl_spfunc_wr: Contribution to the eph self-energy
+                computed with the Frohlich model for gkq (optional).
         """
         self.qp = qp
         self.spin, self.kpoint, self.band = qp.spin, qp.kpoint, qp.band
@@ -465,6 +480,10 @@ class EphSelfEnergy(object):
         self.spfunc_wr = spfunc_wr
         assert self.spfunc_wr.shape == (self.ntemp, self.nwr)
 
+        self.frohl_vals_e0ks = frohl_vals_e0ks
+        self.frohl_dvals_de0ks = frohl_dvals_de0ks
+        self.frohl_spfunc_wr = frohl_spfunc_wr
+
     def __str__(self):
         return self.to_string()
 
@@ -475,6 +494,8 @@ class EphSelfEnergy(object):
         app("K-point: %s, band: %d, spin: %d" % (repr(self.kpoint), self.band, self.spin))
         app("Number of temperatures: %d, from %.1f to %.1f (K)" % (self.ntemp, self.tmesh[0], self.tmesh[-1]))
         app("Number of frequencies: %d, from %.1f to %.1f (eV)" % (self.nwr, self.wmesh[0], self.wmesh[-1]))
+        if self.frohl_vals_e0ks is not None:
+            app("Contains contribution given by Frohlich term.")
         app(self.qp.to_string(verbose=verbose, title="QP data"))
 
         return "\n".join(lines)
@@ -496,13 +517,22 @@ class EphSelfEnergy(object):
 
         return xx.copy(), xlabel
 
-    def _get_ys_itemp(self, what, itemp):
-        """Return array(T) to plot from what and itemp index."""
-        return dict(
-            re=self.vals_wr[itemp].real,
-            im=self.vals_wr[itemp].imag,
-            spfunc=self.spfunc_wr[itemp],
-        )[what]
+    def _get_ys_itemp(self, what, itemp, select_frohl=False):
+        """
+        Return array(T) to plot from what and itemp index.
+        """
+        if not select_frohl:
+            return dict(
+                re=self.vals_wr[itemp].real,
+                im=self.vals_wr[itemp].imag,
+                spfunc=self.spfunc_wr[itemp],
+            )[what]
+        else:
+            return dict(
+                re=self.frohl_vals_wr[itemp].real,
+                im=self.frohl_vals_wr[itemp].imag,
+                spfunc=self.frohl_spfunc_wr[itemp],
+            )[what]
 
     def _get_itemps_labels(self, itemps):
         """Return list of temperature indices and labels from itemps."""
@@ -522,7 +552,7 @@ class EphSelfEnergy(object):
 
     @add_fig_kwargs
     def plot_tdep(self, itemps="all", zero_energy="e0", colormap="jet", ax_list=None,
-                  what_list=("re", "im", "spfunc"), xlims=None, fontsize=8, **kwargs):
+                  what_list=("re", "im", "spfunc"), with_frohl=False, xlims=None, fontsize=8, **kwargs):
         """
         Plot the real/imaginary part of self-energy as well as the spectral function for
         the different temperatures with a color map.
@@ -533,6 +563,7 @@ class EphSelfEnergy(object):
             colormap: matplotlib color map.
             ax_list: List of |matplotlib-Axes|. If None, new figure is produced.
             what_list: List of strings selecting the quantity to plot.
+            with_frohl: Visualize Frohlich contribution (if present).
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                 or scalar e.g. ``left``. If left (right) is None, default values are used.
             fontsize: legend and label fontsize.
@@ -549,6 +580,7 @@ class EphSelfEnergy(object):
         itemps, tlabels = self._get_itemps_labels(itemps)
         kw_color = kwargs.get("color", None)
         kw_label = kwargs.get("label", None)
+
         for ix, (what, ax) in enumerate(zip(what_list, ax_list)):
             ax.grid(True)
             ax.set_ylabel(self.latex_symbol[what])
@@ -558,6 +590,14 @@ class EphSelfEnergy(object):
                         color=cmap(itemp / self.ntemp) if kw_color is None else kw_color,
                         label=tlabels[itemp] if (ix == 0 and kw_label is None) else kw_label,
                 )
+                if with_frohl:
+                    # Add Frohlich contribution.
+                    ax.plot(xs, self._get_ys_itemp(what, itemp, select_frohl=True),
+                            color=cmap(itemp / self.ntemp) if kw_color is None else kw_color,
+                            label="Frohlich",
+                            #label=tlabels[itemp] if (ix == 0 and kw_label is None) else kw_label,
+                    )
+
             if ix == 0: ax.legend(loc="best", shadow=True, fontsize=fontsize)
             set_axlims(ax, xlims, "x")
 
@@ -595,8 +635,26 @@ class EphSelfEnergy(object):
         ax0.grid(True)
         ax0.plot(xs, self.vals_wr[itemp].real, label=r"$\Re(\Sigma)$")
         ax0.plot(xs, self.vals_wr[itemp].imag, ls="--", label=r"$\Im(\Sigma)$")
-        ax0.plot(xs, self.wmesh - self.qp.e0, color="k", lw=1, ls="--", label=r"$\omega - \epsilon^0$")
-        #ax0.axvline(x=0.0, color='k', linestyle='--', lw=1)
+        ls = linestyles["dashed"]
+        ax0.plot(xs, self.wmesh - self.qp.e0, color="k", lw=1, ls=ls, label=r"$\omega - \epsilon^0$")
+
+        # Add linearized solution
+        sig0 = self.vals_wr[itemp][self.nwr // 2 + 1]
+        aa = self.dvals_de0ks[itemp].real
+        ze0 = self.qp.ze0[itemp].real
+        line = sig0.real + aa * xs
+        ls = linestyles["densely_dotted"]
+        ax0.plot(xs, line, color="k", lw=1, ls=ls,
+                label=r"$\Re(\Sigma^0) + \dfrac{\partial\Sigma}{\partial\omega}(\omega - \epsilon^0$)")
+
+        x0 = self.qp.qpe[itemp].real - self.qp.e0
+        y0 = sig0.real + aa * x0
+        scatter_opts = dict(color="blue", marker="o", alpha=1.0, s=50, zorder=100, edgecolor='black')
+        ax0.scatter(x0, y0, **scatter_opts, label="Linearized solution")
+        text = r"$Z = %.2f$" % ze0
+        #ax0.annotate(text, (x0 + 0.2, y0), textcoords='data', size=8)
+        ax0.annotate(text, (0.02, sig0.real - 0.02), textcoords='data', size=8)
+
         ax0.set_ylabel(r"$\Sigma(\omega)\,$(eV)")
         ax0.legend(loc="best", fontsize=fontsize, shadow=True)
         set_axlims(ax0, xlims, "x")
@@ -639,7 +697,7 @@ class A2feph(object):
         """
         Args:
             mesh: Frequency mesh in eV
-            gkw2:
+            gkq2:
             fan:
             dw:
             spin:
@@ -663,6 +721,7 @@ class A2feph(object):
             fontsize: legend and title fontsize.
         """
         # Read mesh in Ha and convert to units.
+        # TODO: Convert yvalues
         wmesh = self.mesh * abu.phfactor_ev2units(units)
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
@@ -682,13 +741,17 @@ class A2feph(object):
             set_ax_xylabels(ax, xlabel, ylabel, exchange_xy)
 
         elif what == "gkq2":
-            ax.plot(wmesh, self.gkq2, label=self.latex_symbol["gkq2"], **kwargs)
+            xs, ys = get_xy(wmesh, self.gkq2)
+            ax.plot(xs, ys, label=self.latex_symbol["gkq2"], **kwargs)
+            xlabel, ylabel = abu.wlabel_from_units(units), self.latex_symbol["gkq2"]
+            set_ax_xylabels(ax, xlabel, ylabel, exchange_xy)
         else:
             raise NotImplementedError("%s" % what)
 
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
+
 
 class _MyQpkindsList(list):
     """Returned by find_qpkinds."""
@@ -782,7 +845,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         app("")
         app(self.structure.to_string(verbose=verbose, title="Structure"))
         app("")
-        app(self.ebands.to_string(with_structure=False, verbose=verbose, title="KS Electronic Bands"))
+        app(self.ebands.to_string(with_structure=False, verbose=verbose, title="KS Electron Bands"))
         app("")
         # SigmaEPh section.
         app(marquee("SigmaEPh calculation", mark="="))
@@ -808,17 +871,21 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         else:
             it_list = [0, -1] if self.ntemp != 1 else [0]
 
-        for it in it_list:
-            app("\nKS and QP direct gaps for T = %.1f K:" % self.tmesh[it])
-            data = []
-            for ikc, kpoint in enumerate(self.sigma_kpoints):
-                for spin in range(self.nsppol):
-                    ks_gap = self.ks_dirgaps[spin, ikc]
-                    qp_gap = self.qp_dirgaps_t[spin, ikc, it]
-                    #qp_gap_adb = self.qp_dirgaps_adb_t[spin, ikc, it]
-                    data.append([spin, repr(kpoint), ks_gap, qp_gap, qp_gap - ks_gap])
-            app(str(tabulate(data, headers=["Spin", "k-point", "KS_gap", "QP_gap", "QP - KS"], floatfmt=".3f")))
-            app("")
+        if not self.imag_only:
+            # QP corrections
+            for it in it_list:
+                app("\nKS and QP direct gaps for T = %.1f K:" % self.tmesh[it])
+                data = []
+                for ikc, kpoint in enumerate(self.sigma_kpoints):
+                    for spin in range(self.nsppol):
+                        ks_gap = self.ks_dirgaps[spin, ikc]
+                        qp_gap = self.qp_dirgaps_t[spin, ikc, it]
+                        #qp_gap_adb = self.qp_dirgaps_adb_t[spin, ikc, it]
+                        data.append([spin, repr(kpoint), ks_gap, qp_gap, qp_gap - ks_gap])
+                app(str(tabulate(data, headers=["Spin", "k-point", "KS_gap", "QP_gap", "QP - KS"], floatfmt=".3f")))
+                app("")
+        #else:
+        # Print info on Lifetimes?
 
         if verbose > 1:
             app("K-points and bands included in self-energy corrections:")
@@ -911,6 +978,21 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     def mu_e(self):
         """mu_e[ntemp] chemical potential (eV) of electrons for the different temperatures."""
         return self.reader.read_value("mu_e") * abu.Ha_eV
+
+    @lazy_property
+    def edos(self):
+        """
+        |ElectronDos| object computed by Abinit with the input WFK file without doping (if any).
+        """
+        # See m_ebands.edos_ncwrite for fileformat
+        mesh = self.reader.read_value("edos_mesh") * abu.Ha_eV
+        # nctkarr_t("edos_dos", "dp", "edos_nw, nsppol_plus1"), &
+        # dos(nw,0:nsppol) Total DOS, spin up and spin down component.
+        spin_dos = self.reader.read_value("edos_dos") / abu.Ha_eV
+        nelect = self.ebands.nelect
+        fermie = self.ebands.fermie
+
+        return ElectronDos(mesh, spin_dos[1:], nelect, fermie=fermie)
 
     def sigkpt2index(self, kpoint):
         """
@@ -1098,7 +1180,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         min_band = np.min(self.bstart_sk)
         max_band = np.max(self.bstop_sk)
         e_min = np.min(ebands.eigens[:,:,min_band]) - epad
-        e_max = np.max(ebands.eigens[:,:,max_band]) + epad
+        e_max = np.max(ebands.eigens[:,:,max_band-1]) + epad
         nw = int(1 + (e_max - e_min) / step)
         mesh, step = np.linspace(e_min, e_max, num=nw, endpoint=True, retstep=True)
 
@@ -1117,6 +1199,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         else:
             raise NotImplementedError("Method %s is not supported" % method)
 
+        # TODO: Specialized object with ElectronDos list?
         return [ElectronDos(mesh, dos_t, nelect, fermie=fermie) for dos_t in dos]
 
     def get_qp_array(self,ks_ebands_kpath=None,mode="qp"):
@@ -1144,7 +1227,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         # Note there's no guarantee that the sigma_kpoints and the corrections have the same k-point index.
         # Be careful because the order of the k-points and the band range stored in the SIGRES file may differ ...
-        # HM: Map the bands from sigeph to the electronic bandstructure
+        # HM: Map the bands from sigeph to the electron bandstructure
         nkpoints = len(self.sigma_kpoints)
         nbands = self.reader.bstop_sk.max()
         qpes_new = np.zeros((self.nsppol,nkpoints,nbands,self.ntemp),dtype=np.complex)
@@ -1268,7 +1351,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         print(2*max1+1,2*max2+1,2*max3+1)
         if verbose: print('fitde3D took %lfs'%(time()-start_time))
 
-        #interpolate electronic bands
+        #interpolate electron bands
         start_time = time()
         eig_fine, vvband, cband = fite.getBTPbands(equivalences, coeffs, lattvec, curvature=False, nworkers=nworkers)
         if verbose: print('getBTPbands took %lfs'%(time()-start_time))
@@ -1613,7 +1696,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     @add_fig_kwargs
     def plot_qps_vs_e0(self, itemp_list=None, with_fields="all", reim="real",
                        function=lambda x: x, exclude_fields=None, e0="fermie",
-                       colormap="jet", xlims=None, ax_list=None, fontsize=8, **kwargs):
+                       colormap="jet", xlims=None, ylims=None, ax_list=None, fontsize=8, **kwargs):
         """
         Plot the QP results in the SIGEPH file as function of the initial KS energy.
 
@@ -1633,6 +1716,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             colormap: matplotlib color map.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used.
+            ylims: Similar to xlims but for y-axis.
             fontsize: Legend and title fontsize.
 
         Returns: |matplotlib-Figure|
@@ -1641,7 +1725,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         for spin in range(self.nsppol):
             fig = self.qplist_spin[spin].plot_vs_e0(itemp_list=itemp_list,
                 with_fields=with_fields, reim=reim, function=function, exclude_fields=exclude_fields, fermie=fermie,
-                colormap=colormap, xlims=xlims, ax_list=ax_list, fontsize=fontsize, marker=self.marker_spin[spin],
+                colormap=colormap, xlims=xlims, ylims=ylims, ax_list=ax_list, fontsize=fontsize, marker=self.marker_spin[spin],
                 show=False, **kwargs)
             ax_list = fig.axes
 
@@ -1704,7 +1788,37 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         return fig
 
     @add_fig_kwargs
-    def plot_a2fw_skb(self, spin, kpoint, band, ax=None, fontsize=12, units="meV", what="fandw", **kwargs):
+    def plot_lws_vs_e0(self, itemp_list=None, ax=None, e0="fermie", exchange_xy=False,
+                       colormap="jet", xlims=None, ylims=None, fontsize=8, **kwargs):
+        r"""
+        Plot electron linewidths vs KS energy at temperature ``itemp``
+
+        Args:
+            itemp_list: List of temperature indices to interpolate. None for all.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy (``self.fermie``).
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
+            function: Apply this function to the values before plotting
+            exchange_xy: True to exchange x-y axis.
+            colormap: matplotlib color map.
+            xlims, ylims: Set the data limits for the x-axis or the y-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used
+            fontsize: fontsize for titles and legend.
+
+        Returns: |matplotlib-Figure|
+        """
+        # This is a bit slow if several k-points but data is scatted due to symsigma.
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        if "markersize" not in kwargs: kwargs["markersize"] = 2
+        return self.plot_qps_vs_e0(itemp_list=itemp_list, with_fields="fan0", reim="imag",
+                                   function=abs, e0=e0, colormap=colormap, xlims=xlims, ylims=ylims,
+                                   exchange_xy=exchange_xy, ax_list=[ax], fontsize=fontsize, show=False,
+                                   **kwargs)
+
+    @add_fig_kwargs
+    def plot_a2fw_skb(self, spin, kpoint, band, what="auto", ax=None, fontsize=12, units="meV", **kwargs):
         """
         Plot the Eliashberg function a2F_{n,k,spin}(w) (gkq2/Fan-Migdal/DW/Total contribution)
         for a given (spin, kpoint, band)
@@ -1713,8 +1827,8 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             spin: Spin index
             kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
             band: Band index.
+	    what: fandw for FAN, DW. gkq2 for $|gkq|^2$. Auto for automatic selection based on imag_only
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
-	    what=: fandw for FAN, DW. gkq2 for $|gkq|^2$.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: legend and title fontsize.
 
@@ -1724,15 +1838,86 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             cprint("SIGEPH file does not have Eliashberg function", "red")
             return None
 
-        #if self.imag_only:
+        if what == "auto":
+            what = "gkq2" if self.imag_only else "fandw"
+
         a2f = self.reader.read_a2feph_skb(spin, kpoint, band)
         return a2f.plot(ax=ax, units=units, what=what, fontsize=fontsize, show=False)
+
+    @add_fig_kwargs
+    def plot_a2fw_skb_sum(self, what="auto", ax=None, exchange_xy=False, fontsize=12, **kwargs):
+        """
+        Plot the sum of the Eliashberg functions a2F_{n,k,spin}(w) (gkq2/Fan-Migdal/DW/Total contribution)
+        over the k-points and bands for which self-energy matrix elements have been computed.
+
+       .. note::
+
+            This quantity is supposed to give a qualitative
+            The value indeed is not an integral in the BZ, besides the absolute value depends
+            on the number of bands in the self-energy.
+
+        Args:
+            what: fandw for FAN, DW. gkq2 for $|gkq|^2$. Auto for automatic selection based on imag_only
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            exchange_xy: True to exchange x-y axis.
+            fontsize: legend and title fontsize.
+
+        Returns: |matplotlib-Figure|
+        """
+        if not self.has_eliashberg_function:
+            cprint("SIGEPH file does not have Eliashberg function", "red")
+            return None
+
+        if what == "auto":
+            what = "gkq2" if self.imag_only else "fandw"
+
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        ax.grid(True)
+
+        # nctkarr_t("gfw_mesh", "dp", "gfw_nomega")
+        # nctkarr_t("gfw_vals", "dp", "gfw_nomega, three, max_nbcalc, nkcalc, nsppol")
+        # 1:   gkk^2 with delta(en - em)
+        # 2:3 (Fan-Migdal/DW contribution)
+        # Access arrays directly instead of using read_a2feph_skb because it's gonna be faster.
+        #a2f = self.reader.read_a2feph_skb(spin, kpoint, band)
+        wmesh = self.reader.read_value("gfw_mesh") * abu.Ha_eV
+        vals = self.reader.read_value("gfw_vals") * abu.Ha_eV # TODO check units
+
+        xlabel = "Energy (eV)"
+        for spin in range(self.nsppol):
+            asum = np.zeros(self.reader.gfw_nomega)
+            spin_sign = +1 if spin == 0 else -1
+            for ikc, kpoint in enumerate(self.sigma_kpoints):
+                # This is not an integral in the BZ.
+                wtk = 1.0 / len(self.sigma_kpoints)
+                for band in range(self.bstart_sk[spin, ikc], self.bstop_sk[spin, ikc]):
+                    if what == "gkq2":
+                        vs = vals[spin, ikc, band, 0]
+                        ylabel = what
+                    elif what == "fandw":
+                        vs = vals[spin, ikc, band, 1:3, :].sum(axis=0)
+                        ylabel = what
+                    else:
+                        raise ValueError("Invalid value for what: `%s`" % what)
+                    asum += (spin_sign * wtk) * vs
+
+            xs, ys = wmesh, asum
+            if exchange_xy: xs, ys = ys, xs
+
+            color = "black" if spin == 0 else "red"
+            ax.plot(xs, ys, color=color, **kwargs)
+            if spin == 0:
+                set_ax_xylabels(ax, xlabel, ylabel, exchange_xy)
+
+        #ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        return fig
 
     #@add_fig_kwargs
     #def plot_sigeph_vcbm(self, units="meV", sharey=True, fontsize=8, **kwargs):
 
     @add_fig_kwargs
-    def plot_a2fw_all(self, units="meV", what="fandw", sharey=False, fontsize=8, **kwargs):
+    def plot_a2fw_all(self, units="meV", what="auto", sharey=False, fontsize=8, **kwargs):
         """
         Plot the Eliashberg function a2F_{n,k,spin}(w) (gkq2/Fan-Migdal/DW/Total contribution)
         for all k-points, spin and the VBM/CBM for these k-points.
@@ -1740,7 +1925,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         Args:
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
                 Case-insensitive.
-	    what=: fandw for FAN, DW. gkq2 for $|gkq|^2$
+	    what: fandw for FAN, DW. gkq2 for $|gkq|^2$. Auto for automatic selection based on imag_only
             sharey: True if Y axes should be shared.
             fontsize: legend and title fontsize.
 
@@ -1754,6 +1939,9 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         marker_spin = {0: "^", 1: "v"}
         count = -1
+        if what == "auto":
+            what = "gkq2" if self.imag_only else "fandw"
+
         for ikc, kpoint in enumerate(self.sigma_kpoints):
             for spin in range(self.nsppol):
                 count += 1
@@ -1788,15 +1976,20 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         Used in abiview.py to get a quick look at the results.
         """
         verbose = kwargs.pop("verbose", 0)
-        yield self.plot_qpbands_ibzt(show=False)
-        #yield self.plot_qpgaps_t(qp_kpoints=0, show=False)
-        for i, qp_kpt in enumerate(self.sigma_kpoints):
-            if i > 5 and not verbose:
-                print("File contains more than 5 k-points. Only the first five k-points are displayed.")
-                break
-            yield self.plot_qpgaps_t(qp_kpoints=qp_kpt, show=False)
-        yield self.plot_qps_vs_e0(show=False)
-        yield self.plot_qps_vs_e0(with_fields="fan0", reim="imag", function=abs, show=False)
+        if self.imag_only:
+            yield self.plot_qps_vs_e0(with_fields="fan0", reim="imag", function=abs, show=False)
+
+        else:
+            yield self.plot_qpbands_ibzt(show=False)
+            #yield self.plot_qpgaps_t(qp_kpoints=0, show=False)
+            for i, qp_kpt in enumerate(self.sigma_kpoints):
+                if i > 2 and not verbose:
+                    print("File contains more than 3 k-points. Only the first three k-points are displayed.")
+                    break
+                yield self.plot_qpgaps_t(qp_kpoints=qp_kpt, show=False)
+            yield self.plot_qps_vs_e0(show=False)
+
+        yield self.edos.plot(show=False)
 
     def write_notebook(self, nbpath=None, title=None):
         """
@@ -1822,6 +2015,7 @@ for spin in range(ncfile.nsppol):
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
+
 
 class SigEPhRobot(Robot, RobotWithEbands):
     """
@@ -2048,7 +2242,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
         return fig
 
     @add_fig_kwargs
-    def plot_qpgaps_convergence(self, qp_kpoints=0, itemp=0, sortby=None, hue=None,
+    def plot_qpgaps_convergence(self, qp_kpoints="all", itemp=0, sortby=None, hue=None,
                                 plot_qpmks=True, fontsize=8, **kwargs):
         """
         Plot the convergence of the direct QP gaps at given temperature
@@ -2078,6 +2272,9 @@ class SigEPhRobot(Robot, RobotWithEbands):
         nc0 = self.abifiles[0]
         nsppol = nc0.nsppol
         qpkinds = nc0.find_qpkinds(qp_kpoints)
+        if len(qpkinds) > 10:
+            cprint("More that 10 k-points in file. Only 10 k-points will be show. Specify kpt index expliclty", "yellow")
+            qpkinds = qpkinds[:10]
 
         # Build grid with (nkpt, 1) plots.
         nrows, ncols = len(qpkinds), 1
@@ -2446,10 +2643,10 @@ class TdepElectronBands(object): # pragma: no cover
             ax0, ax1 = ax_list
             fig = plt.gcf()
 
-        #plot the band structure
+        # plot the band structure
         self.plot_itemp(itemp,ax=ax0,fact=fact,show=False)
 
-        #plot the dos
+        # plot the dos
         dos_markersize = kwargs.pop("markersize", 4)
         self.plot_lws_vs_e0(itemp_list=[itemp],ax=ax1,
                             exchange_xy=True,function=abs,
@@ -2533,7 +2730,7 @@ class TdepElectronBands(object): # pragma: no cover
     def plot_lws_vs_e0(self, itemp_list=None, ax=None, e0="fermie", function=lambda x: x, exchange_xy=False,
                        colormap="jet", xlims=None, ylims=None, fontsize=8, **kwargs):
         r"""
-        Plot the electronic linewidths vs KS energy at temperature ``itemp``
+        Plot electron linewidths vs KS energy at temperature ``itemp``
 
         Args:
             itemp_list: List of temperature indices to interpolate. None for all.
@@ -2655,8 +2852,7 @@ class SigmaPhReader(BaseEphReader):
         structure = self.read_structure()
         self.sigma_kpoints = KpointList(structure.reciprocal_lattice, self.read_value("kcalc"))
         for kpoint in self.sigma_kpoints:
-            name = structure.findname_in_hsym_stars(kpoint)
-            kpoint.set_name(name)
+            kpoint.set_name(structure.findname_in_hsym_stars(kpoint))
 
         # [nsppol, nkcalc] arrays with index of KS bands computed.
         # Note conversion between Fortran and python convention.
@@ -2747,7 +2943,7 @@ class SigmaPhReader(BaseEphReader):
 
         # complex(dpc) :: dvals_de0ks(ntemp, max_nbcalc, nkcalc, nsppol)
         # d Sigma_eph(omega, kT, band, kcalc, spin) / d omega (omega=eKS)
-        dvals_de0ks = self.read_variable("dvals_de0ks")[spin, ikc, ib, :, :] * abu.Ha_eV
+        dvals_de0ks = self.read_variable("dvals_de0ks")[spin, ikc, ib, :, :]
         dvals_de0ks = dvals_de0ks[:, 0] + 1j * dvals_de0ks[:, 1]
 
         # real(dp) :: dw_vals(ntemp, max_nbcalc, nkcalc, nsppol)
@@ -2767,7 +2963,19 @@ class SigmaPhReader(BaseEphReader):
         # Read QP data. Note band instead of ib index.
         qp = self.read_qp(spin, ikc, band)
 
-        return EphSelfEnergy(wmesh, qp, vals_e0ks, dvals_de0ks, dw_vals, vals_wr, spfunc_wr)
+        # Read contributions given by the Frohlich model (optional)
+        frohl_vals_e0ks = None; frohl_dvals_de0ks = None; frohl_spfunc_wr = None
+        #if self.read_variable("frohl_model", default=0):
+        #    frohl_vals_e0ks = self.read_variable("frohl_vals_e0ks")[spin, ikc, ib, :, :] * abu.Ha_eV
+        #    frohl_vals_e0ks = frohl_vals_e0ks[:, 0] + 1j * frohl_vals_e0ks[:, 1]
+        #    frohl_dvals_de0ks = self.read_variable("frohl_dvals_de0ks")[spin, ikc, ib, :, :]
+        #    frohl_dvals_de0ks = frohl_dvals_de0ks[:, 0] + 1j * frohl_dvals_de0ks[:, 1]
+        #    frohl_spfunc_wr = self.read_variable("frohl_spfunc_wr")[spin, ikc, ib, :, :] / abu.Ha_eV
+
+        return EphSelfEnergy(wmesh, qp, vals_e0ks, dvals_de0ks, dw_vals, vals_wr, spfunc_wr,
+                             frohl_vals_e0ks=frohl_vals_e0ks,
+                             frohl_dvals_de0ks=frohl_dvals_de0ks,
+                             frohl_spfunc_wr=frohl_spfunc_wr)
 
     def read_a2feph_skb(self, spin, kpoint, band):
         """
@@ -2778,16 +2986,20 @@ class SigmaPhReader(BaseEphReader):
             kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
             band: band index.
 
-        Return: :class:`EphSelfEnergy` object.
+        Return: :class:`A2feph` object.
         """
-        #nctkarr_t("gfw_mesh", "dp", "gfw_nomega")
-        #nctkarr_t("gfw_vals", "dp", "gfw_nomega, three, max_nbcalc, nkcalc, nsppol")
+        # Access netcdf arrays directly instead of building a2f objects because it's gonna be faster.
+        # nctkarr_t("gfw_mesh", "dp", "gfw_nomega")
+        # nctkarr_t("gfw_vals", "dp", "gfw_nomega, three, max_nbcalc, nkcalc, nsppol")
+        # 1:   gkk^2 with delta(en - em)
+        # 2:3 (Fan-Migdal/DW contribution)
         wmesh = self.read_value("gfw_mesh") * abu.Ha_eV
+        #values = self.read_value("gfw_vals") # * abu.Ha_eV # TODO
 
         # Get a2f_{sbk}(w)
         spin, ikc, ibc, kpoint = self.get_sigma_skb_kpoint(spin, kpoint, band)
         var = self.read_variable("gfw_vals")
-        values = var[spin, ikc, ibc]
+        values = var[spin, ikc, ibc]  * abu.Ha_eV # TODO check units
         gkq2, fan, dw = values[0], values[1], values[2]
 
         return A2feph(wmesh, gkq2, fan, dw, spin, kpoint, band)
@@ -2858,6 +3070,7 @@ class SigmaPhReader(BaseEphReader):
         """
         qps_spin = self.nsppol * [None]
 
+        # TODO: Try to optimize this part.
         for spin in range(self.nsppol):
             qps = []
             for ikc, kpoint in enumerate(self.sigma_kpoints):

@@ -208,7 +208,12 @@ def main():
         # Start ipython shell with namespace
         # Use embed because I don't know how to show a header with start_ipython.
         import IPython
-        IPython.embed(header="The Abinit file is bound to the `abifile` variable.\nTry `print(abifile)`")
+        IPython.embed(header="""
+The Abinit file is bound to the `abifile` variable.
+Use `abifile.<TAB>` to list available methods.
+Use e.g. `abifile.plot?` to access docstring and `abifile.plot??` to visualize source.
+Use `print(abifile)` to print the object.
+""")
 
     else:
         # Call specialized method if the object is a NotebookWriter

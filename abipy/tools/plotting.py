@@ -63,6 +63,30 @@ def ax_append_title(ax, title, loc="center", fontsize=None):
     return new_title
 
 
+def ax_share(xy_string, *ax_list):
+    """
+    Share x- or y-axis of two or more subplots after they are created
+
+    Args:
+        xy_string: "x" to share x-axis, "xy" for both
+        ax_list: List of axes to share.
+
+    Example:
+
+        ax_share("y", ax0, ax1)
+        ax_share("xy", *(ax0, ax1, ax2))
+    """
+    if "x" in xy_string:
+        for ix, ax in enumerate(ax_list):
+            others = [a for a in ax_list if a != ax]
+            ax.get_shared_x_axes().join(*others)
+
+    if "y" in xy_string:
+        for ix, ax in enumerate(ax_list):
+            others = [a for a in ax_list if a != ax]
+            ax.get_shared_y_axes().join(*others)
+
+
 #def set_grid(fig, boolean):
 #    if hasattr(fig, "axes"):
 #        for ax in fig.axes:
