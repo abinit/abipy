@@ -6,7 +6,7 @@ sudo: false
 
 env:
   global:
-  - ABINIT_VERSION=8.8.2
+  - ABINIT_VERSION=8.10.1
   - ABIPY_PYTEST=yes
   - OPENBLAS_NUM_THREADS=1
   - OMP_NUM_THREADS=1
