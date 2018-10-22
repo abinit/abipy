@@ -6,8 +6,8 @@ executable = "multibinit"
 #from abimkdocs.variables import ValueWithUnit, MultipleValue, Range
 from abipy.abio.abivar_database.variables import ValueWithUnit, MultipleValue, Range, ValueWithConditions
 ValueWithConditions = dict
-
 Variable=dict
+
 variables = [
 Variable(
     abivarname="dipdip@multibinit",
@@ -17,7 +17,7 @@ Variable(
     dimensions="scalar",
     defaultval=1,
     mnemonics="DIPole-DIPole interaction",
-    text="""
+    text=r"""
 * 0 --> Do not recompute the dipole-dipole interaction.
 * 1 --> Recompute the dipole-dipole interaction based on ewald summation .
 """,
@@ -31,7 +31,7 @@ Variable(
     dimensions="scalar",
     defaultval=0,
     mnemonics="DIPole-DIPole PRinT",
-    text="""
+    text=r"""
 * 1 --> Print the dipole-dipole interaction into the XML.
 * 0 --> Do not print the dipole-dipole interaction into the XML.
 """,
@@ -45,7 +45,7 @@ Variable(
     dimensions=[3],
     defaultval=0,
     mnemonics="Dipole-Dipole interaction",
-    text="""
+    text=r"""
 Depending of the cases, the range of the dipole-dipole interaction will be parameted by:
 
 * dipdip_range if superior to ncell and superior to short-range interaction
@@ -70,7 +70,7 @@ Variable(
     defaultval=0.0,
     mnemonics="Energy of the refences structure",
     characteristics=['[[ENERGY]]'],
-    text="""
+    text=r"""
 Set the energy of the reference structure (from the DFT calculation)
 if the energy of the reference is not specified in the DDB,
 (for example if the DDB file of the ground states is not merged),
@@ -86,7 +86,7 @@ Variable(
     dimensions="scalar",
     defaultval=0,
     mnemonics="Number of anharmonic COEFFicients",
-    text="""
+    text=r"""
 Set the number of anharmonic coefficients in the model. This number have to be in agreement with the number of coefficients present in the XML file.
 
 If ncoeff /= 0, [[multibinit:coefficients]] have to be present in the input files
@@ -101,7 +101,7 @@ Variable(
     dimensions=['[[multibinit:ncoeff]]'],
     defaultval=0.0,
     mnemonics="values of the COEFFICIENTS",
-    text="""
+    text=r"""
 Set the values of the coefficients present in the XML file
 """,
 ),
@@ -115,7 +115,7 @@ Variable(
     dimensions=[3],
     defaultval="3*1",
     mnemonics="Number of Grids points for Q PoinTs",
-    text="""
+    text=r"""
 The Monkhorst-Pack grid linear dimensions, for the DDB (coarse grid).
 """,
 ),
@@ -128,7 +128,7 @@ Variable(
     dimensions="scalar",
     defaultval=1,
     mnemonics="Number of Q SHiFTs",
-    text="""
+    text=r"""
 The number of vector shifts of the simple Monkhorst and Pack grid, needed to
 generate the coarse grid of q points (for the series of fine grids, the number
 of shifts it is always taken to be 1). Usually, put it to 1. Use 2 if BCC
@@ -145,7 +145,7 @@ Variable(
     dimensions="scalar",
     defaultval=0,
     mnemonics="Effective potential XML output",
-    text="""
+    text=r"""
 * 0  -->  do nothing (Default).
 * 1  --> Generate the XML file with:
 
@@ -175,7 +175,7 @@ Variable(
     dimensions="scalar",
     defaultval=0,
     mnemonics="FIT anharmonic COEFFficients",
-    text="""
+    text=r"""
 * 0  --> do not active the fit process
 
 * 1 -->  Activate the fit process. This option will first generate a set of coefficients if [[multibinit:fit_generateCoeff]] is set to one. This generation is mainly parametrized by [[multibinit:fit_rangePower]] and [[multibinit:fit_cutoff]]. You can also provided a list of coefficients with the  model_anharmonic.MXL (see [[help:multibinit]]). Then the fit process will select the coefficients one by one up to [[multibinit:fit_ncoeff]] (see this [[cite:Escorihuela-Sayalero2017|paper]] for the details of the procedure).
@@ -192,7 +192,7 @@ Variable(
     dimensions="scalar",
     defaultval=0,
     mnemonics="FIT Number of COEFFicients",
-    text="""
+    text=r"""
 Give the number of anharmonic coefficients to add in the model during the fit process
 """,
 ),
@@ -205,7 +205,7 @@ Variable(
     dimensions="scalar",
     defaultval=1,
     mnemonics="FIT GENERATE anharmonic COEFFicient ",
-    text="""
+    text=r"""
 Flag to activate the generation of the anharmonic coefficient for the fit process
 
 **Related variables:** The  power range of the coefficients ([[multibinit:fit_rangePower]]), the cut off of the interactions ([[multibinit:fit_cutoff]]), the flag to add ahnarmonic strain ([[multibinit:fit_anhaStrain]]), the flag to add phonon strain coupling ([[multibinit:fit_SPCoupling]])
@@ -220,7 +220,7 @@ Variable(
     dimensions="scalar",
     defaultval=0,
     mnemonics="FIT INITIALIZE DATA for the fit",
-    text="""
+    text=r"""
 Flag to de/activate  the precomputing and  storage of all the data for the fit, it will reduce the computation time but increase a lot the memory...
 """,
 ),
@@ -233,7 +233,7 @@ Variable(
     dimensions=[2],
     defaultval="3 4",
     mnemonics="FIT RANGE POWER for the coefficients",
-    text="""
+    text=r"""
 Set the range of the powers for the anharmonic coefficients
 """,
 ),
@@ -246,7 +246,7 @@ Variable(
     dimensions="scalar",
     defaultval="Unit cell",
     mnemonics="FIT CUT-OFF of the anharmonic phonon interaction",
-    text="""
+    text=r"""
 Cut-off for the  anharmonic phonon interaction (in Bohr)
 """,
 ),
@@ -259,7 +259,7 @@ Variable(
     dimensions="scalar",
     defaultval=0,
     mnemonics="FIT ANHARmonic STRAIN coefficients",
-    text="""
+    text=r"""
 Flag to activate the anharmonic strain. This option will add coefficients like  (eta^4)
 """,
 ),
@@ -272,7 +272,7 @@ Variable(
     dimensions="scalar",
     defaultval=1,
     mnemonics="FIT anharmonic Strain-Phonon COUPLING coefficients",
-    text="""
+    text=r"""
 Flag to activate the strain  phonon coupling. This option will add coefficients like  (Sr-Ti)^1 (eta^4)
 """,
 ),
@@ -286,7 +286,7 @@ Variable(
     dimensions="scalar",
     defaultval=0,
     mnemonics="FIT TOLerance on Mean Standard Deviation of the Energy",
-    text="""
+    text=r"""
 Tolerance  of the fit based on the Mean Standard Deviation of the Energy in (meV/atm)
 """,
 ),
@@ -299,7 +299,7 @@ Variable(
     dimensions="scalar",
     defaultval=0,
     mnemonics="FIT TOLerance on Mean Standard Deviation of the Stresses",
-    text="""
+    text=r"""
 Tolerance of the fit based on the Mean Standard Deviation of the Stresses in (eV^2/A^2)
 """,
 ),
@@ -312,7 +312,7 @@ Variable(
     dimensions="scalar",
     defaultval=0,
     mnemonics="FIT TOLerance on Mean Standard Deviation of the Forces",
-    text="""
+    text=r"""
 Tolerance of the fit based on the Mean Standard Deviation of the  Forces (eV^2/A^2)
 """,
 ),
@@ -325,7 +325,7 @@ Variable(
     dimensions="scalar",
     defaultval=0,
     mnemonics="FIT TOLerance on Mean Standard Deviation of the Forces and Stresses",
-    text="""
+    text=r"""
 Tolerance of the fit based on the Mean Standard Deviation of the  Forces and Sressses (eV^2/A^2)
 """,
 ),
@@ -338,7 +338,7 @@ Variable(
     dimensions="scalar",
     defaultval=0,
     mnemonics="FIT Number of FIXed COEFFicients",
-    text="""
+    text=r"""
 Number of imposed coefficients during the fit process for the model:
 
 * -1 -->  fix all the coefficients
@@ -357,7 +357,7 @@ Variable(
     dimensions=['[[multibinit:fit_nfixcoeff]]'],
     defaultval=0,
     mnemonics="FIT FIXed COEFFicients",
-    text="""
+    text=r"""
 Indexes of the imposed coefficients during the fit process for the model:
 """,
 ),
@@ -371,7 +371,7 @@ Variable(
     dimensions="scalar",
     defaultval=0,
     mnemonics="FIT Number of BANed COEFFicients",
-    text="""
+    text=r"""
 Number of imposed coefficients during the fit process of the model:
 
 * 0  -->  do not ban coefficients
@@ -388,7 +388,7 @@ Variable(
     dimensions=['[[multibinit:fit_nbancoeff]]'],
     defaultval=0,
     mnemonics="FIT BANed COEFFicients",
-    text="""
+    text=r"""
 Indexes of the banned coefficients during the fit process of the model
 """,
 ),
@@ -401,7 +401,7 @@ Variable(
     dimensions="scalar",
     defaultval=0,
     mnemonics="FIT Training Set OPTION",
-    text="""
+    text=r"""
 * 0 --> the Training is hist from ABINIT
 
 * 1 --> the Training contains -1 * stress  (usualy output from VASP)
@@ -416,7 +416,7 @@ Variable(
     dimensions="scalar",
     defaultval=0,
     mnemonics="BOUND COEFFicient",
-    text="""
+    text=r"""
 Flag to activate the bound process:
 
 * 0 --> Do not activate the bound process
@@ -437,7 +437,7 @@ Variable(
     dimensions="scalar",
     defaultval=0,
     mnemonics="BOUND MAX COEFFicient",
-    text="""
+    text=r"""
 Number of maximum additional coefficients for the bound process
 """,
 ),
@@ -450,7 +450,7 @@ Variable(
     dimensions=[2],
     defaultval="6,6",
     mnemonics="BOUND RANGE POWER",
-    text="""
+    text=r"""
 Range of the power for the additional coefficients in the bound process
 """,
 ),
@@ -463,7 +463,7 @@ Variable(
     dimensions="scalar",
     defaultval="1 unit cell",
     mnemonics="BOUND CUT OFF",
-    text="""
+    text=r"""
 Cut-off for the anharmonic phonon interaction during the bound process (in Bohr)
 """,
 ),
@@ -477,7 +477,7 @@ Variable(
     dimensions="scalar",
     defaultval=0,
     mnemonics="BOUND ANHArmonic STRAIN coefficients",
-    text="""
+    text=r"""
 Flag to activate the anharmonic strain. When the bound process will generate the possible coefficients for the fit, if this input variable is set to 1, the generator will consider coefficients like eta^4
 """,
 ),
@@ -490,7 +490,7 @@ Variable(
     dimensions="scalar",
     defaultval=1,
     mnemonics="BOUND Strain Phonon COUPLING coefficients",
-    text="""
+    text=r"""
 Flag to activate the strain phonon coupling. When the bound process will generate the possible coefficients for the fit, if this input variable is set to 1, the generator will consider coefficients like (Sr-Ti)^2 eta^2
 """,
 ),
@@ -503,7 +503,7 @@ Variable(
     dimensions=[3],
     defaultval="6,6,6",
     mnemonics="BOUND superCELL size for the molecular dynamics",
-    text="""
+    text=r"""
 When the process will try a given model, this input variable is used to  set the size of the supercell for the molecular dynamics
 """,
 ),
@@ -516,7 +516,7 @@ Variable(
     dimensions="scalar",
     defaultval=500,
     mnemonics="BOUND TEMPerature for the molecular dynamics (in Kelvin)",
-    text="""
+    text=r"""
 When the process will try a given model, this input variable is used to set the temperature for the molecular dynamics
 """,
 ),
@@ -529,7 +529,7 @@ Variable(
     dimensions="scalar",
     defaultval=1000,
     mnemonics="BOUND number of STEP for the molecular dynamics",
-    text="""
+    text=r"""
 When the process will try a given model, this input variable is used to set the maximum number of molecular dynamics steps
 """,
 ),
@@ -542,7 +542,7 @@ Variable(
     dimensions="scalar",
     defaultval=0,
     mnemonics="Dynamics option for Multibinit",
-    text="""
+    text=r"""
 Set the Dynamics option for Multibinit. This option is equivalent to [[abinit:ionmov]]:
 
 * 0 --> do nothing
@@ -570,7 +570,7 @@ Variable(
     dimensions="scalar",
     defaultval=100,
     mnemonics="Delta Time for IONs",
-    text="""
+    text=r"""
 See [[abinit:dtion]]
 """,
 ),
@@ -583,7 +583,7 @@ Variable(
     dimensions="scalar",
     defaultval=200,
     mnemonics="Number of TIME step",
-    text="""
+    text=r"""
 Number of step for the dynamics
 """,
 ),
@@ -596,7 +596,7 @@ Variable(
     dimensions="scalar",
     defaultval=0,
     mnemonics="Number of NOSe masses",
-    text="""
+    text=r"""
 See [[abinit:nnos]]
 """,
 ),
@@ -609,7 +609,7 @@ Variable(
     dimensions=['[[abinit:nnos]]'],
     defaultval=0,
     mnemonics="Q thermostat MASS",
-    text="""
+    text=r"""
 See [[abinit:qmass]]
 """,
 ),
@@ -622,7 +622,7 @@ Variable(
     dimensions="scalar",
     defaultval=1,
     mnemonics="NetCdf TIME between output of molecular dynamics informations ",
-    text="""
+    text=r"""
 Set the number of step between output the molecular dynamics informations in the NetCDF file
 """,
 ),
@@ -635,7 +635,7 @@ Variable(
     dimensions="scalar",
     defaultval=325,
     mnemonics="molecular dynamics TEMPERATURE (in Kelvin)",
-    text="""
+    text=r"""
 Give the temperature of the dynamics in Kelvin
 """,
 ),
@@ -648,7 +648,7 @@ Variable(
     dimensions=[3],
     defaultval=[6,6,6],
     mnemonics="Number of Cell",
-    text="""
+    text=r"""
 Give the size of the supercell for the dynamics
 """,
 ),
@@ -661,7 +661,7 @@ Variable(
     dimensions=[6],
     defaultval=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
     mnemonics="STRess TARGET",
-    text="""
+    text=r"""
 See [[abinit:strtarget]]
 """,
 ),
@@ -674,7 +674,7 @@ Variable(
     dimensions="scalar",
     defaultval=10,
     mnemonics="Barostat MASS",
-    text="""
+    text=r"""
 See [[abinit:bmass]]
 """,
 ),
@@ -687,7 +687,7 @@ Variable(
     dimensions="scalar",
     defaultval=0,
     mnemonics="OPTimize the CELL shape and dimensions",
-    text="""
+    text=r"""
 See [[abinit:optcell]]
 """,
 ),
@@ -700,7 +700,7 @@ Variable(
     dimensions="scalar",
     defaultval=0,
     mnemonics="RESTART from (X,F) history",
-    text="""
+    text=r"""
 See [[abinit:restartxf]]
 """,
 ),
@@ -713,7 +713,7 @@ Variable(
     dimensions="scalar",
     defaultval=0,
     mnemonics="SPIN CALCulate CORRELATION OBServables",
-    text="""
+    text=r"""
 Flag to calculate spin correlation function based observables.
 
 * 0 --> do not calculate.
@@ -731,7 +731,7 @@ Variable(
     dimensions="scalar",
     defaultval=0,
     mnemonics="SPIN CALCulate TRAJectory based OBServables",
-    text="""
+    text=r"""
 Flag to calculate spin trajectory based observables. (Nothing included yet.)
 
 * 0 --> do not calculate.
@@ -749,7 +749,7 @@ Variable(
     dimensions="scalar",
     defaultval=0,
     mnemonics="SPIN CALCulate THERMO dynamics OBServables",
-    text="""
+    text=r"""
 Flag to calculate spin thermo dynamics observables,
 including the specific heat, magnetic susceptibility, Binder U4 value.
 
@@ -768,7 +768,7 @@ Variable(
     dimensions="scalar",
     defaultval=-1.0,
     mnemonics="SPIN gilbert DAMPING factor",
-    text="""
+    text=r"""
 Gilbert damping factor in LLG equation for spin dynamics.
 
 * negative value --> use damping factor from spin xml file.
@@ -785,7 +785,7 @@ Variable(
     dimensions="scalar",
     defaultval=0,
     mnemonics="SPIN DIPole DIPole interaction",
-    text="""
+    text=r"""
 * 0 --> Switch off spin dipole-dipole interaction.
 
 * 1 --> Switch on spin dipole-dipole interaction.
@@ -801,7 +801,7 @@ Variable(
     dimensions="scalar",
     defaultval=100,
     mnemonics="SPIN Delta Time",
-    text="""
+    text=r"""
 Time step for spin dynamics. Default value is 100.
 Default unit is atomic unit (2.419e-17 s).
 S, Sec or Second can be appended as unit. (e.g. 1e-16 Sec).
@@ -817,7 +817,7 @@ Variable(
     dimensions="scalar",
     defaultval=0,
     mnemonics="SPIN DYNAMICS",
-    text="""
+    text=r"""
 Flag to run spin dynamics.
 
 * 0 --> Do not run spin dynamics.
@@ -834,7 +834,7 @@ Variable(
     dimensions="scalar",
     defaultval=1,
     mnemonics="SPIN INITial STATE",
-    text="""
+    text=r"""
 Flag to initialize spin state. (only option 1 and 2 are implemented.)
 
 * 0 --> Read from spinhist netcdf file.
@@ -858,7 +858,7 @@ Variable(
     dimensions=[3],
     defaultval=[0,0,0],
     mnemonics="SPIN Magnetic Field",
-    text="""
+    text=r"""
 External magnetic field. Unit: Tesla.
 """,
 ),
@@ -872,7 +872,7 @@ Variable(
     dimensions="scalar",
     defaultval=0,
     mnemonics="SPIN NetCdf write per number of TIME steps",
-    text="""
+    text=r"""
 Write spin into netcdf file in every spin_nctime of spin dynamics time steps.
 """,
 ),
@@ -885,7 +885,7 @@ Variable(
     dimensions="scalar",
     defaultval=0,
     mnemonics="SPIN dynamics total Number of TIME steps",
-    text="""
+    text=r"""
 Total number of spin dynamics time  steps.
 """,
 ),
@@ -899,7 +899,7 @@ Variable(
     dimensions="scalar",
     defaultval=0,
     mnemonics="SPIN dynamics total Number of TIME steps for PREparing",
-    text="""
+    text=r"""
 Total number of spin dynamics time  steps for preparing the system.
 The results of these time step are not written to trajectory spinhist.nc file,
 And they are not used for calculating the observables.
@@ -914,7 +914,7 @@ Variable(
     dimensions=[3],
     defaultval=[0,0,0],
     mnemonics="SPIN QPOINT",
-    text="""
+    text=r"""
 Spin wave vector. It is used for getting the total spin. $M_{tot}=\sum_i M_i exp(i q \cdot R_i)$. The unit is the reciprocal lattice vectors of the unitcell.
 """,
 ),
@@ -923,12 +923,12 @@ Spin wave vector. It is used for getting the total spin. $M_{tot}=\sum_i M_i exp
 Variable(
     abivarname="spin_sia_add@multibinit",
     varset="multibinit",
-    vartype="int",
+    vartype="integer",
     topics=['SpinDynamicsMultibinit_basic'],
     dimensions="scalar",
     defaultval=0,
     mnemonics="SPIN Single Ion Anistropy ADD",
-    text="""
+    text=r"""
 Add single ion anistropy term to the spin model hamiltonian.
 with user defined values (see [[multibinit:spin_sia_k1amp]] and [[multibinit:spin_sia_k1dir]].
 
@@ -951,7 +951,7 @@ Variable(
     dimensions="scalar",
     defaultval=0.0,
     mnemonics="SPIN Single Ion Anistropy K1 AMPtitude",
-    text="""
+    text=r"""
 User defined amplitude of single ion anistropy. Only used when [[multibinit:spin_sia_add]] is not 0.
 The direction is defined with [[multibinit:spin_sia_k1dir]].
 Default value: 0.0.
@@ -964,10 +964,10 @@ Variable(
     varset="multibinit",
     vartype="real",
     topics=['SpinDynamicsMultibinit_basic'],
-    dimensions="[3]",
+    dimensions=[3],
     defaultval=[0.0,0.0,1.0],
     mnemonics="SPIN Single Ion Anistropy K1 DIRection",
-    text="""
+    text=r"""
 User defined direction of single ion anistropy. Only used when [[multibinit:spin_sia_add]] is not 0.
 It will be automatically normalized to 1.0.  The amplitude is defined with [[multibinit:spin_sia_k1amp]].
 Default value: [0.0, 0.0,1.0].
@@ -983,7 +983,7 @@ Variable(
     dimensions="scalar",
     defaultval=325,
     mnemonics="SPIN TEMPERATURE",
-    text="""
+    text=r"""
 Temperature of spin for spin dynamics. Unit: Kelvin.
 Default value: 325.
 """,
@@ -998,7 +998,7 @@ Variable(
     dimensions="scalar",
     defaultval=0,
     mnemonics="SPIN  VARiable TEMPERATURE",
-    text="""
+    text=r"""
 Switch for variable temperature calculation. 0: off. 1: on.
 If switched on, a series of spin dynamics calculation with temperatures from
 [[multibinit:spin_temperature_start]] to [[multibinit:spin_temperature_end]],
@@ -1016,7 +1016,7 @@ Variable(
     dimensions="scalar",
     defaultval=0.0,
     mnemonics="SPIN TEMPERATURE START",
-    text="""
+    text=r"""
 Start point of variable temperature spin dynamcis calculation (see [[multibinit:spin_var_temperature]]) in spin dynamics calculation.
 """,
 ),
@@ -1029,7 +1029,7 @@ Variable(
     dimensions="scalar",
     defaultval=0.0,
     mnemonics="SPIN TEMPERATURE END",
-    text="""
+    text=r"""
 End point of variable temperature spin dynamics calculation (see [[multibinit:spin_var_temperature]]) in spin dynamics calculation.
 """,
 ),
@@ -1042,7 +1042,7 @@ Variable(
     dimensions="scalar",
     defaultval=0,
     mnemonics="SPIN TEMPERATURE Number of STEPs",
-    text="""
+    text=r"""
 Number of steps in the variable temperature spin dynamics calculation (see [[multibinit:spin_var_temperature]]) in spin dynamics calculation.
 """,
 ),
