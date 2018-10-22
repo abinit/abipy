@@ -56,6 +56,7 @@ def has_abinit(version=None, op=">=", manager=None):
     else:
         return cmp_version(build.version, version, op=op)
 
+_HAS_MATPLOTLIB_CALLS = 0
 
 def has_matplotlib(version=None, op=">="):
     """
@@ -69,8 +70,13 @@ def has_matplotlib(version=None, op=">="):
         print("Skipping matplotlib test")
         return False
 
-    matplotlib.use("Agg")
-    #matplotlib.use("Agg", force=True)  # Use non-graphical display backend during test.
+    global _HAS_MATPLOTLIB_CALLS
+    _HAS_MATPLOTLIB_CALLS += 1
+
+    if _HAS_MATPLOTLIB_CALLS == 1:
+        matplotlib.use("Agg")
+        #matplotlib.use("Agg", force=True)  # Use non-graphical display backend during test.
+
     import matplotlib.pyplot as plt
     # http://stackoverflow.com/questions/21884271/warning-about-too-many-open-figures
     plt.close("all")

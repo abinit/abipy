@@ -181,7 +181,7 @@ class BilbaoPointGroupTest(AbipyTest):
         """Testing BilbaoPointGroup database."""
         from abipy.core.symmetries import bilbao_ptgroup, sch_symbols
         for sch_symbol in sch_symbols:
-            #print(sch_symbol)
+            print(sch_symbol)
             ptg = bilbao_ptgroup(sch_symbol)
             repr(ptg); str(ptg)
             assert len(ptg.to_string())

@@ -15,7 +15,11 @@ import abc
 import json
 import numpy as np
 
-from collections import OrderedDict, MutableMapping
+from collections import OrderedDict
+try: # py3k
+    from collections.abc import MutableMapping
+except ImportError:
+    from collections import MutableMapping
 from monty.collections import dict2namedtuple
 from monty.string import is_string, list_strings
 from monty.json import MontyDecoder, MSONable
@@ -566,7 +570,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
     def to_string(self, sortmode="section", post=None, with_mnemonics=False, mode="text",
                   with_structure=True, with_pseudos=True, exclude=None, verbose=0):
-        """
+        r"""
         String representation.
 
         Args:
@@ -586,9 +590,14 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             exclude: List of variable names that should be ignored.
         """
         if mode == "html":
-            import cgi
-            def escape(text):
-                return cgi.escape(text, quote=True)
+            if six.PY2:
+                import cgi
+                def escape(text):
+                    return cgi.escape(text, quote=True)
+            else:
+                import html
+                def escape(text):
+                    return html.escape(text, quote=True)
         else:
             def escape(text):
                 return text
@@ -603,7 +612,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         if with_mnemonics: mnemonics = with_mnemonics
         exclude = set(exclude) if exclude is not None else set()
 
-        # If spell checking is deactivates, we cannot use mmemonics or sormode == "section"
+        # If spell checking is deactivated, we cannot use mmemonics or sormode == "section"
         if not self.spell_check:
             mnemonics = False
             sortmode = "a"

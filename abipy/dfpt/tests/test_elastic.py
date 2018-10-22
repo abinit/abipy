@@ -10,7 +10,7 @@ from abipy.core.testing import AbipyTest
 #from abipy.dfpt.elastic import ElasticData
 
 
-class ElaticDataFileTest(AbipyTest):
+class ElasticDataFileTest(AbipyTest):
 
     def test_alas_elastic(self):
         """

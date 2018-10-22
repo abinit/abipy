@@ -1059,7 +1059,7 @@ class PhononBands(object):
     @add_fig_kwargs
     def plot_lt_character(self, units="eV", qlabels=None, ax=None, xlims=None, ylims=None,
                           colormap="jet", fontsize=12, **kwargs):
-        """
+        r"""
         Plot the phonon band structure with colored lines. The color of the lines indicates
         the degree to which the mode is longitudinal:
         Red corresponds to longitudinal modes and black to purely transverse modes.

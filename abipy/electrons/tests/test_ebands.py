@@ -297,7 +297,7 @@ class ElectronBandsTest(AbipyTest):
         # Test plot methods
         if self.has_matplotlib():
             klabels = {
-                (0,0,0): "$\Gamma$",
+                (0,0,0): r"$\Gamma$",
                 (0.375, 0.375, 0.7500): "K",
                 (0.5, 0.5, 1.0): "X",
                 (0.5, 0.5, 0.5): "L",
