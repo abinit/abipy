@@ -14,6 +14,7 @@ API documentation
 
    abilab_api.rst
    abio_api.rst
+   bolztrap_api.rst
    core_api.rst
    data_api.rst
    dfpt_api.rst

@@ -11,10 +11,9 @@ from monty.string import list_strings, marquee
 from monty.collections import AttrDict
 from monty.json import MSONable
 #from monty.functools import lazy_property
-from pymatgen.analysis.elasticity.tensors import Tensor
-from pymatgen.analysis.elasticity.elastic import ElasticTensor
-from pymatgen.analysis.piezo import PiezoTensor
+
 from abipy.core.mixins import Has_Structure
+from abipy.tools.tensors import Tensor, ElasticTensor, PiezoTensor
 from abipy.flowtk.netcdf import ETSF_Reader
 
 

@@ -92,6 +92,20 @@ def data_from_cplx_mode(cplx_mode, arr, tol=None):
 
     return val if tol is None else np.where(np.abs(val) > tol, val, 0)
 
+
+def is_diagonal(matrix, atol=1e-12):
+    """
+    Return True if matrix is diagonal.
+    """
+    m = matrix.copy()
+    np.fill_diagonal(m, 0)
+
+    if issubclass(matrix.dtype.type, np.integer):
+        return np.all(m == 0)
+    else:
+        return np.all(np.abs(m) <= atol)
+
+
 #########################################################################################
 # Tools to facilitate iterations
 #########################################################################################

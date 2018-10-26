@@ -34,7 +34,7 @@ from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader
 from abipy.tools import gaussian, duck
 from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
-    get_ax3d_fig_plt, rotate_ticklabels, set_visible, plot_unit_cell)
+    get_ax3d_fig_plt, rotate_ticklabels, set_visible, plot_unit_cell, set_ax_xylabels)
 
 import logging
 logger = logging.getLogger(__name__)
@@ -638,7 +638,7 @@ class ElectronBands(Has_Structure):
 
             Assume spin-unpolarized band energies.
         """
-        iv = int(self.nelect) // 2 - 1
+        iv = int(self.nelect * self.nspinor) // 2 - 1
         new_fermie = self.eigens[:, :, iv].max()
         return self.set_fermie(new_fermie)
 
@@ -1340,21 +1340,31 @@ class ElectronBands(Has_Structure):
 
         return dirgaps
 
-    def get_gaps_string(self):
+    def get_gaps_string(self, with_latex=True):
         """
         Return string with info about fundamental and direct gap (if not metallic scheme)
+
+        Args:
+            with_latex: True to get latex symbols for the gap names else text.
         """
         enough_bands = (self.mband > self.nspinor * self.nelect // 2)
+        dg_name, fg_name = "direct gap", "fundamental gap"
+        if with_latex:
+            dg_name, fg_name = "$E^{dir}_{gap}$", "$E^{fund}_{gap}$"
+
         if enough_bands and not self.has_metallic_scheme:
             if self.nsppol == 1:
-                s = "%s: direct gap = %.2f, fundamental gap = %.2f (eV)" % (
+                s = "%s: %s = %.2f, %s = %.2f (eV)" % (
                     self.structure.latex_formula,
-                    self.direct_gaps[0].energy, self.fundamental_gaps[0].energy)
+                    dg_name, self.direct_gaps[0].energy,
+                    fg_name, self.fundamental_gaps[0].energy)
             else:
                 dgs = [t.energy for t in self.direct_gaps]
                 fgs = [t.energy for t in self.fundamental_gaps]
-                s = "%s: direct gap = %.2f (%.2f), fundamental gap = %.2f (%.2f) (eV)" % (
-                    self.structure.latex_formula, dgs[0], dgs[1], fgs[0], fgs[1])
+                s = "%s: %s = %.2f (%.2f), %s = %.2f (%.2f) (eV)" % (
+                    self.structure.latex_formula,
+                    dg_name, dgs[0], dgs[1],
+                    fg_name, fgs[0], fgs[1])
         else:
             s = ""
 
@@ -1883,9 +1893,11 @@ class ElectronBands(Has_Structure):
                 scatter_opts.update(marker="o", alpha=1.0, s=80, zorder=100, edgecolor='black')
 
                 # Fundamental gap.
+                mgap = -1
                 for ik1, ik2 in f_gap.all_kinds:
                     posA = (ik1, f_gap.in_state.eig - e0)
                     posB = (ik2, f_gap.out_state.eig - e0)
+                    mgap = max(mgap, posA[1], posB[1])
                     ax.scatter(posA[0], posA[1], **scatter_opts)
                     ax.scatter(posB[0], posB[1], **scatter_opts)
                     if need_arrows:
@@ -1896,10 +1908,15 @@ class ElectronBands(Has_Structure):
                     for ik1, ik2 in d_gap.all_kinds:
                         posA = (ik1, d_gap.in_state.eig - e0)
                         posB = (ik2, d_gap.out_state.eig - e0)
+                        mgap = max(mgap, posA[1], posB[1])
                         ax.scatter(posA[0], posA[1], **scatter_opts)
                         ax.scatter(posB[0], posB[1], **scatter_opts)
                         if need_arrows:
                             ax.add_patch(FancyArrowPatch(posA=posA, posB=posB, **arrow_opts))
+
+            # Try to set nice limits if not given by user.
+            if ylims is None:
+                set_axlims(ax, (-mgap - 5, +mgap + 5), "y")
 
             gaps_string = self.get_gaps_string()
             if gaps_string:
@@ -2158,7 +2175,7 @@ class ElectronBands(Has_Structure):
     def plot_lws_vs_e0(self, ax=None, e0="fermie", function=lambda x: x, exchange_xy=False,
                        xlims=None, ylims=None, fontsize=12, **kwargs):
         r"""
-        Plot the electronic linewidths vs KS energy.
+        Plot electronic linewidths vs KS energy.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -2435,6 +2452,10 @@ class ElectronBands(Has_Structure):
             abispg = self.structure.spgset_abi_spacegroup(has_timerev=self.has_timrev)
 
         fm_symrel = [s for (s, afm) in zip(abispg.symrel, abispg.symafm) if afm == 1]
+
+        if self.nband > self.nelect and self.nband > 20 and bstart == 0 and bstop is None:
+            cprint("Bands object contains nband %s with nelect %s. You may want to use bstart, bstop to select bands." % (
+                    self.nband, self.nelect), "yellow")
 
         # Build interpolator.
         from abipy.core.skw import SkwInterpolator
@@ -3371,7 +3392,7 @@ class ElectronDos(object):
         return lines
 
     @add_fig_kwargs
-    def plot(self, e0="fermie", spin=None, ax=None, xlims=None, **kwargs):
+    def plot(self, e0="fermie", spin=None, ax=None, exchange_xy=False, xlims=None, ylims=None, **kwargs):
         """
         Plot electronic DOS
 
@@ -3382,8 +3403,10 @@ class ElectronDos(object):
                 - None: Don't shift energies, equivalent to ``e0 = 0``.
             spin: Selects the spin component, None if total DOS is wanted.
             ax: |matplotlib-Axes| or None if a new figure should be created.
+            exchange_xy: True to exchange x-y axis.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                 or scalar e.g. ``left``. If left (right) is None, default values are used
+            ylims: Set data limits for the y-axis.
             kwargs: options passed to ``ax.plot``.
 
         Return: |matplotlib-Figure|
@@ -3397,12 +3420,14 @@ class ElectronDos(object):
             opts.update(kwargs)
             spin_sign = +1 if spin == 0 else -1
             x, y = self.spin_dos[spin].mesh - e0, spin_sign * self.spin_dos[spin].values
+            if exchange_xy: x, y = y, x
             ax.plot(x, y, **opts)
 
         ax.grid(True)
-        ax.set_xlabel('Energy (eV)')
-        ax.set_ylabel('DOS (states/eV)')
+        xlabel, ylabel = 'Energy (eV)', 'DOS (states/eV)'
+        set_ax_xylabels(ax, xlabel, ylabel, exchange_xy)
         set_axlims(ax, xlims, "x")
+        set_axlims(ax, ylims, "y")
 
         return fig
 

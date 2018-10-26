@@ -266,7 +266,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     @add_fig_kwargs
     def plot_phbands_with_gruns(self, fill_with="gruns", gamma_fact=1, alpha=0.6, with_doses="all", units="eV",
                                 ylims=None, match_bands=False, qlabels=None, branch_range=None, **kwargs):
-        """
+        r"""
         Plot the phonon bands corresponding to ``V0`` (the central point) with markers
         showing the value and the sign of the Grunesein parameters.
 
@@ -455,7 +455,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     @add_fig_kwargs
     def plot_gruns_bs(self, values="gruns", ax=None, branch_range=None, qlabels=None, match_bands=False, **kwargs):
-        """
+        r"""
         A plot of the values of the Gruneisen parameters or group velocities along the
         high symmetry path.
         By default only the calculated points will be displayed. If lines are required set a positive value for lw
@@ -475,7 +475,6 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         Returns: |matplotlib-Figure|
         """
-
         if values == "gruns":
             y = self.split_gruns
         elif values == "groupv":

@@ -25,6 +25,7 @@ class SigEPhFileTest(AbipyTest):
 
         assert sigeph.nkcalc == 2
         self.assert_equal(sigeph.ngqpt.flatten(), [4, 4, 4])
+        assert not sigeph.imag_only
         assert sigeph.symsigma == 0
         assert sigeph.ntemp ==  6
         assert sigeph.nband == 54
@@ -33,6 +34,7 @@ class SigEPhFileTest(AbipyTest):
         # FIXME
         #self.assert_almost_equal(sigeph.zcut, 0.001)
         assert sigeph.has_spectral_function and sigeph.reader.nwr == 101
+        assert not sigeph.has_eliashberg_function
         assert len(sigeph.mu_e) == sigeph.ntemp
         assert "nbsum" in sigeph.params
         assert "eph_fsewin" in sigeph.params
@@ -76,10 +78,10 @@ class SigEPhFileTest(AbipyTest):
         assert ksamp.to_string(title="Ksampling")
 
         # Test Dataframe construction.
-        data_sk = sigeph.get_dataframe_sk(spin=0, kpoint=[0.5, 0.0, 0.0])
+        data_sk = sigeph.get_dataframe_sk(spin=0, kpoint=[0.5, 0.0, 0.0], with_spin=True)
         assert "qpeme0" in data_sk
         assert np.all(data_sk["spin"] == 0)
-        self.assert_almost_equal(data_sk["kpoint"].values[0].frac_coords, [0.5, 0.0, 0.0])
+        #self.assert_almost_equal(data_sk["kpoint"].values[0].frac_coords, [0.5, 0.0, 0.0])
 
         itemp = 0
         data_sk = sigeph.get_dataframe_sk(spin=0, kpoint=[0.5, 0.0, 0.0], itemp=itemp)
@@ -125,7 +127,7 @@ class SigEPhFileTest(AbipyTest):
         assert qp.spin == 0 and qp.kpoint == [0, 0, 0] and qp.band == 3
         assert qp.skb == (0, [0, 0, 0], 3)
         #assert len(qp.qpeme0) == qpt.ntemp
-        self.assert_equal(qp.qpeme0, qp.qpe - qp.e0)
+        self.assert_equal(qp.qpeme0, (qp.qpe - qp.e0).real)
         self.assert_equal(qp.re_qpe + 1j * qp.imag_qpe, qp.qpe)
         self.assert_equal(qp.re_fan0 + 1j * qp.imag_fan0, qp.fan0)
         fields = qp.get_fields()
@@ -236,7 +238,8 @@ class SigEPhFileTest(AbipyTest):
     def test_sigeph_boltztrap(self):
         """Test boltztrap interpolation"""
         sigeph = abilab.abiopen(abidata.ref_file("diamond_444q_full_SIGEPH.nc"))
-        sigeph.get_lifetimes_boltztrap("diamond")
+        sigeph.get_lifetimes_boltztrap("diamond", workdir=self.mkdtemp())
+        sigeph.close()
 
     def test_sigeph_robot(self):
         """Tests for SigEPhRobot."""
@@ -251,7 +254,7 @@ class SigEPhFileTest(AbipyTest):
             assert len(robot) == 2
 
             data = robot.get_dataframe()
-            assert "qpe" in data
+            assert "re_qpe" in data
 
             # Test plot methods
             if self.has_matplotlib():

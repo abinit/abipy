@@ -30,6 +30,6 @@ class Fold2BlochTest(AbipyTest):
 
             if self.has_matplotlib():
                 kbounds = [0, 1/2, 0, 0, 0, 0, 0, 0, 1/2]
-                klabels = ["Y", "$\Gamma$", "X"]
+                klabels = ["Y", r"$\Gamma$", "X"]
                 assert fb.plot_unfolded(kbounds, klabels, dist_tol=1e-12, verbose=1,
                                         colormap="afmhot", facecolor="black")

@@ -25,7 +25,7 @@ from abipy.core.kpoints import Kpoint, Kpath
 from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
 from abipy.tools import gaussian, duck
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims, get_axarray_fig_plt, set_visible
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims, get_axarray_fig_plt, set_visible, set_ax_xylabels
 from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
 from pymatgen.phonon.dos import CompletePhononDos as PmgCompletePhononDos, PhononDos as PmgPhononDos
 
@@ -143,12 +143,15 @@ class PhononBands(object):
             #    print("Found nonanal")
             #    non_anal_ph = NonAnalyticalPh.from_file(filepath)
 
+            epsinf, zcart = r.read_epsinf_zcart()
+
             return cls(structure=structure,
                        qpoints=qpoints,
                        phfreqs=r.read_phfreqs(),
                        phdispl_cart=r.read_phdispl_cart(),
                        amu=amu,
-                       non_anal_ph=non_anal_ph
+                       non_anal_ph=non_anal_ph,
+                       epsinf=epsinf, zcart=zcart,
                        )
 
     @classmethod
@@ -194,7 +197,8 @@ class PhononBands(object):
         """
         self.non_anal_ph = NonAnalyticalPh.from_file(filepath)
 
-    def __init__(self, structure, qpoints, phfreqs, phdispl_cart, non_anal_ph=None, amu=None, linewidths=None):
+    def __init__(self, structure, qpoints, phfreqs, phdispl_cart, non_anal_ph=None, amu=None,
+                 epsinf=None, zcart=None, linewidths=None):
         """
         Args:
             structure: |Structure| object.
@@ -206,6 +210,10 @@ class PhononBands(object):
                 None if contribution is not present.
             amu: dictionary that associates the atomic species present in the structure to the values of the atomic
                 mass units used for the calculation.
+            epsinf: [3,3] matrix with electronic dielectric tensor in Cartesian coordinates.
+                None if not avaiable.
+            zcart: [natom, 3, 3] matrix with Born effective charges in Cartesian coordinates.
+                None if not available.
             linewidths: Array-like object with the linewidths (eV) stored as [q, num_modes]
         """
         self.structure = structure
@@ -239,6 +247,9 @@ class PhononBands(object):
         self._linewidths = None
         if linewidths is not None:
             self._linewidths = np.reshape(linewidths, self.phfreqs.shape)
+
+        self.epsinf = epsinf
+        self.zcart = zcart
 
         # Dictionary with metadata e.g. nkpt, tsmear ...
         self.params = OrderedDict()
@@ -906,7 +917,8 @@ class PhononBands(object):
             ax.set_xlim(ticks[0], ticks[-1])
 
     @add_fig_kwargs
-    def plot(self, ax=None, units="eV", qlabels=None, branch_range=None, match_bands=False, **kwargs):
+    def plot(self, ax=None, units="eV", qlabels=None, branch_range=None, match_bands=False, temp=None,
+             fontsize=12, **kwargs):
         r"""
         Plot the phonon band structure.
 
@@ -917,6 +929,9 @@ class PhononBands(object):
                 The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
             branch_range: Tuple specifying the minimum and maximum branch index to plot (default: all branches are plotted).
             match_bands: if True the bands will be matched based on the scalar product between the eigenvectors.
+            temp: Temperature in Kelvin. If not None, a scatter plot with the Bose-Einstein occupation factor
+                at temperature `temp` is added.
+            fontsize: Legend and title fontsize.
 
         Returns: |matplotlib-Figure|
         """
@@ -931,14 +946,27 @@ class PhononBands(object):
         # Decorate the axis (e.g add ticks and labels).
         self.decorate_ax(ax, units=units, qlabels=qlabels)
 
-        if "color" not in kwargs:
-            kwargs["color"] = "black"
-
-        if "linewidth" not in kwargs:
-            kwargs["linewidth"] = 2.0
+        if "color" not in kwargs: kwargs["color"] = "black"
+        if "linewidth" not in kwargs: kwargs["linewidth"] = 2.0
 
         # Plot the phonon branches.
         self.plot_ax(ax, branch_range, units=units, match_bands=match_bands, **kwargs)
+
+        if temp is not None:
+            # Scatter plot with Bose-Einstein occupation factor for T = temp
+            factor = abu.phfactor_ev2units(units)
+            if temp < 1: temp = 1
+            ax.set_title("T = %.1f K" % temp, fontsize=fontsize)
+            xs = np.arange(self.num_qpoints)
+            for nu in self.branches:
+                ws = self.phfreqs[:, nu]
+                wkt = self.phfreqs[:, nu] / (abu.kb_eVK * temp)
+                # 1 / (np.exp(1e-6) - 1)) ~ 999999.5
+                wkt = np.where(wkt > 1e-6, wkt, 1e-6)
+                occ = 1.0 / (np.exp(wkt) - 1.0)
+                s = np.where(occ < 2, occ, 2) * 50
+                ax.scatter(xs, ws * factor, s=s, marker="o", c="b", alpha=0.6)
+                #ax.scatter(xs, ws, s=s, marker="o", c=occ, cmap="jet")
 
         return fig
 
@@ -1025,6 +1053,80 @@ class PhononBands(object):
                 kwargs['color'] = next(colors)
                 lines.extend(ax.plot(xx, pf[:, branch_i], **kwargs))
             first_xx = xx[-1]
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_lt_character(self, units="eV", qlabels=None, ax=None, xlims=None, ylims=None,
+                          colormap="jet", fontsize=12, **kwargs):
+        r"""
+        Plot the phonon band structure with colored lines. The color of the lines indicates
+        the degree to which the mode is longitudinal:
+        Red corresponds to longitudinal modes and black to purely transverse modes.
+
+        Args:
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            units: Units for plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
+                The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used.
+            ylims: y-axis limits.
+            colormap: Matplotlib colormap.
+            fontsize: legend and title fontsize.
+
+        Returns: |matplotlib-Figure|
+        """
+        if self.zcart is None:
+            cprint("Bandstructure does not have Born effective charges", "yellow")
+            return None
+
+        factor = abu.phfactor_ev2units(units)
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        cmap = plt.get_cmap(colormap)
+
+        if "color" not in kwargs: kwargs["color"] = "black"
+        if "linewidth" not in kwargs: kwargs["linewidth"] = 2.0
+
+        first_xx = 0
+        scatt_x, scatt_y, scatt_s = [], [], []
+        for p_qpts, p_freqs, p_dcart in zip(self.split_qpoints, self.split_phfreqs, self.split_phdispl_cart):
+            xx = list(range(first_xx, first_xx + len(p_freqs)))
+
+            for iq, (qpt, ws, dis) in enumerate(zip(p_qpts, p_freqs, p_dcart)):
+                qcart = self.structure.reciprocal_lattice.get_cartesian_coords(qpt)
+                qnorm = np.linalg.norm(qcart)
+                inv_qepsq = 0.0
+                if qnorm > 1e-3:
+                    qvers = qcart / qnorm
+                    inv_qepsq = 1.0 / np.dot(qvers, np.dot(self.epsinf, qvers))
+
+                # We are not interested in the amplitudes so normalize all displacements to one.
+                dis = dis.reshape(self.num_branches, self.num_atoms, 3)
+                # q x Z[atom] x disp[q, nu, atom]
+                for nu in range(self.num_branches):
+                    v = sum(np.dot(qcart, np.dot(self.zcart[iatom], dis[nu, iatom])) for iatom in range(self.num_atoms))
+                    scatt_x.append(xx[iq])
+                    scatt_y.append(ws[nu])
+                    scatt_s.append(v * inv_qepsq)
+
+            p_freqs = p_freqs * factor
+            ax.plot(xx, p_freqs, **kwargs)
+            first_xx = xx[-1]
+
+        scatt_y = np.array(scatt_y) * factor
+        scatt_s = np.abs(np.array(scatt_s))
+        scatt_s /= scatt_s.max()
+        scatt_s *= 50
+        print("scatt_s", scatt_s, "min", scatt_s.min(), "max", scatt_s.max())
+
+        ax.scatter(scatt_x, scatt_y, s=scatt_s,
+            #c=None, marker=None, cmap=None, norm=None, vmin=None, vmax=None, alpha=None,
+            #linewidths=None, verts=None, edgecolors=None, *, data=None
+        )
+        self.decorate_ax(ax, units=units, qlabels=None)
+        set_axlims(ax, xlims, "x")
+        set_axlims(ax, ylims, "y")
 
         return fig
 
@@ -1846,6 +1948,19 @@ class PHBST_Reader(ETSF_Reader):
         """The atomic mass units"""
         return self.read_value("atomic_mass_units", default=None)
 
+    def read_epsinf_zcart(self):
+        """
+        Read and return electronic dielectric tensor and Born effective charges in Cartesian coordinates
+        Return (None, None) if data is not available.
+        """
+        # nctkarr_t('emacro_cart', "dp", 'number_of_cartesian_directions, number_of_cartesian_directions')
+        # nctkarr_t('becs_cart', "dp", "number_of_cartesian_directions, number_of_cartesian_directions, number_of_atoms")]
+        epsinf = self.read_value("emacro_cart", default=None)
+        if epsinf is not None: epsinf = epsinf.T.copy()
+        zcart = self.read_value("becs_cart", default=None)
+        if zcart is not None: zcart = zcart.transpose(0, 2, 1).copy()
+        return epsinf, zcart
+
 
 class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
     """
@@ -2469,7 +2584,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return self.reader.read_pjdos_symbol_dict()
 
     @add_fig_kwargs
-    def plot_pjdos_type(self, units="eV", stacked=True, colormap="jet", alpha=0.7,
+    def plot_pjdos_type(self, units="eV", stacked=True, colormap="jet", alpha=0.7, exchange_xy=False,
                         ax=None, xlims=None, ylims=None, fontsize=12, **kwargs):
         """
         Plot type-projected phonon DOS.
@@ -2482,6 +2597,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
                 `here <http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html>`_
                 and decide which one you'd like:
             alpha: The alpha blending value, between 0 (transparent) and 1 (opaque).
+            exchange_xy: True to exchange x-y axis.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used.
             ylims: y-axis limits.
@@ -2498,8 +2614,8 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         ax.grid(True)
         set_axlims(ax, xlims, "x")
         set_axlims(ax, ylims, "y")
-        ax.set_xlabel('Frequency %s' % abu.phunit_tag(units))
-        ax.set_ylabel('PJDOS %s' % abu.phdos_label_from_units(units))
+        xlabel, ylabel = 'Frequency %s' % abu.phunit_tag(units), 'PJDOS %s' % abu.phdos_label_from_units(units)
+        set_ax_xylabels(ax, xlabel, ylabel, exchange_xy)
 
         # Type projected DOSes.
         num_plots = len(self.pjdos_symbol)
@@ -2507,19 +2623,27 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         for i, (symbol, pjdos) in enumerate(self.pjdos_symbol.items()):
             x, y = pjdos.mesh * factor, pjdos.values / factor
+            if exchange_xy: x, y = y, x
             if num_plots != 1:
                 color = cmap(float(i) / (num_plots - 1))
             else:
                 color = cmap(0.0)
+
             if not stacked:
                 ax.plot(x, y, lw=lw, label=symbol, color=color)
             else:
-                ax.plot(x, cumulative + y, lw=lw, label=symbol, color=color)
-                ax.fill_between(x, cumulative, cumulative + y, facecolor=color, alpha=alpha)
-                cumulative += y
+                if not exchange_xy:
+                    ax.plot(x, cumulative + y, lw=lw, label=symbol, color=color)
+                    ax.fill_between(x, cumulative, cumulative + y, facecolor=color, alpha=alpha)
+                    cumulative += y
+                else:
+                    ax.plot(cumulative + x, y, lw=lw, label=symbol, color=color)
+                    ax.fill_betweenx(y, cumulative, cumulative + x, facecolor=color, alpha=alpha)
+                    cumulative += x
 
         # Total PHDOS
         x, y = self.phdos.mesh * factor, self.phdos.values / factor
+        if exchange_xy: x, y = y, x
         ax.plot(x, y, lw=lw, label="Total PHDOS", color='black')
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
@@ -3699,12 +3823,11 @@ class NonAnalyticalPh(Has_Structure):
         Non existence of displacements is accepted for compatibility with abinit 8.0.6
         Raises an error if the other values are not present in anaddb.nc.
         """
-
         with ETSF_Reader(filepath) as r:
             directions = r.read_value("non_analytical_directions")
             phfreq = r.read_value("non_analytical_phonon_modes")
 
-            #needs a default as the first abinit version including IFCs in the netcdf doesn't have this attribute
+            # need a default as the first abinit version including IFCs in the netcdf doesn't have this attribute
             phdispl_cart = r.read_value("non_analytical_phdispl_cart", cmode="c", default=None)
 
             structure = r.read_structure()

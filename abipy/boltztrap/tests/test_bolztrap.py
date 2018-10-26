@@ -16,14 +16,16 @@ class AbipyBoltztrapTest(AbipyTest):
     # TODO: Need new files with IBZ.
     def test_sigeph_boltztrap(self):
         """Test boltztrap interpolation"""
+        self.skip_if_not_bolztrap2()
+
         sigeph = abilab.abiopen(abidata.ref_file("diamond_444q_full_SIGEPH.nc"))
-        
+
         bt = AbipyBoltztrap.from_sigeph(sigeph)
 
         # get equivalences
         assert bt.rmesh == (5,5,5)
         assert bt.nequivalences == 5
-        
+
         # get coefficients
         assert bt.ncoefficients == 53
 
