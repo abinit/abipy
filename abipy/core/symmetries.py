@@ -11,7 +11,6 @@ import numpy as np
 import spglib
 
 from six.moves import cStringIO
-
 from monty.string import is_string
 from monty.itertools import iuptri
 from monty.functools import lazy_property
@@ -238,7 +237,7 @@ class SymmOp(Operation, SlotPickleMixin):
                               time_sign=self.time_sign,
                               afm_sign=self.afm_sign)
 
-    @property
+    @lazy_property
     def isE(self):
         """True if identity operator."""
         return (np.all(self.rot_r == np.eye(3, dtype=np.int)) and
@@ -278,45 +277,37 @@ class SymmOp(Operation, SlotPickleMixin):
 
         return s
 
-    @property
+    @lazy_property
     def is_symmorphic(self):
         """True if the fractional translation is non-zero."""
         return np.any(np.abs(self.tau) > 0.0)
 
-    @property
+    @lazy_property
     def det(self):
         """Determinant of the rotation matrix [-1, +1]."""
-        try:
-            return self._det
-        except AttributeError:
-            self._det = _get_det(self.rot_r)
-            return self._det
+        return _get_det(self.rot_r)
 
-    @property
+    @lazy_property
     def trace(self):
         """Trace of the rotation matrix."""
-        try:
-            return self._trace
-        except AttributeError:
-            self._trace = self.rot_r.trace()
-            return self._trace
+        return self.rot_r.trace()
 
-    @property
+    @lazy_property
     def is_proper(self):
         """True if the rotational part has determinant == 1."""
         return self.det == +1
 
-    @property
+    @lazy_property
     def has_timerev(self):
         """True if symmetry contains the time-reversal operator."""
         return self.time_sign == -1
 
-    @property
+    @lazy_property
     def is_fm(self):
         """True if self if ferromagnetic symmetry."""
         return self.afm_sign == +1
 
-    @property
+    @lazy_property
     def is_afm(self):
         """True if self if anti-ferromagnetic symmetry."""
         return self.afm_sign == -1
@@ -897,6 +888,7 @@ class LittleGroup(OpSequence):
 class LatticePointGroup(OpSequence):
 
     def __init__(self, rotations):
+        rotations = np.reshape(rotations, (-1, 3, 3))
         self._ops = [LatticeRotation(rot) for rot in rotations]
 
         # Call spglib to get the Herm symbol.
@@ -928,7 +920,6 @@ class LatticePointGroup(OpSequence):
         return sch2spgid(self.sch_symbol)
 
 
-
 class LatticeRotation(Operation):
     """
     This object defines a pure rotation of the lattice (proper, improper, mirror symmetry)
@@ -945,7 +936,7 @@ class LatticeRotation(Operation):
     _E3D = np.identity(3,  np.int)
 
     def __init__(self, mat):
-        self.mat = np.matrix(mat, np.int)
+        self.mat = np.asarray(mat, dtype=np.int)
         self.mat.shape = (3, 3)
 
     def _find_order_and_rootinv(self):
@@ -981,7 +972,7 @@ class LatticeRotation(Operation):
         return np.allclose(self.mat, other.mat)
 
     def __mul__(self, other):
-        return self.__class__(self.mat * other.mat)
+        return self.__class__(np.matmul(self.mat, other.mat))
 
     def __hash__(self):
         return int(8 * self.trace + 4 * self.det)
@@ -1008,7 +999,8 @@ class LatticeRotation(Operation):
 
     def __pow__(self, intexp, modulo=1):
         if intexp ==  0: return self.__class__(self._E3D)
-        if intexp  >  0: return self.__class__(self.mat ** intexp)
+        #if intexp  >  0: return self.__class__(self.mat ** intexp)
+        if intexp  >  0: return self.__class__(np.linalg.matrix_power(self.mat, intexp))
         if intexp == -1: return self.inverse()
         if intexp  <  0: return self.__pow__(-intexp).inverse()
         raise TypeError("type %s is not supported in __pow__" % type(intexp))
@@ -1030,31 +1022,27 @@ class LatticeRotation(Operation):
             self._order, self._root_inv = self._find_order_and_rootinv()
             return self._root_inv
 
-    @property
+    @lazy_property
     def det(self):
         """Return the determinant of a symmetry matrix mat[3,3]. It must be +-1"""
-        try:
-            return self._det
-        except AttributeError:
-            self._det = _get_det(self.mat)
-            return self._det
+        return _get_det(self.mat)
 
-    @property
+    @lazy_property
     def trace(self):
         """The trace of the rotation matrix"""
-        return self.mat.trace()[0, 0]
+        return self.mat.trace()
 
-    @property
+    @lazy_property
     def is_proper(self):
         """True if proper rotation"""
         return self.det == 1
 
-    @property
+    @lazy_property
     def isI(self):
         """True if self is the inversion operation."""
         return np.allclose(self.mat, -self._E3D)
 
-    @property
+    @lazy_property
     def name(self):
         # Sign of the determinant (only if improper)
         name = "-" if self.det == -1 else ""
@@ -1178,7 +1166,7 @@ class BilbaoPointGroup(object):
     def __init__(self, sch_symbol, rotations, class_names, class_range, irreps):
         # Rotations are grouped in classes.
         self.sch_symbol = sch_symbol
-        self.rotations = rotations
+        self.rotations = np.reshape(rotations, (-1, 3, 3))
         self.class_names = class_names
         self.nclass = len(class_names)
 
@@ -1293,6 +1281,7 @@ class BilbaoPointGroup(object):
         """
         Perform internal consistency check. Return 0 if success
         """
+        #print("rotations\n", self.rotations)
         rot_group = LatticePointGroup(self.rotations)
         if not rot_group.is_group():
             print("rotations do not form a group!")

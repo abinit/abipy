@@ -43,6 +43,7 @@ class PhononBandsTest(AbipyTest):
             assert phbands.phdispl_cart.shape == (phbands.nqpt, phbands.num_branches, phbands.num_branches)
             # a + b gives plotter
             assert hasattr(same_phbands_nc + phbands, "combiplot")
+            assert phbands.epsinf is None and phbands.zcart is None
 
         self.serialize_with_pickle(phbands, protocols=[-1], test_eq=False)
 
@@ -109,7 +110,7 @@ class PhononBandsTest(AbipyTest):
         }
 
         if self.has_matplotlib():
-            assert phbands.plot(units="Thz", show=False)
+            assert phbands.plot(units="Thz", show=False, temp=300)
             assert phbands.plot_fatbands(units="ha", qlabels=qlabels, show=False)
             assert phbands.plot_fatbands(phdos_file=abidata.ref_file("trf2_5.out_PHDOS.nc"), units="thz", show=False)
             assert phbands.plot_colored_matched(units="cm^-1", show=False)
@@ -379,6 +380,8 @@ class PhononDosTest(AbipyTest):
         if self.has_matplotlib():
             assert ncfile.plot_pjdos_type(show=False)
             assert ncfile.plot_pjdos_type(units="cm-1", stacked=False, colormap="viridis", show=False)
+            assert ncfile.plot_pjdos_type(units="eV", stacked=True, colormap="jet",
+                exchange_xy=True, fontsize=8, show=False)
             assert ncfile.plot_pjdos_cartdirs_type(units="Thz", stacked=True, show=False)
             assert ncfile.plot_pjdos_cartdirs_type(units="meV", stacked=False, alpha=0.5, show=False)
             assert ncfile.plot_pjdos_cartdirs_site(units="meV", stacked=False, alpha=0.5, show=False)

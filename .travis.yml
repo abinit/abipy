@@ -1,12 +1,12 @@
 language: python
-cache: pip
+#cache: pip
 
 #dist: precise
 sudo: false
 
 env:
   global:
-  - ABINIT_VERSION=8.8.2
+  - ABINIT_VERSION=8.10.1
   - ABIPY_PYTEST=yes
   - OPENBLAS_NUM_THREADS=1
   - OMP_NUM_THREADS=1
@@ -54,6 +54,8 @@ install:
         abinit --build
 
         sed -i '/pymatgen/d' requirements.txt
+        # https://github.com/pypa/pipenv/issues/2596
+        #pipenv lock --clear
         travis_wait pip install -r requirements.txt
         travis_wait pip install -r requirements-optional.txt
         conda install -y -c conda-forge graphviz python-graphviz
@@ -69,7 +71,7 @@ install:
       fi
 
   - if [[ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]]; then conda install mock; fi
-
+  - pip install coverage>=4.4 -U --upgrade-strategy=eager
 
   # Mayavi (optional requirement)
   #- if [[ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]]; then conda install mayavi; fi

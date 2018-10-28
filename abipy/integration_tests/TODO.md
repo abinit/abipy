@@ -34,6 +34,13 @@ TODO list:
 
 * Automate CHANGELOG creation.
 
+* Fix DFPT with iomode 3 (make_links logic)
+
+* Refactor S_QCRITICAL logic (logic injected by user, since qcritical errors are cluster-specific)
+
+* Refactor wrappers for mrgddb and mrgdvdb (problems with subprocess when
+  merging large number of partial files (likely due to Popen with large stderr/stdout)
+
 ## Medium priority
 
 * remove phononflow
@@ -63,6 +70,9 @@ TODO list:
 
 * Fix bug with SCGW and SKW interpolation reported by Ahn.
 
+* Optimize SKW (slow if dense IBZ). Add possibility of initializing SKW
+  from nc file produced by Fortran version.
+
 * Add integration test for dilatmx error handler
 
 * Add ExpectedAbort to Abinit so that one can call the code to get data without triggering
@@ -75,6 +85,8 @@ TODO list:
 * DONE Check infra-red dielectric function from DDB.
 
 * Add input file to NC files (?)
+
+* Add phonon plot with Longitudinal/transverse character and Z q 
 
 ## Low priority
 

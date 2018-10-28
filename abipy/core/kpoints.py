@@ -26,7 +26,7 @@ except ImportError:
     from pymatgen.serializers.pickle_coders import SlotPickleMixin
 from abipy.iotools import ETSF_Reader
 from abipy.tools.derivatives import finite_diff
-from abipy.tools.numtools import add_periodic_replicas
+from abipy.tools.numtools import add_periodic_replicas, is_diagonal
 
 import logging
 logger = logging.getLogger(__name__)
@@ -1446,20 +1446,6 @@ class IrredZone(KpointList):
     #            plane[x, y] = values_ibz[ibz_idx]
     #    kx, ky = np.meshgrid(kx, ky)
     #    return kx, ky, plane
-
-
-def is_diagonal(matrix, atol=1e-12):
-    """
-    Return True if matrix is diagonal.
-    """
-    m = matrix.copy()
-    np.fill_diagonal(m, 0)
-
-    if issubclass(matrix.dtype.type, np.integer):
-        return np.all(m == 0)
-    else:
-        return np.all(np.abs(m) <= atol)
-
 
 class KSamplingInfo(AttrDict):
     """

@@ -56,6 +56,7 @@ def has_abinit(version=None, op=">=", manager=None):
     else:
         return cmp_version(build.version, version, op=op)
 
+_HAS_MATPLOTLIB_CALLS = 0
 
 def has_matplotlib(version=None, op=">="):
     """
@@ -69,8 +70,13 @@ def has_matplotlib(version=None, op=">="):
         print("Skipping matplotlib test")
         return False
 
-    matplotlib.use("Agg")
-    #matplotlib.use("Agg", force=True)  # Use non-graphical display backend during test.
+    global _HAS_MATPLOTLIB_CALLS
+    _HAS_MATPLOTLIB_CALLS += 1
+
+    if _HAS_MATPLOTLIB_CALLS == 1:
+        matplotlib.use("Agg")
+        #matplotlib.use("Agg", force=True)  # Use non-graphical display backend during test.
+
     import matplotlib.pyplot as plt
     # http://stackoverflow.com/questions/21884271/warning-about-too-many-open-figures
     plt.close("all")
@@ -451,6 +457,22 @@ class AbipyTest(PymatgenTest):
                 msg = "This test requires phonopy"
             else:
                 msg = "This test requires phonopy version %s %s" % (op, version)
+            raise unittest.SkipTest(msg)
+
+    @staticmethod
+    def skip_if_not_bolztrap2(version=None, op=">="):
+        """
+        Raise SkipTest if bolztrap2 is not installed.
+        Use ``version`` and ``op`` to ask for a specific version
+        """
+        try:
+            import BoltzTraP2 as bzt
+        except ImportError:
+            raise unittest.SkipTest("This test requires bolztrap2")
+
+        from BoltzTraP2.version import PROGRAM_VERSION
+        if version is not None and not cmp_version(PROGRAM_VERSION, version, op=op):
+            msg = "This test requires bolztrap2 version %s %s" % (op, version)
             raise unittest.SkipTest(msg)
 
     @staticmethod

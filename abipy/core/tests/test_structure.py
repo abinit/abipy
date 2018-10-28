@@ -162,6 +162,22 @@ class TestStructure(AbipyTest):
         self.assert_equal(ksamp.ngkpt, [10, 10, 10])
         self.assert_equal(ksamp.shiftk, shiftk)
 
+        lif = Structure.from_abistring("""
+acell      7.7030079150    7.7030079150    7.7030079150 Angstrom
+rprim      0.0000000000    0.5000000000    0.5000000000
+           0.5000000000    0.0000000000    0.5000000000
+           0.5000000000    0.5000000000    0.0000000000
+natom      2
+ntypat     2
+typat      1 2
+znucl      3 9
+xred       0.0000000000    0.0000000000    0.0000000000
+           0.5000000000    0.5000000000    0.5000000000
+""")
+        assert lif.formula == "Li1 F1"
+        same = Structure.rocksalt(7.7030079150, ["Li", "F"], units="ang")
+        self.assert_almost_equal(lif.lattice.a,  same.lattice.a)
+
         si = Structure.from_mpid("mp-149")
         assert si.formula == "Si2"
 
