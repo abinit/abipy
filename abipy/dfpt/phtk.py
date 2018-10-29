@@ -5,19 +5,16 @@ import os
 import math
 import numpy as np
 import pandas as pd
-from matplotlib.gridspec import GridSpec
 
+import abipy.core.abinit_units as abu
 from abipy.core.mixins import Has_Structure, NotebookWriter
+from abipy.core.abinit_units import velocity_at_to_si
 from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.phonons import PhononBands, get_dyn_mat_eigenvec, match_eigenvectors
 from abipy.abio.inputs import AnaddbInput
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from pymatgen.core.units import bohr_to_angstrom, eV_to_Ha
 from pymatgen.symmetry.bandstructure import HighSymmKpath
-
-
-# conversion factor for velocity between atomic units and SI
-velocity_at_to_si = 2.1876912633e6
 
 
 class SoundVelocity(Has_Structure, NotebookWriter):
@@ -89,66 +86,66 @@ class SoundVelocity(Has_Structure, NotebookWriter):
         Returns:
             an instance of SoundVelocity
         """
-        ddb = DdbFile(ddb_path)
+        with DdbFile(ddb_path) as ddb:
 
-        if ngqpt is None: ngqpt = ddb.guessed_ngqpt
+            if ngqpt is None: ngqpt = ddb.guessed_ngqpt
 
-        inp = AnaddbInput(ddb.structure, comment="ANADDB input for speed of sound",
-                          anaddb_kwargs=anaddb_kwargs, spell_check=spell_check)
+            inp = AnaddbInput(ddb.structure, comment="ANADDB input for speed of sound",
+                              anaddb_kwargs=anaddb_kwargs, spell_check=spell_check)
 
-        q1shft = [[0,0,0]]
-        inp.set_vars(
-            ifcflag=1,
-            ngqpt=np.array(ngqpt),
-            q1shft=q1shft,
-            nqshft=len(q1shft),
-            asr=asr,
-            chneut=chneut,
-            dipdip=dipdip,
-        )
+            q1shft = [[0,0,0]]
+            inp.set_vars(
+                ifcflag=1,
+                ngqpt=np.array(ngqpt),
+                q1shft=q1shft,
+                nqshft=len(q1shft),
+                asr=asr,
+                chneut=chneut,
+                dipdip=dipdip,
+            )
 
-        if not directions:
+            if not directions:
 
-            hs = HighSymmKpath(ddb.structure, symprec=1e-2)
+                hs = HighSymmKpath(ddb.structure, symprec=1e-2)
 
-            kpath = hs.kpath
+                kpath = hs.kpath
 
-            directions = []
-            labels = []
+                directions = []
+                labels = []
 
-            for chunk in kpath["path"]:
-                for i, q in enumerate(chunk):
-                    if q == "\\Gamma":
-                        if i > 0 and q not in labels:
-                            new_q = kpath["kpoints"][chunk[i - 1]]
-                            directions.append(new_q)
-                            labels.append(chunk[i - 1])
-                        if i < len(chunk) - 1 and q not in labels:
-                            new_q = kpath["kpoints"][chunk[i + 1]]
-                            directions.append(new_q)
-                            labels.append(chunk[i + 1])
+                for chunk in kpath["path"]:
+                    for i, q in enumerate(chunk):
+                        if "Gamma" in q:
+                            if i > 0 and q not in labels:
+                                new_q = kpath["kpoints"][chunk[i - 1]]
+                                directions.append(new_q)
+                                labels.append(chunk[i - 1])
+                            if i < len(chunk) - 1 and q not in labels:
+                                new_q = kpath["kpoints"][chunk[i + 1]]
+                                directions.append(new_q)
+                                labels.append(chunk[i + 1])
 
-        qpts = []
-        for q in directions:
-            q = qpt_norm * q / np.linalg.norm(q)
-            steps = q / num_points
-            qpts.extend((steps[:, None] * np.arange(num_points)).T)
+            qpts = []
+            for q in directions:
+                q = qpt_norm * q / np.linalg.norm(q)
+                steps = q / num_points
+                qpts.extend((steps[:, None] * np.arange(num_points)).T)
 
-        n_qpoints = len(qpts)
-        qph1l = np.zeros((n_qpoints, 4))
+            n_qpoints = len(qpts)
+            qph1l = np.zeros((n_qpoints, 4))
 
-        qph1l[:, :-1] = qpts
-        qph1l[:, -1] = 1
+            qph1l[:, :-1] = qpts
+            qph1l[:, -1] = 1
 
-        inp['qph1l'] = qph1l.tolist()
-        inp['nph1l'] = n_qpoints
+            inp['qph1l'] = qph1l.tolist()
+            inp['nph1l'] = n_qpoints
 
-        task = ddb._run_anaddb_task(inp, mpi_procs=mpi_procs, workdir=workdir, manager=manager,
-                                    verbose=verbose)
+            task = ddb._run_anaddb_task(inp, mpi_procs=mpi_procs, workdir=workdir, manager=manager,
+                                        verbose=verbose)
 
-        phbst_path = os.path.join(task.workdir, "run.abo_PHBST.nc")
+            phbst_path = os.path.join(task.workdir, "run.abo_PHBST.nc")
 
-        return cls.from_phbst(phbst_path, ignore_neg_freqs=ignore_neg_freqs, labels=labels)
+            return cls.from_phbst(phbst_path, ignore_neg_freqs=ignore_neg_freqs, labels=labels)
 
     @classmethod
     def from_phbst(cls, phbst_path, ignore_neg_freqs=True, labels=None):
@@ -289,13 +286,15 @@ class SoundVelocity(Has_Structure, NotebookWriter):
 
 
     @add_fig_kwargs
-    def plot_fit_freqs_dir(self, idir, ax=None, **kwargs):
+    def plot_fit_freqs_dir(self, idir, ax=None, units="eV", **kwargs):
         """
         Plots the phonon frequencies, if available, along the specified direction.
+        The line representing the fitted value will be shown as well.
 
         Args:
             idir: index of the direction.
             ax: |matplotlib-Axes| or None if a new figure should be created.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
 
         Returns:
             |matplotlib-Figure|
@@ -311,31 +310,38 @@ class SoundVelocity(Has_Structure, NotebookWriter):
         freqs = self.phfreqs[idir]
         qpt_cart_coords = np.array([np.linalg.norm(rlatt.get_cartesian_coords(c)) for c in self.qpts[idir]])
         slope = self.sound_velocities[idir] / velocity_at_to_si * bohr_to_angstrom / eV_to_Ha
+
+        units_factor = abu.phfactor_ev2units(units)
+
         title = "{:.4f}, {:.4f}, {:.4f}".format(*self.directions[idir])
         if self.labels:
             title += " - {}".format(self.labels[idir])
+
         for i, c in enumerate(["r", "b", "g"]):
-            # ax.plot(x, freqs, color=c, ls="-")
-            ax.scatter(qpt_cart_coords, freqs[i], color=c, marker="x")
-            ax.plot(qpt_cart_coords, slope[i] * qpt_cart_coords, color=c, ls="-")
+            ax.scatter(qpt_cart_coords, freqs[i] * units_factor, color=c, marker="x")
+            ax.plot(qpt_cart_coords, slope[i] * qpt_cart_coords * units_factor, color=c, ls="-")
 
         ax.set_title(title)
         ax.set_xlabel("Wave Vector")
-        ax.set_ylabel("Energy (eV)")
+        ax.set_ylabel(abu.wlabel_from_units(units))
 
         return fig
 
     @add_fig_kwargs
-    def plot_fit_freqs(self, ax=None, **kwargs):
+    def plot_fit_freqs(self, ax=None, units="eV", **kwargs):
         """
-        Plots the phonon frequencies, if available, along all the directions .
+        Plots the phonon frequencies, if available, along all the directions.
+        The lines representing the fitted values will be shown as well.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
 
         Returns:
             |matplotlib-Figure|
         """
+        from matplotlib.gridspec import GridSpec
+
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         nrows, ncols = math.ceil(self.n_directions / 2),  2
@@ -343,11 +349,11 @@ class SoundVelocity(Has_Structure, NotebookWriter):
 
         for i in range(self.n_directions):
             axi = plt.subplot(gspec[i])
-            self.plot_fit_freqs_dir(i, ax=axi, show=False)
+            self.plot_fit_freqs_dir(i, ax=axi, units=units, show=False)
 
         return fig
 
-    def yield_figs(self, **kwargs):
+    def yield_figs(self, **kwargs):   # pragma: no cover
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         """
@@ -367,7 +373,8 @@ class SoundVelocity(Has_Structure, NotebookWriter):
             nbv.new_code_cell("sv = abilab.SoundVelocity.pickle_load('{}')".format(tmpfile)),
             nbv.new_code_cell("frame = sv.get_dataframe()\ndisplay(frame)")
         ])
-        for i in range(self.n_directions):
-            nb.cells.append(nbv.new_code_cell("sv.plot_fit_freqs_dir({});".format(i)))
+        if self.phfreqs is not None and self.qpts is not None:
+            for i in range(self.n_directions):
+                nb.cells.append(nbv.new_code_cell("sv.plot_fit_freqs_dir({});".format(i)))
 
         return self._write_nb_nbpath(nb, nbpath)
