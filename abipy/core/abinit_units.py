@@ -46,6 +46,8 @@ amu_emass = 1.660538782e-27 / 9.10938215e-31
 HaBohr3_GPa = Ha_eV / Bohr_Ang**3 * e_Cb * 1.0e+21
 # 1 eV/A^3 to GPa
 eVA3_GPa = 160.21766208
+# conversion factor for velocity between atomic units and SI
+velocity_at_to_si = 2.1876912633e6
 
 # per mole
 Avogadro = 6.02214179e23
