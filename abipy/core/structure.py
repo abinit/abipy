@@ -1360,7 +1360,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
     #    return max_overlap, ovlp_sites
 
-    def displace(self, displ, eta, frac_coords=True):
+    def displace(self, displ, eta, frac_coords=True, normalize=True):
         """
         Displace the sites of the structure along the displacement vector displ.
 
@@ -1386,8 +1386,9 @@ class Structure(pymatgen.Structure, NotebookWriter):
             displ = np.reshape([self.lattice.get_fractional_coords(vec) for vec in displ], (-1,3))
 
         # Normalize the displacement so that the maximum atomic displacement is 1 Angstrom.
-        dnorm = self.norm(displ, space="r")
-        displ /= np.max(np.abs(dnorm))
+        if normalize:
+            dnorm = self.norm(displ, space="r")
+            displ /= np.max(np.abs(dnorm))
 
         # Displace the sites.
         for i in range(len(self)):
