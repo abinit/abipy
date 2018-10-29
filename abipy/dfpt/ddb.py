@@ -1597,24 +1597,32 @@ class Becs(Has_Structure):
         """Integration with jupyter notebooks."""
         return self.get_voigt_dataframe()._repr_html_()
 
-    def get_voigt_dataframe(self, tol=1e-3, select_symbols=None):
+    def get_voigt_dataframe(self, view="inequivalent", tol=1e-3, select_symbols=None):
         """
         Return |pandas-DataFrame| with Voigt indices as columns and natom rows.
 
         Args:
+            view: "inequivalent" to show only inequivalent atoms. "all" for all sites.
             tol: Entries are set to zero below this value
             select_symbols: String or list of strings with chemical symbols.
                 Used to select only atoms of this type.
+            verbose: Verbosity level.
         """
         select_symbols = set(list_strings(select_symbols)) if select_symbols is not None else None
 
+        aview = self._get_atomview(view, verbose=verbose)
+
         columns = ["xx", "yy", "zz", "yz", "xz", "xy"]
         rows = []
-        for isite, (site, zstar) in enumerate(zip(self.structure, self.zstars)):
+        #for isite, (site, zstar) in enumerate(zip(self.structure, self.zstars)):
+        for (isite, wyck) in zip(aview.iatom_list, aview.wyckoffs):
+            site = self.structure[iatom]
             if select_symbols is not None and site.specie.symbol not in select_symbols: continue
+            zstar = self.zstars[iatom]
             d = OrderedDict()
             d["element"] = site.specie.symbol
             d["site_index"] = isite
+            if view == "inequivalent": d["wyckoff"] = wyck
             d["frac_coords"] = site.frac_coords
             zstar = zstar.zeroed(tol=tol)
             for k, v in zip(columns, zstar.voigt):

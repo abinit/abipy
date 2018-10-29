@@ -32,6 +32,9 @@ eV_to_THz = eV_Ha * Ha_THz
 eV_to_cm1 = 8065.5440044136285
 # 1 Hartree, in J
 Ha_J = 4.35974394e-18
+# Planck constant and h/2pi in eV x s
+h_eVs = 4.13566766225e-15
+hbar_eVs = h_eVs / (2 * np.pi)
 # minus the electron charge, in Coulomb
 e_Cb = 1.602176487e-19
 # Boltzmann constant in eV/K and Ha/K
@@ -150,3 +153,67 @@ def itup2s(t):
         raise TypeError("Expecting tuple of len 2 or 3, got %s" % str(t))
     d = {0: "x", 1: "y", 2: "z"}
     return "".join(d[i] for i in t)
+
+
+# Use same tolerances as Abinit Fortran version in m_occ.F90.
+_maxFDarg = 500.0
+
+@np.vectorize
+def occ_fd(ee, kT, mu):
+    r"""
+    Fermi-Dirac statistic: 1 / [(exp((e - mu)/ KT) + 1]
+    Note that occ_fs in [0, 1] so the spin factor is not included,
+    unlike the occupations stored in ebands%occ.
+
+    Args:
+        ee: Single particle energy in eV
+        kT: Value of K_Boltzmann x T in eV.
+        mu: Chemical potential in eV.
+    """
+    ee_mu = ee - mu
+
+    # 1 kelvin [K] = 3.16680853419133E-06 Hartree
+    if kT > 1e-6 * Ha_eV:
+        arg = ee_mu / kT
+        if arg > _maxFDarg:
+            occ_fd = 0.0
+        elif arg < - _maxFDarg:
+            occ_fd = 1.0
+        else:
+            occ_fd = 1.0 / (np.exp(arg) + 1.0)
+    else:
+        # Heaviside
+        if ee_mu > 0.0:
+            occ_fd = 0.0
+        elif ee_mu < 0.0:
+            occ_fd = 1.0
+        else:
+            occ_fd = 0.5
+
+    return occ_fd
+
+
+@np.vectorize
+def occ_be(ee, kT, mu=0.0):
+    r"""
+    Bose-Einstein statistic: 1 / [(exp((e - mu)/ KT) - 1]
+
+    Args:
+      ee: Single particle energy in eV.
+      kT: Value of K_Boltzmann x T in eV.
+      mu: Chemical potential in eV (usually zero)
+    """
+    ee_mu = ee - mu
+
+    # 1 kelvin [K] = 3.16680853419133E-06 Hartree
+    if kT > 1e-12 * Ha_eV:
+        arg = ee_mu / kT
+        if arg > 1e-12 and arg < 600.0:
+            occ_be = 1.0 / (np.exp(arg) - 1.0)
+        else:
+            occ_be = 0.0
+    else:
+        # No condensate for T --> 0
+        occ_be = 0.0
+
+    return occ_be

@@ -142,8 +142,6 @@ def set_visible(ax, boolean, *args):
     Hide/Show the artists of axis ax listed in args.
     """
     if "legend" in args and ax.legend():
-        #handles, labels = ax.get_legend_handles_labels()
-        #if handles:
         ax.legend().set_visible(boolean)
     if "title" in args and ax.title:
         ax.title.set_visible(boolean)
@@ -151,6 +149,12 @@ def set_visible(ax, boolean, *args):
         ax.xaxis.label.set_visible(boolean)
     if "ylabel" in args and ax.yaxis.label:
         ax.yaxis.label.set_visible(boolean)
+    if "xticklabels" in args:
+        for label in ax.get_xticklabels():
+            label.set_visible(boolean)
+    if "yticklabels" in args:
+        for label in ax.get_yticklabels():
+            label.set_visible(boolean)
 
 
 def rotate_ticklabels(ax, rotation, axname="x"):

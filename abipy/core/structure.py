@@ -756,8 +756,10 @@ class Structure(pymatgen.Structure, NotebookWriter):
             ``namedtuple`` (irred_pos, eqmap, spgdata) with the following attributes::
 
                 * irred_pos: array giving the position of the i-th irred atom in the structure.
-                    The number of irred atoms is len(irred_pos)
-                *   eqmap: Mapping irred atom position --> list with positions of symmetrical atoms
+                    The number of irred atoms is len(irred_pos).
+                *   eqmap: Mapping irred atom position --> list with positions of symmetrical atoms.
+                *   wyckoffs: Wyckoff letters.
+                *   wyck_mult: Wyckoff multiplicity.
                 *   spgdata: spglib dataset with additional data reported by spglib_.
 
          :Example:
@@ -768,6 +770,12 @@ class Structure(pymatgen.Structure, NotebookWriter):
         spgan = SpacegroupAnalyzer(self, symprec=symprec, angle_tolerance=angle_tolerance)
         spgdata = spgan.get_symmetry_dataset()
         equivalent_atoms = spgdata["equivalent_atoms"]
+        wyckoffs = spgdata["wyckoffs"]
+
+        natom = len(self)
+        wyck_mult = [np.count_nonzero(equivalent_atoms == equivalent_atoms[i]) for i in range(natom)]
+        wyck_mult = np.array(wyck_mult, dtype=np.int)
+
         irred_pos = []
         eqmap = collections.defaultdict(list)
         for pos, eqpos in enumerate(equivalent_atoms):
@@ -781,14 +789,17 @@ class Structure(pymatgen.Structure, NotebookWriter):
             eqmap[eqpos] = np.array(eqmap[eqpos], dtype=np.int)
 
         if printout:
-            print("Found %d inequivalent position(s)." % len(irred_pos))
+            print("Found %d inequivalent position(s):" % len(irred_pos))
             for i, irr_pos in enumerate(sorted(eqmap.keys())):
-                print("Irred_Site: %s" % str(self[irr_pos]))
+                print("Wyckoff position: (%s%s)" % (wyck_mult[irr_pos], wyckoffs[irr_pos]))
+                print("\t[%d]: %s" % (irr_pos, repr(self[irr_pos])))
                 for eqind in eqmap[irr_pos]:
                     if eqind == irr_pos: continue
-                    print("\tSymEq: %s" % str(self[eqind]))
+                    print("\t[%d]: %s" % (eqind, repr(self[eqind])))
+            print("")
 
-        return dict2namedtuple(irred_pos=irred_pos, eqmap=eqmap, spgdata=spgdata)
+        return dict2namedtuple(irred_pos=irred_pos, eqmap=eqmap,
+                               wyckoffs=wyckoffs, wyck_mult=wyck_mult, spgdata=spgdata)
 
     def spget_summary(self, symprec=1e-3, angle_tolerance=5, verbose=0):
         """
@@ -815,7 +826,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         outs.append("angles: " + " ".join([to_s(i).rjust(10)
                                            for i in self.lattice.angles]))
         app("")
-        app("Spglib space group info (magnetic symmetries are not taken into account).")
+        app("Spglib space group info (magnetic symmetries not taken into account).")
         app("Spacegroup: %s (%s), Hall: %s, Abinit spg_number: %s" % (
              spgan.get_space_group_symbol(), spgan.get_space_group_number(), spgan.get_hall(), str(abispg_number)))
         app("Crystal_system: %s, Lattice_type: %s, Point_group: %s" % (
@@ -823,13 +834,14 @@ class Structure(pymatgen.Structure, NotebookWriter):
         app("")
 
         wickoffs, equivalent_atoms = spgdata["wyckoffs"], spgdata["equivalent_atoms"]
-        table = [["Idx", "Symbol", "Reduced_Coords", "Wyck", "EqIdx"]]
+        table = [["Idx", "Symbol", "Reduced_Coords", "Wyckoff", "EqIdx"]]
         for i, site in enumerate(self):
+            mult = np.count_nonzero(equivalent_atoms == equivalent_atoms[i])
             table.append([
                 i,
                 site.species_string,
                 "%+.5f %+.5f %+.5f" % tuple(site.frac_coords),
-                "%s" % wickoffs[i],
+                "(%s%s)" % (mult, wickoffs[i]),
                 "%d" % equivalent_atoms[i],
             ])
 
@@ -904,7 +916,8 @@ class Structure(pymatgen.Structure, NotebookWriter):
     def abiget_spginfo(self, tolsym=None, pre=None):
         """
 	Call Abinit to get spacegroup information.
-	Return dictionary with e.g. {'bravais': 'Bravais cF (face-center cubic)', 'spg_number': 227, 'spg_symbol': 'Fd-3m'}.
+	Return dictionary with e.g.
+        {'bravais': 'Bravais cF (face-center cubic)', 'spg_number': 227, 'spg_symbol': 'Fd-3m'}.
 
 	Args:
             tolsym: Abinit tolsym input variable. None correspondes to the default value.

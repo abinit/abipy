@@ -10,9 +10,11 @@ import tempfile
 import pickle
 
 from time import ctime
+import numpy as np
 from monty.os.path import which
 from monty.termcolor import cprint
 from monty.string import is_string
+from monty.collections import dict2namedtuple
 from monty.functools import lazy_property
 from abipy.flowtk.netcdf import NetcdfReader, NO_DEFAULT
 
@@ -243,6 +245,48 @@ class Has_Structure(object):
                 pass
         else:
             raise visu.Error("Don't know how to export data for appname %s" % appname)
+
+    def _get_atomview(self, view, verbose=0):
+        """
+        Helper function used to select (inequivalent||all) atoms depending on view.
+        Uses spglib to find inequivalent sites.
+
+        Return named tuple with:
+
+                * iatom_list: list of site index.
+                * wyckoffs: Wyckoff letters
+                * labels: Latex labels for each site in `iatom_list` computed from
+                    element symbol and wyckoffs positions.
+        """
+        natom = len(self.structure)
+        if view == "all": # or natom == 1:
+            # This option is maily used for debugging e.g. to check if all sites are really equivalent.
+            iatom_list = np.arange(natom)
+            wyckoffs = [str(i) for i in range(natom)]
+            wyck_mult = [1 for i in range(natom)]
+
+        elif view == "inequivalent":
+            if natom == 1: verbose = False
+            if verbose:
+                print("Calling spglib to find inequivalent sites. Magnetic symmetries (if any) are not taken into account.")
+            ea = self.structure.spget_equivalent_atoms(printout=verbose > 0)
+            iatom_list = ea.irred_pos
+            wyckoffs = ea.wyckoffs
+            wyck_mult = ea.wyck_mult
+
+        else:
+            raise ValueError("Wrong value for view: %s" % str(view))
+
+        # Build Latex labels
+        labels = []
+        for iat, wsymb, wmul in zip(iatom_list, wyckoffs, wyck_mult):
+            site = self.structure[iat]
+            if view == "all":
+                labels.append("%s [%s]" % (site.specie.symbol, wsymb))
+            else:
+                labels.append("%s (%s%s)" % (site.specie.symbol, wmul, wsymb))
+
+        return dict2namedtuple(iatom_list=iatom_list, wyckoffs=wyckoffs, labels=labels)
 
     def yield_structure_figs(self, **kwargs):
         """*Generates* a predefined list of matplotlib figures with minimal input from the user."""

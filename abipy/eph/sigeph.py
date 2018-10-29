@@ -650,7 +650,7 @@ class EphSelfEnergy(object):
         x0 = self.qp.qpe[itemp].real - self.qp.e0
         y0 = sig0.real + aa * x0
         scatter_opts = dict(color="blue", marker="o", alpha=1.0, s=50, zorder=100, edgecolor='black')
-        ax0.scatter(x0, y0, **scatter_opts, label="Linearized solution")
+        ax0.scatter(x0, y0, label="Linearized solution", **scatter_opts)
         text = r"$Z = %.2f$" % ze0
         #ax0.annotate(text, (x0 + 0.2, y0), textcoords='data', size=8)
         ax0.annotate(text, (0.02, sig0.real - 0.02), textcoords='data', size=8)
