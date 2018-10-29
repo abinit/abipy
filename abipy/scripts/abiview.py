@@ -27,6 +27,14 @@ def handle_overwrite(path, options):
     return path
 
 
+def df_to_clipboard(options, df):
+    """Copy dataframe to clipboard if options.clipboard."""
+    if getattr(options, "clipboard", False):
+        cprint("Copying dataframe to the system clipboard.", "green")
+        cprint("This can be pasted into Excel, for example", "green")
+        df.to_clipboard()
+
+
 def abiview_structure(options):
     """
     Visualize the structure with the specified visualizer. Requires external app
@@ -206,6 +214,29 @@ asr = {asr}, chneut = {chneut}, dipdip = {dipdip}, lo_to_splitting = {lo_to_spli
     return 0
 
 
+def abiview_ddb_vs(options):
+    """
+    Compute speed of sound by fitting phonon frequencies along selected directions.
+    """
+    num_points = 20; asr = 2; chneut = 1; dipdip = 1
+    print("""
+Computing phonon frequencies for linear least-squares with:
+num_points= {num_points}, asr = {asr}, chneut = {chneut}, dipdip = {dipdip}
+""".format(**locals()))
+
+    print("Invoking anaddb ...  ")
+    sv = abilab.SoundVelocity.from_ddb(options.filepath, num_points=num_points,
+                                        asr=asr, chneut=chneut, dipdip=dipdip, verbose=options.verbose)
+    #print("Calculation completed.\nResults available in", os.path.dirname(phbst_file.filepath))
+
+    df = sv.get_dataframe()
+    abilab.print_dataframe(df, title="Speed of sound for different directions:")
+    df_to_clipboard(options, df)
+    sv.plot_fit_freqs()
+
+    return 0
+
+
 def abiview_phbands(options):
     """Plot phonon bands. Accept any file with PhononBands e.g. PHBST.nc, ..."""
     with abilab.abiopen(options.filepath) as abifile:
@@ -224,7 +255,6 @@ def abiview_phbands(options):
                            verbose=options.verbose, units="mev")
 
         return 0
-
 
 def abiview_denpot(options):
     """
@@ -346,6 +376,11 @@ def get_parser(with_epilog=False):
     slide_parser.add_argument("-t", "--slide-timeout", type=int, default=None,
             help="Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.")
 
+    # Parent parser for commands that operating on pandas dataframes
+    pandas_parser = argparse.ArgumentParser(add_help=False)
+    pandas_parser.add_argument("-c", '--clipboard', default=False, action="store_true",
+            help="Copy dataframe to the system clipboard. This can be pasted into Excel, for example")
+
     # Parent parser for commands supporting ipython
     ipy_parser = argparse.ArgumentParser(add_help=False)
     ipy_parser.add_argument('-ipy', '--ipython', default=False, action="store_true", help='Invoke ipython terminal.')
@@ -448,6 +483,10 @@ def get_parser(with_epilog=False):
     # Subparser for ddb command.
     p_ddb = subparsers.add_parser('ddb', parents=[copts_parser, slide_parser], help=abiview_ddb.__doc__)
     add_args(p_ddb, "xmgrace", "phononweb", "browser", "force")
+
+    # Subparser for ddb_vs command.
+    p_ddb_vs = subparsers.add_parser('ddb_vs', parents=[copts_parser, pandas_parser, slide_parser],
+                                     help=abiview_ddb_vs.__doc__)
 
     # Subparser for phbands command.
     p_phbands = subparsers.add_parser('phbands', parents=[copts_parser, slide_parser], help=abiview_phbands.__doc__)

@@ -18,7 +18,10 @@ from pymatgen.symmetry.bandstructure import HighSymmKpath
 
 
 class SoundVelocity(Has_Structure, NotebookWriter):
-
+    """
+    Compute speed of sound by fitting phonon frequencies along selected directions
+    by linear least-squares fit.
+    """
     def __init__(self, directions, sound_velocities, mode_types, structure,
                  labels=None, phfreqs=None, qpts=None):
         """

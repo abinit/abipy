@@ -21,11 +21,11 @@ class SoundVelocityTest(AbipyTest):
         df = sv.get_dataframe()
 
         if self.has_matplotlib():
-            assert sv.plot_fit_freqs_dir(0)
-            assert sv.plot_fit_freqs(0)
+            assert sv.plot_fit_freqs_dir(0, show=False)
+            assert sv.plot_fit_freqs(0, show=False)
 
         if self.has_nbformat():
-            sv.write_notebook(nbpath=self.get_tmpname(text=True))
+            assert sv.write_notebook(nbpath=self.get_tmpname(text=True))
 
     def test_from_phb(self):
         phb_path = os.path.join(abidata.dirpath, "refs", "si_sound_vel", "Si_sound_PHBST.nc")
