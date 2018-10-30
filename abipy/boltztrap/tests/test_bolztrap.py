@@ -23,8 +23,8 @@ class AbipyBoltztrapTest(AbipyTest):
         bt = AbipyBoltztrap.from_sigeph(sigeph)
 
         # get equivalences
-        assert bt.rmesh == (5,5,5)
-        assert bt.nequivalences == 5
+        assert bt.rmesh == (17,17,17)
+        assert bt.nequivalences == 67
 
         # get coefficients
         assert bt.ncoefficients == 53
