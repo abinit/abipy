@@ -130,9 +130,6 @@ class AbipyBoltztrap():
             lpratio: ratio to multiply by the number of k-points in the IBZ and give the
                      number of real space points inside a sphere
         """
-        #units conversion
-        eV_s = abu.eV_to_THz*1e12 * 2*np.pi
-        Ang_Bohr = 1.0/abu.Bohr_Ang
         #get the lifetimes as an array
         qpes = sigeph.get_qp_array(mode='ks+lifetimes')
 
@@ -141,7 +138,7 @@ class AbipyBoltztrap():
         if bstop is None:  bstop  = sigeph.reader.min_bstop
         fermi  = sigeph.ebands.fermie*abu.eV_Ha
         structure = sigeph.ebands.structure
-        volume = sigeph.ebands.structure.volume*Ang_Bohr**3
+        volume = sigeph.ebands.structure.volume*abu.Ang_Bohr**3
         nelect = sigeph.ebands.nelect
         kpoints = [k.frac_coords for k in sigeph.sigma_kpoints]
 
@@ -275,7 +272,6 @@ class AbipyBoltztrap():
             dos_method: when using a patched version of Boltztrap 
         """
         boltztrap_results = []; app = boltztrap_results.append
-        eV_s = abu.eV_to_THz*1e12 * 2*np.pi
         import inspect
         from BoltzTraP2 import fite
         import BoltzTraP2.bandlib as BL
@@ -314,7 +310,7 @@ class AbipyBoltztrap():
                 results = fite.getBTPbands(self.equivalences, self._linewidth_coefficients[itemp],
                                            self.lattvec, nworkers=nworkers)
                 linewidth_fine, vvband, cband = results
-                tau_fine = 1.0/np.abs(2*linewidth_fine*eV_s)
+                tau_fine = 1.0/np.abs(2*linewidth_fine*abu.eV_s)
 
                 #calculate vvdos with the lifetimes
                 if verbose: print('calculating dos and vvdos with lifetimes')
