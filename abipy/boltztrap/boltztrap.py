@@ -454,7 +454,7 @@ class BoltztrapResult():
         ax.plot(wmesh,self.dos,label='DOS',**kwargs)
         ax.set_xlabel('Energy (eV)')
 
-    def plot_vvdos_ax(self,ax,components=['xx'],**kwargs):
+    def plot_vvdos_ax(self,ax,components=('xx',),**kwargs):
         """ 
         Plot components of VVDOS on the axis ax.
         
@@ -472,7 +472,7 @@ class BoltztrapResult():
             ax.plot(wmesh,self.vvdos[i,j,:],label=label,**kwargs)
         ax.set_xlabel('Energy (eV)')
 
-    def plot_ax(self,ax,what,components=['xx'],itemp_list=None,colormap='viridis',**kwargs):
+    def plot_ax(self,ax,what,components=('xx',),itemp_list=None,colormap='viridis',**kwargs):
         """
         Plot the DOS for all the dopings as a function of temperature on the axis ax.
 
@@ -613,7 +613,7 @@ class BoltztrapResultRobot():
         with open(filename,'wb') as f:
             pickle.dump(self,f)
  
-    def plot_ax(self,ax1,what,components=['xx'],itemp_list=None,itau_list=None,erange=None,**kwargs):
+    def plot_ax(self,ax1,what,components=('xx',),itemp_list=None,itau_list=None,erange=None,**kwargs):
         """
         Plot the same quantity for all the results on axis ax1
         
@@ -654,7 +654,7 @@ class BoltztrapResultRobot():
             result.plot_ax(ax2,what,components,itemp_list,*kwargs)
 
     @add_fig_kwargs
-    def plot(self,what,itemp_list=None,itau_list=None,components=['xx'],erange=None,**kwargs):
+    def plot(self,what,itemp_list=None,itau_list=None,components=('xx',),erange=None,**kwargs):
         """
         Plot all the boltztrap results in the Robot
         
@@ -676,7 +676,7 @@ class BoltztrapResultRobot():
         return fig
 
     @add_fig_kwargs
-    def plot_dos_vvdos(self,itemp_list=None,itau_list=None,which_dos=[0],components=['xx'],
+    def plot_dos_vvdos(self,itemp_list=None,itau_list=None,which_dos=[0],components=('xx',),
                        dos_color=None,erange=None,**kwargs):
         """
         Plot the DOS and VVDOS for all the results
