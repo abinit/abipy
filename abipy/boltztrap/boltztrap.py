@@ -104,7 +104,13 @@ class AbipyBoltztrap():
     @classmethod
     def from_dftdata(cls,dftdata,tmesh,lpratio=5):
         """
-        Initialize an instance of this class from a Dftdata isntance from Boltztrap
+        Initialize an instance of this class from a |DFTData| instance from Boltztrap
+
+        Args:
+            dftdata: |DFTData|
+            tmesh: a list of temperatures to use in the fermi integrations
+            lpratio: ratio to multiply by the number of k-points in the IBZ and give the
+                     number of real space points inside a sphere
         """
         structure = Structure.from_ase_atoms(dftdata.atoms)
         return cls(dftdata.fermi,structure,dftdata.nelect,dftdata.kpoints,dftdata.ebands,
@@ -171,8 +177,17 @@ class AbipyBoltztrap():
         return self._lattvec
 
     def get_bands(self,kpath=None,line_density=20,vertices_names=None,linewidth_itemp=False):
-        """Compute the band-structure using the computed coefficients"""
-        #electronic structure
+        """
+        Compute the band-structure using the computed coefficients
+
+        Args:
+            kpath: |Kpath| instance where to interpolate the eigenvalues and linewidths 
+            line_density: Number of points used to sample the smallest segment of the path
+            vertices_names:  List of tuple, each tuple is of the form (kfrac_coords, kname) where
+                kfrac_coords are the reduced coordinates of the k-point and kname is a string with the name of
+                the k-point. Each point represents a vertex of the k-path.
+            linewith_itemp: list of indexes refering to the temperatures where the linewidth will be interpolated
+        """
         from BoltzTraP2 import fite
 
         if kpath is None:
