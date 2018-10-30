@@ -484,7 +484,6 @@ def main():
         structure = abilab.Structure.from_file(options.filepath)
         print(structure.spget_summary(symprec=options.symprec, angle_tolerance=options.angle_tolerance,
                                       verbose=options.verbose))
-        #remove_equivalent_atoms(structure)
 
     elif options.command == "abispg":
         structure = abilab.Structure.from_file(options.filepath)
@@ -634,7 +633,7 @@ def main():
         dlist = m.get_prototypes(structure)
         if not dlist:
             cprint("Cannot find AFLOW prototype for structure.")
-            print(structure.to_string(verbose=option.verbose))
+            print(structure.to_string(verbose=options.verbose))
             return 1
         else:
             cprint("Found %d matches" % len(dlist), "green")

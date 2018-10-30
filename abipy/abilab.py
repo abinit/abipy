@@ -59,6 +59,7 @@ from abipy.dfpt.phonons import (PhbstFile, PhbstRobot, PhononBands, PhononBandsP
 from abipy.dfpt.ddb import DdbFile, DdbRobot
 from abipy.dfpt.anaddbnc import AnaddbNcFile, AnaddbNcRobot
 from abipy.dfpt.gruneisen import GrunsNcFile
+from abipy.dfpt.phtk import SoundVelocity
 from abipy.dynamics.hist import HistFile, HistRobot
 from abipy.waves import WfkFile
 from abipy.eph.a2f import A2fFile, A2fRobot

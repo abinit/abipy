@@ -438,7 +438,8 @@ class PhononBands(object):
 
         Args:
             filepath: String with filename or stream.
-            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
         """
         is_stream = hasattr(filepath, "write")
 
@@ -924,7 +925,8 @@ class PhononBands(object):
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
-            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
                 The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
             branch_range: Tuple specifying the minimum and maximum branch index to plot (default: all branches are plotted).
@@ -1009,7 +1011,8 @@ class PhononBands(object):
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
-            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
                 The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
             branch_range: Tuple specifying the minimum and maximum branch_i index to plot
@@ -1066,7 +1069,8 @@ class PhononBands(object):
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
-            units: Units for plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            units: Units for plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
                 The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
@@ -1330,7 +1334,8 @@ class PhononBands(object):
             use_eigvec: True if the width of the phonon branch should be computed from the eigenvectors.
                 False to use phonon displacements. Note that the PHDOS is always decomposed in
                 terms of (orthonormal) eigenvectors.
-            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
             colormap: Have a look at the colormaps here and decide which one you like:
                 http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
             phdos_file: Used to activate fatbands + PJDOS plot.
@@ -1463,7 +1468,8 @@ class PhononBands(object):
 
         Args:
             phdos: An instance of |PhononDos| or a netcdf file providing a PhononDos object.
-            units: Units for plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            units: Units for plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
                 The values are the labels e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
             ax_list: The axes for the bandstructure plot and the DOS plot. If ax_list is None, a new figure
@@ -1763,7 +1769,8 @@ class PhononBands(object):
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
-            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
             mode_range: Only modes such as `mode_range[0] <= mode_index < mode_range[1]` are included in the plot.
             swarm: True to show the datapoints on top of the boxes
             kwargs: Keyword arguments passed to seaborn boxplot.
@@ -1871,7 +1878,8 @@ class PhononBands(object):
         Requires the presence of Gamma.
 
         Args:
-            units: Units for the output. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            units: Units for the output. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
             threshold: fractional value allowed for the matching of the displacements to identify acoustic modes.
             raise_on_no_indices: if True a RuntimeError will be raised if the acoustic mode will not be
                 correctly identified
@@ -1908,7 +1916,6 @@ class PhononBands(object):
             A namedtuple with a Structure with the displaced atoms, a numpy array containing the
             displacements applied to each atom and the scale matrix used to generate the supercell.
         """
-
         qind = self.qindex(qpoint)
         displ = self.phdispl_cart[qind, nmode].reshape((-1,3))
 
@@ -1919,7 +1926,6 @@ class PhononBands(object):
 class PHBST_Reader(ETSF_Reader):
     """
     This object reads data from PHBST.nc file produced by anaddb.
-
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: PHBST_Reader
@@ -2209,7 +2215,8 @@ class PhononDos(Function1D):
                 "d" for DOS, "i" for IDOS. chars can be concatenated
                 hence what="id" plots both IDOS and DOS. (default "d").
             exchange_xy: True to exchange axis
-            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
             kwargs: Options passed to matplotlib plot method.
 
         Return:
@@ -2236,7 +2243,8 @@ class PhononDos(Function1D):
         Plot Phonon DOS and IDOS on two distict plots.
 
         Args:
-            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
             kwargs: Keyword arguments passed to :mod:`matplotlib`.
 
         Returns: |matplotlib-Figure|
@@ -2506,8 +2514,390 @@ class PhdosReader(ETSF_Reader):
 
         return od
 
-    # TODO
-    #double msqd_dos_atom(number_of_atoms, three, three, number_of_frequencies)
+    def read_msq_dos(self):
+        """
+        Read generalized DOS with MSQ displacement tensor in cartesian coords.
+        """
+        if "msqd_dos_atom" not in self.rootgrp.variables:
+            raise RuntimeError("PHBST file does not contain `msqd_dos_atom` variable.\nPlease use a more recent Abinit version")
+
+        # nctkarr_t('msqd_dos_atom', "dp", 'number_of_frequencies, three, three, number_of_atoms') &
+        # symmetric tensor still transpose to be consistent.
+        values = self.read_value("msqd_dos_atom").transpose([0, 2, 1, 3]).copy()
+
+        # Read atomic masses and build dictionary element_symbol --> amu
+        amu_symbol = self.read_amu_symbol()
+
+        return MsqDos(self.structure, self.wmesh.copy(), values, amu_symbol)
+
+
+class _Component(object):
+
+    def __init__(self, name, ij, **plot_kwargs):
+        self.name = name
+        self.ij = ij
+        self.i, self.j = None, None
+        if self.ij is not None:
+            self.i, self.j = self.ij[0], self.ij[1]
+        self.plot_kwargs = plot_kwargs
+
+    def get_tavg_label(self, what, with_units=False):
+        n = dict(displ="U", vel="V")[what]
+        unit = ""
+        if with_units:
+            unit = r"\;%s" % (dict(displ=r"\AA^2", vel="v")[what])
+
+        if self.name == "trace":
+            return r"$\langle {%s}^2 \rangle%s$" % (n, unit)
+        else:
+            return r"$\langle {%s}_{%s} \rangle%s$" % (n, self.name, unit)
+
+    #def get_label(self, what):
+    #    n = dict(displ="d", vel="v")[what]
+    #    if self.name == "trace"
+    #        return r"\langle %s^2 \rangle_{T}" % n
+    #    else:
+    #        return r"\langle %s_{%s} \rangle_{T}" % (n, self.name)
+
+    def eval33w(self, mat33w):
+        #assert mat33w.shape[:2] == (3, 3)
+        if self.ij is not None:
+            return mat33w[self.i, self.j]
+        if self.name == "trace":
+            return mat33w.trace()
+
+        raise TypeError("Don't know how to extract data for `%s`" % self.name)
+
+
+class MsqDos(Has_Structure):
+    """
+    This object stores the generalized phonon DOS with the mean square displacement tensor in cartesian coords.
+    Allows one to calculate Debye Waller factors by integration with 1/omega and the Bose-Einstein factor.
+    """
+    C = _Component
+    ALL_COMPS = OrderedDict([
+        ("trace", C(name="trace", ij=None, color="k")),
+        ("xx", C(name="xx", ij=(0, 0), color="r", ls="-")),
+        ("yy", C(name="yy", ij=(1, 1), color="g", ls="-")),
+        ("zz", C(name="zz", ij=(2, 2), color="b", ls="-")),
+        ("xy", C(name="xy", ij=(0, 1), color="c", ls="--")),
+        ("xz", C(name="xz", ij=(0, 2), color="m", ls="--")),
+        ("yz", C(name="yz", ij=(1, 2), color="y", ls="--")),
+        # Symmetric components.
+        #("yx", (1, 0)),
+        #("zx", (2, 0)),
+        #("zy", (2, 1)),
+    ])
+    del C
+
+    def __init__(self, structure, wmesh, values, amu_symbol):
+        self._structure = structure
+        self.wmesh = wmesh * abu.eV_Ha ####
+        self.nw = len(self.wmesh)
+        self.values = values * abu.Ha_eV ###
+        self.amu_symbol = amu_symbol
+        assert len(self.values) == len(self.structure)
+
+    @property
+    def structure(self):
+        """|Structure| object."""
+        return self._structure
+
+    def __str__(self):
+        """Invoked by str"""
+        return self.to_string()
+
+    def to_string(self, verbose=0):
+        """
+        Human-readable string with useful information such as structure.
+
+        Args:
+            verbose: Verbosity level.
+        """
+        lines = []; app = lines.append
+
+        app(self.structure.to_string(verbose=verbose, title="Structure"))
+        app("")
+        app(marquee("\int dw g_ij(w) = \delta_ij", mark="="))
+        app("")
+        from scipy.integrate import simps
+        for iatom, site in enumerate(self.structure):
+            d = simps(self.values[iatom], x=self.wmesh)
+            app("For site: %s" % site)
+            app(str(d))
+            app("Trace: %.4f, determinant: %.4f" % (d.trace(), np.linalg.det(d)))
+            app("")
+
+        return "\n".join(lines)
+
+    #def get_msq_temp(self, temp):
+    #    r = self.get_msq_tmesh(temp)
+    #    return
+
+    def get_msq_tmesh(self, tmesh):
+        """
+        Compute mean square displacement for each atom as a function of T (bohr^2).
+        """
+        tmesh = np.array(tmesh)
+        nt = len(tmesh)
+        # Integration mesh starts at iomin to avoid 1/0 and ignore eventual negative frequencies.
+        for iomin, w in enumerate(self.wmesh):
+            if w > 0.0: break
+        else:
+            raise ValueError("Cannot find index such that w[i] > zero!!!")
+
+        wvals = self.wmesh[iomin:]
+        nw = len(wvals)
+
+        # Calculate BE occ factors only once for each T (instead of for each atom).
+        npht = np.empty((nt, nw))
+        for it, temp in enumerate(tmesh):
+            #npht[it] = abu.occ_be(wvals, temp * abu.kb_eVK) + 0.5  ###
+            npht[it] = abu.occ_be(wvals, temp * abu.kb_HaK) + 0.5
+
+        natom = len(self.structure)
+        msq_d = np.empty((natom, 3, 3, nt))
+        msq_v = np.empty((natom, 3, 3, nt))
+
+        from scipy.integrate import simps
+        for iatom in range(natom):
+            symbol = self.structure[iatom].specie.symbol
+            for it in range(nt):
+                fn = self.values[iatom, :, :, iomin:] * npht[it]
+                ys = fn / wvals
+                # mean square displacement for each atom as a function of T (bohr^2).
+                fact = 1.0 / (self.amu_symbol[symbol] * abu.amu_emass)
+                #fact = abu.Bohr_Ang ** 2 / (self.amu_symbol[symbol] * abu.amu_emass)
+                msq_d[iatom, :, :, it] = simps(ys, x=wvals) * fact * abu.Bohr_Ang ** 2
+                # mean square velocity for each atom as a function of T (bohr^2/atomic time unit^2)"
+                #ys = fn  * wvals
+                #msq_v[iatom, :, :, it] = simps(ys, x=wvals)
+
+        return dict2namedtuple(tmesh=tmesh, displ=msq_d, vel=msq_v)
+
+    def get_dataframe(self, temp=300, fmt="cartesian", view="inequivalent", what="displ",
+                      select_symbols=None, verbose=0):
+        """
+        Return |pandas-DataFrame| with cartesian tensor components as columns and (inequivalent) sites along the rows.
+
+        Args:
+            temp: Temperature in Kelvin.
+            fmt: "cartesian" for elements in Cartesian coordinates, "cif" for results in reduced coordinates
+            view: "inequivalent" to show only inequivalent atoms. "all" for all sites.
+            what: "displ" for displament, "vel" for velocity.
+            select_symbols: String or list of strings with chemical symbols.
+                Used to select only atoms of this type.
+            verbose: Verbosity level.
+
+        Return: |pandas-DataFrame|
+        """
+        # Select atoms.
+        aview = self._get_atomview(view, verbose=verbose)
+
+        # [natom, 3, 3, nt=1]
+        msq = self.get_msq_tmesh([float(temp)])
+        values = getattr(msq, what)
+        natom = len(self.structure)
+        values = np.reshape(values, (natom, 3, 3))
+
+        if fmt == "cartesian":
+            pass
+        elif fmt == "cif":
+            # Build A matrix
+            amat = self.structure.lattice.matrix.T
+            ainv = np.linalg.inv(amat)
+            for iatom in range(natom):
+                values[iatom] = np.matmul(ainv, np.matmul(values[iatom], ainv.T))
+            # Build N matrix (no 2 pi factor)
+            ls, _ = self.structure.lattice.reciprocal_lattice_crystallographic.lengths_and_angles
+            ninv = np.diag(1.0 / np.array(ls, dtype=float))
+            for iatom in range(natom):
+                values[iatom] = np.matmul(ninv, np.matmul(values[iatom], ninv.T))
+        else:
+            raise ValueError("Invalid format: `%s`" % str(fmt))
+
+        select_symbols = set(list_strings(select_symbols)) if select_symbols is not None else None
+        columns = ["xx", "yy", "zz", "yz", "xz", "xy"]
+        inds = [(0, 0), (1, 1), (2, 2), (1, 2), (0, 2), (0, 1)]
+        rows = []
+        for (iatom, wyck) in zip(aview.iatom_list, aview.wyckoffs):
+            site = self.structure[iatom]
+            if select_symbols is not None and site.specie.symbol not in select_symbols: continue
+            d = OrderedDict()
+            d["element"] = site.specie.symbol
+            d["site_index"] = iatom
+            if view == "inequivalent": d["wyckoff"] = wyck
+            d["frac_coords"] = site.frac_coords
+            for col, ind in zip(columns, inds):
+                d[col] = values[iatom, ind[0], ind[1]]
+            rows.append(d)
+
+        import pandas as pd
+        return pd.DataFrame(rows, index=None, columns=list(rows[0].keys()))
+
+    def _get_components(self, components):
+        """
+        Return list of components to analyze from user input.
+        """
+        if components == "all":
+            return list(self.ALL_COMPS.values())
+        elif components == "upper":
+            return [self.ALL_COMPS[c] for c in ("xx", "yy", "zz", "yz", "xz", "xy")]
+        elif components == "diago":
+            return [self.ALL_COMPS[c] for c in ("xx", "yy", "zz")]
+        else:
+            return [self.ALL_COMPS[c] for c in list_strings(components)]
+
+    @add_fig_kwargs
+    def plot(self, components="upper", view="inequivalent", units="eV", colormap="jet", alpha=0.7,
+             xlims=None, ylims=None, fontsize=8, verbose=0, **kwargs):
+        """
+        Plot the generalized phonon DOS for each atom in the unit cell.
+        One subplot per atom. Each subplot shows the 9 independent components of the symmetric tensor.
+        as a function of frequency. By default, only "inequivalent" atoms are shown.
+
+        Args:
+            view: "inequivalent" to show only inequivalent atoms. "all" for all sites.
+            components: List of cartesian tensor components to plot e.g. ["xx", "xy"].
+                "all" for all components. "upper" for the upper triangle, "diago" for diagonal elements.
+            units: Units energy axis. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
+            colormap: matplotlib colormap.
+            alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used.
+            ylims: Set the data limits for the y-axis.
+            fontsize: Legend and title fontsize.
+            verbose: Verbosity level.
+
+        Returns: |matplotlib-Figure|
+        """
+        factor = abu.phfactor_ev2units(units)
+
+        # Select atoms.
+        aview = self._get_atomview(view, verbose=verbose)
+
+        num_plots = len(aview.iatom_list)
+        nrows, ncols = 1, 1
+        if num_plots > 1:
+            ncols = 2
+            nrows = num_plots // ncols + num_plots % ncols
+
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=True, squeeze=True)
+        ax_list = np.reshape(ax_list, (nrows, ncols)).ravel()
+        # don't show the last ax if num_plots is odd.
+        if num_plots % ncols != 0: ax_list[-1].axis("off")
+        #cmap = plt.get_cmap(colormap)
+
+        xx = self.wmesh * factor
+        components = self._get_components(components)
+
+        # For each atom in the view.
+        for ix, (ax, iatom, site_label) in enumerate(zip(ax_list, aview.iatom_list, aview.labels)):
+            irow, icol = divmod(ix, ncols)
+            ax.grid(True)
+            set_axlims(ax, xlims, "x")
+            set_axlims(ax, ylims, "y")
+            ax.set_title(site_label, fontsize=fontsize)
+            #site = self.structure[iatom]
+            #color = cmap(float(iatom) / max((len(iatom_list) - 1), 1))
+
+            # Plot components for this atom on the same ax.
+            for c in components:
+                yw = c.eval33w(self.values[iatom])
+                label = r"$G_{%s}$" % c.name if ix == 0 else None
+                ax.plot(xx, yw / factor, label=label, **c.plot_kwargs)
+
+            # Handle labels.
+            if irow == nrows - 1:
+                ax.set_xlabel('Frequency %s' % abu.phunit_tag(units))
+            else:
+                set_visible(ax, False, "xlabel", "xticklabels")
+
+            if ix == 0:
+                ax.set_ylabel("Generalized PHDOS 1/%s (Cart coords)" % abu.phunit_tag(units))
+                ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_bfactors(self, tstart=0, tstop=600, num=50, components="all", what="displ", view="inequivalent",
+                      units="eV", colormap="jet", alpha=0.7, xlims=None, ylims=None,
+                      ax_list=None, fontsize=10, verbose=0, **kwargs):
+        """
+        Plot phonon PJDOS for each atom in the unit cell.
+        One subplot for each component, each subplot show all inequivalent sites.
+        By default, only "inequivalent" atoms are shown.
+
+        Args:
+            tstart: The starting value (in Kelvin) of the temperature mesh.
+            tstop: The end value (in Kelvin) of the mesh.
+            num: int, optional Number of samples to generate. Default is 50.
+            components: List of cartesian tensor components to plot e.g. ["xx", "xy"].
+                "all" for all components. "upper" for the upper triangle, "diago" for diagonal elements.
+            what: "displ" for displament, "vel" for velocity.
+            view: "inequivalent" to show only inequivalent atoms. "all" for all sites.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
+            colormap: matplotlib colormap.
+            alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used.
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used
+            ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: Legend and title fontsize.
+            verbose: Verbosity level.
+
+        Returns: |matplotlib-Figure|
+        """
+        #factor = abu.phfactor_ev2units(units)
+
+        # Select atoms.
+        aview  = self._get_atomview(view, verbose=verbose)
+
+        # One subplot for each component
+        components = self._get_components(components)
+        num_plots = len(components)
+        nrows, ncols = num_plots, 1
+
+        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=True, squeeze=True)
+        ax_list = np.reshape(ax_list, (nrows, ncols)).ravel()
+        cmap = plt.get_cmap(colormap)
+
+        # [natom, 3, 3, nt]
+        tmesh = np.linspace(tstart, tstop, num=num)
+        msq = self.get_msq_tmesh(tmesh)
+        values = getattr(msq, what)
+
+        for ix, (ax, comp) in enumerate(zip(ax_list, components)):
+            #irow, icol = divmod(ix, ncols)
+            ax.grid(True)
+            set_axlims(ax, xlims, "x")
+            set_axlims(ax, ylims, "y")
+            ylabel = comp.get_tavg_label(what, with_units=ix==0)
+            ax.set_ylabel(ylabel, fontsize=fontsize)
+
+            # Plot Type projected DOSes along cartesian direction idir
+            for ii, (iatom, site_label) in enumerate(zip(aview.iatom_list, aview.labels)):
+                #site = self.structure[iatom]
+                color = cmap(float(ii) / max((len(aview.iatom_list) - 1), 1))
+                #msq.displ[iatom, 3, 3, nt]
+                ys = comp.eval33w(values[iatom])
+                ax.plot(msq.tmesh, ys,
+                        label=site_label if ix == 0 else None,
+                        color=color) #, marker="o")
+                if ix == 0:
+                    ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+            if ix == len(components) - 1:
+                ax.set_xlabel('Temperature [K]')
+            else:
+                set_visible(ax, False, "xlabel", "xticklabels")
+
+        return fig
 
 
 class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
@@ -2583,6 +2973,14 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         return self.reader.read_pjdos_symbol_dict()
 
+    @lazy_property
+    def msqd_dos(self):
+        """
+        MsqDos object with Mean square displacement tensor in cartesian coords.
+        Allows one to calculate Debye Waller factors by integration with 1/omega and the Bose-Einstein factor.
+        """
+        return self.reader.read_msq_dos()
+
     @add_fig_kwargs
     def plot_pjdos_type(self, units="eV", stacked=True, colormap="jet", alpha=0.7, exchange_xy=False,
                         ax=None, xlims=None, ylims=None, fontsize=12, **kwargs):
@@ -2592,7 +2990,8 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
             stacked: True if DOS partial contributions should be stacked on top of each other.
-            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
             colormap: Have a look at the colormaps
                 `here <http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html>`_
                 and decide which one you'd like:
@@ -2657,7 +3056,8 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         Three rows for each cartesian direction. Each row shows the contribution of each atomic type + Total Phonon DOS.
 
         Args:
-            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
             stacked: True if DOS partial contributions should be stacked on top of each other.
             colormap: Have a look at the colormaps
                 `here <http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html>`_
@@ -2718,13 +3118,14 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     @add_fig_kwargs
     def plot_pjdos_cartdirs_site(self, view="inequivalent", units="eV", stacked=True, colormap="jet", alpha=0.7,
-                                 xlims=None, ylims=None, ax_list=None, fontsize=8, **kwargs):
+                                 xlims=None, ylims=None, ax_list=None, fontsize=8, verbose=0, **kwargs):
         """
         Plot phonon PJDOS for each atom in the unit cell. By default, only "inequivalent" atoms are shown.
 
         Args:
-            view: "inequivalent", "all"
-            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            view: "inequivalent" to show only inequivalent atoms. "all" for all sites.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
             stacked: True if DOS partial contributions should be stacked on top of each other.
             colormap: matplotlib colormap.
             alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
@@ -2734,24 +3135,17 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
                    or scalar e.g. ``left``. If left (right) is None, default values are used
             ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
             fontsize: Legend and title fontsize.
+            verbose: Verbosity level.
 
         Returns: |matplotlib-Figure|
         """
         # Define num_plots and ax2atom depending on view.
         factor = abu.phfactor_ev2units(units)
-        natom, ntypat = len(self.structure), self.structure.ntypesp
+        #natom, ntypat = len(self.structure), self.structure.ntypesp
         lw = kwargs.pop("lw", 2)
 
-        if view == "all" or natom == 1:
-            iatom_list = np.arange(natom)
-
-        elif view == "inequivalent":
-            print("Calling spglib to find inequivalent sites.")
-            print("Note that `symafm` magnetic symmetries (if any) are not taken into account.")
-            ea = self.structure.spget_equivalent_atoms(printout=True)
-            iatom_list = ea.irred_pos
-        else:
-            raise ValueError("Wrong value for view: %s" % str(view))
+        # Select atoms.
+        aview = self._get_atomview(view, verbose=verbose)
 
         # Three rows for each cartesian direction.
         # Each row shows the contribution of each site + Total PH DOS.
@@ -2776,10 +3170,10 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
             # Plot Type projected DOSes along cartesian direction idir
             cumulative = np.zeros(len(self.wmesh))
-            for iatom in iatom_list:
+            for iatom in aview.iatom_list:
                 site = self.structure[iatom]
                 symbol = str(site)
-                color = cmap(float(iatom) / (len(iatom_list) - 1))
+                color = cmap(float(iatom) / max((len(aview.iatom_list) - 1), 1))
                 yy = pjdos_atdir[iatom, idir] / factor
 
                 if not stacked:
@@ -2856,7 +3250,8 @@ def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=
         titles: List of strings with the titles to be added to the subplots.
         phdos_kwargs: optional dictionary with the options passed to ``get_phdos`` to compute the phonon DOS.
             Used only if ``phdos_objects`` is not None.
-        units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+        units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+            Case-insensitive.
         width_ratios: Ratio between the width of the phonon band plots and the DOS plots.
             Used if `phdos_objects` is not None
         fontsize: legend and title fontsize.
@@ -2918,7 +3313,7 @@ def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=
 
 def dataframe_from_phbands(phbands_objects, index=None, with_spglib=True):
     """
-    Build a pandas dataframe with the most important results available in a list of band structures.
+    Build pandas dataframe with the most important results available in a list of band structures.
 
     Args:
         phbands_objects: List of objects that can be converted to phonon bands objects..
@@ -3106,7 +3501,8 @@ class PhononBandsPlotter(NotebookWriter):
         Use ``gridplot`` to plot band structures on different figures.
 
         Args:
-            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the k-points.
                 The values are the labels e.g. ``klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
@@ -3198,7 +3594,8 @@ class PhononBandsPlotter(NotebookWriter):
         Plot multiple phonon bandstructures and optionally DOSes on a grid.
 
         Args:
-            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
             with_dos: True to plot phonon DOS (if available).
             fontsize: legend and title fontsize.
 
@@ -3229,7 +3626,8 @@ class PhononBandsPlotter(NotebookWriter):
                 Dot notation is also supported e.g. hue="structure.formula" --> abifile.structure.formula
                 If callable, the output of hue(phbands) is used.
             with_dos: True to plot phonon DOS (if available).
-            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
             width_ratios: Ratio between the width of the fatbands plots and the DOS plots.
                 Used if plotter has PH DOSes is not None
             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
@@ -3344,7 +3742,8 @@ class PhononBandsPlotter(NotebookWriter):
 
         Args:
             mode_range: Only bands such as ``mode_range[0] <= nu_index < mode_range[1]`` are included in the plot.
-            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
             swarm: True to show the datapoints on top of the boxes
             kwargs: Keywork arguments passed to seaborn_ boxplot.
         """
@@ -3375,7 +3774,8 @@ class PhononBandsPlotter(NotebookWriter):
 
         Args:
             mode_range: Only bands such as ``mode_range[0] <= nu_index < mode_range[1]`` are included in the plot.
-            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
             swarm: True to show the datapoints on top of the boxes
             ax: |matplotlib-Axes| or None if a new figure should be created.
             kwargs: Keyword arguments passed to seaborn_ boxplot.
@@ -3441,7 +3841,8 @@ class PhononBandsPlotter(NotebookWriter):
         Args:
             interval: draws a new frame every interval milliseconds.
             savefile: Use e.g. 'myanimation.mp4' to save the animation in mp4 format.
-            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
             width_ratios: Ratio between the band structure plot and the dos plot.
                 Used when there are DOS stored in the plotter.
             show: True if the animation should be shown immediately
@@ -3600,7 +4001,8 @@ class PhononDosPlotter(NotebookWriter):
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
-            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
             ylims: y-axis limits.
@@ -4088,19 +4490,13 @@ class InteratomicForceConstants(Has_Structure):
 
         dist, filtered_ifc =  self.distances[ind], ifc[ind]
 
-        if 'color' not in kwargs:
-            kwargs['color'] = 'blue'
-
-        if 'marker' not in kwargs:
-            kwargs['marker'] = 'o'
-
-        if 'linewidth' not in kwargs and 'lw' not in kwargs:
-            kwargs['lw'] = 0
+        if 'color' not in kwargs: kwargs['color'] = 'blue'
+        if 'marker' not in kwargs: kwargs['marker'] = 'o'
+        if 'linewidth' not in kwargs and 'lw' not in kwargs: kwargs['lw'] = 0
 
         ax.set_xlabel('Distance (Bohr)')
         ax.set_ylabel(r'IFC (Ha/Bohr$^2$)')
         ax.grid(True)
-
         ax.plot(dist, filtered_ifc, **kwargs)
 
         return fig

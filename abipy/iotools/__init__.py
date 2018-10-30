@@ -5,6 +5,7 @@ import numpy as np
 import pymatgen.io.abinit.netcdf as ionc
 
 from monty.functools import lazy_property
+from pymatgen.core.periodic_table import Element
 from .xsf import *
 from .visualizer import *
 
@@ -64,3 +65,23 @@ class ETSF_Reader(ionc.ETSF_Reader):
     def none_if_masked_array(self, arr):
         """Return None if arr is a MaskedArray else None."""
         return None if np.ma.is_masked(arr) else arr
+
+    def read_amu_symbol(self):
+        """
+        Read atomic masses and return dictionary element_symbol --> amu.
+
+        .. note::
+
+            Only netcdf files with phonon-related quantities contain this variable.
+        """
+        for k in ("atomic_mass_units" , "atomic_numbers"):
+            if k not in self.rootgrp.variables:
+                raise RuntimeError("`%s` does not contain `%s` variable." % (self.path, k))
+
+        # ntypat arrays
+        amu_list = self.read_value("atomic_mass_units")
+        atomic_numbers = self.read_value("atomic_numbers")
+        amu_z = {at: a for at, a in zip(atomic_numbers, amu_list)}
+        amu_symbol = {Element.from_Z(n).symbol: v for n, v in amu_z.items()}
+
+        return amu_symbol

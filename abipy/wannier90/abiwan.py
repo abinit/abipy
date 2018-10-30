@@ -58,7 +58,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
     def mwan(self):
         """
         Max number of Wannier functions over spins, i.e max(nwan_spin)
-        (used to dimension arrays).
+        Used to dimension arrays.
         """
         return self.reader.read_dimvalue("mwan")
 
