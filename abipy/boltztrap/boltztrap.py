@@ -8,7 +8,6 @@ Warning:
     
     Work in progress
 """
-import time
 import pickle
 import numpy as np
 from monty.string import marquee
@@ -19,7 +18,6 @@ from abipy.electrons.ebands import ElectronBands
 from abipy.core.kpoints import Kpath
 from abipy.core.structure import Structure
 import abipy.core.abinit_units as abu
-from pymatgen.symmetry.bandstructure import HighSymmKpath
 
 from abipy.tools.plotting import add_fig_kwargs
 from abipy.tools.decorators import timeit
@@ -189,7 +187,7 @@ class AbipyBoltztrap():
 
         if kpath is None:
             if vertices_names is None:
-               vertices_names = [(k.frac_coords, k.name) for k in self.structure.hsym_kpoints]
+                vertices_names = [(k.frac_coords, k.name) for k in self.structure.hsym_kpoints]
 
             kpath = Kpath.from_vertices_and_names(self.structure, vertices_names, line_density=line_density)
 
@@ -487,7 +485,7 @@ class BoltztrapResult():
         from matplotlib import pyplot as plt
 
         if what == 'dos':
-            self.plot_dos_ax(ax,components,**kwargs)
+            self.plot_dos_ax(ax,**kwargs)
             return
 
         if what == 'vvdos':
@@ -558,11 +556,11 @@ class BoltztrapResultRobot():
         #consistency check in the temperature meshes
         res0 = results[0]
         if np.any([res0.tmesh != res.tmesh for res in results]):
-           cprint("Comparing BoltztrapResults with different temperature meshes.", color="yellow")
+            cprint("Comparing BoltztrapResults with different temperature meshes.", color="yellow")
 
         #consistency check in chemical potential meshes
         if np.any([res0.wmesh != res.wmesh for res in results]):
-           cprint("Comparing BoltztrapResults with different energy meshes.", color="yellow")
+            cprint("Comparing BoltztrapResults with different energy meshes.", color="yellow")
 
         #store the results
         self.results = results
@@ -676,7 +674,7 @@ class BoltztrapResultRobot():
         return fig
 
     @add_fig_kwargs
-    def plot_dos_vvdos(self,itemp_list=None,itau_list=None,which_dos=[0],components=('xx',),
+    def plot_dos_vvdos(self,itemp_list=None,itau_list=None,which_dos=(0,),components=('xx',),
                        dos_color=None,erange=None,**kwargs):
         """
         Plot the DOS and VVDOS for all the results
