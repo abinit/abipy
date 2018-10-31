@@ -2668,32 +2668,32 @@ class MsqDos(Has_Structure):
 
         return dict2namedtuple(tmesh=tmesh, displ=msq_d, vel=msq_v)
 
-    def convert_ucart(self, values, fmt):
+    def convert_ucart(self, ucart_mat, fmt):
         natom = len(self.structure)
         if fmt == "cartesian":
-            return values.copy()
+            return ucart_mat.copy()
 
         elif fmt == "B":
-            return values * 8 * np.pi**2
+            return ucart_mat * 8 * np.pi**2
 
         elif fmt in ("cif", "ustar", "beta"):
             # Build A matrix
             amat = self.structure.lattice.matrix.T
             ainv = np.linalg.inv(amat)
-            new_values = np.zeros_like(values)
+            new_mat = np.zeros_like(ucart_mat)
             for iatom in range(natom):
-                new_values[iatom] = np.matmul(ainv, np.matmul(values[iatom], ainv.T))
+                new_mat[iatom] = np.matmul(ainv, np.matmul(ucart_mat[iatom], ainv.T))
             # Now we have Ustar
-            if fmt == "ustar": return new_values
-            if fmt == "beta": return new_values * 8 * np.pi**2
+            if fmt == "ustar": return new_mat
+            if fmt == "beta": return new_mat * 8 * np.pi**2
 
             # Build N matrix (no 2 pi factor)
             ls, _ = self.structure.lattice.reciprocal_lattice_crystallographic.lengths_and_angles
             ninv = np.diag(1.0 / np.array(ls, dtype=float))
             for iatom in range(natom):
-                new_values[iatom] = np.matmul(ninv, np.matmul(new_values[iatom], ninv.T))
+                new_mat[iatom] = np.matmul(ninv, np.matmul(new_mat[iatom], ninv.T))
 
-            return new_values
+            return new_mat
 
         raise ValueError("Invalid format: `%s`" % str(fmt))
 
@@ -2747,16 +2747,30 @@ class MsqDos(Has_Structure):
         return pd.DataFrame(rows, index=None, columns=list(rows[0].keys()))
 
     def write_cif_file(self, filename, temp=300):
+        """
+        Write CIF file with structure info and anisotropic U terms in CIF format.
+
+        Args:
+            filename: Name of CIF file.
+            temp: Temperature in Kelvin used to compute U terms.
+        """
         with open(filename, "wt") as fh:
-            fh.write(self.get_cif_string(temp=temp))
+            s = self.get_cif_string(temp=temp)
+            print(s)
+            fh.write(s)
 
     def get_cif_string(self, temp=300):
-        # We need
+        """
+        Return string with structure info and anisotropic U terms in CIF format.
+        """
+        # Get string with structure info in CIF format.
+        # Don't use symprec because it changes the order of the sites.
+        # and we need to be consistent with the site_labels when writing aniso_U terms.
         from pymatgen.io.cif import CifWriter
         cif = CifWriter(self.structure, symprec=None)
         s = str(cif)
 
-        aniso_U = """loop_
+        aniso_u = """loop_
 _atom_site_aniso_label
 _atom_site_aniso_U_11
 _atom_site_aniso_U_22
@@ -2767,21 +2781,17 @@ _atom_site_aniso_U_12""".splitlines()
 
         natom = len(self.structure)
         msq = self.get_msq_tmesh([float(temp)])
-        values = getattr(msq, "displ")
-        values = np.reshape(values, (natom, 3, 3))
-        U_cif = self.convert_ucart(values, fmt="cif")
-        #U_cif = np.ones((len(self.structure), 3, 3))  * 0.002
+        ucart = getattr(msq, "displ")
+        ucart = np.reshape(ucart, (natom, 3, 3))
+        ucif = self.convert_ucart(ucart, fmt="cif")
 
         for iatom, site in enumerate(self.structure):
             site_label = "%s%d" % (site.specie.symbol, iatom + 1)
-            m = U_cif[iatom]
-            #m = np.diag(3 * [0.002])
-            aniso_U.append("%s %10.5f %10.5f %10.5f %10.5f %10.5f %10.5f" %
+            m = ucif[iatom]
+            aniso_u.append("%s %10.5f %10.5f %10.5f %10.5f %10.5f %10.5f" %
                     (site_label, m[0, 0], m[1, 1], m[2, 2], m[1, 2], m[0, 2], m[0, 1]))
 
-        s = s + "\n".join(aniso_U)
-        print(s)
-        return s
+        return s + "\n".join(aniso_u)
 
     def _get_components(self, components):
         """
