@@ -1597,7 +1597,7 @@ class Becs(Has_Structure):
         """Integration with jupyter notebooks."""
         return self.get_voigt_dataframe()._repr_html_()
 
-    def get_voigt_dataframe(self, view="inequivalent", tol=1e-3, select_symbols=None):
+    def get_voigt_dataframe(self, view="inequivalent", tol=1e-3, select_symbols=None, verbose=0):
         """
         Return |pandas-DataFrame| with Voigt indices as columns and natom rows.
 
