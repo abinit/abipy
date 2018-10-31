@@ -11,6 +11,8 @@ import numpy as np
 # taken from abinit/10_defs/defs_basis.F90
 # 1 Bohr, in Angstrom
 Bohr_Ang = 0.52917720859
+# 1 Angstrom in Bohr
+Ang_Bohr = 1.0/Bohr_Ang
 # 1 Hartree, in cm^-1
 Ha_cmm1 = 219474.6313705
 # 1 Hartree, in eV
@@ -18,6 +20,8 @@ Ha_eV = 27.21138386
 Ha_to_eV = Ha_eV
 # 1 eV in Hartree
 eV_Ha = 1. / Ha_eV
+# 1 eV in Rydberg
+eV_Ry = 2 * eV_Ha
 # 1 Hartree, in meV
 Ha_meV = Ha_eV * 1000
 # 1 Hartree, in Kelvin
@@ -46,6 +50,8 @@ amu_emass = 1.660538782e-27 / 9.10938215e-31
 HaBohr3_GPa = Ha_eV / Bohr_Ang**3 * e_Cb * 1.0e+21
 # 1 eV/A^3 to GPa
 eVA3_GPa = 160.21766208
+# 1 eV in seconds
+eV_s = eV_to_THz*1e12 * 2*np.pi
 # conversion factor for velocity between atomic units and SI
 velocity_at_to_si = 2.1876912633e6
 
