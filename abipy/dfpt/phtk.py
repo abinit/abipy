@@ -5,10 +5,9 @@ import os
 import math
 import numpy as np
 import pandas as pd
-
 import abipy.core.abinit_units as abu
+
 from abipy.core.mixins import Has_Structure, NotebookWriter
-from abipy.core.abinit_units import velocity_at_to_si
 from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.phonons import PhononBands, get_dyn_mat_eigenvec, match_eigenvectors
 from abipy.abio.inputs import AnaddbInput
@@ -243,7 +242,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
             for k in range(3):
                 slope, se, _, _ = np.linalg.lstsq(qpt_cart_norms[start:end][:, np.newaxis],
                                                   acoustic_freqs[:, k] * eV_to_Ha, rcond=None)
-                sv.append(slope[0] * velocity_at_to_si)
+                sv.append(slope[0] * abu.velocity_at_to_si)
 
                 # identify the type of the mode (longitudinal/transversal) based on the
                 # scalar product between the eigendisplacement and the direction.
@@ -312,7 +311,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
         rlatt = self.structure.lattice.reciprocal_lattice
         freqs = self.phfreqs[idir]
         qpt_cart_coords = np.array([np.linalg.norm(rlatt.get_cartesian_coords(c)) for c in self.qpts[idir]])
-        slope = self.sound_velocities[idir] / velocity_at_to_si * bohr_to_angstrom / eV_to_Ha
+        slope = self.sound_velocities[idir] / abu.velocity_at_to_si * bohr_to_angstrom / eV_to_Ha
 
         units_factor = abu.phfactor_ev2units(units)
 

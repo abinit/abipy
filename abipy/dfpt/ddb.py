@@ -1597,7 +1597,7 @@ class Becs(Has_Structure):
         """Integration with jupyter notebooks."""
         return self.get_voigt_dataframe()._repr_html_()
 
-    def get_voigt_dataframe(self, view="inequivalent", tol=1e-3, select_symbols=None):
+    def get_voigt_dataframe(self, view="inequivalent", tol=1e-3, select_symbols=None, verbose=0):
         """
         Return |pandas-DataFrame| with Voigt indices as columns and natom rows.
 
@@ -1851,29 +1851,30 @@ class DielectricTensorGenerator(Has_Structure):
             kwargs['linewidth'] = 2
 
         ax.set_xlabel('Frequency {}'.format(phunit_tag(units)))
-        ax.set_ylabel(r'$\varepsilon_{1}(\omega)$')
+        #ax.set_ylabel(r'$\varepsilon_{1}(\omega)$')
+        ax.set_ylabel(r'$\epsilon_{1}(\omega)$')
         ax.grid(True)
 
         reimfs = []
-        if 're' in reim: reimfs.append((np.real,"Re{%s}"))
-        if 'im' in reim: reimfs.append((np.imag,"Im{%s}"))
+        if 're' in reim: reimfs.append((np.real, "Re{%s}"))
+        if 'im' in reim: reimfs.append((np.imag, "Im{%s}"))
 
         for reimf,reims in reimfs:
             if isinstance(component, (list, tuple)):
-                label = reims%'$\epsilon_{%d%d}$'%tuple(component)
+                label = reims % r'$\epsilon_{%d%d}$' % tuple(component)
                 ax.plot(w_range, reimf(t[:,component[0], component[1]]), label=label, **kwargs)
             elif component == 'diag':
                 for i in range(3):
-                    label = reims%'$\epsilon_{%d%d}$'%(i,i)
+                    label = reims % r'$\epsilon_{%d%d}$' % (i,i)
                     ax.plot(w_range, reimf(t[:, i, i]), label=label, **kwargs)
             elif component == 'all':
                 for i in range(3):
                     for j in range(3):
-                        label = reim%'$\epsilon_{%d%d}$'%(i,j)
+                        label = reim % r'$\epsilon_{%d%d}$' % (i,j)
                         ax.plot(w_range, reimf(t[:, i, j]), label=label, **kwargs)
             elif component == 'diag_av':
                 for i in range(3):
-                    ax.plot(w_range, np.trace(reimf(t), axis1=1, axis2=2)/3, label='$\chi_{%d,%d}$'%(i, i), **kwargs)
+                    ax.plot(w_range, np.trace(reimf(t), axis1=1, axis2=2)/3, label=r'$\chi_{%d,%d}$' % (i, i), **kwargs)
             else:
                 raise ValueError('Unkwnown component {}'.format(component))
 

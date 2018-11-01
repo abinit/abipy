@@ -2135,9 +2135,6 @@ class PhononDos(Function1D):
 
         mesh is given in eV, values are in states/eV.
     """
-    #def __init__(self, mesh, values, qmesh):
-    #    super(PhononDos, self).__init__(mesh, values)
-    #    self.qmesh = qmesh
 
     @classmethod
     def as_phdos(cls, obj, phdos_kwargs=None):
@@ -2522,7 +2519,7 @@ class PhdosReader(ETSF_Reader):
             raise RuntimeError("PHBST file does not contain `msqd_dos_atom` variable.\nPlease use a more recent Abinit version")
 
         # nctkarr_t('msqd_dos_atom', "dp", 'number_of_frequencies, three, three, number_of_atoms') &
-        # symmetric tensor still transpose to be consistent.
+        # symmetric tensor still transpose (3,3) to be consistent.
         values = self.read_value("msqd_dos_atom").transpose([0, 2, 1, 3]).copy()
 
         # Read atomic masses and build dictionary element_symbol --> amu
@@ -2551,13 +2548,6 @@ class _Component(object):
             return r"$\langle {%s}^2 \rangle%s$" % (n, unit)
         else:
             return r"$\langle {%s}_{%s} \rangle%s$" % (n, self.name, unit)
-
-    #def get_label(self, what):
-    #    n = dict(displ="d", vel="v")[what]
-    #    if self.name == "trace"
-    #        return r"\langle %s^2 \rangle_{T}" % n
-    #    else:
-    #        return r"\langle %s_{%s} \rangle_{T}" % (n, self.name)
 
     def eval33w(self, mat33w):
         #assert mat33w.shape[:2] == (3, 3)
@@ -2618,7 +2608,7 @@ class MsqDos(Has_Structure):
 
         app(self.structure.to_string(verbose=verbose, title="Structure"))
         app("")
-        app(marquee("\int dw g_ij(w) = \delta_ij", mark="="))
+        app(marquee(r"\int dw g_ij(w) = \delta_ij", mark="="))
         app("")
         from scipy.integrate import simps
         for iatom, site in enumerate(self.structure):
@@ -2630,27 +2620,27 @@ class MsqDos(Has_Structure):
 
         return "\n".join(lines)
 
-    #def get_msq_temp(self, temp):
-    #    r = self.get_msq_tmesh(temp)
-    #    return
-
-    def get_msq_tmesh(self, tmesh):
+    def get_msq_tmesh(self, tmesh, iatom_list=None):
         """
         Compute mean square displacement for each atom as a function of T (bohr^2).
+
+        Args:
+            tmesh: array-like with temperatures in Kelvin degrees
+            iatom_list: List of atom sites to comput. None for all.
         """
         tmesh = np.array(tmesh)
         nt = len(tmesh)
-        # Integration mesh starts at iomin to avoid 1/0 and ignore eventual negative frequencies.
+
+        # Frequency mesh starts at iomin to avoid 1/0 and ignore eventual negative frequencies.
         for iomin, w in enumerate(self.wmesh):
             if w > 0.0: break
         else:
             raise ValueError("Cannot find index such that w[i] > zero!!!")
-
         wvals = self.wmesh[iomin:]
         nw = len(wvals)
 
         # Calculate BE occ factors only once for each T (instead of for each atom).
-        npht = np.empty((nt, nw))
+        npht = np.zeros((nt, nw))
         for it, temp in enumerate(tmesh):
             #npht[it] = abu.occ_be(wvals, temp * abu.kb_eVK) + 0.5  ###
             npht[it] = abu.occ_be(wvals, temp * abu.kb_HaK) + 0.5
@@ -2659,8 +2649,11 @@ class MsqDos(Has_Structure):
         msq_d = np.empty((natom, 3, 3, nt))
         msq_v = np.empty((natom, 3, 3, nt))
 
+        # Perform frequency integration.
         from scipy.integrate import simps
+        if iatom_list is not None: iatom_list = set(iatom_list)
         for iatom in range(natom):
+            if iatom_list is not None and iatom not in iatom_list: continue
             symbol = self.structure[iatom].specie.symbol
             for it in range(nt):
                 fn = self.values[iatom, :, :, iomin:] * npht[it]
@@ -2674,6 +2667,35 @@ class MsqDos(Has_Structure):
                 #msq_v[iatom, :, :, it] = simps(ys, x=wvals)
 
         return dict2namedtuple(tmesh=tmesh, displ=msq_d, vel=msq_v)
+
+    def convert_ucart(self, ucart_mat, fmt):
+        natom = len(self.structure)
+        if fmt == "cartesian":
+            return ucart_mat.copy()
+
+        elif fmt == "B":
+            return ucart_mat * 8 * np.pi**2
+
+        elif fmt in ("cif", "ustar", "beta"):
+            # Build A matrix
+            amat = self.structure.lattice.matrix.T
+            ainv = np.linalg.inv(amat)
+            new_mat = np.zeros_like(ucart_mat)
+            for iatom in range(natom):
+                new_mat[iatom] = np.matmul(ainv, np.matmul(ucart_mat[iatom], ainv.T))
+            # Now we have Ustar
+            if fmt == "ustar": return new_mat
+            if fmt == "beta": return new_mat * 8 * np.pi**2
+
+            # Build N matrix (no 2 pi factor)
+            ls, _ = self.structure.lattice.reciprocal_lattice_crystallographic.lengths_and_angles
+            ninv = np.diag(1.0 / np.array(ls, dtype=float))
+            for iatom in range(natom):
+                new_mat[iatom] = np.matmul(ninv, np.matmul(new_mat[iatom], ninv.T))
+
+            return new_mat
+
+        raise ValueError("Invalid format: `%s`" % str(fmt))
 
     def get_dataframe(self, temp=300, fmt="cartesian", view="inequivalent", what="displ",
                       select_symbols=None, verbose=0):
@@ -2695,26 +2717,12 @@ class MsqDos(Has_Structure):
         aview = self._get_atomview(view, verbose=verbose)
 
         # [natom, 3, 3, nt=1]
-        msq = self.get_msq_tmesh([float(temp)])
+        msq = self.get_msq_tmesh([float(temp)], iatom_list=aview.iatom_list)
         values = getattr(msq, what)
         natom = len(self.structure)
         values = np.reshape(values, (natom, 3, 3))
-
-        if fmt == "cartesian":
-            pass
-        elif fmt == "cif":
-            # Build A matrix
-            amat = self.structure.lattice.matrix.T
-            ainv = np.linalg.inv(amat)
-            for iatom in range(natom):
-                values[iatom] = np.matmul(ainv, np.matmul(values[iatom], ainv.T))
-            # Build N matrix (no 2 pi factor)
-            ls, _ = self.structure.lattice.reciprocal_lattice_crystallographic.lengths_and_angles
-            ninv = np.diag(1.0 / np.array(ls, dtype=float))
-            for iatom in range(natom):
-                values[iatom] = np.matmul(ninv, np.matmul(values[iatom], ninv.T))
-        else:
-            raise ValueError("Invalid format: `%s`" % str(fmt))
+        if what == "displ":
+            values = self.convert_ucart(values, fmt)
 
         select_symbols = set(list_strings(select_symbols)) if select_symbols is not None else None
         columns = ["xx", "yy", "zz", "yz", "xz", "xy"]
@@ -2728,12 +2736,62 @@ class MsqDos(Has_Structure):
             d["site_index"] = iatom
             if view == "inequivalent": d["wyckoff"] = wyck
             d["frac_coords"] = site.frac_coords
+            if fmt == "cartesian":
+                d["iso"] = values[iatom].trace() / 3.0
+                #d["determinat"] = np.linalg.det(values[iatom])
             for col, ind in zip(columns, inds):
                 d[col] = values[iatom, ind[0], ind[1]]
             rows.append(d)
 
         import pandas as pd
         return pd.DataFrame(rows, index=None, columns=list(rows[0].keys()))
+
+    def write_cif_file(self, filename, temp=300):
+        """
+        Write CIF file with structure info and anisotropic U terms in CIF format.
+
+        Args:
+            filename: Name of CIF file.
+            temp: Temperature in Kelvin used to compute U terms.
+        """
+        with open(filename, "wt") as fh:
+            s = self.get_cif_string(temp=temp)
+            print(s)
+            fh.write(s)
+
+    def get_cif_string(self, temp=300):
+        """
+        Return string with structure info and anisotropic U terms in CIF format.
+        """
+        # Get string with structure info in CIF format.
+        # Don't use symprec because it changes the order of the sites.
+        # and we need to be consistent with the site_labels when writing aniso_U terms.
+        from pymatgen.io.cif import CifWriter
+        cif = CifWriter(self.structure, symprec=None)
+        s = str(cif)
+
+        aniso_u = """loop_
+_atom_site_aniso_label
+_atom_site_aniso_U_11
+_atom_site_aniso_U_22
+_atom_site_aniso_U_33
+_atom_site_aniso_U_23
+_atom_site_aniso_U_13
+_atom_site_aniso_U_12""".splitlines()
+
+        natom = len(self.structure)
+        msq = self.get_msq_tmesh([float(temp)])
+        ucart = getattr(msq, "displ")
+        ucart = np.reshape(ucart, (natom, 3, 3))
+        ucif = self.convert_ucart(ucart, fmt="cif")
+
+        for iatom, site in enumerate(self.structure):
+            site_label = "%s%d" % (site.specie.symbol, iatom + 1)
+            m = ucif[iatom]
+            aniso_u.append("%s %10.5f %10.5f %10.5f %10.5f %10.5f %10.5f" %
+                    (site_label, m[0, 0], m[1, 1], m[2, 2], m[1, 2], m[0, 2], m[0, 1]))
+
+        return s + "\n".join(aniso_u)
 
     def _get_components(self, components):
         """
@@ -2745,6 +2803,8 @@ class MsqDos(Has_Structure):
             return [self.ALL_COMPS[c] for c in ("xx", "yy", "zz", "yz", "xz", "xy")]
         elif components == "diago":
             return [self.ALL_COMPS[c] for c in ("xx", "yy", "zz")]
+        elif components == "offdiago":
+            return [self.ALL_COMPS[c] for c in ("xy", "xz", "yz")]
         else:
             return [self.ALL_COMPS[c] for c in list_strings(components)]
 
@@ -2823,8 +2883,8 @@ class MsqDos(Has_Structure):
 
     @add_fig_kwargs
     def plot_bfactors(self, tstart=0, tstop=600, num=50, components="all", what="displ", view="inequivalent",
-                      units="eV", colormap="jet", alpha=0.7, xlims=None, ylims=None,
-                      ax_list=None, fontsize=10, verbose=0, **kwargs):
+                      colormap="jet", alpha=0.7, xlims=None, ylims=None,
+                      fontsize=10, verbose=0, **kwargs):
         """
         Plot phonon PJDOS for each atom in the unit cell.
         One subplot for each component, each subplot show all inequivalent sites.
@@ -2834,53 +2894,56 @@ class MsqDos(Has_Structure):
             tstart: The starting value (in Kelvin) of the temperature mesh.
             tstop: The end value (in Kelvin) of the mesh.
             num: int, optional Number of samples to generate. Default is 50.
-            components: List of cartesian tensor components to plot e.g. ["xx", "xy"].
-                "all" for all components. "upper" for the upper triangle, "diago" for diagonal elements.
+            components: "all" for all components. "diago" for diagonal elements, "offdiago" for off-diagonal terms only.
             what: "displ" for displament, "vel" for velocity.
             view: "inequivalent" to show only inequivalent atoms. "all" for all sites.
-            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
-                Case-insensitive.
             colormap: matplotlib colormap.
             alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
-            ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
             fontsize: Legend and title fontsize.
             verbose: Verbosity level.
 
         Returns: |matplotlib-Figure|
         """
-        #factor = abu.phfactor_ev2units(units)
-
         # Select atoms.
         aview  = self._get_atomview(view, verbose=verbose)
 
         # One subplot for each component
-        components = self._get_components(components)
-        num_plots = len(components)
-        nrows, ncols = num_plots, 1
+        diago = ["xx", "yy", "zz"]
+        offdiago = ["xy", "xz", "yz"]
+        components = {
+            "all": diago + offdiago,
+            "diago": diago,
+            "offdiago": offdiago,
+        }[components]
 
-        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
+        components = self._get_components(components)
+        shape = np.reshape(components, (-1 ,3)).shape
+        #num_plots = len(components)
+        nrows, ncols = shape[0], shape[1]
+
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                 sharex=True, sharey=True, squeeze=True)
         ax_list = np.reshape(ax_list, (nrows, ncols)).ravel()
         cmap = plt.get_cmap(colormap)
 
         # [natom, 3, 3, nt]
         tmesh = np.linspace(tstart, tstop, num=num)
-        msq = self.get_msq_tmesh(tmesh)
+        msq = self.get_msq_tmesh(tmesh, iatom_list=aview.iatom_list)
         values = getattr(msq, what)
 
         for ix, (ax, comp) in enumerate(zip(ax_list, components)):
-            #irow, icol = divmod(ix, ncols)
+            irow, icol = divmod(ix, ncols)
             ax.grid(True)
             set_axlims(ax, xlims, "x")
             set_axlims(ax, ylims, "y")
-            ylabel = comp.get_tavg_label(what, with_units=ix==0)
+            ylabel = comp.get_tavg_label(what, with_units=True)
             ax.set_ylabel(ylabel, fontsize=fontsize)
 
-            # Plot Type projected DOSes along cartesian direction idir
+            # Plot this component for all inequivalent atoms on the same subplot.
             for ii, (iatom, site_label) in enumerate(zip(aview.iatom_list, aview.labels)):
                 #site = self.structure[iatom]
                 color = cmap(float(ii) / max((len(aview.iatom_list) - 1), 1))
@@ -2892,7 +2955,7 @@ class MsqDos(Has_Structure):
                 if ix == 0:
                     ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
-            if ix == len(components) - 1:
+            if irow == 1:
                 ax.set_xlabel('Temperature [K]')
             else:
                 set_visible(ax, False, "xlabel", "xticklabels")
@@ -3081,7 +3144,6 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
                                                 sharex=False, sharey=True, squeeze=True)
         ax_list = np.reshape(ax_list, (nrows, ncols)).ravel()
-
         cmap = plt.get_cmap(colormap)
 
         # symbol --> [three, number_of_frequencies] in cart dirs
@@ -3197,6 +3259,14 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         units = kwargs.get("units", "mev")
         yield self.phdos.plot(units=units, show=False)
         yield self.plot_pjdos_type(units=units, show=False)
+        # Old formats do not have MSQDOS arrays.
+        try:
+            msqd_dos = self.msqd_dos
+        except Exception:
+            msqd_dos = None
+        if msqd_dos is not None:
+            yield msqd_dos.plot(units=units, show=False)
+            yield msqd_dos.plot_bfactors(show=False)
 
     def write_notebook(self, nbpath=None):
         """

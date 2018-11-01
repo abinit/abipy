@@ -61,6 +61,14 @@ dfpt Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`phtk` Module
+------------------
+
+.. automodule:: abipy.dfpt.phtk
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`qha` Module
 -----------------
 
