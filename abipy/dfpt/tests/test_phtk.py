@@ -22,7 +22,7 @@ class SoundVelocityTest(AbipyTest):
 
         if self.has_matplotlib():
             assert sv.plot_fit_freqs_dir(0, show=False)
-            assert sv.plot_fit_freqs(0, show=False)
+            assert sv.plot(show=False)
 
         if self.has_nbformat():
             assert sv.write_notebook(nbpath=self.get_tmpname(text=True))

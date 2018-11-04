@@ -179,6 +179,8 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
     spgopt_parser.add_argument('--angle-tolerance', default=5.0, type=float,
         help="angle_tolerance (float): Angle tolerance for symmetry finding. Default: 5.0")
     spgopt_parser.add_argument("--no-time-reversal", default=False, action="store_true", help="Don't use time-reversal.")
+    spgopt_parser.add_argument("--site-symmetry", default=False, action="store_true",
+                               help="Show site symmetries i.e. the point group operations that leave the site invariant.")
 
     # Parent parser for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)
@@ -483,7 +485,7 @@ def main():
     if options.command == "spglib":
         structure = abilab.Structure.from_file(options.filepath)
         print(structure.spget_summary(symprec=options.symprec, angle_tolerance=options.angle_tolerance,
-                                      verbose=options.verbose))
+                                      site_symmetry=options.site_symmetry, verbose=options.verbose))
 
     elif options.command == "abispg":
         structure = abilab.Structure.from_file(options.filepath)

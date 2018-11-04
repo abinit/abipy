@@ -29,7 +29,7 @@ from abipy.abio.inputs import AnaddbInput
 from abipy.dfpt.phonons import PhononDosPlotter, PhononBandsPlotter, InteratomicForceConstants
 from abipy.dfpt.elastic import ElasticData
 from abipy.core.abinit_units import phfactor_ev2units, phunit_tag
-from abipy.tools.plotting import Marker, add_fig_kwargs, get_ax_fig_plt, set_axlims
+from abipy.tools.plotting import Marker, add_fig_kwargs, get_ax_fig_plt, set_axlims, get_axarray_fig_plt
 from abipy.tools import duck
 from abipy.tools.tensors import DielectricTensor, ZstarTensor, Stress
 from abipy.abio.robots import Robot
@@ -1115,7 +1115,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """
         Invoke Anaddb to compute Phonon DOS with different q-meshes. The ab-initio dynamical matrix
         reported in the DDB_ file will be Fourier-interpolated on the list of q-meshes specified
-        by ``nqsmalls``. Useful to perform covergence studies.
+        by ``nqsmalls``. Useful to perform convergence studies.
 
         Args:
             nqsmalls: List of integers defining the q-mesh for the DOS. Each integer gives
@@ -1608,28 +1608,25 @@ class Becs(Has_Structure):
                 Used to select only atoms of this type.
             verbose: Verbosity level.
         """
-        select_symbols = set(list_strings(select_symbols)) if select_symbols is not None else None
-
-        aview = self._get_atomview(view, verbose=verbose)
+        aview = self._get_atomview(view, select_symbols=select_symbols, verbose=verbose)
 
         columns = ["xx", "yy", "zz", "yz", "xz", "xy"]
         rows = []
-        #for isite, (site, zstar) in enumerate(zip(self.structure, self.zstars)):
-        for (isite, wyck) in zip(aview.iatom_list, aview.wyckoffs):
+        for (iatom, wlabel) in zip(aview.iatom_list, aview.wyck_labels):
             site = self.structure[iatom]
-            if select_symbols is not None and site.specie.symbol not in select_symbols: continue
             zstar = self.zstars[iatom]
             d = OrderedDict()
             d["element"] = site.specie.symbol
-            d["site_index"] = isite
-            if view == "inequivalent": d["wyckoff"] = wyck
-            d["frac_coords"] = site.frac_coords
+            d["site_index"] = iatom
+            d["frac_coords"] = np.round(site.frac_coords, decimals=5)
+            d["cart_coords"] = np.round(site.coords, decimals=5)
+            d["wyckoff"] = wlabel
             zstar = zstar.zeroed(tol=tol)
             for k, v in zip(columns, zstar.voigt):
                 d[k] = v
             rows.append(d)
 
-        return pd.DataFrame(rows, index=None, columns=list(rows[0].keys()))
+        return pd.DataFrame(rows, columns=list(rows[0].keys()) if rows else None)
 
 
 class DielectricTensorGenerator(Has_Structure):
@@ -1723,7 +1720,7 @@ class DielectricTensorGenerator(Has_Structure):
         app("")
         app(marquee("Oscillator strength", mark="="))
         tol = 1e-8
-        app("Real part in a.u.; 1 a.u. = 253.2638413 m3/s2. Set to zero below %.2e." % tol)
+        app("Real part in Cartesian coordinates. a.u. units; 1 a.u. = 253.2638413 m3/s2. Set to zero below %.2e." % tol)
         app(self.get_oscillator_dataframe(reim="re", tol=tol).to_string())
         if verbose:
             app("")
@@ -1754,10 +1751,15 @@ class DielectricTensorGenerator(Has_Structure):
             tol: Entries are set to zero below this value
         """
         dmap = dict(xx=(0, 0), yy=(1, 1), zz=(2, 2), yz=(1, 2), xz=(0, 2), xy=(0, 1))
+        #decimals = int(abs(np.rint(np.log10(tol))))
+        # 1 a.u. = 253.2638413 m3/s2.
+        # TODO: Use SI?
+        #fact = 253.2638413
 
         rows, index = [], []
         for nu in range(3 * len(self.structure)):
             d = {k: data_from_cplx_mode(reim, self.oscillator_strength[nu][t], tol=tol) for k, t in dmap.items()}
+            #d = {k: np.around(v * fact, decimals=decimals) for k, v in d.items()}
             rows.append(d)
             index.append(nu)
 
@@ -1767,12 +1769,11 @@ class DielectricTensorGenerator(Has_Structure):
 
     def tensor_at_frequency(self, w, gamma_ev=1e-4, units='eV'):
         """
-        Returns a |DielectricTensor| object representing
-        the dielectric tensor in atomic units at the specified frequency w.
-        Eq.(53-54) in PRB55, 10355 (1997).
+        Returns a |DielectricTensor| object representing the dielectric tensor
+        in atomic units at the specified frequency w. Eq.(53-54) in PRB55, 10355 (1997).
 
         Args:
-            w: frequency
+            w: Frequency in eV
             gamma_ev: Phonon damping factor in eV (full width). Poles are shifted by phfreq * gamma_ev.
                 Accept scalar or [nfreq] array.
             units: string specifying the units used for ph frequencies.  Possible values in
@@ -1809,7 +1810,7 @@ class DielectricTensorGenerator(Has_Structure):
         return DielectricTensor(t)
 
     @add_fig_kwargs
-    def plot(self, w_min=0, w_max=None, gamma_ev=1e-4, num=500, component='diag', reim="reim",  units='eV',
+    def plot(self, w_min=0, w_max=None, gamma_ev=1e-4, num=500, component='diag', reim="reim", units='eV',
              with_phfreqs=True, ax=None, fontsize=12, **kwargs):
         """
         Plots the selected components of the dielectric tensor as a function of frequency.
@@ -1823,11 +1824,12 @@ class DielectricTensorGenerator(Has_Structure):
             component: determine which components of the tensor will be displayed. Can be a list/tuple of two
                 elements, indicating the indices [i, j] of the desired component or a string among:
 
-                * 'diag' to plot the elements on diagonal
-                * 'all' to plot all the components
                 * 'diag_av' to plot the average of the components on the diagonal
+                * 'diag' to plot the elements on diagonal
+                * 'all' to plot all the components in the upper triangle.
+                * 'offdiag' to plot the off-diagonal components in the upper triangle.
 
-            reim: a string with "re" will plot the real part, with "im" the imaginary part.
+            reim: a string with "re" will plot the real part, with "im" selects the imaginary part.
             units: string specifying the units used for phonon frequencies. Possible values in
                 ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             with_phfreqs: True to show phonon frequencies with dots.
@@ -1837,12 +1839,12 @@ class DielectricTensorGenerator(Has_Structure):
         Return: |matplotlib-Figure|
         """
         if w_max is None:
-            w_max = np.max(self.phfreqs) * phfactor_ev2units(units) + gamma_ev*10
+            w_max = np.max(self.phfreqs) * phfactor_ev2units(units) + gamma_ev * 10
 
-        w_range = np.linspace(w_min, w_max, num, endpoint=True)
+        wmesh = np.linspace(w_min, w_max, num, endpoint=True)
+        t = np.zeros((num, 3, 3), dtype=complex)
 
-        t = np.zeros((num, 3, 3),dtype=complex)
-        for i, w in enumerate(w_range):
+        for i, w in enumerate(wmesh):
             t[i] = self.tensor_at_frequency(w, units=units, gamma_ev=gamma_ev)
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
@@ -1851,30 +1853,31 @@ class DielectricTensorGenerator(Has_Structure):
             kwargs['linewidth'] = 2
 
         ax.set_xlabel('Frequency {}'.format(phunit_tag(units)))
-        #ax.set_ylabel(r'$\varepsilon_{1}(\omega)$')
-        ax.set_ylabel(r'$\epsilon_{1}(\omega)$')
+        ax.set_ylabel(r'$\epsilon(\omega)$')
         ax.grid(True)
 
         reimfs = []
         if 're' in reim: reimfs.append((np.real, "Re{%s}"))
         if 'im' in reim: reimfs.append((np.imag, "Im{%s}"))
 
-        for reimf,reims in reimfs:
+        for reimf, reims in reimfs:
             if isinstance(component, (list, tuple)):
                 label = reims % r'$\epsilon_{%d%d}$' % tuple(component)
-                ax.plot(w_range, reimf(t[:,component[0], component[1]]), label=label, **kwargs)
+                ax.plot(wmesh, reimf(t[:,component[0], component[1]]), label=label, **kwargs)
             elif component == 'diag':
                 for i in range(3):
-                    label = reims % r'$\epsilon_{%d%d}$' % (i,i)
-                    ax.plot(w_range, reimf(t[:, i, i]), label=label, **kwargs)
-            elif component == 'all':
+                    label = reims % r'$\epsilon_{%d%d}$' % (i, i)
+                    ax.plot(wmesh, reimf(t[:, i, i]), label=label, **kwargs)
+            elif component in ('all', "offdiag"):
                 for i in range(3):
                     for j in range(3):
-                        label = reim % r'$\epsilon_{%d%d}$' % (i,j)
-                        ax.plot(w_range, reimf(t[:, i, j]), label=label, **kwargs)
+                        if component == "all" and i > j: continue
+                        if component == "offdiag" and i >= j: continue
+                        label = reims % r'$\epsilon_{%d%d}$' % (i, j)
+                        ax.plot(wmesh, reimf(t[:, i, j]), label=label, **kwargs)
             elif component == 'diag_av':
-                for i in range(3):
-                    ax.plot(w_range, np.trace(reimf(t), axis1=1, axis2=2)/3, label=r'$\chi_{%d,%d}$' % (i, i), **kwargs)
+                label = r'$Average\, %s\epsilon_{ii}$' % reims
+                ax.plot(wmesh, np.trace(reimf(t), axis1=1, axis2=2)/3, label=label, **kwargs)
             else:
                 raise ValueError('Unkwnown component {}'.format(component))
 
@@ -1889,6 +1892,26 @@ class DielectricTensorGenerator(Has_Structure):
 
     # To maintain backward compatibility.
     plot_vs_w = plot
+
+    @add_fig_kwargs
+    def plot_all(self, **kwargs):
+        """
+        Plot diagonal and off-diagonal elements of the dielectric tensor as a function of frequency.
+        Both real and imag part are show. Accepts all arguments of `plot` method with the exception of:
+            `component` and `reim`.
+
+        Returns: |matplotlib-Figure|
+        """
+        axmat, fig, plt = get_axarray_fig_plt(None, nrows=2, ncols=2,
+                                              sharex=True, sharey=False, squeeze=False)
+        fontsize = kwargs.pop("fontsize", 8)
+        for irow in range(2):
+            component = {0: "diag", 1: "offdiag"}[irow]
+            for icol in range(2):
+                reim = {0: "re", 1: "im"}[icol]
+                self.plot(component=component, reim=reim, ax=axmat[irow, icol], fontsize=fontsize, show=False, **kwargs)
+
+        return fig
 
 
 class DdbRobot(Robot):
@@ -2231,7 +2254,6 @@ class DdbRobot(Robot):
 
             # Add path to the DDB file.
             if with_path: df["ddb_path"] = ddb.filepath
-
             df_list.append(df)
 
         # Concatenate dataframes.

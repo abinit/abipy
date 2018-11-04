@@ -192,7 +192,6 @@ def main():
                 print(abifile)
 
             if hasattr(abifile, "expose"):
-
                 abifile.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
                                verbose=options.verbose)
             else:

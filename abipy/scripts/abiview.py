@@ -207,6 +207,13 @@ asr = {asr}, chneut = {chneut}, dipdip = {dipdip}, lo_to_splitting = {lo_to_spli
                 e(phbands.plot_fatbands(units=units, phdos_file=phdos_file, show=False))
                 e(phdos.plot(units=units, show=False))
                 e(phdos_file.plot_pjdos_type(units=units, show=False))
+                #try
+                #    msq_dos = phdos_file.msq_dos
+                #except RuntimeError:
+                #    msq_dos = None
+                #if msq_dos is not None:
+                #    e(msq_dos.plot_uiso(show=False))
+                #    e(msq_dos.plot_uiso(show=False))
 
         phbst_file.close()
         phdos_file.close()
@@ -232,7 +239,50 @@ num_points= {num_points}, asr = {asr}, chneut = {chneut}, dipdip = {dipdip}
     df = sv.get_dataframe()
     abilab.print_dataframe(df, title="Speed of sound for different directions:")
     df_to_clipboard(options, df)
-    sv.plot_fit_freqs()
+    sv.plot()
+
+    return 0
+
+
+def abiview_ddb_ir(options):
+    """
+    Compute infra-red spectrum from DDB. Plot results.
+    """
+    asr = 2; chneut = 1; dipdip = 1
+    print("""
+Computing phonon frequencies for infra-red spectrum with:
+asr = {asr}, chneut = {chneut}, dipdip = {dipdip}
+""".format(**locals()))
+
+    with abilab.abiopen(options.filepath) as ddb:
+        tgen = ddb.anaget_dielectric_tensor_generator(asr=asr, chneut=chneut, dipdip=dipdip, verbose=options.verbose)
+        print(tgen.to_string(verbose=options.verbose))
+
+        gamma_ev = 1e-4
+        print("Plotting dielectric tensor with constant phonon damping: %s (eV)" % gamma_ev)
+        tgen.plot_all(gamma_ev=gamma_ev)
+
+    return 0
+
+
+def abiview_ddb_ifc(options):
+    """
+    Visualize interatomic force constants in real space.
+    """
+    asr = 2; chneut = 1; dipdip = 1
+    print("""
+Computing interatomic force constants with
+asr = {asr}, chneut = {chneut}, dipdip = {dipdip}
+""".format(**locals()))
+
+    with abilab.abiopen(options.filepath) as ddb:
+        # Execute anaddb to compute the interatomic force constants.
+        ifc = ddb.anaget_ifc(asr=asr, chneut=chneut, dipdip=dipdip)
+        #print(ifc)
+        with MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout) as e:
+            e(ifc.plot_longitudinal_ifc(title="Longitudinal IFCs", show=False))
+            e(ifc.plot_longitudinal_ifc_short_range(title="Longitudinal IFCs short range", show=False))
+            e(ifc.plot_longitudinal_ifc_ewald(title="Longitudinal IFCs Ewald", show=False))
 
     return 0
 
@@ -333,7 +383,10 @@ Usage example:
 # Phonons
 #########
 
-    abiview.py ddb out_DDB                ==>  Compute ph-bands and DOS from DDB, plot results.
+    abiview.py ddb in_DDB                 ==>  Compute ph-bands and DOS from DDB, plot results.
+    abiview.py ddb_vs                     ==>  Compute speed of sound from DDB by fitting phonon frequencies.
+    abiview.py ddb_ir                     ==>  Compute infra-red spectrum from DDB. Plot results.
+    abiview.py ddb_ifc                    ==>  Visualize interatomic force constants in real space.
     abiview.py phbands out_PHBST.nc -web  ==>  Visualize phonon bands and displacements with phononwebsite.
 
 ###############
@@ -487,6 +540,14 @@ def get_parser(with_epilog=False):
     # Subparser for ddb_vs command.
     p_ddb_vs = subparsers.add_parser('ddb_vs', parents=[copts_parser, pandas_parser, slide_parser],
                                      help=abiview_ddb_vs.__doc__)
+
+    # Subparser for ddb_ir command.
+    p_ddb_ir = subparsers.add_parser('ddb_ir', parents=[copts_parser, pandas_parser, slide_parser],
+                                     help=abiview_ddb_ir.__doc__)
+
+    # Subparser for ddb_ifc command.
+    p_ddb_ifc = subparsers.add_parser('ddb_ifc', parents=[copts_parser, pandas_parser, slide_parser],
+                                     help=abiview_ddb_ifc.__doc__)
 
     # Subparser for phbands command.
     p_phbands = subparsers.add_parser('phbands', parents=[copts_parser, slide_parser], help=abiview_phbands.__doc__)

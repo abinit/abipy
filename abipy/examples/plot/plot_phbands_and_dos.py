@@ -30,4 +30,4 @@ phdos.plot(units="cm-1", title="Phonon DOS and IDOS in cm-1")
 
 # Plot the phonon band structure with different color for each line.
 phbands.plot_colored_matched(units="cm-1",
-                            title="AlAs with different color for each line.")
+                             title="AlAs with different color for each line.")

@@ -189,7 +189,7 @@ class DdbTest(AbipyTest):
                 num_cpus=2, verbose=2)
         assert c.phdoses and c.plotter is not None
 
-        # Execute anaddb to compute the interatomic forces.
+        # Execute anaddb to compute the interatomic force constants.
         ifc = ddb.anaget_ifc()
         str(ifc); repr(ifc)
         #assert ifc.to_string(verbose=2)
@@ -260,7 +260,7 @@ class DdbTest(AbipyTest):
             assert becs.to_string(verbose=2)
             for arr, z in zip(becs.values, becs.zstars):
                 self.assert_equal(arr, z)
-            df = becs.get_voigt_dataframe(select_symbols="O")
+            df = becs.get_voigt_dataframe(view="all", select_symbols="O", verbose=1)
             assert len(df) == 2
 
             # get the dielectric tensor generator from anaddb
@@ -397,6 +397,7 @@ class DielectricTensorGeneratorTest(AbipyTest):
             assert d.plot_vs_w(w_min=0, w_max=None, num=10, units="cm-1", show=False)
             for comp in ["diag", "all", "diag_av"]:
                 assert d.plot_vs_w(num=10, component=comp, units="cm-1", show=False)
+            assert d.plot_all(units="mev", show=False)
 
 
 class DdbRobotTest(AbipyTest):

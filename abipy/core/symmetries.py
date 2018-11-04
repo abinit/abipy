@@ -68,10 +68,6 @@ def mati3inv(mat3, trans=True):
        Since these form a group, inverses are also integer arrays.
     """
     mat3 = np.reshape(np.array(mat3, dtype=np.int), (3, 3))
-    #if mat3.dtype not in (np.int, np.int8, np.int16, np.int32, np.int64):
-    #    raise TypeError("Expecting integer matrix but received dtype %s" % mat3.dtype)
-    #if mat3.shape != (3, 3):
-    #    raise TypeError("Expecting (3, 3) matrix but received shape %s" % str(mat3.shape))
 
     mit = np.empty((3, 3), dtype=np.int)
     mit[0,0] = mat3[1,1] * mat3[2,2] - mat3[2,1] * mat3[1,2]
@@ -94,7 +90,7 @@ def mati3inv(mat3, trans=True):
     if trans:
         return mit
     else:
-        return mit.T
+        return mit.T.copy()
 
 
 def _get_det(mat):
@@ -109,9 +105,99 @@ def _get_det(mat):
         + mat[0,2]* (mat[1,0]*mat[2,1] - mat[1,1]*mat[2,0])
 
     if abs(det) != 1:
-        raise ValueError("determinant must be +-1 while it is %s" % det)
+        raise ValueError("Determinant must be +-1 while it is %s" % det)
 
     return det
+
+
+def indsym_from_symrel(symrel, tnons, structure, tolsym=1e-8):
+    r"""
+    For each symmetry operation, find the number of the position to
+    which each atom is sent in the unit cell by the INVERSE of the
+    symmetry operation inv(symrel); i.e. this is the atom which, when acted
+    upon by the given symmetry element isym, gets transformed into atom iatom.
+    indirect indexing array for atoms, see symatm.F90.
+
+    $ R^{-1} (xred(:,iat) - \tau) = xred(:,iat_sym) + R_0 $
+    * indsym(4,  isym,iat) gives iat_sym in the original unit cell.
+    * indsym(1:3,isym,iat) gives the lattice vector $R_0$.
+
+    Args:
+        symrel: int (nsym,3,3) array with real space symmetries expressed in reduced coordinates.
+        tnons: float (nsym, 3) array with nonsymmorphic translations for each symmetry.
+        structure: |Structure| object.
+        tolsym: tolerance for the symmetries
+
+    Returns:
+    """
+    natom = len(structure)
+    nsym = len(symrel)
+    xred = np.array([site.frac_coords for site in structure], dtype=float)
+    typat = {i: site.specie.symbol for i, site in enumerate(structure)}
+
+    rm1_list = np.empty_like(symrel)
+    for isym in range(nsym):
+        rm1_list[isym] = mati3inv(symrel[isym], trans=False)
+
+    # Start testmn out at large value
+    testmn = 1000000
+    err = 0.0
+    indsym = np.empty((natom, nsym, 4))
+
+    # Implementation is similar to Abinit routine (including the order of the loops)
+    for isym in range(nsym):
+        for iatom in range(natom):
+            tratm = np.matmul(rm1_list[isym], xred[iatom] - tnons[isym])
+            # Loop through atoms, when types agree, check for agreement after primitive translation
+            for jatm in range(natom):
+                if typat[jatm] != typat[iatom]: continue
+                test_vec = tratm - xred[jatm]
+                # Find nearest integer part of difference
+                trans = np.rint(test_vec)
+                # Check whether, after translation, they agree
+                test_vec = test_vec - trans
+                diff = np.abs(test_vec).sum()
+                # Abinit uses 1e-10 but python seems to require a slightly larger value.
+                #if diff < 1e-10:
+                if diff < 1e-9:
+                    difmin = test_vec
+                    indsym[iatom, isym, :3] = trans
+                    indsym[iatom, isym, 3] = jatm
+                    # Break out of loop when agreement is within tolerance
+                    break
+                else:
+                    # Keep track of smallest difference if greater than tol10
+                    if diff < testmn:
+                        testmn = diff
+                        # Note that abs() is not taken here
+                        difmin = test_vec
+                        indsym[iatom, isym, :3] = trans
+                        indsym[iatom, isym, 3] = jatm
+
+        # Keep track of maximum difference between transformed coordinates and nearest "target" coordinate
+        difmax = np.abs(difmin).max()
+        err = max(err, difmax)
+        if difmax > tolsym:
+            cprint("""
+Trouble finding symmetrically equivalent atoms.
+Applying inverse of symm number {isym} to atom number {iatom} of typat',typat(iatom)
+gives tratom=',tratom(1:3)
+This is further away from every atom in crystal than the allowed tolerance.
+The inverse symmetry matrix is',symrec(1,1:3,isym),ch10,&
+                               ',symrec(2,1:3,isym),ch10,&
+                               ',symrec(3,1:3,isym)
+and the nonsymmorphic transl. tnons =',(tnons(mu,isym),mu=1,3)
+The nearest coordinate differs by',difmin(1:3) for indsym(nearest atom)=',indsym(4,isym,iatom)
+
+This indicates that when symatm attempts to find atoms symmetrically
+related to a given atom, the nearest candidate is further away than some tolerance.
+Should check atomic coordinates and symmetry group input data.
+""".format(), "red")
+
+    if err > tolsym:
+        raise ValueError("maximum err %s is larger than tolsym: %s" % (err, tolsym))
+
+    return indsym
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -176,15 +262,15 @@ class SymmOp(Operation, SlotPickleMixin):
         "_trace",
     ]
 
-    # TODO: Add lattice
+    # TODO: Add lattice?
     def __init__(self, rot_r, tau, time_sign, afm_sign, rot_g=None):
         """
         This object represents a space group symmetry i.e. a symmetry of the crystal.
 
         Args:
-            rot_r: 3x3 integer matrix with the rotational part in real space in reduced coordinates (C order).
+            rot_r: (3,3) integer matrix with the rotational part in real space in reduced coordinates (C order).
             tau: fractional translation in reduced coordinates.
-            time_sign: -1 if time reversal can be used, otherwise +1.
+            time_sign: -1 if time reversal can be used, +1 otherwise.
             afm_sign: anti-ferromagnetic part [+1, -1].
         """
         rot_r = np.asarray(rot_r)
@@ -354,23 +440,6 @@ class SymmOp(Operation, SlotPickleMixin):
 
         return wrap_in_ucell(rotm1_rmt) if in_ucell else rotm1_rmt
 
-    #def rotate_gvecs(self, gvecs):
-    #    """
-    #    Apply the symmetry operation to the list of gvectors gvecs in reduced coordinates.
-
-    #    Args:
-    #        gvecs: `ndarray` with shape [ng, 3] containing the reduced coordinates of the G-vectors.
-
-    #    Returns:
-    #        rot_gvecs: `ndarray` with shape [ng, 3] containing the result of self(G).
-    #    """
-    #    rot_gvecs = np.empty_like(gvecs)
-
-    #    for ig, gvec in enumerate(gvecs):
-    #        rot_gvecs[ig] = np.dot(self.rot_g, gvec) * self.time_sign
-
-    #    return rot_gvecs
-
 
 class OpSequence(collections.Sequence):
     """
@@ -470,9 +539,7 @@ class OpSequence(collections.Sequence):
     def is_commutative(self):
         """True if all operations commute with each other."""
         for op1, op2 in iuptri(self, diago=False):
-            if op1 * op2 != op2 * op1:
-                return False
-
+            if op1 * op2 != op2 * op1: return False
         return True
 
     def is_abelian_group(self):
@@ -513,7 +580,6 @@ class OpSequence(collections.Sequence):
                     index = d[op12]
                 except KeyError:
                     index = None
-
                 mtable[i, j] = index
 
         return mtable
@@ -612,9 +678,6 @@ class AbinitSpaceGroup(OpSequence):
             for isym in range(len(self.symrel)):
                 self._symrel[isym] = self._symrel[isym].T
 
-        #self._symrel = np.reshape(self._symrel, (-1, 3, 3))
-        #self._tnons = np.reshape(self._tnons, (-1, 3))
-
         self._symrec = self._symrel.copy()
         for isym in range(len(self.symrel)):
             self._symrec[isym] = mati3inv(self.symrel[isym], trans=True)
@@ -630,19 +693,27 @@ class AbinitSpaceGroup(OpSequence):
         self._ops = tuple(all_syms)
 
     @classmethod
-    def from_file(cls, ncfile, inord="F"):
-        """Initialize the object from a Netcdf file."""
-        r, closeit = as_etsfreader(ncfile)
-
+    def from_ncreader(cls, r, inord="F"):
+        """
+        Builds the object from a netcdf reader
+        """
         kptopt = int(r.read_value("kptopt", default=1))
+        symrel = r.read_value("reduced_symmetry_matrices")
 
-        new = cls(spgid=r.read_value("space_group"),
-                  symrel=r.read_value("reduced_symmetry_matrices"),
-                  tnons=r.read_value("reduced_symmetry_translations"),
-                  symafm=r.read_value("symafm"),
-                  has_timerev=has_timrev_from_kptopt(kptopt),
-                  inord=inord)
+        return cls(spgid=r.read_value("space_group"),
+                   symrel=symrel,
+                   tnons=r.read_value("reduced_symmetry_translations"),
+                   symafm=r.read_value("symafm"),
+                   has_timerev=has_timrev_from_kptopt(kptopt),
+                   inord=inord)
 
+    @classmethod
+    def from_file(cls, ncfile, inord="F"):
+        """
+        Initialize the object from a Netcdf file.
+        """
+        r, closeit = as_etsfreader(ncfile)
+        new = cls.from_ncreader(r)
         if closeit:
             file.close()
 
@@ -654,9 +725,9 @@ class AbinitSpaceGroup(OpSequence):
         Takes a |Structure| object. Uses spglib to perform various symmetry finding operations.
 
         Args:
-            structure: |Structure| object
+            structure: |Structure| object.
             has_timerev: True is time-reversal symmetry is included.
-            symprec: Tolerance for symmetry finding
+            symprec: Tolerance for symmetry finding.
             angle_tolerance: Angle tolerance for symmetry finding.
 
         .. warning::
@@ -706,18 +777,28 @@ class AbinitSpaceGroup(OpSequence):
 
     @property
     def symrel(self):
+        """
+        [nsym, 3, 3] int array with symmetries in reduced coordinates of the direct lattice.
+        """
         return self._symrel
 
     @property
     def tnons(self):
+        """
+        [nsym, 3] float array with fractional translations in reduced coordinates of the direct lattice.
+        """
         return self._tnons
 
     @property
     def symrec(self):
+        """
+        [nsym, 3, 3] int array with symmetries in reduced coordinates of the reciprocal lattice.
+        """
         return self._symrec
 
     @property
     def symafm(self):
+        """[nsym] int array with +1 if FM or -1 if AFM symmetry."""
         return self._symafm
 
     @property
@@ -812,7 +893,7 @@ class AbinitSpaceGroup(OpSequence):
         k_symmops = [self[i] for i in to_spgrp]
         return LittleGroup(kpoint, k_symmops, g0vecs)
 
-# To maintain backward compatibility.
+# FIXME To maintain backward compatibility.
 SpaceGroup = AbinitSpaceGroup
 
 
@@ -892,8 +973,9 @@ class LatticePointGroup(OpSequence):
         self._ops = [LatticeRotation(rot) for rot in rotations]
 
         # Call spglib to get the Herm symbol.
-        # Remove blanks from C string.
+        # (symbol, pointgroup_number, transformation_matrix)
         herm_symbol, ptg_num, trans_mat = spglib.get_pointgroup(rotations)
+        # Remove blanks from C string.
         self.herm_symbol = herm_symbol.strip()
         #print(self.herm_symbol, ptg_num, trans_mat)
 
@@ -999,7 +1081,6 @@ class LatticeRotation(Operation):
 
     def __pow__(self, intexp, modulo=1):
         if intexp ==  0: return self.__class__(self._E3D)
-        #if intexp  >  0: return self.__class__(self.mat ** intexp)
         if intexp  >  0: return self.__class__(np.linalg.matrix_power(self.mat, intexp))
         if intexp == -1: return self.inverse()
         if intexp  <  0: return self.__pow__(-intexp).inverse()
@@ -1051,18 +1132,6 @@ class LatticeRotation(Operation):
         name += "-" if self.root_inv != 0 else "+"
 
         return name
-
-    #def versor(self):
-    #    # Numb code, it would be possible to have a closed expression.
-    #    from numpy.linalg import eig
-    #    eigens, eigvecs = eig(self.mat)
-    #    eigvecs = eigvecs.T # F --> C
-    #    print(eigens, eigvecs)
-    #    for e, vec in zip(eigens, eigves):
-    #       if np.abs(e - 1) < 1.e-3:
-    #            return vec
-    #    else:
-    #       raise ValueError("Cannot find versor of the rotation)
 
     #@property
     #def rottype(self):

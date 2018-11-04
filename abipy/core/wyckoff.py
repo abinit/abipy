@@ -5,9 +5,12 @@ or to retrieve Wyckoff parameters from a given structure.
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
+import sympy as sp
+
 
 #from monty.functools import lazy_property
 from collections import Sequence, OrderedDict
+from monty.termcolor import cprint
 
 
 def _validate_params(params, wpos):
@@ -211,3 +214,69 @@ class Wyckoff(object):
         for elsym, wpos in self.site2wpos.items():
             frac_errors = wpos.error_of_params(params[elsym], frac_coords[elsym])
             print(frac_errors)
+
+from abipy.core.mixins import Has_Structure
+
+class SiteSymmetries(Has_Structure):
+
+    def __init__(self, structure):
+        if not structure.has_abi_spacegroup:
+            structure.spgset_abi_spacegroup(has_timerev=True, overwrite=False)
+        self._structure = structure
+        abispg = structure.abi_spacegroup
+
+        self.sp_symrel, self.sp_symrec = [], []
+        for symr, symc in zip(abispg.symrel, abispg.symrec):
+            self.sp_symrel.append(sp.Matrix((symr)))
+            self.sp_symrec.append(sp.Matrix((symc)))
+
+        #from abipy.core.symmetries import indsym_from_symrel
+        #other_indsym = indsym_from_symrel(abispg.symrel, abispg.tnons, self.structure, tolsym=1e-8)
+        #assert np.all(self.structure.indsym == other_indsym)
+
+    @property
+    def structure(self):
+        return self._structure
+
+    def show_tensors(self, view="all", select_symbols=None, verbose=0):
+        # Select atoms.
+        aview = self._get_atomview(view, select_symbols, verbose=verbose)
+
+        sitesym_labels = self.structure.spget_site_symmetries()
+
+        axx, ayy, azz, axy, axz, ayz = symbols = sp.symbols('axx, ayy, azz, axy, axz, ayz')
+        tensor = sp.Matrix(([axx, axy, axz], [axy, ayy, ayz], [axz, ayz, azz]))
+
+        rows = []
+        indsym = self.structure.indsym
+        #for iatom, site_label in zip(aview.iatom_list, aview.site_labels):
+        for (iatom, wlabel) in zip(aview.iatom_list, aview.wyck_labels):
+            site = self.structure[iatom]
+            system = []
+            for isym, rotf in enumerate(self.sp_symrel):
+                if indsym[iatom, isym, 3] != iatom: continue
+                m = rotf * tensor * rotf.T - tensor
+                if verbose:
+                    sp.pprint(m)
+                system.append(m)
+
+            solutions = sp.solve(system, dict=True)
+            #print(solutions)
+            if solutions:
+                d = OrderedDict()
+                d["element"] = site.specie.symbol
+                d["site_index"] = iatom
+                d["frac_coords"] = site.frac_coords
+                d["wyckoff"] = wlabel
+                d["site_symmetry"] = sitesym_labels[iatom]
+                for s in symbols:
+                    d[s] = s
+                if len(solutions) > 1:
+                    cprint("Found multiple solutions for iatom %d" % iatom, "red")
+                d.update(**solutions[0])
+                rows.append(d)
+
+        import pandas as pd
+        df = pd.DataFrame(rows, index=None, columns=list(rows[0].keys() if rows else None))
+        from abipy import abilab
+        abilab.print_dataframe(df)

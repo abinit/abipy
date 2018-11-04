@@ -13,7 +13,7 @@ from time import ctime
 import numpy as np
 from monty.os.path import which
 from monty.termcolor import cprint
-from monty.string import is_string
+from monty.string import is_string, list_strings
 from monty.collections import dict2namedtuple
 from monty.functools import lazy_property
 from abipy.flowtk.netcdf import NetcdfReader, NO_DEFAULT
@@ -246,47 +246,49 @@ class Has_Structure(object):
         else:
             raise visu.Error("Don't know how to export data for appname %s" % appname)
 
-    def _get_atomview(self, view, verbose=0):
+    def _get_atomview(self, view, select_symbols=None, verbose=0):
         """
         Helper function used to select (inequivalent||all) atoms depending on view.
         Uses spglib to find inequivalent sites.
+
+        Args:
+            view: "inequivalent" to show only inequivalent atoms. "all" for all sites.
+            select_symbols: String or list of strings with chemical symbols.
+                Used to select only atoms of this type.
 
         Return named tuple with:
 
                 * iatom_list: list of site index.
                 * wyckoffs: Wyckoff letters
-                * labels: Latex labels for each site in `iatom_list` computed from
-                    element symbol and wyckoffs positions.
+                * site_labels: Labels for each site in `iatom_list` e.g Si2a
         """
         natom = len(self.structure)
-        if view == "all": # or natom == 1:
-            # This option is maily used for debugging e.g. to check if all sites are really equivalent.
+        if natom == 1: verbose = False
+        if verbose:
+            print("Calling spglib to find inequivalent sites. Magnetic symmetries (if any) are not taken into account.")
+
+        ea = self.structure.spget_equivalent_atoms(printout=verbose > 0)
+
+        # Define iatom_list depending on view
+        if view == "all":
             iatom_list = np.arange(natom)
-            wyckoffs = [str(i) for i in range(natom)]
-            wyck_mult = [1 for i in range(natom)]
-
         elif view == "inequivalent":
-            if natom == 1: verbose = False
-            if verbose:
-                print("Calling spglib to find inequivalent sites. Magnetic symmetries (if any) are not taken into account.")
-            ea = self.structure.spget_equivalent_atoms(printout=verbose > 0)
             iatom_list = ea.irred_pos
-            wyckoffs = ea.wyckoffs
-            wyck_mult = ea.wyck_mult
-
         else:
             raise ValueError("Wrong value for view: %s" % str(view))
 
-        # Build Latex labels
-        labels = []
-        for iat, wsymb, wmul in zip(iatom_list, wyckoffs, wyck_mult):
-            site = self.structure[iat]
-            if view == "all":
-                labels.append("%s [%s]" % (site.specie.symbol, wsymb))
-            else:
-                labels.append("%s (%s%s)" % (site.specie.symbol, wmul, wsymb))
+        # Filter by element symbol.
+        if select_symbols is not None:
+            select_symbols = set(list_strings(select_symbols))
+            iatom_list = [i for i in iatom_list if self.structure[i].specie.symbol in select_symbols]
+            iatom_list = np.array(iatom_list, dtype=np.int)
 
-        return dict2namedtuple(iatom_list=iatom_list, wyckoffs=wyckoffs, labels=labels)
+        # Slice full arrays.
+        wyckoffs = ea.wyckoffs[iatom_list]
+        wyck_labels = ea.wyck_labels[iatom_list]
+        site_labels = ea.site_labels[iatom_list]
+
+        return dict2namedtuple(iatom_list=iatom_list, wyckoffs=wyckoffs, wyck_labels=wyck_labels, site_labels=site_labels)
 
     def yield_structure_figs(self, **kwargs):
         """*Generates* a predefined list of matplotlib figures with minimal input from the user."""

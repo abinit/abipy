@@ -18,7 +18,7 @@ from pymatgen.symmetry.bandstructure import HighSymmKpath
 
 class SoundVelocity(Has_Structure, NotebookWriter):
     """
-    Compute speed of sound by fitting phonon frequencies along selected directions
+    Compute the speed of sound by fitting phonon frequencies along selected directions
     by linear least-squares fit.
     """
     def __init__(self, directions, sound_velocities, mode_types, structure,
@@ -278,14 +278,13 @@ class SoundVelocity(Has_Structure, NotebookWriter):
         for i in range(self.n_directions):
             for m in range(3):
                 rows.append([
-                    tuple(self.directions[i]),
+                    tuple(np.round(self.directions[i], decimals=5)),
                     self.labels[i] if self.labels else "",
                     self.sound_velocities[i][m],
                     self.mode_types[i][m]
                 ])
 
         return pd.DataFrame(rows, columns=columns).set_index(["direction", "label"])
-
 
     @add_fig_kwargs
     def plot_fit_freqs_dir(self, idir, ax=None, units="eV", **kwargs):
@@ -301,7 +300,6 @@ class SoundVelocity(Has_Structure, NotebookWriter):
         Returns:
             |matplotlib-Figure|
         """
-
         if self.phfreqs is None or self.qpts is None:
             raise ValueError("The plot requires the phonon frequencies and the qpoints.")
 
@@ -330,7 +328,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_fit_freqs(self, ax=None, units="eV", **kwargs):
+    def plot(self, units="eV", **kwargs):
         """
         Plots the phonon frequencies, if available, along all the directions.
         The lines representing the fitted values will be shown as well.
@@ -342,9 +340,8 @@ class SoundVelocity(Has_Structure, NotebookWriter):
         Returns:
             |matplotlib-Figure|
         """
+        ax, fig, plt = get_ax_fig_plt(ax=None)
         from matplotlib.gridspec import GridSpec
-
-        ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         nrows, ncols = math.ceil(self.n_directions / 2),  2
         gspec = GridSpec(nrows=nrows, ncols=ncols, wspace=0.15, hspace=0.25)
