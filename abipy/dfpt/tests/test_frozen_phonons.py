@@ -20,7 +20,7 @@ class FrozenPhononTest(AbipyTest):
 
         qpt_frac_coords = [0.5, 0.5, 0.5]
         fp = FrozenPhonon.from_phbands(phbands, qpt_frac_coords, 0 ,
-                                       etas=[-0.2, -0.1, 0, 0.1, 0.2], max_supercell=[5,5,5])
+                                       etas=[-0.2, -0.1, 0, 0.1, 0.2], max_supercell=[5, 5, 5])
 
         self.assertArrayEqual(fp.scale_matrix, [[-1,  0,  1], [-1,  1,  0], [-1, -1,  0]])
 

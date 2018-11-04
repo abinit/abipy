@@ -53,6 +53,14 @@ dfpt Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`msqdos` Module
+--------------------
+
+.. automodule:: abipy.dfpt.msqdos
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`phonons` Module
 ---------------------
 

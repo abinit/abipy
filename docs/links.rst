@@ -117,6 +117,7 @@
 .. |PhononDos| replace:: :class:`abipy.dfpt.phonons.PhononDos`
 .. |PhononBandsPlotter| replace:: :class:`abipy.dfpt.phonons.PhononBandsPlotter`
 .. |PhononDosPlotter| replace:: :class:`abipy.dfpt.phonons.PhononDosPlotter`
+.. |MsqDos| replace:: :class:`abipy.dfpt.msqdos.MsqDos`
 .. |Pseudo| replace:: :class:`pymatgen.io.abinit.pseudos.Pseudo`
 .. |PseudoTable| replace:: :class:`pymatgen.io.abinit.pseudos.PseudoTable`
 .. |Visualizer| replace:: :class:`abipy.iotools.visualizer.Visualizer`

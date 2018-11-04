@@ -214,6 +214,8 @@ def abiopen(filepath):
     Args:
         filepath: string with the filename.
     """
+    filepath = os.path.expanduser(filepath)
+
     if os.path.basename(filepath) == "__AbinitFlow__.pickle":
         return Flow.pickle_load(filepath)
 

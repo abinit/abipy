@@ -20,7 +20,6 @@ def quadratic_fit_function(xx, aa, bb):
         aa: the coefficient of the quadratic term
         bb: the constant term
     """
-
     return aa * xx ** 2 + bb
 
 class FrozenPhonon(object):
@@ -166,7 +165,6 @@ class FrozenPhonon(object):
         term of the fit.
         The fit is performed with scipy.optimize.curve_fit based on the function given in input and can also be
         limited number to a subset of the values of the displacements.
-
 
         Args:
             fit_function: a function that will be used to fit the data. The first parameter should be the coefficient
