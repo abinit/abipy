@@ -180,8 +180,7 @@ def indsym_from_symrel(symrel, tnons, structure, tolsym=1e-8):
         if difmax > tolsym:
             cprint("""
 Trouble finding symmetrically equivalent atoms.
-Applying inverse of symm number {isym} to atom number {iatom} of typat',typat(iatom)
-gives tratom=',tratom(1:3)
+Applying inverse of symm number {isym} to atom number {iatom} of typat',typat(iatom) gives tratom=',tratom(1:3)
 This is further away from every atom in crystal than the allowed tolerance.
 The inverse symmetry matrix is',symrec(1,1:3,isym),ch10,&
                                ',symrec(2,1:3,isym),ch10,&

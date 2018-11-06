@@ -14,8 +14,7 @@ import abipy.data as abidata
 
 from abipy import abilab
 
-# Open DDB file for alpha-SiO2 taken from
-# https://materialsproject.org/materials/mp-7000/
+# Open DDB file for alpha-SiO2 taken from https://materialsproject.org/materials/mp-7000/
 filepath = os.path.join(abidata.dirpath, "refs", "mp-7000_DDB.bz2")
 ddb = abilab.abiopen(filepath)
 
@@ -29,9 +28,8 @@ msqd_dos = phdos_file.msqd_dos
 print(msqd_dos)
 #for fmt in ("cartesian", "cif", "ustar", "beta", "B"):
 for fmt in ("cartesian", "cif"):
-    print("Format:", fmt)
     df = msqd_dos.get_dataframe(temp=300, view="all", fmt=fmt)
-    abilab.print_dataframe(df)
+    abilab.print_dataframe(df, title="Format: %s" % fmt))
 
 # Plot generalized phonon DOS for each inequivalent atom in the unit cell.
 msqd_dos.plot()
@@ -44,13 +42,8 @@ msqd_dos.plot_uiso()
 # To save the structure and the U tensor at T=300K in CIF format, use:
 #msqd_dos.write_cif_file("DW.cif", temp=300)
 
-# To visualize the thermal ellipsoids with Vesta:
+# To visualize the thermal ellipsoids with Vesta, use:
 #msqd_dos.vesta_open(temp=300)
-
-#msqd_dos.plot(view="all")
-#msqd_dos.plot_tensor(view="all")
-#msqd_dos.plot_uiso(view="all")
-#msqd_dos.plot_uiso(view="all", what="vel")
 
 # Remember to close the files.
 phbst_file.close()

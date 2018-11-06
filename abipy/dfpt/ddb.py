@@ -1605,7 +1605,7 @@ class Becs(Has_Structure):
         """Integration with jupyter notebooks."""
         return self.get_voigt_dataframe()._repr_html_()
 
-    def get_voigt_dataframe(self, view="inequivalent", tol=1e-3, select_symbols=None, verbose=0):
+    def get_voigt_dataframe(self, view="inequivalent", tol=1e-3, select_symbols=None, decimals=5, verbose=0):
         """
         Return |pandas-DataFrame| with Voigt indices as columns and natom rows.
 
@@ -1614,6 +1614,8 @@ class Becs(Has_Structure):
             tol: Entries are set to zero below this value
             select_symbols: String or list of strings with chemical symbols.
                 Used to select only atoms of this type.
+            decimals: Number of decimal places to round to.
+                If decimals is negative, it specifies the number of positions to the left of the decimal point.
             verbose: Verbosity level.
         """
         aview = self._get_atomview(view, select_symbols=select_symbols, verbose=verbose)
@@ -1626,8 +1628,8 @@ class Becs(Has_Structure):
             d = OrderedDict()
             d["element"] = site.specie.symbol
             d["site_index"] = iatom
-            d["frac_coords"] = np.round(site.frac_coords, decimals=5)
-            d["cart_coords"] = np.round(site.coords, decimals=5)
+            d["frac_coords"] = np.round(site.frac_coords, decimals=decimals)
+            d["cart_coords"] = np.round(site.coords, decimals=decimals)
             d["wyckoff"] = wlabel
             zstar = zstar.zeroed(tol=tol)
             for k, v in zip(columns, zstar.voigt):

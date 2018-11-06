@@ -224,8 +224,10 @@ class SiteSymmetries(Has_Structure):
             structure.spgset_abi_spacegroup(has_timerev=True, overwrite=False)
 
         self._structure = structure
+
         abispg = structure.abi_spacegroup
         nsym = len(abispg.symrel)
+        indsym = self.structure.indsym
 
         #self.eq_atoms = structure.spget_equivalent_atoms()
 
@@ -253,8 +255,6 @@ class SiteSymmetries(Has_Structure):
         a = self.structure.lattice.matrix.T
         self.symcart = np.matmul(a, np.matmul(abispg.symrel, np.linalg.inv(a)))
 
-        indsym = self.structure.indsym
-
         import spglib
         self.sitesym_labels = []
         for iatom, site in enumerate(self.structure):
@@ -272,13 +272,15 @@ class SiteSymmetries(Has_Structure):
         """|Structure| object."""
         return self._structure
 
-    def get_wyckoff_dataframe(self, view="all", select_symbols=None, verbose=0):
+    def get_wyckoff_dataframe(self, view="all", select_symbols=None, decimals=5, verbose=0):
         """
         Find Wyckoff positions.
 
         Args:
             view:
             select_symbols:
+            decimals: Number of decimal places to round to.
+                If decimals is negative, it specifies the number of positions to the left of the decimal point.
             verbose: Verbosity level.
 
         Return |pandas-DataFrame| with cartesian tensor components as columns and (inequivalent) sites along the rows.
@@ -315,8 +317,8 @@ class SiteSymmetries(Has_Structure):
                 d = OrderedDict()
                 d["element"] = site.specie.symbol
                 d["site_index"] = iatom
-                d["cart_coords"] = np.round(site.coords, decimals=5)
-                d["frac_coords"] = np.round(site.frac_coords, decimals=5)
+                d["cart_coords"] = np.round(site.coords, decimals=decimals)
+                d["frac_coords"] = np.round(site.frac_coords, decimals=decimals)
                 d["wyckoff"] = wlabel
                 d["site_symmetry"] = sitesym_labels[iatom]
                 for s in frac_symbols:
@@ -330,12 +332,14 @@ class SiteSymmetries(Has_Structure):
         df = pd.DataFrame(rows, index=None, columns=list(rows[0].keys()) if rows else None)
         return df
 
-    def get_tensor_rank2_dataframe(self, view="all", select_symbols=None, verbose=0):
+    def get_tensor_rank2_dataframe(self, view="all", select_symbols=None, decimal=5, verbose=0):
         """
 
         Args:
             view:
             select_symbols:
+            decimals: Number of decimal places to round to.
+                If decimals is negative, it specifies the number of positions to the left of the decimal point.
             verbose: Verbosity level
 
         Return |pandas-DataFrame| with cartesian tensor components as columns and (inequivalent) sites along the rows.
@@ -370,8 +374,8 @@ class SiteSymmetries(Has_Structure):
                 d = OrderedDict()
                 d["element"] = site.specie.symbol
                 d["site_index"] = iatom
-                d["frac_coords"] = np.round(site.frac_coords, decimals=5)
-                d["cart_coords"] = np.round(site.coords, decimals=5)
+                d["frac_coords"] = np.round(site.frac_coords, decimals=decimals)
+                d["cart_coords"] = np.round(site.coords, decimals=decimals)
                 d["wyckoff"] = wlabel
                 d["site_symmetry"] = sitesym_labels[iatom]
                 for s in symbols:

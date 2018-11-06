@@ -15,8 +15,7 @@ import abipy.data as abidata
 
 from abipy import abilab
 
-# Open DDB file for alpha-SiO2 taken from
-# https://materialsproject.org/materials/mp-7000/
+# Open DDB file for alpha-SiO2 taken from https://materialsproject.org/materials/mp-7000/
 filepath = os.path.join(abidata.dirpath, "refs", "mp-7000_DDB.bz2")
 ddb = abilab.abiopen(filepath)
 

@@ -990,7 +990,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             if len(rotations) != 0:
                 herm_symbol, ptg_num, trans_mat = spglib.get_pointgroup(rotations)
 
-            sitesym_labels.append("%s (#%d) ord: %d" % (herm_symbol.strip(), ptg_num, len(rotations)))
+            sitesym_labels.append("%s (#%d) nsym:%d" % (herm_symbol.strip(), ptg_num, len(rotations)))
 
         return sitesym_labels
 

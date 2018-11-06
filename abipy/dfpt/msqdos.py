@@ -201,7 +201,7 @@ class MsqDos(Has_Structure):
 
         raise ValueError("Invalid format: `%s`" % str(fmt))
 
-    def get_dataframe(self, temp=300, fmt="cartesian", view="inequivalent", what="displ",
+    def get_dataframe(self, temp=300, fmt="cartesian", view="inequivalent", what="displ", decimals=5,
                       select_symbols=None, verbose=0):
         """
         Return |pandas-DataFrame| with cartesian tensor components as columns and (inequivalent) sites along the rows.
@@ -211,6 +211,8 @@ class MsqDos(Has_Structure):
             fmt: "cartesian" for elements in Cartesian coordinates, "cif" for results in reduced coordinates
             view: "inequivalent" to show only inequivalent atoms. "all" for all sites.
             what: "displ" for displament, "vel" for velocity.
+            decimals: Number of decimal places to round to.
+                If decimals is negative, it specifies the number of positions to the left of the decimal point.
             select_symbols: String or list of strings with chemical symbols. Used to select only atoms of this type.
             verbose: Verbosity level.
 
@@ -235,8 +237,8 @@ class MsqDos(Has_Structure):
             d = OrderedDict()
             d["element"] = site.specie.symbol
             d["site_index"] = iatom
-            d["frac_coords"] = np.round(site.frac_coords, decimals=5)
-            d["cart_coords"] = np.round(site.coords, decimals=5)
+            d["frac_coords"] = np.round(site.frac_coords, decimals=decimals)
+            d["cart_coords"] = np.round(site.coords, decimals=decimals)
             d["wyckoff"] = wlabel
             if fmt == "cartesian":
                 d["isotropic"] = values[iatom].trace() / 3.0
