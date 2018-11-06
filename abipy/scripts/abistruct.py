@@ -108,7 +108,7 @@ Usage example:
                                               print Bilbao character table.
   abistruct.py kstar FILE -k 0.25 0 0      => Read structure from FILE, print star of k-point.
   abistruct.py keq FILE -k 0.5 0 0 0 0.5 0  => Read structure from FILE, test whether k1 and k2 are
-                                               symmetry equivalent k-points.
+                                               symmetry-equivalent k-points.
 
 ###############
 # Miscelleanous
@@ -281,6 +281,14 @@ Has to be all integers. Several options are possible:
     p_proto.add_argument("--ltol", default=0.2, type=float, help="fractional length tolerance.")
     p_proto.add_argument("--stol", default=0.3, type=float, help="site tolerance.")
     p_proto.add_argument("--angle-tol", default=5, type=float, help="angle tolerance.")
+
+    # Subparser for wyckoff.
+    p_wyckoff = subparsers.add_parser('wyckoff', parents=[copts_parser, path_selector],
+            help="Print wyckoff positions. WARNING: still under development!")
+
+    # Subparser for tensor_site.
+    p_tensor_site = subparsers.add_parser('tensor_site', parents=[copts_parser, path_selector],
+            help="Print symmetry properties of tensors due to site-symmetries. WARNING: still under development!")
 
     # Subparser for neighbors.
     p_neighbors = subparsers.add_parser('neighbors', parents=[copts_parser, path_selector],
@@ -648,6 +656,20 @@ def main():
                 print("AFLOW url: %s\n" % url)
             if not options.verbose:
                 print("Use --verbose to increase output level")
+
+    elif options.command == "wyckoff":
+        structure = abilab.Structure.from_file(options.filepath)
+        from abipy.core.wyckoff import SiteSymmetries
+        ss = SiteSymmetries(structure)
+        df = ss.get_wyckoff_dataframe(view="all", select_symbols=None, verbose=options.verbose)
+        abilab.print_dataframe(df)
+
+    elif options.command == "tensor_site":
+        structure = abilab.Structure.from_file(options.filepath)
+        from abipy.core.wyckoff import SiteSymmetries
+        ss = SiteSymmetries(structure)
+        df = ss.get_tensor_rank2_dataframe(view="all", select_symbols=None, verbose=options.verbose)
+        abilab.print_dataframe(df)
 
     elif options.command == "neighbors":
         abilab.Structure.from_file(options.filepath).print_neighbors(radius=options.radius)

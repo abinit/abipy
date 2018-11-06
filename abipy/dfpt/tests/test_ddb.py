@@ -192,7 +192,7 @@ class DdbTest(AbipyTest):
         # Execute anaddb to compute the interatomic force constants.
         ifc = ddb.anaget_ifc()
         str(ifc); repr(ifc)
-        #assert ifc.to_string(verbose=2)
+        assert ifc.to_string(verbose=2)
         assert ifc.structure == ddb.structure
         assert ifc.number_of_atoms == len(ddb.structure)
 
@@ -200,6 +200,14 @@ class DdbTest(AbipyTest):
             assert ifc.plot_longitudinal_ifc(show=False)
             assert ifc.plot_longitudinal_ifc_short_range(show=False)
             assert ifc.plot_longitudinal_ifc_ewald(show=False)
+
+        # Test get_coarse.
+        coarse_ddb = ddb.get_coarse([2, 2, 2])
+        # Check whether anaddb can read the coarse DDB.
+        coarse_phbands_file, coarse_phdos_file = coarse_ddb.anaget_phbst_and_phdos_files(nqsmall=4, ndivsm=1, verbose=1)
+        coarse_phbands_file.close()
+        coarse_phdos_file.close()
+        coarse_ddb.close()
 
         ddb.close()
 
@@ -262,6 +270,8 @@ class DdbTest(AbipyTest):
                 self.assert_equal(arr, z)
             df = becs.get_voigt_dataframe(view="all", select_symbols="O", verbose=1)
             assert len(df) == 2
+            # Equivalent atoms should have same determinant.
+            self.assert_almost_equal(df["determinant"].values, df["determinant"].values[0])
 
             # get the dielectric tensor generator from anaddb
             dtg = ddb.anaget_dielectric_tensor_generator(verbose=2)

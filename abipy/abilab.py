@@ -11,6 +11,7 @@ import collections
 ### Monty import ###
 ####################
 from monty.os.path import which
+from monty.termcolor import cprint
 
 #######################
 ### Pymatgen import ###
@@ -214,7 +215,20 @@ def abiopen(filepath):
     Args:
         filepath: string with the filename.
     """
+    # Handle ~ in filepath.
     filepath = os.path.expanduser(filepath)
+
+    # Handle zipped files by creating temporary file with correct extension.
+    root, ext = os.path.splitext(filepath)
+    if ext in (".bz2", ".gz", ".z"):
+        from monty.io import zopen
+        with zopen(filepath, "rt") as f:
+            import tempfile
+            _, tmp_path = tempfile.mkstemp(suffix=os.path.basename(root), text=True)
+            cprint("Creating temporary file: %s" % tmp_path, "yellow")
+            with open(tmp_path, "wt") as t:
+                t.write(f.read())
+            filepath = tmp_path
 
     if os.path.basename(filepath) == "__AbinitFlow__.pickle":
         return Flow.pickle_load(filepath)
@@ -294,7 +308,7 @@ def abicheck(verbose=0):
     can be found in $PATH and whether the python modules needed
     at run-time can be imported. Return string with error messages, empty if success.
     """
-    from monty.termcolor import cprint
+
     err_lines = []
     app = err_lines.append
 

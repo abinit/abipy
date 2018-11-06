@@ -1284,20 +1284,6 @@ class BilbaoPointGroup(object):
         """
         Dataframe with irreps.
         """
-        # 1st row: ptgroup_name class names and multiplicity of each class
-        #name_mult = [name + " [" + str(mult) + "]" for (name, mult) in zip(self.class_names, self.class_len)]
-        #table = [[self.sch_symbol] + name_mult]
-        #app = table.append
-
-        ## Add row: irrep_name, character.
-        #for irrep in self.irreps:
-        #    character = list(map(str, irrep.character))
-        #    app([irrep.name] + character)
-
-        #from tabulate import tabulate
-        #s = tabulate(table[1:], headers=table[0], tablefmt="simple", numalign="left")
-        #print(s)
-
         # Caveat: class names are not necessarly unique --> use np.stack
         import pandas as pd
         name_mult = [name + " [" + str(mult) + "]" for (name, mult) in zip(self.class_names, self.class_len)]

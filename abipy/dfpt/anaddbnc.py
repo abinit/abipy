@@ -16,7 +16,7 @@ from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
 from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt, rotate_ticklabels
 from abipy.tools.tensors import Tensor, DielectricTensor, NLOpticalSusceptibilityTensor
-from abipy.dfpt.phonons import InteratomicForceConstants
+from abipy.dfpt.ifc import InteratomicForceConstants
 from abipy.dfpt.ddb import Becs
 from abipy.dfpt.elastic import ElasticData
 

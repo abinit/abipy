@@ -26,7 +26,8 @@ from abipy.core.kpoints import KpointList, Kpoint
 from abipy.iotools import ETSF_Reader
 from abipy.tools.numtools import data_from_cplx_mode
 from abipy.abio.inputs import AnaddbInput
-from abipy.dfpt.phonons import PhononDosPlotter, PhononBandsPlotter, InteratomicForceConstants
+from abipy.dfpt.phonons import PhononDosPlotter, PhononBandsPlotter
+from abipy.dfpt.ifc import InteratomicForceConstants
 from abipy.dfpt.elastic import ElasticData
 from abipy.core.abinit_units import phfactor_ev2units, phunit_tag
 from abipy.tools.plotting import Marker, add_fig_kwargs, get_ax_fig_plt, set_axlims, get_axarray_fig_plt
@@ -980,12 +981,15 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return phbst_file, phdos_file
 
-    def get_coarse(self, filepath, ngqpt_coarse):
+    def get_coarse(self, ngqpt_coarse, filepath=None):
         """
         Get a version of this file on a coarse mesh
 
         Args:
-            ngqpt: list of ngqpt indexes that must be a sub-mesh of the original ngqpt
+            ngqpt_coarse: list of ngqpt indexes that must be a sub-mesh of the original ngqpt
+            filepath: Filename for coarse DDB. If None, temporary filename is used.
+
+        Return: DdbFile on coarse mesh.
         """
         # Check if ngqpt is a sub-mesh of ngqpt
         ngqpt_fine = self.guessed_ngqpt
@@ -1007,7 +1011,11 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                     map_fine_to_coarse.append(n)
 
         # Write the file with a subset of q-points
-        self.write(filepath, map_fine_to_coarse)
+        if filepath is None:
+            import tempfile
+            _, filepath = tempfile.mkstemp(suffix="_DDB", text=True)
+
+        self.write(filepath, filter_blocks=map_fine_to_coarse)
         return self.__class__(filepath)
 
     def anacompare_asr(self, asr_list=(0, 2), chneut_list=(1,), dipdip=1, lo_to_splitting="automatic",
@@ -1624,9 +1632,17 @@ class Becs(Has_Structure):
             zstar = zstar.zeroed(tol=tol)
             for k, v in zip(columns, zstar.voigt):
                 d[k] = v
+            if verbose:
+                d["determinant"] = np.linalg.det(zstar)
+                d["iso"] = zstar.trace() / 3
             rows.append(d)
 
         return pd.DataFrame(rows, columns=list(rows[0].keys()) if rows else None)
+
+    def check_site_symmetries(self, verbose=0):
+        from abipy.core.wyckoff import SiteSymmetries
+        ss = SiteSymmetries(self.structure)
+        return ss.check_site_symmetries(self.values, verbose=verbose)
 
 
 class DielectricTensorGenerator(Has_Structure):
@@ -2257,8 +2273,7 @@ class DdbRobot(Robot):
             df_list.append(df)
 
         # Concatenate dataframes.
-        return dict2namedtuple(df=pd.concat(df_list, ignore_index=True),
-                               epsinf_list=epsinf_list)
+        return dict2namedtuple(df=pd.concat(df_list, ignore_index=True), epsinf_list=epsinf_list)
 
     def anacompare_eps0(self, ddb_header_keys=None, asr=2, chneut=1, tol=1e-3, with_path=False, verbose=0):
         """

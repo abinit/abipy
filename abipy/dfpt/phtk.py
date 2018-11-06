@@ -48,10 +48,12 @@ class SoundVelocity(Has_Structure, NotebookWriter):
 
     @property
     def structure(self):
+        """|Structure| object"""
         return self._structure
 
     @property
     def n_directions(self):
+        """Number of directions."""
         return len(self.directions)
 
     @classmethod
@@ -61,7 +63,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
         """
         Creates and instance of the object. Runs anaddb along the specified
         directions or the standard directions in the standard paths given
-        in Setyawan, W., & Curtarolo, S. (2010). The values of the speed of sound
+        in :cite:`Setyawan2010`. The values of the speed of sound
         will be calculated as the slope of the linear fits along each direction.
 
         Args:
@@ -89,13 +91,12 @@ class SoundVelocity(Has_Structure, NotebookWriter):
             an instance of SoundVelocity
         """
         with DdbFile(ddb_path) as ddb:
-
             if ngqpt is None: ngqpt = ddb.guessed_ngqpt
 
             inp = AnaddbInput(ddb.structure, comment="ANADDB input for speed of sound",
                               anaddb_kwargs=anaddb_kwargs, spell_check=spell_check)
 
-            q1shft = [[0,0,0]]
+            q1shft = [[0, 0, 0]]
             inp.set_vars(
                 ifcflag=1,
                 ngqpt=np.array(ngqpt),
@@ -107,7 +108,6 @@ class SoundVelocity(Has_Structure, NotebookWriter):
             )
 
             if not directions:
-
                 hs = HighSymmKpath(ddb.structure, symprec=1e-2)
 
                 kpath = hs.kpath
@@ -272,7 +272,6 @@ class SoundVelocity(Has_Structure, NotebookWriter):
         """
         Return a |pandas-DataFrame| with the data of the speed of sound.
         """
-
         columns = ["direction", "label", "sound velocity (m/s)", "mode type"]
         rows = []
         for i in range(self.n_directions):

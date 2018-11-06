@@ -7,10 +7,10 @@ import abipy.core.abinit_units as abu
 from collections import OrderedDict
 from monty.string import list_strings, marquee
 from monty.collections import dict2namedtuple
-from monty.functools import lazy_property
+#from monty.functools import lazy_property
 #from monty.termcolor import cprint
 from abipy.core.mixins import Has_Structure
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims, get_axarray_fig_plt, set_visible, set_ax_xylabels
+from abipy.tools.plotting import add_fig_kwargs, set_axlims, get_axarray_fig_plt, set_visible
 
 
 class _Component(object):
@@ -74,7 +74,7 @@ class MsqDos(Has_Structure):
             structure: |Structure| object.
             wmesh: Frequency mesh
             values: (natom, 3, 3, nomega) arrays with generalized DOS.
-            amu_symbol: Dictionary element.symbol -> mass in atomic units
+            amu_symbol: Dictionary element.symbol -> mass in atomic units.
         """
         self._structure = structure
         self.wmesh = wmesh * abu.eV_Ha ####
@@ -135,7 +135,7 @@ class MsqDos(Has_Structure):
         wvals = self.wmesh[iomin:]
         nw = len(wvals)
 
-        # Calculate BE occ factors only once for each T (instead of for each atom).
+        # Calculate Bose-Einstein occupation factors only once for each T (instead of for each atom).
         npht = np.zeros((nt, nw))
         for it, temp in enumerate(tmesh):
             #npht[it] = abu.occ_be(wvals, temp * abu.kb_eVK) + 0.5  ###
@@ -146,7 +146,7 @@ class MsqDos(Has_Structure):
         msq_v = np.empty((natom, 3, 3, nt))
         what_list = list_strings(what_list)
 
-        # Perform frequency integration.
+        # Perform frequency integration to get tensor(T)
         from scipy.integrate import simps
         if iatom_list is not None: iatom_list = set(iatom_list)
         for iatom in range(natom):
@@ -239,7 +239,7 @@ class MsqDos(Has_Structure):
             d["cart_coords"] = np.round(site.coords, decimals=5)
             d["wyckoff"] = wlabel
             if fmt == "cartesian":
-                d["iso"] = values[iatom].trace() / 3.0
+                d["isotropic"] = values[iatom].trace() / 3.0
                 d["determinant"] = np.linalg.det(values[iatom])
             for col, ind in zip(columns, inds):
                 d[col] = values[iatom, ind[0], ind[1]]
@@ -248,28 +248,35 @@ class MsqDos(Has_Structure):
         import pandas as pd
         return pd.DataFrame(rows, columns=list(rows[0].keys()) if rows else None)
 
-    def write_cif_file(self, filename, temp=300):
+    def write_cif_file(self, filepath, temp=300):
         """
         Write CIF file with structure info and anisotropic U tensor in CIF format.
 
         Args:
-            filename: Name of CIF file.
+            filepath: Name of CIF file. If None, a temporary filepath is created.
             temp: Temperature in Kelvin (used to compute U).
+
+        Return: Filepath
         """
-        with open(filename, "wt") as fh:
+        if filepath is None:
+            import tempfile
+            _, filepath = tempfile.mkstemp(suffix=".cif", text=True)
+
+        with open(filepath, "wt") as fh:
             fh.write(self.get_cif_string(temp=temp))
+
+        return filepath
 
     def vesta_open(self, temp=300): # pragma: no cover
         """
         Visualize termal displacement ellipsoids at temperature `temp` (Kelvin) with Vesta_
         In the Vesta GUI, select: Properties -> Atoms -> Show as displament ellipsoids.
         """
-        import tempfile
-        _, filepath = tempfile.mkstemp(suffix=".cif", text=True)
+        filepath = self.write_cif_file(filepath=None, temp=temp)
         print("Writing structure + Debye-Waller tensor in CIF format for T = %s to file: %s" % (temp, filepath))
-        self.write_cif_file(filepath, temp=temp)
         from abipy.iotools import Visualizer
         visu = Visualizer.from_name("vesta")
+
         return visu(filepath)()
 
     def get_cif_string(self, temp=300):
@@ -292,12 +299,14 @@ _atom_site_aniso_U_23
 _atom_site_aniso_U_13
 _atom_site_aniso_U_12""".splitlines()
 
+        # Compute U matrix in CIF format (reduced coords)
         natom = len(self.structure)
         msq = self.get_msq_tmesh([float(temp)], what_list="displ")
         ucart = getattr(msq, "displ")
         ucart = np.reshape(ucart, (natom, 3, 3))
         ucif = self.convert_ucart(ucart, fmt="cif")
 
+        # Add matrix elements.
         for iatom, site in enumerate(self.structure):
             site_label = "%s%d" % (site.specie.symbol, iatom + 1)
             m = ucif[iatom]
@@ -306,46 +315,16 @@ _atom_site_aniso_U_12""".splitlines()
 
         return s + "\n".join(aniso_u)
 
-    def check_symmetries(self, indsym, temp=300, verbose=0):
-        natom = len(self.structure)
-        assert np.all(self.structure.indsym == indsym)
-
-        abispg = self.structure.abi_spacegroup
-        symrel = abispg.symrel
-        a = self.structure.lattice.matrix.T
-        symcart = np.matmul(a, np.matmul(symrel, np.linalg.inv(a)))
-        nsym = len(symcart)
-
-        from abipy.core.symmetries import indsym_from_symrel
-        other_indsym = indsym_from_symrel(abispg.symrel, abispg.tnons, self.structure, tolsym=1e-8)
-        assert np.all(self.structure.indsym == other_indsym)
+    def check_site_symmetries(self, temp=300, verbose=0):
 
         msq = self.get_msq_tmesh([float(temp)], what_list="displ")
         values = getattr(msq, "displ")
+        natom = len(self.structure)
         values = np.reshape(values, (natom, 3, 3))
 
-        err = 0.0
-        for iatom in range(natom):
-            ref_mat = values[iatom]
-            inv_mat = np.zeros_like(ref_mat)
-            count = 0
-            for isym, scart in enumerate(symcart):
-                if indsym[iatom, isym, 3] != iatom: continue
-                count += 1
-                inv_mat += np.matmul(scart, np.matmul(ref_mat, scart.T))
-                #inv_mat += np.matmul(scart.T, np.matmul(ref_mat, scart))
-
-            assert count != 0 and (nsym // count) * count == nsym
-            inv_mat /= count
-            diff_mat = inv_mat - ref_mat
-            err = max(err, np.abs(diff_mat).sum())
-            if count != 1 and verbose:
-                print("For iatom", iatom, "count:", count)
-                print("ref_mat:\n", ref_mat, "\ninv_mat:\n", inv_mat)
-                print("diff_mat:\n", diff_mat)
-
-        print("Max error:", err)
-        return err
+        from abipy.core.wyckoff import SiteSymmetries
+        ss = SiteSymmetries(self.structure)
+        return ss.check_site_symmetries(values, verbose=verbose)
 
     def _get_components(self, components):
         """
@@ -584,7 +563,7 @@ _atom_site_aniso_U_12""".splitlines()
                         eigs = np.linalg.eigvalsh(values[iatom, :, :, itemp], UPLO='U')
                         ys[itemp] = eigs.max() / eigs.min()
                 else:
-                    raise ValueError("Invalid ix: `%s" % ix)
+                    raise ValueError("Invalid ix index: `%s" % ix)
 
                 ax.plot(msq.tmesh, ys,
                         label=site_label if ix == 0 else None,

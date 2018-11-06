@@ -15,8 +15,9 @@ import abipy.data as abidata
 
 from abipy import abilab
 
-# Open DDB file
-filepath = os.path.join(abidata.dirpath, "refs", "alas_DDB")
+# Open DDB file for alpha-SiO2 taken from
+# https://materialsproject.org/materials/mp-7000/
+filepath = os.path.join(abidata.dirpath, "refs", "mp-7000_DDB.bz2")
 ddb = abilab.abiopen(filepath)
 
 # Invoke anaddb to compute dielectric tensor and oscillator strength.

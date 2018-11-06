@@ -53,6 +53,14 @@ dfpt Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`ifc` Module
+-----------------
+
+.. automodule:: abipy.dfpt.ifc
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`msqdos` Module
 --------------------
 

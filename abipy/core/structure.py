@@ -212,6 +212,9 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         Returns: |Structure| object
         """
+        #zipped_exts = (".bz2", ".gz", ".z"):
+        root, ext = os.path.splitext(filepath)
+
         if filepath.endswith("_HIST.nc"):
             # Abinit history file. In this case we return the last structure!
             # Note that HIST does not follow the etsf-io conventions.
@@ -252,7 +255,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
                 if out.initial_structures: return out.initial_structure
             raise ValueError("Cannot find structure in Abinit output file `%s`" % filepath)
 
-        elif filepath.endswith("_DDB"):
+        elif filepath.endswith("_DDB") or root.endswith("_DDB"):
             # DDB file.
             from abipy.abilab import abiopen
             with abiopen(filepath) as abifile:
@@ -967,6 +970,12 @@ class Structure(pymatgen.Structure, NotebookWriter):
             cprint("structure.indsym is already set!", "yellow")
         self._indsym = indsym
 
+    @lazy_property
+    def site_symmetries(self):
+        from abipy.core.wyckoff import SiteSymmetries
+        return SiteSymmetries(self)
+
+    # TODO: site_symmetry or spget_site_symmetries?
     def spget_site_symmetries(self):
         import spglib
         indsym = self.indsym
@@ -1009,7 +1018,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         Print results.
         """
         print(" ")
-        print("Finding neighbors for each atom in the unit cell, out to a distance %s [Angstrom]" % radius)
+        print("Finding neighbors for each atom in the unit cell, out to a distance %s (Angstrom)" % radius)
         print(" ")
 
         ns = self.get_all_neighbors(radius, include_index=False)

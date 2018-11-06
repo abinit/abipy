@@ -9,31 +9,28 @@ as a function of temperature.
 See :cite:`Lee1995` for the further details about the internal implementation and
 :cite:`Trueblood1996` for the different conventions used by crystallographers.
 """
-from abipy import abilab
+import os
 import abipy.data as abidata
 
-# Read the Phonon DOS from the netcdf file produced by anaddb with prtdos 2
-# (alternatively one can use the shell and `abiopen.py OUT_PHDOS.nc -nb`
-# to open the file in a jupyter notebook.
-#with abiopen(abidata.ref_file("trf2_5.out_PHDOS.nc")) as phdos_file:
-#    # Plot PJDOS.
-#    phdos_file.plot_pjdos_type(units="cm-1", title="AlAs type-projected phonon DOS")
-#    # To have the projection along the cartesian directions (summed over atomic types)
-#    phdos_file.plot_pjdos_cartdirs_type(units="Thz", stacked=True,
-#            title="Type-projected ph-DOS decomposed along the three Cartesian directions.")
-#    # To plot the PJDOS for all the inequivalent sites.
-#    phdos_file.plot_pjdos_cartdirs_site(view="inequivalent", stacked=True)
+from abipy import abilab
 
-filepath = "~/git_repos/abipy/lifetimes/alphaSiO2/run.abo_PHDOS.nc"
-phdos = abilab.abiopen(filepath)
+# Open DDB file for alpha-SiO2 taken from
+# https://materialsproject.org/materials/mp-7000/
+filepath = os.path.join(abidata.dirpath, "refs", "mp-7000_DDB.bz2")
+ddb = abilab.abiopen(filepath)
 
-msqd_dos = phdos.msqd_dos
+# Invoke anaddb to compute phonon bands and dos.
+phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(nqsmall=4, ndivsm=1, mpi_procs=2)
+
+# Extract msqd_dos
+msqd_dos = phdos_file.msqd_dos
+
+
 print(msqd_dos)
 #for fmt in ("cartesian", "cif", "ustar", "beta", "B"):
 for fmt in ("cartesian", "cif"):
     print("Format:", fmt)
-    #df = msqd_dos.get_dataframe(temp=100, fmt=fmt)
-    df = msqd_dos.get_dataframe(temp=300, view="all", select_symbols="Si", fmt=fmt)
+    df = msqd_dos.get_dataframe(temp=300, view="all", fmt=fmt)
     abilab.print_dataframe(df)
 
 # Plot generalized phonon DOS for each inequivalent atom in the unit cell.
@@ -44,10 +41,17 @@ msqd_dos.plot_tensor()
 
 msqd_dos.plot_uiso()
 
-#msqd_dos.write_cif_file("foo.cif", temp=300)
+# To save the structure and the U tensor at T=300K in CIF format, use:
+#msqd_dos.write_cif_file("DW.cif", temp=300)
+
+# To visualize the thermal ellipsoids with Vesta:
 #msqd_dos.vesta_open(temp=300)
 
 #msqd_dos.plot(view="all")
 #msqd_dos.plot_tensor(view="all")
 #msqd_dos.plot_uiso(view="all")
 #msqd_dos.plot_uiso(view="all", what="vel")
+
+# Remember to close the files.
+phbst_file.close()
+phdos_file.close()

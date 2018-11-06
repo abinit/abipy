@@ -10,7 +10,7 @@ import abipy.data as abidata
 import abipy.core.abinit_units as abu
 
 from abipy import abilab
-from abipy.dfpt.phonons import (PhononBands, PhononDos, PhdosFile, InteratomicForceConstants, phbands_gridplot,
+from abipy.dfpt.phonons import (PhononBands, PhononDos, PhdosFile, phbands_gridplot,
         PhononBandsPlotter, PhononDosPlotter, dataframe_from_phbands)
 from abipy.dfpt.ddb import DdbFile
 from abipy.core.testing import AbipyTest

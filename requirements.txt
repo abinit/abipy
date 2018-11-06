@@ -8,6 +8,7 @@ pyyaml>=3.11
 pandas
 numpy
 scipy
+sympy
 spglib
 pymatgen>=2018.8.7
 netCDF4
