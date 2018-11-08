@@ -46,11 +46,11 @@ class _Component(object):
 
 class MsqDos(Has_Structure):
     """
-    This object stores the generalized phonon DOS with the mean square displacement tensor in cartesian coords.
+    This object stores the generalized phonon DOS with the mean square displacement tensor in CARTESIAN coords.
     This DOS-like quantity allows one to calculate Debye Waller factors as a function of T
     by integration with 1/omega and the Bose-Einstein factor.
     See :cite:`Lee1995` for the further details about the internal implementation and
-    :cite:`Trueblood1996` for the different conventions used by crystallographers
+    :cite:`Trueblood1996` for the different conventions used by crystallographers.
     """
     C = _Component
     ALL_COMPS = OrderedDict([
@@ -73,7 +73,7 @@ class MsqDos(Has_Structure):
         Arg:
             structure: |Structure| object.
             wmesh: Frequency mesh
-            values: (natom, 3, 3, nomega) arrays with generalized DOS.
+            values: (natom, 3, 3, nomega) arrays with generalized DOS in cart coords.
             amu_symbol: Dictionary element.symbol -> mass in atomic units.
         """
         self._structure = structure
@@ -120,7 +120,7 @@ class MsqDos(Has_Structure):
         Compute mean square displacement for each atom in `iatom_list` as a function of T (bohr^2).
 
         Args:
-            tmesh: array-like with temperatures in Kelvin degrees
+            tmesh: array-like with temperatures in Kelvin.
             iatom_list: List of atom sites to comput. None for all.
             what_list:
         """
@@ -252,7 +252,7 @@ class MsqDos(Has_Structure):
 
     def write_cif_file(self, filepath, temp=300):
         """
-        Write CIF file with structure info and anisotropic U tensor in CIF format.
+        Write CIF file with structure and anisotropic U tensor in CIF format.
 
         Args:
             filepath: Name of CIF file. If None, a temporary filepath is created.
@@ -275,7 +275,7 @@ class MsqDos(Has_Structure):
         In the Vesta GUI, select: Properties -> Atoms -> Show as displament ellipsoids.
         """
         filepath = self.write_cif_file(filepath=None, temp=temp)
-        print("Writing structure + Debye-Waller tensor in CIF format for T = %s to file: %s" % (temp, filepath))
+        cprint("Writing structure + Debye-Waller tensor in CIF format for T = %s to file: %s" % (temp, filepath), "green")
         from abipy.iotools import Visualizer
         visu = Visualizer.from_name("vesta")
 
@@ -318,15 +318,16 @@ _atom_site_aniso_U_12""".splitlines()
         return s + "\n".join(aniso_u)
 
     def check_site_symmetries(self, temp=300, verbose=0):
-
+        """
+        Check symmetries of the displacement tensor at temperature `temp`.
+        Return maximum error.
+        """
         msq = self.get_msq_tmesh([float(temp)], what_list="displ")
-        values = getattr(msq, "displ")
+        values_cart = getattr(msq, "displ")
         natom = len(self.structure)
-        values = np.reshape(values, (natom, 3, 3))
+        values_cart = np.reshape(values_cart, (natom, 3, 3))
 
-        from abipy.core.wyckoff import SiteSymmetries
-        ss = SiteSymmetries(self.structure)
-        return ss.check_site_symmetries(values, verbose=verbose)
+        return self.structure.site_symmetries.check_site_symmetries(values_cart, verbose=verbose)
 
     def _get_components(self, components):
         """

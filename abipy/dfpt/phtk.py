@@ -13,7 +13,6 @@ from abipy.dfpt.phonons import PhononBands, get_dyn_mat_eigenvec, match_eigenvec
 from abipy.abio.inputs import AnaddbInput
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from pymatgen.core.units import bohr_to_angstrom, eV_to_Ha
-from pymatgen.symmetry.bandstructure import HighSymmKpath
 
 
 class SoundVelocity(Has_Structure, NotebookWriter):
@@ -108,8 +107,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
             )
 
             if not directions:
-                hs = HighSymmKpath(ddb.structure, symprec=1e-2)
-
+                hs = ddb.structure.hsym_kpath
                 kpath = hs.kpath
 
                 directions = []

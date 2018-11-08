@@ -604,8 +604,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         return("\n".join(lines))
 
-    def get_conventional_standard_structure(self, international_monoclinic=True,
-                                            symprec=1e-3, angle_tolerance=5):
+    def get_conventional_standard_structure(self, international_monoclinic=True, symprec=1e-3, angle_tolerance=5):
         """
         Gives a structure with a conventional cell according to certain
 	standards. The standards are defined in :cite:`Setyawan2010`
@@ -638,6 +637,18 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         return self.__class__.as_structure(standardized_structure)
 
+    def refine(self, symprec=1e-3, angle_tolerance=5):
+        """
+        Get the refined structure based on detected symmetry. The refined
+        structure is a *conventional* cell setting with atoms moved to the
+        expected symmetry positions.
+
+        Returns: Refined structure.
+        """
+        sym_finder = SpacegroupAnalyzer(structure=self, symprec=symprec, angle_tolerance=angle_tolerance)
+        new = sym_finder.get_refined_structure()
+        return self.__class__.as_structure(new)
+
     def abi_sanitize(self, symprec=1e-3, angle_tolerance=5, primitive=True, primitive_standard=False):
         """
         Returns a new structure in which:
@@ -658,8 +669,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         # Refine structure
         if symprec is not None and angle_tolerance is not None:
-            sym_finder = SpacegroupAnalyzer(structure=structure, symprec=symprec, angle_tolerance=angle_tolerance)
-            structure = sym_finder.get_refined_structure()
+            structure = structure.refine(symprec=symprec, angle_tolerance=angle_tolerance)
 
         # Convert to primitive structure.
         if primitive:
@@ -932,13 +942,14 @@ class Structure(pymatgen.Structure, NotebookWriter):
                               "Use `overwrite=True` to allow modification."))
 
         msg = ("Structure object does not have symmetry operations computed from Abinit.\n"
-               "Will call spglib to get symmetry operations.")
+               "Calling spglib to get symmetry operations.")
         cprint(msg, "magenta")
 
         spglib_data = SpacegroupAnalyzer(self).get_symmetry_dataset()
         spgid = spglib_data["number"]
         symrel, tnons = spglib_data["rotations"], spglib_data["translations"]
-        symafm = [1] * len(symrel)  # TODO: Anti-ferromagnetic symmetries are not supported by spglib
+        # TODO: Anti-ferromagnetic symmetries are not supported by spglib
+        symafm = [1] * len(symrel)
 
         abispg = AbinitSpaceGroup(spgid, symrel, tnons, symafm, has_timerev, inord="C")
         self.set_abi_spacegroup(abispg)
@@ -972,7 +983,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
     @lazy_property
     def site_symmetries(self):
-        from abipy.core.wyckoff import SiteSymmetries
+        from abipy.core.site_symmetries import SiteSymmetries
         return SiteSymmetries(self)
 
     # TODO: site_symmetry or spget_site_symmetries?
@@ -984,13 +995,13 @@ class Structure(pymatgen.Structure, NotebookWriter):
         sitesym_labels = []
         for iatom, site in enumerate(self):
             rotations = [symrel[isym] for isym in range(nsym) if
-                         indsym[iatom, isym, 3] == iatom and symafm[isym] == 1]
+                         indsym[iatom, isym, 3] == iatom and symafm[isym] == +1]
             # Passing a 0-length rotations list to spglib can segfault.
             herm_symbol, ptg_num = "1", 1
             if len(rotations) != 0:
                 herm_symbol, ptg_num, trans_mat = spglib.get_pointgroup(rotations)
 
-            sitesym_labels.append("%s (#%d) nsym:%d" % (herm_symbol.strip(), ptg_num, len(rotations)))
+            sitesym_labels.append("%s (#%d,nsym:%d)" % (herm_symbol.strip(), ptg_num, len(rotations)))
 
         return sitesym_labels
 
@@ -1856,32 +1867,6 @@ class Structure(pymatgen.Structure, NotebookWriter):
             raise ValueError("Don't know how to generate string for code: `%s`" % str(fmt))
 
         return "\n".join(lines)
-
-    #def ksampling_from_jhudb(self, **kwargs):
-    #    from pymatgen.ext.jhu import get_kpoints
-    #    __doc__ = get_kpoints.__doc__
-    #    kpoints = get_kpoints(self, **kwargs)
-    #    print(kpoints)
-    #    print(kpoints.style)
-    #    print("num_kpts", kpoints.num_kpts)
-
-    #    d = {"kptopt": 0,
-    #         "kpt": kpoints.kpts,
-    #         "nkpt": kpoints.num_kpts,
-    #         #"kptnrm": kptnrm,
-    #         "wtk": kpoints.kpts_weights,
-    #         "shiftk": kpoints.kpts_shift,
-    #         "chksymbreak": 0,
-    #    }
-    #    print(d)
-
-    #    #from pymatgen.io.abinit.abiobjects import KSampling
-    #    #return KSampling(mode=KSamplingModes.automatic,
-    #    #         num_kpts= 0,
-    #    #         kpts=((1, 1, 1),),
-    #    #         kpt_shifts=(0.5, 0.5, 0.5),
-    #    #         kpts_weights=None, use_symmetries=True, use_time_reversal=True, chksymbreak=None,
-    #    #         comment=None)
 
     def calc_ksampling(self, nksmall, symprec=0.01, angle_tolerance=5):
         """

@@ -124,10 +124,10 @@ core Package
    :undoc-members:
    :show-inheritance:
 
-:mod:`wyckoff` Module
----------------------
+:mod:`site_symmetries` Module
+-----------------------------
 
-.. automodule:: abipy.core.wyckoff
+.. automodule:: abipy.core.site_symmetries
    :members:
    :undoc-members:
    :show-inheritance:

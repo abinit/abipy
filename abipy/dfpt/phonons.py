@@ -2833,7 +2833,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
             msqd_dos = None
         if msqd_dos is not None:
             yield msqd_dos.plot(units=units, show=False)
-            yield msqd_dos.plot_bfactors(show=False)
+            yield msqd_dos.plot_tensor(show=False)
 
     def write_notebook(self, nbpath=None):
         """

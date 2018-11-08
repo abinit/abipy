@@ -64,7 +64,7 @@ Use::
 to read the structure from ``FILE`` and generate a CIF_ file (default behaviour).
 
 The majority of the netcdf_ files produced by Abinit contain structural information
-so this command can be used with netcdf ouput files as well as Abinit input/output 
+so this command can be used with netcdf output files as well as Abinit input/output 
 files and all the other formats supported by pymatgen e.g. POSCAR files.
 Other formats can be specified with the ``-f`` option.
 For example::
@@ -101,7 +101,7 @@ to validate the input file with Abinit (requires ``manager.yml`` and, obviously,
 The script provides other options to invoke Abinit 
 to get space group information, the list of k-points in the IBZ.
 the list of atomic perturbations for phonons or the list of autoparal configurations.
-See ``abinp.py --help`` for futher info.
+See ``abinp.py --help`` for further info.
 
 Print the warnings in the log file
 ----------------------------------
@@ -231,6 +231,24 @@ to generate a template with the input variables defining the k-path
         +0.37500  +0.37500  +0.75000 # K
         +0.62500  +0.25000  +0.62500 # U
         +0.50000  +0.00000  +0.50000 # X
+
+
+Re-symmetrize a structure when Abinit reports less symmetries than expected
+---------------------------------------------------------------------------
+
+Crystalline structures saved in text format (e.g. CIF files downloaded from
+the Materials Project websites) may not have enough significant digits
+and Abinit may not find the same spacegroup as the one reported by the source
+as the default tolerance for symmetry detection in Abinit is tight (tolsym = 1e-8).
+
+In this case, one can use the `abispg` option of abistruct.py to compute the spacegroup
+with Abinit and a tolerance larger that the default value::
+
+    abistruct.py abispg problematic.cif --tolsym=1e-6
+
+Hopefully, the code will detect the correct spacegroup, will re-symmetrize 
+the initial lattice vectors and atomic positions and print the new symmetrized structure to terminal.
+
 
 Get neighbors for each atom in the unit cell out to a distance radius
 ---------------------------------------------------------------------
@@ -402,7 +420,7 @@ Use::
 
     abiview.py phbands out_PHBST.nc -web
 
-to start a local webserver and open the HTML page inside the default browser 
+to start a local web server and open the HTML page inside the default browser 
 (the browser can be changed with the ``--browser`` option).
 
 It is also possible to visualize the phonon modes starting directly from a DDB_ file with::
@@ -410,7 +428,7 @@ It is also possible to visualize the phonon modes starting directly from a DDB_ 
     abiview.py ddb -web
 
 In this case, AbiPy will invoke anaddb to produce the ``PHBST.nc`` file on an automatically 
-generated q-path and then start the webserver.
+generated q-path and then start the web server.
 
 Visualize the results of a structural relaxation
 ------------------------------------------------
@@ -461,7 +479,7 @@ the AbiPy scripts are quite handy for a quick analysis of the results.
 Compare multiple files
 ----------------------
 
-The :ref:`abicomp.py` script is explicitely designed for this kind of task.
+The :ref:`abicomp.py` script is explicitly designed for this kind of task.
 It operates on multiple files (usually files with the same extension) and 
 either produces matplotlib_ plots or creates AbiPy robots providing methods
 to analyze the results, perform convergence studies and build pandas DataFrames_.

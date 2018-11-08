@@ -227,9 +227,11 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
         help="Extract/Compute Abinit space group from file with structure.")
     p_abispg.add_argument("-t", "--tolsym", type=float, default=None, help="""\
 Gives the tolerance on the atomic positions (reduced coordinates), primitive vectors, or magnetization,
-to be considered equivalent, thanks to symmetry operations. This is used in the recognition of the set
+to be considered equivalent, thanks to symmetry operations. This value is used by ABINIT in the recognition of the set
 of symmetries of the system, or the application of the symmetry operations to generate from a reduced set of atoms,
-the full set of atoms. Note that a value larger than 0.01 is considered to be unacceptable.""")
+The internal default is 1e-8. Setting tolsym to a value larger than 1e-8 will make Abinit detect the spacegroup within
+this tolerance and re-symmetrize the input structure. This option is useful if the structure has been taken from a CIF
+file that does not have enough significant digits.""")
     p_abispg.add_argument("-d", "--diff-mode", type=str, default="table", choices=["table", "diff"],
         help="Select diff output format.")
 
@@ -283,12 +285,16 @@ Has to be all integers. Several options are possible:
     p_proto.add_argument("--angle-tol", default=5, type=float, help="angle tolerance.")
 
     # Subparser for wyckoff.
-    p_wyckoff = subparsers.add_parser('wyckoff', parents=[copts_parser, path_selector],
+    p_wyckoff = subparsers.add_parser('wyckoff', parents=[copts_parser, spgopt_parser, path_selector],
             help="Print wyckoff positions. WARNING: still under development!")
+    p_wyckoff.add_argument("--refine", default=False, action="store_true",
+                            help="Use spglib to refine structure before computation")
 
     # Subparser for tensor_site.
-    p_tensor_site = subparsers.add_parser('tensor_site', parents=[copts_parser, path_selector],
+    p_tensor_site = subparsers.add_parser('tensor_site', parents=[copts_parser, spgopt_parser, path_selector],
             help="Print symmetry properties of tensors due to site-symmetries. WARNING: still under development!")
+    p_tensor_site.add_argument("--refine", default=False, action="store_true",
+                                help="Use spglib to refine structure before computation")
 
     # Subparser for neighbors.
     p_neighbors = subparsers.add_parser('neighbors', parents=[copts_parser, path_selector],
@@ -498,20 +504,25 @@ def main():
     elif options.command == "abispg":
         structure = abilab.Structure.from_file(options.filepath)
         check_ordered_structure(structure)
-        spgrp = structure.abi_spacegroup
+        abi_spg = structure.abi_spacegroup
 
-        if spgrp is not None:
+        if abi_spg is not None and options.tolsym is None:
             print(structure.spget_summary(verbose=options.verbose))
         else:
-            # Here we compare Abinit wrt spglib. If spgrp is None, we create a temporary
+            # Here we compare Abinit wrt spglib. If abi_spg is None, we create a temporary
             # task to run the code in dry-run mode.
-            print("FILE does not contain Abinit symmetry operations.")
-            print("Calling Abinit in --dry-run mode with chkprim = 0 to get space group.")
+            if abi_spg is None:
+                print("FILE does not contain Abinit symmetry operations.")
+            cprint("Calling Abinit in --dry-run mode with chkprim = 0 to get space group.")
+            if options.tolsym is not None and options.tolsym > 1e-8:
+                cprint("Crystal structure will be re-symmetrized by Abinit with tolsym: %s" % options.tolsym, "yellow")
+
             from abipy.data.hgh_pseudos import HGH_TABLE
             gsinp = factories.gs_input(structure, HGH_TABLE, spin_mode="unpolarized")
             gsinp["chkprim"] = 0
             abistructure = gsinp.abiget_spacegroup(tolsym=options.tolsym)
             print(abistructure.spget_summary(verbose=options.verbose))
+            print("")
 
             diff_structures([structure, abistructure], mode=options.diff_mode,
                             headers=["Input structure", "After Abinit symmetrization"], fmt="abivars")
@@ -659,17 +670,23 @@ def main():
 
     elif options.command == "wyckoff":
         structure = abilab.Structure.from_file(options.filepath)
-        from abipy.core.wyckoff import SiteSymmetries
-        ss = SiteSymmetries(structure)
-        df = ss.get_wyckoff_dataframe(view="all", select_symbols=None, verbose=options.verbose)
-        abilab.print_dataframe(df)
+        if options.refine:
+            print("Refining structure with symprec: %s, angle_tolerance: %s" % (options.symprec, options.angle_tolerance))
+            structure = structure.refine(symprec=options.symprec, angle_tolerance=options.angle_tolerance)
+        print(structure.spget_summary(verbose=options.verbose))
+        ss = structure.site_symmetries
+        df = ss.get_wyckoff_dataframe(verbose=options.verbose)
+        abilab.print_dataframe(df, title="\nWyckoff positions in reduced coordinates.")
 
     elif options.command == "tensor_site":
         structure = abilab.Structure.from_file(options.filepath)
-        from abipy.core.wyckoff import SiteSymmetries
-        ss = SiteSymmetries(structure)
-        df = ss.get_tensor_rank2_dataframe(view="all", select_symbols=None, verbose=options.verbose)
-        abilab.print_dataframe(df)
+        if options.refine:
+            print("Refining structure with symprec: %s, angle_tolerance: %s" % (options.symprec, options.angle_tolerance))
+            structure = structure.refine(symprec=options.symprec, angle_tolerance=options.angle_tolerance)
+        print(structure.spget_summary(verbose=options.verbose))
+        ss = structure.site_symmetries
+        df = ss.get_tensor_rank2_dataframe(verbose=options.verbose)
+        abilab.print_dataframe(df, title="\nTensor components in reduced coordinates (rank 2, symmetric)")
 
     elif options.command == "neighbors":
         abilab.Structure.from_file(options.filepath).print_neighbors(radius=options.radius)
@@ -757,8 +774,11 @@ def main():
 
     #elif options.command == "kmesh_jhu":
     #    structure = abilab.Structure.from_file(options.filepath)
-    #    ksampling = structure.ksampling_from_jhudb(kppra=1000)
-    #    #print(ksampling)
+    #    from pymatgen.ext.jhu import get_kpoints
+    #    kpoints = get_kpoints(structure, min_distance=0, min_total_kpoints=1,
+    #                           kppra=None, gap_distance=7, remove_symmetry=None,
+    #                           include_gamma="auto", header="simple", incar=None)
+    #    #print(kpoints)
 
     elif options.command == "lgk":
         structure = abilab.Structure.from_file(options.filepath)
