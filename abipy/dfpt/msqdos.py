@@ -117,7 +117,7 @@ class MsqDos(Has_Structure):
 
     def get_msq_tmesh(self, tmesh, iatom_list=None, what_list=("displ", "vel")):
         """
-        Compute mean square displacement for each atom in `iatom_list` as a function of T (bohr^2).
+        Compute mean square displacement for each atom in `iatom_list` as a function of T.
 
         Args:
             tmesh: array-like with temperatures in Kelvin.
@@ -170,27 +170,37 @@ class MsqDos(Has_Structure):
 
     def convert_ucart(self, ucart_mat, fmt):
         """
-        Convert the U tensor from cartesian coordinates to format `fmt`
-        Return new matrix.
+        Convert the U tensor from Cartesian coordinates to format `fmt`
+        Return new matrix. See also :cite:`Grosse-Kunstleve2002`.
+
+        Args:
+            ucart_mat: (natom,3,3) array with tensor in Cartesian coords.
+            fmt: Output format. Available options: "cif", "ustar", "beta"
+
+        Return: (natom,3,3) tensor.
         """
         natom = len(self.structure)
         if fmt == "cartesian":
             return ucart_mat.copy()
 
-        elif fmt == "B":
-            return ucart_mat * 8 * np.pi**2
+        #elif fmt == "B":
+        #    # Eq 7
+        #    return ucart_mat * 8 * np.pi**2
 
         elif fmt in ("cif", "ustar", "beta"):
             # Build A matrix
             amat = self.structure.lattice.matrix.T
             ainv = np.linalg.inv(amat)
             new_mat = np.zeros_like(ucart_mat)
+            # Eq 3b
             for iatom in range(natom):
                 new_mat[iatom] = np.matmul(ainv, np.matmul(ucart_mat[iatom], ainv.T))
+
             # Now we have Ustar
             if fmt == "ustar": return new_mat
-            if fmt == "beta": return new_mat * 8 * np.pi**2
+            if fmt == "beta": return new_mat * 8 * np.pi**2  # Eq 6
 
+            # CIF Format Eq 4a
             # Build N matrix (no 2 pi factor)
             ls, _ = self.structure.lattice.reciprocal_lattice_crystallographic.lengths_and_angles
             ninv = np.diag(1.0 / np.array(ls, dtype=float))
@@ -223,11 +233,12 @@ class MsqDos(Has_Structure):
 
         # [natom, 3, 3, nt=1]
         msq = self.get_msq_tmesh([float(temp)], iatom_list=aview.iatom_list, what_list=what)
-        values = getattr(msq, what)
+        ucart = getattr(msq, what)
         natom = len(self.structure)
-        values = np.reshape(values, (natom, 3, 3))
+        ucart = np.reshape(ucart, (natom, 3, 3))
+        values = ucart
         if what == "displ":
-            values = self.convert_ucart(values, fmt)
+            values = self.convert_ucart(ucart, fmt)
 
         columns = ["xx", "yy", "zz", "yz", "xz", "xy"]
         inds = [(0, 0), (1, 1), (2, 2), (1, 2), (0, 2), (0, 1)]
@@ -241,8 +252,8 @@ class MsqDos(Has_Structure):
             d["cart_coords"] = np.round(site.coords, decimals=decimals)
             d["wyckoff"] = wlabel
             if fmt == "cartesian":
-                d["isotropic"] = values[iatom].trace() / 3.0
-                d["determinant"] = np.linalg.det(values[iatom])
+                d["isotropic"] = ucart[iatom].trace() / 3.0
+                d["determinant"] = np.linalg.det(ucart[iatom])
             for col, ind in zip(columns, inds):
                 d[col] = values[iatom, ind[0], ind[1]]
             rows.append(d)
@@ -283,11 +294,11 @@ class MsqDos(Has_Structure):
 
     def get_cif_string(self, temp=300):
         """
-        Return string with structure info and anisotropic U tensor in CIF format.
+        Return string with structure and anisotropic U tensor in CIF format.
         """
         # Get string with structure info in CIF format.
         # Don't use symprec because it changes the order of the sites.
-        # and we need to be consistent with the site_labels when writing aniso_U terms.
+        # and we must be consistent with the site_labels when writing aniso_U terms.
         from pymatgen.io.cif import CifWriter
         cif = CifWriter(self.structure, symprec=None)
         s = str(cif)
@@ -323,11 +334,11 @@ _atom_site_aniso_U_12""".splitlines()
         Return maximum error.
         """
         msq = self.get_msq_tmesh([float(temp)], what_list="displ")
-        values_cart = getattr(msq, "displ")
+        ucart = getattr(msq, "displ")
         natom = len(self.structure)
-        values_cart = np.reshape(values_cart, (natom, 3, 3))
+        ucart = np.reshape(ucart, (natom, 3, 3))
 
-        return self.structure.site_symmetries.check_site_symmetries(values_cart, verbose=verbose)
+        return self.structure.site_symmetries.check_site_symmetries(ucart, verbose=verbose)
 
     def _get_components(self, components):
         """
@@ -575,7 +586,7 @@ _atom_site_aniso_U_12""".splitlines()
                     ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
             if ix == len(ax_list) - 1:
-                ax.set_xlabel('Temperature (K)')
+                ax.set_xlabel("Temperature (K)")
             else:
                 set_visible(ax, False, "xlabel", "xticklabels")
 

@@ -29,7 +29,7 @@ print(msqd_dos)
 #for fmt in ("cartesian", "cif", "ustar", "beta", "B"):
 for fmt in ("cartesian", "cif"):
     df = msqd_dos.get_dataframe(temp=300, view="all", fmt=fmt)
-    abilab.print_dataframe(df, title="Format: %s" % fmt))
+    abilab.print_dataframe(df, title="Format: %s" % fmt)
 
 # Plot generalized phonon DOS for each inequivalent atom in the unit cell.
 msqd_dos.plot()

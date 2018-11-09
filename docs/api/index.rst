@@ -4,11 +4,6 @@
 API documentation
 =================
 
-.. htmlonly::
-
-   :Release: |version|
-   :Date: |today|
-
 .. toctree::
    :maxdepth: 1
 

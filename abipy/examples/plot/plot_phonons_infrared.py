@@ -20,7 +20,7 @@ filepath = os.path.join(abidata.dirpath, "refs", "mp-7000_DDB.bz2")
 ddb = abilab.abiopen(filepath)
 
 # Invoke anaddb to compute dielectric tensor and oscillator strength.
-tgen = ddb.anaget_dielectric_tensor_generator(asr=2, chneut=1, dipdip=1)
+tgen = ddb.anaget_dielectric_tensor_generator(asr=2, chneut=1, dipdip=1, verbose=1)
 print(tgen)
 
 # Set phonon damping factor in eV (full width).

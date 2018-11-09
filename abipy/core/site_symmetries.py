@@ -215,13 +215,13 @@ class SiteSymmetries(Has_Structure):
         df = pd.DataFrame(rows, index=None, columns=list(rows[0].keys()) if rows else None)
         return df
 
-    def check_site_symmetries(self, values_cart, verbose=0):
+    def check_site_symmetries(self, tcart, verbose=0):
         """
         Test whether a set of tensors associated to the crystalline sites are compatible
         with the space group symmetries.
 
         Args:
-            values_cart:
+            tcart: (natom, 3, 3) array
             verbose: Verbosity level.
 
         Return: max_err
@@ -229,10 +229,11 @@ class SiteSymmetries(Has_Structure):
         natom = len(self.structure)
         indsym = self.structure.indsym
         nsym = len(self.symcart)
+        tcart = np.reshape(tcart, (natom, 3, 3))
 
         max_err = 0.0
         for iatom in range(natom):
-            ref_mat = values_cart[iatom]
+            ref_mat = tcart[iatom]
             sym_mat = np.zeros_like(ref_mat)
             count = 0
             for isym, scart in enumerate(self.symcart):
@@ -250,17 +251,17 @@ class SiteSymmetries(Has_Structure):
                 print(np.hstack((ref_mat, sym_mat, diff_mat)))
 
         for iatom in range(natom):
-            ref_mat = values_cart[iatom]
+            ref_mat = tcart[iatom]
             for isym, scart in enumerate(self.symcart):
                 jatom = indsym[iatom, isym, 3]
                 if jatom == iatom: continue
                 #sym_mat = np.matmul(scart, np.matmul(ref_mat, scart.T))
                 sym_mat = np.matmul(scart.T, np.matmul(ref_mat, scart))
-                diff_mat = sym_mat - values_cart[jatom]
+                diff_mat = sym_mat - tcart[jatom]
                 max_err = max(max_err, np.abs(diff_mat).sum())
                 if verbose:
                     print("For iatom", iatom, "ref_mat, sym_mat, diff_mat")
-                    print(np.hstack((values_cart[jatom], sym_mat, diff_mat)))
+                    print(np.hstack((tcart[jatom], sym_mat, diff_mat)))
 
         print("Max error:", max_err)
 

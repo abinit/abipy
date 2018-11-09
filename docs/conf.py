@@ -69,7 +69,7 @@ import matplotlib
 extensions += [
     'IPython.sphinxext.ipython_directive',
     'IPython.sphinxext.ipython_console_highlighting',
-    'matplotlib.sphinxext.only_directives',
+    #'matplotlib.sphinxext.only_directives',
     'matplotlib.sphinxext.plot_directive',
 ]
 

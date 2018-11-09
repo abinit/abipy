@@ -1,13 +1,12 @@
 """Tests for core.site_symmetries module"""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
-import unittest
 import os
 import numpy as np
 
 from abipy.core.testing import AbipyTest
 from abipy.core.structure import Structure
-from abipy.core.site_symmetries import SiteSymmetries
+#from abipy.core.site_symmetries import SiteSymmetries
 
 import abipy.data as abidata
 
@@ -41,7 +40,7 @@ class TestSiteSymmetries(AbipyTest):
         asi02 = Structure.from_file(os.path.join(abidata.dirpath, "refs", "mp-7000_DDB.bz2"))
         ss = asi02.site_symmetries
         df = ss.get_wyckoff_dataframe(verbose=2)
-        df[df["element"] == "Si"]
+        df = df[df["element"] == "Si"]
         self.assert_equal(df["xfrac"].values, ["xfrac", "yfrac", "0.0"])
         self.assert_equal(df["yfrac"].values, ["0.0", "yfrac", "yfrac"])
         self.assert_equal(np.array(df["zfrac"].values, dtype=float), [0.833335, 0.5, 0.166665])
