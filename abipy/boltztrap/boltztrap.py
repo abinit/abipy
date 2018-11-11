@@ -449,7 +449,6 @@ class BoltztrapResult():
         """
         start_idx = np.abs(self.wmesh - emin*abu.eV_Ha - self.fermi).argmin()
         stop_idx  = np.abs(self.wmesh - emax*abu.eV_Ha - self.fermi).argmin()
-        print(start_idx,stop_idx)
         self.mumesh = self.wmesh[start_idx:stop_idx]
 
     def compute_fermiintegrals(self):
@@ -784,9 +783,9 @@ class BoltztrapResultRobot():
 
         return fig
 
-    def set_erange(self,*erange):
+    def set_erange(self,emin,emax):
         """ Get an energy range based on an energy margin above and bellow the fermi level"""
-        self.erange = erange
+        self.erange = (emin,emax)
 
     def unset_erange(self):
         """ Unset the energy range"""
