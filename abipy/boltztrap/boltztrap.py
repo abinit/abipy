@@ -10,15 +10,7 @@ Warning:
 """
 import pickle
 import numpy as np
-from monty.string import marquee
-from monty.termcolor import cprint
-from abipy.tools.plotting import add_fig_kwargs
-from abipy.tools import duck
-from abipy.electrons.ebands import ElectronBands
-from abipy.core.kpoints import Kpath
-from abipy.core.structure import Structure
 import abipy.core.abinit_units as abu
-
 from monty.string import marquee
 from monty.termcolor import cprint
 from abipy.tools.plotting import add_fig_kwargs
