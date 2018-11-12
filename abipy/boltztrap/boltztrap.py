@@ -515,7 +515,7 @@ class BoltztrapResult():
             ax.plot(wmesh,self.vvdos[i,j,:],label=label,**kwargs)
         ax.set_xlabel('Energy (eV)',fontsize=fontsize)
 
-    def plot_ax(self,ax,what,components=('xx',),itemp_list=None,colormap='viridis',fontsize=8,**kwargs):
+    def plot_ax(self,ax,what,components=('xx',),itemp_list=None,fontsize=8,**kwargs):
         """
         Plot a quantity for all the dopings as a function of temperature on the axis ax.
 
@@ -528,6 +528,9 @@ class BoltztrapResult():
             kwargs: Passed to ax.plot
         """
         from matplotlib import pyplot as plt
+        colormap = kwargs.pop('colormap','plasma')
+        cmap = plt.get_cmap(colormap)
+        color = None
 
         itemp_list = list(range(self.ntemp)) if itemp_list is None else duck.list_ints(itemp_list)
         maxitemp = max(itemp_list)
@@ -535,8 +538,6 @@ class BoltztrapResult():
         if maxitemp > self.ntemp or minitemp < 0:
             raise ValueError('Invalid itemp_list, should be between 0 and %d. Got %d.'%(self.ntemp,maxitemp))
 
-        cmap = plt.get_cmap(colormap)
-        color = None
         mumesh = (self.mumesh-self.fermi) * abu.Ha_eV
 
         if self.istensor(what):
@@ -575,12 +576,12 @@ class BoltztrapResult():
         return letters[what]
 
     @add_fig_kwargs
-    def plot(self, what, colormap='viridis', directions=('xx'), ax=None, fontsize=8, **kwargs):
+    def plot(self, what, colormap='plasma', directions=('xx'), ax=None, fontsize=8, **kwargs):
         """
         Plot the qantity for all the temperatures as a function of the doping
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
-        self.plot_ax(ax, what)
+        self.plot_ax(ax, what, colormap=colormap, directions=directions, **kwargs)
         fig.legend(fontsize=fontsize)
         return fig
 
@@ -682,6 +683,10 @@ class BoltztrapResultRobot():
         """
         Plot the vvdos for all the results in the robot
         """
+        from matplotlib import pyplot as plt
+        colormap = kwargs.pop('colormap','plasma')
+        cmap = plt.get_cmap(colormap)
+
         #set erange
         erange = erange or self.erange
         if erange is not None: ax.set_xlim(erange)
@@ -689,10 +694,11 @@ class BoltztrapResultRobot():
         if itau_list:
             #filter results by temperature
             tau_list = [self.tmesh[itau] for itau in itau_list]
-            filtered_results = [res for res in self.results if res.tau_temp in tau_list]
+            filtered_results = sorted([res for res in self.results if res.tau_temp in tau_list],key=lambda x: x.tau_temp)
 
-            for result in filtered_results:
-                result.plot_vvdos_ax(ax,fontsize=fontsize,components=components,**kwargs)
+            for itemp,result in enumerate(filtered_results):
+                color = kwargs.pop('c',cmap(itemp/len(filtered_results)))
+                result.plot_vvdos_ax(ax,fontsize=fontsize,c=color,components=components,**kwargs)
             ax.set_ylabel('with $\\tau$',fontsize=fontsize)
             if legend: ax.legend(fontsize=fontsize)
         else:
@@ -730,7 +736,6 @@ class BoltztrapResultRobot():
         from matplotlib import pyplot as plt
         colormap = kwargs.pop('colormap','plasma')
         cmap = plt.get_cmap(colormap)
-        color = None
 
         #set erange
         erange = erange or self.erange
