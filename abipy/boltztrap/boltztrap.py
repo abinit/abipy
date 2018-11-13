@@ -552,19 +552,19 @@ class BoltztrapResult():
         """
         if self.has_tau: tau = ''
         else: tau = 's^{-1}'
-        if what == 'sigma':       return '$\sigma$ [$Sm^{-1}%s$]'%tau
-        if what == 'seebeck':     return '$S$ [$VSm^{-1}%s$]'%tau
-        if what == 'kappa':       return '$\kappa_e$ [$VJSm^{-1}%s$]'%tau
-        if what == 'powerfactor': return '$S^2\sigma$ [$VJSm^{-1}%s$]'%tau
+        if what == 'sigma':       return r'$\sigma$ [$Sm^{-1}%s$]'%tau
+        if what == 'seebeck':     return r'$S$ [$VSm^{-1}%s$]'%tau
+        if what == 'kappa':       return r'$\kappa_e$ [$VJSm^{-1}%s$]'%tau
+        if what == 'powerfactor': return r'$S^2\sigma$ [$VJSm^{-1}%s$]'%tau
         return ''
 
     def get_letter(self,what):
-        letters = {'sigma':      '$\sigma$',
-                   'seebeck':    '$S$',
-                   'kappa':      '$\kappa_e$',
-                   'powerfactor':'$S^2\sigma$',
-                   'vvdos':      '$v\\otimes v$',
-                   'dos':        '$n(\epsilon)$'}
+        letters = {'sigma':      r'$\sigma$',
+                   'seebeck':    r'$S$',
+                   'kappa':      r'$\kappa_e$',
+                   'powerfactor':r'$S^2\sigma$',
+                   'vvdos':      r'$v\otimes v$',
+                   'dos':        r'$n(\epsilon)$'}
         return letters[what]
 
     @add_fig_kwargs
@@ -691,13 +691,13 @@ class BoltztrapResultRobot():
             for itemp,result in enumerate(filtered_results):
                 color = kwargs.pop('c',cmap(itemp/len(filtered_results)))
                 result.plot_vvdos_ax(ax,fontsize=fontsize,c=color,components=components,**kwargs)
-            ax.set_ylabel('with $\\tau$',fontsize=fontsize)
+            ax.set_ylabel(r'with $\tau$',fontsize=fontsize)
             if legend: ax.legend(fontsize=fontsize)
         else:
             #results without temperature
             for result in self.notau_results:
                 result.plot_vvdos_ax(ax,fontsize=fontsize,components=components,**kwargs)
-            ax.set_ylabel('without $\\tau$',fontsize=fontsize)
+            ax.set_ylabel(r'without $\tau$',fontsize=fontsize)
             if legend: ax.legend(fontsize=fontsize)
 
     def plot_dos_ax(self,ax1,legend=True,fontsize=8,erange=None,**kwargs):
