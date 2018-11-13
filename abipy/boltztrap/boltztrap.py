@@ -11,7 +11,6 @@ Warning:
 import pickle
 import numpy as np
 import abipy.core.abinit_units as abu
-
 from monty.string import marquee
 from monty.termcolor import cprint
 from abipy.tools.plotting import add_fig_kwargs
@@ -19,7 +18,7 @@ from abipy.tools import duck
 from abipy.electrons.ebands import ElectronBands
 from abipy.core.kpoints import Kpath
 from abipy.core.structure import Structure
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt #, set_axlims, get_axarray_fig_plt, set_visible, set_ax_xylabels
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt #, set_axlims, set_visible, set_ax_xylabels
 from abipy.tools.decorators import timeit
 
 class AbipyBoltztrap():
@@ -63,6 +62,12 @@ class AbipyBoltztrap():
         if not hasattr(self,'_coefficients'):
             self.compute_coefficients()
         return self._coefficients
+    
+    @property
+    def linewidth_coefficients(self):
+        if not hasattr(self,'_linewidth_coefficients'):
+            self.compute_coefficients()
+        return self._linewidth_coefficients
 
     @property
     def linewidth_coefficients(self):
@@ -87,6 +92,16 @@ class AbipyBoltztrap():
     @property
     def ntemps(self):
         return len(self.linewidths)
+
+    def pickle(self,filename):
+        with open(filename,'wb') as f:
+            pickle.dump(self,f)
+
+    @classmethod
+    def from_pickle(cls,filename):
+        with open(filename,'rb') as f:
+            cls = pickle.load(f)
+        return cls
 
     @classmethod
     def from_ebands(cls):
@@ -258,9 +273,9 @@ class AbipyBoltztrap():
         delattr(self,"ebands")
 
     @timeit
-    def run(self,npts=500,dos_method='gaussian:0.1 eV',erange=None,nworkers=1,verbose=0):
+    def run(self,npts=500,dos_method='gaussian:0.05 eV',erange=None,margin=0.1,nworkers=1,verbose=0):
         """
-        Interpolate the eingenvalues to compute DOS and VVDOS
+        Interpolate the eingenvalues to compute dos and vvdos
         This part is quite memory intensive
 
         Args:
@@ -296,7 +311,7 @@ class AbipyBoltztrap():
         #calculate DOS and VDOS without lifetimes
         if verbose: print('calculating dos and vvdos without lifetimes')
         wmesh,dos,vvdos,_ = BTPDOS(eig_fine, vvband, erange=erange, npts=npts, mode=dos_method)
-        app(BoltztrapResult(self,wmesh,dos,vvdos,self.fermi,self.tmesh,self.volume))
+        app(BoltztrapResult(self,wmesh,dos,vvdos,self.fermi,self.tmesh,self.volume,margin=margin))
 
         #if we have linewidths
         if self.linewidths:
@@ -314,7 +329,7 @@ class AbipyBoltztrap():
                                                       scattering_model=tau_fine, mode=dos_method)
                 #store results
                 app(BoltztrapResult(self,wmesh,dos_tau,vvdos_tau,self.fermi,self.tmesh,
-                                    self.volume,tau_temp=self.tmesh[itemp]))
+                                    self.volume,tau_temp=self.tmesh[itemp],margin=margin))
 
         return BoltztrapResultRobot(boltztrap_results)
 
@@ -332,13 +347,16 @@ class BoltztrapResult():
     Provides a object oriented interface to BoltztraP2
     for plotting, storing and analysing the results
     """
-    def __init__(self,abipyboltztrap,wmesh,dos,vvdos,fermi,tmesh,volume,tau_temp=None,margin=10):
+    _attrs = ['_L0','_L1','_L2','_sigma','_seebeck','_kappa']
+
+    def __init__(self,abipyboltztrap,wmesh,dos,vvdos,fermi,tmesh,volume,tau_temp=None,margin=0.1):
         self.abipyboltztrap = abipyboltztrap
 
         self.fermi  = fermi
         self.volume = volume
         self.wmesh  = np.array(wmesh)
-        self.mumesh = self.wmesh[margin:-(margin+1)]
+        idx_margin = int(margin*len(wmesh))
+        self.mumesh = self.wmesh[idx_margin:-(idx_margin+1)]
         self.tmesh  = np.array(tmesh)
 
         #Temperature fix
@@ -399,10 +417,31 @@ class BoltztrapResult():
         if not hasattr(self,'_kappa'):
             self.compute_onsager_coefficients()
         return self._kappa
+  
+    def set_tmesh(self,tmesh):
+        """ Set the temperature mesh"""    
+        self.tmesh = tmesh
 
     def set_tmesh(self,tmesh):
         """ Set the temperature mesh"""
         self.tmesh = tmesh
+
+    def del_attrs(self):
+        """ Remove all the atributes so they are recomputed """
+        for attr in self._attrs: 
+            delattr(attr)
+
+    def set_mumesh(self,emin,emax):
+        """
+        Set the range in which to plot the change of the doping
+        
+        Args:
+            emin: minimun energy in eV
+            emax: maximum energy in eV
+        """
+        start_idx = np.abs(self.wmesh - emin*abu.eV_Ha - self.fermi).argmin()
+        stop_idx  = np.abs(self.wmesh - emax*abu.eV_Ha - self.fermi).argmin()
+        self.mumesh = self.wmesh[start_idx:stop_idx]
 
     def compute_fermiintegrals(self):
         """Compute and store the results of the Fermi integrals"""
@@ -438,7 +477,7 @@ class BoltztrapResult():
         i,j = abu.s2itup(component)
         return getattr(self,what)[itemp,:,i,j]
 
-    def plot_dos_ax(self,ax,**kwargs):
+    def plot_dos_ax(self,ax,fontsize=8,**kwargs):
         """
         Plot the density of states on axis ax.
 
@@ -447,12 +486,12 @@ class BoltztrapResult():
             kwargs: Passed to ax.plot
         """
         wmesh = (self.wmesh-self.fermi) * abu.Ha_eV
-        ax.plot(wmesh,self.dos,label='DOS',**kwargs)
-        ax.set_xlabel('Energy (eV)')
+        ax.plot(wmesh,self.dos,label=self.get_letter('dos'),**kwargs)
+        ax.set_xlabel('Energy (eV)',fontsize=fontsize)
 
-    def plot_vvdos_ax(self,ax,components=('xx',),**kwargs):
+    def plot_vvdos_ax(self,ax,components=('xx',),fontsize=8,**kwargs):
         """
-        Plot components of VVDOS on the axis ax.
+        Plot components of vvdos on the axis ax.
 
         Args:
             ax: |matplotlib-Axes|.
@@ -463,32 +502,27 @@ class BoltztrapResult():
 
         for component in components:
             i,j = abu.s2itup(component)
-            label = "VVDOS %s" % component
+            label = "%s $_{%s}$" % (self.get_letter('vvdos'),component)
             if self.tau_temp: label += r" $\tau_T$ = %dK" % self.tau_temp
             ax.plot(wmesh,self.vvdos[i,j,:],label=label,**kwargs)
-        ax.set_xlabel('Energy (eV)')
+        ax.set_xlabel('Energy (eV)',fontsize=fontsize)
 
-    def plot_ax(self,ax,what,components=('xx',),itemp_list=None,colormap='viridis',**kwargs):
+    def plot_ax(self,ax,what,components=('xx',),itemp_list=None,fontsize=8,**kwargs):
         """
-        Plot the DOS for all the dopings as a function of temperature on the axis ax.
+        Plot a quantity for all the dopings as a function of temperature on the axis ax.
 
         Args:
             ax: |matplotlib-Axes|.
-            what: choose the quantity to plot can be: ['dos','vvdos','sigma','kappa','powerfactor']
+            what: choose the quantity to plot can be: ['sigma','kappa','powerfactor']
             components: Choose the components of the tensor to plot ['xx','xy','xz','yy',(...)]
             itemp_list: list of indexes of the tempratures to plot
             colormap: Colormap used to plot the results
             kwargs: Passed to ax.plot
         """
         from matplotlib import pyplot as plt
-
-        if what == 'dos':
-            self.plot_dos_ax(ax,**kwargs)
-            return
-
-        if what == 'vvdos':
-            self.plot_vvdos_ax(ax,components,**kwargs)
-            return
+        colormap = kwargs.pop('colormap','plasma')
+        cmap = plt.get_cmap(colormap)
+        color = None
 
         itemp_list = list(range(self.ntemp)) if itemp_list is None else duck.list_ints(itemp_list)
         maxitemp = max(itemp_list)
@@ -496,8 +530,6 @@ class BoltztrapResult():
         if maxitemp > self.ntemp or minitemp < 0:
             raise ValueError('Invalid itemp_list, should be between 0 and %d. Got %d.'%(self.ntemp,maxitemp))
 
-        cmap = plt.get_cmap(colormap)
-        color = None
         mumesh = (self.mumesh-self.fermi) * abu.Ha_eV
 
         if self.istensor(what):
@@ -506,21 +538,43 @@ class BoltztrapResult():
                 for component in components:
                     y = self.get_component(what,component,itemp)
                     if len(itemp_list) > 1: color=cmap(itemp/len(itemp_list))
-                    label = "%s %s $b_T$ = %dK" % (what,component,self.tmesh[itemp])
+                    label = "%s $_{%s}$ $b_T$ = %dK" % (self.get_letter(what),component,self.tmesh[itemp])
                     if self.has_tau: label += r" $\tau_T$ = %dK" % self.tau_temp
                     ax.plot(mumesh,y,label=label,c=color,**kwargs)
         else:
             ax.plot(mumesh,getattr(self,what),label=what,**kwargs)
-        ax.set_xlabel('Energy (eV)')
+        ax.set_ylabel(self.get_ylabel(what),fontsize=fontsize)
+        ax.set_xlabel('Energy (eV)',fontsize=fontsize)
+
+    def get_ylabel(self,what):
+        """
+        Get a label with units for the quntities stores in this object.
+        """
+        if self.has_tau: tau = ''
+        else: tau = 's^{-1}'
+        if what == 'sigma':       return r'$\sigma$ [$Sm^{-1}%s$]'%tau
+        if what == 'seebeck':     return r'$S$ [$VSm^{-1}%s$]'%tau
+        if what == 'kappa':       return r'$\kappa_e$ [$VJSm^{-1}%s$]'%tau
+        if what == 'powerfactor': return r'$S^2\sigma$ [$VJSm^{-1}%s$]'%tau
+        return ''
+
+    def get_letter(self,what):
+        letters = {'sigma':      r'$\sigma$',
+                   'seebeck':    r'$S$',
+                   'kappa':      r'$\kappa_e$',
+                   'powerfactor':r'$S^2\sigma$',
+                   'vvdos':      r'$v\otimes v$',
+                   'dos':        r'$n(\epsilon)$'}
+        return letters[what]
 
     @add_fig_kwargs
-    def plot(self, what, colormap='viridis', directions=('xx'), ax=None, **kwargs):
+    def plot(self, what, colormap='plasma', directions=('xx'), ax=None, fontsize=8, **kwargs):
         """
-        Plot the DOS for all the temperatures as a function of the doping
+        Plot the qantity for all the temperatures as a function of the doping
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
-        self.plot_ax(ax, what)
-        #fig.legend()
+        self.plot_ax(ax, what, colormap=colormap, directions=directions, **kwargs)
+        fig.legend(fontsize=fontsize)
         return fig
 
     def to_string(self,title=None,mark="="):
@@ -529,11 +583,11 @@ class BoltztrapResult():
         """
         lines = []; app = lines.append
         if title is None: app(marquee(self.__class__.__name__,mark=mark))
-        app("fermi:    %8.5lf"%self.fermi)
-        app("mumesh:    %8.5lf <-> %8.5lf"%(self.mumesh[0],self.mumesh[-1]))
-        app("tmesh:    %s"%self.tmesh)
+        app("fermi:    %8.5lf eV"%(self.fermi*abu.Ha_eV))
+        app("mumesh:   %8.5lf <-> %8.5lf eV"%(self.mumesh[0]*abu.Ha_eV,self.mumesh[-1]*abu.Ha_eV))
+        app("tmesh:    %s K"%self.tmesh)
         app("has_tau:  %s"%self.has_tau)
-        if self.tau_temp: app("tau_temp: %lf"%self.tau_temp)
+        if self.tau_temp: app("tau_temp: %.1lf K"%self.tau_temp)
         return "\n".join(lines)
 
     def __str__(self):
@@ -562,13 +616,21 @@ class BoltztrapResultRobot():
         self.results = results
         self.erange = erange
 
+        if not all([np.allclose(results[0].mumesh,result.mumesh) for result in results[1:]]):
+            raise ValueError('The doping meshes of the results differ, cannot continue')
+        self.mumesh = results[0].mumesh
+
+        if not all([np.allclose(results[0].tmesh,result.tmesh) for result in results[1:]]):
+            raise ValueError('The temperature meshes of the results differ, cannot continue')
+        self.tmesh = results[0].tmesh
+
     def __getitem__(self,index):
         """Access the results stored in the class as a list"""
         return self.results[index]
 
     @property
-    def temp_list(self):
-        return self.results[0].tmesh
+    def ntemp(self):
+        return len(self.tmesh)
 
     @property
     def tau_list(self):
@@ -585,7 +647,9 @@ class BoltztrapResultRobot():
     @property
     def tau_results(self):
         """Return all the results that have temperature dependence"""
-        return self.__class__([ res for res in self.results if res.tau_temp is None ])
+        instance = self.__class__([ res for res in self.results if res.tau_temp ])
+        if self.erange: instance.erange = self.erange
+        return instance
 
     @property
     def nresults(self):
@@ -607,13 +671,54 @@ class BoltztrapResultRobot():
         with open(filename,'wb') as f:
             pickle.dump(self,f)
 
-    def plot_ax(self,ax1,what,components=('xx',),itemp_list=None,itau_list=None,erange=None,**kwargs):
+    def plot_vvdos_ax(self,ax,legend=True,components=('xx',),itau_list=None,fontsize=8,erange=None,**kwargs):
+        """
+        Plot the vvdos for all the results in the robot
+        """
+        from matplotlib import pyplot as plt
+        colormap = kwargs.pop('colormap','plasma')
+        cmap = plt.get_cmap(colormap)
+
+        #set erange
+        erange = erange or self.erange
+        if erange is not None: ax.set_xlim(erange)
+
+        if itau_list:
+            #filter results by temperature
+            tau_list = [self.tmesh[itau] for itau in itau_list]
+            filtered_results = sorted([res for res in self.results if res.tau_temp in tau_list],key=lambda x: x.tau_temp)
+
+            for itemp,result in enumerate(filtered_results):
+                color = kwargs.pop('c',cmap(itemp/len(filtered_results)))
+                result.plot_vvdos_ax(ax,fontsize=fontsize,c=color,components=components,**kwargs)
+            ax.set_ylabel(r'with $\tau$',fontsize=fontsize)
+            if legend: ax.legend(fontsize=fontsize)
+        else:
+            #results without temperature
+            for result in self.notau_results:
+                result.plot_vvdos_ax(ax,fontsize=fontsize,components=components,**kwargs)
+            ax.set_ylabel(r'without $\tau$',fontsize=fontsize)
+            if legend: ax.legend(fontsize=fontsize)
+
+    def plot_dos_ax(self,ax1,legend=True,fontsize=8,erange=None,**kwargs):
+        """
+        Plot the dos for all the results in the robot
+        """
+        #set erange
+        erange = erange or self.erange
+        if erange is not None: ax1.set_xlim(erange)
+
+        for result in self.results:
+            result.plot_dos_ax(ax1,fontsize=fontsize,**kwargs)
+        if legend: ax1.legend(fontsize=fontsize)
+
+    def plot_ax(self,ax1,what,components=('xx',),itemp_list=None,itau_list=None,fontsize=8,erange=None,**kwargs):
         """
         Plot the same quantity for all the results on axis ax1
 
         Args:
             ax1: |matplotlib-Axes|.
-            what: choose the quantity to plot can be: ['dos','vvdos','sigma','kappa','powerfactor']
+            what: choose the quantity to plot can be: ['sigma','kappa','powerfactor']
             itemp_list: list of indexes of the tempratures to plot
             itau_list: list of indexes of the tempratures at which the lifetimes were computed
             components: Choose the components of the tensor to plot ['xx','xy','xz','yy',(...)]
@@ -624,36 +729,50 @@ class BoltztrapResultRobot():
         colormap = kwargs.pop('colormap','plasma')
         cmap = plt.get_cmap(colormap)
 
-        if what == "dos": self.plot_dos_ax(self)
-
         #set erange
         erange = erange or self.erange
         if erange is not None: ax1.set_xlim(erange)
 
-        #get itau_list
-        tau_temps = self.tau_list if itau_list is None else [ self.tau_list[itau] for itau in itau_list ]
-        #filter results by temperature
-        filtered_results = [res for res in self.results if res.tau_temp in tau_temps]
+        if itau_list:
+            #filter results by temperature
+            tau_list = self.tmesh if itau_list is None else [self.tmesh[itau] for itau in itau_list]
+            filtered_results = [res for res in self.results if res.tau_temp in tau_list]
 
-        #plot the results
-        for itemp,result in enumerate(filtered_results):
-            if result.tau_temp not in tau_temps: continue
-            color = kwargs.pop('c',cmap(itemp/len(filtered_results)))
-            result.plot_ax(ax1,what,components,itemp_list,c=color,**kwargs)
+            #plot the results
+            for itemp,result in enumerate(filtered_results):
+                color = kwargs.pop('c',cmap(itemp/len(filtered_results)))
+                result.plot_ax(ax1,what,components,itemp_list,fontsize=fontsize,c=color,**kwargs)
+        else:
+            #plot result without tau
+            for result in self.notau_results:
+                result.plot_ax(ax1,what,components,itemp_list,fontsize=fontsize,**kwargs)
 
-        #plot result without tau
-        filtered_results = [res for res in self.results if not res.has_tau]
-        if len(filtered_results): ax2 = ax1.twinx()
-        for result in filtered_results:
-            result.plot_ax(ax2,what,components,itemp_list,*kwargs)
+    
+    @add_fig_kwargs
+    def plot_transport(self,itemp_list=None,itau_list=None,components=('xx',),
+                       erange=None,ax_array=None,fontsize=8,legend=True,**kwargs):
+        """
+        Plot the different quantities relevant for transport for all the results in the robot
+        """
+        ax_array, fig, plt = get_axarray_fig_plt(ax_array,nrows=2,ncols=2)
+        self.plot_ax(ax_array[0,0],'sigma',      itemp_list=itemp_list,itau_list=itau_list,fontsize=fontsize,**kwargs)
+        self.plot_ax(ax_array[0,1],'seebeck',    itemp_list=itemp_list,itau_list=itau_list,fontsize=fontsize,**kwargs)
+        self.plot_ax(ax_array[1,0],'kappa',      itemp_list=itemp_list,itau_list=itau_list,fontsize=fontsize,**kwargs)
+        self.plot_ax(ax_array[1,1],'powerfactor',itemp_list=itemp_list,itau_list=itau_list,fontsize=fontsize,**kwargs)
+
+        if legend: 
+            for ax in ax_array.flatten(): ax.legend(fontsize=fontsize)
+        fig.tight_layout()
+        return fig
 
     @add_fig_kwargs
-    def plot(self,what,itemp_list=None,itau_list=None,components=('xx',),erange=None,**kwargs):
+    def plot(self,what,itemp_list=None,itau_list=None,components=('xx',),
+             erange=None,fontsize=8,legend=True,**kwargs):
         """
         Plot all the boltztrap results in the Robot
 
         Args:
-            what: choose the quantity to plot can be: ['dos','vvdos','sigma','kappa','powerfactor']
+            what: choose the quantity to plot can be: ['sigma','kappa','powerfactor']
             itemp_list: list of indexes of the tempratures to plot
             itau_list: list of indexes of the tempratures at which the lifetimes were computed
             components: Choose the components of the tensor to plot ['xx','xy','xz','yy',(...)]
@@ -662,30 +781,46 @@ class BoltztrapResultRobot():
         """
         ax1, fig, plt = get_ax_fig_plt(ax=None)
         self.plot_ax(ax1,what,components=components,itemp_list=itemp_list,itau_list=itau_list,
-                     erange=erange,**kwargs)
-        fig.legend(prop={'size': 6})
+                     fontsize=fontsize,erange=erange,**kwargs)
+        if legend: fig.legend(fontsize=fontsize)
         return fig
 
     @add_fig_kwargs
-    def plot_dos_vvdos(self,itemp_list=None,itau_list=None,which_dos=(0,),components=('xx',),
-                       dos_color=None,erange=None,**kwargs):
+    def plot_dos_vvdos(self,dos_color=None,erange=None,ax_array=None,components=('xx',),fontsize=8,legend=True,**kwargs):
         """
-        Plot the DOS and VVDOS for all the results
+        Plot dos and vvdos on the same figure
         """
-        from matplotlib import pyplot as plt
-
-        fig = plt.figure()
-        ax1 = fig.add_subplot(1,1,1)
-        for iresult in which_dos:
-            self[iresult].plot_dos_ax(ax1,c=dos_color,**kwargs)
-        ax2 = ax1.twinx()
-        self.plot_ax(ax2,'vvdos',itemp_list=itemp_list,itau_list=itau_list,erange=erange,**kwargs)
-        fig.legend(prop={'size': 6})
+        ax_array, fig, plt = get_axarray_fig_plt(ax_array,nrows=3)
+        self.plot_dos_ax(ax_array[0],erange=erange,legend=legend,fontsize=fontsize,**kwargs)
+        self.plot_vvdos_ax(ax_array[1],components=components,erange=erange,fontsize=fontsize,legend=legend)
+        self.plot_vvdos_ax(ax_array[2],itau_list=range(self.ntemp),components=components,erange=erange,
+                           fontsize=fontsize,legend=legend)
+        return fig
+ 
+    @add_fig_kwargs
+    def plot_dos(self,ax=None,erange=None,fontsize=8,legend=True,**kwargs):
+        """ 
+        Plot dos for the results in the Robot
+        """
+        ax1, fig, plt = get_ax_fig_plt(ax=ax)
+        self.plot_dos_ax(ax1,erange=erange,legend=legend,fontsize=fontsize,**kwargs)
         return fig
 
-    def set_erange(self,erange):
+    @add_fig_kwargs
+    def plot_vvdos(self,ax_array=None,itau_list=None,components=('xx',),erange=None,fontsize=8,legend=True,**kwargs):
+        """
+        Plot vvdos for all the results in the Robot
+        """
+        ax_array, fig, plt = get_axarray_fig_plt(ax_array=ax_array,sharex=True,nrows=2)
+
+        self.plot_vvdos_ax(ax_array[0],components=components,erange=erange,fontsize=fontsize,legend=legend)
+        self.plot_vvdos_ax(ax_array[1],itau_list=range(self.ntemp),components=components,erange=erange,
+                           fontsize=fontsize,legend=legend)
+        return fig
+
+    def set_erange(self,emin,emax):
         """ Get an energy range based on an energy margin above and bellow the fermi level"""
-        self.erange = erange
+        self.erange = (emin,emax)
 
     def unset_erange(self):
         """ Unset the energy range"""
@@ -701,6 +836,18 @@ class BoltztrapResultRobot():
         for result in self.results:
             app(result.to_string(mark='-'))
         return "\n".join(lines)
+
+    def set_mumesh(self,emin,emax):
+        """
+        Set the range in which to plot the change of the doping
+        for all the results
+        
+        Args:
+            emin: minimun energy in eV
+            emax: maximum energy in eV
+        """
+        for result in self.results:
+            result.set_mumesh(emin,emax)
 
     def set_tmesh(self,tmesh):
         """
