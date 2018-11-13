@@ -14,7 +14,6 @@ class SigEPhFileTest(AbipyTest):
 
     def test_sigeph_file(self):
         """Tests for SigEPhFile."""
-        #raise self.SkipTest("Disabled")
         sigeph = abilab.abiopen(abidata.ref_file("diamond_444q_SIGEPH.nc"))
         repr(sigeph); str(sigeph)
         assert sigeph.to_string(verbose=2)
@@ -207,7 +206,7 @@ class SigEPhFileTest(AbipyTest):
 
         if self.has_matplotlib():
             assert tdep_nopath.plot_itemp(itemp=0, fontsize=8, show=False)
-            assert tdep_nopath.plot_itemp_with_lws_vs_e0(itemp=0, fontsize=8, show=False)
+            assert tdep_nopath.plot_itemp_with_lws_vs_e0(itemp=0, fontsize=8, with_ratios=(3, 1), show=False)
             assert tdep_nopath.plot(show=False)
             assert tdep_nopath.plot_lws_vs_e0(itemp_list=[0, -1], show=False)
             assert tdep_nopath.get_ebands_plotter()
@@ -243,7 +242,6 @@ class SigEPhFileTest(AbipyTest):
 
     def test_sigeph_robot(self):
         """Tests for SigEPhRobot."""
-        #raise self.SkipTest("Disabled")
         filepaths = [
             abidata.ref_file("diamond_444q_SIGEPH.nc"),
         ]

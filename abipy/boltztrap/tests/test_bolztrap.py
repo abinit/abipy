@@ -18,9 +18,8 @@ class AbipyBoltztrapTest(AbipyTest):
         """Test boltztrap interpolation"""
         self.skip_if_not_bolztrap2()
 
-        sigeph = abilab.abiopen(abidata.ref_file("diamond_444q_full_SIGEPH.nc"))
-
-        bt = AbipyBoltztrap.from_sigeph(sigeph)
+        with abilab.abiopen(abidata.ref_file("diamond_444q_full_SIGEPH.nc")) as sigeph:
+            bt = AbipyBoltztrap.from_sigeph(sigeph)
 
         # get equivalences
         assert bt.rmesh == (17,17,17)
@@ -40,17 +39,20 @@ class AbipyBoltztrapTest(AbipyTest):
         btr = bt.run(dos_method="histogram")
         btr = bt.run(npts=500,dos_method="gaussian:0.5 eV")
         btr = bt.run(npts=500,dos_method="lorentzian:0.5 eV")
+
+        # Test pickle
         pickle_file = self.get_tmpname(suffix="diamond.npy")
         btr.pickle(pickle_file)
-        #btr.pickle('diamond.npy')
+        same_result = BolztrapResult.from_pickle(pickle_file)
+        self.assert_equal(btr.tmesh, same_result.tmesh)
 
         if self.has_matplotlib():
             # Plot the density of states and VVDOS for multiple temperatures
-            fig = btr.plot_dos_vvdos(show=False)
+            assert btr.plot_dos_vvdos(show=False)
 
             # Plot transport related quantities for different combinations of
             # tau temperature and boltztrap temperature
             #
-            fig = btr.plot('sigma',itemp_list=None,itau_list=[3],show=False)
-            fig = btr.plot('seebeck',itemp_list=[3],itau_list=[1,2],show=False)
-            fig = btr.plot('powerfactor',itemp_list=[3],itau_list=None,show=False)
+            assert btr.plot('sigma',itemp_list=None,itau_list=[3],show=False)
+            assert btr.plot('seebeck',itemp_list=[3],itau_list=[1,2],show=False)
+            assert btr.plot('powerfactor',itemp_list=[3],itau_list=None,show=False)

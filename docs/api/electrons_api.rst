@@ -13,6 +13,14 @@ electrons Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`eskw` Package
+-------------------
+
+.. automodule:: abipy.eskw
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`bse` Module
 -----------------
 

@@ -44,6 +44,7 @@ from abipy.abio.factories import *
 from abipy.electrons.ebands import (ElectronBands, ElectronBandsPlotter, ElectronDos, ElectronDosPlotter,
     dataframe_from_ebands)
 from abipy.electrons.gsr import GsrFile, GsrRobot
+from abipy.electrons.eskw import EskwFile
 from abipy.electrons.psps import PspsFile
 from abipy.electrons.ddk import DdkFile
 from abipy.electrons.gw import SigresFile, SigresRobot
@@ -60,7 +61,7 @@ from abipy.dfpt.phonons import (PhbstFile, PhbstRobot, PhononBands, PhononBandsP
 from abipy.dfpt.ddb import DdbFile, DdbRobot
 from abipy.dfpt.anaddbnc import AnaddbNcFile, AnaddbNcRobot
 from abipy.dfpt.gruneisen import GrunsNcFile
-from abipy.dfpt.phtk import SoundVelocity
+#from abipy.dfpt.vsound import SoundVelocity
 from abipy.dynamics.hist import HistFile, HistRobot
 from abipy.waves import WfkFile
 from abipy.eph.a2f import A2fFile, A2fRobot
@@ -106,6 +107,7 @@ ext2file = collections.OrderedDict([
 # Abinit files require a special treatment.
 abiext2ncfile = collections.OrderedDict([
     ("GSR.nc", GsrFile),
+    ("ESKW.nc", EskwFile),
     ("DEN.nc", DensityNcFile),
     ("OUT.nc", OutNcFile),
     ("DDK.nc", DdkFile),

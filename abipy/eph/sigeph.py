@@ -2491,7 +2491,7 @@ class TdepElectronBands(object): # pragma: no cover
             return filepath
 
     @add_fig_kwargs
-    def plot_itemp_with_lws_vs_e0(self, itemp, ax_list=None, width_ratios=(2,1),
+    def plot_itemp_with_lws_vs_e0(self, itemp, ax_list=None, width_ratios=(2, 1),
                                   function=lambda x: x, fact=10.0, **kwargs):
         """
         Plot bandstructure with linewidth at temperature ``itemp`` and linewidth vs the KS energies.
@@ -2519,17 +2519,18 @@ class TdepElectronBands(object): # pragma: no cover
             fig = plt.gcf()
 
         # plot the band structure
-        self.plot_itemp(itemp,ax=ax0,fact=fact,show=False)
+        self.plot_itemp(itemp, ax=ax0, fact=fact, show=False)
 
         # plot the dos
         dos_markersize = kwargs.pop("markersize", 4)
         self.plot_lws_vs_e0(itemp_list=[itemp],ax=ax1,
-                            exchange_xy=True,function=abs,
-                            markersize=dos_markersize,show=False)
+                            exchange_xy=True, function=abs,
+                            markersize=dos_markersize, show=False)
 
         ax1.grid(True)
         ax1.yaxis.set_ticks_position("right")
         ax1.yaxis.set_label_position("right")
+
         return fig
 
     @add_fig_kwargs

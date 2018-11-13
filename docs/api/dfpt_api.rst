@@ -92,3 +92,11 @@ dfpt Package
    :members:
    :undoc-members:
    :show-inheritance:
+
+:mod:`vsound` Module
+--------------------
+
+.. automodule:: abipy.dfpt.vsound
+   :members:
+   :undoc-members:
+   :show-inheritance:

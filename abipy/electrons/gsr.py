@@ -1,5 +1,7 @@
 # coding: utf-8
-"""GSR.nc_ file."""
+"""
+Interface to the GSR.nc_ file storing the Ground-state results and the electron band structure.
+"""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np

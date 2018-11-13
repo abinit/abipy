@@ -5,7 +5,7 @@ import os
 import abipy.data as abidata
 
 from abipy.core.testing import AbipyTest
-from abipy.dfpt.phtk import SoundVelocity
+from abipy.dfpt.vsound import SoundVelocity
 
 
 class SoundVelocityTest(AbipyTest):
