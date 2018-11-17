@@ -13,6 +13,7 @@ import numpy as np
 import abipy.core.abinit_units as abu
 from monty.string import marquee
 from monty.termcolor import cprint
+from monty.dev import deprecated
 from abipy.tools.plotting import add_fig_kwargs
 from abipy.tools import duck
 from abipy.electrons.ebands import ElectronBands
@@ -62,7 +63,7 @@ class AbipyBoltztrap():
         if not hasattr(self,'_coefficients'):
             self.compute_coefficients()
         return self._coefficients
-    
+
     @property
     def linewidth_coefficients(self):
         if not hasattr(self,'_linewidth_coefficients'):
@@ -130,7 +131,7 @@ class AbipyBoltztrap():
                    mommat=dftdata.mommat,magmom=None,lpratio=lpratio)
 
     @classmethod
-    def from_sigeph(cls,sigeph,itemp_list=None,bstart=None,bstop=None,lpratio=5):
+    def from_sigeph(cls, sigeph, itemp_list=None, bstart=None, bstop=None, lpratio=5):
         """
         Initialize interpolation of the bands and lifetimes from a SigEphFile object
 
@@ -152,6 +153,9 @@ class AbipyBoltztrap():
         volume = sigeph.ebands.structure.volume*abu.Ang_Bohr**3
         nelect = sigeph.ebands.nelect
         kpoints = [k.frac_coords for k in sigeph.sigma_kpoints]
+
+        if sigeph.nsppol == 2:
+            raise NotImplementedError("nsppol 2 not implemented")
 
         #TODO handle spin
         eig = qpes[0,:,bstart:bstop,0].real.T*abu.eV_Ha
@@ -184,7 +188,7 @@ class AbipyBoltztrap():
             self._lattvec = self.atoms.get_cell().T / abu.Bohr_Ang
         return self._lattvec
 
-    def get_bands(self,kpath=None,line_density=20,vertices_names=None,linewidth_itemp=False):
+    def get_ebands(self,kpath=None,line_density=20,vertices_names=None,linewidth_itemp=False):
         """
         Compute the band-structure using the computed coefficients
 
@@ -224,6 +228,9 @@ class AbipyBoltztrap():
         return ElectronBands(self.structure, kpath, eigens_kpath, self.fermi*abu.Ha_eV, occfacts_kpath,
                              self.nelect, nspinor1, nspden1, linewidths=linewidths_kpath)
 
+    @deprecated(message="get_bands is deprecated, use get_ebands")
+    def get_bands(self, **kwargs):
+        return self.get_ebands(**kwargs)
 
     def get_interpolation_mesh(self):
         """From the array of equivalences determine the mesh that was used"""
@@ -237,7 +244,7 @@ class AbipyBoltztrap():
 
     def dump_rsphere(self,filename):
         """ Write a file with the real space points"""
-        with open(filename,'w') as f:
+        with open(filename, 'wt') as f:
             for iband in range(self.nbands):
                 for ie,equivalence in enumerate(self.equivalences):
                     coeff = self.coefficients[iband,ie]
@@ -334,12 +341,16 @@ class AbipyBoltztrap():
         return BoltztrapResultRobot(boltztrap_results)
 
     def __str__(self):
+        return self.to_string()
+
+    def to_string(self, verbose=2):
         lines = []; app = lines.append
         app(marquee(self.__class__.__name__,mark="="))
         app("equivalent points: {}".format(self.nequivalences))
         app("real space mesh:   {}".format(self.rmesh))
         app("lpratio:           {}".format(self.lpratio))
         return "\n".join(lines)
+
 
 class BoltztrapResult():
     """
@@ -417,9 +428,9 @@ class BoltztrapResult():
         if not hasattr(self,'_kappa'):
             self.compute_onsager_coefficients()
         return self._kappa
-  
+
     def set_tmesh(self,tmesh):
-        """ Set the temperature mesh"""    
+        """ Set the temperature mesh"""
         self.tmesh = tmesh
 
     def set_tmesh(self,tmesh):
@@ -428,13 +439,13 @@ class BoltztrapResult():
 
     def del_attrs(self):
         """ Remove all the atributes so they are recomputed """
-        for attr in self._attrs: 
+        for attr in self._attrs:
             delattr(attr)
 
     def set_mumesh(self,emin,emax):
         """
         Set the range in which to plot the change of the doping
-        
+
         Args:
             emin: minimun energy in eV
             emax: maximum energy in eV
@@ -507,7 +518,7 @@ class BoltztrapResult():
             ax.plot(wmesh,self.vvdos[i,j,:],label=label,**kwargs)
         ax.set_xlabel('Energy (eV)',fontsize=fontsize)
 
-    def plot_ax(self,ax,what,components=('xx',),itemp_list=None,fontsize=8,**kwargs):
+    def plot_ax(self, ax, what, components=('xx',), itemp_list=None, fontsize=8, **kwargs):
         """
         Plot a quantity for all the dopings as a function of temperature on the axis ax.
 
@@ -542,9 +553,10 @@ class BoltztrapResult():
                     if self.has_tau: label += r" $\tau_T$ = %dK" % self.tau_temp
                     ax.plot(mumesh,y,label=label,c=color,**kwargs)
         else:
-            ax.plot(mumesh,getattr(self,what),label=what,**kwargs)
-        ax.set_ylabel(self.get_ylabel(what),fontsize=fontsize)
-        ax.set_xlabel('Energy (eV)',fontsize=fontsize)
+            ax.plot(mumesh,getattr(self,what), label=what, **kwargs)
+
+        ax.set_ylabel(self.get_ylabel(what), fontsize=fontsize)
+        ax.set_xlabel('Energy (eV)', fontsize=fontsize)
 
     def get_ylabel(self,what):
         """
@@ -574,10 +586,11 @@ class BoltztrapResult():
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         self.plot_ax(ax, what, colormap=colormap, directions=directions, **kwargs)
-        fig.legend(fontsize=fontsize)
+        ax.legend(loc="best", shadow=True, fontsize=fontsize)
+
         return fig
 
-    def to_string(self,title=None,mark="="):
+    def to_string(self, title=None, mark="=", verbose=0):
         """
         String representation of the class
         """
@@ -692,15 +705,15 @@ class BoltztrapResultRobot():
                 color = kwargs.pop('c',cmap(itemp/len(filtered_results)))
                 result.plot_vvdos_ax(ax,fontsize=fontsize,c=color,components=components,**kwargs)
             ax.set_ylabel(r'with $\tau$',fontsize=fontsize)
-            if legend: ax.legend(fontsize=fontsize)
+            if legend: ax.legend(loc="best", shadow=True, fontsize=fontsize)
         else:
             #results without temperature
             for result in self.notau_results:
                 result.plot_vvdos_ax(ax,fontsize=fontsize,components=components,**kwargs)
             ax.set_ylabel(r'without $\tau$',fontsize=fontsize)
-            if legend: ax.legend(fontsize=fontsize)
+            if legend: ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
-    def plot_dos_ax(self,ax1,legend=True,fontsize=8,erange=None,**kwargs):
+    def plot_dos_ax(self, ax1, legend=True, fontsize=8, erange=None, **kwargs):
         """
         Plot the dos for all the results in the robot
         """
@@ -710,7 +723,7 @@ class BoltztrapResultRobot():
 
         for result in self.results:
             result.plot_dos_ax(ax1,fontsize=fontsize,**kwargs)
-        if legend: ax1.legend(fontsize=fontsize)
+        if legend: ax1.legend(loc="best", shadow=True, fontsize=fontsize)
 
     def plot_ax(self,ax1,what,components=('xx',),itemp_list=None,itau_list=None,fontsize=8,erange=None,**kwargs):
         """
@@ -747,10 +760,10 @@ class BoltztrapResultRobot():
             for result in self.notau_results:
                 result.plot_ax(ax1,what,components,itemp_list,fontsize=fontsize,**kwargs)
 
-    
+
     @add_fig_kwargs
-    def plot_transport(self,itemp_list=None,itau_list=None,components=('xx',),
-                       erange=None,ax_array=None,fontsize=8,legend=True,**kwargs):
+    def plot_transport(self, itemp_list=None, itau_list=None, components=('xx',),
+                       erange=None, ax_array=None, fontsize=8, legend=True, **kwargs):
         """
         Plot the different quantities relevant for transport for all the results in the robot
         """
@@ -760,9 +773,10 @@ class BoltztrapResultRobot():
         self.plot_ax(ax_array[1,0],'kappa',      itemp_list=itemp_list,itau_list=itau_list,fontsize=fontsize,**kwargs)
         self.plot_ax(ax_array[1,1],'powerfactor',itemp_list=itemp_list,itau_list=itau_list,fontsize=fontsize,**kwargs)
 
-        if legend: 
-            for ax in ax_array.flatten(): ax.legend(fontsize=fontsize)
-        fig.tight_layout()
+        if legend:
+            for ax in ax_array.flatten(): ax.legend(loc="best", shadow=True, fontsize=fontsize)
+
+        #fig.tight_layout()
         return fig
 
     @add_fig_kwargs
@@ -782,7 +796,7 @@ class BoltztrapResultRobot():
         ax1, fig, plt = get_ax_fig_plt(ax=None)
         self.plot_ax(ax1,what,components=components,itemp_list=itemp_list,itau_list=itau_list,
                      fontsize=fontsize,erange=erange,**kwargs)
-        if legend: fig.legend(fontsize=fontsize)
+        if legend: ax1.legend(loc="best", shadow=True, fontsize=fontsize)
         return fig
 
     @add_fig_kwargs
@@ -796,10 +810,10 @@ class BoltztrapResultRobot():
         self.plot_vvdos_ax(ax_array[2],itau_list=range(self.ntemp),components=components,erange=erange,
                            fontsize=fontsize,legend=legend)
         return fig
- 
+
     @add_fig_kwargs
     def plot_dos(self,ax=None,erange=None,fontsize=8,legend=True,**kwargs):
-        """ 
+        """
         Plot dos for the results in the Robot
         """
         ax1, fig, plt = get_ax_fig_plt(ax=ax)
@@ -826,7 +840,7 @@ class BoltztrapResultRobot():
         """ Unset the energy range"""
         self.erange = None
 
-    def to_string(self):
+    def to_string(self, verbose=0):
         """
         Return a string representation of the data in this class
         """
@@ -841,7 +855,7 @@ class BoltztrapResultRobot():
         """
         Set the range in which to plot the change of the doping
         for all the results
-        
+
         Args:
             emin: minimun energy in eV
             emax: maximum energy in eV
@@ -861,4 +875,3 @@ class BoltztrapResultRobot():
 
     def __str__(self):
         return self.to_string()
-

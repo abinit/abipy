@@ -994,6 +994,10 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         return ElectronDos(mesh, spin_dos[1:], nelect, fermie=fermie)
 
+    def get_bolztrap(self, **kwargs):
+        from abipy.boltztrap import AbipyBoltztrap
+        return AbipyBoltztrap.from_sigeph(self, **kwargs)
+
     def sigkpt2index(self, kpoint):
         """
         Returns the index of the self-energy k-point in sigma_kpoints
