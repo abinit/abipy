@@ -1,37 +1,26 @@
 # coding: utf-8
-# Copyright (c) Pymatgen Development Team.
-# Distributed under the terms of the MIT License.
 from __future__ import unicode_literals, division, print_function
 
 import os
 import tempfile
 import shutil
+import abipy.data as abidata
 
 from monty.functools import lazy_property
 from pymatgen.core.lattice import Lattice
 from pymatgen.core.structure import Structure
-from pymatgen.io.abinit.pseudos import Pseudo
 from abipy.flowtk.launcher import BatchLauncher
-#from pymatgen.io.abinit import *
 from abipy.flowtk.flows import *
 from abipy.flowtk.works import *
 from abipy.flowtk.tasks import *
 
 from abipy.core.testing import AbipyTest
 
-_test_dir = os.path.join(os.path.dirname(__file__), "..", "..", "..", "..",
-                         'test_files', "abinit")
-
-
-def ref_file(filename):
-    return os.path.join(_test_dir, filename)
-
-
 class FakeAbinitInput(object):
     """Emulate an Abinit input."""
     @lazy_property
     def pseudos(self):
-        return [Pseudo.as_pseudo(ref_file("14si.pspnc"))]
+        return [abidata.pseudo("14si.pspnc")]
 
     @lazy_property
     def structure(self):
@@ -357,8 +346,3 @@ class TestBatchLauncher(FlowUnitTest):
         batch.pickle_dump()
         batch_from_pickle = BatchLauncher.pickle_load(batch.workdir)
         assert all(f1 == f2 for f1, f2 in zip(batch.flows, batch_from_pickle.flows))
-
-
-if __name__ == '__main__':
-    import unittest
-    unittest.main()

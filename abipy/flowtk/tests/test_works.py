@@ -42,8 +42,3 @@ def ref_file(filename):
 #
 #        pptest_wf.build()
 #        pptest_wf.rmtree()
-
-
-if __name__ == "__main__":
-    import unittest
-    unittest.main()

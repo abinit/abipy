@@ -6,9 +6,11 @@ from __future__ import unicode_literals, division, print_function
 
 import unittest
 
+from abipy.core.testing import AbipyTest
 from abipy.flowtk.launcher import ScriptEditor
 
-class ScriptEditorTest(unittest.TestCase):
+
+class ScriptEditorTest(AbipyTest):
 
     def test_base(self):
         "base test"
@@ -20,8 +22,3 @@ class ScriptEditorTest(unittest.TestCase):
         se.declare_vars({"FOO1": "BAR1"})
         se.load_modules(["module1", "module2"])
         print(se.get_script_str())
-
-
-
-if __name__ == '__main__':
-    unittest.main()

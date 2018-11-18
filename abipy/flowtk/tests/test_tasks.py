@@ -178,8 +178,3 @@ configurations:
         #aequal(optimal.vars["npfft"],  2)
         #aequal(optimal.vars["npkpt"],  1)
         #assert 0
-
-
-if __name__ == '__main__':
-    import unittest
-    unittest.main()

@@ -457,6 +457,3 @@ mpirun  -n 3 executable < stdin > stdout 2> stderr
         aequal(qad_exclusive.get_select(), '1:ncpus=2:mem=48000mb:mpiprocs=2+'
                                            '2:ncpus=24:mem=48000mb:mpiprocs=24')
 
-if __name__ == '__main__':
-    import unittest
-    unittest.main()

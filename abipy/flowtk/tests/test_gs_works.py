@@ -5,9 +5,7 @@ import abipy.data as abidata
 import abipy.flowtk as flowtk
 
 from abipy.core.testing import AbipyTest
-#from abipy.abio.factories import gs_input
 from abipy.flowtk import gs_works
-#from abipy.flowtk import mocks
 
 
 class TestGsWorks(AbipyTest):

@@ -7,8 +7,7 @@ import datetime
 from abipy.core.testing import AbipyTest
 from abipy.flowtk import events
 
-_test_dir = os.path.join(os.path.dirname(__file__), "..", "..", "..", "..",
-                        'test_files', "abinit")
+_test_dir = os.path.join(os.path.dirname(__file__), "..", "..", 'test_files')
 
 def ref_file(filename):
     return os.path.join(_test_dir, filename)
@@ -64,7 +63,6 @@ class EventsParserTest(AbipyTest):
         # The event parser should have registered a AbinitYamlWarning and an AbinitYamlError
         assert len(report.get_events_of_type(events.AbinitYamlWarning)) == 1
         assert len(report.get_events_of_type(events.AbinitYamlError)) == 1
-        #assert 0
 
 
 class EventHandlersTest(AbipyTest):
@@ -80,8 +78,3 @@ class EventHandlersTest(AbipyTest):
 
         assert events.as_event_class(events.AbinitWarning) == events.AbinitWarning
         assert events.as_event_class('!WARNING') == events.AbinitWarning
-
-
-if __name__ == '__main__':
-    import unittest
-    unittest.main()
