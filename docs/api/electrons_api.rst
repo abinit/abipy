@@ -16,7 +16,7 @@ electrons Package
 :mod:`eskw` Package
 -------------------
 
-.. automodule:: abipy.eskw
+.. automodule:: abipy.electrons.eskw
    :members:
    :undoc-members:
    :show-inheritance:

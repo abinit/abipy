@@ -26,25 +26,26 @@ class JobStatus(int):
     Slurm API, see `man squeue`.
 
     JOB STATE CODES
-       Jobs typically pass through several states in the course of their execution.  The typical  states  are
-       PENDING, RUNNING, SUSPENDED, COMPLETING, and COMPLETED.  An explanation of each state follows.
+       Jobs typically pass through several states in the course of their execution. The typical states are
+       PENDING, RUNNING, SUSPENDED, COMPLETING, and COMPLETED. An explanation of each state follows::
 
-    BF  BOOT_FAIL       Job  terminated  due  to launch failure, typically due to a hardware failure (e.g.
-                        unable to boot the node or block and the job can not be requeued).
-    CA  CANCELLED       Job was explicitly cancelled by the user or system administrator.
-                        The job may or may not have been initiated.
-    CD  COMPLETED       Job has terminated all processes on all nodes.
-    CF  CONFIGURING     Job has been allocated resources, but are waiting for them to become ready for use (e.g. booting).
-    CG  COMPLETING      Job is in the process of completing. Some processes on some  nodes may still be active.
-    F   FAILED          Job terminated with non-zero exit code or other failure condition.
-    NF  NODE_FAIL       Job terminated due to failure of one or more allocated nodes.
-    PD  PENDING         Job is awaiting resource allocation.
-    PR  PREEMPTED       Job terminated due to preemption.
-    R   RUNNING         Job currently has an allocation.
-    S   SUSPENDED       Job has an allocation, but execution has been suspended.
-    TO  TIMEOUT         Job terminated upon reaching its time limit.
-    SE SPECIAL_EXIT     The job was requeued in a special state. This state can be set by users, typically
-                        in EpilogSlurmctld, if the job has terminated with a particular exit value.
+        BF  BOOT_FAIL       Job  terminated  due  to launch failure, typically due to a hardware failure (e.g.
+                            unable to boot the node or block and the job can not be requeued).
+        CA  CANCELLED       Job was explicitly cancelled by the user or system administrator.
+                            The job may or may not have been initiated.
+        CD  COMPLETED       Job has terminated all processes on all nodes.
+        CF  CONFIGURING     Job has been allocated resources, but are waiting for them to become ready for use (e.g. booting).
+        CG  COMPLETING      Job is in the process of completing. Some processes on some  nodes may still be active.
+        F   FAILED          Job terminated with non-zero exit code or other failure condition.
+        NF  NODE_FAIL       Job terminated due to failure of one or more allocated nodes.
+        PD  PENDING         Job is awaiting resource allocation.
+        PR  PREEMPTED       Job terminated due to preemption.
+        R   RUNNING         Job currently has an allocation.
+        S   SUSPENDED       Job has an allocation, but execution has been suspended.
+        TO  TIMEOUT         Job terminated upon reaching its time limit.
+        SE SPECIAL_EXIT     The job was requeued in a special state. This state can be set by users, typically
+                            in EpilogSlurmctld, if the job has terminated with a particular exit value.
+
     """
 
     _STATUS_TABLE = OrderedDict([
@@ -173,30 +174,29 @@ class QueueJob(object):
         """
         See http://man7.org/linux/man-pages/man7/signal.7.html
 
-        SIGHUP        1       Term    Hangup detected on controlling terminal or death of controlling process
-        SIGINT        2       Term    Interrupt from keyboard
-        SIGQUIT       3       Core    Quit from keyboard
-        SIGILL        4       Core    Illegal Instruction
-        SIGABRT       6       Core    Abort signal from abort(3)
-        SIGFPE        8       Core    Floating point exception
-        SIGKILL       9       Term    Kill signal
-        SIGSEGV      11       Core    Invalid memory reference
-        SIGPIPE      13       Term    Broken pipe: write to pipe with no readers
-        SIGALRM      14       Term    Timer signal from alarm(2)
-        SIGTERM      15       Term    Termination signal
-        SIGUSR1   30,10,16    Term    User-defined signal 1
-        SIGUSR2   31,12,17    Term    User-defined signal 2
-        SIGCHLD   20,17,18    Ign     Child stopped or terminated
-        SIGCONT   19,18,25    Cont    Continue if stopped
-        SIGSTOP   17,19,23    Stop    Stop process
-        SIGTSTP   18,20,24    Stop    Stop typed at terminal
-        SIGTTIN   21,21,26    Stop    Terminal input for background process
-        SIGTTOU   22,22,27    Stop    Terminal output for background process
+            SIGHUP        1       Term    Hangup detected on controlling terminal or death of controlling process
+            SIGINT        2       Term    Interrupt from keyboard
+            SIGQUIT       3       Core    Quit from keyboard
+            SIGILL        4       Core    Illegal Instruction
+            SIGABRT       6       Core    Abort signal from abort(3)
+            SIGFPE        8       Core    Floating point exception
+            SIGKILL       9       Term    Kill signal
+            SIGSEGV      11       Core    Invalid memory reference
+            SIGPIPE      13       Term    Broken pipe: write to pipe with no readers
+            SIGALRM      14       Term    Timer signal from alarm(2)
+            SIGTERM      15       Term    Termination signal
+            SIGUSR1   30,10,16    Term    User-defined signal 1
+            SIGUSR2   31,12,17    Term    User-defined signal 2
+            SIGCHLD   20,17,18    Ign     Child stopped or terminated
+            SIGCONT   19,18,25    Cont    Continue if stopped
+            SIGSTOP   17,19,23    Stop    Stop process
+            SIGTSTP   18,20,24    Stop    Stop typed at terminal
+            SIGTTIN   21,21,26    Stop    Terminal input for background process
+            SIGTTOU   22,22,27    Stop    Terminal output for background process
 
         The signals SIGKILL and SIGSTOP cannot be caught, blocked, or ignored.
 
-        Next the signals not in the POSIX.1-1990 standard but described in
-        SUSv2 and POSIX.1-2001.
+        Next the signals not in the POSIX.1-1990 standard but described in SUSv2 and POSIX.1-2001.
 
         Signal       Value     Action   Comment
         SIGBUS      10,7,10     Core    Bus error (bad memory access)

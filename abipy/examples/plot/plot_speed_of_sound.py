@@ -16,7 +16,7 @@ import abipy.data as abidata
 from abipy import abilab
 
 # Initialize object from DDB file.
-from abipy.dfpt.phtk import SoundVelocity
+from abipy.dfpt.vsound import SoundVelocity
 ddb_path = os.path.join(abidata.dirpath, "refs", "si_sound_vel", "Si_DDB")
 sv = SoundVelocity.from_ddb(ddb_path)
 

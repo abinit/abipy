@@ -27,7 +27,7 @@ class MsqdTest(AbipyTest):
             phdos_file.close()
 
         repr(msqd_dos); str(msqd_dos)
-        print(msqd_dos.to_string(verbose=2))
+        assert msqd_dos.to_string(verbose=2)
         for fmt in ("cartesian", "cif", "ustar", "beta"): #, "B"):
             df = msqd_dos.get_dataframe(temp=100, view="all", select_symbols="Si", fmt=fmt)
             abilab.print_dataframe(df, title="Format: %s" % fmt)

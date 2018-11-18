@@ -9,7 +9,7 @@ import abipy.flowtk as flowtk
 
 from scripttest import TestFileEnvironment
 from monty.inspect import all_subclasses
-from pymatgen.io.abinit.qadapters import QueueAdapter
+from abipy.flowtk.qadapters import QueueAdapter
 from abipy.core.testing import AbipyTest
 from abipy import abilab
 

@@ -317,10 +317,10 @@ class ParalHints(collections.Iterable):
         """
         Remove all the configurations that do not satisfy the given condition.
 
-            Args:
-                condition: dict or :class:`Condition` object with operators expressed with a Mongodb-like syntax
-                key: Selects the sub-dictionary on which condition is applied, e.g. key="vars"
-                    if we have to filter the configurations depending on the values in vars
+        Args:
+            condition: dict or :class:`Condition` object with operators expressed with a Mongodb-like syntax
+            key: Selects the sub-dictionary on which condition is applied, e.g. key="vars"
+                if we have to filter the configurations depending on the values in vars
         """
         condition = Condition.as_condition(condition)
         new_confs = []
@@ -2891,7 +2891,8 @@ class AbinitTask(Task):
 
         Args:
             what: string with the list of characters selecting the file type
-                  Possible choices:
+            Possible choices:
+
                     i ==> input_file,
                     o ==> output_file,
                     f ==> files_file,
