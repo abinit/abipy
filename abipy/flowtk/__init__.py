@@ -5,21 +5,21 @@ import tempfile
 
 from monty.termcolor import cprint
 from pymatgen.io.abinit.abiobjects import *
-from .events import EventsParser, autodoc_event_handlers
-from abipy.flowtk.qadapters import show_qparams, all_qtypes
-from pymatgen.io.abinit.netcdf import NetcdfReader
-from abipy.flowtk.launcher import PyFlowScheduler, PyLauncher
 from pymatgen.io.abinit.pseudos import Pseudo, PseudoTable, PseudoParser
-from abipy.flowtk.wrappers import Mrgscr, Mrgddb, Mrggkk, Cut3D, Fold2Bloch
-from abipy.flowtk.nodes import Status
-from abipy.flowtk.tasks import *
-from abipy.flowtk.tasks import EphTask, ElasticTask
-from abipy.flowtk.works import *
-from abipy.flowtk.flows import (Flow, G0W0WithQptdmFlow, bandstructure_flow, PhononFlow,
+from pymatgen.io.abinit.netcdf import NetcdfReader
+from .launcher import PyFlowScheduler, PyLauncher
+from .qadapters import show_qparams, all_qtypes
+from .wrappers import Mrgscr, Mrgddb, Mrggkk, Cut3D, Fold2Bloch
+from .nodes import Status
+from .tasks import *
+from .tasks import EphTask, ElasticTask
+from .works import *
+from .flows import (Flow, G0W0WithQptdmFlow, bandstructure_flow, PhononFlow,
     g0w0_flow, phonon_flow, phonon_conv_flow, NonLinearCoeffFlow)
-from pymatgen.io.abinit.abitimer import AbinitTimerParser, AbinitTimerSection
+from .abitimer import AbinitTimerParser, AbinitTimerSection
 from pymatgen.io.abinit.abiinspect import GroundStateScfCycle, D2DEScfCycle
 
+from .events import EventsParser, autodoc_event_handlers
 #from abipy.flowtk.works import *
 #from abipy.flowtk.gs_works import EosWork
 from abipy.flowtk.dfpt_works import NscfDdksWork, ElasticWork
@@ -83,7 +83,7 @@ def flow_main(main):  # pragma: no cover
                         if e.retcode == 0: continue
                         lines = e.log_file.readlines()
                         i = len(lines) - 50 if len(lines) >= 50 else 0
-                        print("Last 50 line from logfile:")
+                        print("Last 50 line from log file:")
                         print("".join(lines[i:]))
                     raise RuntimeError("flow.abivalidate_input failed. See messages above.")
                 else:

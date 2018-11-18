@@ -31,6 +31,7 @@ from .db import DBConnector
 from .nodes import Status, Node, NodeError, NodeResults, NodeCorrections, FileNode, check_spectator
 from . import abiinspect
 from . import events
+from .abitimer import AbinitTimerParser
 
 
 __author__ = "Matteo Giantomassi"
@@ -541,7 +542,7 @@ class TaskManager(MSONable):
 
     @classmethod
     def autodoc(cls):
-        from .db import DBConnector
+        from abipy.flowtk.db import DBConnector
         s = """
 # TaskManager configuration file (YAML Format)
 
@@ -1990,7 +1991,7 @@ class Task(six.with_metaclass(abc.ABCMeta, Node)):
         # MG: This section has been disabled: several portability issues
         # Need more robust logic in error_parser, perhaps logic provided by users via callbacks.
         if False and (qerr_info or qout_info):
-            from pymatgen.io.abinit.scheduler_error_parsers import get_parser
+            from abipy.flowtk.scheduler_error_parsers import get_parser
             scheduler_parser = get_parser(self.manager.qadapter.QTYPE, err_file=self.qerr_file.path,
                                           out_file=self.qout_file.path, run_err_file=self.stderr_file.path)
 
@@ -3022,7 +3023,7 @@ class AbinitTask(Task):
         Returns:
             1 if task has been fixed else 0.
         """
-        from pymatgen.io.abinit.scheduler_error_parsers import NodeFailureError, MemoryCancelError, TimeCancelError
+        from abipy.flowtk.scheduler_error_parsers import NodeFailureError, MemoryCancelError, TimeCancelError
         #assert isinstance(self.manager, TaskManager)
 
         self.history.info('fixing queue critical')
@@ -3156,7 +3157,7 @@ class AbinitTask(Task):
 
         Return: :class:`AbinitTimerParser` instance, None if error.
         """
-        from .abitimer import AbinitTimerParser
+
         parser = AbinitTimerParser()
         read_ok = parser.parse(self.output_file.path)
         if read_ok:
@@ -4281,7 +4282,7 @@ class OpticTask(Task):
         Returns:
             1 if task has been fixed else 0.
         """
-        from pymatgen.io.abinit.scheduler_error_parsers import NodeFailureError, MemoryCancelError, TimeCancelError
+        from abipy.flowtk.scheduler_error_parsers import NodeFailureError, MemoryCancelError, TimeCancelError
         #assert isinstance(self.manager, TaskManager)
 
         if not self.queue_errors:

@@ -4,8 +4,6 @@ Works for Abinit
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
 
-#from pymatgen.io.abinit.works import Work, MergeDdb
-
 import os
 import shutil
 import time
@@ -31,7 +29,7 @@ from .tasks import (Task, AbinitTask, ScfTask, NscfTask, DfptTask, PhononTask, E
 
 from .utils import Directory
 from .netcdf import ETSF_Reader, NetcdfReader
-from pymatgen.io.abinit.abitimer import AbinitTimerParser
+from .abitimer import AbinitTimerParser
 
 import logging
 logger = logging.getLogger(__name__)

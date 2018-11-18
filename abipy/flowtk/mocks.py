@@ -2,9 +2,9 @@
 """Mock objects for unit tests."""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
-from pymatgen.io.abinit.nodes import Status
-from pymatgen.io.abinit.tasks import AbinitTask
-from pymatgen.io.abinit.flows import Flow
+from .nodes import Status
+from .tasks import AbinitTask
+from .flows import Flow
 
 
 def change_task_start(task, mocked_status="Error"):

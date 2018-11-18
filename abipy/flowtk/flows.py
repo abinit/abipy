@@ -38,7 +38,7 @@ from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.flowtk import wrappers
 from .nodes import Status, Node, NodeError, NodeResults, Dependency, GarbageCollector, check_spectator
 from .tasks import ScfTask, DdkTask, DdeTask, TaskManager, FixQueueCriticalError
-from pymatgen.io.abinit.utils import File, Directory, Editor
+from .utils import File, Directory, Editor
 from pymatgen.io.abinit.abiinspect import yaml_read_irred_perts
 from .works import NodeContainer, Work, BandStructureWork, PhononWork, BecWork, G0W0Work, QptdmWork, DteWork
 from .events import EventsParser # autodoc_event_handlers
@@ -419,9 +419,9 @@ class Flow(Node, NodeContainer, MSONable):
             raise RuntimeError("Cannot change mongo_id %s" % self.mongo_id)
         self._mongo_id = value
 
-    def mongodb_upload(self, **kwargs):
-        from abiflows.core.scheduler import FlowUploader
-        FlowUploader().upload(self, **kwargs)
+    #def mongodb_upload(self, **kwargs):
+    #    from abiflows.core.scheduler import FlowUploader
+    #    FlowUploader().upload(self, **kwargs)
 
     def validate_json_schema(self):
         """Validate the JSON schema. Return list of errors."""
@@ -1390,7 +1390,7 @@ class Flow(Node, NodeContainer, MSONable):
         paths = [task.output_file.path for task in self.iflat_tasks(nids=nids)]
 
         # Parse data.
-        from .abitimer import AbinitTimerParser
+        from abipy.flowtk.abitimer import AbinitTimerParser
         parser = AbinitTimerParser()
         read_ok = parser.parse(paths)
         if read_ok:

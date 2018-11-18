@@ -13,8 +13,8 @@ except ImportError:
     import warnings
     warnings.warn("phonopy is required by abiphonopy. Install it with conda or pip install phonopy")
 
-from pymatgen.io.abinit.works import Work
 from abipy.core.structure import Structure
+from abipy.flowtk.works import Work
 
 
 __all__ = [
