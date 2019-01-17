@@ -14,6 +14,7 @@ class MsqdTest(AbipyTest):
 
     def test_from_ddb(self):
         """Testing MsqDos from DDB file."""
+        raise self.SkipTest("Waiting for bug fix in abinit")
         self.skip_if_abinit_not_ge("8.10.2")
 
         filepath = os.path.join(abidata.dirpath, "refs", "mp-7000_DDB.bz2")

@@ -165,10 +165,9 @@ class OmpEnv(AttrDict):
         """
         Constructor method inherited from dictionary:
 
-        >>> assert OmpEnv(OMP_NUM_THREADS=1).OMP_NUM_THREADS == 1
+        >>> assert OmpEnv(OMP_NUM_THREADS=1).OMP_NUM_THREADS == "1"
 
-        To create an instance from an INI file, use:
-           OmpEnv.from_file(filename)
+        To create an instance from an INI file, use: OmpEnv.from_file(filename)
         """
         super(OmpEnv, self).__init__(*args, **kwargs)
 

@@ -4,6 +4,17 @@ from __future__ import unicode_literals, division, print_function
 from abipy.core.testing import AbipyTest
 from abipy.flowtk.utils import *
 
+
+# FIXME
+#class FilePathFixerTest(AbipyTest):
+#
+#    def test_base(self):
+#        fixer = FilepathFixer()
+#        #assert fixer.fix_paths('/foo/out_1WF17') == {'/foo/out_1WF17': '/foo/out_1WF'}
+#        #assert fixer.fix_paths('/foo/out_1WF5.nc') == {'/foo/out_1WF5.nc': '/foo/out_1WF.nc'}
+#        assert fixer.fix_paths('/foo/out_1DEN17') == {'/foo/out_1DEN17': '/foo/out_1DEN'}
+#        assert fixer.fix_paths('/foo/out_1DEN5.nc') == {'/foo/out_1DEN5.nc': '/foo/out_1DEN.nc'}
+
 class RpnTest(AbipyTest):
 
     def test_mongodb_like_conditions(self):

@@ -326,6 +326,9 @@ class Flow(Node, NodeContainer, MSONable):
         flow.check_status()
         return flow
 
+    # Handy alias
+    from_file = pickle_load
+
     @classmethod
     def pickle_loads(cls, s):
         """Reconstruct the flow from a string."""

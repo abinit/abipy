@@ -6,7 +6,7 @@ import numpy as np
 import abipy.data as abidata
 
 from abipy.core.testing import AbipyTest
-from abipy.electrons.ddk import DdkFile, DdksAnalyzer
+from abipy.electrons.ddk import DdkFile
 from abipy import abilab
 
 
@@ -38,28 +38,19 @@ class DdkTest(AbipyTest):
                 assert ddk.write_notebook(nbpath=self.get_tmpname(text=True))
 
 
-class DdkAnalyzerTest(AbipyTest):
-
-    def test_ddk_analyzer(self):
-        """Testing DDK analyzer."""
-
-        ddk_paths = abidata.ref_files(
-            "gaas_444_dir1_DDK.nc",
-            "gaas_444_dir2_DDK.nc",
-            "gaas_444_dir3_DDK.nc",
-        )
-
-        with DdksAnalyzer(ddk_paths) as dka:
-            repr(dka); str(dka)
-            assert dka.to_string(verbose=2)
-            assert dka.nsppol == 1 and dka.nspden == 1 and dka.nspinor == 1
-
-            #dka.v_skb
-            #r = dka.get_doses()
-            #assert np.all(r.edos.mesh == e.vdos.mesh)
-
-            #if self.has_matplotlib():
-            #    assert dka.plot_vdos(show=False)
-
-            #if self.has_nbformat():
-            #    assert dka.write_notebook(nbpath=self.get_tmpname(text=True))
+#class DdkAnalyzerTest(AbipyTest):
+#
+#    def test_ddk_analyzer(self):
+#        """Testing DDK analyzer."""
+#
+#        # TODO: Remove files
+#        ddk_paths = abidata.ref_files(
+#            "gaas_444_dir1_DDK.nc",
+#            "gaas_444_dir2_DDK.nc",
+#            "gaas_444_dir3_DDK.nc",
+#        )
+#
+#        with DdksAnalyzer(ddk_paths) as dka:
+#            repr(dka); str(dka)
+#            assert dka.to_string(verbose=2)
+#            assert dka.nsppol == 1 and dka.nspden == 1 and dka.nspinor == 1

@@ -10,8 +10,13 @@ import sys
 from abipy.core.testing import AbipyTest
 from abipy.flowtk.tasks import ParalConf
 from abipy.flowtk.qadapters import *
-from abipy.flowtk.qadapters import QueueAdapter, SlurmAdapter
+from abipy.flowtk.qadapters import QueueAdapter, SlurmAdapter, OmpEnv
 from abipy.flowtk import qutils as qu
+
+
+class OmpEnvTest(AbipyTest):
+    def test_base(self):
+        assert OmpEnv(OMP_NUM_THREADS=1).OMP_NUM_THREADS == "1"
 
 
 class ParseTimestr(AbipyTest):

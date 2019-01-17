@@ -550,9 +550,9 @@ class FilepathFixer(object):
 
     Example:
 
-    >>> fixer = FilepathFixer()
-    >>> assert fixer.fix_paths('/foo/out_1WF17') == {'/foo/out_1WF17': '/foo/out_1WF'}
-    >>> assert fixer.fix_paths('/foo/out_1WF5.nc') == {'/foo/out_1WF5.nc': '/foo/out_1WF.nc'}
+        fixer = FilepathFixer()
+        fixer.fix_paths('/foo/out_1WF17') == {'/foo/out_1WF17': '/foo/out_1WF'}
+        fixer.fix_paths('/foo/out_1WF5.nc') == {'/foo/out_1WF5.nc': '/foo/out_1WF.nc'}
     """
     def __init__(self):
         # dictionary mapping the *official* file extension to

@@ -4184,6 +4184,7 @@ class Bands3D(Has_Structure):
 
 class ElectronBands3D(Bands3D):
     pass
+    #def make_fermisurfer_dir(self, workdir)
 
 #class PhononBands3D(Bands3D):
 #    pass
