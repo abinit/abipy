@@ -168,9 +168,9 @@ def abinp_gs(options):
     structure = abilab.Structure.from_file(options.filepath)
     pseudos = get_pseudotable(options)
     gsinp = factories.gs_input(structure, pseudos,
-                               kppa=None, ecut=None, pawecutdg=None, scf_nband=None,
-                               accuracy="normal", spin_mode="unpolarized",
-                               smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None)
+                               kppa=options.kppa, ecut=None, pawecutdg=None, scf_nband=None,
+                               accuracy="normal", spin_mode=options.spin_mode,
+                               smearing=options.smearing, charge=0.0, scf_algorithm=None)
 
     return finalize(gsinp, options)
 
@@ -180,9 +180,9 @@ def abinp_ebands(options):
     structure = get_structure(options)
     pseudos = get_pseudotable(options)
     multi = factories.ebands_input(structure, pseudos,
-                 kppa=None, nscf_nband=None, ndivsm=15,
-                 ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="unpolarized",
-                 smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None, dos_kppa=None)
+                 kppa=options.kppa, nscf_nband=None, ndivsm=15,
+                 ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode=options.spin_mode,
+                 smearing=options.smearing, charge=0.0, scf_algorithm=None, dos_kppa=None)
 
     # Add getwfk variables.
     for inp in multi[1:]:
@@ -197,9 +197,9 @@ def abinp_phonons(options):
     pseudos = get_pseudotable(options)
 
     gsinp = factories.gs_input(structure, pseudos,
-                               kppa=None, ecut=None, pawecutdg=None, scf_nband=None,
-                               accuracy="normal", spin_mode="unpolarized",
-                               smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None)
+                               kppa=options.kppa, ecut=None, pawecutdg=None, scf_nband=None,
+                               accuracy="normal", spin_mode=options.spin_mode,
+                               smearing=options.smearing, charge=0.0, scf_algorithm=None)
 
     multi = factories.phonons_from_gsinput(gsinp, ph_ngqpt=None, qpoints=None, with_ddk=True, with_dde=True, with_bec=False,
                                            ph_tol=None, ddk_tol=None, dde_tol=None, wfq_tol=None, qpoints_to_skip=None)
@@ -215,12 +215,12 @@ def abinp_g0w0(options):
     """Generate input files for G0W0 calculations."""
     structure = get_structure(options)
     pseudos = get_pseudotable(options)
-    kppa, nscf_nband, ecuteps, ecutsigx = 1000, 100, 4, 12
+    nscf_nband, ecuteps, ecutsigx = 100, 4, 12
 
     multi = factories.g0w0_with_ppmodel_inputs(structure, pseudos,
-                             kppa, nscf_nband, ecuteps, ecutsigx,
+                             options.kppa, nscf_nband, ecuteps, ecutsigx,
                              ecut=None, pawecutdg=None,
-                             accuracy="normal", spin_mode="unpolarized", smearing="fermi_dirac:0.1 eV",
+                             accuracy="normal", spin_mode=options.spin_mode, smearing=options.smearing,
                              ppmodel="godby", charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,
                              sigma_nband=None, gw_qprange=1)
 
@@ -288,6 +288,8 @@ Usage example:
                                     # materials project database. Requires internet connect and MAPI_KEY.
     abinp.py phonons POSCAR         # Build input for GS + DFPT calculation of phonons with DFPT.
     abinp.py phonons out_HIST.nc    # Build input for G0W0 run with (relaxed) structure read from HIST.nc file.
+                                    # Use e.g. --kppa=100 --spin-mode=polarized --smearing="gaussian: 0.3 eV"
+                                    # to specify the k-points sampling, the treatment of spin and the occupation scheme.
 
 ########################
 # Anaddb Input Factories
@@ -337,6 +339,15 @@ def get_parser(with_epilog=False):
         help="jdtset index. Used to select the dataset index when the input file " +
              "contains more than one dataset.")
     abiinput_parser.add_argument("-p", '--pseudos', nargs="+", default=None, help="List of pseudopotentials")
+
+    abiinput_parser.add_argument('--kppa', type=int, default=None,
+        help="Number of k-points per reciprocal atom. Use default value (1000) if not specified.")
+    abiinput_parser.add_argument('--spin-mode', type=str, default="unpolarized",
+        help="Spin polarization. Default: unpolarized. Allowed values in: " +
+             "[polarized, unpolarized, afm (anti-ferromagnetic), spinor (non-collinear magnetism) " +
+             " spinor_nomag (non-collinear, no magnetism)].")
+    abiinput_parser.add_argument('--smearing', type=str, default="fermi_dirac:0.1 eV",
+        help="Smearing scheme. Defaults to Fermi-Dirac.")
 
     # Parent parser for commands requiring a file.
     path_selector = argparse.ArgumentParser(add_help=False)

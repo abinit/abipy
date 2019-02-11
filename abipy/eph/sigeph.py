@@ -709,7 +709,7 @@ class A2feph(object):
         self.spin, self.kpoint, self.band = spin, kpoint, band
 
     @add_fig_kwargs
-    def plot(self, ax=None, units="meV", what="fandw", exchange_xy=False, fontsize=12, **kwargs):
+    def plot(self, ax=None, units="meV", what="fandw", exchange_xy=False, with_ahc_zpr=False, fontsize=12, **kwargs):
         """
         Plot the Eliashberg function.
 
@@ -718,6 +718,7 @@ class A2feph(object):
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
 	    what=: fandw for FAN, DW. gkq2 for |gkq|^2
             exchange_xy: True to exchange x-y axis.
+            with_ahc_zpr:
             fontsize: legend and title fontsize.
         """
         # Read mesh in Ha and convert to units.
@@ -735,7 +736,18 @@ class A2feph(object):
             ax.plot(xs, ys, label=self.latex_symbol["fan"], **kwargs)
             xs, ys = get_xy(wmesh, self.dw)
             ax.plot(xs, ys, label=self.latex_symbol["dw"], **kwargs)
-            xs, ys = get_xy(wmesh, self.fan + self.dw)
+            sig_tot = self.fan + self.dw
+            xs, ys = get_xy(wmesh, sig_tot)
+            ax.plot(xs, ys, label=self.latex_symbol["tot"], **kwargs)
+            if with_ahc_zpr:
+                from scipy.integrate import cumtrapz
+                integral = cumtrapz(sig_tot, x=self.wmesh, initial=True) #/ 2.0
+                print("ZPR: ", integral[-1])
+                xs, ys = get_xy(wmesh, integral)
+                ax2 = ax.twinx()
+                ax2.plot(xs, ys, label=r"$ZPR(\omega)$", **kwargs)
+                #ax2.set_ylabel('Y2 data', color='b')
+
             ax.plot(xs, ys, label=self.latex_symbol["tot"], **kwargs)
             xlabel, ylabel = abu.wlabel_from_units(units), self.latex_symbol["a2f"]
             set_ax_xylabels(ax, xlabel, ylabel, exchange_xy)
@@ -859,7 +871,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         app("K-mesh for electrons:")
         app(self.ebands.kpoints.ksampling.to_string(verbose=verbose))
         app("Number of bands included in self-energy: %d" % (self.nbsum))
-        app("zcut: %.3f [Ha], %.3f (eV)" % (self.zcut, self.zcut * abu.Ha_eV))
+        app("zcut: %.5f [Ha], %.3f (eV)" % (self.zcut, self.zcut * abu.Ha_eV))
         app("Number of temperatures: %d, from %.1f to %.1f (K)" % (self.ntemp, self.tmesh[0], self.tmesh[-1]))
         app("symsigma: %s" % (self.symsigma))
         app("Has Eliashberg function: %s" % (self.has_eliashberg_function))
