@@ -1916,7 +1916,7 @@ class DielectricTensorGenerator(Has_Structure):
         """
         Plot diagonal and off-diagonal elements of the dielectric tensor as a function of frequency.
         Both real and imag part are show. Accepts all arguments of `plot` method with the exception of:
-            `component` and `reim`.
+        `component` and `reim`.
 
         Returns: |matplotlib-Figure|
         """
