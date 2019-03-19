@@ -10,12 +10,12 @@ import collections
 import abc
 import copy
 import ruamel.yaml as yaml
-import six
+from io import StringIO
 import numpy as np
 
 from pprint import pprint
 from itertools import product
-from six.moves import map, zip, StringIO
+#from six.moves import map, zip, StringIO
 from monty.string import is_string, list_strings
 from monty.termcolor import colored, cprint
 from monty.collections import AttrDict
@@ -241,7 +241,7 @@ class ParalHintsParser(object):
                 raise self.Error(err_msg)
 
 
-class ParalHints(collections.Iterable):
+class ParalHints(collections.abc.Iterable):
     """
     Iterable with the hints for the parallel execution reported by ABINIT.
     """
@@ -317,10 +317,10 @@ class ParalHints(collections.Iterable):
         """
         Remove all the configurations that do not satisfy the given condition.
 
-        Args:
-            condition: dict or :class:`Condition` object with operators expressed with a Mongodb-like syntax
-            key: Selects the sub-dictionary on which condition is applied, e.g. key="vars"
-                if we have to filter the configurations depending on the values in vars
+            Args:
+                condition: dict or :class:`Condition` object with operators expressed with a Mongodb-like syntax
+                key: Selects the sub-dictionary on which condition is applied, e.g. key="vars"
+                    if we have to filter the configurations depending on the values in vars
         """
         condition = Condition.as_condition(condition)
         new_confs = []
@@ -455,7 +455,7 @@ class TaskPolicy(object):
         else:
             if isinstance(obj, cls):
                 return obj
-            elif isinstance(obj, collections.Mapping):
+            elif isinstance(obj, collections.abc.Mapping):
                 return cls(**obj)
             else:
                 raise TypeError("Don't know how to convert type %s to %s" % (type(obj), cls))
@@ -629,7 +629,7 @@ batch_adapter:
             else:
                 return cls.from_string(obj)
 
-        elif isinstance(obj, collections.Mapping):
+        elif isinstance(obj, collections.abc.Mapping):
             return cls.from_dict(obj)
         else:
             raise TypeError("Don't know how to convert type %s to TaskManager" % type(obj))
@@ -1304,7 +1304,7 @@ class TaskRestartError(TaskError):
     """Exception raised while trying to restart the :class:`Task`."""
 
 
-class Task(six.with_metaclass(abc.ABCMeta, Node)):
+class Task(Node, metaclass=abc.ABCMeta):
     """
     A Task is a node that performs some kind of calculation.
     This is base class providing low-level methods.
@@ -2891,8 +2891,7 @@ class AbinitTask(Task):
 
         Args:
             what: string with the list of characters selecting the file type
-            Possible choices:
-
+                  Possible choices:
                     i ==> input_file,
                     o ==> output_file,
                     f ==> files_file,
