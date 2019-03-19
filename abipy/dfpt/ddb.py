@@ -1207,6 +1207,47 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return dict2namedtuple(phdoses=phdoses, plotter=plotter)
 
+    def anacompare_rifcsph(self, rifcsph_list, asr=2, chneut=1, dipdip=1, lo_to_splitting="automatic",
+                           ndivsm=20, ngqpt=None, verbose=0, mpi_procs=1):
+        """
+        Invoke anaddb to compute the phonon band structure and the phonon DOS with different
+        values of the ``asr`` input variable (acoustic sum rule treatment).
+        Build and return |PhononBandsPlotter| object.
+
+        Args:
+            rifcsph_list: List of rifcsph to analyze.
+            asr, chneut, dipdip: Anaddb input variable. See official documentation.
+            dipdip: 1 to activate treatment of dipole-dipole interaction (requires BECS and dielectric tensor).
+            lo_to_splitting: Allowed values are [True, False, "automatic"]. Defaults to "automatic"
+                If True the LO-TO splitting will be calculated if qpoint == Gamma and the non_anal_directions
+                non_anal_phfreqs attributes will be addeded to the phonon band structure.
+                "automatic" activates LO-TO if the DDB file contains the dielectric tensor and Born effective charges.
+            ndivsm: Number of division used for the smallest segment of the q-path
+            ngqpt: Number of divisions for the ab-initio q-mesh in the DDB file. Auto-detected if None (default)
+            verbose: Verbosity level.
+            mpi_procs: Number of MPI processes used by anaddb.
+
+        Return:
+            |PhononBandsPlotter| object.
+
+            Client code can use ``plotter.combiplot()`` or ``plotter.gridplot()``
+            to visualize the results.
+        """
+        phbands_plotter = PhononBandsPlotter()
+
+        for rifcsph in rifcsph_list:
+            phbst_file, _ = self.anaget_phbst_and_phdos_files(
+                nqsmall=0, ndivsm=ndivsm, asr=asr, chneut=chneut, dipdip=dipdip, dos_method="tetra",
+                lo_to_splitting=lo_to_splitting, ngqpt=ngqpt, qptbounds=None,
+                anaddb_kwargs={"rifcsph": rifcsph},
+                verbose=verbose, mpi_procs=mpi_procs, workdir=None, manager=None)
+
+            label = "rifcsph: %f" % rifcsph
+            phbands_plotter.add_phbands(label, phbst_file.phbands)
+            phbst_file.close()
+
+        return phbands_plotter
+
     def anaget_epsinf_and_becs(self, chneut=1, mpi_procs=1, workdir=None, manager=None, verbose=0):
         """
         Call anaddb to compute the macroscopic electronic dielectric tensor (e_inf)
