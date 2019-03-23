@@ -23,8 +23,7 @@ ab-initio calculations and typical convergence studies.
 AbiPy is interfaced with pymatgen_ and this allows users to
 benefit from the different tools and python objects available in the pymatgen ecosystem.
 
-The official documentation of the stable version is available at the `abipy docpage`_,
-while the documentation of the **developmental** version is hosted on `github pages <http://abinit.github.io/abipy>`_.
+The official documentation is hosted on `github pages <http://abinit.github.io/abipy>`_.
 
 AbiPy can be used in conjunction with matplotlib_, pandas_, scipy_, seaborn_, ipython_ and jupyter_ notebooks
 thus providing a powerful and user-friendly environment for data analysis and visualization.
@@ -46,6 +45,15 @@ Please report any bugs and issues at AbiPy's `Github page <https://github.com/ab
     netcdf_ format so we **strongly** suggest to compile Abinit with netcdf support
     (use ``--with_trio_flavor="netcdf-fallback"`` at configure time to activate the internal netcdf library,
     to link Abinit against an external netcdf library please consult the configuration examples provided by abiconfig_).
+
+
+More Resources
+==============
+
+This section collects links to some of the talks given by the AbiPy developers.
+
+* `Automating ABINIT calculations with AbiPy. Boston MA, 3 March 2019 <https://github.com/gmatteo/abipy_slides_aps_boston_2019>`_
+
 
 Getting AbiPy
 =============
@@ -511,8 +519,7 @@ AbiPy is released under the GNU GPL license. For more details see the LICENSE fi
 .. _Python: http://www.python.org/
 .. _Abinit: https://www.abinit.org
 .. _abinit-channel: https://anaconda.org/abinit
-.. _pymatgen: http://www.pymatgen.org
-.. _`abipy docpage` : http://pythonhosted.org/abipy
+.. _pymatgen: http://pymatgen.org
 .. _matplotlib: http://matplotlib.org
 .. _pandas: http://pandas.pydata.org
 .. _scipy: https://www.scipy.org/
