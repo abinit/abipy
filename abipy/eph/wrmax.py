@@ -95,7 +95,7 @@ class WRmaxFile(AbinitNcFile, Has_Structure, NotebookWriter):
             if iatom == 0: 
                 ax.set_ylabel(r"$Max_{\bf{r}} \| W(\bf{r}, \bf{R}) \|$")
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
-            if iatom == (len(ax_list) - 1): ax.set_xlabel(r"$\|\bf{R}\|$ (Bohr)")
+            if iatom == len(ax_list) - 1: ax.set_xlabel(r"$\|\bf{R}\|$ (Bohr)")
 
         return fig
 
