@@ -124,10 +124,10 @@ from abipy import abilab"""),
         import IPython
         IPython.embed(header="Type `dfs` in the terminal and use <TAB> to list its methods", dfs=dfs)
     else:
-        print("File list:")
-        for i, p in enumerate(paths):
-            print("%d: %s" % (i, p))
-        print()
+        #print("File list:")
+        #for i, p in enumerate(paths):
+        #    print("%d: %s" % (i, p))
+        #print()
         print("Spglib options: symprec=", options.symprec, "angle_tolerance=", options.angle_tolerance)
         abilab.print_dataframe(dfs.lattice, title="Lattice parameters:")
         df_to_clipboard(options, dfs.lattice)

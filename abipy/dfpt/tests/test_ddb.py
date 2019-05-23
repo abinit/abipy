@@ -507,7 +507,7 @@ class PhononComputationTest(AbipyTest):
             self.assert_almost_equal(phbands.amu_symbol["B"],  phbands.amu[5.0])
 
             # Total PHDOS should integrate to 3 * natom
-            # Note that anaddb does not renormalize the DOS so we have to increate the tolerance.
+            # Note that anaddb does not renormalize the DOS so we have to increase the tolerance.
             #E       Arrays are not almost equal to 2 decimals
             #E        ACTUAL: 8.9825274146312282
             #E        DESIRED: 9
