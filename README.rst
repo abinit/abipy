@@ -53,9 +53,9 @@ Links to talks
 This section collects links to some of the talks given by the AbiPy developers.
 
 
-* `Automating ABINIT calculations with AbiPy. Boston MA, 3 March 2019 <https://github.com/gmatteo/abipy_slides_aps_boston_2019>`_ (Introduction to AbiPy for newcomers).
+* `Automating ABINIT calculations with AbiPy. Boston MA, 3 March 2019 <https://gmatteo.github.io/abipy_slides_aps_boston_2019/>`_ (Introduction to AbiPy for newcomers).
 
-* `New features of AbiPy v0.7. Louvain-la-Neuve, Belgium, 20 May 2019 <https://gmatteo.github.io/abipy_intro_abidev2019/>`_ (How to use the AbiPy command line interface in the terminal."
+* `New features of AbiPy v0.7. Louvain-la-Neuve, Belgium, 20 May 2019 <https://gmatteo.github.io/abipy_intro_abidev2019/>`_ (How to use the AbiPy command line interface in the terminal)
 
 
 Getting AbiPy
