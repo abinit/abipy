@@ -20,7 +20,7 @@ from abipy.tools.printing import print_dataframe
 from abipy.core.mixins import NotebookWriter
 
 
-MP_DEFAULT_ENDPOINT = "https://www.materialsproject.org/rest/v2"
+MP_DEFAULT_ENDPOINT = "https://materialsproject.org/rest/v2"
 
 MP_KEYS_FOR_DATAFRAME = ("pretty_formula", "e_above_hull", "energy_per_atom",
                          "formation_energy_per_atom", "nsites", "volume",

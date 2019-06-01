@@ -260,7 +260,7 @@ class TestScalarField(AbipyTest):
         assert vxc.is_collinear
         assert not vxc.is_density_like
         assert vxc.is_potential_like
-        assert vxc.datar.dtype == np.float
+        #assert vxc.datar.dtype == np.float
         fact = pmgu.Ha_to_eV / pmgu.bohr_to_angstrom ** 3
         self.assert_almost_equal(vxc.datar[0, 0, 0, 0], -2.40411892342838 * fact)
         self.assert_almost_equal(vxc.datar[0, 0, 0, 1], -2.31753083824603 * fact)

@@ -1547,10 +1547,11 @@ class PhononWfkqWork(Work, MergeDdb):
         if is_ngqpt:
             qpoints = scf_task.input.abiget_ibz(ngkpt=ngqpt, shiftk=shiftq, kptopt=1).points
         else:
-            qpoints = ngqpt
+            qpoints = np.reshape(ngqpt, (-1, 3))
 
         new = cls(manager=manager)
         new.remove_wfkq = remove_wfkq
+        new.phonon_tasks = []
         new.wfkq_tasks = []
         new.wfkq_task_children = collections.defaultdict(list)
 
@@ -1581,10 +1582,12 @@ class PhononWfkqWork(Work, MergeDdb):
                 f = (qinds * ngkpt) % ngqpt
                 need_wfkq = np.any(f != 0)
 
+            #neee_wfkq = True
+
             if need_wfkq:
                 nscf_inp = scf_task.input.new_with_vars(qpt=qpt, nqpt=1, iscf=-2, kptopt=3, tolwfr=tolwfr)
                 if nband:
-                    nbdbuf = max(2,nband*0.1)
+                    nbdbuf = max(2, nband*0.1)
                     nscf_inp.set_vars(nband=nband+nbdbuf, nbdbuf=nbdbuf)
                 wfkq_task = new.register_nscf_task(nscf_inp, deps={scf_task: ["DEN", "WFK"]})
                 new.wfkq_tasks.append(wfkq_task)
@@ -1594,6 +1597,7 @@ class PhononWfkqWork(Work, MergeDdb):
                 deps = {scf_task: "WFK", wfkq_task: "WFQ"} if need_wfkq else {scf_task: "WFK"}
                 #ph_inp["prtwf"] = -1
                 t = new.register_phonon_task(ph_inp, deps=deps)
+                new.phonon_tasks.append(t)
                 if need_wfkq:
                     new.wfkq_task_children[wfkq_task].append(t)
 
@@ -1630,6 +1634,7 @@ class PhononWfkqWork(Work, MergeDdb):
         out_dvdb = self.merge_pot1_files()
 
         return self.Results(node=self, returncode=0, message="DDB merge done")
+
 
 class GKKPWork(Work):
     """
