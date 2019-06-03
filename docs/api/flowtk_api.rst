@@ -60,6 +60,15 @@ flowtk Package
    :undoc-members:
    :show-inheritance:
 
+
+:mod:`eph_flows` Module
+-----------------------
+
+.. automodule:: abipy.flowtk.eph_flows
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`events` Module
 --------------------
 
