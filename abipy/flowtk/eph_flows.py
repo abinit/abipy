@@ -71,7 +71,8 @@ class GkqPathFlow(Flow):
             t.add_deps({work_qmesh: "DDB", work_qpath: "DVDB"})
         flow.register_work(eph_work)
 
-        # Here we buld another work to compute gkq with interpolated potentials.
+        # Here we build another work to compute gkq with interpolated potentials.
+        # Note the use of eph_use_ftinterp 1
         if test_ft_interpolation:
             inteph_work = Work()
             qseen = set()
@@ -80,7 +81,6 @@ class GkqPathFlow(Flow):
                 if qpt in qseen: continue
                 qseen.add(qpt)
                 eph_inp = make_eph_input(scf_input, ngqpt, qpt)
-                eph_inp.set_spell_check(False)
                 eph_inp["eph_use_ftinterp"] = 1
                 t = inteph_work.register_eph_task(eph_inp, deps=task.deps)
                 t.add_deps({work_qmesh: ["DDB", "DVDB"]})

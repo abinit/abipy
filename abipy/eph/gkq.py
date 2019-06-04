@@ -18,6 +18,9 @@ from abipy.abio.robots import Robot
 from abipy.electrons.ebands import ElectronsReader, RobotWithEbands
 
 
+EPH_WTOL = 1e-6
+
+
 class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): #, NotebookWriter):
 
     @classmethod
@@ -91,12 +94,12 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): #, No
         return self.reader.read_value("phdispl_red", cmode="c")
 
     @lazy_property
-    def becs(self):
+    def becs_cart(self):
         """(natom, 3, 3) array with the Born effective charges in Cartesian coordinates."""
         return self.reader.read_value("becs_cart").T.copy()
 
     @lazy_property
-    def epsinf(self):
+    def epsinf_cart(self):
         """(3, 3) array with macroscopic dielectric tensor in Cartesian coordinates."""
         return self.reader.read_value("emacro_cart").T.copy()
 
@@ -112,7 +115,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): #, No
     @add_fig_kwargs
     def plot_scatter_with_other(self, other, ax=None, fontsize=12, **kwargs):
         """
-        Compare gkq2 matrix elements for a given q-point.
+        Compare gkq_atm matrix elements for a given q-point.
 
             other: other GkqFile instance.
             ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -182,16 +185,17 @@ class GkqRobot(Robot, RobotWithEbands):
     #    return [abifile.qpoint for abifile in self.abifiles]
 
     @add_fig_kwargs
-    def plot_gkq2_qpath(self, band_kq, band_k, nu_list=None, kpoint=(0, 0, 0), ax=None, fontsize=12, **kwargs):
+    def plot_gkq2_qpath(self, band_kq, band_k, kpoint=0, nu_list=None, with_glr=True, 
+                        ax=None, fontsize=12, **kwargs):
         """
         Plot the magnitude of the electron-phonon matrix elements along a path
         """
-        #if duck.is_intlike(kpoint):
-        #    ik = kpoint
-        #    kpoint = self.kpoints[ik]
-        #else:
-        kpoint = Kpoint.as_kpoint(kpoint, self.abifiles[0].structure.reciprocal_lattice)
-        ik = self.kpoints.index(kpoint)
+        if duck.is_intlike(kpoint):
+            ik = kpoint
+            kpoint = self.kpoints[ik]
+        else:
+            kpoint = Kpoint.as_kpoint(kpoint, self.abifiles[0].structure.reciprocal_lattice)
+            ik = self.kpoints.index(kpoint)
 
         # Assume abifiles are already ordered according to q-path
         xs = list(range(len(self.abifiles)))
@@ -199,8 +203,9 @@ class GkqRobot(Robot, RobotWithEbands):
         nsppol = self.abifiles[0].nsppol
         nqpt = len(self.abifiles)
         gkq_snuq = np.empty((nsppol, natom3, nqpt), dtype=np.complex)
+        if with_glr: gkq_lr = np.empty((nsppol, natom3, nqpt), dtype=np.complex)
 
-        EPH_WTOL = 1e-6
+
         xticks, xlabels = [], []
         for iq, abifile in enumerate(self.abifiles):
             qpoint = abifile.qpoint
@@ -215,21 +220,33 @@ class GkqRobot(Robot, RobotWithEbands):
             for spin in range(nsppol):
                 gkq_atm = ncvar[spin, ik, :, band_k, band_kq] 
                 gkq_atm = gkq_atm[:, 0] + 1j * gkq_atm[:, 1]
-                gkq_snuq[spin, :, iq] = np.abs(gkq_atm)
+                #gkq_snuq[spin, :, iq] = np.abs(gkq_atm)
 
+                # Transform the gkk matrix elements from (atom, red_direction) basis to phonon-mode basis.
                 gkq_snuq[spin, :, iq] = 0.0
                 for nu in range(natom3):
                     if phfreqs[nu] < EPH_WTOL: continue
                     gkq_snuq[spin, nu, iq] = np.dot(phdispl_red[nu], gkq_atm) / np.sqrt(2.0 * phfreqs[nu]) 
+
+            if with_glr:
+                # Compute g long range with (simplified) generalized Frohlich model.
+                gkq_lr[spin, :, iq] = glr_frohlich(qpoint, abifile.becs_cart, abifile.epsinf_cart, 
+                                                   phdispl_cart, phfreqs, abifile.structure)
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         
         nu_list = list(range(natom3)) if nu_list is None else list(nu_list)
         for spin in range(nsppol):
             for nu in nu_list:
+
                 ys = np.abs(gkq_snuq[spin, nu]) * abu.Ha_meV
                 label = "nu: %s" % nu if nsppol == 1 else "nu: %s, spin: %s" % (nu, spin)
                 ax.plot(xs, ys, ls="-o", label=label)
+
+                if with_glr:
+                    ys = np.abs(gkq_lr[spin, nu]) * abu.Ha_meV
+                    label = "glr nu: %s" % nu if nsppol == 1 else "nu: %s, spin: %s" % (nu, spin)
+                    ax.plot(xs, ys, ls="-o", label=label)
 
         ax.grid(True)
         ax.set_xlabel("Wave Vector")
@@ -260,8 +277,8 @@ class GkqRobot(Robot, RobotWithEbands):
 
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("robot = abilab.GsrRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
-            nbv.new_code_cell("ebands_plotter = robot.get_ebands_plotter()"),
+            #nbv.new_code_cell("robot = abilab.GsrRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+            #nbv.new_code_cell("ebands_plotter = robot.get_ebands_plotter()"),
         ])
 
         # Mixins
@@ -271,77 +288,33 @@ class GkqRobot(Robot, RobotWithEbands):
         return self._write_nb_nbpath(nb, nbpath)
 
 
-def glr_frohlich(qpoint, zeff_cart, eps_inf, phdispl_cart, phfreqs, structure):
+def glr_frohlich(qpoint, zeff_cart, eps_inf, phdispl_cart, phfreqs, structure, tol_qnorm=1e-6):
     """
-    Compute e-ph matrix with simplified Frohlich model.
+    Compute the long-range part of the e-ph matrix element with the simplified Frohlich model 
+    i.e. we include only G = 0 and the <k+q,b1|e^{i(q+G).r}|b2,k> coefficient is replaced by delta_{b1,b2}
+
+    Args:
+        qpoint:
+        zeff_cart:
+        eps_inf:
+        phdispl_cart:
+        phfreqs:
+        structure:
+
+    Return:
+        (natom3) complex array with gkq_LR.
     """
     natom = len(structure)
-    natom3 = natom3 * 3
+    natom3 = natom * 3
     qeq = np.dot(qpoint.cart_coords, np.matmul(eps_inf, qpoint.cart_coords))
     #if qpoint.is_gamma
 
     glr = np.zeros(natom3)
-    for nu in range(natom3):
+    for nu in range(3 if qpt.norm < tol_qnorm else 0, natom3):
+        if phfreqs[nu] < EPH_WTOL: continue
         num = 0.0
-        for iat in  range(natom):
+        for iat in range(natom):
             num += np.dot(qpoint.cart_coords, np.matmul(zeff_cart[iat], phdispl_cart[nu, iat]))
         glr[nu] = num / (qeq * np.sqrt(two * phfreqs[nu]))
 
-    return glr * 4j * np.pi  / structure.volume
-
-
-#  Transform the gkk matrix elements from (atom, red_direction) basis to phonon-mode basis.
-#
-# INPUTS
-#  nb1,nb2=Number of bands in gkq_atm matrix.
-#  nk=Number of k-points (usually 1)
-#  natom=Number of atoms.
-#  gkq_atm(2,nb1,nb2,3*natom)=EPH matrix elements in the atomic basis.
-#  phfrq(3*natom)=Phonon frequencies in Ha
-#  displ_red(2,3*natom,3*natom)=Phonon displacement in reduced coordinates.
-#
-# OUTPUT
-#  gkq_nu(2,nb1,nb2,3*natom)=EPH matrix elements in the phonon-mode basis.
-#
-# PARENTS
-#      m_sigmaph
-#
-# CHILDREN
-#
-# SOURCE
-# 
-# subroutine gkknu_from_atm(nb1, nb2, nk, natom, gkq_atm, phfrq, displ_red, gkq_nu)
-# 
-# !Arguments ------------------------------------
-# !scalars
-#  integer,intent(in) :: nb1, nb2, nk, natom
-# !arrays
-#  real(dp),intent(in) :: phfrq(3*natom),displ_red(2,3*natom,3*natom)
-#  real(dp),intent(in) :: gkq_atm(2,nb1,nb2,nk,3*natom)
-#  real(dp),intent(out) :: gkq_nu(2,nb1,nb2,nk,3*natom)
-# 
-# !Local variables-------------------------
-# !scalars
-#  integer :: nu,ipc
-# 
-# ! *************************************************************************
-# 
-#  gkq_nu = zero
-# 
-#  ! Loop over phonon branches.
-#  do nu=1,3*natom
-#    ! Ignore negative or too small frequencies
-#    if (phfrq(nu) < EPH_WTOL) cycle
-# 
-#    ! Transform the gkk from (atom, reduced direction) basis to phonon mode representation
-#    do ipc=1,3*natom
-#      gkq_nu(1,:,:,:,nu) = gkq_nu(1,:,:,:,nu) &
-#        + gkq_atm(1,:,:,:,ipc) * displ_red(1,ipc,nu) &
-#        - gkq_atm(2,:,:,:,ipc) * displ_red(2,ipc,nu)
-#      gkq_nu(2,:,:,:,nu) = gkq_nu(2,:,:,:,nu) &
-#        + gkq_atm(1,:,:,:,ipc) * displ_red(2,ipc,nu) &
-#        + gkq_atm(2,:,:,:,ipc) * displ_red(1,ipc,nu)
-#    end do
-# 
-#    gkq_nu(:,:,:,:,nu) = gkq_nu(:,:,:,:,nu) / sqrt(two * phfrq(nu))
-#  end do
+    return glr * 4j * np.pi / structure.volume
