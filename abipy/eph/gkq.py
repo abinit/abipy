@@ -4,11 +4,11 @@ Interface to the GKQ.nc_ file storing the e-ph matrix elements for a single q-po
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
+import abipy.core.abinit_units as abu
 
 from monty.string import marquee
 from monty.functools import lazy_property
 from monty.termcolor import cprint
-
 from abipy.core.kpoints import Kpoint
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
@@ -85,18 +85,18 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): #, No
 
     @lazy_property
     def phdispl_cart(self):
-        """(natom3_nu, natom3) complex array with ph displacement in cartesian coordinates."""
+        """(natom3_nu, natom3) complex array with phonon displacement in cartesian coordinates."""
         return self.reader.read_value("phdispl_cart", cmode="c")
 
     @lazy_property
     def phdispl_red(self):
-        """(natom3_nu, natom3) complex array with ph displacement in reduced coordinates."""
+        """(natom3_nu, natom3) complex array with phonon displacement in reduced coordinates."""
         return self.reader.read_value("phdispl_red", cmode="c")
 
     @lazy_property
     def becs_cart(self):
         """(natom, 3, 3) array with the Born effective charges in Cartesian coordinates."""
-        return self.reader.read_value("becs_cart").T.copy()
+        return self.reader.read_value("becs_cart").transpose(0, 2, 1).copy()
 
     @lazy_property
     def epsinf_cart(self):
@@ -125,9 +125,6 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): #, No
         if self.qpoint != other.qpoint:
             raise ValueError("Found different q-points: %s and %s" % (self.qpoint, other.qpoint))
 
-        ax, fig, plt = get_ax_fig_plt(ax=ax)
-        ax.grid(True)
-
         this_gkq_atm = np.abs(self.reader.read_value("gkq", cmode="c"))
         other_gkq_atm = np.abs(other.reader.read_value("gkq", cmode="c"))
 
@@ -139,11 +136,18 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): #, No
         print("mean:", adiff_gkq_atm.mean())
         print("std:", adiff_gkq_atm.std())
 
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
         xs = np.arange(len(this_gkq_atm.ravel()))
-        #ax.scatter(xs, this_gkq_atm.ravel(), label="this")
-        #ax.scatter(xs, other_gkq_atm.ravel(), label="other")
-        ax.scatter(xs, adiff_gkq_atm.ravel(), label="abs_diff")
-        ax.scatter(xs, reldiff_gkq_atm.ravel(), label="rel_diff")
+        ax.scatter(xs, this_gkq_atm.ravel(), alpha=0.5, label="this")
+        ax.scatter(xs, other_gkq_atm.ravel(), alpha=0.5, label="other")
+        #ax.scatter(xs, adiff_gkq_atm.ravel(), label="abs_diff")
+        #ax.scatter(xs, reldiff_gkq_atm.ravel(), label="rel_diff")
+
+        #ax.plot(xs, this_gkq_atm.ravel(), label="this")
+        #ax.plot(xs, other_gkq_atm.ravel(), label="other")
+
+        ax.grid(True)
+        ax.set_title("qpoint: %s" % repr(self.qpoint), fontsize=fontsize)
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
@@ -229,9 +233,9 @@ class GkqRobot(Robot, RobotWithEbands):
                     gkq_snuq[spin, nu, iq] = np.dot(phdispl_red[nu], gkq_atm) / np.sqrt(2.0 * phfreqs[nu]) 
 
             if with_glr:
-                # Compute g long range with (simplified) generalized Frohlich model.
+                # Compute long range part with (simplified) generalized Frohlich model.
                 gkq_lr[spin, :, iq] = glr_frohlich(qpoint, abifile.becs_cart, abifile.epsinf_cart, 
-                                                   phdispl_cart, phfreqs, abifile.structure)
+                                                   abifile.phdispl_cart, phfreqs, abifile.structure)
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         
@@ -241,16 +245,16 @@ class GkqRobot(Robot, RobotWithEbands):
 
                 ys = np.abs(gkq_snuq[spin, nu]) * abu.Ha_meV
                 label = "nu: %s" % nu if nsppol == 1 else "nu: %s, spin: %s" % (nu, spin)
-                ax.plot(xs, ys, ls="-o", label=label)
+                ax.plot(xs, ys, linestyle="--",  label=label)
 
                 if with_glr:
                     ys = np.abs(gkq_lr[spin, nu]) * abu.Ha_meV
                     label = "glr nu: %s" % nu if nsppol == 1 else "nu: %s, spin: %s" % (nu, spin)
-                    ax.plot(xs, ys, ls="-o", label=label)
+                    ax.plot(xs, ys, linestyle="", marker="o") #, label=label)
 
         ax.grid(True)
         ax.set_xlabel("Wave Vector")
-        ax.set_ylabel("gkq (meV)")
+        ax.set_ylabel(r"$|g_{\bf q}|$ (meV)")
         if xticks:
             ax.set_xticks(xticks, minor=False)
             ax.set_xticklabels(xlabels, fontdict=None, minor=False, size=kwargs.pop("klabel_size", "large"))
@@ -288,14 +292,14 @@ class GkqRobot(Robot, RobotWithEbands):
         return self._write_nb_nbpath(nb, nbpath)
 
 
-def glr_frohlich(qpoint, zeff_cart, eps_inf, phdispl_cart, phfreqs, structure, tol_qnorm=1e-6):
+def glr_frohlich(qpoint, becs_cart, eps_inf, phdispl_cart, phfreqs, structure, tol_qnorm=1e-6):
     """
     Compute the long-range part of the e-ph matrix element with the simplified Frohlich model 
     i.e. we include only G = 0 and the <k+q,b1|e^{i(q+G).r}|b2,k> coefficient is replaced by delta_{b1,b2}
 
     Args:
         qpoint:
-        zeff_cart:
+        becs_cart:
         eps_inf:
         phdispl_cart:
         phfreqs:
@@ -308,13 +312,18 @@ def glr_frohlich(qpoint, zeff_cart, eps_inf, phdispl_cart, phfreqs, structure, t
     natom3 = natom * 3
     qeq = np.dot(qpoint.cart_coords, np.matmul(eps_inf, qpoint.cart_coords))
     #if qpoint.is_gamma
+    phdispl_cart = np.reshape(phdispl_cart, (natom3, natom, 3))
+    print("becs_shape", becs_cart.shape)
+    print("phdispl_shape", phdispl_cart.shape)
 
-    glr = np.zeros(natom3)
-    for nu in range(3 if qpt.norm < tol_qnorm else 0, natom3):
+    glr = np.zeros(natom3, dtype=np.complex)
+    xred = structure.frac_coords
+    for nu in range(3 if qpoint.norm < tol_qnorm else 0, natom3):
         if phfreqs[nu] < EPH_WTOL: continue
         num = 0.0
         for iat in range(natom):
-            num += np.dot(qpoint.cart_coords, np.matmul(zeff_cart[iat], phdispl_cart[nu, iat]))
-        glr[nu] = num / (qeq * np.sqrt(two * phfreqs[nu]))
+            cdd = phdispl_cart[nu, iat] * np.exp(-2.0j * np.pi * np.dot(qpoint.frac_coords, xred[iat]))
+            num += np.dot(qpoint.cart_coords, np.matmul(becs_cart[iat], cdd))
+        glr[nu] = num / (qeq * np.sqrt(2.0 * phfreqs[nu]))
 
     return glr * 4j * np.pi / structure.volume
