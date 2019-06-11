@@ -6,6 +6,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import numpy as np
 import abipy.core.abinit_units as abu
 
+from collections import OrderedDict
 from monty.string import marquee
 from monty.functools import lazy_property
 from monty.termcolor import cprint
@@ -113,7 +114,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): #, No
     #    return self.reader.read_value("gkq", cmode="c")
 
     @add_fig_kwargs
-    def plot_scatter_with_other(self, other, ax=None, fontsize=12, **kwargs):
+    def plot_diff_with_other(self, other, fontsize=12, **kwargs):
         """
         Compare gkq_atm matrix elements for a given q-point.
 
@@ -129,26 +130,49 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): #, No
         other_gkq_atm = np.abs(other.reader.read_value("gkq", cmode="c"))
 
         adiff_gkq_atm = np.abs(this_gkq_atm - other_gkq_atm)
-        reldiff_gkq_atm = np.abs(this_gkq_atm - other_gkq_atm) / (0.5 * np.abs(this_gkq_atm + other_gkq_atm) + 1e-20)
+        #reldiff_gkq_atm = np.abs(this_gkq_atm - other_gkq_atm) / (0.5 * np.abs(this_gkq_atm + other_gkq_atm) + 1e-20)
 
-        print("max:", adiff_gkq_atm.max())
-        print("min:", adiff_gkq_atm.min())
-        print("mean:", adiff_gkq_atm.mean())
-        print("std:", adiff_gkq_atm.std())
+        stats = OrderedDict([
+            ("min", adiff_gkq_atm.min()),
+            ("max", adiff_gkq_atm.max()),
+            ("mean", adiff_gkq_atm.mean()),
+            ("std", adiff_gkq_atm.std()),
+        ])
+        stats_title = ", ".join("%s = %.1E" % item for item in stats.items())
+        print(stats_title)
 
-        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        num_plots, ncols, nrows = 2, 2, 1
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=False, sharey=False, squeeze=False)
+        ax_list = ax_list.ravel()
+        #ax, fig, plt = get_ax_fig_plt(ax=None)
+
+        ax = ax_list[0]
+        this_gkq_atm = this_gkq_atm[adiff_gkq_atm > stats["mean"]]
         xs = np.arange(len(this_gkq_atm.ravel()))
-        ax.scatter(xs, this_gkq_atm.ravel(), alpha=0.5, label="this")
-        ax.scatter(xs, other_gkq_atm.ravel(), alpha=0.5, label="other")
+        ax.scatter(xs, this_gkq_atm.ravel(), alpha=0.9, s=30, label="this", 
+                   facecolors='none', edgecolors='orange')
+
+        other_gkq_atm = other_gkq_atm[adiff_gkq_atm > stats["mean"]]
+        ax.scatter(xs, other_gkq_atm.ravel(), alpha=0.3, s=10, marker="x", 
+                   facecolors="g", edgecolors="none", label="other")
+
         #ax.scatter(xs, adiff_gkq_atm.ravel(), label="abs_diff")
         #ax.scatter(xs, reldiff_gkq_atm.ravel(), label="rel_diff")
-
         #ax.plot(xs, this_gkq_atm.ravel(), label="this")
         #ax.plot(xs, other_gkq_atm.ravel(), label="other")
-
         ax.grid(True)
+        ax.set_xlabel("Matrix element index")
+        ax.set_ylabel(r"$\Delta |g_{\bf q}|$ (meV)")
         ax.set_title("qpoint: %s" % repr(self.qpoint), fontsize=fontsize)
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        ax = ax_list[1]
+        ax.hist(adiff_gkq_atm.ravel(), facecolor='g', alpha=0.75)
+        ax.set_title(stats_title, fontsize=fontsize)
+        ax.grid(True)
+        ax.set_xlabel("Absolute Error")
+        ax.set_ylabel(r"Count")
 
         return fig
 
@@ -209,7 +233,6 @@ class GkqRobot(Robot, RobotWithEbands):
         gkq_snuq = np.empty((nsppol, natom3, nqpt), dtype=np.complex)
         if with_glr: gkq_lr = np.empty((nsppol, natom3, nqpt), dtype=np.complex)
 
-
         xticks, xlabels = [], []
         for iq, abifile in enumerate(self.abifiles):
             qpoint = abifile.qpoint
@@ -249,7 +272,8 @@ class GkqRobot(Robot, RobotWithEbands):
 
                 if with_glr:
                     ys = np.abs(gkq_lr[spin, nu]) * abu.Ha_meV
-                    label = "glr nu: %s" % nu if nsppol == 1 else "nu: %s, spin: %s" % (nu, spin)
+                    label = r"$g_{\bf q}^{\text{lr}} nu: %s" % (
+                            nu if nsppol == 1 else "nu: %s, spin: %s" % (nu, spin))
                     ax.plot(xs, ys, linestyle="", marker="o") #, label=label)
 
         ax.grid(True)
@@ -313,8 +337,8 @@ def glr_frohlich(qpoint, becs_cart, eps_inf, phdispl_cart, phfreqs, structure, t
     qeq = np.dot(qpoint.cart_coords, np.matmul(eps_inf, qpoint.cart_coords))
     #if qpoint.is_gamma
     phdispl_cart = np.reshape(phdispl_cart, (natom3, natom, 3))
-    print("becs_shape", becs_cart.shape)
-    print("phdispl_shape", phdispl_cart.shape)
+    #print("becs_shape", becs_cart.shape)
+    #print("phdispl_shape", phdispl_cart.shape)
 
     glr = np.zeros(natom3, dtype=np.complex)
     xred = structure.frac_coords

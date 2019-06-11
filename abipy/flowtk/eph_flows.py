@@ -4,8 +4,10 @@ Flows for electron-phonon calculations (high-level interface)
 """
 from __future__ import unicode_literals, division, print_function
 
-from abipy.core.kpoints import kpath_from_bounds_and_ndivsm
+import numpy as np
 
+
+from abipy.core.kpoints import kpath_from_bounds_and_ndivsm
 from .works import Work, PhononWork, PhononWfkqWork
 from .flows import Flow
 
@@ -20,7 +22,7 @@ class GkqPathFlow(Flow):
     """
 
     @classmethod
-    def from_scf_input(cls, workdir, scf_input, ngqpt, qbounds, ndivsm=5, with_becs=False, 
+    def from_scf_input(cls, workdir, scf_input, ngqpt, qbounds, ndivsm=5, with_becs=False, ddk_tolerance=None,
                        test_ft_interpolation=True, manager=None):
         """
         Build the flow from an input file representing a GS calculation.
@@ -33,6 +35,7 @@ class GkqPathFlow(Flow):
                 If ndivsm is negative, the  routine assumes that qbounds contains the full list of q-points
                 and no post-processing is performed.
             with_becs: Activate calculation of Electric field and Born effective charges.
+            ddk_tolerance: dict {"varname": value} with the tolerance used in the DDK run if with_becs.
             test_ft_interpolation: True to add an extra Work in which in the GKQ files are computed 
                 using the interpolated DFPT potentials using the q-mesh defined by ngqpt.
             manager: |TaskManager| object.
@@ -43,10 +46,11 @@ class GkqPathFlow(Flow):
         scf_task = flow.register_scf_task(scf_input)[0]
 
         # Second work to compute phonons on nqgpt q-mesh.
-        work_qmesh = PhononWork.from_scf_task(scf_task, qpoints=ngqpt, is_ngqpt=True, with_becs=with_becs)
+        work_qmesh = PhononWork.from_scf_task(scf_task, qpoints=ngqpt, is_ngqpt=True, 
+                                              with_becs=with_becs, ddk_tolerance=ddk_tolerance)
         flow.register_work(work_qmesh)
 
-        if ndivsm > 0
+        if ndivsm > 0:
             # Generate list of q-points from qbounds and ndivsm.
             qpath_list = kpath_from_bounds_and_ndivsm(qbounds, ndivsm, scf_input.structure)
         else:
@@ -85,7 +89,6 @@ class GkqPathFlow(Flow):
         flow.register_work(eph_work)
 
         # Here we build another work to compute gkq with interpolated potentials along the q-path.
-        # Note eph_use_ftinterp 1 to force the interpolation of the DFPT potentials.
         if test_ft_interpolation:
             inteph_work = Work()
             qseen = set()
@@ -94,6 +97,7 @@ class GkqPathFlow(Flow):
                 if qpt in qseen: continue
                 qseen.add(qpt)
                 eph_inp = make_eph_input(scf_input, ngqpt, qpt)
+                # Note eph_use_ftinterp 1 to force the interpolation of the DFPT potentials.
                 eph_inp["eph_use_ftinterp"] = 1
                 t = inteph_work.register_eph_task(eph_inp, deps=task.deps)
                 t.add_deps({work_qmesh: ["DDB", "DVDB"]})
