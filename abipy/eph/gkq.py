@@ -17,12 +17,13 @@ from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, ge
 from abipy.tools import duck
 from abipy.abio.robots import Robot
 from abipy.electrons.ebands import ElectronsReader, RobotWithEbands
+from abipy.eph.common import glr_frohlich
 
 
 EPH_WTOL = 1e-6
 
 
-class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): #, NotebookWriter):
+class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     @classmethod
     def from_file(cls, filepath):
@@ -69,6 +70,11 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): #, No
         return self.ebands.structure
 
     @lazy_property
+    def uses_interpolated_dvdb(self):
+        """True if the matrix elements have been computed with an interpolated potential."""
+        return int(self.reader.read_value("interpolated")) == 1
+
+    @lazy_property
     def params(self):
         """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
@@ -81,7 +87,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): #, No
 
     @lazy_property
     def phfreqs(self):
-        """array with 3 * natom phonon frequencies in Ha."""
+        """(3 * natom) array with phonon frequencies in Ha."""
         return self.reader.read_value("phfreqs")
 
     @lazy_property
@@ -101,7 +107,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): #, No
 
     @lazy_property
     def epsinf_cart(self):
-        """(3, 3) array with macroscopic dielectric tensor in Cartesian coordinates."""
+        """(3, 3) array with electronc macroscopic dielectric tensor in Cartesian coordinates."""
         return self.reader.read_value("emacro_cart").T.copy()
 
     #def get_all_gkkp(self):
@@ -120,6 +126,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): #, No
 
             other: other GkqFile instance.
             ax: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: Label and title fontsize.
 
         Return: |matplotlib-Figure|
         """
@@ -147,13 +154,15 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): #, No
         ax_list = ax_list.ravel()
         #ax, fig, plt = get_ax_fig_plt(ax=None)
 
+        # Downsample datasets. Show only points with error > mean.
+        threshold = stats["mean"]
         ax = ax_list[0]
-        this_gkq_atm = this_gkq_atm[adiff_gkq_atm > stats["mean"]]
+        this_gkq_atm = this_gkq_atm[adiff_gkq_atm > threshold]
         xs = np.arange(len(this_gkq_atm.ravel()))
         ax.scatter(xs, this_gkq_atm.ravel(), alpha=0.9, s=30, label="this", 
                    facecolors='none', edgecolors='orange')
 
-        other_gkq_atm = other_gkq_atm[adiff_gkq_atm > stats["mean"]]
+        other_gkq_atm = other_gkq_atm[adiff_gkq_atm > threshold]
         ax.scatter(xs, other_gkq_atm.ravel(), alpha=0.3, s=10, marker="x", 
                    facecolors="g", edgecolors="none", label="other")
 
@@ -175,6 +184,35 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): #, No
         ax.set_ylabel(r"Count")
 
         return fig
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        Used in abiview.py to get a quick look at the results.
+        """
+        for fig in self.yield_structure_figs(**kwargs): yield fig
+        for fig in self.yield_ebands_figs(**kwargs): yield fig
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        nb.cells.extend([
+            nbv.new_code_cell("gkq = abilab.abiopen('%s')" % self.filepath),
+            nbv.new_code_cell("print(gkq)"),
+            nbv.new_code_cell("gkq.ebands.plot();"),
+            nbv.new_code_cell("gkq.epsinf_cart;"),
+            nbv.new_code_cell("gkq.becs_cart;"),
+            nbv.new_code_cell("""
+              #other = abilab.abiopen('other_GKW.nc')
+              #gkq.plot_diff_with_other(other);
+            """)
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
 
 
 class GkqReader(ElectronsReader):
@@ -213,10 +251,22 @@ class GkqRobot(Robot, RobotWithEbands):
     #    return [abifile.qpoint for abifile in self.abifiles]
 
     @add_fig_kwargs
-    def plot_gkq2_qpath(self, band_kq, band_k, kpoint=0, nu_list=None, with_glr=True, 
+    def plot_gkq2_qpath(self, band_kq, band_k, kpoint=0, with_glr=True, nu_list=None, # spherical_average=False, 
                         ax=None, fontsize=12, **kwargs):
-        """
-        Plot the magnitude of the electron-phonon matrix elements along a path
+        r"""
+        Plot the magnitude of the electron-phonon matrix elements <k+q, band_kq| Delta_{q\nu} | k, band_k>
+        for a given set of (band_kq, band, k) as a function of the q-point.
+
+        Args:
+            band_ks: Band index of the k+q states (starts at 0)
+            band_k: Band index of the k state (starts at 0)
+            kpoint: |Kpoint| object or index.
+            with_glr: True to plot the long-range component estimated from Verdi's model.
+            nu_list: List of phonons modes to be selected (starts at 0). None to select all modes.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: Label and title fontsize.
+
+        Return: |matplotlib-Figure|
         """
         if duck.is_intlike(kpoint):
             ik = kpoint
@@ -225,7 +275,7 @@ class GkqRobot(Robot, RobotWithEbands):
             kpoint = Kpoint.as_kpoint(kpoint, self.abifiles[0].structure.reciprocal_lattice)
             ik = self.kpoints.index(kpoint)
 
-        # Assume abifiles are already ordered according to q-path
+        # Assume abifiles are already ordered according to q-path.
         xs = list(range(len(self.abifiles)))
         natom3 = len(self.abifiles[0].structure) * 3
         nsppol = self.abifiles[0].nsppol
@@ -236,7 +286,7 @@ class GkqRobot(Robot, RobotWithEbands):
         xticks, xlabels = [], []
         for iq, abifile in enumerate(self.abifiles):
             qpoint = abifile.qpoint
-            #qnorm = qpoint.norm
+            
             name = qpoint.name if qpoint.name is not None else abifile.structure.findname_in_hsym_stars(qpoint)
             if qpoint.name is not None:
                 xticks.append(iq)
@@ -253,10 +303,12 @@ class GkqRobot(Robot, RobotWithEbands):
                 gkq_snuq[spin, :, iq] = 0.0
                 for nu in range(natom3):
                     if phfreqs[nu] < EPH_WTOL: continue
+                    #fact = one if not spherical_average else np.sqrt(4 * np.pi) * qpoint.norm
                     gkq_snuq[spin, nu, iq] = np.dot(phdispl_red[nu], gkq_atm) / np.sqrt(2.0 * phfreqs[nu]) 
 
             if with_glr:
                 # Compute long range part with (simplified) generalized Frohlich model.
+                #fact = one if not spherical_average else np.sqrt(4 * np.pi) * qpoint.norm
                 gkq_lr[spin, :, iq] = glr_frohlich(qpoint, abifile.becs_cart, abifile.epsinf_cart, 
                                                    abifile.phdispl_cart, phfreqs, abifile.structure)
 
@@ -265,7 +317,6 @@ class GkqRobot(Robot, RobotWithEbands):
         nu_list = list(range(natom3)) if nu_list is None else list(nu_list)
         for spin in range(nsppol):
             for nu in nu_list:
-
                 ys = np.abs(gkq_snuq[spin, nu]) * abu.Ha_meV
                 label = "nu: %s" % nu if nsppol == 1 else "nu: %s, spin: %s" % (nu, spin)
                 ax.plot(xs, ys, linestyle="--",  label=label)
@@ -305,8 +356,8 @@ class GkqRobot(Robot, RobotWithEbands):
 
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
-            #nbv.new_code_cell("robot = abilab.GsrRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
-            #nbv.new_code_cell("ebands_plotter = robot.get_ebands_plotter()"),
+            nbv.new_code_cell("robot = abilab.GkqRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+            nbv.new_code_cell("ebands_plotter = robot.get_ebands_plotter()"),
         ])
 
         # Mixins
@@ -314,40 +365,3 @@ class GkqRobot(Robot, RobotWithEbands):
         nb.cells.extend(self.get_ebands_code_cells())
 
         return self._write_nb_nbpath(nb, nbpath)
-
-
-def glr_frohlich(qpoint, becs_cart, eps_inf, phdispl_cart, phfreqs, structure, tol_qnorm=1e-6):
-    """
-    Compute the long-range part of the e-ph matrix element with the simplified Frohlich model 
-    i.e. we include only G = 0 and the <k+q,b1|e^{i(q+G).r}|b2,k> coefficient is replaced by delta_{b1,b2}
-
-    Args:
-        qpoint:
-        becs_cart:
-        eps_inf:
-        phdispl_cart:
-        phfreqs:
-        structure:
-
-    Return:
-        (natom3) complex array with gkq_LR.
-    """
-    natom = len(structure)
-    natom3 = natom * 3
-    qeq = np.dot(qpoint.cart_coords, np.matmul(eps_inf, qpoint.cart_coords))
-    #if qpoint.is_gamma
-    phdispl_cart = np.reshape(phdispl_cart, (natom3, natom, 3))
-    #print("becs_shape", becs_cart.shape)
-    #print("phdispl_shape", phdispl_cart.shape)
-
-    glr = np.zeros(natom3, dtype=np.complex)
-    xred = structure.frac_coords
-    for nu in range(3 if qpoint.norm < tol_qnorm else 0, natom3):
-        if phfreqs[nu] < EPH_WTOL: continue
-        num = 0.0
-        for iat in range(natom):
-            cdd = phdispl_cart[nu, iat] * np.exp(-2.0j * np.pi * np.dot(qpoint.frac_coords, xred[iat]))
-            num += np.dot(qpoint.cart_coords, np.matmul(becs_cart[iat], cdd))
-        glr[nu] = num / (qeq * np.sqrt(2.0 * phfreqs[nu]))
-
-    return glr * 4j * np.pi / structure.volume
