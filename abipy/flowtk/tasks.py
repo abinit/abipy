@@ -3652,6 +3652,7 @@ class DfptTask(AbinitTask):
                     ddk_case = idir + 3 * len(ddk_task.input.structure)
 
                     infile = self.indir.path_in("in_1WF%d" % ddk_case)
+                    if out_ddk.endswith(".nc"): infile = infile + ".nc"
                     os.symlink(out_ddk, infile)
 
                 elif d in ("WFK", "WFQ"):
@@ -3667,16 +3668,21 @@ class DfptTask(AbinitTask):
                     else:
                         raise ValueError("Don't know how to handle `%s`" % d)
 
+                    # Ensure link has .nc extension if iomode 3
+                    if out_wfk.endswith(".nc"): bname = bname + ".nc"
+                    print(d, out_wfk, "bname", bname)
                     if not os.path.exists(self.indir.path_in(bname)):
-                            os.symlink(out_wfk, self.indir.path_in(bname))
+                        os.symlink(out_wfk, self.indir.path_in(bname))
 
                 elif d == "DEN":
                     gs_task = dep.node
                     out_wfk = gs_task.outdir.has_abiext("DEN")
                     if not out_wfk:
                         raise RuntimeError("%s didn't produce the DEN file" % gs_task)
-                    if not os.path.exists(self.indir.path_in("in_DEN")):
-                        os.symlink(out_wfk, self.indir.path_in("in_DEN"))
+                    infile = self.indir.path_in("in_DEN")
+                    if out_wfk.endswith(".nc"): infile = infile + ".nc"
+                    if not os.path.exists(infile):
+                        os.symlink(out_wfk, infile)
 
                 elif d == "1WF":
                     gs_task = dep.node
@@ -3684,6 +3690,7 @@ class DfptTask(AbinitTask):
                     if not out_wfk:
                         raise RuntimeError("%s didn't produce the 1WF file" % gs_task)
                     dest = self.indir.path_in("in_" + out_wfk.split("_")[-1])
+                    if out_wfk.endswith(".nc"): dest = dest + ".nc"
                     if not os.path.exists(dest):
                         os.symlink(out_wfk, dest)
 
@@ -3693,6 +3700,7 @@ class DfptTask(AbinitTask):
                     if not out_wfk:
                         raise RuntimeError("%s didn't produce the 1DEN file" % gs_task)
                     dest = self.indir.path_in("in_" + out_wfk.split("_")[-1])
+                    if out_wfk.endswith(".nc"): dest = dest + ".nc"
                     if not os.path.exists(dest):
                         os.symlink(out_wfk, dest)
 
@@ -4645,10 +4653,6 @@ class AnaddbTask(Task):
     def get_results(self, **kwargs):
         results = super(AnaddbTask, self).get_results(**kwargs)
         return results
-
-
-
-
 
 
 class BoxcuttedPhononTask(PhononTask):

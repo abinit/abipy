@@ -28,6 +28,7 @@ def make_scf_input(structure, ngkpt, tsmear, pseudos, paral_kgb=1):
         occopt=4,    # Marzari smearing
         tsmear=tsmear,
         paral_kgb=paral_kgb,
+        iomode=3,
    )
 
     # Dataset 1 (GS run)
