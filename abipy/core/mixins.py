@@ -555,6 +555,11 @@ import sys, os
 import numpy as np
 
 %matplotlib notebook
+
+# Use this magic for jupyterlab.
+# For installation instructions, see https://github.com/matplotlib/jupyter-matplotlib
+#%matplotlib widget
+
 from IPython.display import display
 
 # This to render pandas DataFrames with https://github.com/quantopian/qgrid

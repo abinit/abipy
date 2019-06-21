@@ -50,6 +50,16 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         app(self.ebands.to_string(with_structure=False, verbose=verbose, title="Electronic Bands"))
         app("qpoint: %s" % str(self.qpoint))
 
+        app("Macroscopic dielectric Tensor in Cartesian coordinates")
+        app(str(self.epsinf_cart))
+        app("")
+
+        app("Born effective charges in Cartesian coordinates:")
+        for i, (site, bec) in enumerate(zip(self.structure, self.becs_cart)):
+            app("[%d]: %s" % (i, repr(site)))
+            app(str(bec))
+            app("")
+
         #if verbose > 1:
         #    app("")
         #    app(self.hdr.to_string(verbose=verbose, title="Abinit Header"))
@@ -136,14 +146,14 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         this_gkq_atm = np.abs(self.reader.read_value("gkq", cmode="c"))
         other_gkq_atm = np.abs(other.reader.read_value("gkq", cmode="c"))
 
-        adiff_gkq_atm = np.abs(this_gkq_atm - other_gkq_atm)
+        absdiff_gkq_atm = np.abs(this_gkq_atm - other_gkq_atm)
         #reldiff_gkq_atm = np.abs(this_gkq_atm - other_gkq_atm) / (0.5 * np.abs(this_gkq_atm + other_gkq_atm) + 1e-20)
 
         stats = OrderedDict([
-            ("min", adiff_gkq_atm.min()),
-            ("max", adiff_gkq_atm.max()),
-            ("mean", adiff_gkq_atm.mean()),
-            ("std", adiff_gkq_atm.std()),
+            ("min", absdiff_gkq_atm.min()),
+            ("max", absdiff_gkq_atm.max()),
+            ("mean", absdiff_gkq_atm.mean()),
+            ("std", absdiff_gkq_atm.std()),
         ])
         stats_title = ", ".join("%s = %.1E" % item for item in stats.items())
         print(stats_title)
@@ -157,16 +167,16 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         # Downsample datasets. Show only points with error > mean.
         threshold = stats["mean"]
         ax = ax_list[0]
-        this_gkq_atm = this_gkq_atm[adiff_gkq_atm > threshold]
+        this_gkq_atm = this_gkq_atm[absdiff_gkq_atm > threshold]
         xs = np.arange(len(this_gkq_atm.ravel()))
         ax.scatter(xs, this_gkq_atm.ravel(), alpha=0.9, s=30, label="this", 
                    facecolors='none', edgecolors='orange')
 
-        other_gkq_atm = other_gkq_atm[adiff_gkq_atm > threshold]
+        other_gkq_atm = other_gkq_atm[absdiff_gkq_atm > threshold]
         ax.scatter(xs, other_gkq_atm.ravel(), alpha=0.3, s=10, marker="x", 
                    facecolors="g", edgecolors="none", label="other")
 
-        #ax.scatter(xs, adiff_gkq_atm.ravel(), label="abs_diff")
+        #ax.scatter(xs, absdiff_gkq_atm.ravel(), label="abs_diff")
         #ax.scatter(xs, reldiff_gkq_atm.ravel(), label="rel_diff")
         #ax.plot(xs, this_gkq_atm.ravel(), label="this")
         #ax.plot(xs, other_gkq_atm.ravel(), label="other")
@@ -177,7 +187,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         ax = ax_list[1]
-        ax.hist(adiff_gkq_atm.ravel(), facecolor='g', alpha=0.75)
+        ax.hist(absdiff_gkq_atm.ravel(), facecolor='g', alpha=0.75)
         ax.set_title(stats_title, fontsize=fontsize)
         ax.grid(True)
         ax.set_xlabel("Absolute Error")
@@ -221,7 +231,7 @@ class GkqReader(ElectronsReader):
      It provides helper function to access the most important quantities.
  
      .. rubric:: Inheritance Diagram
-     .. inheritance-diagram:: GsrReader
+     .. inheritance-diagram:: GkqReader
      """
 
 
