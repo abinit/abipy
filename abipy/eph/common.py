@@ -10,6 +10,7 @@ from collections import OrderedDict
 from monty.functools import lazy_property
 from abipy.electrons.ebands import ElectronsReader
 
+EPH_WTOL = 1e-6
 
 class BaseEphReader(ElectronsReader):
     """
@@ -59,7 +60,7 @@ class BaseEphReader(ElectronsReader):
         return od
 
 
-def glr_frohlich(qpoint, becs_cart, epsinf_cart, phdispl_cart, phfreqs, structure, tol_qnorm=1e-6):
+def glr_frohlich(qpoint, becs_cart, epsinf_cart, phdispl_cart, phfreqs, structure, eph_wtol=EPH_WTOL, tol_qnorm=1e-6):
     """
     Compute the long-range part of the e-ph matrix element with the simplified Frohlich model 
     i.e. we include only G = 0 and the <k+q,b1|e^{i(q+G).r}|b2,k> coefficient is replaced by delta_{b1, b2}

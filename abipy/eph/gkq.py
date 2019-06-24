@@ -252,7 +252,7 @@ class GkqRobot(Robot, RobotWithEbands):
 
     @add_fig_kwargs
     def plot_gkq2_qpath(self, band_kq, band_k, kpoint=0, with_glr=True, nu_list=None, # spherical_average=False, 
-                        ax=None, fontsize=12, **kwargs):
+                        ax=None, fontsize=12, eph_wtol=EPH_WTOL, **kwargs):
         r"""
         Plot the magnitude of the electron-phonon matrix elements <k+q, band_kq| Delta_{q\nu} | k, band_k>
         for a given set of (band_kq, band, k) as a function of the q-point.
@@ -302,7 +302,7 @@ class GkqRobot(Robot, RobotWithEbands):
                 # Transform the gkk matrix elements from (atom, red_direction) basis to phonon-mode basis.
                 gkq_snuq[spin, :, iq] = 0.0
                 for nu in range(natom3):
-                    if phfreqs[nu] < EPH_WTOL: continue
+                    if phfreqs[nu] < eph_wtol: continue
                     #fact = one if not spherical_average else np.sqrt(4 * np.pi) * qpoint.norm
                     gkq_snuq[spin, nu, iq] = np.dot(phdispl_red[nu], gkq_atm) / np.sqrt(2.0 * phfreqs[nu]) 
 
@@ -325,7 +325,7 @@ class GkqRobot(Robot, RobotWithEbands):
                     ys = np.abs(gkq_lr[spin, nu]) * abu.Ha_meV
                     label = r"$g_{\bf q}^{\text{lr}} nu: %s" % (
                             nu if nsppol == 1 else "nu: %s, spin: %s" % (nu, spin))
-                    ax.plot(xs, ys, linestyle="", marker="o") #, label=label)
+                    ax.plot(xs, ys, linestyle="", marker="o", label=label)
 
         ax.grid(True)
         ax.set_xlabel("Wave Vector")
