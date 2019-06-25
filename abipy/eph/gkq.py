@@ -1,5 +1,5 @@
 """
-Interface to the GKQ.nc_ file storing the e-ph matrix elements for a single q-point.
+Interface to the GKQ.nc file storing the e-ph matrix elements for a single q-point.
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
 
@@ -49,11 +49,9 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         app("")
         app(self.ebands.to_string(with_structure=False, verbose=verbose, title="Electronic Bands"))
         app("qpoint: %s" % str(self.qpoint))
-
-        app("Macroscopic dielectric Tensor in Cartesian coordinates")
+        app("Macroscopic dielectric tensor in Cartesian coordinates")
         app(str(self.epsinf_cart))
         app("")
-
         app("Born effective charges in Cartesian coordinates:")
         for i, (site, bec) in enumerate(zip(self.structure, self.becs_cart)):
             app("[%d]: %s" % (i, repr(site)))
@@ -86,7 +84,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     @lazy_property
     def params(self):
-        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+        """Dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         return od
 
@@ -117,17 +115,8 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     @lazy_property
     def epsinf_cart(self):
-        """(3, 3) array with electronc macroscopic dielectric tensor in Cartesian coordinates."""
+        """(3, 3) array with electronic macroscopic dielectric tensor in Cartesian coordinates."""
         return self.reader.read_value("emacro_cart").T.copy()
-
-    #def get_all_gkkp(self):
-    #    """
-    #    Get gkq matrix elements from the file
-    #    """
-    #    #nctkarr_t("gkq_representation", "char", "character_string_length"), &
-    #    #nctkarr_t('gkq', "dp", &
-    #    # 'complex, max_number_of_states, max_number_of_states, number_of_phonon_modes, number_of_kpoints, number_of_spins') &
-    #    return self.reader.read_value("gkq", cmode="c")
 
     @add_fig_kwargs
     def plot_diff_with_other(self, other, fontsize=12, **kwargs):
@@ -155,14 +144,11 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
             ("mean", absdiff_gkq_atm.mean()),
             ("std", absdiff_gkq_atm.std()),
         ])
-        stats_title = ", ".join("%s = %.1E" % item for item in stats.items())
-        print(stats_title)
 
         num_plots, ncols, nrows = 2, 2, 1
         ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                 sharex=False, sharey=False, squeeze=False)
         ax_list = ax_list.ravel()
-        #ax, fig, plt = get_ax_fig_plt(ax=None)
 
         # Downsample datasets. Show only points with error > mean.
         threshold = stats["mean"]
@@ -188,10 +174,16 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
         ax = ax_list[1]
         ax.hist(absdiff_gkq_atm.ravel(), facecolor='g', alpha=0.75)
-        ax.set_title(stats_title, fontsize=fontsize)
         ax.grid(True)
         ax.set_xlabel("Absolute Error")
         ax.set_ylabel(r"Count")
+
+        ax.axvline(stats["mean"], color='k', linestyle='dashed', linewidth=1)
+        _, max_ = ax.get_ylim()
+        ax.text(0.7, 0.7, 
+                "\n".join("%s = %.1E" % item for item in stats.items()), 
+                fontsize=fontsize, horizontalalignment='center', verticalalignment='center', 
+                transform=ax.transAxes)
 
         return fig
 
@@ -323,14 +315,12 @@ class GkqRobot(Robot, RobotWithEbands):
                                                    abifile.phdispl_cart, phfreqs, abifile.structure)
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
-        
         nu_list = list(range(natom3)) if nu_list is None else list(nu_list)
         for spin in range(nsppol):
             for nu in nu_list:
                 ys = np.abs(gkq_snuq[spin, nu]) * abu.Ha_meV
                 label = "nu: %s" % nu if nsppol == 1 else "nu: %s, spin: %s" % (nu, spin)
                 ax.plot(xs, ys, linestyle="--",  label=label)
-
                 if with_glr:
                     ys = np.abs(gkq_lr[spin, nu]) * abu.Ha_meV
                     label = r"$g_{\bf q}^{\text{lr}} nu: %s" % (
@@ -345,7 +335,7 @@ class GkqRobot(Robot, RobotWithEbands):
             ax.set_xticklabels(xlabels, fontdict=None, minor=False, size=kwargs.pop("klabel_size", "large"))
 
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
-        title = "band_kq: %s, band_k: %s, kpoint: %s" % (band_kq, band_k, repr(kpoint) )
+        title = "band_kq: %s, band_k: %s, kpoint: %s" % (band_kq, band_k, repr(kpoint))
         ax.set_title(title, fontsize=fontsize)
 
         return fig

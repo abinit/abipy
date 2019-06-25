@@ -5,13 +5,11 @@ Object to plot the lattice representation of the DFPT potentials (phonon perturb
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
-import pandas as pd
 
 from collections import OrderedDict
 from monty.string import marquee
 from monty.functools import lazy_property
-from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
-    rotate_ticklabels, ax_append_title, set_ax_xylabels, ax_share)
+from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
 from abipy.core.kpoints import KpointList, Kpoint
 from abipy.iotools import ETSF_Reader
@@ -27,7 +25,7 @@ class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
         self.nfft = r.read_dimvalue("nfft")
         self.nspden = r.read_dimvalue("nspden")
         self.natom3 = len(self.structure) * 3
-        #self.symv1scf = bool(r.read_value("symv1scf"))
+        self.symv1scf = r.read_value("symv1scf")
         #self.has_dielt_zeff = bool(r.read_value("has_dielt_zeff"))
         #self.add_lr_part = bool(r.read_value("add_lr_part"))
 
@@ -35,6 +33,19 @@ class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
     def structure(self):
         """|Structure| object."""
         return self.reader.read_structure()
+
+    @lazy_property
+    def pertsy_qpt(self):
+        """
+        Determine the symmetrical perturbations. Meaning of pertsy:
+
+           0 for non-target perturbations
+           1 for basis perturbations
+          -1 for perturbations that can be found from basis perturbations
+        """
+        #NCF_CHECK(nctk_def_arrays(ncid, nctkarr_t("pertsy_qpt", "int", "three, mpert, nqpt")))
+        return self.reader.read_value("pertsy_qpt")
+
 
     def close(self):
         self.reader.close()
@@ -55,17 +66,11 @@ class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
         app("")
         app(self.structure.to_string(verbose=verbose, title="Structure"))
         app("")
-        #app("ngqpt: %s" % str(self.ngqpt))
         #app("has_dielt_zeff: %s" % self.has_dielt_zeff)
         #app("add_lr_part: %s" % self.add_lr_part)
-        #app("symv1scf: %s" % self.symv1)
+        app("symv1scf: %s" % self.symv1scf)
 
         return "\n".join(lines)
-
-    #@lazy_property
-    #def ngqpt(self):
-    #    """Division of coarse q-mesh (ab-initio points)."""
-    #    return self.reader.read_value("ngqpt")
 
     @lazy_property
     def qpoints(self):
@@ -80,40 +85,6 @@ class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
             iq = self.qpoints.index(qpoint)
 
         return iq, qpoint
-
-    #def get_dataframe_at_qpoint(self, qpoint=0):
-    #    """
-    #    Args:
-    #        qpoint:
-
-    #    Return: |matplotlib-Figure|
-    #    """
-    #    iq, qpoint = self._find_iqpt_qpoint(qpoint)
-
-    #    #"origin_v1scf", "dp", ("two, nfft, nspden, natom3, nqpt")
-    #    origin_v1 = self.reader.read_variable("origin_v1scf")[iq]
-    #    origin_v1 = origin_v1[..., 0] + 1j * origin_v1[..., 1]  
-    #    origin_v1 = np.reshape(origin_v1, (self.natom3, self.nspden * self.nfft))
-
-    #    symm_v1 = self.reader.read_variable("symm_v1scf")[iq]
-    #    symm_v1 = symm_v1[..., 0] + 1j * symm_v1[..., 1]  
-    #    symm_v1 = np.reshape(symm_v1, (self.natom3, self.nspden * self.nfft))
-
-    #    data = OrderedDict()
-    #    for nu in range(self.natom3):
-    #        abs_diff = np.abs(origin_v1[nu] - symm_v1[nu])
-    #        data["absdiff_nu%d" % nu] = abs_diff
-    #        data["reldiff_nu%d" % nu] = abs_diff / np.abs(origin_v1[nu])
-
-    #    return pd.DataFrame.from_dict(data)
-
-    #def get_summary_dataframe(self):
-    #    frames = []
-    #    for iq, qpoint in enumerate(self.qpoints):
-    #        df = self.get_dataframe_at_qpoint(qpoint=iq)
-    #        #df["qpoint"] = qpoint.frac_coords
-    #        frames.append(df)
-    #    return pd.concat(frames)
 
     @add_fig_kwargs
     def plot_diff_at_qpoint(self, qpoint=0, fontsize=8, **kwargs):
@@ -130,10 +101,10 @@ class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
         # Fortran array "origin_v1scf", "dp", ("two, nfft, nspden, natom3, nqpt")
         origin_v1 = self.reader.read_variable("origin_v1scf")[iq]
         origin_v1 = origin_v1[..., 0] + 1j * origin_v1[..., 1]  
-        # reshape nspde * nfft because we are not interested in the spin dependence.
+        # reshape nspden * nfft because we are not interested in the spin dependence.
         origin_v1 = np.reshape(origin_v1, (self.natom3, self.nspden * self.nfft))
 
-        symm_v1 = self.reader.read_variable("symm_v1scf")[iq]
+        symm_v1 = self.reader.read_variable("recons_v1scf")[iq]
         symm_v1 = symm_v1[..., 0] + 1j * symm_v1[..., 1]  
         symm_v1 = np.reshape(symm_v1, (self.natom3, self.nspden * self.nfft))
 
@@ -142,38 +113,34 @@ class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
                                                 sharex=False, sharey=False, squeeze=False)
 
         for nu, ax in enumerate(ax_list.ravel()):
+            idir = nu % 3
+            ipert = (nu - idir) // 3
+
             abs_diff = np.abs(origin_v1[nu] - symm_v1[nu]).ravel()
-            rel_diff = abs_diff / (np.abs(origin_v1[nu]) + 1e-10)
+            #rel_diff = abs_diff / (np.abs(origin_v1[nu]) + 1e-10)
 
             stats = OrderedDict([
-                ("min", abs_diff.min()),
                 ("max", abs_diff.max()),
+                ("min", abs_diff.min()),
                 ("mean", abs_diff.mean()),
                 ("std", abs_diff.std()),
             ])
-            stats_title = ", ".join("%s = %.1E" % item for item in stats.items())
-            print(stats_title)
+            #stats_title = ", ".join("%s = %.1E" % item for item in stats.items())
 
-            #threshold = -1.0 else stats["mean"]
-            #select = abs_diff > threshold
-            #abs_diff = abs_diff[select]
-            #print(abs_diff)
             xs = np.arange(len(abs_diff))
-            #ax.plot(xs, abs_diff, alpha=0.3) #, s=30, label="this", facecolors='none', edgecolors='orange')
-
             ax.hist(abs_diff, facecolor='g', alpha=0.75)
-            #ax.set_title(stats_title, fontsize=fontsize)
-            #ax.set_xlabel("Relative Error")
-            #ax.set_ylabel("Count")
-
             ax.grid(True)
-            #if nu == 0:
-            #    ax.set_xlabel("ifft_index * nspden")
-            #    ax.set_ylabel(r"$|\Delta v_{\bf q}|$")
-            #title = "qpoint: %s, nu: %d" % (repr(qpoint), nu) if nu == 0 else "nu: %d"  % nu
-            ax.set_title(stats_title, fontsize=fontsize)
-            #ax.legend(loc="best", fontsize=fontsize, shadow=True)
+            ax.set_title("idir: %d, iat: %d, pertsy: %d" % (idir, ipert, self.pertsy_qpt[iq, ipert, idir]), 
+                         fontsize=fontsize)
 
+            ax.axvline(stats["mean"], color='k', linestyle='dashed', linewidth=1)
+            _, max_ = ax.get_ylim()
+            ax.text(0.7, 0.7, 
+                    "\n".join("%s = %.1E" % item for item in stats.items()), 
+                    fontsize=fontsize, horizontalalignment='center', verticalalignment='center', 
+                    transform=ax.transAxes)
+
+        fig.suptitle("qpoint: %s" % repr(qpoint))
         return fig
 
     def yield_figs(self, **kwargs):  # pragma: no cover
@@ -201,6 +168,5 @@ class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         for iq, qpoint in enumerate(self.qpoints):
             nb.cells.append(nbv.new_code_cell("ncfile.plot_diff_at_qpoint(qpoint=%d);" % iq))
-
 
         return self._write_nb_nbpath(nb, nbpath)
