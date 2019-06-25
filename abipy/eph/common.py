@@ -85,8 +85,8 @@ def glr_frohlich(qpoint, becs_cart, epsinf_cart, phdispl_cart, phfreqs, structur
 
     xred = structure.frac_coords
     glr_nu = np.zeros(natom3, dtype=np.complex)
-    for nu in range(3 if qpoint.norm < tol_qnorm else 0, natom3):
-        if phfreqs[nu] < EPH_WTOL: continue
+    for nu in range(natom3):
+        if phfreqs[nu] < EPH_WTOL or qeq < tol_qnorm: continue
         num = 0.0j
         for iat in range(natom):
             cdd = phdispl_cart[nu, iat] * np.exp(-2.0j * np.pi * np.dot(qpoint.frac_coords, xred[iat]))
