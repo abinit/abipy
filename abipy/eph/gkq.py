@@ -1,5 +1,6 @@
 """
-Interface to the GKQ.nc file storing the e-ph matrix elements for a single q-point.
+Interface to the GKQ.nc file storing the e-ph matrix elements 
+in the atomic representation (idir, ipert) for a single q-point.
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
 
@@ -17,11 +18,7 @@ from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, ge
 from abipy.tools import duck
 from abipy.abio.robots import Robot
 from abipy.electrons.ebands import ElectronsReader, RobotWithEbands
-from abipy.eph.common import glr_frohlich
-
-
-EPH_WTOL = 1e-6
-
+from abipy.eph.common import glr_frohlich, EPH_WTOL
 
 class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
 
@@ -33,6 +30,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
     def __init__(self, filepath):
         super(GkqFile, self).__init__(filepath)
         self.reader = GkqReader(filepath)
+        #self.alpha_gmin = self.reader.read_value("alpha_gmin")
 
     def __str__(self):
         """String representation."""
@@ -118,13 +116,114 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         """(3, 3) array with electronic macroscopic dielectric tensor in Cartesian coordinates."""
         return self.reader.read_value("emacro_cart").T.copy()
 
+    def read_all_gkq(self, mode="atom"):
+
+        if mode not in ("atom", "phonon"):
+            raise ValueError("Invalid mode: %s" % mode)
+
+        # Read e-ph matrix element in the atomic representation (idir, ipert)
+        # Fortran array on disk has shape:
+        # nctkarr_t('gkq', "dp", &
+        # 'complex, max_number_of_states, max_number_of_states, number_of_phonon_modes, number_of_kpoints, number_of_spins') &
+        gkq_atm = self.reader.read_value("gkq", cmode="c")
+        if mode == "atom": return gkq_atm
+
+        # Convert from atomic to phonon representation.
+        # May use np.einsum for better efficiency but oh well!
+        nband = gkq_atm.shape[-1]
+        nb2 = nband ** 2
+        assert nband == gkq_atm.shape[-2] and nband == self.ebands.nband
+        natom = len(self.structure)
+        natom3 = natom * 3
+        phfreqs, phdispl_red = self.phfreqs, self.phdispl_red
+        gkq_nu = np.empty_like(gkq_atm)
+        cwork = np.empty((natom3, nb2), dtype=np.complex)
+        for spin in range(self.ebands.nsppol):
+            for ik in range(self.ebands.nkpt):
+                g = np.reshape(gkq_atm[spin, ik], (-1, nb2))
+                for nu in range(natom3):
+                    if phfreqs[nu] > EPH_WTOL:
+                        cwork[nu] = np.dot(phdispl_red[nu], g) / np.sqrt(2.0 * phfreqs[nu]) 
+                    else:
+                        cwork[nu] = 0.0
+                gkq_nu[spin, ik] = np.reshape(cwork, (natom3, nband, nband))
+
+        return gkq_nu
+
     @add_fig_kwargs
-    def plot_diff_with_other(self, other, fontsize=12, **kwargs):
+    def plot(self, mode="phonon", with_glr=True, ax=None, fontsize=8, **kwargs):
         """
-        Compare gkq_atm matrix elements for a given q-point.
+        Plot the gkq matrix elements for a given q-point.
+
+            mode: "phonon" to plot eph matrix elements in the phonon representation, 
+                "atom" for atomic representation.
+            with_glr: True to plot the long-range component estimated from Verdi's model.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: Label and title fontsize.
+
+        Return: |matplotlib-Figure|
+        """
+        gkq = np.abs(self.read_all_gkq(mode=mode))
+        if mode == "phonon": gkq *= abu.Ha_meV
+
+        stats = OrderedDict([
+            ("min", gkq.min()),
+            ("max", gkq.max()),
+            ("mean", gkq.mean()),
+            ("std", gkq.std()),
+        ])
+
+        eigens_kq = self.reader.read_value("eigenvalues_kq") * abu.Ha_eV
+
+        c = np.empty_like(gkq)
+        for spin in range(self.ebands.nsppol):
+            for ik in range(self.ebands.nkpt):
+                for ib_kq in range(self.ebands.mband):
+                    for ib_k in range(self.ebands.mband):
+                        c[spin, ik, :, ib_k, ib_kq] = abs(eigens_kq[spin, ik, ib_kq] - self.ebands.eigens[spin, ik, ib_k]) 
+                       
+
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        colormap = "viridis"
+        cmap = plt.get_cmap(colormap)
+        #from matplotlib.colors import Normalize
+        #norm = Normalize(vmin=abs_ediff.min(), vmax=abs_ediff.max())
+
+        xs = np.arange(len(gkq.ravel()))
+        sc = ax.scatter(xs, gkq.ravel(), alpha=0.9, s=30, c=c.ravel(), cmap=cmap)
+                        #facecolors='none', edgecolors='orange')
+        plt.colorbar(sc)
+
+        if with_glr and mode == "phonon":
+            # Add horizontal bar with matrix elements computed from model (only G = 0, no wavefunctions).
+            gkq_lr = glr_frohlich(self.qpoint, self.becs_cart, self.epsinf_cart, 
+                                  self.phdispl_cart, self.phfreqs, self.structure)
+            for hval in np.abs(gkq_lr) * abu.Ha_meV:
+                ax.axhline(hval, color='k', linestyle='dashed', linewidth=1)
+
+        ax.grid(True)
+        ax.set_xlabel("Matrix element index")
+        ylabel = r"$|g^{atm}_{\bf q}|$" if mode == "atom" else r"$|g_{\bf q}|$ (meV)"
+        ax.set_ylabel(ylabel)
+        #ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        _, max_ = ax.get_ylim()
+        ax.text(0.7, 0.7, 
+                "\n".join("%s = %.1E" % item for item in stats.items()), 
+                fontsize=fontsize, horizontalalignment='center', verticalalignment='center', 
+                transform=ax.transAxes)
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_diff_with_other(self, other, mode="phonon", labels=None, fontsize=8, **kwargs):
+        """
+        Compare the gkq matrix elements.
 
             other: other GkqFile instance.
-            ax: |matplotlib-Axes| or None if a new figure should be created.
+            mode: "phonon" to plot eph matrix elements in the phonon representation, 
+                "atom" for atomic representation.
+            labels: Labels associated to self and other
             fontsize: Label and title fontsize.
 
         Return: |matplotlib-Figure|
@@ -132,17 +231,21 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         if self.qpoint != other.qpoint:
             raise ValueError("Found different q-points: %s and %s" % (self.qpoint, other.qpoint))
 
-        this_gkq_atm = np.abs(self.reader.read_value("gkq", cmode="c"))
-        other_gkq_atm = np.abs(other.reader.read_value("gkq", cmode="c"))
+        labels = ["this", "other"] if labels is None else labels
 
-        absdiff_gkq_atm = np.abs(this_gkq_atm - other_gkq_atm)
-        #reldiff_gkq_atm = np.abs(this_gkq_atm - other_gkq_atm) / (0.5 * np.abs(this_gkq_atm + other_gkq_atm) + 1e-20)
+        this_gkq = np.abs(self.read_all_gkq(mode=mode))
+        other_gkq = np.abs(other.read_all_gkq(mode=mode))
+        if mode == "phonon": 
+            this_gkq *= abu.Ha_meV
+            other_gkq *= abu.Ha_meV
+
+        absdiff_gkq = np.abs(this_gkq - other_gkq)
 
         stats = OrderedDict([
-            ("min", absdiff_gkq_atm.min()),
-            ("max", absdiff_gkq_atm.max()),
-            ("mean", absdiff_gkq_atm.mean()),
-            ("std", absdiff_gkq_atm.std()),
+            ("min", absdiff_gkq.min()),
+            ("max", absdiff_gkq.max()),
+            ("mean", absdiff_gkq.mean()),
+            ("std", absdiff_gkq.std()),
         ])
 
         num_plots, ncols, nrows = 2, 2, 1
@@ -152,31 +255,29 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
         # Downsample datasets. Show only points with error > mean.
         threshold = stats["mean"]
+        this_gkq = this_gkq[absdiff_gkq > threshold]
+        xs = np.arange(len(this_gkq.ravel()))
+
         ax = ax_list[0]
-        this_gkq_atm = this_gkq_atm[absdiff_gkq_atm > threshold]
-        xs = np.arange(len(this_gkq_atm.ravel()))
-        ax.scatter(xs, this_gkq_atm.ravel(), alpha=0.9, s=30, label="this", 
+        ax.scatter(xs, this_gkq.ravel(), alpha=0.9, s=30, label=labels[0], 
                    facecolors='none', edgecolors='orange')
 
-        other_gkq_atm = other_gkq_atm[absdiff_gkq_atm > threshold]
-        ax.scatter(xs, other_gkq_atm.ravel(), alpha=0.3, s=10, marker="x", 
-                   facecolors="g", edgecolors="none", label="other")
+        other_gkq = other_gkq[absdiff_gkq > threshold]
+        ax.scatter(xs, other_gkq.ravel(), alpha=0.3, s=10, marker="x", 
+                   facecolors="g", edgecolors="none", label=labels[1])
 
-        #ax.scatter(xs, absdiff_gkq_atm.ravel(), label="abs_diff")
-        #ax.scatter(xs, reldiff_gkq_atm.ravel(), label="rel_diff")
-        #ax.plot(xs, this_gkq_atm.ravel(), label="this")
-        #ax.plot(xs, other_gkq_atm.ravel(), label="other")
         ax.grid(True)
         ax.set_xlabel("Matrix element index")
-        ax.set_ylabel(r"$\Delta |g_{\bf q}|$ (meV)")
+        ylabel = r"$\Delta |g^{atm}_{\bf q}|$" if mode == "atom" else r"$\Delta |g_{\bf q}|$ (meV)"
+        ax.set_ylabel(ylabel)
         ax.set_title("qpoint: %s" % repr(self.qpoint), fontsize=fontsize)
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         ax = ax_list[1]
-        ax.hist(absdiff_gkq_atm.ravel(), facecolor='g', alpha=0.75)
+        ax.hist(absdiff_gkq.ravel(), facecolor='g', alpha=0.75)
         ax.grid(True)
-        ax.set_xlabel("Absolute Error")
-        ax.set_ylabel(r"Count")
+        ax.set_xlabel("Absolute Error" if mode == "atom" else "Absolute Error (meV)")
+        ax.set_ylabel("Count")
 
         ax.axvline(stats["mean"], color='k', linestyle='dashed', linewidth=1)
         _, max_ = ax.get_ylim()

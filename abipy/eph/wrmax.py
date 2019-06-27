@@ -24,7 +24,7 @@ class WRmaxFile(AbinitNcFile, Has_Structure, NotebookWriter):
         self.has_dielt = bool(r.read_value("has_dielt"))
         self.dvdb_add_lr = r.read_value("dvdb_add_lr")
         self.symv1 = bool(r.read_value("symv1"))
-        self.qdamp = bool(r.read_value("qdamp"))
+        self.alpha_gmin = r.read_value("alpha_gmin")
 
     @lazy_property
     def structure(self):
@@ -101,7 +101,8 @@ class WRmaxFile(AbinitNcFile, Has_Structure, NotebookWriter):
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
             if iatom == len(ax_list) - 1: ax.set_xlabel(r"$\|{\bf{R}}\|$ (Bohr)")
 
-        fig.suptitle("dvdb_add_lr %d, symv1: %d" % (self.dvdb_add_lr, self.symv1), fontsize=fontsize)
+        fig.suptitle("dvdb_add_lr %d, alpha_gmin: %s, symv1: %d" % (self.dvdb_add_lr, self.alpha_gmin, self.symv1), 
+                     fontsize=fontsize)
         return fig
 
     def yield_figs(self, **kwargs):  # pragma: no cover
