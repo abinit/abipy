@@ -22,12 +22,11 @@ class V1qnuFile(AbinitNcFile, Has_Structure, NotebookWriter):
         super(V1qnuFile, self).__init__(filepath)
         self.reader = r = ETSF_Reader(filepath)
         # Read dimensions.
-        #self.nfft = r.read_dimvalue("nfft")
-        #self.nspden = r.read_dimvalue("nspden")
-        #self.natom3 = len(self.structure) * 3
-        #self.symv1scf = r.read_value("symv1scf")
-        #self.has_dielt_zeff = bool(r.read_value("has_dielt_zeff"))
-        #self.add_lr_part = bool(r.read_value("add_lr_part"))
+        self.nfft = r.read_dimvalue("nfft")
+        self.nspden = r.read_dimvalue("nspden")
+        self.natom3 = len(self.structure) * 3
+        # Read FFT grid.
+        self.ngfft = r.read_value("ngfft")
 
     @lazy_property
     def structure(self):
@@ -53,9 +52,6 @@ class V1qnuFile(AbinitNcFile, Has_Structure, NotebookWriter):
         app("")
         app(self.structure.to_string(verbose=verbose, title="Structure"))
         app("")
-        #app("has_dielt_zeff: %s" % self.has_dielt_zeff)
-        #app("add_lr_part: %s" % self.add_lr_part)
-        #app("symv1scf: %s" % self.symv1scf)
         for iq, qpt in enumerate(self.qpoints):
             app("[%d] %s" % (iq, repr(qpt)))
 
@@ -75,35 +71,37 @@ class V1qnuFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         return iq, qpoint
 
-    def visualize_qpoint_nu(self, qpoint, nu, appname="vesta"):
+    def visualize_qpoint_nu(self, qpoint, nu, spin=0, appname="vesta"):
         iq, qpoint = self._find_iqpt_qpoint(qpoint)
 
         # Fortran array nctkarr_t("v1qnu", "dp", "two, nfft, nspden, natom3, nqlist")])
-        v1qnu = self.reader.read_variable("v1qnu")[iq]
-        v1qnu = v1qnu[..., 0] + 1j * v1qnu[..., 1]  
-        #fact = np.sqrt(2 * self.reader.read_variable["phfreqs"][nu]
+        v1qnu = self.reader.read_variable("v1qnu")[iq, nu, spin]
+        v1qnu = v1qnu[:, 0] + 1j * v1qnu[:, 1]  
+        #wqnu = self.reader.read_variable["phfreqs"][nu]
+        #v1qnu /= np.sqrt(2 * wqnu)
+        datar = np.reshape(np.abs(v1qnu), self.ngfft)
 
-        #visu = Visualizer.from_name(appname)
-        #from abipy.core.globals import abinb_mkstemp
-        #_, filename = abinb_mkstemp(suffix="." + ext, text=True)
+        visu = Visualizer.from_name(appname)
+        ext = "xsf"
+        if ext not in visu.supported_extensions():
+            raise ValueError("Visualizer %s does not support XSF files" % visu)
+        from abipy.core.globals import abinb_mkstemp
+        _, filename = abinb_mkstemp(suffix="." + ext, text=True)
 
-        #with open(filename, mode="wt") as fh:
-        #    if ext == "xsf":
-        #        #xsf.xsf_write_structure(fh, self.structure)
-        #        #xsf.xsf_write_data(fh, self.structure, datar, add_replicas=True)
-        #    else:
-        #        raise NotImplementedError("extension %s is not supported." % ext)
+        with open(filename, mode="wt") as fh:
+            if ext == "xsf":
+                xsf.xsf_write_structure(fh, self.structure)
+                xsf.xsf_write_data(fh, self.structure, datar, add_replicas=True)
+            else:
+                raise NotImplementedError("extension %s is not supported." % ext)
+            
+        return visu(filename)
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         """
-        maxnq = 3
-        for iq, qpoint in enumerate(self.qpoints):
-            if iq > maxnq:
-                print("Only the first %d q-points are show..." % maxnq)
-                break
-            yield self.plot_diff_at_qpoint(qpoint=iq, **kwargs, show=False)
+        yield None
 
     def write_notebook(self, nbpath=None):
         """
@@ -115,9 +113,7 @@ class V1qnuFile(AbinitNcFile, Has_Structure, NotebookWriter):
         nb.cells.extend([
             nbv.new_code_cell("ncfile = abilab.abiopen('%s')" % self.filepath),
             nbv.new_code_cell("print(ncfile)"),
+            nbv.new_code_cell("# ncfile.visualize_qpoint_nu(qpoint, nu, spin=0, appname='vesta'")
         ])
-
-        for iq, qpoint in enumerate(self.qpoints):
-            nb.cells.append(nbv.new_code_cell("ncfile.plot_diff_at_qpoint(qpoint=%d);" % iq))
 
         return self._write_nb_nbpath(nb, nbpath)

@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Object to plot the lattice representation of the DFPT potentials (phonon perturbations).
+Object to analyze the results stored in the V1SYM.nc file (mainly for debugging purposes)
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
 
@@ -26,8 +26,7 @@ class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
         self.nspden = r.read_dimvalue("nspden")
         self.natom3 = len(self.structure) * 3
         self.symv1scf = r.read_value("symv1scf")
-        #self.has_dielt_zeff = bool(r.read_value("has_dielt_zeff"))
-        #self.add_lr_part = bool(r.read_value("add_lr_part"))
+        #self.ngfft = r.read_value("ngfft")
 
     @lazy_property
     def structure(self):
@@ -66,8 +65,6 @@ class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
         app("")
         app(self.structure.to_string(verbose=verbose, title="Structure"))
         app("")
-        #app("has_dielt_zeff: %s" % self.has_dielt_zeff)
-        #app("add_lr_part: %s" % self.add_lr_part)
         app("symv1scf: %s" % self.symv1scf)
 
         return "\n".join(lines)
@@ -125,7 +122,6 @@ class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
                 ("mean", abs_diff.mean()),
                 ("std", abs_diff.std()),
             ])
-            #stats_title = ", ".join("%s = %.1E" % item for item in stats.items())
 
             xs = np.arange(len(abs_diff))
             ax.hist(abs_diff, facecolor='g', alpha=0.75)

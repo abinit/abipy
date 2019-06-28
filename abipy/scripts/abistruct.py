@@ -144,7 +144,9 @@ Usage example:
                                               Print info and Abinit input files. Use e.g. `-f POSCAR`
                                               to change output format. `-f None` to disable structure output.
   abistruct.py mp_pd FILE-or-elements      => Generate phase diagram with entries from the Materials Project.
-                                              Accept FILE with structure or list of elements e.g `Li-Fe-O`
+  abistruct.py mp_ebands FILE             => Fetch electron band structure from MP database. Print gaps.
+                                              Accept FILE with structure if ebands fro structure is wanted     
+                                              or mp id e.g. "mp-149 or list of elements e.g `Li-Fe-O` or chemical formula.
 
 `FILE` is any file supported by abipy/pymatgen e.g Netcdf files, Abinit input/output, POSCAR, xsf ...
 Use `abistruct.py --help` for help and `abistruct.py COMMAND --help` to get the documentation for `COMMAND`.
@@ -426,7 +428,7 @@ closest points in this particular structure. This is usually what you want in a 
     p_mpsearch = subparsers.add_parser('mp_search', parents=[mp_rest_parser, copts_parser, nb_parser],
         help="Get structure from the pymatgen database. Requires internet connection and PMG_MAPI_KEY")
     p_mpsearch.add_argument("chemsys_formula_id", type=str, default=None,
-        help="A chemical system (e.g., Li-Fe-O), or formula (e.g., Fe2O3) or materials_id (e.g., mp-1234).")
+        help="A chemical system (e.g., Li-Fe-O), or formula (e.g., Fe2O3) or materials_id (e.g., mp-149).")
     p_mpsearch.add_argument("-s", "--select-spgnum", type=int, default=None,
         help="Select structures with this space group number.")
     add_format_arg(p_mpsearch, default="abivars")
@@ -441,6 +443,13 @@ closest points in this particular structure. This is usually what you want in a 
         help="""Whether unstable phases will be plotted as
 well as red crosses. If a number > 0 is entered, all phases with
 ehull < show_unstable will be shown.""")
+
+    # Subparser for mp_ebands command.
+    p_mp_ebands = subparsers.add_parser('mp_ebands', parents=[copts_parser, mp_rest_parser],
+        help="Get structure from the pymatgen database. Export to format. Requires internet connection and PMG_MAPI_KEY.")
+    p_mp_ebands.add_argument("chemsys_formula_id", type=str, default=None,
+        help="A chemical system (e.g., Li-Fe-O), or formula (e.g., Fe2O3) or materials_id (e.g., mp-149).")
+    #add_format_arg(p_mp_ebands, default="cif")
 
     # Subparser for cod_search command.
     p_codsearch = subparsers.add_parser('cod_search', parents=[copts_parser, nb_parser],
@@ -876,6 +885,34 @@ def main():
             pdr = rest.get_phasediagram_results(elements)
             pdr.print_dataframes(verbose=options.verbose)
             pdr.plot(show_unstable=options.show_unstable)
+
+    elif options.command == "mp_ebands":
+        if os.path.exists(options.chemsys_formula_id):
+            mp = abilab.mp_match_structure(options.chemsys_formula_id)
+            for mpid in mp.ids:
+                ebands = abilab.ElectronBands.from_mpid(mpid, api_key=options.mapi_key, endpoint=options.endpoint)
+                print(ebands)
+        else:
+            if options.chemsys_formula_id.startswith("mp-"):
+                # Assume valid mp identifier.
+                mpid = options.chemsys_formula_id
+                ebands = abilab.ElectronBands.from_mpid(mpid, api_key=options.mapi_key, endpoint=options.endpoint)
+                print(ebands)
+            else:
+                mp = abilab.mp_search(options.chemsys_formula_id)
+                if not mp.structures:
+                    cprint("No structure found in Materials Project database", "yellow")
+                    return 1
+
+                for mpid, structure in zip(mp.ids, mp.structures):
+                    if structure is None:
+                        cprint("ignoring mpid %s because cannot find structure" % mpid, "red")
+                        continue
+                    ebands = abilab.ElectronBands.from_mpid(mpid, api_key=options.mapi_key, endpoint=options.endpoint)
+                    if ebands is None:
+                        cprint("Cannot get ebands for structure:\n%s" % str(structure), "red")
+                    else:
+                        print(ebands)
 
     elif options.command == "cod_search":
         cod = abilab.cod_search(options.formula, primitive=options.primitive)

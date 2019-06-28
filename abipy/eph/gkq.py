@@ -92,13 +92,13 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         return Kpoint(self.reader.read_value('qpoint'), self.structure.reciprocal_lattice)
 
     @lazy_property
-    def phfreqs(self):
+    def phfreqs_ha(self):
         """(3 * natom) array with phonon frequencies in Ha."""
         return self.reader.read_value("phfreqs")
 
     @lazy_property
-    def phdispl_cart(self):
-        """(natom3_nu, natom3) complex array with phonon displacement in cartesian coordinates."""
+    def phdispl_cart_bohr(self):
+        """(natom3_nu, natom3) complex array with phonon displacement in cartesian coordinates in Bohr."""
         return self.reader.read_value("phdispl_cart", cmode="c")
 
     @lazy_property
@@ -116,7 +116,15 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         """(3, 3) array with electronic macroscopic dielectric tensor in Cartesian coordinates."""
         return self.reader.read_value("emacro_cart").T.copy()
 
-    def read_all_gkq(self, mode="atom"):
+    def read_all_gkq(self, mode="phonon"):
+        """
+        Read all eph matrix stored on disk.
+
+        Args:
+            mode: 
+
+        Return: (nsppol, nkpt, 3*natom, mband, mband) complex array.
+        """
 
         if mode not in ("atom", "phonon"):
             raise ValueError("Invalid mode: %s" % mode)
@@ -135,15 +143,15 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         assert nband == gkq_atm.shape[-2] and nband == self.ebands.nband
         natom = len(self.structure)
         natom3 = natom * 3
-        phfreqs, phdispl_red = self.phfreqs, self.phdispl_red
+        phfreqs_ha, phdispl_red = self.phfreqs_ha, self.phdispl_red
         gkq_nu = np.empty_like(gkq_atm)
         cwork = np.empty((natom3, nb2), dtype=np.complex)
         for spin in range(self.ebands.nsppol):
             for ik in range(self.ebands.nkpt):
                 g = np.reshape(gkq_atm[spin, ik], (-1, nb2))
                 for nu in range(natom3):
-                    if phfreqs[nu] > EPH_WTOL:
-                        cwork[nu] = np.dot(phdispl_red[nu], g) / np.sqrt(2.0 * phfreqs[nu]) 
+                    if phfreqs_ha[nu] > EPH_WTOL:
+                        cwork[nu] = np.dot(phdispl_red[nu], g) / np.sqrt(2.0 * phfreqs_ha[nu]) 
                     else:
                         cwork[nu] = 0.0
                 gkq_nu[spin, ik] = np.reshape(cwork, (natom3, nband, nband))
@@ -151,14 +159,13 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         return gkq_nu
 
     @add_fig_kwargs
-    def plot(self, mode="phonon", with_glr=True, ax=None, fontsize=8, **kwargs):
+    def plot(self, mode="phonon", with_glr=True, fontsize=8, colormap="viridis", sharey=True, **kwargs):
         """
         Plot the gkq matrix elements for a given q-point.
 
             mode: "phonon" to plot eph matrix elements in the phonon representation, 
-                "atom" for atomic representation.
+                  "atom" for atomic representation.
             with_glr: True to plot the long-range component estimated from Verdi's model.
-            ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: Label and title fontsize.
 
         Return: |matplotlib-Figure|
@@ -166,53 +173,53 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         gkq = np.abs(self.read_all_gkq(mode=mode))
         if mode == "phonon": gkq *= abu.Ha_meV
 
-        stats = OrderedDict([
-            ("min", gkq.min()),
-            ("max", gkq.max()),
-            ("mean", gkq.mean()),
-            ("std", gkq.std()),
-        ])
-
+        # Compute e_{k+q} - e_k for all possible (b, b')
         eigens_kq = self.reader.read_value("eigenvalues_kq") * abu.Ha_eV
-
-        c = np.empty_like(gkq)
+        ediffs = np.empty_like(gkq)
         for spin in range(self.ebands.nsppol):
             for ik in range(self.ebands.nkpt):
                 for ib_kq in range(self.ebands.mband):
                     for ib_k in range(self.ebands.mband):
-                        c[spin, ik, :, ib_k, ib_kq] = abs(eigens_kq[spin, ik, ib_kq] - self.ebands.eigens[spin, ik, ib_k]) 
-                       
-
-        ax, fig, plt = get_ax_fig_plt(ax=ax)
-        colormap = "viridis"
-        cmap = plt.get_cmap(colormap)
-        #from matplotlib.colors import Normalize
-        #norm = Normalize(vmin=abs_ediff.min(), vmax=abs_ediff.max())
-
-        xs = np.arange(len(gkq.ravel()))
-        sc = ax.scatter(xs, gkq.ravel(), alpha=0.9, s=30, c=c.ravel(), cmap=cmap)
-                        #facecolors='none', edgecolors='orange')
-        plt.colorbar(sc)
+                        ediffs[spin, ik, :, ib_k, ib_kq] = abs(eigens_kq[spin, ik, ib_kq] - self.ebands.eigens[spin, ik, ib_k]) 
 
         if with_glr and mode == "phonon":
-            # Add horizontal bar with matrix elements computed from model (only G = 0, no wavefunctions).
+            # Add horizontal bar with matrix elements computed from Verdi's model (only G = 0, \delta_nm in bands).
             gkq_lr = glr_frohlich(self.qpoint, self.becs_cart, self.epsinf_cart, 
-                                  self.phdispl_cart, self.phfreqs, self.structure)
-            for hval in np.abs(gkq_lr) * abu.Ha_meV:
-                ax.axhline(hval, color='k', linestyle='dashed', linewidth=1)
+                                  self.phdispl_cart_bohr, self.phfreqs_ha, self.structure)
+            gkq2_lr = np.abs(gkq_lr) * abu.Ha_meV
 
-        ax.grid(True)
-        ax.set_xlabel("Matrix element index")
-        ylabel = r"$|g^{atm}_{\bf q}|$" if mode == "atom" else r"$|g_{\bf q}|$ (meV)"
-        ax.set_ylabel(ylabel)
-        #ax.legend(loc="best", fontsize=fontsize, shadow=True)
+        natom = len(self.structure)
+        num_plots, ncols, nrows = 3 * natom, 3, natom
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=sharey, squeeze=False)
+        ax_list = ax_list.ravel()
+        cmap = plt.get_cmap(colormap)
 
-        _, max_ = ax.get_ylim()
-        ax.text(0.7, 0.7, 
-                "\n".join("%s = %.1E" % item for item in stats.items()), 
-                fontsize=fontsize, horizontalalignment='center', verticalalignment='center', 
-                transform=ax.transAxes)
+        for nu, ax in enumerate(ax_list):
+            idir = nu % 3
+            iat = (nu - idir) // 3
+            data, c = gkq[:, :, nu, :, :].ravel(), ediffs[:,:,nu,:,:].ravel()
+            # Filter items according to ediff
+            index = c <= 1.2 * self.phfreqs_ha.max() * abu.Ha_eV
+            data, c = data[index], c[index]
+            sc = ax.scatter(np.arange(len(data)), data, alpha=0.9, s=30, c=c, cmap=cmap)
+                            #facecolors='none', edgecolors='orange')
+            plt.colorbar(sc, ax=ax)
 
+            ax.grid(True)
+            if iat == natom - 1:
+                ax.set_xlabel("Matrix element index")
+            if idir == 0:
+                ylabel = r"$|g^{atm}_{\bf q}|$" if mode == "atom" else r"$|g_{\bf q}|$ (meV)"
+                ax.set_ylabel(ylabel)
+
+            ax.set_title(r"$\nu$: %d, $\omega_{{\bf q}\nu}$ = %.2E (meV)" % 
+                         (nu, self.phfreqs_ha[nu] * abu.Ha_meV), fontsize=fontsize)
+
+            if with_glr:
+                ax.axhline(gkq2_lr[nu], color='k', linestyle='dashed', linewidth=2)
+
+        fig.suptitle("qpoint: %s" % repr(self.qpoint), fontsize=fontsize)
         return fig
 
     @add_fig_kwargs
@@ -255,22 +262,22 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
         # Downsample datasets. Show only points with error > mean.
         threshold = stats["mean"]
-        this_gkq = this_gkq[absdiff_gkq > threshold]
-        xs = np.arange(len(this_gkq.ravel()))
+        data = this_gkq[absdiff_gkq > threshold].ravel()
+        xs = np.arange(len(data))
 
         ax = ax_list[0]
-        ax.scatter(xs, this_gkq.ravel(), alpha=0.9, s=30, label=labels[0], 
+        ax.scatter(xs, data, alpha=0.9, s=30, label=labels[0], 
                    facecolors='none', edgecolors='orange')
 
-        other_gkq = other_gkq[absdiff_gkq > threshold]
-        ax.scatter(xs, other_gkq.ravel(), alpha=0.3, s=10, marker="x", 
-                   facecolors="g", edgecolors="none", label=labels[1])
+        data = other_gkq[absdiff_gkq > threshold].ravel()
+        ax.scatter(xs, data, alpha=0.3, s=10, marker="x", label=labels[1],
+                   facecolors="g", edgecolors="none")
 
         ax.grid(True)
         ax.set_xlabel("Matrix element index")
-        ylabel = r"$\Delta |g^{atm}_{\bf q}|$" if mode == "atom" else r"$\Delta |g_{\bf q}|$ (meV)"
+        ylabel = r"$|g^{atm}_{\bf q}|$" if mode == "atom" else r"$|g_{\bf q}|$ (meV)"
         ax.set_ylabel(ylabel)
-        ax.set_title("qpoint: %s" % repr(self.qpoint), fontsize=fontsize)
+        ax.set_title(r"qpt: %s, $\Delta$ > %.1E " % (repr(self.qpoint), threshold), fontsize=fontsize)
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         ax = ax_list[1]
@@ -281,8 +288,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
         ax.axvline(stats["mean"], color='k', linestyle='dashed', linewidth=1)
         _, max_ = ax.get_ylim()
-        ax.text(0.7, 0.7, 
-                "\n".join("%s = %.1E" % item for item in stats.items()), 
+        ax.text(0.7, 0.7,  "\n".join("%s = %.1E" % item for item in stats.items()), 
                 fontsize=fontsize, horizontalalignment='center', verticalalignment='center', 
                 transform=ax.transAxes)
 
@@ -293,8 +299,9 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         Used in abiview.py to get a quick look at the results.
         """
-        for fig in self.yield_structure_figs(**kwargs): yield fig
-        for fig in self.yield_ebands_figs(**kwargs): yield fig
+        yield self.plot()
+        #for fig in self.yield_structure_figs(**kwargs): yield fig
+        #for fig in self.yield_ebands_figs(**kwargs): yield fig
 
     def write_notebook(self, nbpath=None):
         """
@@ -310,8 +317,8 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
             nbv.new_code_cell("gkq.epsinf_cart;"),
             nbv.new_code_cell("gkq.becs_cart;"),
             nbv.new_code_cell("""
-              #other = abilab.abiopen('other_GKW.nc')
-              #gkq.plot_diff_with_other(other);
+              #with abilab.abiopen('other_GKQ.nc') as other:
+              #     gkq.plot_diff_with_other(other);
             """)
         ])
 
@@ -395,7 +402,7 @@ class GkqRobot(Robot, RobotWithEbands):
                 xticks.append(iq)
                 xlabels.append(name)
 
-            phfreqs, phdispl_red = abifile.phfreqs, abifile.phdispl_red
+            phfreqs_ha, phdispl_red = abifile.phfreqs_ha, abifile.phdispl_red
             ncvar = abifile.reader.read_variable("gkq")
             for spin in range(nsppol):
                 gkq_atm = ncvar[spin, ik, :, band_k, band_kq] 
@@ -405,15 +412,15 @@ class GkqRobot(Robot, RobotWithEbands):
                 # Transform the gkk matrix elements from (atom, red_direction) basis to phonon-mode basis.
                 gkq_snuq[spin, :, iq] = 0.0
                 for nu in range(natom3):
-                    if phfreqs[nu] < EPH_WTOL: continue
+                    if phfreqs_ha[nu] < EPH_WTOL: continue
                     #fact = one if not spherical_average else np.sqrt(4 * np.pi) * qpoint.norm
-                    gkq_snuq[spin, nu, iq] = np.dot(phdispl_red[nu], gkq_atm) / np.sqrt(2.0 * phfreqs[nu]) 
+                    gkq_snuq[spin, nu, iq] = np.dot(phdispl_red[nu], gkq_atm) / np.sqrt(2.0 * phfreqs_ha[nu]) 
 
             if with_glr:
                 # Compute long range part with (simplified) generalized Frohlich model.
                 #fact = one if not spherical_average else np.sqrt(4 * np.pi) * qpoint.norm
                 gkq_lr[spin, :, iq] = glr_frohlich(qpoint, abifile.becs_cart, abifile.epsinf_cart, 
-                                                   abifile.phdispl_cart, phfreqs, abifile.structure)
+                                                   abifile.phdispl_cart_bohr, phfreqs_ha, abifile.structure)
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         nu_list = list(range(natom3)) if nu_list is None else list(nu_list)
