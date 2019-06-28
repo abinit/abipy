@@ -81,7 +81,8 @@ def glr_frohlich(qpoint, becs_cart, epsinf_cart, phdispl_cart_bohr, phfreqs_ha, 
     """
     natom = len(structure)
     natom3 = natom * 3
-    qcs = 2 * np.pi * qpoint.cart_coords
+    # 2pi factor already included in frac_coords
+    qcs = qpoint.cart_coords
     q_eps_q = np.dot(qcs, np.matmul(epsinf_cart, qcs))
     phdispl_cart_bohr = np.reshape(phdispl_cart_bohr, (natom3, natom, 3))
 
@@ -92,7 +93,8 @@ def glr_frohlich(qpoint, becs_cart, epsinf_cart, phdispl_cart_bohr, phfreqs_ha, 
         if phfreqs_ha[nu] < EPH_WTOL: continue
         num = 0.0j
         for iat in range(natom):
-            cdd = phdispl_cart_bohr[nu, iat] * np.exp(-2.0j * np.pi * np.dot(qpoint.frac_coords, xred[iat]))
+            #cdd = phdispl_cart_bohr[nu, iat] * np.exp(-2.0j * np.pi * np.dot(qpoint.frac_coords, xred[iat]))
+            cdd = phdispl_cart_bohr[nu, iat] * np.exp(-1j * np.dot(qpoint.frac_coords, xred[iat]))
             num += np.dot(qcs, np.matmul(becs_cart[iat], cdd))
         #num = num * np.exp(-
         glr_nu[nu] = num / (q_eps_q * np.sqrt(2.0 * phfreqs_ha[nu]))
