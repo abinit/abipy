@@ -93,8 +93,7 @@ def glr_frohlich(qpoint, becs_cart, epsinf_cart, phdispl_cart_bohr, phfreqs_ha, 
         if phfreqs_ha[nu] < EPH_WTOL: continue
         num = 0.0j
         for iat in range(natom):
-            #cdd = phdispl_cart_bohr[nu, iat] * np.exp(-2.0j * np.pi * np.dot(qpoint.frac_coords, xred[iat]))
-            cdd = phdispl_cart_bohr[nu, iat] * np.exp(-1j * np.dot(qpoint.frac_coords, xred[iat]))
+            cdd = phdispl_cart_bohr[nu, iat] * np.exp(-2.0j * np.pi * np.dot(qpoint.frac_coords, xred[iat]))
             num += np.dot(qcs, np.matmul(becs_cart[iat], cdd))
         #num = num * np.exp(-
         glr_nu[nu] = num / (q_eps_q * np.sqrt(2.0 * phfreqs_ha[nu]))
