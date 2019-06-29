@@ -361,10 +361,10 @@ class GkqRobot(Robot, RobotWithEbands):
     #    return [abifile.qpoint for abifile in self.abifiles]
 
     @add_fig_kwargs
-    def plot_gkq2_qpath(self, band_kq, band_k, kpoint=0, with_glr=True, nu_list=None, # spherical_average=False, 
-                        ax=None, fontsize=12, **kwargs):
+    def plot_gkq2_qpath(self, band_kq, band_k, kpoint=0, with_glr=False, qdamp=None, nu_list=None, # spherical_average=False,
+                        ax=None, fontsize=8, eph_wtol=EPH_WTOL, **kwargs):
         r"""
-        Plot the magnitude of the electron-phonon matrix elements <k+q, band_kq| Delta_{q\nu} | k, band_k>
+        Plot the magnitude of the electron-phonon matrix elements <k+q, band_kq| Delta_{q\nu} V |k, band_k>
         for a given set of (band_kq, band, k) as a function of the q-point.
 
         Args:
@@ -396,7 +396,7 @@ class GkqRobot(Robot, RobotWithEbands):
         xticks, xlabels = [], []
         for iq, abifile in enumerate(self.abifiles):
             qpoint = abifile.qpoint
-            
+
             name = qpoint.name if qpoint.name is not None else abifile.structure.findname_in_hsym_stars(qpoint)
             if qpoint.name is not None:
                 xticks.append(iq)
@@ -405,35 +405,37 @@ class GkqRobot(Robot, RobotWithEbands):
             phfreqs_ha, phdispl_red = abifile.phfreqs_ha, abifile.phdispl_red
             ncvar = abifile.reader.read_variable("gkq")
             for spin in range(nsppol):
-                gkq_atm = ncvar[spin, ik, :, band_k, band_kq] 
+                gkq_atm = ncvar[spin, ik, :, band_k, band_kq]
                 gkq_atm = gkq_atm[:, 0] + 1j * gkq_atm[:, 1]
                 #gkq_snuq[spin, :, iq] = np.abs(gkq_atm)
 
                 # Transform the gkk matrix elements from (atom, red_direction) basis to phonon-mode basis.
                 gkq_snuq[spin, :, iq] = 0.0
                 for nu in range(natom3):
-                    if phfreqs_ha[nu] < EPH_WTOL: continue
+                    if phfreqs_ha[nu] < eph_wtol: continue
                     #fact = one if not spherical_average else np.sqrt(4 * np.pi) * qpoint.norm
-                    gkq_snuq[spin, nu, iq] = np.dot(phdispl_red[nu], gkq_atm) / np.sqrt(2.0 * phfreqs_ha[nu]) 
+                    gkq_snuq[spin, nu, iq] = np.dot(phdispl_red[nu], gkq_atm) / np.sqrt(2.0 * phfreqs_ha[nu])
 
             if with_glr:
                 # Compute long range part with (simplified) generalized Frohlich model.
                 #fact = one if not spherical_average else np.sqrt(4 * np.pi) * qpoint.norm
-                gkq_lr[spin, :, iq] = glr_frohlich(qpoint, abifile.becs_cart, abifile.epsinf_cart, 
-                                                   abifile.phdispl_cart_bohr, phfreqs_ha, abifile.structure)
+                gkq_lr[spin, :, iq] = glr_frohlich(qpoint, abifile.becs_cart, abifile.epsinf_cart,
+                                                   abifile.phdispl_cart_bohr, phfreqs_ha, abifile.structure, qdamp=qdamp)
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
+
         nu_list = list(range(natom3)) if nu_list is None else list(nu_list)
         for spin in range(nsppol):
             for nu in nu_list:
                 ys = np.abs(gkq_snuq[spin, nu]) * abu.Ha_meV
-                label = "nu: %s" % nu if nsppol == 1 else "nu: %s, spin: %s" % (nu, spin)
+                pre_label = kwargs.pop("pre_label",r"$g_{\bf q}$")
+                label = r"%s nu: %s" % (pre_label, nu) if nsppol == 1 else "nu: %s, spin: %s" % (nu, spin)
                 ax.plot(xs, ys, linestyle="--",  label=label)
                 if with_glr:
                     ys = np.abs(gkq_lr[spin, nu]) * abu.Ha_meV
-                    label = r"$g_{\bf q}^{\text{lr}} nu: %s" % (
+                    label = r"$g_{\bf q}^{\mathrm{lr}}$ nu: %s" % (
                             nu if nsppol == 1 else "nu: %s, spin: %s" % (nu, spin))
-                    ax.plot(xs, ys, linestyle="", marker="o") #, label=label)
+                    ax.plot(xs, ys, linestyle="", marker="o", label=label)
 
         ax.grid(True)
         ax.set_xlabel("Wave Vector")
