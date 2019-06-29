@@ -10,7 +10,6 @@ import abipy.core.abinit_units as abu
 from collections import OrderedDict
 from monty.functools import lazy_property
 from abipy.electrons.ebands import ElectronsReader
-import abipy.core.abinit_units as abu
 
 # Phonon frequency in Ha below which e-ph matrix elements are set to zero.
 EPH_WTOL = 1e-6
@@ -94,7 +93,7 @@ def glr_frohlich(qpoint, becs_cart, epsinf_cart, phdispl_cart_bohr, phfreqs_ha, 
     # Acoustic modes are included --> assume BECS fullfill charge neutrality
     glr_nu = np.empty(natom3, dtype=np.complex)
     for nu in range(natom3):
-        if phfreqs_ha[nu] < EPH_WTOL or qeq < tol_qnorm: continue
+        if phfreqs_ha[nu] < EPH_WTOL or q_eps_q < tol_qnorm: continue
         num = 0.0j
         for iat in range(natom):
             cdd = phdispl_cart_bohr[nu, iat] * np.exp(-2.0j * np.pi * np.dot(qpoint.frac_coords, xred[iat]))

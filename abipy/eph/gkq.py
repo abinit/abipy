@@ -56,6 +56,10 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
             app(str(bec))
             app("")
 
+        app(r"Fulfillment of charge neutrality, F_{ij} = \sum_{atom} Z^*_{ij,atom}")
+        f = np.sum(self.becs_cart, axis=0)
+        app(str(f) + "\n")
+
         #if verbose > 1:
         #    app("")
         #    app(self.hdr.to_string(verbose=verbose, title="Abinit Header"))
