@@ -69,6 +69,7 @@ from abipy.eph.sigeph import SigEPhFile, SigEPhRobot
 from abipy.eph.eph_plotter import EphPlotter
 from abipy.eph.wrmax import WRmaxFile
 from abipy.eph.gkq import GkqFile, GkqRobot
+from abipy.transport.transportfile import TransportFile
 from abipy.wannier90 import WoutFile, AbiwanFile, AbiwanRobot
 from abipy.electrons.lobster import CoxpFile, ICoxpFile, LobsterDoscarFile, LobsterInput, LobsterAnalyzer
 
@@ -133,6 +134,7 @@ abiext2ncfile = collections.OrderedDict([
     ("OPTIC.nc", OpticNcFile),
     ("A2F.nc", A2fFile),
     ("SIGEPH.nc", SigEPhFile),
+    ("TRANSPORT.nc",TransportFile),
     ("WRMAX.nc", WRmaxFile),
     ("GKQ.nc", GkqFile),
     ("ABIWAN.nc", AbiwanFile),
