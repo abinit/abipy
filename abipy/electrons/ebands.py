@@ -57,7 +57,7 @@ class Electron(namedtuple("Electron", "spin kpoint band eig occ kidx")):
 
         spin: spin index (C convention, i.e >= 0)
         kpoint: |Kpoint| object.
-        band: band index. (C convention, i.e >= 0).
+        band: band index. (C convention, i.e >= 0
         eig: KS eigenvalue.
         occ: Occupation factor.
         kidx: Index of the k-point in the initial array.
@@ -1873,7 +1873,8 @@ class ElectronBands(Has_Structure):
             if "lw" in kwargs: opts.pop("linewidth")
             opts.update(kwargs)
 
-            for band in band_list:
+            for ib, band in enumerate(band_list):
+                if ib != 0: opts.pop("label", None)
                 self.plot_ax(ax, e0, spin=spin, band=band, **opts)
 
         if points is not None:
@@ -2974,6 +2975,50 @@ class ElectronBandsPlotter(NotebookWriter):
                 sns.boxplot(x="band", y="eig", data=data_spin, hue="label", ax=ax, **kwargs)
                 if swarm:
                     sns.swarmplot(x="band", y="eig", data=data_spin, hue="label", color=".25", ax=ax)
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_band_edges(self, epad_ev=1.0, set_fermie_to_vbm=True, colormap="viridis", fontsize=8, **kwargs):
+        """
+        Plot the band edges for electrons and holes on two separated plots for all ebands in ebands_dict.
+        Useful for comparing band structures obtained with/without SOC or bands obtained with different settings.
+
+        Args:
+            epad_ev:
+            set_fermie_to_vbm
+            colormap: matplotlib colormap.
+            fontsize: legend and title fontsize.
+        """
+        # Two subplots for CBM and VBM
+        num_plots, ncols, nrows = 2, 1, 2
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=False, sharey=False, squeeze=False)
+        ax_list = ax_list.ravel()
+        cmap = plt.get_cmap(colormap)
+        nb = len(self.ebands_dict.items())
+        for ix, ax in enumerate(ax_list):
+            for iband, (label, ebands) in enumerate(self.ebands_dict.items()):
+                if set_fermie_to_vbm: 
+                    # This is needed when the fermi energy is computed in the GS part 
+                    # with a mesh that does not contain the band edges.
+                    ebands.set_fermie_to_vbm()
+                if ix == 0: 
+                    # Conduction
+                    ymin = min((ebands.lumos[spin].eig for spin in ebands.spins)) - 0.1
+                    ymax = ymin + epad_ev
+                elif ix == 1: 
+                    # Valence
+                    ymax = max((ebands.homos[spin].eig for spin in ebands.spins)) + 0.1
+                    ymin = ymax - epad_ev
+                else:
+                    raise ValueError("Wrong ix: %s" % ix)
+
+                ylims = ymin - ebands.fermie, ymax - ebands.fermie
+                ebands.plot(ax=ax, e0="fermie", color=cmap(float(iband) / nb), ylims=ylims, 
+                            label=label if ix == 0 else None, show=False)
+            if ix == 0:
+                ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 

@@ -98,7 +98,6 @@ def glr_frohlich(qpoint, becs_cart, epsinf_cart, phdispl_cart_bohr, phfreqs_ha, 
         for iat in range(natom):
             cdd = phdispl_cart_bohr[nu, iat] * np.exp(-2.0j * np.pi * np.dot(qpoint.frac_coords, xred[iat]))
             num += np.dot(qcs, np.matmul(becs_cart[iat], cdd))
-        #num = num * np.exp(-
         glr_nu[nu] = num / (q_eps_q * np.sqrt(2.0 * phfreqs_ha[nu]))
 
     fact = 1

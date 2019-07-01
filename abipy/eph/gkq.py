@@ -20,6 +20,7 @@ from abipy.abio.robots import Robot
 from abipy.electrons.ebands import ElectronsReader, RobotWithEbands
 from abipy.eph.common import glr_frohlich, EPH_WTOL
 
+
 class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     @classmethod
@@ -59,10 +60,6 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         app(r"Fulfillment of charge neutrality, F_{ij} = \sum_{atom} Z^*_{ij,atom}")
         f = np.sum(self.becs_cart, axis=0)
         app(str(f) + "\n")
-
-        #if verbose > 1:
-        #    app("")
-        #    app(self.hdr.to_string(verbose=verbose, title="Abinit Header"))
 
         return "\n".join(lines)
 
@@ -129,14 +126,13 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
         Return: (nsppol, nkpt, 3*natom, mband, mband) complex array.
         """
-
         if mode not in ("atom", "phonon"):
             raise ValueError("Invalid mode: %s" % mode)
 
         # Read e-ph matrix element in the atomic representation (idir, ipert)
         # Fortran array on disk has shape:
         # nctkarr_t('gkq', "dp", &
-        # 'complex, max_number_of_states, max_number_of_states, number_of_phonon_modes, number_of_kpoints, number_of_spins') &
+        # 'complex, max_number_of_states, max_number_of_states, number_of_phonon_modes, number_of_kpoints, number_of_spins')
         gkq_atm = self.reader.read_value("gkq", cmode="c")
         if mode == "atom": return gkq_atm
 
@@ -188,8 +184,11 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
         if with_glr and mode == "phonon":
             # Add horizontal bar with matrix elements computed from Verdi's model (only G = 0, \delta_nm in bands).
+            dcart_bohr = self.phdispl_cart_bohr
+            #dcart_bohr = self.reader.read_value("phdispl_cart_qvers", cmode="c").real
             gkq_lr = glr_frohlich(self.qpoint, self.becs_cart, self.epsinf_cart, 
-                                  self.phdispl_cart_bohr, self.phfreqs_ha, self.structure)
+                                  dcart_bohr, self.phfreqs_ha, self.structure)
+                                  #self.phdispl_cart_bohr, self.phfreqs_ha, self.structure)
             gkq2_lr = np.abs(gkq_lr) * abu.Ha_meV
 
         natom = len(self.structure)
@@ -376,6 +375,7 @@ class GkqRobot(Robot, RobotWithEbands):
             band_k: Band index of the k state (starts at 0)
             kpoint: |Kpoint| object or index.
             with_glr: True to plot the long-range component estimated from Verdi's model.
+            qdamp:
             nu_list: List of phonons modes to be selected (starts at 0). None to select all modes.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: Label and title fontsize.
@@ -397,9 +397,11 @@ class GkqRobot(Robot, RobotWithEbands):
         gkq_snuq = np.empty((nsppol, natom3, nqpt), dtype=np.complex)
         if with_glr: gkq_lr = np.empty((nsppol, natom3, nqpt), dtype=np.complex)
 
+        # TODO: Should take into account possible degeneracies in k and kq...
         xticks, xlabels = [], []
         for iq, abifile in enumerate(self.abifiles):
             qpoint = abifile.qpoint
+            #d3q_fact = one if not spherical_average else np.sqrt(4 * np.pi) * qpoint.norm
 
             name = qpoint.name if qpoint.name is not None else abifile.structure.findname_in_hsym_stars(qpoint)
             if qpoint.name is not None:
@@ -417,12 +419,10 @@ class GkqRobot(Robot, RobotWithEbands):
                 gkq_snuq[spin, :, iq] = 0.0
                 for nu in range(natom3):
                     if phfreqs_ha[nu] < eph_wtol: continue
-                    #fact = one if not spherical_average else np.sqrt(4 * np.pi) * qpoint.norm
                     gkq_snuq[spin, nu, iq] = np.dot(phdispl_red[nu], gkq_atm) / np.sqrt(2.0 * phfreqs_ha[nu])
 
             if with_glr:
                 # Compute long range part with (simplified) generalized Frohlich model.
-                #fact = one if not spherical_average else np.sqrt(4 * np.pi) * qpoint.norm
                 gkq_lr[spin, :, iq] = glr_frohlich(qpoint, abifile.becs_cart, abifile.epsinf_cart,
                                                    abifile.phdispl_cart_bohr, phfreqs_ha, abifile.structure, qdamp=qdamp)
 
@@ -449,7 +449,7 @@ class GkqRobot(Robot, RobotWithEbands):
             ax.set_xticklabels(xlabels, fontdict=None, minor=False, size=kwargs.pop("klabel_size", "large"))
 
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
-        title = "band_kq: %s, band_k: %s, kpoint: %s" % (band_kq, band_k, repr(kpoint))
+        title = r"$band_{{\bf k} + {\bf q}: %s, band_{\bf{k}}: %s, kpoint: %s" % (band_kq, band_k, repr(kpoint))
         ax.set_title(title, fontsize=fontsize)
 
         return fig
@@ -463,7 +463,7 @@ class GkqRobot(Robot, RobotWithEbands):
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to `nbpath`. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)

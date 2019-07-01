@@ -9,7 +9,7 @@ import numpy as np
 from collections import OrderedDict
 from monty.string import marquee
 from monty.functools import lazy_property
-from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
 from abipy.core.kpoints import KpointList, Kpoint
 from abipy.tools import duck
@@ -74,12 +74,12 @@ class V1qnuFile(AbinitNcFile, Has_Structure, NotebookWriter):
     def visualize_qpoint_nu(self, qpoint, nu, spin=0, appname="vesta"):
         iq, qpoint = self._find_iqpt_qpoint(qpoint)
 
-        # Fortran array nctkarr_t("v1qnu", "dp", "two, nfft, nspden, natom3, nqlist")])
-        v1qnu = self.reader.read_variable("v1qnu")[iq, nu, spin]
-        v1qnu = v1qnu[:, 0] + 1j * v1qnu[:, 1]  
+        # Fortran array nctkarr_t("v1_qnu", "dp", "two, nfft, nspden, natom3, nqlist")])
+        v1_qnu = self.reader.read_variable("v1_qnu")[iq, nu, spin]
+        v1_qnu = v1_qnu[:, 0] + 1j * v1_qnu[:, 1]  
         #wqnu = self.reader.read_variable["phfreqs"][nu]
-        #v1qnu /= np.sqrt(2 * wqnu)
-        datar = np.reshape(np.abs(v1qnu), self.ngfft)
+        #v1_qnu /= np.sqrt(2 * wqnu)
+        datar = np.reshape(np.abs(v1_qnu), self.ngfft)
 
         visu = Visualizer.from_name(appname)
         ext = "xsf"
@@ -97,11 +97,62 @@ class V1qnuFile(AbinitNcFile, Has_Structure, NotebookWriter):
             
         return visu(filename)
 
+    @add_fig_kwargs
+    def plot_v1qnu_vs_lr(self, ax=None, fontsize=8, **kwargs):
+        """
+        Plot the difference between the ab-initio v1_qnu and the potential obtained with Verdi's model
+
+        Args:
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: Label and title fontsize.
+
+        Return: |matplotlib-Figure|
+        """
+        # Fortran array nctkarr_t("v1_qnu", "dp", "two, nfft, nspden, natom3, nqlist")])
+        v1_qnu = self.reader.read_value("v1_qnu", cmode="c")
+        v1lr_qnu = self.reader.read_value("v1lr_qnu", cmode="c")
+
+        stats = OrderedDict([
+            ("min", []),
+            ("max", []),
+            ("mean", []),
+            ("std", []),
+        ])
+
+        qnorms = []
+        for iq, qpt in enumerate(self.qpoints):
+            qnorms.append(qpt.norm)
+            abs_diff = np.abs(v1_qnu[iq] - v1lr_qnu[iq])
+            for key in stats.keys():
+                stats[key].append(getattr(abs_diff, key)())
+
+        # Sort values by |q|.
+        qindex = np.arange(len(qnorms))
+        items = sorted(list(zip(qnorms, qindex)),  key=lambda t: t[0])
+        qnorm = np.array([t[0] for t in items])
+        qindex = np.array([t[1] for t in items])
+        #print(qnorm, "\n", qindex)
+        for key in stats.keys():
+            stats[key] = np.array(stats[key])[qindex]
+
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        for key, values in stats.items():
+            ax.plot(values, label=key)
+
+        ax.grid(True)
+        ax.set_xlabel(r"$|\bf{q}|$ 1/Ang")
+        #ax.set_ylabel(r"$|g_{\bf q}|$ (meV)")
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
+        #title = "band_kq: %s, band_k: %s, kpoint: %s" % (band_kq, band_k, repr(kpoint))
+        #ax.set_title(title, fontsize=fontsize)
+        
+        return fig
+
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         """
-        yield None
+        yield self.plot_v1qnu_vs_lr(show=False)
 
     def write_notebook(self, nbpath=None):
         """

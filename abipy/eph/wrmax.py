@@ -69,10 +69,40 @@ class WRmaxFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return self.reader.read_value("rmod")
 
     @add_fig_kwargs
-    def plot(self, fontsize=8, **kwargs):
+    def plot(self, scale="semilogy", ax=None, fontsize=8, **kwargs):
         """
+        Plot the decay of max_{r, idir, ipert} |W(R, r, idir, ipert)|
+
         Args:
+            scale: "semilogy", "loglog" or "plot".
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: fontsize for legends and titles
+
+        Return: |matplotlib-Figure|
+        """
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+
+        # nctkarr_t("maxw", "dp", "nrpt, natom3")
+        maxw = self.reader.read_value("maxw")
+        data = np.max(maxw, axis=0)
+        f = {"plot": ax.plot, "semilogy": ax.semilogy, "loglog": ax.loglog}[scale]
+        f(self.rmod, data, marker="o", ls=":", lw=0) #, label="$L_x$" if iatom == 0 else None)
+        ax.grid(True)
+        ax.set_ylabel(r"$Max_{({\bf{r}}, idir, ipert)} \| W({\bf{r}}, {\bf{R}}, idir, ipert) \|$")
+        ax.set_xlabel(r"$\|{\bf{R}}\|$ (Bohr)")
+
+        ax.set_title("dvdb_add_lr %d, alpha_gmin: %s, symv1: %d" % (self.dvdb_add_lr, self.alpha_gmin, self.symv1), 
+                     fontsize=fontsize)
+        return fig
+
+    @add_fig_kwargs
+    def plot_perts(self, scale="semilogy", fontsize=8, **kwargs):
+        """
+        Plot the decay of max_r |W(R, r, idir, ipert)| for the individual perturbations
+
+        Args:
+            scale: "semilogy", "loglog" or "plot".
+            fontsize: fontsize for legends and titles.
 
         Return: |matplotlib-Figure|
         """
@@ -86,7 +116,6 @@ class WRmaxFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         # nctkarr_t("maxw", "dp", "nrpt, natom3")
         maxw = np.reshape(self.reader.read_value("maxw"), (natom, 3, self.nrpt))
-        scale = "semilogy"
         for iatom, ax in enumerate(ax_list.ravel()):
             site = self.structure[iatom]
             title = "{} [{:.4f} {:.4f} {:.4f}]".format(site.specie.symbol, *site.frac_coords)
@@ -109,7 +138,8 @@ class WRmaxFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         """
-        yield self.plot(**kwargs)
+        yield self.plot(show=False, **kwargs)
+        yield self.plot_perts(show=False, **kwargs)
 
     def write_notebook(self, nbpath=None):
         """
@@ -122,6 +152,7 @@ class WRmaxFile(AbinitNcFile, Has_Structure, NotebookWriter):
             nbv.new_code_cell("ncfile = abilab.abiopen('%s')" % self.filepath),
             nbv.new_code_cell("print(ncfile)"),
             nbv.new_code_cell("ncfile.plot();"),
+            nbv.new_code_cell("ncfile.plot_perts();"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
