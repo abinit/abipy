@@ -552,6 +552,12 @@ def as_kpoints(obj, lattice, weights=None, names=None):
 class Kpoint(SlotPickleMixin):
     """
     Class defining one k-point. This object is immutable and can be used as key in dictionaries
+
+    Note that we usually construct the object by passing pymatgen.reciprocal_lattice
+    that is the standard reciprocal lattice used for solid state physics 
+    with a factor of 2 * pi i.e. a_i . b_j = 2pi delta_ij. 
+    Abinit, on the contrary, uses the crystallographic reciprocal lattice i.e. no 2pi factor.
+    so pay attention when converting Abinit routines to AbiPy.
     """
 
     __slots__ = [

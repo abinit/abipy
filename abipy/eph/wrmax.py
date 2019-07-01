@@ -20,10 +20,11 @@ class WRmaxFile(AbinitNcFile, Has_Structure, NotebookWriter):
         super(WRmaxFile, self).__init__(filepath)
         self.reader = r = ETSF_Reader(filepath)
         self.nrpt = r.read_dimvalue("nrpt")
-
-        self.has_dielt_zeff = bool(r.read_value("has_dielt_zeff"))
-        self.add_lr_part = bool(r.read_value("add_lr_part"))
+        self.has_zeff = bool(r.read_value("has_zeff"))
+        self.has_dielt = bool(r.read_value("has_dielt"))
+        self.dvdb_add_lr = r.read_value("dvdb_add_lr")
         self.symv1 = bool(r.read_value("symv1"))
+        self.alpha_gmin = r.read_value("alpha_gmin")
 
     @lazy_property
     def structure(self):
@@ -50,8 +51,9 @@ class WRmaxFile(AbinitNcFile, Has_Structure, NotebookWriter):
         app(self.structure.to_string(verbose=verbose, title="Structure"))
         app("")
         app("ngqpt: %s" % str(self.ngqpt))
-        app("has_dielt_zeff: %s" % self.has_dielt_zeff)
-        app("add_lr_part: %s" % self.add_lr_part)
+        app("has_dielt: %s" % self.has_dielt)
+        app("has_zeff: %s" % self.has_zeff)
+        app("dvdb_add_lr: %s" % self.dvdb_add_lr)
         app("symv1: %s" % self.symv1)
 
         return "\n".join(lines)
@@ -63,11 +65,11 @@ class WRmaxFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     @lazy_property
     def rmod(self):
-        """|R| in Bohr"""
+        """|R| in Bohr."""
         return self.reader.read_value("rmod")
 
     @add_fig_kwargs
-    def plot(self, fontsize=12, **kwargs):
+    def plot(self, fontsize=8, **kwargs):
         """
         Args:
             fontsize: fontsize for legends and titles
@@ -84,26 +86,29 @@ class WRmaxFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         # nctkarr_t("maxw", "dp", "nrpt, natom3")
         maxw = np.reshape(self.reader.read_value("maxw"), (natom, 3, self.nrpt))
+        scale = "semilogy"
         for iatom, ax in enumerate(ax_list.ravel()):
             site = self.structure[iatom]
             title = "{} [{:.4f} {:.4f} {:.4f}]".format(site.specie.symbol, *site.frac_coords)
             ax.set_title(title, fontsize=fontsize)
-            ax.semilogy(self.rmod, maxw[iatom, 0], marker="o", ls=":", lw=0, label="$L_x$" if iatom == 0 else None)
-            ax.semilogy(self.rmod, maxw[iatom, 1], marker="o", ls=":", lw=0, label="$L_y$" if iatom == 0 else None)
-            ax.semilogy(self.rmod, maxw[iatom, 2], marker="o", ls=":", lw=0, label="$L_z$" if iatom == 0 else None)
+            f = {"plot": ax.plot, "semilogy": ax.semilogy, "loglog": ax.loglog}[scale]
+            f(self.rmod, maxw[iatom, 0], marker="o", ls=":", lw=0, label="$L_x$" if iatom == 0 else None)
+            f(self.rmod, maxw[iatom, 1], marker="o", ls=":", lw=0, label="$L_y$" if iatom == 0 else None)
+            f(self.rmod, maxw[iatom, 2], marker="o", ls=":", lw=0, label="$L_z$" if iatom == 0 else None)
             ax.grid(True)
             if iatom == 0: 
-                ax.set_ylabel(r"$Max_{\bf{r}} \| W(\bf{r}, \bf{R}) \|$")
+                ax.set_ylabel(r"$Max_{{\bf{r}}} \| W({\bf{r}}, {\bf{R}}) \|$")
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
-            if iatom == len(ax_list) - 1: ax.set_xlabel(r"$\|\bf{R}\|$ (Bohr)")
+            if iatom == len(ax_list) - 1: ax.set_xlabel(r"$\|{\bf{R}}\|$ (Bohr)")
 
+        fig.suptitle("dvdb_add_lr %d, alpha_gmin: %s, symv1: %d" % (self.dvdb_add_lr, self.alpha_gmin, self.symv1), 
+                     fontsize=fontsize)
         return fig
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         """
-        #for fig in self.yield_structure_figs(**kwargs): yield fig
         yield self.plot(**kwargs)
 
     def write_notebook(self, nbpath=None):
@@ -114,9 +119,9 @@ class WRmaxFile(AbinitNcFile, Has_Structure, NotebookWriter):
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
         nb.cells.extend([
-            nbv.new_code_cell("wrmax = abilab.abiopen('%s')" % self.filepath),
-            nbv.new_code_cell("print(wrmax)"),
-            nbv.new_code_cell("wrmax.plot();"),
+            nbv.new_code_cell("ncfile = abilab.abiopen('%s')" % self.filepath),
+            nbv.new_code_cell("print(ncfile)"),
+            nbv.new_code_cell("ncfile.plot();"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)

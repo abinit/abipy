@@ -12,7 +12,6 @@ import json
 import warnings
 import abipy.core.abinit_units as abu
 
-
 from collections import OrderedDict
 from monty.string import is_string, list_strings, marquee
 from monty.collections import AttrDict, dict2namedtuple

@@ -402,10 +402,10 @@ class ElectronBands(Has_Structure):
 
     @classmethod
     def from_mpid(cls, material_id, api_key=None, endpoint=None,
-                  nelect=None, has_timerev=True, nspinor=1, nspden=None):
+                  nelect=None, has_timerev=True, nspinor=1, nspden=None, line_mode=True):
         """
         Read bandstructure data corresponding to a materials project ``material_id``.
-        and return Abipy ElectronBands object.
+        and return Abipy ElectronBands object. Return None if bands are not available.
 
         Args:
             material_id (str): Materials Project material_id (a string, e.g., mp-1234).
@@ -421,21 +421,24 @@ class ElectronBands(Has_Structure):
                 can be changed to other urls implementing a similar interface.
             nelect: Number of electrons in the unit cell.
             nspinor: Number of spinor components.
+            line_mode (bool): If True, fetch a BandStructureSymmLine object
+                (default). If False, return the uniform band structure.
         """
         # Get pytmatgen structure and convert it to abipy structure
         from abipy.core import restapi
         with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
-            pmgb = rest.get_bandstructure_by_material_id(material_id=material_id)
+            pmgb = rest.get_bandstructure_by_material_id(material_id=material_id, line_mode=line_mode)
+            if pmgb is None: return None
 
             # Structure is set to None so we have to perform another request and patch the object.
             structure = rest.get_structure_by_material_id(material_id, final=True)
             if pmgb.structure is None: pmgb.structure = structure
-            #pmgb = pmgb.__class__.from_dict(pmgb.as_dict())
 
         if nelect is None:
             # Get nelect from valence band maximum index.
             if pmgb.is_metal():
-                raise RuntimeError("Nelect must be specified if metallic bands.")
+                cprint("Nelect must be specified if metallic bands.", "red")
+                return None
             else:
                 d = pmgb.get_vbm()
                 iv_up = max(d["band_index"][PmgSpin.up])
@@ -446,7 +449,6 @@ class ElectronBands(Has_Structure):
                     assert iv_down == iv_up
 
         #ksampling = KSamplingInfo.from_kbounds(kbounds)
-
         return cls.from_pymatgen(pmgb, nelect, weights=None, has_timerev=has_timerev,
                                  ksampling=None, smearing=None, nspinor=nspinor, nspden=nspden)
 
