@@ -1514,7 +1514,7 @@ class PhononWfkqWork(Work, MergeDdb):
     @classmethod
     def from_scf_task(cls, scf_task, ngqpt, ph_tolerance=None, tolwfr=1.0e-22, nband=None,
                       with_becs=False, ddk_tolerance=None, shiftq=(0, 0, 0), is_ngqpt=True, remove_wfkq=True,
-                      manager=None):
+                      prepgkk=0, manager=None):
         """
         Construct a `PhononWfkqWork` from a :class:`ScfTask` object.
         The input files for WFQ and phonons are automatically generated from the input of the ScfTask.
@@ -1533,6 +1533,7 @@ class PhononWfkqWork(Work, MergeDdb):
             is_ngqpt: the ngqpt is interpreted as a set of integers defining the q-mesh, otherwise
                       is an explicit list of q-points
             remove_wfkq: Remove WKQ files when the children are completed.
+            prepgkk: 1 to activate computation of all 3*natom perts (debugging option).
             manager: :class:`TaskManager` object.
 
         .. note:
@@ -1592,7 +1593,7 @@ class PhononWfkqWork(Work, MergeDdb):
                 wfkq_task = new.register_nscf_task(nscf_inp, deps={scf_task: ["DEN", "WFK"]})
                 new.wfkq_tasks.append(wfkq_task)
 
-            multi = scf_task.input.make_ph_inputs_qpoint(qpt, tolerance=ph_tolerance)
+            multi = scf_task.input.make_ph_inputs_qpoint(qpt, tolerance=ph_tolerance, prepgkk=prepgkk)
             for ph_inp in multi:
                 deps = {scf_task: "WFK", wfkq_task: "WFQ"} if need_wfkq else {scf_task: "WFK"}
                 #ph_inp["prtwf"] = -1

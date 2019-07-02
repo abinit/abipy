@@ -1190,7 +1190,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return tolvar, value
 
-    def make_ph_inputs_qpoint(self, qpt, tolerance=None, prtwf=-1, manager=None):
+    def make_ph_inputs_qpoint(self, qpt, tolerance=None, prtwf=-1, prepgkk=0, manager=None):
         """
         Builds and returns a |MultiDataset| list of input files
         for the calculation of phonons at the given q-point `qpt`.
@@ -1217,7 +1217,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             raise self.Error("Invalid tolerance: %s" % str(tolerance))
 
         # Call Abinit to get the list of irred perts.
-        perts = self.abiget_irred_phperts(qpt=qpt, manager=manager)
+        perts = self.abiget_irred_phperts(qpt=qpt, manager=manager, prepgkk=prepgkk)
 
         # Build list of datasets (one input per perturbation)
         # Remove iscf if any (required if we pass an input for NSCF calculation)
@@ -1751,7 +1751,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             except Exception as exc:
                 self._handle_task_exception(task, exc)
 
-    def abiget_irred_phperts(self, qpt=None, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
+    def abiget_irred_phperts(self, qpt=None, ngkpt=None, shiftk=None, kptopt=None, prepgkk=0, workdir=None, manager=None):
         """
         This function, computes the list of irreducible perturbations for DFPT.
         It should be called with an input file that contains all the mandatory variables required by ABINIT.
@@ -1762,6 +1762,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             ngkpt: Number of divisions for the k-mesh (default None i.e. use ngkpt from self)
             shiftk: Shiftks (default None i.e. use shiftk from self)
             kptopt: Option for k-point generation. If None, the value in self is used.
+            prepgkk: 1 to activate computation of all 3*natom perts (debugging option).
             workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
 
@@ -1776,6 +1777,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         phperts_vars = dict(rfphon=1,                         # Will consider phonon-type perturbation
                             rfatpol=[1, len(self.structure)], # Set of atoms to displace.
                             rfdir=[1, 1, 1],                  # Along this set of reduced coordinate axis.
+                            prepgkk=prepgkk,
                             )
 
         return self._abiget_irred_perts(phperts_vars, qpt=qpt, ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt,

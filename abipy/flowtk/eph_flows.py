@@ -22,7 +22,7 @@ class GkqPathFlow(Flow):
 
     @classmethod
     def from_scf_input(cls, workdir, scf_input, ngqpt, qbounds, ndivsm=5, with_becs=True, ddk_tolerance=None,
-                       test_ft_interpolation=False, manager=None):
+                       test_ft_interpolation=False, prepgkk=0, manager=None):
         """
         Build the flow from an input file representing a GS calculation.
 
@@ -36,8 +36,9 @@ class GkqPathFlow(Flow):
             with_becs: Activate calculation of Electric field and Born effective charges.
             ddk_tolerance: dict {"varname": value} with the tolerance used in the DDK run if `with_becs`.
             test_ft_interpolation: True to add an extra Work in which the GKQ files are computed 
-                using the interpolated DFPT potentials using the q-mesh defined by `ngqpt`.
-                The quality of the interpolation will depend on the convergence of the BECS, epsinf and `ngqpt`.
+                using the interpolated DFPT potentials and the q-mesh defined by `ngqpt`.
+                The quality of the interpolation depends on the convergence of the BECS, epsinf and `ngqpt`.
+            prepgkk: 1 to activate computation of all 3*natom perts (debugging option).
             manager: |TaskManager| object.
         """
         flow = cls(workdir=workdir, manager=manager)
@@ -61,7 +62,7 @@ class GkqPathFlow(Flow):
         # Don't include BECS because they have been already computed in the previous work.
         work_qpath = PhononWfkqWork.from_scf_task(scf_task, qpath_list, ph_tolerance=None, tolwfr=1.0e-22, nband=None,
                       with_becs=False, ddk_tolerance=None, shiftq=(0, 0, 0), is_ngqpt=False, remove_wfkq=False,
-                      manager=manager)
+                      prepgkk=prepgkk, manager=manager)
         flow.register_work(work_qpath)
 
         def make_eph_input(scf_inp, ngqpt, qpt):

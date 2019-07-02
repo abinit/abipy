@@ -243,7 +243,9 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         if self.qpoint != other.qpoint:
             raise ValueError("Found different q-points: %s and %s" % (self.qpoint, other.qpoint))
 
-        labels = ["this", "other"] if labels is None else labels
+        if labels is None:
+            labels = ["this (interpolated: %s)" % self.uses_interpolated_dvdb, 
+                      "other (interpolated: %s)" % other.uses_interpolated_dvdb] 
 
         this_gkq = np.abs(self.read_all_gkq(mode=mode))
         other_gkq = np.abs(other.read_all_gkq(mode=mode))
@@ -265,9 +267,11 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
                                                 sharex=False, sharey=False, squeeze=False)
         ax_list = ax_list.ravel()
 
-        # Downsample datasets. Show only points with error > mean.
-        threshold = stats["mean"]
+        # Downsample datasets. Show only points with error > threshold.
+        ntot = absdiff_gkq.size
+        threshold = stats["mean"] + stats["std"]
         data = this_gkq[absdiff_gkq > threshold].ravel()
+        nshown = len(data)
         xs = np.arange(len(data))
 
         ax = ax_list[0]
@@ -282,7 +286,8 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         ax.set_xlabel("Matrix element index")
         ylabel = r"$|g^{atm}_{\bf q}|$" if mode == "atom" else r"$|g_{\bf q}|$ (meV)"
         ax.set_ylabel(ylabel)
-        ax.set_title(r"qpt: %s, $\Delta$ > %.1E " % (repr(self.qpoint), threshold), fontsize=fontsize)
+        ax.set_title(r"qpt: %s, $\Delta$ > %.1E (%d/%d)" % (repr(self.qpoint), threshold, nshown, ntot), 
+                     fontsize=fontsize)
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         ax = ax_list[1]
@@ -305,8 +310,6 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         Used in abiview.py to get a quick look at the results.
         """
         yield self.plot()
-        #for fig in self.yield_structure_figs(**kwargs): yield fig
-        #for fig in self.yield_ebands_figs(**kwargs): yield fig
 
     def write_notebook(self, nbpath=None):
         """
@@ -456,6 +459,21 @@ class GkqRobot(Robot, RobotWithEbands):
         ax.set_title(title, fontsize=fontsize)
 
         return fig
+
+    #@add_fig_kwargs
+    #def plot_gkq2_qpath_with_robots(self, other_robots, all_labels,  band_kq, band_k, kpoint=0, ax=None, **kwargs):
+
+    #    if not isinstance(other_robots, (list, tuple)):
+    #        raise TypeError("other_robots should be a list. Received: %s" % type(other_robots))
+    #    if len(all_labels) /= 1 + len(other_robots):
+    #        raise ValueError("len(all_labels) should be equal to 1 + len(other_robots)")
+
+    #    ax, fig, plt = get_ax_fig_plt(ax=ax)
+    #    #self.plot_gkq2_qpath(self, band_kq, band_k, kpoint=kpoint, 
+    #    #                with_glr=False, qdamp=None, nu_list=None, # spherical_average=False,
+    #    #                ax=ax, fontsize=8, eph_wtol=EPH_WTOL, **kwargs):
+
+    #    return fig
 
     def yield_figs(self, **kwargs): # pragma: no cover
         """
