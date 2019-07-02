@@ -2979,14 +2979,18 @@ class ElectronBandsPlotter(NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_band_edges(self, epad_ev=1.0, set_fermie_to_vbm=True, colormap="viridis", fontsize=8, **kwargs):
+    def plot_band_edges(self, e0="fermie", epad_ev=1.0, set_fermie_to_vbm=True, colormap="viridis", fontsize=8, **kwargs):
         """
         Plot the band edges for electrons and holes on two separated plots for all ebands in ebands_dict.
         Useful for comparing band structures obtained with/without SOC or bands obtained with different settings.
 
         Args:
-            epad_ev:
-            set_fermie_to_vbm
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
+            epad_ev: Add this energy window in eV above VBM and below CBM.
+            set_fermie_to_vbm: True if Fermi energy should be recomputed and fixed at max occupied energy level.
             colormap: matplotlib colormap.
             fontsize: legend and title fontsize.
         """
@@ -2997,12 +3001,14 @@ class ElectronBandsPlotter(NotebookWriter):
         ax_list = ax_list.ravel()
         cmap = plt.get_cmap(colormap)
         nb = len(self.ebands_dict.items())
+
         for ix, ax in enumerate(ax_list):
             for iband, (label, ebands) in enumerate(self.ebands_dict.items()):
                 if set_fermie_to_vbm: 
                     # This is needed when the fermi energy is computed in the GS part 
                     # with a mesh that does not contain the band edges.
                     ebands.set_fermie_to_vbm()
+
                 if ix == 0: 
                     # Conduction
                     ymin = min((ebands.lumos[spin].eig for spin in ebands.spins)) - 0.1
@@ -3014,8 +3020,10 @@ class ElectronBandsPlotter(NotebookWriter):
                 else:
                     raise ValueError("Wrong ix: %s" % ix)
 
-                ylims = ymin - ebands.fermie, ymax - ebands.fermie
-                ebands.plot(ax=ax, e0="fermie", color=cmap(float(iband) / nb), ylims=ylims, 
+                # Defin ylims and energy shift.
+                this_e0 = ebands.get_e0(e0) 
+                ylims = (ymin - this_e0, ymax - this_e0)
+                ebands.plot(ax=ax, e0=e0, color=cmap(float(iband) / nb), ylims=ylims, 
                             label=label if ix == 0 else None, show=False)
             if ix == 0:
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)

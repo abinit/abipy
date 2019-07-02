@@ -253,6 +253,7 @@ class QpTempState(namedtuple("QpTempState", "spin kpoint band tmesh e0 qpe ze0 f
         #fig.tight_layout()
         return fig
 
+
 class QpTempList(list):
     """
     A list of quasiparticle corrections (usually for a given spin).
@@ -1700,7 +1701,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         Returns: |matplotlib-Figure|
         """
-        # This is a bit slow if several k-points but data is scatted due to symsigma.
+        # This is a bit slow if several k-points but data is scattered due to symsigma.
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         if "markersize" not in kwargs: kwargs["markersize"] = 2
         return self.plot_qps_vs_e0(itemp_list=itemp_list, with_fields="fan0", reim="imag",

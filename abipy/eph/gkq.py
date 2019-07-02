@@ -13,8 +13,7 @@ from monty.functools import lazy_property
 from monty.termcolor import cprint
 from abipy.core.kpoints import Kpoint
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
-    get_ax3d_fig_plt, rotate_ticklabels, set_visible, plot_unit_cell, set_ax_xylabels)
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.tools import duck
 from abipy.abio.robots import Robot
 from abipy.electrons.ebands import ElectronsReader, RobotWithEbands
@@ -122,7 +121,8 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         Read all eph matrix stored on disk.
 
         Args:
-            mode: 
+            mode: "phonon" if for eph matrix elements in phonon representation, 
+                  "atom" for perturbation along (idir, iatom).
 
         Return: (nsppol, nkpt, 3*natom, mband, mband) complex array.
         """
@@ -167,6 +167,8 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
                   "atom" for atomic representation.
             with_glr: True to plot the long-range component estimated from Verdi's model.
             fontsize: Label and title fontsize.
+            colormap: matplotlib colormap
+            sharey: True if yaxis should be shared among axes.
 
         Return: |matplotlib-Figure|
         """
@@ -228,11 +230,11 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
     @add_fig_kwargs
     def plot_diff_with_other(self, other, mode="phonon", labels=None, fontsize=8, **kwargs):
         """
-        Compare the gkq matrix elements.
+        Produce scatter plot and histogram to compare the gkq matrix elements stored in two files.
 
             other: other GkqFile instance.
             mode: "phonon" to plot eph matrix elements in the phonon representation, 
-                "atom" for atomic representation.
+                  "atom" for atomic representation.
             labels: Labels associated to self and other
             fontsize: Label and title fontsize.
 
@@ -340,7 +342,7 @@ class GkqReader(ElectronsReader):
 
 class GkqRobot(Robot, RobotWithEbands):
     """
-    This robot analyzes the results contained in multiple GSR.nc_ files.
+    This robot analyzes the results contained in multiple GKQ.nc files.
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GkqRobot
@@ -434,8 +436,9 @@ class GkqRobot(Robot, RobotWithEbands):
                 ys = np.abs(gkq_snuq[spin, nu]) * abu.Ha_meV
                 pre_label = kwargs.pop("pre_label",r"$g_{\bf q}$")
                 label = r"%s nu: %s" % (pre_label, nu) if nsppol == 1 else "nu: %s, spin: %s" % (nu, spin)
-                ax.plot(xs, ys, linestyle="--",  label=label)
+                ax.plot(xs, ys, linestyle="--", label=label)
                 if with_glr:
+                    # Plot model with G = 0 and delta_nn'
                     ys = np.abs(gkq_lr[spin, nu]) * abu.Ha_meV
                     label = r"$g_{\bf q}^{\mathrm{lr}}$ nu: %s" % (
                             nu if nsppol == 1 else "nu: %s, spin: %s" % (nu, spin))

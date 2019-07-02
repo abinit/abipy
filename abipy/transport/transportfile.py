@@ -2,20 +2,22 @@
 """TRANSPORT.nc file."""
 
 import numpy as np
-import pymatgen.core.units as units
 import abipy.core.abinit_units as abu
 
 from monty.functools import lazy_property
 from monty.string import marquee
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.electrons.ebands import ElectronsReader
+from abipy.electrons.ebands import ElectronsReader #, RobotWithEbands
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
+#from abipy.abio.robots import Robot
+
 
 __all__ = [
     "TransportFile",
 ]
 
-class TransportFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
+class TransportFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
+
     @classmethod
     def from_file(cls, filepath):
         """Initialize the object from a netcdf_ file."""
@@ -25,14 +27,13 @@ class TransportFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
         super(TransportFile, self).__init__(filepath)
         self.reader = TransportReader(filepath)
 
-        ebands = self.reader.read_ebands()
-        self.fermi = ebands.fermie*abu.eV_Ha
-        self.volume = ebands.structure.volume*abu.Ang_Bohr**3
-
+        #self.fermi = self.ebands.fermie * abu.eV_Ha
+        #self.volume = self.ebands.structure.volume * abu.Ang_Bohr**3
         self.tmesh = self.reader.tmesh
 
     @property
     def ntemp(self):
+        """Number of temperatures."""
         return len(self.tmesh)
 
     @lazy_property
@@ -51,6 +52,7 @@ class TransportFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
         od = self.get_ebands_params()
         return od
 
+    # These methods are related to the old Bolztrap2 interface
     def get_transport_result(self,itemp=None,el_temp=300):
         """
         Get one instance of TransportResult according to a temperature
@@ -71,12 +73,15 @@ class TransportFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
             tau_temp = reader.tmesh[itemp]
             el_temp = tau_temp
 
-        #todo spin
+        # TODO spin
         #self.nsppol
         dos = dos[0]
         vvdos = vvdos[:,:,0]
 
-        tr = TransportResult(wmesh,wmesh,dos,vvdos,self.fermi,el_temp,self.volume,self.nelect,tau_temp=tau_temp,nsppol=reader.nsppol)
+        volume_b3 = self.structure.volume * abu.Ang_Bohr**3
+        fermi_ha = self.ebands.fermie * abu.eV_Ha
+        tr = TransportResult(wmesh,wmesh,dos,vvdos,fermi_ha,el_temp,volume_b3,self.nelect,
+                             tau_temp=tau_temp,nsppol=reader.nsppol)
         tr._L0,tr._L1,tr._L2 = reader.read_onsager(itemp)
         tr._sigma,tr._seebeck,tr._kappa,_ = reader.read_transport(itemp)
         return tr
@@ -88,20 +93,34 @@ class TransportFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
         results = [self.get_transport_result(itemp=itemp) for itemp in list(range(self.ntemp))]
         return TransportResultRobot(results)
 
-    def plot_dos(self,ax=None):
+    @add_fig_kwargs
+    def plot_dos(self, ax=None, **kwargs):
         """
         Plot the density of states
+
+        Args:
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+
+        Return: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         wmesh, dos, idos = self.reader.read_dos()
-        ax.plot(wmesh,dos)
+        ax.plot(wmesh, dos, **kwargs)
+        ax.grid(True)
         ax.set_xlabel('Fermi level (eV)')
         ax.set_ylabel('DOS')
         return fig
 
-    def plot_vvdos(self,component='xx',ax=None,colormap='jet',**kwargs):
+    @add_fig_kwargs
+    def plot_vvdos(self, component='xx', ax=None, colormap='jet', fontsize=8, **kwargs):
         """
         Plot velocity * lifetime density of states
+
+        Args:
+            component: Component to plot: "xx", "yy" "xy" ...
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            colormap: matplotlib colormap.
+            fontsize (int): fontsize for titles and legend
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         cmap = plt.get_cmap(colormap)
@@ -109,15 +128,25 @@ class TransportFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
             temp = self.tmesh[itemp]
             wmesh, vvdos = self.reader.read_vvdos_tau(itemp,component=component)
             ax.plot(wmesh,vvdos,c=cmap(itemp/self.ntemp),label='T = %dK'%temp)
+        ax.grid(True)
         ax.set_xlabel('Fermi level (eV)')
         ax.set_ylabel('VVDOS')
         ax.set_yscale('log')
-        plt.legend()
+        ax.legend(loc="best", shadow=True, fontsize=fontsize)
         return fig
 
-    def plot_mobility(self,ax=None,component='xx',colormap='jet',**kwargs):
+    @add_fig_kwargs
+    def plot_mobility(self,component='xx',ax=None,colormap='jet',fontsize=8, **kwargs):
         """
         Read the Mobility from the netcdf file and plot it
+
+        Args:
+            component: Component to plot: "xx", "yy" "xy" ...
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            colormap: matplotlib colormap.
+            fontsize (int): fontsize for titles and legend
+
+        Return: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         cmap = plt.get_cmap(colormap)
@@ -125,19 +154,23 @@ class TransportFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
             temp = self.tmesh[itemp]
             wmesh, mu = self.reader.read_mobility(0,itemp,component,0)
             ax.plot(wmesh,mu,c=cmap(itemp/self.ntemp),label='T = %dK'%temp)
+        ax.grid(True)
         ax.set_xlabel('Fermi level (eV)')
         ax.set_ylabel('mobility $\mu(\epsilon_F)$ [cm$^2$/Vs]')
         ax.set_yscale('log')
-        plt.legend()
+        ax.legend(loc="best", shadow=True, fontsize=fontsize)
         return fig
 
     def get_mobility_mu(self,eh,itemp,component='xx',ef=None,spin=0):
         """
         Get the value of the mobility at a chemical potential ef
 
-          Arguments:
-            itemp : Index of the temperature.
-            ef : Value of the doping in eV. The default None uses the chemical potential at the temperature
+        Args:
+            eh:
+            itemp: Index of the temperature.
+            component: Component to plot: "xx", "yy" "xy" ...
+            ef: Value of the doping in eV. The default None uses the chemical potential at the temperature
+            spin: Spin index.
         """
         from scipy import interpolate
         if ef is None: ef = self.reader.read_value('transport_mu_e')[itemp]
@@ -149,7 +182,7 @@ class TransportFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
         """String representation"""
         return self.to_string()
 
-    def to_string(self,verbose=0):
+    def to_string(self, verbose=0):
         """String representation"""
         lines = []; app = lines.append
 
@@ -173,17 +206,35 @@ class TransportFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
             app("%14.1lf %18.6lf %18.6lf"%(temp,mobility_mu_e,mobility_mu_h))
         return "\n".join(lines)
 
-    def yield_figs(self):
+    def yield_figs(self, **kwargs):  # pragma: no cover
         """
         Return figures plotting the transport data
         """
-        yield self.plot_dos()
-        yield self.plot_vvdos()
-        yield self.plot_mobility()
+        yield self.plot_dos(show=False)
+        yield self.plot_vvdos(show=False)
+        yield self.plot_mobility(show=False)
 
     def close(self):
         """Close the file."""
         self.reader.close()
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        nb.cells.extend([
+            nbv.new_code_cell("nfile = abilab.abiopen('%s')" % self.filepath),
+            nbv.new_code_cell("print(ncfile)"),
+            nbv.new_code_cell("ncfile.plot_dos();"),
+            nbv.new_code_cell("ncfile.plot_vvdos();"),
+            nbv.new_code_cell("ncfile.plot_mobility();"),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
+
 
 class TransportReader(ElectronsReader):
     """
@@ -240,7 +291,7 @@ class TransportReader(ElectronsReader):
 
     def read_onsager(self,itemp):
         """
-        Read the onsager coeficients computed in the transport driver in Abinit
+        Read the Onsager coefficients computed in the transport driver in Abinit
         """
         L0 = np.moveaxis(self.read_variable("L0")[itemp,:],[0,1,2,3],[3,2,0,1])
         L1 = np.moveaxis(self.read_variable("L1")[itemp,:],[0,1,2,3],[3,2,0,1])
@@ -271,4 +322,14 @@ class TransportReader(ElectronsReader):
         """
         vels = self.read_variable("vred_diagonal")
         # Cartesian? Ha --> eV?
-        return vels * (units.Ha_to_eV / units.bohr_to_ang)
+        return vels * (abu.Ha_to_eV / abu.Bohr_Ang)
+
+
+#class TransportRobot(Robot, RobotWithEbands):
+#    """
+#    This robot analyzes the results contained in multiple TRANSPORT.nc files.
+#
+#    .. rubric:: Inheritance Diagram
+#    .. inheritance-diagram:: TransportRobot
+#    """
+#    EXT = "TRANSPORT"

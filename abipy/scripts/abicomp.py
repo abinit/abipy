@@ -1013,7 +1013,7 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
     p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, ipy_parser, pandas_parser],
             help=abicomp_ebands.__doc__)
     p_ebands.add_argument("-p", "--plot-mode", default="gridplot",
-        choices=["gridplot", "combiplot", "boxplot", "combiboxplot", "animate", "None"],
+        choices=["gridplot", "combiplot", "boxplot", "combiboxplot", "plot_band_edges", "animate", "None"],
         help="Plot mode e.g. `-p combiplot` to plot bands on the same figure. Default is `gridplot`.")
     p_ebands.add_argument("-e0", default="fermie", choices=["fermie", "None"],
         help="Option used to define the zero of energy in the band structure plot. Default is `fermie`.")
