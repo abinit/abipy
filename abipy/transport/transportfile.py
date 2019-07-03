@@ -156,7 +156,7 @@ class TransportFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, 
             ax.plot(wmesh,mu,c=cmap(itemp/self.ntemp),label='T = %dK'%temp)
         ax.grid(True)
         ax.set_xlabel('Fermi level (eV)')
-        ax.set_ylabel('mobility $\mu(\epsilon_F)$ [cm$^2$/Vs]')
+        ax.set_ylabel(r'mobility $\mu(\epsilon_F)$ [cm$^2$/Vs]')
         ax.set_yscale('log')
         ax.legend(loc="best", shadow=True, fontsize=fontsize)
         return fig

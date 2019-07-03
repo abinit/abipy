@@ -116,6 +116,11 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         """(3, 3) array with electronic macroscopic dielectric tensor in Cartesian coordinates."""
         return self.reader.read_value("emacro_cart").T.copy()
 
+    @lazy_property
+    def eigens_kq(self):
+        """(spin, nkpt, mband) array with eigenvalues on the k+q grid in eV."""
+        return self.reader.read_value("eigenvalues_kq") * abu.Ha_eV
+
     def read_all_gkq(self, mode="phonon"):
         """
         Read all eph matrix stored on disk.
@@ -158,6 +163,30 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
         return gkq_nu
 
+    #def get_averaged_gkq(self, spin, ik, band_k, band_kq, tol_deg=1e-3): 
+    #    natom3 = len(self.structure) * 3
+    #    e_k = self.ebands.eigens[spin, ik, band_k]) 
+    #    e_kq = self.eigens_kq[spin, ik, band_kq]
+    #    e_k, ndeg_k, bids_k = _find_deg(spin, ik, self.ebands.eigens)
+    #    e_kq, ndeg_kq, bids_kq = _find_deg(spin, ik, self.eigens_kq)
+    #
+    #    gkq2_nu = np.zeros(natom3))
+    #    ncvar = abifile.reader.read_variable("gkq")
+    #    for ib_k in bids_k:
+    #       
+    #       for ib_kq in bids_kq:
+    #           gkq_atm = ncvar[spin, ik, :, ib_k, ib_kq]
+    #           gkq_atm = gkq_atm[:, 0] + 1j * gkq_atm[:, 1]
+    #
+    #           # Transform the gkk matrix elements from (atom, red_direction) basis to phonon-mode basis.
+    #           gkq_nu = np.zeros(natom3), dtype=np.complex)
+    #           for nu in range(natom3):
+    #               if self.phfreqs_ha[nu] < eph_wtol: continue
+    #               gkq_nu[nu] = np.dot(self.phdispl_red[nu], gkq_atm) / np.sqrt(2.0 * self.phfreqs_ha[nu])
+    #        gkq2_nu += np.abs(gkq_nu[nu]) ** 2
+    #
+    #    return np.sqrt(gkq2_nu)
+
     @add_fig_kwargs
     def plot(self, mode="phonon", with_glr=True, fontsize=8, colormap="viridis", sharey=True, **kwargs):
         """
@@ -176,13 +205,13 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         if mode == "phonon": gkq *= abu.Ha_meV
 
         # Compute e_{k+q} - e_k for all possible (b, b')
-        eigens_kq = self.reader.read_value("eigenvalues_kq") * abu.Ha_eV
         ediffs = np.empty_like(gkq)
         for spin in range(self.ebands.nsppol):
             for ik in range(self.ebands.nkpt):
                 for ib_kq in range(self.ebands.mband):
                     for ib_k in range(self.ebands.mband):
-                        ediffs[spin, ik, :, ib_k, ib_kq] = abs(eigens_kq[spin, ik, ib_kq] - self.ebands.eigens[spin, ik, ib_k]) 
+                        ed = np.abs(self.eigens_kq[spin, ik, ib_kq] - self.ebands.eigens[spin, ik, ib_k]) 
+                        ediffs[spin, ik, :, ib_k, ib_kq] = ed
 
         if with_glr and mode == "phonon":
             # Add horizontal bar with matrix elements computed from Verdi's model (only G = 0, \delta_nm in bands).
@@ -228,13 +257,14 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         return fig
 
     @add_fig_kwargs
-    def plot_diff_with_other(self, other, mode="phonon", labels=None, fontsize=8, **kwargs):
+    def plot_diff_with_other(self, other, mode="phonon", ax_list=None, labels=None, fontsize=8, **kwargs):
         """
         Produce scatter plot and histogram to compare the gkq matrix elements stored in two files.
 
             other: other GkqFile instance.
             mode: "phonon" to plot eph matrix elements in the phonon representation, 
                   "atom" for atomic representation.
+            ax_list: List with 2 matplotlib axis. None if new ax_list should be created.
             labels: Labels associated to self and other
             fontsize: Label and title fontsize.
 
@@ -263,7 +293,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         ])
 
         num_plots, ncols, nrows = 2, 2, 1
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
                                                 sharex=False, sharey=False, squeeze=False)
         ax_list = ax_list.ravel()
 
@@ -286,7 +316,8 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         ax.set_xlabel("Matrix element index")
         ylabel = r"$|g^{atm}_{\bf q}|$" if mode == "atom" else r"$|g_{\bf q}|$ (meV)"
         ax.set_ylabel(ylabel)
-        ax.set_title(r"qpt: %s, $\Delta$ > %.1E (%d/%d)" % (repr(self.qpoint), threshold, nshown, ntot), 
+        ax.set_title(r"qpt: %s, $\Delta$ > %.1E (%.1f %%)" % (
+                     repr(self.qpoint), threshold, 100 * nshown / ntot), 
                      fontsize=fontsize)
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
@@ -364,9 +395,13 @@ class GkqRobot(Robot, RobotWithEbands):
                 raise ValueError("Found different list of kpoints in %s" % str(abifile.filepath))
         return ref_kpoints
 
-    #@lazy_property
-    #def qpoints(self):
-    #    return [abifile.qpoint for abifile in self.abifiles]
+    def _check_qpoints_equal(self):
+        """Raises ValueError if different `qpoint` in files."""
+        ref_qpoint = self.abifiles[0].qpoint
+        for i, abifile in enumerate(self.abifiles):
+            if i == 0: continue
+            if abifile.qpoint != ref_qpoint:
+                raise ValueError("Found different qpoint in %s" % str(abifile.filepath))
 
     @add_fig_kwargs
     def plot_gkq2_qpath(self, band_kq, band_k, kpoint=0, with_glr=False, qdamp=None, nu_list=None, # spherical_average=False,
@@ -418,7 +453,6 @@ class GkqRobot(Robot, RobotWithEbands):
             for spin in range(nsppol):
                 gkq_atm = ncvar[spin, ik, :, band_k, band_kq]
                 gkq_atm = gkq_atm[:, 0] + 1j * gkq_atm[:, 1]
-                #gkq_snuq[spin, :, iq] = np.abs(gkq_atm)
 
                 # Transform the gkk matrix elements from (atom, red_direction) basis to phonon-mode basis.
                 gkq_snuq[spin, :, iq] = 0.0
@@ -438,13 +472,13 @@ class GkqRobot(Robot, RobotWithEbands):
             for nu in nu_list:
                 ys = np.abs(gkq_snuq[spin, nu]) * abu.Ha_meV
                 pre_label = kwargs.pop("pre_label",r"$g_{\bf q}$")
-                label = r"%s nu: %s" % (pre_label, nu) if nsppol == 1 else "nu: %s, spin: %s" % (nu, spin)
+                if nsppol == 1: label = r"%s $\nu$: %s" % (pre_label, nu) 
+                if nsppol == 2: label = r"%s $\nu$: %s, spin: %s" % (pre_label, nu, spin) 
                 ax.plot(xs, ys, linestyle="--", label=label)
                 if with_glr:
                     # Plot model with G = 0 and delta_nn'
                     ys = np.abs(gkq_lr[spin, nu]) * abu.Ha_meV
-                    label = r"$g_{\bf q}^{\mathrm{lr}}$ nu: %s" % (
-                            nu if nsppol == 1 else "nu: %s, spin: %s" % (nu, spin))
+                    label = r"$g_{\bf q}^{\mathrm{lr0}}$ $\nu$: %s" % nu
                     ax.plot(xs, ys, linestyle="", marker="o", label=label)
 
         ax.grid(True)
@@ -461,8 +495,7 @@ class GkqRobot(Robot, RobotWithEbands):
         return fig
 
     #@add_fig_kwargs
-    #def plot_gkq2_qpath_with_robots(self, other_robots, all_labels,  band_kq, band_k, kpoint=0, ax=None, **kwargs):
-
+    #def plot_gkq2_qpath_with_robots(self, other_robots, all_labels, band_kq, band_k, kpoint=0, ax=None, **kwargs):
     #    if not isinstance(other_robots, (list, tuple)):
     #        raise TypeError("other_robots should be a list. Received: %s" % type(other_robots))
     #    if len(all_labels) /= 1 + len(other_robots):
@@ -475,6 +508,32 @@ class GkqRobot(Robot, RobotWithEbands):
 
     #    return fig
 
+    @add_fig_kwargs
+    def plot_gkq2_diff(self, iref=0, **kwargs):
+        """
+        Wraps gkq.plot_diff_with_other
+        Produce scatter and histogram plot to compare the gkq matrix elements stored in all the files
+        contained in the robot. Assume all files have the same q-point. Compare the `iref` file with others.
+        kwargs are passed to `plot_diff_with_other`.
+        """
+        if len(self) <= 1: return None
+        self._check_qpoints_equal()
+
+        ncols, nrows = 2, len(self) - 1
+        num_plots = ncols * nrows
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=False, sharey=False, squeeze=False)
+
+        ref_gkq, ref_label = self.abifiles[iref], self.labels[iref]
+        cnt = -1
+        for ifile, (other_label, other_gkq) in enumerate(zip(self.labels, self.abifiles)):
+            if ifile == iref: continue
+            cnt += 1
+            labels = [ref_label, other_label]
+            ref_gkq.plot_diff_with_other(other_gkq, ax_list=ax_mat[cnt], labels=labels, show=False, **kwargs)
+
+        return fig
+
     def yield_figs(self, **kwargs): # pragma: no cover
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
@@ -484,7 +543,7 @@ class GkqRobot(Robot, RobotWithEbands):
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter_ notebook to `nbpath`. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to `nbpath`. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -492,7 +551,8 @@ class GkqRobot(Robot, RobotWithEbands):
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("robot = abilab.GkqRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
-            nbv.new_code_cell("ebands_plotter = robot.get_ebands_plotter()"),
+            nbv.new_code_cell("# robot.plot_gkq2_diff();"),
+            nbv.new_code_cell("# robot.plot_gkq2_qpath(band_kq=0, band_k=0, kpoint=0, with_glr=True, qdamp=None);")
         ])
 
         # Mixins

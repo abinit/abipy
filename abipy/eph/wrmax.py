@@ -11,6 +11,7 @@ from monty.functools import lazy_property
 from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
     rotate_ticklabels, ax_append_title, set_ax_xylabels, ax_share)
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
+from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
 
 
@@ -86,19 +87,20 @@ class WRmaxFile(AbinitNcFile, Has_Structure, NotebookWriter):
         maxw = self.reader.read_value("maxw")
         data = np.max(maxw, axis=0)
         f = {"plot": ax.plot, "semilogy": ax.semilogy, "loglog": ax.loglog}[scale]
-        f(self.rmod, data, marker="o", ls=":", lw=0) #, label="$L_x$" if iatom == 0 else None)
+        f(self.rmod, data, marker="o", ls=":", lw=0, **kwargs)
         ax.grid(True)
         ax.set_ylabel(r"$Max_{({\bf{r}}, idir, ipert)} \| W({\bf{r}}, {\bf{R}}, idir, ipert) \|$")
         ax.set_xlabel(r"$\|{\bf{R}}\|$ (Bohr)")
 
-        ax.set_title("dvdb_add_lr %d, alpha_gmin: %s, symv1: %d" % (self.dvdb_add_lr, self.alpha_gmin, self.symv1), 
-                     fontsize=fontsize)
+        if kwargs.pop("with_title", True):
+            ax.set_title("dvdb_add_lr %d, alpha_gmin: %s, symv1: %d" % (self.dvdb_add_lr, self.alpha_gmin, self.symv1), 
+                         fontsize=fontsize)
         return fig
 
     @add_fig_kwargs
     def plot_perts(self, scale="semilogy", fontsize=8, **kwargs):
         """
-        Plot the decay of max_r |W(R, r, idir, ipert)| for the individual perturbations
+        Plot the decay of max_r |W(R, r, idir, ipert)| for the individual atomic perturbations
 
         Args:
             scale: "semilogy", "loglog" or "plot".
@@ -136,14 +138,14 @@ class WRmaxFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
-        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        This function generates a predefined list of matplotlib figures with minimal input from the user.
         """
         yield self.plot(show=False, **kwargs)
         yield self.plot_perts(show=False, **kwargs)
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -153,6 +155,45 @@ class WRmaxFile(AbinitNcFile, Has_Structure, NotebookWriter):
             nbv.new_code_cell("print(ncfile)"),
             nbv.new_code_cell("ncfile.plot();"),
             nbv.new_code_cell("ncfile.plot_perts();"),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
+
+
+class WrmaxRobot(Robot):
+    """
+    This robot analyzes the results contained in multiple WRmax.nc files.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: WrmaxRobot
+    """
+    EXT = "Wrmax"
+
+    @add_fig_kwargs
+    def plot(self, ax=None, **kwargs):
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        for label, abifile in self.items():
+            abifile.plot(ax=ax, label=label, with_title=False, show=False, **kwargs)
+        return fig
+
+    def yield_figs(self, **kwargs): # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        Used in abiview.py to get a quick look at the results.
+        """
+        yield self.plot(show=False)
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write a jupyter_ notebook to `nbpath`. If nbpath is None, a temporary file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        nb.cells.extend([
+            #nbv.new_markdown_cell("# This is a markdown cell"),
+            nbv.new_code_cell("robot = abilab.WrmaxRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+            nbv.new_code_cell("robot.plot();"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)

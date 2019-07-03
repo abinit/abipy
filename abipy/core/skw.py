@@ -49,7 +49,7 @@ def find_degs_sk(enesb, atol):
     Args:
         enesb: Iterable with energies for the different bands.
             Energies are assumed to be ordered.
-        atol: Absolute tolerance. Two states are degerated if they differ by less than `atol`.
+        atol: Absolute tolerance. Two states are degenerated if they differ by less than `atol`.
 
     Return:
         List of lists. The i-th item contains the indices of the degenerates states
