@@ -9,7 +9,7 @@ import pandas as pd
 import pymatgen.core.units as units
 import abipy.core.abinit_units as abu
 
-from collections import OrderedDict, Iterable, defaultdict
+from collections import OrderedDict, defaultdict
 from tabulate import tabulate
 from monty.string import is_string, list_strings, marquee
 from monty.termcolor import cprint

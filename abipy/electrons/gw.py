@@ -8,7 +8,7 @@ import warnings
 import numpy as np
 import pandas as pd
 
-from collections import namedtuple, OrderedDict, Iterable, defaultdict
+from collections import namedtuple, OrderedDict, defaultdict
 from six.moves import cStringIO
 from tabulate import tabulate
 from monty.string import list_strings, is_string, marquee
