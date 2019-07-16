@@ -1310,7 +1310,7 @@ class MergeDdb(object):
 
         return ddk_tasks, bec_tasks
 
-    def merge_ddb_files(self, delete_source_ddbs=True, only_dfpt_tasks=True,
+    def merge_ddb_files(self, delete_source_ddbs=False, only_dfpt_tasks=True,
                         exclude_tasks=None, include_tasks=None):
         """
         This method is called when all the q-points have been computed.
