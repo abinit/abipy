@@ -440,7 +440,7 @@ class SymmOp(Operation, SlotPickleMixin):
         return wrap_in_ucell(rotm1_rmt) if in_ucell else rotm1_rmt
 
 
-class OpSequence(collections.Sequence):
+class OpSequence(collections.abc.Sequence):
     """
     Mixin class providing the basic method that are common to containers of operations.
     """

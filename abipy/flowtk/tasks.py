@@ -3670,7 +3670,7 @@ class DfptTask(AbinitTask):
 
                     # Ensure link has .nc extension if iomode 3
                     if out_wfk.endswith(".nc"): bname = bname + ".nc"
-                    print(d, out_wfk, "bname", bname)
+                    #print(d, out_wfk, "bname", bname)
                     if not os.path.exists(self.indir.path_in(bname)):
                         os.symlink(out_wfk, self.indir.path_in(bname))
 

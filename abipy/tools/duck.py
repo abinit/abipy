@@ -48,7 +48,7 @@ def is_number_like(obj):
 def is_listlike(obj):
     #if isinstance(branch, (list, tuple, np.ndarray)):
     if isinstance(obj, np.ndarray): return True
-    if not isinstance(obj, collections.Sequence): return False
+    if not isinstance(obj, collections.abc.Sequence): return False
     if is_string(obj): return False
 
     try:

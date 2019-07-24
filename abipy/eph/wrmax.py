@@ -140,8 +140,8 @@ class WRmaxFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         This function generates a predefined list of matplotlib figures with minimal input from the user.
         """
-        yield self.plot(show=False, **kwargs)
-        yield self.plot_perts(show=False, **kwargs)
+        yield self.plot(show=False)
+        yield self.plot_perts(show=False)
 
     def write_notebook(self, nbpath=None):
         """

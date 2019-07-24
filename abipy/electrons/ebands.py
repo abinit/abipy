@@ -14,7 +14,8 @@ import numpy as np
 import pandas as pd
 import pymatgen.core.units as units
 
-from collections import OrderedDict, namedtuple, Iterable
+from collections import OrderedDict, namedtuple
+from collections.abc import Iterable
 from monty.string import is_string, list_strings, marquee
 from monty.termcolor import cprint
 from monty.json import MSONable, MontyEncoder

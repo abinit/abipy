@@ -14,7 +14,7 @@ __all__ = [
 ]
 
 
-class GSphere(collections.Sequence):
+class GSphere(collections.abc.Sequence):
     """Descriptor-class for the G-sphere."""
 
     def __init__(self, ecut, lattice, kpoint, gvecs, istwfk=1):

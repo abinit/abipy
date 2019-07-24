@@ -27,7 +27,7 @@ from .utils import as_bool
 #    :return: value, potentially nested, or default if not found
 #    :raise: AttributeError, if record is not a dict or key is not found.
 #    """
-#    if not isinstance(rec, collections.Mapping):
+#    if not isinstance(rec, collections..abc.Mapping):
 #        raise AttributeError('input record must act like a dict')
 #    if not rec:
 #        raise AttributeError('Empty dict')
@@ -36,7 +36,7 @@ from .utils import as_bool
 #        return rec.get(key)
 #
 #    for key_part in key.split('.'):
-#        if not isinstance(rec, collections.Mapping):
+#        if not isinstance(rec, collections.abc.Mapping):
 #            raise AttributeError('not a mapping for rec_part %s' % key_part)
 #        if not key_part in rec:
 #            raise AttributeError('key %s not in dict %s' % key)
@@ -64,7 +64,7 @@ def scan_nestdict(d, key):
                 return res
         return None
 
-    if not isinstance(d, collections.Mapping):
+    if not isinstance(d, collections.abc.Mapping):
         return None
 
     if key in d:

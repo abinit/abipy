@@ -773,7 +773,7 @@ class Kpoint(SlotPickleMixin):
         return KpointStar(self.lattice, frac_coords, weights=None, names=len(frac_coords) * [self.name])
 
 
-class KpointList(collections.Sequence):
+class KpointList(collections.abc.Sequence):
     """
     Base class defining a sequence of |Kpoint| objects. Essentially consists
     of base methods implementing the sequence protocol and helper functions.

@@ -4,7 +4,6 @@ A Flow is a container for Works, and works consist of tasks.
 Flows are the final objects that can be dumped directly to a pickle file on disk
 Flows are executed using abirun (abipy).
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 import sys
@@ -72,7 +71,7 @@ class FlowResults(NodeResults):
     @classmethod
     def from_node(cls, flow):
         """Initialize an instance from a Work instance."""
-        new = super(FlowResults, cls).from_node(flow)
+        new = super().from_node(flow)
 
         # Will put all files found in outdir in GridFs
         d = {os.path.basename(f): f for f in flow.outdir.list_filepaths()}
@@ -156,7 +155,7 @@ class Flow(Node, NodeContainer, MSONable):
         if isinstance(obj, cls): return obj
         if is_string(obj):
             return cls.pickle_load(obj)
-        elif isinstance(obj, collections.Mapping):
+        elif isinstance(obj, collections.abc.Mapping):
             return cls.from_dict(obj)
         else:
             raise TypeError("Don't know how to convert type %s into a Flow" % type(obj))
@@ -174,7 +173,7 @@ class Flow(Node, NodeContainer, MSONable):
                           -1 denotes the latest version supported by the python interpreter.
             remove: attempt to remove working directory `workdir` if directory already exists.
         """
-        super(Flow, self).__init__()
+        super().__init__()
 
         if workdir is not None:
             if remove and os.path.exists(workdir): shutil.rmtree(workdir)
@@ -2511,7 +2510,7 @@ class G0W0WithQptdmFlow(Flow):
             manager: :class:`TaskManager` object used to submit the jobs
                      Initialized from manager.yml if manager is None.
         """
-        super(G0W0WithQptdmFlow, self).__init__(workdir, manager=manager)
+        super().__init__(workdir, manager=manager)
 
         # Register the first work (GS + NSCF calculation)
         bands_work = self.register_work(BandStructureWork(scf_input, nscf_input))
@@ -2796,7 +2795,7 @@ class PhononFlow(Flow):
         print("Final DDB file available at %s" % out_ddb)
 
         # Call the method of the super class.
-        retcode = super(PhononFlow, self).finalize()
+        retcode = super().finalize()
         return retcode
 
 
@@ -2871,7 +2870,7 @@ class NonLinearCoeffFlow(Flow):
         print("Final DDB file available at %s" % out_ddb)
 
         # Call the method of the super class.
-        retcode = super(NonLinearCoeffFlow, self).finalize()
+        retcode = super().finalize()
         print("retcode", retcode)
         #if retcode != 0: return retcode
         return retcode

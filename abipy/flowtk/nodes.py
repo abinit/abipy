@@ -2,14 +2,12 @@
 """
 This module defines the Node class that is inherited by Task, Work and Flow objects.
 """
-from __future__ import division, print_function, unicode_literals
 
 import sys
 import os
 import time
 import collections
 import abc
-import six
 import numpy as np
 
 from pprint import pprint
@@ -259,7 +257,7 @@ class Product(object):
 class GridFsFile(AttrDict):
     """Information on a file that will stored in the MongoDb gridfs collection."""
     def __init__(self, path, fs_id=None, mode="b"):
-        super(GridFsFile, self).__init__(path=path, fs_id=fs_id, mode=mode)
+        super().__init__(path=path, fs_id=fs_id, mode=mode)
 
 
 class NodeResults(dict, MSONable):
@@ -295,7 +293,7 @@ class NodeResults(dict, MSONable):
         return node.Results(node, **kwargs)
 
     def __init__(self, node, **kwargs):
-        super(NodeResults, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.node = node
 
         if "in" not in self: self["in"] = Namespace()
@@ -439,7 +437,7 @@ class SpectatorNodeError(NodeError):
     """
 
 
-class Node(six.with_metaclass(abc.ABCMeta, object)):
+class Node(metaclass=abc.ABCMeta):
     """
     Abstract base class defining the interface that must be
     implemented by the nodes of the calculation.
@@ -525,7 +523,7 @@ class Node(six.with_metaclass(abc.ABCMeta, object)):
     #def __setattr__(self, name, value):
     #    if self.in_spectator_mode:
     #        raise RuntimeError("You should not call __setattr__ in spectator_mode")
-    #    return super(Node, self).__setattr__(name,value)
+    #    return super().__setattr__(name,value)
 
     @lazy_property
     def color_hex(self):
@@ -702,7 +700,7 @@ class Node(six.with_metaclass(abc.ABCMeta, object)):
             deps: List of :class:`Dependency` objects specifying the dependencies of the node.
                   or dictionary mapping nodes to file extensions e.g. {task: "DEN"}
         """
-        if isinstance(deps, collections.Mapping):
+        if isinstance(deps, collections.abc.Mapping):
             # Convert dictionary into list of dependencies.
             deps = [Dependency(node, exts) for node, exts in deps.items()]
 
@@ -955,7 +953,7 @@ class FileNode(Node):
     color_rgb = np.array((102, 51, 255)) / 255
 
     def __init__(self, filename):
-        super(FileNode, self).__init__()
+        super().__init__()
         self.filepath = os.path.abspath(filename)
 
         # Directories with input|output|temporary data.
@@ -995,7 +993,7 @@ class FileNode(Node):
         return self.status
 
     def get_results(self, **kwargs):
-        results = super(FileNode, self).get_results(**kwargs)
+        results = super().get_results(**kwargs)
         #results.register_gridfs_files(filepath=self.filepath)
         return results
 
