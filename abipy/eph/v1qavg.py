@@ -47,7 +47,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return {}
 
     def __str__(self):
-        return self.to_string(with_doc=False)
+        return self.to_string()
 
     def to_string(self, verbose=0):
         """String representation."""
@@ -65,7 +65,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         return "\n".join(lines)
 
-    def _make_ticks_and_labels(self):
+    def make_ticks_and_labels(self):
         # Find the k-point names in the pymatgen database.
 
         od = OrderedDict()
@@ -75,11 +75,11 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         # the labels for the extrema of the path are always defined.
         od[0] = " "
 
-        for idx, kpoint in enumerate(self.qpoints):
-            name = kpoint.name if kpoint.name is not None else self.structure.findname_in_hsym_stars(kpoint)
+        for idx, qpoint in enumerate(self.qpoints):
+            name = qpoint.name if qpoint.name is not None else self.structure.findname_in_hsym_stars(qpoint)
             if name:
                 od[idx] = name
-                if kpoint.name is None: kpoint.set_name(name)
+                if qpoint.name is None: qpoint.set_name(name)
 
         last = len(self.qpoints) - 1
         if last not in od: od[last] = " "
@@ -87,7 +87,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return list(od.keys()), list(od.values())
 
     @add_fig_kwargs
-    def plot(self, fontsize=8, ispden=0, **kwargs):
+    def plot(self, fontsize=8, ispden=0, sharey=True, **kwargs):
         """
         Plot
 
@@ -105,45 +105,51 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         natom = len(self.structure)
         nrows, ncols = natom, 3
-        num_plots = ncols * nrows
 
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey=True, squeeze=False)
+                                               sharex=True, sharey=sharey, squeeze=False)
 
         xs = np.arange(len(self.qpoints))
-        ticks, labels = self._make_ticks_and_labels()
+        ticks, labels = self.make_ticks_and_labels()
+        style = dict(marker=".", markersize=2)
+
+        def texlab(reim, what):
+            what = {
+                "v1q": r"v1_{\bf q}", 
+                "v1lr": r"v1_{\mathrm{lr}}",
+            }[what]
+            return r"$\%s \langle %s \rangle$" % (reim, what)
 
         for ip, ax in enumerate(ax_mat.ravel()):
             idir = ip % 3
             iat = (ip - idir) // 3
-
-            #ax.plot(xs, v1scf_abs_avg[:, iat, idir, ispden, 0], label="Re v1scf_abs_avg")
-            #ax.plot(xs, v1scf_abs_avg[:, iat, idir, ispden, 1], label="Im v1scf_abs_avg")
-
-            ax.plot(xs, v1scf_avg[:, iat, idir, ispden, 0], label=r"$\Re \langle v1q \rangle$")
-            ax.plot(xs, v1scf_avg[:, iat, idir, ispden, 1], label=r"$\Im \langle v1q \rangle$")
-            ax.plot(xs, v1lr_avg[:, iat, idir, ispden, 0], label=r"$\Re \langle v1lr \rangle$")
-            ax.plot(xs, v1lr_avg[:, iat, idir, ispden, 1], label=r"$\Im \langle v1lr \rangle$")
+            
+            #ax.plot(xs, v1scf_abs_avg[:, iat, idir, ispden, 0], label="Re v1scf_abs_avg", **style)
+            #ax.plot(xs, v1scf_abs_avg[:, iat, idir, ispden, 1], label="Im v1scf_abs_avg", **style)
+            ax.plot(xs, v1scf_avg[:, iat, idir, ispden, 0], label=texlab("Re", "v1q"), **style)
+            ax.plot(xs, v1scf_avg[:, iat, idir, ispden, 1], label=texlab("Im", "v1q"), **style)
+            ax.plot(xs, v1lr_avg[:, iat, idir, ispden, 0], label=texlab("Re", "v1lr"), **style)
+            ax.plot(xs, v1lr_avg[:, iat, idir, ispden, 1], label=texlab("Im", "v1lr"), **style)
 
             ax.grid(True)
-            if iat == natom - 1: ax.set_xlabel("Wave vector")
-            #if idir == 0: ax.set_ylabel(r"$\|{\bf{R}}\|$ (Bohr)")
+            if iat == natom - 1: ax.set_xlabel("Wave Vector")
+            if idir == 0: ax.set_ylabel(r"Hartree/Bohr")
 
             if ticks:
                 ax.set_xticks(ticks, minor=False)
-                ax.set_xticklabels(labels, fontdict=None, minor=False, size=kwargs.pop("qlabel_size", "large"))
+                ax.set_xticklabels(labels, fontdict=None, minor=False, size=kwargs.get("qlabel_size", "large"))
+                ax.set_xlim(ticks[0], ticks[-1])
 
             if ip == 0:
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
             site = self.structure[iat]
-            ax.set_title("idir: %d, iat: %d, %s" % (idir, iat, site.specie.symbol), fontsize=fontsize)
+            s = "%s [%.3f, %.3f, %.3f]" % (site.specie.symbol, site.frac_coords[0], site.frac_coords[1], site.frac_coords[2])
+            ax.set_title("idir: %d, iat: %d, %s" % (idir, iat, s), fontsize=fontsize)
 
         #if kwargs.pop("with_title", True):
         #    ax.set_title("dvdb_add_lr %d, alpha_gmin: %s, symv1: %d" % (self.dvdb_add_lr, self.alpha_gmin, self.symv1), 
         #                 fontsize=fontsize)
-
-        #fig.suptitle("qpoint: %s" % repr(self.qpoint), fontsize=fontsize)
 
         return fig
 
@@ -178,17 +184,51 @@ class V1qAvgRobot(Robot):
     """
     EXT = "V1QAVG"
 
-    #@add_fig_kwargs
-    #def plot(self, ax=None, **kwargs):
-    #    ax, fig, plt = get_ax_fig_plt(ax=ax)
-    #    for label, abifile in self.items():
-    #        abifile.plot(ax=ax, label=label, with_title=False, show=False, **kwargs)
-    #    return fig
+    @add_fig_kwargs
+    def plot(self, ispden=0, sharey=True, **kwargs):
+
+        # Caveat: No check is done on the consistency among structures and qpoints.
+        structure = self.abifiles.structure
+        qpoints = self.abifiles.qpoints
+
+        natom = len(structure)
+        nrows, ncols = natom, 3
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=True, sharey=sharey, squeeze=False)
+
+        xs = np.arange(len(qpoints))
+        ticks, labels = self.abifiles[0].make_ticks_and_labels()
+
+        data = {label: abifile.reader.read_value("v1scf_avg") for label, abifile in self.items()}
+        style = dict(marker=".", markersize=2)
+
+        for ip, ax in enumerate(ax_mat.ravel()):
+            idir = ip % 3
+            iat = (ip - idir) // 3
+
+            for ifile, (label, abifile) in enumerate(self.items()):
+                v1scf_avg = data[label]
+                ax.plot(xs, v1scf_avg[:, iat, idir, ispden, 0], 
+                        label=r"$\Re \langle v1_{\mathrm{q}} \rangle$" if ip == 0 else None, **style)
+                ax.plot(xs, v1scf_avg[:, iat, idir, ispden, 1], 
+                        label=r"$\Im \langle v1_{\mathrm{q}} \rangle$" if ip == 0 else None, **style)
+
+            ax.grid(True)
+            if iat == natom - 1: ax.set_xlabel("Wave Vector")
+                                                                                                                 
+            if ticks:
+                ax.set_xticks(ticks, minor=False)
+                ax.set_xticklabels(labels, fontdict=None, minor=False, size=kwargs.get("qlabel_size", "large"))
+                ax.set_xlim(ticks[0], ticks[-1])
+                                                                                                                
+            if ip == 0:
+                ax.legend(loc="best", fontsize=fontsize, shadow=True)
+                
+        return fig
 
     def yield_figs(self, **kwargs): # pragma: no cover
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
-        Used in abiview.py to get a quick look at the results.
         """
         yield self.plot(show=False)
 

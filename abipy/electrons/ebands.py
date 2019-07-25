@@ -2017,7 +2017,6 @@ class ElectronBands(Has_Structure):
             #print("ticks", ticks, "\nlabels", labels)
             ax.set_xticks(ticks, minor=False)
             ax.set_xticklabels(labels, fontdict=None, minor=False, size=kwargs.pop("klabel_size", "large"))
-
             #print("ticks", len(ticks), ticks)
             ax.set_xlim(ticks[0], ticks[-1])
 
