@@ -9,12 +9,20 @@ import numpy as np
 from collections import OrderedDict
 from monty.string import marquee
 from monty.functools import lazy_property
-from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
-    rotate_ticklabels, ax_append_title, set_ax_xylabels, ax_share)
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, linestyles
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
 from abipy.core.kpoints import Kpath
 from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
+
+
+def texlab(reim, what):
+    what = {
+        "v1q": r"v1_{\bf q}", 
+        "v1lr": r"v1_{\mathrm{lr}}",
+        "Dv1q": r"v1_{\bf q} - v1_{\mathrm{lr}}", 
+    }[what]
+    return r"$\%s \langle %s \rangle$" % (reim, what)
 
 
 class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
@@ -101,6 +109,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         # nctkarr_t("v1lr_avg",  "dp", "two, nspden, three, natom, nqpt")
         v1scf_avg = self.reader.read_value("v1scf_avg")
         v1lr_avg = self.reader.read_value("v1lr_avg")
+        v1scfmlr_avg = self.reader.read_value("v1scfmlr_avg")
         #v1scf_abs_avg = self.reader.read_value("v1scf_abs_avg")
 
         natom = len(self.structure)
@@ -112,24 +121,21 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         xs = np.arange(len(self.qpoints))
         ticks, labels = self.make_ticks_and_labels()
         style = dict(marker=".", markersize=2)
-
-        def texlab(reim, what):
-            what = {
-                "v1q": r"v1_{\bf q}", 
-                "v1lr": r"v1_{\mathrm{lr}}",
-            }[what]
-            return r"$\%s \langle %s \rangle$" % (reim, what)
+        #ls = linestyles["dashdotted"]
 
         for ip, ax in enumerate(ax_mat.ravel()):
             idir = ip % 3
             iat = (ip - idir) // 3
-            
+
+            ax.plot(xs, v1scf_avg[:, iat, idir, ispden, 0], label=texlab("Re", "v1q"), **style)
+            ax.plot(xs, v1lr_avg[:, iat, idir, ispden, 0], label=texlab("Re", "v1lr"), **style)
+            #ax.plot(xs, v1scfmlr_avg[:, iat, idir, ispden, 0], label=texlab("Re", "Dv1q"), **style)
+            ax.plot(xs, v1scf_avg[:, iat, idir, ispden, 1], label=texlab("Im", "v1q"), **style)
+            ax.plot(xs, v1lr_avg[:, iat, idir, ispden, 1], label=texlab("Im", "v1lr"), **style)
+            #ax.plot(xs, v1scfmlr_avg[:, iat, idir, ispden, 1], label=texlab("Im", "Dv1q"), **style)
+
             #ax.plot(xs, v1scf_abs_avg[:, iat, idir, ispden, 0], label="Re v1scf_abs_avg", **style)
             #ax.plot(xs, v1scf_abs_avg[:, iat, idir, ispden, 1], label="Im v1scf_abs_avg", **style)
-            ax.plot(xs, v1scf_avg[:, iat, idir, ispden, 0], label=texlab("Re", "v1q"), **style)
-            ax.plot(xs, v1scf_avg[:, iat, idir, ispden, 1], label=texlab("Im", "v1q"), **style)
-            ax.plot(xs, v1lr_avg[:, iat, idir, ispden, 0], label=texlab("Re", "v1lr"), **style)
-            ax.plot(xs, v1lr_avg[:, iat, idir, ispden, 1], label=texlab("Im", "v1lr"), **style)
 
             ax.grid(True)
             if iat == natom - 1: ax.set_xlabel("Wave Vector")
@@ -185,11 +191,12 @@ class V1qAvgRobot(Robot):
     EXT = "V1QAVG"
 
     @add_fig_kwargs
-    def plot(self, ispden=0, sharey=True, **kwargs):
+    def plot(self, ispden=0, sharey=True, fontsize=8, **kwargs):
 
         # Caveat: No check is done on the consistency among structures and qpoints.
-        structure = self.abifiles.structure
-        qpoints = self.abifiles.qpoints
+        ref_file = self.abifiles[0]
+        structure = ref_file.structure
+        qpoints = ref_file.qpoints
 
         natom = len(structure)
         nrows, ncols = natom, 3
@@ -197,7 +204,7 @@ class V1qAvgRobot(Robot):
                                                sharex=True, sharey=sharey, squeeze=False)
 
         xs = np.arange(len(qpoints))
-        ticks, labels = self.abifiles[0].make_ticks_and_labels()
+        ticks, labels = ref_file.make_ticks_and_labels()
 
         data = {label: abifile.reader.read_value("v1scf_avg") for label, abifile in self.items()}
         style = dict(marker=".", markersize=2)
@@ -209,20 +216,26 @@ class V1qAvgRobot(Robot):
             for ifile, (label, abifile) in enumerate(self.items()):
                 v1scf_avg = data[label]
                 ax.plot(xs, v1scf_avg[:, iat, idir, ispden, 0], 
-                        label=r"$\Re \langle v1_{\mathrm{q}} \rangle$" if ip == 0 else None, **style)
+                        label="%s %s" % (texlab("Re", "v1q"), label) if ip == 0 else None, 
+                        **style)
                 ax.plot(xs, v1scf_avg[:, iat, idir, ispden, 1], 
-                        label=r"$\Im \langle v1_{\mathrm{q}} \rangle$" if ip == 0 else None, **style)
+                        label="%s %s" % (texlab("Im", "v1q"), label) if ip == 0 else None, 
+                        **style)
+
+            if ip == 0:
+                ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
             ax.grid(True)
             if iat == natom - 1: ax.set_xlabel("Wave Vector")
+
+            site = ref_file.structure[iat]
+            s = "%s [%.3f, %.3f, %.3f]" % (site.specie.symbol, site.frac_coords[0], site.frac_coords[1], site.frac_coords[2])
+            ax.set_title("idir: %d, iat: %d, %s" % (idir, iat, s), fontsize=fontsize)
                                                                                                                  
             if ticks:
                 ax.set_xticks(ticks, minor=False)
                 ax.set_xticklabels(labels, fontdict=None, minor=False, size=kwargs.get("qlabel_size", "large"))
                 ax.set_xlim(ticks[0], ticks[-1])
-                                                                                                                
-            if ip == 0:
-                ax.legend(loc="best", fontsize=fontsize, shadow=True)
                 
         return fig
 
