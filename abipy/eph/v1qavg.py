@@ -7,7 +7,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import numpy as np
 
 from collections import OrderedDict
-from monty.string import marquee
+from monty.string import list_strings, marquee
 from monty.functools import lazy_property
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, linestyles
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
@@ -16,13 +16,21 @@ from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
 
 
-def texlab(reim, what):
-    what = {
-        "v1q": r"v1_{\bf q}", 
-        "v1lr": r"v1_{\mathrm{lr}}",
-        "Dv1q": r"v1_{\bf q} - v1_{\mathrm{lr}}", 
+def _get_style(reim, what):
+    symb, linestyle, linewidth, alpha = {
+        "v1scf_avg": (r"v1_{\bf q}", "-", 1, 2.0),
+        "v1lr_avg": (r"v1_{\mathrm{lr}}", "--", 1, 2.0),
+        "v1scfmlr_avg": (r"(v1_{\bf q} - v1_{\mathrm{lr}})", "-.", 1, 2.0),
     }[what]
-    return r"$\%s \langle %s \rangle$" % (reim, what)
+
+    return dict(
+        #marker="x", markersize=1, 
+        label=r"$\langle \%s %s \rangle$" % ({0: "Re", 1: "Im"}[reim], symb), 
+        color={0: "blue", 1: "red"}[reim],
+        linestyle=linestyle,
+        linewidth=linewidth,
+        alpha=alpha,
+    )
 
 
 class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
@@ -95,7 +103,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return list(od.keys()), list(od.values())
 
     @add_fig_kwargs
-    def plot(self, fontsize=8, ispden=0, sharey=True, **kwargs):
+    def plot(self, what_list="all", fontsize=8, ispden=0, sharey=False, **kwargs):
         """
         Plot
 
@@ -105,40 +113,31 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         Return: |matplotlib-Figure|
         """
-        # nctkarr_t("v1scf_avg", "dp", "two, nspden, three, natom, nqpt")
-        # nctkarr_t("v1lr_avg",  "dp", "two, nspden, three, natom, nqpt")
-        v1scf_avg = self.reader.read_value("v1scf_avg")
-        v1lr_avg = self.reader.read_value("v1lr_avg")
-        v1scfmlr_avg = self.reader.read_value("v1scfmlr_avg")
-        #v1scf_abs_avg = self.reader.read_value("v1scf_abs_avg")
+        #all_varnames = ["v1scf_avg", "v1lr_avg", "v1scfmlr_avg", "v1scf_abs_avg"]
+        what_list = list_strings(what_list) if what_list != "all" else ["v1scf_avg", "v1lr_avg"]
+        data = {}
+        for vname in what_list:
+            # nctkarr_t("v1scf_avg", "dp", "two, nspden, three, natom, nqpt")
+            data[vname] = self.reader.read_value(vname)
 
         natom = len(self.structure)
         nrows, ncols = natom, 3
-
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                sharex=True, sharey=sharey, squeeze=False)
 
         xs = np.arange(len(self.qpoints))
         ticks, labels = self.make_ticks_and_labels()
-        style = dict(marker=".", markersize=2)
-        #ls = linestyles["dashdotted"]
 
         for ip, ax in enumerate(ax_mat.ravel()):
             idir = ip % 3
             iat = (ip - idir) // 3
-
-            ax.plot(xs, v1scf_avg[:, iat, idir, ispden, 0], label=texlab("Re", "v1q"), **style)
-            ax.plot(xs, v1lr_avg[:, iat, idir, ispden, 0], label=texlab("Re", "v1lr"), **style)
-            #ax.plot(xs, v1scfmlr_avg[:, iat, idir, ispden, 0], label=texlab("Re", "Dv1q"), **style)
-            ax.plot(xs, v1scf_avg[:, iat, idir, ispden, 1], label=texlab("Im", "v1q"), **style)
-            ax.plot(xs, v1lr_avg[:, iat, idir, ispden, 1], label=texlab("Im", "v1lr"), **style)
-            #ax.plot(xs, v1scfmlr_avg[:, iat, idir, ispden, 1], label=texlab("Im", "Dv1q"), **style)
-
-            #ax.plot(xs, v1scf_abs_avg[:, iat, idir, ispden, 0], label="Re v1scf_abs_avg", **style)
-            #ax.plot(xs, v1scf_abs_avg[:, iat, idir, ispden, 1], label="Im v1scf_abs_avg", **style)
+            for reim in (0, 1):
+                for vname in what_list:
+                    ys = data[vname][:, iat, idir, ispden, reim]
+                    ax.plot(xs, ys, **_get_style(reim, vname))
 
             ax.grid(True)
-            if iat == natom - 1: ax.set_xlabel("Wave Vector")
+            if iat == natom - 1: ax.set_xlabel("Q Wave Vector")
             if idir == 0: ax.set_ylabel(r"Hartree/Bohr")
 
             if ticks:
@@ -163,7 +162,8 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         This function generates a predefined list of matplotlib figures with minimal input from the user.
         """
-        yield self.plot(show=False)
+        yield self.plot(what_list="v1scfmlr_avg", title=r"$v1_{\bf q} - v1_{\bf q}^{\mathrm{LR}}$", show=False)
+        yield self.plot(title=r"$v1_{\bf q}\,vs\,v1_{\bfq}^{\mathrm{LR}}$", show=False)
 
     def write_notebook(self, nbpath=None):
         """
@@ -190,43 +190,56 @@ class V1qAvgRobot(Robot):
     """
     EXT = "V1QAVG"
 
-    @add_fig_kwargs
-    def plot(self, ispden=0, sharey=True, fontsize=8, **kwargs):
+    @lazy_property
+    def qpoints(self):
+        if len(self) == 1: return self.abifiles[0].qpoints
 
-        # Caveat: No check is done on the consistency among structures and qpoints.
+        if (any(len(ncfile.qpoints) != len(self.abifiles[0].qpoints) for ncfile in self.abifiles)):
+            raise RuntimeError("Assuming ncfiles with same number of q-points.")
+
+        for abifile in self.abifiles[1:]:
+            if np.any(np.abs(abifile.qpoints.frac_coords - self.abifiles[0].qpoints.frac_coords) > 1e-3):
+                raise RuntimeError("Found different q-points!")
+
+        return self.abifiles[0].qpoints
+
+    @add_fig_kwargs
+    def plot(self, ispden=0, sharey=False, fontsize=8, **kwargs):
+
+        # Caveat: No check is done on the consistency among structures
         ref_file = self.abifiles[0]
         structure = ref_file.structure
-        qpoints = ref_file.qpoints
 
         natom = len(structure)
         nrows, ncols = natom, 3
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                sharex=True, sharey=sharey, squeeze=False)
 
-        xs = np.arange(len(qpoints))
+        xs = np.arange(len(self.qpoints))
         ticks, labels = ref_file.make_ticks_and_labels()
 
-        data = {label: abifile.reader.read_value("v1scf_avg") for label, abifile in self.items()}
+        vname = "v1scf_avg"
+        data_file = {abilabel: abifile.reader.read_value(vname) for abilabel, abifile in self.items()}
         style = dict(marker=".", markersize=2)
 
         for ip, ax in enumerate(ax_mat.ravel()):
             idir = ip % 3
             iat = (ip - idir) // 3
 
-            for ifile, (label, abifile) in enumerate(self.items()):
-                v1scf_avg = data[label]
-                ax.plot(xs, v1scf_avg[:, iat, idir, ispden, 0], 
-                        label="%s %s" % (texlab("Re", "v1q"), label) if ip == 0 else None, 
-                        **style)
-                ax.plot(xs, v1scf_avg[:, iat, idir, ispden, 1], 
-                        label="%s %s" % (texlab("Im", "v1q"), label) if ip == 0 else None, 
-                        **style)
+            for ifile, (abilabel, abifile) in enumerate(self.items()):
+                v1scf_avg = data_file[abilabel]
+                for reim in (0, 1):
+                    style = _get_style(reim, vname)
+                    label = "%s %s" % (style.pop("label"), abilabel)
+                    style["linestyle"] = {0: "-", 1: "--", 2: "-.", 3: ":"}[ifile]
+                    ax.plot(xs, v1scf_avg[:, iat, idir, ispden, reim], label=label if ip == 0 else None, **style)
 
             if ip == 0:
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
             ax.grid(True)
-            if iat == natom - 1: ax.set_xlabel("Wave Vector")
+            if iat == natom - 1: ax.set_xlabel("Q Wave Vector")
+            if idir == 0: ax.set_ylabel(r"Hartree/Bohr")
 
             site = ref_file.structure[iat]
             s = "%s [%.3f, %.3f, %.3f]" % (site.specie.symbol, site.frac_coords[0], site.frac_coords[1], site.frac_coords[2])
