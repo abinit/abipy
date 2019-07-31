@@ -24,8 +24,9 @@ class WRmaxFile(AbinitNcFile, Has_Structure, NotebookWriter):
         self.has_zeff = bool(r.read_value("has_zeff"))
         self.has_dielt = bool(r.read_value("has_dielt"))
         self.dvdb_add_lr = r.read_value("dvdb_add_lr")
-        self.symv1 = bool(r.read_value("symv1"))
-        self.alpha_gmin = r.read_value("alpha_gmin")
+        self.symv1 = r.read_value("symv1")
+        #self.symv1 = -1
+        self.qdamp = r.read_value("qdamp")
 
     @lazy_property
     def structure(self):
@@ -72,7 +73,7 @@ class WRmaxFile(AbinitNcFile, Has_Structure, NotebookWriter):
     @add_fig_kwargs
     def plot(self, scale="semilogy", ax=None, fontsize=8, **kwargs):
         """
-        Plot the decay of max_{r, idir, ipert} |W(R, r, idir, ipert)|
+        Plot the decay of max_{r,idir,ipert} |W(R,r,idir,ipert)|
 
         Args:
             scale: "semilogy", "loglog" or "plot".
@@ -93,14 +94,14 @@ class WRmaxFile(AbinitNcFile, Has_Structure, NotebookWriter):
         ax.set_xlabel(r"$\|{\bf{R}}\|$ (Bohr)")
 
         if kwargs.pop("with_title", True):
-            ax.set_title("dvdb_add_lr %d, alpha_gmin: %s, symv1: %d" % (self.dvdb_add_lr, self.alpha_gmin, self.symv1), 
+            ax.set_title("dvdb_add_lr %d, qdamp: %s, symv1: %d" % (self.dvdb_add_lr, self.qdamp, self.symv1), 
                          fontsize=fontsize)
         return fig
 
     @add_fig_kwargs
     def plot_perts(self, scale="semilogy", fontsize=8, **kwargs):
         """
-        Plot the decay of max_r |W(R, r, idir, ipert)| for the individual atomic perturbations
+        Plot the decay of max_r |W(R,r,idir,ipert)| for the individual atomic perturbations
 
         Args:
             scale: "semilogy", "loglog" or "plot".
@@ -132,7 +133,7 @@ class WRmaxFile(AbinitNcFile, Has_Structure, NotebookWriter):
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
             if iatom == len(ax_list) - 1: ax.set_xlabel(r"$\|{\bf{R}}\|$ (Bohr)")
 
-        fig.suptitle("dvdb_add_lr %d, alpha_gmin: %s, symv1: %d" % (self.dvdb_add_lr, self.alpha_gmin, self.symv1), 
+        fig.suptitle("dvdb_add_lr %d, qdamp: %s, symv1: %d" % (self.dvdb_add_lr, self.qdamp, self.symv1), 
                      fontsize=fontsize)
         return fig
 

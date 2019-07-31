@@ -40,6 +40,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         self.reader = r = ETSF_Reader(filepath)
         #self.has_zeff = bool(r.read_value("has_zeff"))
         #self.has_dielt = bool(r.read_value("has_dielt"))
+        #self.has_quadrupoles = bool(r.read_value("has_quadrupoles"))
         #self.dvdb_add_lr = r.read_value("dvdb_add_lr")
         #self.symv1 = bool(r.read_value("symv1"))
 
@@ -103,13 +104,15 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return list(od.keys()), list(od.values())
 
     @add_fig_kwargs
-    def plot(self, what_list="all", fontsize=8, ispden=0, sharey=False, **kwargs):
+    def plot(self, what_list="all", ispden=0, fontsize=8, sharey=False, **kwargs):
         """
         Plot
 
         Args:
-            ax: |matplotlib-Axes| or None if a new figure should be created.
+            what_list:
+            ispden: Spin density component to plot.
             fontsize: fontsize for legends and titles
+            sharey: True to share y-axes.
 
         Return: |matplotlib-Figure|
         """
@@ -164,6 +167,8 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         yield self.plot(what_list="v1scfmlr_avg", title=r"$v1_{\bf q} - v1_{\bf q}^{\mathrm{LR}}$", show=False)
         yield self.plot(title=r"$v1_{\bf q}\,vs\,v1_{\bfq}^{\mathrm{LR}}$", show=False)
+        #import os
+        #yield self.plot(title=os.path.basename(self.filepath), show=False)
 
     def write_notebook(self, nbpath=None):
         """
@@ -192,6 +197,7 @@ class V1qAvgRobot(Robot):
 
     @lazy_property
     def qpoints(self):
+        """List of Q-points."""
         if len(self) == 1: return self.abifiles[0].qpoints
 
         if (any(len(ncfile.qpoints) != len(self.abifiles[0].qpoints) for ncfile in self.abifiles)):
@@ -205,7 +211,16 @@ class V1qAvgRobot(Robot):
 
     @add_fig_kwargs
     def plot(self, ispden=0, sharey=False, fontsize=8, **kwargs):
+        """
+        Plot
 
+        Args:
+            ispden: Spin density component to plot.
+            sharey: True to share y-axes.
+            fontsize: fontsize for legends and titles
+
+        Return: |matplotlib-Figure|
+        """
         # Caveat: No check is done on the consistency among structures
         ref_file = self.abifiles[0]
         structure = ref_file.structure
