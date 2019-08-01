@@ -120,6 +120,8 @@ def get_parser(with_epilog=False):
         help=("Set matplotlib interactive backend. "
               "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
               "See also: https://matplotlib.org/faq/usage_faq.html#what-is-a-backend."))
+    parser.add_argument('--pylustrator', action='store_true', default=False,
+        help="Style matplotlib plots with pylustrator. See https://pylustrator.readthedocs.io/en/latest/")
 
     return parser
 
@@ -162,6 +164,11 @@ def main():
         import seaborn as sns
         sns.set(context=options.seaborn, style='darkgrid', palette='deep',
                 font='sans-serif', font_scale=1, color_codes=False, rc=None)
+
+    if options.pylustrator:
+        # Start pylustrator to style matplotlib plots 
+        import pylustrator
+        pylustrator.start()
 
     if not os.path.exists(options.filepath):
         raise RuntimeError("%s: no such file" % options.filepath)

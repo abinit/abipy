@@ -573,6 +573,13 @@ def abicomp_wrmax(options):
     return _invoke_robot(options)
 
 
+def abicomp_v1qavg(options):
+    """
+    Compare multiple V1QAVG files with the average of the DFPT V1 potentials as function of q-point.
+    """
+    return _invoke_robot(options)
+
+
 def abicomp_sigeph(options):
     """
     Compare multiple SIGEPH files storing the e-ph self-energy.
@@ -851,6 +858,7 @@ Usage example:
   abicomp.py a2f *_A2F.nc -nb                   => Compare A2f results in the jupyter notebook.
   abicomp.py sigeph *_SIGEPH.nc -nb             => Compare Fan-Migdal self-energy in the jupyter notebook.
   abicomp.py gkq out1_GKQ.nc out1_GKQ.nc -d     => Plot difference between matrix elements (supports 2+ files).
+  abicomp.py v1qavg out_V1QAVG.nc               => Compare V1QAVG files.
 
 ########
 # GW/BSE
@@ -934,6 +942,8 @@ def get_parser(with_epilog=False):
         help='Verbose, can be supplied multiple times to increase verbosity.')
     copts_parser.add_argument('-sns', "--seaborn", const="paper", default=None, action='store', nargs='?', type=str,
         help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster"). Default: paper')
+    copts_parser.add_argument('--pylustrator', action='store_true', default=False,
+        help="Style matplotlib plots with pylustrator. See https://pylustrator.readthedocs.io/en/latest/")
     copts_parser.add_argument('-mpl', "--mpl-backend", default=None,
         help=("Set matplotlib interactive backend. "
               "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
@@ -1099,6 +1109,7 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
     p_sigeph = subparsers.add_parser('sigeph', parents=robot_parents, help=abicomp_sigeph.__doc__)
     p_gkq = subparsers.add_parser('gkq', parents=robot_parents, help=abicomp_gkq.__doc__)
     p_gkq.add_argument('-d', '--diff', default=False, action="store_true", help='Plot difference between eph matrix elements.')
+    p_v1qavg = subparsers.add_parser('v1qavg', parents=robot_parents, help=abicomp_v1qavg.__doc__)
     p_wrmax = subparsers.add_parser('wrmax', parents=robot_parents, help=abicomp_wrmax.__doc__)
     p_abiwan = subparsers.add_parser('abiwan', parents=robot_parents, help=abicomp_abiwan.__doc__)
 
@@ -1160,6 +1171,11 @@ def main():
         import seaborn as sns
         sns.set(context=options.seaborn, style='darkgrid', palette='deep',
                 font='sans-serif', font_scale=1, color_codes=False, rc=None)
+
+    if options.pylustrator:
+        # Start pylustrator to style matplotlib plots 
+        import pylustrator
+        pylustrator.start()
 
     if options.verbose > 2:
         print(options)
