@@ -38,11 +38,11 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
     def __init__(self, filepath):
         super(V1qAvgFile, self).__init__(filepath)
         self.reader = r = ETSF_Reader(filepath)
-        #self.has_zeff = bool(r.read_value("has_zeff"))
-        #self.has_dielt = bool(r.read_value("has_dielt"))
-        #self.has_quadrupoles = bool(r.read_value("has_quadrupoles"))
-        #self.dvdb_add_lr = r.read_value("dvdb_add_lr")
-        #self.symv1 = bool(r.read_value("symv1"))
+        self.has_zeff = bool(r.read_value("has_zeff"))
+        self.has_dielt = bool(r.read_value("has_dielt"))
+        self.has_quadrupoles = bool(r.read_value("has_quadrupoles"))
+        self.dvdb_add_lr = r.read_value("dvdb_add_lr")
+        self.symv1 = bool(r.read_value("symv1"))
 
     @lazy_property
     def structure(self):
@@ -54,6 +54,11 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """List of Q-points."""
         frac_coords = self.reader.read_value('qpoints')
         return Kpath(self.structure.reciprocal_lattice, frac_coords, ksampling=None)
+
+    @lazy_property
+    def has_maxw(self):
+        """True if ncfile contains Max_r |W(R, r)|"""
+        return "maxw" in self.reader.rootgrp.variables
 
     def close(self):
         self.reader.close()
@@ -75,10 +80,11 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         app(self.structure.to_string(verbose=verbose, title="Structure"))
         app("")
         app(self.qpoints.to_string(verbose=verbose, title="Q-path"))
-        #app("has_dielt: %s" % self.has_dielt)
-        #app("has_zeff: %s" % self.has_zeff)
-        #app("dvdb_add_lr: %s" % self.dvdb_add_lr)
-        #app("symv1: %s" % self.symv1)
+        app("has_dielt: %s" % self.has_dielt)
+        app("has_zeff: %s" % self.has_zeff)
+        app("has_quadrupoles: %s" % self.has_quadrupoles)
+        app("dvdb_add_lr: %s" % self.dvdb_add_lr)
+        app("symv1: %s" % self.symv1)
 
         return "\n".join(lines)
 
@@ -161,12 +167,86 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         return fig
 
+    @add_fig_kwargs
+    def plot_maxw(self, scale="semilogy", ax=None, fontsize=8, **kwargs):
+        """
+        Plot the decay of max_{r,idir,ipert} |W(R,r,idir,ipert)|
+
+        Args:
+            scale: "semilogy", "loglog" or "plot".
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: fontsize for legends and titles
+
+        Return: |matplotlib-Figure|
+        """
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+
+        # nctkarr_t("maxw", "dp", "nrpt, natom3")
+        maxw = self.reader.read_value("maxw")
+        rmod = self.reader.read_value("rmod")
+        data = np.max(maxw, axis=0)
+        f = {"plot": ax.plot, "semilogy": ax.semilogy, "loglog": ax.loglog}[scale]
+        f(rmod, data, marker="o", ls=":", lw=0, **kwargs)
+        ax.grid(True)
+        ax.set_ylabel(r"$Max_{({\bf{r}}, idir, ipert)} \| W({\bf{r}}, {\bf{R}}, idir, ipert) \|$")
+        ax.set_xlabel(r"$\|{\bf{R}}\|$ (Bohr)")
+
+        #if kwargs.pop("with_title", True):
+        #    ax.set_title("dvdb_add_lr %d, qdamp: %s, symv1: %d" % (self.dvdb_add_lr, self.qdamp, self.symv1), 
+        #                 fontsize=fontsize)
+        return fig
+
+    @add_fig_kwargs
+    def plot_maxw_perts(self, scale="semilogy", fontsize=8, **kwargs):
+        """
+        Plot the decay of max_r |W(R,r,idir,ipert)| for the individual atomic perturbations
+
+        Args:
+            scale: "semilogy", "loglog" or "plot".
+            fontsize: fontsize for legends and titles.
+
+        Return: |matplotlib-Figure|
+        """
+        # Build grid of plots.
+        natom = len(self.structure)
+        ncols, nrows = (2, natom //2) if natom % 2 == 0 else (1, natom)
+
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=False, squeeze=False)
+        ax_list = ax_list.ravel()
+
+        # nctkarr_t("maxw", "dp", "nrpt, natom3")
+        nrpt = self.reader.read_dimvalue("nrpt")
+        maxw = np.reshape(self.reader.read_value("maxw"), (natom, 3, nrpt))
+        rmod = self.reader.read_value("rmod")
+
+        for iatom, ax in enumerate(ax_list.ravel()):
+            site = self.structure[iatom]
+            title = "{} [{:.4f} {:.4f} {:.4f}]".format(site.specie.symbol, *site.frac_coords)
+            ax.set_title(title, fontsize=fontsize)
+            f = {"plot": ax.plot, "semilogy": ax.semilogy, "loglog": ax.loglog}[scale]
+            f(rmod, maxw[iatom, 0], marker="o", ls=":", lw=0, label="$L_x$" if iatom == 0 else None)
+            f(rmod, maxw[iatom, 1], marker="o", ls=":", lw=0, label="$L_y$" if iatom == 0 else None)
+            f(rmod, maxw[iatom, 2], marker="o", ls=":", lw=0, label="$L_z$" if iatom == 0 else None)
+            ax.grid(True)
+            if iatom == 0: 
+                ax.set_ylabel(r"$Max_{{\bf{r}}} \| W({\bf{r}}, {\bf{R}}) \|$")
+                ax.legend(loc="best", fontsize=fontsize, shadow=True)
+            if iatom == len(ax_list) - 1: ax.set_xlabel(r"$\|{\bf{R}}\|$ (Bohr)")
+
+        #fig.suptitle("dvdb_add_lr %d, qdamp: %s, symv1: %d" % (self.dvdb_add_lr, self.qdamp, self.symv1), 
+        #             fontsize=fontsize)
+        return fig
+
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
         This function generates a predefined list of matplotlib figures with minimal input from the user.
         """
         yield self.plot(what_list="v1scfmlr_avg", title=r"$v1_{\bf q} - v1_{\bf q}^{\mathrm{LR}}$", show=False)
         yield self.plot(title=r"$v1_{\bf q}\,vs\,v1_{\bfq}^{\mathrm{LR}}$", show=False)
+        if self.has_maxw:
+            yield self.plot_maxw(show=False)
+            yield self.plot_maxw_perts(show=False)
         #import os
         #yield self.plot(title=os.path.basename(self.filepath), show=False)
 
@@ -182,6 +262,9 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
             nbv.new_code_cell("print(ncfile)"),
             nbv.new_code_cell("ncfile.plot();"),
         ])
+        if self.has_maxw:
+            nbv.new_code_cell("ncfile.plot();"),
+            nbv.new_code_cell("ncfile.plot_perts();"),
 
         return self._write_nb_nbpath(nb, nbpath)
 
@@ -267,11 +350,20 @@ class V1qAvgRobot(Robot):
                 
         return fig
 
+    @add_fig_kwargs
+    def plot_maxw(self, ax=None, **kwargs):
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        for label, abifile in self.items():
+            abifile.plot_maxw(ax=ax, label=label, with_title=False, show=False, **kwargs)
+        return fig
+
     def yield_figs(self, **kwargs): # pragma: no cover
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         """
         yield self.plot(show=False)
+        if all(abifile.has_maxw for abifile in self.abifiles):
+            yield self.plot_maxw(self, ax=None, **kwargs)
 
     def write_notebook(self, nbpath=None):
         """
