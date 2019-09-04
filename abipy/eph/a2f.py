@@ -111,6 +111,7 @@ class A2f(object):
         if verbose:
             for mustar in (0.1, 0.12, 0.2):
                 app("\tFor mustar %s: McMillan Tc: %s [K]" % (mustar, self.get_mcmillan_tc(mustar)))
+
         if verbose > 1:
             # $\int dw [a2F(w)/w] w^n$
             for n in [0, 4]:
@@ -911,12 +912,18 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         yield self.plot(show=False)
         #yield self.plot_eph_strength(show=False)
         yield self.plot_with_a2f(show=False)
+
         for qsamp in ["qcoarse", "qintp"]:
             a2f = self.get_a2f_qsamp(qsamp)
-            yield a2f.plot_with_lambda(show=False)
+            yield a2f.plot_with_lambda(title="q-sampling: %s (%s)" % (str(a2f.ngqpt), qsamp), show=False)
+
+
         #yield self.plot_nuterms(show=False)
         #yield self.plot_a2(show=False)
         #yield self.plot_tc_vs_mustar(show=False)
+
+        #if self.has_a2ftr:
+        #    ncfile.a2ftr.plot();
 
     def write_notebook(self, nbpath=None):
         """
