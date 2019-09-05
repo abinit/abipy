@@ -43,7 +43,7 @@ Please report any bugs and issues at AbiPy's `Github page <https://github.com/ab
 
     Note that the majority of the post-processing tools available in AbiPy require output files in
     netcdf_ format so we **strongly** suggest to compile Abinit with netcdf support
-    (use ``--with_trio_flavor="netcdf-fallback"`` at configure time to activate the internal netcdf library,
+    (use ``--with-trio-flavor="netcdf"`` at configure time to activate the internal netcdf library,
     to link Abinit against an external netcdf library please consult the configuration examples provided by abiconfig_).
 
 
@@ -53,9 +53,12 @@ Links to talks
 This section collects links to some of the talks given by the AbiPy developers.
 
 
-* `Automating ABINIT calculations with AbiPy. Boston MA, 3 March 2019 <https://github.com/gmatteo/abipy_slides_aps_boston_2019>`_ (Introduction to AbiPy for newcomers).
+* `Automating ABINIT calculations with AbiPy. Boston MA, 3 March 2019 <https://gmatteo.github.io/abipy_slides_aps_boston_2019/>`_ (Introduction to AbiPy for newcomers).
 
-* `New features of AbiPy v0.7. Louvain-la-Neuve, Belgium, 20 May 2019 <https://gmatteo.github.io/abipy_intro_abidev2019/>`_ (How to use the AbiPy command line interface in the terminal."
+* `New features of AbiPy v0.7. Louvain-la-Neuve, Belgium, 20 May 2019 <https://gmatteo.github.io/abipy_intro_abidev2019/>`_ (How to use the AbiPy command line interface in the terminal)
+
+* `Automatize a DFT code: high-throughput workflows for Abinit 
+  <https://object.cscs.ch/v1/AUTH_b1d80408b3d340db9f03d373bbde5c1e/learn-public/materials/2019_05_aiida_tutorial/day4_abipy_Petretto.pdf>`_
 
 
 Getting AbiPy
