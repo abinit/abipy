@@ -57,6 +57,9 @@ This section collects links to some of the talks given by the AbiPy developers.
 
 * `New features of AbiPy v0.7. Louvain-la-Neuve, Belgium, 20 May 2019 <https://gmatteo.github.io/abipy_intro_abidev2019/>`_ (How to use the AbiPy command line interface in the terminal)
 
+* `Automatize a DFT code: high-throughput workflows for Abinit 
+  <https://object.cscs.ch/v1/AUTH_b1d80408b3d340db9f03d373bbde5c1e/learn-public/materials/2019_05_aiida_tutorial/day4_abipy_Petretto.pdf>`_
+
 
 Getting AbiPy
 =============
