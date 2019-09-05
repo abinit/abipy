@@ -43,7 +43,7 @@ Please report any bugs and issues at AbiPy's `Github page <https://github.com/ab
 
     Note that the majority of the post-processing tools available in AbiPy require output files in
     netcdf_ format so we **strongly** suggest to compile Abinit with netcdf support
-    (use ``--with_trio_flavor="netcdf-fallback"`` at configure time to activate the internal netcdf library,
+    (use ``--with-trio-flavor="netcdf"`` at configure time to activate the internal netcdf library,
     to link Abinit against an external netcdf library please consult the configuration examples provided by abiconfig_).
 
 
