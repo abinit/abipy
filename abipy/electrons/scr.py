@@ -321,7 +321,8 @@ class ScrReader(ETSF_Reader):
 
         def convert(arr):
             """Convert to scalar if size == 1"""
-            return np.asscalar(arr) if arr.size == 1 else arr
+            #return np.asscalar(arr) if arr.size == 1 else arr
+            return np.asarray(arr).item() if arr.size == 1 else arr
 
         return AttrDict({k: convert(self.read_value(k)) for k in keys})
 

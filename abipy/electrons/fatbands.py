@@ -307,9 +307,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         app(self.ebands.to_string(with_structure=True, title="Electronic Bands"))
         app("")
         app(marquee("Fatbands Info", mark="="))
-        app("prtdos=%d, prtdosm=%d, mbesslang=%d, pawprtdos=%d, usepaw=%d" % (
+        app("prtdos: %d, prtdosm: %d, mbesslang: %d, pawprtdos: %d, usepaw: %d" % (
             self.prtdos, self.prtdosm, self.mbesslang, self.pawprtdos, self.usepaw))
-        app("nsppol=%d, nkpt=%d, mband=%d" % (self.nsppol, self.nkpt, self.mband))
+        app("nsppol: %d, nkpt: %d, mband: %d" % (self.nsppol, self.nkpt, self.mband))
         app("")
 
         if self.prtdos == 3:
@@ -555,8 +555,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                     # Only the first column show labels.
                     # Trick: Don't change the labels but set their fontsize to 0 otherwise
                     # also the other axes are affected (likely due to sharey=True).
+                    #ax.yaxis.set_tick_params(fontsize=0)
                     for tick in ax.yaxis.get_major_ticks():
-                        tick.label.set_fontsize(0)
+                        tick.label1.set_fontsize(0)
 
                 for ib, band in enumerate(mybands):
                     yup = ebands.eigens[spin, :, band] - e0
@@ -845,8 +846,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     #            # Only the first column show labels.
     #            # Trick: Don't change the labels but set their fontsize to 0 otherwise
     #            # also the other axes are affecred (likely due to sharey=True).
-    #            for tick in ax.yaxis.get_major_ticks():
-    #                tick.label.set_fontsize(0)
+                 #ax.yaxis.set_tick_params(fontsize=0)
 
     #        idx = term2idx[term]
     #        color = self.spinors2color[term]
@@ -1080,10 +1080,10 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                 else:
                     # Plots in the middle: don't show labels.
                     # Trick: Don't change the labels but set their fontsize to 0 otherwise
-                    # also the other axes are affecred (likely due to sharey=True).
-                    # ax.set_yticklabels([])
+                    # also the other axes are affected (likely due to sharey=True).
+                    #ax.yaxis.set_tick_params(fontsize=0)
                     for tick in ax.yaxis.get_major_ticks():
-                        tick.label.set_fontsize(0)
+                        tick.label1.set_fontsize(0)
 
         return fig
 
@@ -1236,9 +1236,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                     # Plots in the middle: don't show labels.
                     # Trick: Don't change the labels but set their fontsize to 0 otherwise
                     # also the other axes are affected (likely due to sharey=True).
-                    # ax.set_yticklabels([])
+                    #ax.yaxis.set_tick_params(fontsize=0)
                     for tick in ax.yaxis.get_major_ticks():
-                        tick.label.set_fontsize(0)
+                        tick.label1.set_fontsize(0)
 
         return fig
 
@@ -1329,9 +1329,11 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         for ax in pjdos_axmat.ravel():
             ax.set_xlabel("")
             ax.set_ylabel("")
+            #ax.xaxis.set_tick_params(fontsize=0)
+            #ax.yaxis.set_tick_params(fontsize=0)
             for xtick, ytick in zip(ax.xaxis.get_major_ticks(), ax.yaxis.get_major_ticks()):
-                xtick.label.set_fontsize(0)
-                ytick.label.set_fontsize(0)
+                xtick.label1.set_fontsize(0)
+                ytick.label1.set_fontsize(0)
 
         if closeit: pjdosfile.close()
         return fig
@@ -1425,8 +1427,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                 if l != 0:
                     ax.set_ylabel("")
                     # Only the first column show labels.
+                    #ax.yaxis.set_tick_params(fontsize=0)
                     for tick in ax.yaxis.get_major_ticks():
-                        tick.label.set_fontsize(0)
+                        tick.label1.set_fontsize(0)
 
                 for spin in range(self.nsppol):
                     spin_sign = +1 if spin == 0 else -1

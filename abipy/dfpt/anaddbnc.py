@@ -174,7 +174,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     # FIXME To maintain backward compatibility
     @property
     def emacro_rlx(self):
-        msg = "emacro_rlx is deprecated and will removed in abipy 0.8. Use epsinf"
+        msg = "emacro_rlx is deprecated and will removed in abipy 0.8. Use eps0"
         warnings.simplefilter('default')
         warnings.warn(msg, DeprecationWarning, stacklevel=2)
         return self.eps0

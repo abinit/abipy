@@ -320,6 +320,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
             ax.plot(qpt_cart_coords, slope[i] * qpt_cart_coords * units_factor, color=c, ls="-")
 
         ax.set_title(title)
+        ax.grid(True)
         ax.set_xlabel("Wave Vector")
         ax.set_ylabel(abu.wlabel_from_units(units))
 
