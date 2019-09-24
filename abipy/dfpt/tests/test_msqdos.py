@@ -14,8 +14,8 @@ class MsqdTest(AbipyTest):
 
     def test_from_ddb(self):
         """Testing MsqDos from DDB file."""
-        raise self.SkipTest("Waiting for bug fix in abinit")
-        self.skip_if_abinit_not_ge("8.10.2")
+        #raise self.SkipTest("Waiting for bug fix in abinit")
+        #self.skip_if_abinit_not_ge("8.10.2")
 
         filepath = os.path.join(abidata.dirpath, "refs", "mp-7000_DDB.bz2")
         with abilab.abiopen(filepath) as ddb:
@@ -73,15 +73,15 @@ loop_
  _atom_site_fract_y
  _atom_site_fract_z
  _atom_site_occupancy
-  Si  Si1  1  0.528855  0.000000  0.833333  1
-  Si  Si2  1  0.471145  0.471145  0.500000  1
-  Si  Si3  1  0.000000  0.528855  0.166667  1
-  O  O4  1  0.413167  0.147706  0.620242  1
-  O  O5  1  0.852294  0.265462  0.953576  1
-  O  O6  1  0.734538  0.586833  0.286909  1
-  O  O7  1  0.265462  0.852294  0.046424  1
-  O  O8  1  0.147706  0.413167  0.379758  1
-  O  O9  1  0.586833  0.734538  0.713091  1
+  Si  Si0  1  0.528855  0.000000  0.833333  1
+  Si  Si1  1  0.471145  0.471145  0.500000  1
+  Si  Si2  1  0.000000  0.528855  0.166667  1
+  O  O3  1  0.413167  0.147706  0.620242  1
+  O  O4  1  0.852294  0.265462  0.953576  1
+  O  O5  1  0.734538  0.586833  0.286909  1
+  O  O6  1  0.265462  0.852294  0.046424  1
+  O  O7  1  0.147706  0.413167  0.379758  1
+  O  O8  1  0.586833  0.734538  0.713091  1
 loop_
 _atom_site_aniso_label
 _atom_site_aniso_U_11

@@ -7,8 +7,6 @@ import abipy.core.abinit_units as abu
 from collections import OrderedDict
 from monty.string import list_strings, marquee
 from monty.collections import dict2namedtuple
-#from monty.functools import lazy_property
-#from monty.termcolor import cprint
 from abipy.core.mixins import Has_Structure
 from abipy.tools.plotting import add_fig_kwargs, set_axlims, get_axarray_fig_plt, set_visible
 
@@ -72,7 +70,7 @@ class MsqDos(Has_Structure):
         """
         Arg:
             structure: |Structure| object.
-            wmesh: Frequency mesh
+            wmesh: Frequency mesh in eV
             values: (natom, 3, 3, nomega) arrays with generalized DOS in cart coords.
             amu_symbol: Dictionary element.symbol -> mass in atomic units.
         """
@@ -138,7 +136,6 @@ class MsqDos(Has_Structure):
         # Calculate Bose-Einstein occupation factors only once for each T (instead of for each atom).
         npht = np.zeros((nt, nw))
         for it, temp in enumerate(tmesh):
-            #npht[it] = abu.occ_be(wvals, temp * abu.kb_eVK) + 0.5  ###
             npht[it] = abu.occ_be(wvals, temp * abu.kb_HaK) + 0.5
 
         natom = len(self.structure)
@@ -155,8 +152,8 @@ class MsqDos(Has_Structure):
             for it in range(nt):
                 fn = self.values[iatom, :, :, iomin:] * npht[it]
                 if "displ" in what_list:
-                    ys = fn / wvals
                     # mean square displacement for each atom as a function of T (bohr^2).
+                    ys = fn / wvals
                     fact = 1.0 / (self.amu_symbol[symbol] * abu.amu_emass)
                     #fact = abu.Bohr_Ang ** 2 / (self.amu_symbol[symbol] * abu.amu_emass)
                     msq_d[iatom, :, :, it] = simps(ys, x=wvals) * fact * abu.Bohr_Ang ** 2
@@ -202,8 +199,8 @@ class MsqDos(Has_Structure):
 
             # CIF Format Eq 4a
             # Build N matrix (no 2 pi factor)
-            ls, _ = self.structure.lattice.reciprocal_lattice_crystallographic.lengths_and_angles
-            ninv = np.diag(1.0 / np.array(ls, dtype=float))
+            lengths = self.structure.lattice.reciprocal_lattice_crystallographic.lengths
+            ninv = np.diag(1.0 / np.array(lengths, dtype=float))
             for iatom in range(natom):
                 new_mat[iatom] = np.matmul(ninv, np.matmul(new_mat[iatom], ninv.T))
 
@@ -454,7 +451,7 @@ _atom_site_aniso_U_12""".splitlines()
         Returns: |matplotlib-Figure|
         """
         # Select atoms.
-        aview  = self._get_atomview(view, select_symbols=select_symbols, verbose=verbose)
+        aview = self._get_atomview(view, select_symbols=select_symbols, verbose=verbose)
 
         # One subplot for each component
         diag = ["xx", "yy", "zz"]

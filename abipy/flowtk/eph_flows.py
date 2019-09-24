@@ -12,7 +12,7 @@ from .flows import Flow
 
 
 class GkqPathFlow(Flow):
-    """
+    r"""
     This flow computes the gkq e-ph matrix elements <k+q|\Delta V_q|k> for a list of q-points (usually a q-path). 
     The results stored in the GKQ.nc files for the different q-points can be used to analyze the behaviour 
     of the e-ph matrix elements as a function of q with the the objects provided by the abipy.eph.gkq module.

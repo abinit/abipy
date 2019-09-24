@@ -22,8 +22,8 @@ class AnaddbNcFileTest(AbipyTest):
             assert not anc.has_elastic_data
             assert not anc.has_piezoelectric_data
             assert anc.becs is not None
-            assert anc.emacro is not None
-            assert anc.emacro_rlx is not None
+            assert anc.epsinf is not None
+            assert anc.eps0 is not None
             assert anc.dchidt is not None
             assert anc.dchide is not None
             assert anc.oscillator_strength is not None
