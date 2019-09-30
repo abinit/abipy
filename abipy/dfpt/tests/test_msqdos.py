@@ -46,6 +46,7 @@ class MsqdTest(AbipyTest):
 
         cif_string = msqd_dos.get_cif_string(temp=300)
         #print(cif_string)
+
         self.assertMultiLineEqual(cif_string, """\
 # generated using pymatgen
 data_SiO2
@@ -100,6 +101,7 @@ O7    0.01512    0.01120    0.01353    0.00249    0.00660    0.00358
 O8    0.01120    0.01916    0.01353    0.00411   -0.00249    0.00762
 O9    0.01916    0.01512    0.01353   -0.00660   -0.00411    0.01153""")
 
+        # Write CIF file with U_cif tensor
         filepath = msqd_dos.write_cif_file(filepath=None, temp=300)
         assert filepath.endswith(".cif")
         same_structure = abilab.abiopen(filepath)
@@ -109,6 +111,7 @@ O9    0.01916    0.01512    0.01353   -0.00660   -0.00411    0.01153""")
         # same when we read the structure from CIF because the lattice
         # is initialized from_angles_and_lenghts
         #self.assert_almost_equal(same_structure.lattice.matrix, msqd_dos.structure.lattice.matrix)
+
         for s1, s2 in zip(same_structure, msqd_dos.structure):
             assert s1.specie.symbol == s2.specie.symbol
             self.assert_almost_equal(s1.frac_coords, s2.frac_coords, decimal=5)

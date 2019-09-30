@@ -1079,7 +1079,7 @@ class Flow(Node, NodeContainer, MSONable):
                 File-like object, Default: sys.stdout
         """
         if varnames is not None:
-            # Build dictionary varname --> [(task1, value), (task2, value), ...]
+            # Build dictionary varname --> [(task1, value1), (task2, value2), ...]
             varnames = [s.strip() for s in list_strings(varnames)]
             dlist = collections.defaultdict(list)
             for task in self.select_tasks(nids=nids, wslice=wslice):
@@ -2234,7 +2234,7 @@ class Flow(Node, NodeContainer, MSONable):
         import tarfile
         name = os.path.basename(self.workdir) + ".tar.gz" if name is None else name
         with tarfile.open(name=name, mode='w:gz', **kwargs) as tar:
-            tar.add(os.path.basename(self.workdir), arcname=None, recursive=True, exclude=None, filter=filter)
+            tar.add(os.path.basename(self.workdir), arcname=None, recursive=True, filter=filter)
 
             # Add the script used to generate the flow.
             if self.pyfile is not None and os.path.exists(self.pyfile):

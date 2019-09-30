@@ -2519,7 +2519,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             spell_check: False to disable spell checking for input variables.
             comment: Optional string with a comment that will be placed at the beginning of the file.
         """
-        dosdeltae, dossmear = None, None
+        dossmear = None
 
         if dos_method == "tetra":
             prtdos = 2
@@ -2539,10 +2539,10 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         if qppa:
             ng2qpt = KSampling.automatic_density(structure, kppa=qppa).kpts[0]
             # Set new variables
-            new.set_vars(ng2qpt=ng2qpt,prtdos=prtdos,dossmear=dossmear)
+            new.set_vars(ng2qpt=ng2qpt, prtdos=prtdos, dossmear=dossmear)
         else:
             new.set_autoqmesh(nqsmall)
-            new.set_vars(prtdos=prtdos, dosdeltae=dosdeltae, dossmear=dossmear)
+            new.set_vars(prtdos=prtdos, dossmear=dossmear)
             if nqsmall == 0:
                 new["prtdos"] = 0
 

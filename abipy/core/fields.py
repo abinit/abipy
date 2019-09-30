@@ -411,7 +411,7 @@ class _Field(Has_Structure):
         Return: |matplotlib-Figure|
         """
         site = self.structure[site_index]
-        nn_list = self.structure.get_neighbors(site, radius, include_index=True)
+        nn_list = self.structure.get_neighbors_old(site, radius, include_index=True)
         if not nn_list:
             cprint("Zero neighbors found for radius %s Ang. Returning None." % radius, "yellow")
             return None
