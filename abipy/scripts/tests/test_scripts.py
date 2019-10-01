@@ -442,9 +442,9 @@ class TestAbiView(ScriptTest):
                     expect_stderr=self.expect_stderr)
         if os.path.exists(out_file): os.remove(out_file)
 
+        ncpath = abidata.ref_file("si_scf_GSR.nc")
         out_file = ncpath + ".bxsf"
         if os.path.exists(out_file): os.remove(out_file)
-        ncpath = abidata.ref_file("si_scf_GSR.nc")
         r = env.run(self.script, "ebands", ncpath, "--bxsf", self.loglevel, self.verbose,
                     expect_stderr=self.expect_stderr)
         if os.path.exists(out_file): os.remove(out_file)
@@ -459,14 +459,14 @@ class TestAbiView(ScriptTest):
         r = env.run(self.script, "phbands", ncpath, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
         r = env.run(self.script, "phbands", ncpath, "--xmgrace", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
-        ncpath = abidata.ref_file("ZnSe_hex_886.out_PHDOS.nc")
-        r = env.run(self.script, "phdos", ncpath, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        #ncpath = abidata.ref_file("ZnSe_hex_886.out_PHDOS.nc")
+        #r = env.run(self.script, "phdos", ncpath, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
-        ncpath = abidata.ref_file("mg2si_GRUNS.nc")
-        r = env.run(self.script, "gruns", ncpath, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        #ncpath = abidata.ref_file("mg2si_GRUNS.nc")
+        #r = env.run(self.script, "gruns", ncpath, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
-        ncpath = abidata.ref_file("si_666_MDF.nc")
-        r = env.run(self.script, "mdf", ncpath, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        #ncpath = abidata.ref_file("si_666_MDF.nc")
+        #r = env.run(self.script, "mdf", ncpath, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
         #ncpath = abidata.ref_file("si_nscf_GSR.nc")
         #r = env.run(self.script, "denpot", ncpath, "chgcar", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)

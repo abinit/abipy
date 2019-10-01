@@ -1361,7 +1361,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return multi
 
-    def make_dte_inputs(self, phonon_pert=False, skip_permutations=False, manager=None):
+    def make_dte_inputs(self, phonon_pert=False, skip_permutations=False, ixc=None, manager=None):
         """
         Return |MultiDataset| inputs for DTE calculation.
         This functions should be called with an input that represents a GS run.
@@ -1371,10 +1371,11 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             skip_permutations: Since the current version of abinit always performs all the permutations
                 of the perturbations, even if only one is asked, if True avoids the creation of inputs that
                 will produce duplicated outputs.
+            ixc: Value of ixc variable. Used to overwrite the default value read from pseudos.
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
         """
         # Call Abinit to get the list of irred perts.
-        perts = self.abiget_irred_dteperts(phonon_pert=phonon_pert, manager=manager)
+        perts = self.abiget_irred_dteperts(phonon_pert=phonon_pert, ixc=ixc, manager=manager)
 
         if skip_permutations:
             perts_to_skip = []
@@ -1389,6 +1390,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         # Build list of datasets (one input per perturbation)
         multi = MultiDataset.replicate_input(input=self, ndtset=len(perts))
+        if ixc is not None:
+            multi.set_vars(ixc=int(ixc))
 
         # See tutorespfn/Input/tnlo_2.in
         na = len(self.structure)
@@ -1812,7 +1815,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         return self._abiget_irred_perts(ddeperts_vars, qpt=(0, 0, 0), ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt,
                                         workdir=workdir, manager=manager)
 
-    def abiget_irred_dteperts(self, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None,
+    def abiget_irred_dteperts(self, ngkpt=None, shiftk=None, kptopt=None, ixc=None, workdir=None, manager=None,
                               phonon_pert=False):
         """
         This function, computes the list of irreducible perturbations for DFPT.
@@ -1848,6 +1851,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                              optdriver=5,                # non-linear response functions , using the 2n+1 theorem
                              kptopt=2,                   # kpt time reversal symmetry
                              )
+
+        if ixc is not None: dteperts_vars["ixc"] = ixc
 
         return self._abiget_irred_perts(dteperts_vars, qpt=(0, 0, 0), ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt,
                                         workdir=workdir, manager=manager)

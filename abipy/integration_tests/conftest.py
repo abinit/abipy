@@ -24,7 +24,7 @@ USER_CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".abinit", "abipy")
 
 # Read the base configuration from file
 with open(os.path.join(USER_CONFIG_DIR, "manager.yml")) as fh:
-    base_conf = yaml.load(fh)
+    base_conf = yaml.safe_load(fh)
 
 # Build list of configurations.
 _manager_confs = []
