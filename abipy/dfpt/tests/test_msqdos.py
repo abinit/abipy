@@ -120,6 +120,11 @@ O9    0.01916    0.01512    0.01353   -0.00660   -0.00411    0.01153""")
         maxerr = msqd_dos.check_site_symmetries(temp=300, verbose=1)
         assert maxerr < 1e-10
 
+        # Get dict with results and try to encode with MontyEncoder
+        jdoc = msqd_dos.get_json_doc(tstart=10, tstop=10, num=1)
+        from monty.json import json, MontyEncoder
+        assert json.dumps(jdoc, cls=MontyEncoder)
+
         if self.has_matplotlib():
             assert msqd_dos.plot(show=False)
             assert msqd_dos.plot(view="all", show=False)

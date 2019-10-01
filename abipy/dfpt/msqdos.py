@@ -135,8 +135,9 @@ class MsqDos(Has_Structure):
 
         return "\n".join(lines)
 
-    def get_json_string(self, tstart=0, tstop=600, num=11):
+    def get_json_doc(self, tstart=0, tstop=600, num=11):
         """
+        Return dictionary with results. Used by emmet builder.
 
         Args:
             tstart: The starting value (in Kelvin) of the temperature mesh.
@@ -146,23 +147,26 @@ class MsqDos(Has_Structure):
         tmesh = np.linspace(tstart, tstop, num=num)
         # (natom, 3, 3, nt)
         ucart_t = self.get_msq_tmesh(tmesh, what_list=("displ")).displ
+
+        # Convert tensor to U_CIF format
         ucif_t = np.empty_like(ucart_t)
         for it in range(num):
             ucif_t[:,:,:,it] = self.convert_ucart(ucart_t[:,:,:,it], fmt="cif")
 
         jdoc = {
             "natom": len(self.structure),
-            "nomega:": self.nw,
-            "ntemp": len(tmesh),
-            "wmesh": self.wmesh,
-            "gdos_aijw": self.values,
-            "amu_symbol": self.amu_symbol,
-            "structure": self.structure,
-            "ucif_t": ucif_t,
-            "ucif_string_t300k": self.get_cif_string(temp=300),
+            "nomega:": self.nw,             # Number of frequencies
+            "ntemp": len(tmesh),            # Number of temperatures
+            "wmesh": self.wmesh,            # Frequency mesh in ??
+            "gdos_aijw": self.values,       # Generalized DOS in Cartesian coords. (natom, 3, 3, nomega) array.
+            "amu_symbol": self.amu_symbol,  # Dict symbol --> Atomic mass in a.u.
+            "structure": self.structure,    # Structure object
+            "ucif_t": ucif_t,               # U tensors (natom, 3, 3, ntemp)  as a function of T for T in tmesh in CIF format.
+            "ucif_string_t300k": self.get_cif_string(temp=300),  # String with U tensor at T=300 in Cif format.
         }
-        from monty.json import json, MontyEncoder
-        return json.dumps(jdoc, cls=MontyEncoder)
+        #from monty.json import json, MontyEncoder
+        #return json.dumps(jdoc, cls=MontyEncoder)
+        return jdoc
 
     def get_msq_tmesh(self, tmesh, iatom_list=None, what_list=("displ", "vel")):
         """
