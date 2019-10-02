@@ -494,6 +494,9 @@ def main():
     if not options.command:
         show_examples_and_exit(error_code=1)
 
+    if hasattr(options, "format"):
+        options.format = options.format.strip()
+
     # loglevel is bound to the string value obtained from the command line argument.
     # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
     import logging

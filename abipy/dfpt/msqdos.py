@@ -10,6 +10,7 @@ import abipy.core.abinit_units as abu
 from collections import OrderedDict
 from monty.string import list_strings, marquee
 from monty.collections import dict2namedtuple
+from monty.termcolor import cprint
 from abipy.core.mixins import Has_Structure
 from abipy.tools.plotting import add_fig_kwargs, set_axlims, get_axarray_fig_plt, set_visible
 from abipy.tools.printing import print_dataframe
@@ -49,7 +50,7 @@ class _Component(object):
 
 class MsqDos(Has_Structure):
     """
-    This object stores the generalized phonon DOS with the mean square displacement tensor in CARTESIAN coords.
+    This object stores the generalized phonon DOS in CARTESIAN coords.
     This DOS-like quantity allows one to calculate Debye Waller factors as a function of Temperature
     by integration with 1/omega and the Bose-Einstein factor.
     This object is usually instanciated via the read_msq_dos method of the PhdosReader
@@ -157,6 +158,7 @@ class MsqDos(Has_Structure):
             "natom": len(self.structure),
             "nomega:": self.nw,             # Number of frequencies
             "ntemp": len(tmesh),            # Number of temperatures
+            "tmesh": tmesh,                 # Temperature mesh in K
             "wmesh": self.wmesh,            # Frequency mesh in ??
             "gdos_aijw": self.values,       # Generalized DOS in Cartesian coords. (natom, 3, 3, nomega) array.
             "amu_symbol": self.amu_symbol,  # Dict symbol --> Atomic mass in a.u.
@@ -164,8 +166,7 @@ class MsqDos(Has_Structure):
             "ucif_t": ucif_t,               # U tensors (natom, 3, 3, ntemp)  as a function of T for T in tmesh in CIF format.
             "ucif_string_t300k": self.get_cif_string(temp=300),  # String with U tensor at T=300 in Cif format.
         }
-        #from monty.json import json, MontyEncoder
-        #return json.dumps(jdoc, cls=MontyEncoder)
+
         return jdoc
 
     def get_msq_tmesh(self, tmesh, iatom_list=None, what_list=("displ", "vel")):
@@ -377,9 +378,9 @@ _atom_site_aniso_U_12""".splitlines()
         ucart = np.reshape(ucart, (natom, 3, 3))
         ucif = self.convert_ucart(ucart, fmt="cif")
 
-        # Add matrix elements.
+        # Add matrix elements. Use 0 based index 
         for iatom, site in enumerate(self.structure):
-            site_label = "%s%d" % (site.specie.symbol, iatom + 1)
+            site_label = "%s%d" % (site.specie.symbol, iatom)
             m = ucif[iatom]
             aniso_u.append("%s %10.5f %10.5f %10.5f %10.5f %10.5f %10.5f" %
                     (site_label, m[0, 0], m[1, 1], m[2, 2], m[1, 2], m[0, 2], m[0, 1]))

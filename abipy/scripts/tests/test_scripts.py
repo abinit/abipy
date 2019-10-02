@@ -144,7 +144,7 @@ class TestAbistruct(ScriptTest):
         """Testing abistruct convert"""
         ncfile = abidata.ref_file("tgw1_9o_DS4_SIGRES.nc")
         env = self.get_env()
-        for fmt in ["cif", "cssr", "POSCAR", "json", "mson", "abivars"]:
+        for fmt in ["cif", "cssr", "POSCAR", "json", "abivars"]:
             r = env.run(self.script, "convert", ncfile, "-f", fmt, self.loglevel, self.verbose,
                         expect_stderr=self.expect_stderr)
 
@@ -457,7 +457,10 @@ class TestAbiView(ScriptTest):
 
         ncpath = abidata.ref_file("ZnSe_hex_886.out_PHBST.nc")
         r = env.run(self.script, "phbands", ncpath, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        out_file = ncpath + ".agr"
+        if os.path.exists(out_file): os.remove(out_file)
         r = env.run(self.script, "phbands", ncpath, "--xmgrace", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        if os.path.exists(out_file): os.remove(out_file)
 
         #ncpath = abidata.ref_file("ZnSe_hex_886.out_PHDOS.nc")
         #r = env.run(self.script, "phdos", ncpath, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
