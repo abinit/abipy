@@ -36,10 +36,35 @@ flowtk Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`abitimer` Module
+----------------------
+
+.. automodule:: abipy.flowtk.abitimer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`calculations` Module
+--------------------------
+
+.. automodule:: abipy.flowtk.calculations
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`dfpt_works` Module
 ------------------------
 
 .. automodule:: abipy.flowtk.dfpt_works
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+:mod:`eph_flows` Module
+-----------------------
+
+.. automodule:: abipy.flowtk.eph_flows
    :members:
    :undoc-members:
    :show-inheritance:
@@ -76,6 +101,14 @@ flowtk Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`launcher` Module
+----------------------
+
+.. automodule:: abipy.flowtk.launcher
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`mocks` Module
 -------------------
 
@@ -92,6 +125,14 @@ flowtk Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`nodes` Module
+-------------------
+
+.. automodule:: abipy.flowtk.nodes
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`pseudos` Module
 ---------------------
 
@@ -100,10 +141,26 @@ flowtk Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`qadapters` Module
+-----------------------
+
+.. automodule:: abipy.flowtk.qadapters
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`qha` Module
 -----------------
 
 .. automodule:: abipy.flowtk.qha
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`qjobs` Module
+-------------------
+
+.. automodule:: abipy.flowtk.qjobs
    :members:
    :undoc-members:
    :show-inheritance:

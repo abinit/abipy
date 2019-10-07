@@ -8,7 +8,7 @@ import warnings
 import numpy as np
 import pandas as pd
 
-from collections import namedtuple, OrderedDict, Iterable, defaultdict
+from collections import namedtuple, OrderedDict, defaultdict
 from six.moves import cStringIO
 from tabulate import tabulate
 from monty.string import list_strings, is_string, marquee
@@ -1734,7 +1734,7 @@ class SigresReader(ETSF_Reader):
         params = OrderedDict()
         for pname in param_names:
             v = self.read_value(pname, default=None)
-            params[pname] = v if v is None else np.asscalar(v)
+            params[pname] = v if v is None else np.asarray(v).item()
 
         # Other quantities that might be subject to convergence studies.
         #params["nkibz"] = len(self.ibz)

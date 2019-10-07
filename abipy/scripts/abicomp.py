@@ -124,10 +124,10 @@ from abipy import abilab"""),
         import IPython
         IPython.embed(header="Type `dfs` in the terminal and use <TAB> to list its methods", dfs=dfs)
     else:
-        print("File list:")
-        for i, p in enumerate(paths):
-            print("%d: %s" % (i, p))
-        print()
+        #print("File list:")
+        #for i, p in enumerate(paths):
+        #    print("%d: %s" % (i, p))
+        #print()
         print("Spglib options: symprec=", options.symprec, "angle_tolerance=", options.angle_tolerance)
         abilab.print_dataframe(dfs.lattice, title="Lattice parameters:")
         df_to_clipboard(options, dfs.lattice)
@@ -554,9 +554,35 @@ def abicomp_a2f(options):
     return _invoke_robot(options)
 
 
+def abicomp_gkq(options):
+    """
+    Compare multiple GKQ files with EPH matrix elements for a given q-point.
+    """
+    if options.diff:
+        robot = _build_robot(options, trim_paths=True) 
+
+        robot.plot_gkq2_diff()
+    else:
+        return _invoke_robot(options)
+
+
+def abicomp_wrmax(options):
+    """
+    Compare multiple WRmax files with first order potential in real-space.
+    """
+    return _invoke_robot(options)
+
+
+def abicomp_v1qavg(options):
+    """
+    Compare multiple V1QAVG files with the average of the DFPT V1 potentials as function of q-point.
+    """
+    return _invoke_robot(options)
+
+
 def abicomp_sigeph(options):
     """
-    Compare multiple SIGEPH files.
+    Compare multiple SIGEPH files storing the e-ph self-energy.
     """
     return _invoke_robot(options)
 
@@ -608,15 +634,8 @@ def abicomp_pseudos(options):
     return 0
 
 
-def _invoke_robot(options):
-    """
-    Analyze multiple files with a robot. Support list of files and/or
-    list of directories passed on the CLI..
-
-    By default, the script with call `robot.to_string(options.verbose)` to print info to terminal.
-    For finer control, use --ipy to start an ipython console to interact with the robot directly
-    or --nb to generate a jupyter notebook.
-    """
+def _build_robot(options, trim_paths=False):
+    """Build robot instance from CLI options."""
     robot_cls = abilab.Robot.class_for_ext(options.command.upper())
 
     # To define an Help action
@@ -643,8 +662,22 @@ def _invoke_robot(options):
                 cprint("Ignoring %s. Neither file or directory." % str(p), "red")
 
     if len(robot) == 0:
-        cprint("Warning: robot is empty. No file found", "red")
-        return 1
+        raise RuntimeError("Empty robot --> No file associated to this robot has been found")
+
+    if trim_paths: robot.trim_paths()
+    return robot
+
+
+def _invoke_robot(options):
+    """
+    Analyze multiple files with a robot. Support list of files and/or
+    list of directories passed on the CLI..
+
+    By default, the script with call `robot.to_string(options.verbose)` to print info to terminal.
+    For finer control, use --ipy to start an ipython console to interact with the robot directly
+    or --nb to generate a jupyter notebook.
+    """
+    robot = _build_robot(options)
 
     if options.notebook:
         robot.make_and_open_notebook(foreground=options.foreground)
@@ -824,6 +857,8 @@ Usage example:
 
   abicomp.py a2f *_A2F.nc -nb                   => Compare A2f results in the jupyter notebook.
   abicomp.py sigeph *_SIGEPH.nc -nb             => Compare Fan-Migdal self-energy in the jupyter notebook.
+  abicomp.py gkq out1_GKQ.nc out1_GKQ.nc -d     => Plot difference between matrix elements (supports 2+ files).
+  abicomp.py v1qavg out_V1QAVG.nc               => Compare V1QAVG files.
 
 ########
 # GW/BSE
@@ -907,6 +942,8 @@ def get_parser(with_epilog=False):
         help='Verbose, can be supplied multiple times to increase verbosity.')
     copts_parser.add_argument('-sns', "--seaborn", const="paper", default=None, action='store', nargs='?', type=str,
         help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster"). Default: paper')
+    copts_parser.add_argument('--pylustrator', action='store_true', default=False,
+        help="Style matplotlib plots with pylustrator. See https://pylustrator.readthedocs.io/en/latest/")
     copts_parser.add_argument('-mpl', "--mpl-backend", default=None,
         help=("Set matplotlib interactive backend. "
               "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
@@ -1013,7 +1050,7 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
     p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, ipy_parser, pandas_parser],
             help=abicomp_ebands.__doc__)
     p_ebands.add_argument("-p", "--plot-mode", default="gridplot",
-        choices=["gridplot", "combiplot", "boxplot", "combiboxplot", "animate", "None"],
+        choices=["gridplot", "combiplot", "boxplot", "combiboxplot", "plot_band_edges", "animate", "None"],
         help="Plot mode e.g. `-p combiplot` to plot bands on the same figure. Default is `gridplot`.")
     p_ebands.add_argument("-e0", default="fermie", choices=["fermie", "None"],
         help="Option used to define the zero of energy in the band structure plot. Default is `fermie`.")
@@ -1070,6 +1107,10 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
     p_optic = subparsers.add_parser('optic', parents=robot_parents, help=abicomp_optic.__doc__)
     p_a2f = subparsers.add_parser('a2f', parents=robot_parents, help=abicomp_a2f.__doc__)
     p_sigeph = subparsers.add_parser('sigeph', parents=robot_parents, help=abicomp_sigeph.__doc__)
+    p_gkq = subparsers.add_parser('gkq', parents=robot_parents, help=abicomp_gkq.__doc__)
+    p_gkq.add_argument('-d', '--diff', default=False, action="store_true", help='Plot difference between eph matrix elements.')
+    p_v1qavg = subparsers.add_parser('v1qavg', parents=robot_parents, help=abicomp_v1qavg.__doc__)
+    p_wrmax = subparsers.add_parser('wrmax', parents=robot_parents, help=abicomp_wrmax.__doc__)
     p_abiwan = subparsers.add_parser('abiwan', parents=robot_parents, help=abicomp_abiwan.__doc__)
 
     # Subparser for pseudos command.
@@ -1130,6 +1171,11 @@ def main():
         import seaborn as sns
         sns.set(context=options.seaborn, style='darkgrid', palette='deep',
                 font='sans-serif', font_scale=1, color_codes=False, rc=None)
+
+    if options.pylustrator:
+        # Start pylustrator to style matplotlib plots 
+        import pylustrator
+        pylustrator.start()
 
     if options.verbose > 2:
         print(options)

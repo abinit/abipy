@@ -1,6 +1,5 @@
 """
-This module provides functions to generate crystalline structures from Wyckoff positions
-or to retrieve Wyckoff parameters from a given structure.
+This module provides objects related to site symmetries 
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
 
@@ -16,7 +15,11 @@ from abipy.core.mixins import Has_Structure
 class SiteSymmetries(Has_Structure):
 
     def __init__(self, structure):
-        # Get Spacegroup from spglib if not available from Abinit.
+        """
+        Args:
+            structure: |Structure| object.
+        """
+        # Get spacegroup from spglib if not available from Abinit.
         if not structure.has_abi_spacegroup:
             structure.spgset_abi_spacegroup(has_timerev=True, overwrite=False)
 
@@ -28,7 +31,7 @@ class SiteSymmetries(Has_Structure):
 
         #self.eq_atoms = structure.spget_equivalent_atoms()
 
-        # Precompute sympy objects.
+        # Precompute sympy objects used to solve linear system of equations.
         self.sp_symrel, self.sp_symrec = [], []
         self.sp_tnons, self.sp_inv_symrel = [], []
         from abipy.core.symmetries import mati3inv
@@ -38,7 +41,7 @@ class SiteSymmetries(Has_Structure):
             inv_symr = mati3inv(symr, trans=False)
             self.sp_inv_symrel.append(sp.Matrix((inv_symr)))
             self.sp_symrec.append(sp.Matrix((symc)))
-            # FIXME: Should convert to rational
+            # FIXME: Should convert to rational numbers
             # Permissible translations are unit cell translations or fractions thereof
             # that are consistent with the rotational symmetry (e.g. 1/2, 1/3, 1/4, and 1/6), plus combinations.
             tau = np.around(tau, decimals=5)
@@ -151,6 +154,7 @@ class SiteSymmetries(Has_Structure):
 
     def get_tensor_rank2_dataframe(self, view="all", select_symbols=None, decimals=5, verbose=0):
         """
+        Use site symmetries to detect indipendent elements of rank 2 tensor.
 
         Args:
             view:
@@ -190,7 +194,7 @@ class SiteSymmetries(Has_Structure):
 
                 system.append(m)
 
-            # Solve system of linear equations.
+            # Solve system of linear equations. Print only sites for which we have contraints.
             solutions = sp.solve(system, dict=True)
             #print(solutions)
             if verbose and not solutions:
@@ -247,8 +251,8 @@ class SiteSymmetries(Has_Structure):
             diff_mat = sym_mat - ref_mat
             max_err = max(max_err, np.abs(diff_mat).sum())
             if count != 1 and verbose:
-                print("For iatom", iatom, "count:", count, "ref_mat, sym_mat, diff_mat")
-                print(np.hstack((ref_mat, sym_mat, diff_mat)))
+                print("For iatom", iatom, "on-site symmetries with count:", count)
+                print("ref_mat:\n", ref_mat, "\nsym_mat:\n", sym_mat, "\ndiff_mat:\n", diff_mat)
 
         for iatom in range(natom):
             ref_mat = tcart[iatom]
@@ -261,8 +265,8 @@ class SiteSymmetries(Has_Structure):
                 max_err = max(max_err, np.abs(diff_mat).sum())
                 if verbose:
                     print("For iatom", iatom, "ref_mat, sym_mat, diff_mat")
-                    print(np.hstack((tcart[jatom], sym_mat, diff_mat)))
+                    print("ref_mat:\n", tcart[jatom], "\nsym_mat:\n", sym_mat, "\ndiff_mat:\n", diff_mat)
 
-        print("Max error:", max_err)
+        if verbose: print("Max symmetrization error:", max_err)
 
         return max_err

@@ -9,10 +9,10 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import os
 import numpy as np
 
-from pymatgen.io.abinit.flows import Flow
-from pymatgen.io.abinit.works import Work, RelaxWork, PhononWork, MergeDdb
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput
+from abipy.flowtk.works import Work, RelaxWork, PhononWork, MergeDdb
+from abipy.flowtk.flows import Flow
 
 import logging
 logger = logging.getLogger(__name__)

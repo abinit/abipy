@@ -19,13 +19,14 @@ filepath = os.path.join(abidata.dirpath, "refs", "mp-7000_DDB.bz2")
 ddb = abilab.abiopen(filepath)
 
 # Invoke anaddb to compute phonon bands and dos.
-phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(nqsmall=4, ndivsm=1, mpi_procs=2)
+#dos_method = "gaussian"
+dos_method = "tetra"
+phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(nqsmall=4, dos_method=dos_method, ndivsm=1, mpi_procs=2)
 
 # Extract msqd_dos
 msqd_dos = phdos_file.msqd_dos
+#print(msqd_dos)
 
-
-print(msqd_dos)
 #for fmt in ("cartesian", "cif", "ustar", "beta", "B"):
 for fmt in ("cartesian", "cif"):
     df = msqd_dos.get_dataframe(temp=300, view="all", fmt=fmt)

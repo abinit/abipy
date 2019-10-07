@@ -12,7 +12,6 @@ import json
 import warnings
 import abipy.core.abinit_units as abu
 
-
 from collections import OrderedDict
 from monty.string import is_string, list_strings, marquee
 from monty.collections import AttrDict, dict2namedtuple
@@ -2515,10 +2514,11 @@ class PhdosReader(ETSF_Reader):
     def read_msq_dos(self):
         """
         Read generalized DOS with MSQ displacement tensor in cartesian coords.
-        Return |MsqDos| object.
+
+        Return: |MsqDos| object.
         """
         if "msqd_dos_atom" not in self.rootgrp.variables:
-            raise RuntimeError("PHBST file does not contain `msqd_dos_atom` variable.\nPlease use a more recent Abinit version")
+            raise RuntimeError("PHBST file does not contain `msqd_dos_atom` variable.\nPlease use a more recent Abinit version >= 9")
 
         # nctkarr_t('msqd_dos_atom', "dp", 'number_of_frequencies, three, three, number_of_atoms') &
         # symmetric tensor still transpose (3,3) to be consistent.
@@ -2528,7 +2528,7 @@ class PhdosReader(ETSF_Reader):
         amu_symbol = self.read_amu_symbol()
 
         from abipy.dfpt.msqdos import MsqDos
-        return MsqDos(self.structure, self.wmesh.copy(), values, amu_symbol)
+        return MsqDos(self.structure, self.wmesh, values, amu_symbol)
 
 
 class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):

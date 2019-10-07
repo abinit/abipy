@@ -6,11 +6,6 @@ from pymatgen.core.units import Energy
 from pymatgen.io.abinit.abiobjects import *
 
 
-#__all__ = [
-#    "LdauParams",
-#    "LexxParams",
-#]
-
 class LujForSpecie(collections.namedtuple("LdauForSpecie", "l u j unit")):
     """
     This object stores the value of l, u, j used for a single atomic specie.

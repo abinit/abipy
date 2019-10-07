@@ -120,7 +120,7 @@ class TestSigresFile(AbipyTest):
 
         # Ignore imaginary part.
         df_real = sigres.get_dataframe_sk(spin=0, kpoint=ik, ignore_imag=True)
-        assert np.all(df["qpe"].real == df_real["qpe"])
+        assert np.all(df["qpe"].to_numpy().real == df_real["qpe"])
 
         full_df = sigres.to_dataframe()
 

@@ -473,7 +473,7 @@ class TestAbinitInput(AbipyTest):
         # Non-linear methods
         ####################
         if self.has_abinit(version='8.3.2'):
-            dte_inputs = gs_inp.make_dte_inputs(phonon_pert=True, skip_permutations=True)
+            dte_inputs = gs_inp.make_dte_inputs(phonon_pert=True, skip_permutations=True, ixc=3)
             print("dte inputs\n", dte_inputs)
             assert len(dte_inputs) == 8
             assert np.all(dte_inputs[0]["d3e_pert2_dir"] == [1, 0, 0])

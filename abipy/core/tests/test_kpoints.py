@@ -11,7 +11,7 @@ from pymatgen.core.lattice import Lattice
 from abipy import abilab
 from abipy.core.kpoints import (wrap_to_ws, wrap_to_bz, issamek, Kpoint, KpointList, IrredZone, Kpath, KpointsReader,
     has_timrev_from_kptopt, KSamplingInfo, as_kpoints, rc_list, kmesh_from_mpdivs, map_grid2ibz,
-    set_atol_kdiff, set_spglib_tols)  #Ktables,
+    set_atol_kdiff, set_spglib_tols, kpath_from_bounds_and_ndivsm)  #Ktables,
 from abipy.core.testing import AbipyTest
 
 
@@ -63,6 +63,21 @@ class TestHelperFunctions(AbipyTest):
         for kptopt in [-5, 0, 1, 2, 3, 4]:
             assert kptopt2str(kptopt, verbose=1 if kptopt != 1 else 0)
 
+    def test_kpath_from_bounds_and_ndivsm(self):
+        """Testing kpath_from_bounds_and_ndivsm."""
+        structure = abilab.Structure.as_structure(abidata.cif_file("si.cif"))
+        with self.assertRaises(ValueError):
+            kpath_from_bounds_and_ndivsm([(0, 0, 0)], 5, structure)
+        with self.assertRaises(ValueError):
+            kpath_from_bounds_and_ndivsm([(0, 0, 0), (0, 0, 0)], 5, structure)
+
+        path = kpath_from_bounds_and_ndivsm([(0, 0, 0), (0.5, 0, 0)], 5, structure)
+        self.assert_equal(path, [[0.0, 0.0, 0.0 ],
+                                 [0.1, 0.0, 0.0 ],
+                                 [0.2, 0.0, 0.0 ],
+                                 [0.3, 0.0, 0.0 ],
+                                 [0.4, 0.0, 0.0 ],
+                                 [0.5, 0.0, 0.0 ]])
 
 class TestKpoint(AbipyTest):
     """Unit tests for Kpoint object."""

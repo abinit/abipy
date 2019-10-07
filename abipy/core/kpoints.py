@@ -469,6 +469,44 @@ def find_irred_kpoints_generic(structure, kfrac_coords, verbose=1):
     return dict2namedtuple(irred_map=np.array(irred_map, dtype=np.int))
 
 
+def kpath_from_bounds_and_ndivsm(bounds, ndivsm, structure):
+    """
+    Generate a normalized path given the extrema and the number of divisions for the smallest segment
+
+    Args:
+        bounds: (N, 3) array with the boundaries of the path in reduced coordinates.
+        ndivsm: Number of divisions used for the smallest segment.
+
+    Return:
+        Array (M, 3) with fractional coordinates.
+    """
+    bounds = np.reshape(bounds, (-1, 3))
+    nbounds = len(bounds)
+    if nbounds == 1:
+        raise ValueError("Need at least two points to define the k-path!")
+
+    lens = []
+    for i in range(nbounds - 1):
+        v = bounds[i + 1] - bounds[i]
+        lens.append(float(structure.reciprocal_lattice.norm(v)))
+
+    # Avoid division by zero if any bounds[i+1] == bounds[i]
+    minlen = np.min(lens)
+    if minlen < 1e-6:
+        raise ValueError("Found two equivalent consecutive points in bounds!")
+
+    minlen = minlen / ndivsm
+    ndivs = np.rint(lens / minlen).astype(np.int)
+    path = []
+    for i in range(nbounds - 1):
+        for j in range(ndivs[i]):
+            p = bounds[i] + j * (bounds[i + 1] - bounds[i]) / ndivs[i]
+            path.append(p)
+    path.append(bounds[-1])
+
+    return np.array(path)
+
+
 class KpointsError(Exception):
     """Base error class for KpointList exceptions."""
 
@@ -514,6 +552,12 @@ def as_kpoints(obj, lattice, weights=None, names=None):
 class Kpoint(SlotPickleMixin):
     """
     Class defining one k-point. This object is immutable and can be used as key in dictionaries
+
+    Note that we usually construct the object by passing pymatgen.reciprocal_lattice
+    that is the standard reciprocal lattice used for solid state physics 
+    with a factor of 2 * pi i.e. a_i . b_j = 2pi delta_ij. 
+    Abinit, on the contrary, uses the crystallographic reciprocal lattice i.e. no 2pi factor.
+    so pay attention when converting Abinit routines to AbiPy.
     """
 
     __slots__ = [
@@ -729,7 +773,7 @@ class Kpoint(SlotPickleMixin):
         return KpointStar(self.lattice, frac_coords, weights=None, names=len(frac_coords) * [self.name])
 
 
-class KpointList(collections.Sequence):
+class KpointList(collections.abc.Sequence):
     """
     Base class defining a sequence of |Kpoint| objects. Essentially consists
     of base methods implementing the sequence protocol and helper functions.

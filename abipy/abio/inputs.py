@@ -1190,7 +1190,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return tolvar, value
 
-    def make_ph_inputs_qpoint(self, qpt, tolerance=None, prtwf=-1, manager=None):
+    def make_ph_inputs_qpoint(self, qpt, tolerance=None, prtwf=-1, prepgkk=0, manager=None):
         """
         Builds and returns a |MultiDataset| list of input files
         for the calculation of phonons at the given q-point `qpt`.
@@ -1217,7 +1217,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             raise self.Error("Invalid tolerance: %s" % str(tolerance))
 
         # Call Abinit to get the list of irred perts.
-        perts = self.abiget_irred_phperts(qpt=qpt, manager=manager)
+        perts = self.abiget_irred_phperts(qpt=qpt, manager=manager, prepgkk=prepgkk)
 
         # Build list of datasets (one input per perturbation)
         # Remove iscf if any (required if we pass an input for NSCF calculation)
@@ -1361,7 +1361,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return multi
 
-    def make_dte_inputs(self, phonon_pert=False, skip_permutations=False, manager=None):
+    def make_dte_inputs(self, phonon_pert=False, skip_permutations=False, ixc=None, manager=None):
         """
         Return |MultiDataset| inputs for DTE calculation.
         This functions should be called with an input that represents a GS run.
@@ -1371,10 +1371,11 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             skip_permutations: Since the current version of abinit always performs all the permutations
                 of the perturbations, even if only one is asked, if True avoids the creation of inputs that
                 will produce duplicated outputs.
+            ixc: Value of ixc variable. Used to overwrite the default value read from pseudos.
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
         """
         # Call Abinit to get the list of irred perts.
-        perts = self.abiget_irred_dteperts(phonon_pert=phonon_pert, manager=manager)
+        perts = self.abiget_irred_dteperts(phonon_pert=phonon_pert, ixc=ixc, manager=manager)
 
         if skip_permutations:
             perts_to_skip = []
@@ -1389,6 +1390,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         # Build list of datasets (one input per perturbation)
         multi = MultiDataset.replicate_input(input=self, ndtset=len(perts))
+        if ixc is not None:
+            multi.set_vars(ixc=int(ixc))
 
         # See tutorespfn/Input/tnlo_2.in
         na = len(self.structure)
@@ -1751,7 +1754,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             except Exception as exc:
                 self._handle_task_exception(task, exc)
 
-    def abiget_irred_phperts(self, qpt=None, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
+    def abiget_irred_phperts(self, qpt=None, ngkpt=None, shiftk=None, kptopt=None, prepgkk=0, workdir=None, manager=None):
         """
         This function, computes the list of irreducible perturbations for DFPT.
         It should be called with an input file that contains all the mandatory variables required by ABINIT.
@@ -1762,6 +1765,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             ngkpt: Number of divisions for the k-mesh (default None i.e. use ngkpt from self)
             shiftk: Shiftks (default None i.e. use shiftk from self)
             kptopt: Option for k-point generation. If None, the value in self is used.
+            prepgkk: 1 to activate computation of all 3*natom perts (debugging option).
             workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
 
@@ -1776,6 +1780,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         phperts_vars = dict(rfphon=1,                         # Will consider phonon-type perturbation
                             rfatpol=[1, len(self.structure)], # Set of atoms to displace.
                             rfdir=[1, 1, 1],                  # Along this set of reduced coordinate axis.
+                            prepgkk=prepgkk,
                             )
 
         return self._abiget_irred_perts(phperts_vars, qpt=qpt, ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt,
@@ -1810,7 +1815,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         return self._abiget_irred_perts(ddeperts_vars, qpt=(0, 0, 0), ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt,
                                         workdir=workdir, manager=manager)
 
-    def abiget_irred_dteperts(self, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None,
+    def abiget_irred_dteperts(self, ngkpt=None, shiftk=None, kptopt=None, ixc=None, workdir=None, manager=None,
                               phonon_pert=False):
         """
         This function, computes the list of irreducible perturbations for DFPT.
@@ -1846,6 +1851,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                              optdriver=5,                # non-linear response functions , using the 2n+1 theorem
                              kptopt=2,                   # kpt time reversal symmetry
                              )
+
+        if ixc is not None: dteperts_vars["ixc"] = ixc
 
         return self._abiget_irred_perts(dteperts_vars, qpt=(0, 0, 0), ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt,
                                         workdir=workdir, manager=manager)
@@ -2517,7 +2524,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             spell_check: False to disable spell checking for input variables.
             comment: Optional string with a comment that will be placed at the beginning of the file.
         """
-        dosdeltae, dossmear = None, None
+        dossmear = None
 
         if dos_method == "tetra":
             prtdos = 2
@@ -2537,10 +2544,10 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         if qppa:
             ng2qpt = KSampling.automatic_density(structure, kppa=qppa).kpts[0]
             # Set new variables
-            new.set_vars(ng2qpt=ng2qpt,prtdos=prtdos,dossmear=dossmear)
+            new.set_vars(ng2qpt=ng2qpt, prtdos=prtdos, dossmear=dossmear)
         else:
             new.set_autoqmesh(nqsmall)
-            new.set_vars(prtdos=prtdos, dosdeltae=dosdeltae, dossmear=dossmear)
+            new.set_vars(prtdos=prtdos, dossmear=dossmear)
             if nqsmall == 0:
                 new["prtdos"] = 0
 

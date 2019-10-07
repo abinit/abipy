@@ -49,7 +49,7 @@ def find_degs_sk(enesb, atol):
     Args:
         enesb: Iterable with energies for the different bands.
             Energies are assumed to be ordered.
-        atol: Absolute tolerance. Two states are degerated if they differ by less than `atol`.
+        atol: Absolute tolerance. Two states are degenerated if they differ by less than `atol`.
 
     Return:
         List of lists. The i-th item contains the indices of the degenerates states
@@ -820,6 +820,13 @@ class SkwInterpolator(ElectronInterpolator):
     the names of the variables are chosen assuming we are interpolating electronic eigenvalues
     but the same object can be used to interpolate other quantities. Just set the first dimension to 1.
     """
+    #@class method
+    #def from_ncreader(cls, reader):
+    #    return cls(lpratio, kpts, eigens, fermie, nelect, cell, symrel, has_timrev,
+    #               filter_params=None, verbose=1)
+
+    #@class method
+    #def from_file(cls, filepath)
 
     def __init__(self, lpratio, kpts, eigens, fermie, nelect, cell, symrel, has_timrev,
                  filter_params=None, verbose=1):

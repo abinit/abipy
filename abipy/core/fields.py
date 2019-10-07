@@ -411,7 +411,7 @@ class _Field(Has_Structure):
         Return: |matplotlib-Figure|
         """
         site = self.structure[site_index]
-        nn_list = self.structure.get_neighbors(site, radius, include_index=True)
+        nn_list = self.structure.get_neighbors_old(site, radius, include_index=True)
         if not nn_list:
             cprint("Zero neighbors found for radius %s Ang. Returning None." % radius, "yellow")
             return None
@@ -611,7 +611,7 @@ class Density(_DensityField):
         if isinstance(rhoc, (list, tuple)):
             if len(structure) != len(rhoc):
                 raise ValueError('Number of rhoc files should be equal to the number of sites in the structure')
-        elif isinstance(rhoc, collections.Mapping):
+        elif isinstance(rhoc, collections.abc.Mapping):
             atoms_symbols = [elmt.symbol for elmt in structure.composition]
             if not np.all([atom in rhoc for atom in atoms_symbols]):
                 raise ValueError('The rhoc files should be provided for all the atoms in the structure')

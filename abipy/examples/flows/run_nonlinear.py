@@ -82,7 +82,7 @@ def main(options):
     Command line args are stored in `options`.
     """
     # Temporarily disabled in v8.8.2
-    return 0
+    #return 0
     return build_flow(options)
 
 
