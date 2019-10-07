@@ -2751,10 +2751,23 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             anaddb_input["instrflag"] = 1
 
         if dte:
-            anaddb_input.set_vars(nlflag=1,
-                                  ramansr=1,
-                                  alphon=1,
-                                  prtmbm=1)
+            ramansr = 0
+            alphon = 0
+            prtmbm = 0
+
+            # if there are phonons at gamma
+            if ngqpt and (not q1shft or np.allclose(q1shft, [0, 0, 0])):
+                nlflag = 1
+                ramansr = 1
+                alphon = 1
+                prtmbm = 1
+            else:
+                nlflag = 3
+
+            anaddb_input.set_vars(nlflag=nlflag,
+                                  ramansr=ramansr,
+                                  alphon=alphon,
+                                  prtmbm=prtmbm)
 
         anaddb_args = [] if anaddb_args is None else anaddb_args
         anaddb_kwargs = {} if anaddb_kwargs is None else anaddb_kwargs

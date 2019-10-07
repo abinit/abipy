@@ -1369,7 +1369,7 @@ def dfpt_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, do_ddk=True, do_dde=T
         do_strain: If True inputs for the strain perturbations will be included.
         do_dte: If True inputs for the non-linear perturbations will be included. The phonon non-linear perturbations
             will be included only if a phonon calculation at gamma is present. The caller is responsible for
-            adding it.
+            adding it. Automatically sets with_dde=True.
         ph_tol: a dictionary with a single key defining the type of tolerance used for the phonon calculations and
             its value. Default: {"tolvrs": 1.0e-10}.
         ddk_tol: a dictionary with a single key defining the type of tolerance used for the DDK calculations and
@@ -1399,6 +1399,9 @@ def dfpt_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, do_ddk=True, do_dde=T
 
     if do_dde:
         do_ddk = True
+
+    if do_dte:
+        do_dde = True
 
     multi = MultiDataset.from_inputs([gs_inp])
     multi[0].add_tags(SCF)
@@ -1435,7 +1438,7 @@ def dfpt_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, do_ddk=True, do_dde=T
         gs_inp_copy.set_vars(nband=nband)
         gs_inp_copy.pop('nbdbuf', None)
         multi_dte = gs_inp_copy.make_dte_inputs(phonon_pert=do_phonons and has_gamma,
-                                           skip_permutations=skip_dte_permutations, manager=manager)
+                                                skip_permutations=skip_dte_permutations, manager=manager)
         multi_dte.add_tags([DTE, DFPT])
         multi.extend(multi_dte)
 
