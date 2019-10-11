@@ -169,7 +169,7 @@ class TestScalarField(AbipyTest):
         core_den_2 = Density.ae_core_density_on_mesh(si_den, si_den.structure, rhoc, maxr=1.5,
                                                      method='mesh3d_dist_gridpoints', small_dist_mesh=(6, 6, 6))
         self.assertAlmostEqual(np.sum(core_den_1.datar) * si_den.mesh.dv, 20, delta=0.5)
-        self.assertArrayAlmostEqual(core_den_1.datar, core_den_2.datar, decimal=2)
+        self.assertArrayAlmostEqual(core_den_1.datar, core_den_2.datar, decimal=1)
         with self.assertRaises(ValueError):
             Density.ae_core_density_on_mesh(si_den, si_den.structure, rhoc, maxr=1, nelec=20, tol=0.001,
                                             method='get_sites_in_sphere', small_dist_mesh=(2, 2, 2))

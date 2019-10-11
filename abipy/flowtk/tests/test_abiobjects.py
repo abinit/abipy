@@ -25,9 +25,9 @@ class LdauLexxTest(AbipyTest):
         self.serialize_with_pickle(luj_params, test_eq=False)
 
         atrue(avars["usepawu"] == 1)
-        aequal(avars["lpawu"], "2 -1"),
-        aequal(avars["upawu"], "8.0 0.0 eV")
-        aequal(avars["jpawu"], "0.8 0.0 eV")
+        aequal(avars["lpawu"], "-1 2"),
+        aequal(avars["upawu"], "0.0 8.0 eV")
+        aequal(avars["jpawu"], "0.0 0.8 eV")
 
         # Cannot add UJ for non-existent species.
         with self.assertRaises(ValueError):
@@ -44,7 +44,7 @@ class LdauLexxTest(AbipyTest):
         self.serialize_with_pickle(lexx_params, test_eq=False)
 
         aequal(avars["useexexch"], 1),
-        aequal(avars["lexexch"], "2 -1")
+        aequal(avars["lexexch"], "-1 2")
 
         # Cannot add LEXX for non-existent species.
         with self.assertRaises(ValueError):

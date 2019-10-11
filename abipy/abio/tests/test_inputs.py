@@ -715,8 +715,8 @@ class AnaddbInputTest(AbipyTest):
         self.abivalidate_input(anaddb_input)
 
         anaddb_input = AnaddbInput.dfpt(self.structure, dte=True)
-        assert anaddb_input['nlflag'] == 1
-        assert anaddb_input['alphon'] == 1
+        assert anaddb_input['nlflag'] == 3
+        assert anaddb_input['alphon'] == 0
 
 
 class TestCut3DInput(AbipyTest):
