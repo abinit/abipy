@@ -625,12 +625,16 @@ def plot_structure(structure, ax=None, to_unit_cell=False, alpha=0.7,
     from pymatgen.vis.structure_vtk import EL_COLORS
     xyzs, colors = np.empty((len(structure), 4)), []
 
+    #print(structure)
     for i, site in enumerate(structure):
         symbol = site.specie.symbol
         color = tuple(i / 255 for i in EL_COLORS[color_scheme][symbol])
         radius = CovalentRadius.radius[symbol]
         if to_unit_cell and hasattr(site, "to_unit_cell"): site = site.to_unit_cell
         # Use cartesian coordinates.
+        #print(site.__class__)
+        #print(site.__module__)
+        #print(site)
         x, y, z = site.coords
         xyzs[i] = (x, y, z, radius)
         colors.append(color)

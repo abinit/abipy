@@ -117,6 +117,7 @@ def make_inputs(ngkpt, paral_kgb=1):
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
+        if os.getenv("READTHEDOCS", False): __file__ = os.path.join(os.getcwd(), "run_si_g0w0.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_")
 
     # Change the value of ngkpt below to perform a GW calculation with a different k-mesh.

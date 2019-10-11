@@ -1982,7 +1982,7 @@ class MultiDataset(object):
 
     MultiDataset provides its own implementaion of __getattr__ so that one can simply use:
 
-         multi.set_vars(ecut=1)
+        multi.set_vars(ecut=1)
 
         multi.get("ecut") returns a list of values. It's equivalent to:
 
@@ -2106,8 +2106,6 @@ class MultiDataset(object):
         return self._inputs.__iter__()
 
     def __getattr__(self, name):
-        #print("in getname with name: %s" % name)
-        #m = getattr(self._inputs[0], name)
         _inputs = object.__getattribute__(self, "_inputs")
         m = getattr(_inputs[0], name)
         if m is None:

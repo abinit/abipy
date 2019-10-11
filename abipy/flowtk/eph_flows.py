@@ -26,6 +26,7 @@ class GkqPathFlow(Flow):
         """
         Build the flow from an input file representing a GS calculation.
 
+        Args:
             workdir: Path to the working directory.
             scf_input: Input for the GS SCF run.
             ngqpt: 3 integers defining the q-mesh. 

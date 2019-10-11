@@ -325,7 +325,7 @@ class TestAbinitInput(AbipyTest):
         assert pert.idir == 1 and (pert.idir, pert.ipert) == (1, 1) and all(c == 0 for c in pert.qpt)
 
         irred_perts = inp_gan.abiget_irred_phperts(qpt=(0.5, 0, 0))
-        print(irred_perts)
+        #print(irred_perts)
         assert len(irred_perts) == 6
         irred_perts_values = [{'idir': 1, 'ipert': 1, 'qpt': [0.5, 0.0, 0.0]},
                               {'idir': 2, 'ipert': 1, 'qpt': [0.5, 0.0, 0.0]},

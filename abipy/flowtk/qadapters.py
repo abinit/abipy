@@ -312,7 +312,7 @@ def make_qadapter(**kwargs):
     Return the concrete :class:`QueueAdapter` class from a string.
     Note that one can register a customized version with:
 
-    .. example::
+    .. code-block:: python
 
         from qadapters import SlurmAdapter
 

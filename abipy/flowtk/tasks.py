@@ -320,7 +320,7 @@ class ParalHints(collections.abc.Iterable):
             Args:
                 condition: dict or :class:`Condition` object with operators expressed with a Mongodb-like syntax
                 key: Selects the sub-dictionary on which condition is applied, e.g. key="vars"
-                    if we have to filter the configurations depending on the values in vars
+                     if we have to filter the configurations depending on the values in vars
         """
         condition = Condition.as_condition(condition)
         new_confs = []
@@ -2892,14 +2892,14 @@ class AbinitTask(Task):
         Args:
             what: string with the list of characters selecting the file type
                   Possible choices:
-                    i ==> input_file,
-                    o ==> output_file,
-                    f ==> files_file,
-                    j ==> job_file,
-                    l ==> log_file,
-                    e ==> stderr_file,
-                    q ==> qout_file,
-                    all ==> all files.
+                  i ==> input_file,
+                  o ==> output_file,
+                  f ==> files_file,
+                  j ==> job_file,
+                  l ==> log_file,
+                  e ==> stderr_file,
+                  q ==> qout_file,
+                  all ==> all files.
         """
         choices = collections.OrderedDict([
             ("i", self.input_file),
