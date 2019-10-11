@@ -818,6 +818,11 @@ class PhononBands(object):
 
             return h
 
+        def reasonable_repetitions(natoms):
+            if (natoms < 4):        return (3,3,3)
+            if (4 < natoms < 50):   return (2,2,2)
+            if (50 < natoms):       return (1,1,1)
+
         # http://henriquemiranda.github.io/phononwebsite/index.html
         data = {}
         data["name"] = name or self.structure.composition.reduced_formula
@@ -826,7 +831,7 @@ class PhononBands(object):
         data["atom_types"] = [e.name for e in self.structure.species]
         data["atom_numbers"] = self.structure.atomic_numbers
         data["formula"] = self.structure.formula.replace(" ", "")
-        data["repetitions"] = repetitions or (3, 3, 3)
+        data["repetitions"] = repetitions or reasonable_repetitions(self.num_atoms)
         data["atom_pos_car"] = self.structure.cart_coords.tolist()
         data["atom_pos_red"] = self.structure.frac_coords.tolist()
         data["chemical_symbols"] = self.structure.symbol_set
@@ -870,7 +875,8 @@ class PhononBands(object):
                             self.split_matched_indices[i][...,None],
                             np.arange(vect.shape[2])[None, None,:]]
             v = vect.reshape((len(vect), self.num_branches,self.num_atoms, 3))
-            v /= np.linalg.norm(v[0,0,0])
+            norm = [np.linalg.norm(vi) for vi in v[0,0]]
+            v /= max(norm)
             v = np.stack([v.real, v.imag], axis=-1)
 
             vectors.extend(v.tolist())
