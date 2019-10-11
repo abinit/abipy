@@ -1898,7 +1898,7 @@ class DielectricTensorGenerator(Has_Structure):
         Return: |matplotlib-Figure|
         """
         if w_max is None:
-            w_max = np.max(self.phfreqs) * phfactor_ev2units(units) + gamma_ev * 10
+            w_max = (np.max(self.phfreqs) + gamma_ev * 10) * phfactor_ev2units(units)
 
         wmesh = np.linspace(w_min, w_max, num, endpoint=True)
         t = np.zeros((num, 3, 3), dtype=complex)

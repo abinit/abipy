@@ -174,7 +174,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         if is_string(obj):
             return cls.from_file(obj)
 
-        if isinstance(obj, collections.Mapping):
+        if isinstance(obj, collections.abc.Mapping):
             try:
                 return Structure.from_abivars(obj)
             except:
@@ -1032,7 +1032,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         print("Finding neighbors for each atom in the unit cell, out to a distance %s (Angstrom)" % radius)
         print(" ")
 
-        ns = self.get_all_neighbors(radius, include_index=False)
+        ns = self.get_all_neighbors_old(radius, include_index=False)
         for i, (site, sited_list) in enumerate(zip(self, ns)):
             print("[%s] site %s has %s neighbors:" % (i, repr(site), len(sited_list)))
             for s, dist in sorted(sited_list, key=lambda t: t[1]):
@@ -1448,7 +1448,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
     #        symbol = site.specie.symbol
     #        pseudo = pseudos[symbol]
     #        r1 = Length(pseudo.r_cut, "Bohr").to("ang")
-    #        sitedist_list = self.get_neighbors(site, r1, include_index=False)
+    #        sitedist_list = self.get_neighbors_old(site, r1, include_index=False)
 
     #        if sitedist_list:
     #            # Spheres are overlapping: compute overlap and update the return values
@@ -1737,14 +1737,13 @@ class Structure(pymatgen.Structure, NotebookWriter):
         displ_list = []
         for at,site in enumerate(self):
             for t in tvects:
-                new_displ1[:] = np.real(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ1[at,:])
+                new_displ1[:] = np.real(np.exp(2*1j * np.pi * (np.dot(qpoint, t))) * displ1[at,:])
+                new_displ2[:] = np.real(np.exp(2*1j * np.pi * (np.dot(qpoint, t))) * displ2[at,:])
 
-                new_displ2[:] = np.real(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ2[at,:])
-
-                displ_list.append(new_displ1+new_displ2)
+                displ_list.append(new_displ1 + new_displ2)
                 coords = site.coords + old_lattice.get_cartesian_coords(t) + new_displ1 + new_displ2
                 new_site = PeriodicSite(
-                    site.species_and_occu, coords, new_lattice,
+                    site.species, coords, new_lattice,
                     coords_are_cartesian=True, properties=site.properties,
                     to_unit_cell=True)
                 new_sites.append(new_site)
@@ -1808,7 +1807,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
                 coords = site.coords + old_lattice.get_cartesian_coords(t) + new_displ
                 new_site = PeriodicSite(
-                    site.species_and_occu, coords, new_lattice,
+                    site.species, coords, new_lattice,
                     coords_are_cartesian=True, properties=site.properties,
                     to_unit_cell=True)
                 new_sites.append(new_site)
@@ -2198,7 +2197,7 @@ class StructureModifier(object):
         Returns:
             List of new structures with displaced atoms.
         """
-        if not isinstance(etas, collections.Iterable):
+        if not isinstance(etas, collections.abc.Iterable):
             etas = [etas]
 
         news = []

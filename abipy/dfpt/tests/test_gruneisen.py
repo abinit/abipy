@@ -57,7 +57,7 @@ class GrunsFileTest(AbipyTest):
 
                 plotter = ncfile.get_plotter()
                 assert plotter.combiboxplot(show=False)
-                assert plotter.animate()
+                assert plotter.animate(show=False)
 
                 assert ncfile.plot_gruns_scatter(units='cm-1', show=False)
                 assert ncfile.plot_gruns_scatter(values="groupv", units='cm-1', show=False)

@@ -5,6 +5,7 @@ Phonon Toolkit: This module gathers low-level tools to operate on phonons.
 from __future__ import print_function, division, absolute_import  # unicode_literals,
 
 import warnings
+import sys
 import numpy as np
 import abipy.core.abinit_units as abu
 
