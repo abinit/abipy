@@ -212,6 +212,7 @@ class QueueJob(object):
         """
         for sig_name in ("SIGFPE",):
             if self.received_signal(sig_name): return sig_name
+
         return False
 
     def received_signal(self, sig_name):
