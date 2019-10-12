@@ -175,13 +175,10 @@ class Structure(pymatgen.Structure, NotebookWriter):
             return cls.from_file(obj)
 
         if isinstance(obj, collections.abc.Mapping):
-            try:
+            if "@module" in obj:
+                return Structure.from_dict(obj)
+            else:
                 return Structure.from_abivars(obj)
-            except:
-                try:
-                    return Structure.from_dict(obj)
-                except:
-                    raise TypeError("Don't know how to convert dict %s into a structure" % str(obj))
 
         if hasattr(obj, "structure"):
             return cls.as_structure(obj.structure)
@@ -1949,12 +1946,12 @@ class Structure(pymatgen.Structure, NotebookWriter):
         lattice_type, spg_symbol = sym.get_lattice_type(), sym.get_space_group_symbol()
 
         # Check if the cell is primitive
-        is_primitve = len(sym.find_primitive()) == len(self)
+        is_primitive = len(sym.find_primitive()) == len(self)
 
         # Generate the appropriate set of shifts.
         shiftk = None
 
-        if is_primitve:
+        if is_primitive:
             if lattice_type == "cubic":
                 if "F" in spg_symbol:
                     # FCC

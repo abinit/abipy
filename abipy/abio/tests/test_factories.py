@@ -86,8 +86,6 @@ class FactoryTest(AbipyTest):
         assert len(multi_dos) == 4
         self.assert_equal(multi_dos.get("iscf"), [None, -2, -2, -2])
 
-
-
     def test_ion_ioncell_relax_input(self):
         """Testing ion_ioncell_relax_input factory."""
         multi = ion_ioncell_relax_input(self.si_structure, self.si_pseudo, kppa=10, ecut=2)
@@ -369,7 +367,6 @@ class FactoryTest(AbipyTest):
         self.assertMSONable(factory_obj)
         icrelax_input_obj = factory_obj.build_input(gs_inp)
 
-
     def test_hybrid_oneshot_input(self):
         """Testing hybrid_oneshot_input."""
         from abipy.abio.factories import hybrid_oneshot_input
@@ -471,4 +468,3 @@ class FactoryTest(AbipyTest):
         self.assert_input_equality('dfpt_from_gsinput_ph_q_pert_2.json', inp_ph_q_pert_2)
         self.assert_input_equality('dfpt_from_gsinput_strain.json', inp_strain)
         self.assert_input_equality('dfpt_from_gsinput_dte.json', inp_dte)
-

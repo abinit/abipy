@@ -10,10 +10,7 @@ from collections import namedtuple
 from monty.collections import AttrDict
 from monty.string import is_string
 from monty.json import jsanitize, MontyDecoder
-try:
-    from pymatgen.util.serialization import pmg_serialize
-except ImportError:
-    from pymatgen.serializers.json_coders import pmg_serialize
+from pymatgen.util.serialization import pmg_serialize
 from abipy.flowtk import PseudoTable
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput, MultiDataset
@@ -42,28 +39,6 @@ __all__ = [
 ]
 
 
-# TODO: To be discussed:
-#    1) extra_abivars is more similar to a hack. The factory functions are designed for
-#       HPC hence we cannot allow the user to inject something we cannot control easily
-#       Shall we remove it?
-#    2) scf_nband and nscf_band should be computed from the pseudos, the structure
-#       and some approximation for the band dispersion.
-#       SCF fails if nband is too small or has problems if we don't have enough partially
-#       occupied states in metals (can write EventHandler but it would be nice if we could
-#       fix this problem in advance.
-#    3) How do we handle options related to parallelism e.g. paral_kgb?
-#    4) The API of the factory functions must be simple enough so that we can easily generate
-#       flows but, on the other hand, we would like to decorate the input with extra features
-#       e.g. we would like to do a LDA+U band structure, a LDA+U relaxation etc.
-#       For a possible solution based on factory functions see:
-#
-#            http://python-3-patterns-idioms-test.readthedocs.org/en/latest/Factory.html
-#
-#       for decorator pattern see:
-#
-#            http://www.tutorialspoint.com/design_pattern/decorator_pattern.htm
-
-
 # Name of the (default) tolerance used by the runlevels.
 _runl2tolname = {
     "scf": 'tolvrs',
@@ -85,8 +60,7 @@ _tolerances = {
 del T
 
 
-# Default values used if user do not specify them
-# TODO: Design an object similar to DictVaspInputSet
+# Default values used if user does not specify them
 _DEFAULTS = dict(
     kppa=1000,
 )
@@ -117,7 +91,7 @@ class ShiftMode(Enum):
         elif is_string(obj):
             return cls(obj[0].upper())
         else:
-            raise TypeError('The object provided is not handled: type' % type(obj))
+            raise TypeError('The object provided is not handled: type %s' % type(obj))
 
 
 def _stopping_criterion(runlevel, accuracy):
@@ -138,7 +112,6 @@ def _find_ecut_pawecutdg(ecut, pawecutdg, pseudos, accuracy):
         else:
             raise AbinitInput.Error("ecut is None but pseudos do not provide hints for ecut")
 
-    # TODO: This should be the new API.
     if pawecutdg is None and any(p.ispaw for p in pseudos):
         if has_hints:
             pawecutdg = max(p.hint_for_accuracy(accuracy).pawecutdg for p in pseudos)
@@ -167,13 +140,13 @@ def _find_scf_nband(structure, pseudos, electrons, spinat=None):
     # if the change is not propagated e.g. phonons in metals.
     if smearing:
         # metallic occupation
-        nband = max(np.ceil(nband*1.2), nband+10)
+        nband = max(np.ceil(nband * 1.2), nband + 10)
     else:
-        nband = max(np.ceil(nband*1.1), nband+4)
+        nband = max(np.ceil(nband * 1.1), nband + 4)
 
     # Increase number of bands based on the starting magnetization
     if nsppol == 2 and spinat is not None:
-        nband += np.ceil(max(np.sum(spinat, axis=0))/2.)
+        nband += np.ceil(max(np.sum(spinat, axis=0)) / 2.)
 
     # Force even nband (easier to divide among procs, mandatory if nspinor == 2)
     nband += nband % 2
@@ -207,7 +180,7 @@ def _get_shifts(shift_mode, structure):
         else:
             return ((0, 0, 0))
     else:
-        raise ValueError("shift_mode `%s `not valid." % str(shift_mode))
+        raise ValueError("invalid shift_mode: `%s`" % str(shift_mode))
 
 
 def gs_input(structure, pseudos,
@@ -986,6 +959,7 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, wit
     multi.add_tags(PHONON)
 
     return multi
+
 
 def piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False,
                                       manager=None):
