@@ -2,8 +2,6 @@
 Interface to the GKQ.nc file storing the e-ph matrix elements 
 in the atomic representation (idir, ipert) for a single q-point.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import numpy as np
 import abipy.core.abinit_units as abu
 
@@ -28,7 +26,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         return cls(filepath)
 
     def __init__(self, filepath):
-        super(GkqFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = GkqReader(filepath)
         #self.alpha_gmin = self.reader.read_value("alpha_gmin")
 

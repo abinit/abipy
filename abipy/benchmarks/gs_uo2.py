@@ -3,9 +3,6 @@
 UO2 with 96 atoms. PAW and nsppol=2
 GS calculations with paralkgb==1. Compare wfoptalg in [default, 1].
 """
-
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import sys
 import operator
 import numpy as np

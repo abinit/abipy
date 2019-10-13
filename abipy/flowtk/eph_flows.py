@@ -2,8 +2,6 @@
 """
 Flows for electron-phonon calculations (high-level interface)
 """
-from __future__ import unicode_literals, division, print_function
-
 import numpy as np
 
 from abipy.core.kpoints import kpath_from_bounds_and_ndivsm

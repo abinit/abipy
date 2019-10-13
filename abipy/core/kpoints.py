@@ -1,7 +1,5 @@
 # coding: utf-8
 """This module defines objects describing the sampling of the Brillouin Zone."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import collections
 import json
 import sys
@@ -16,14 +14,8 @@ from monty.functools import lazy_property
 from monty.termcolor import cprint
 from monty.string import marquee
 from pymatgen.core.lattice import Lattice
-try:
-    from pymatgen.util.serialization import pmg_serialize
-except ImportError:
-    from pymatgen.serializers.json_coders import pmg_serialize
-try:
-    from pymatgen.util.serialization import SlotPickleMixin
-except ImportError:
-    from pymatgen.serializers.pickle_coders import SlotPickleMixin
+from pymatgen.util.serialization import pmg_serialize
+from pymatgen.util.serialization import SlotPickleMixin
 from abipy.iotools import ETSF_Reader
 from abipy.tools.derivatives import finite_diff
 from abipy.tools.numtools import add_periodic_replicas, is_diagonal
@@ -1415,8 +1407,8 @@ class IrredZone(KpointList):
             names: List with the name of the k-points.
             ksampling: Info on the k-point sampling
         """
-        super(IrredZone, self).__init__(reciprocal_lattice, frac_coords,
-                                        weights=weights, names=names, ksampling=ksampling)
+        super().__init__(reciprocal_lattice, frac_coords,
+                         weights=weights, names=names, ksampling=ksampling)
 
         # Weights must be normalized to one.
         wsum = self.sum_weights()
@@ -1566,7 +1558,7 @@ class KSamplingInfo(AttrDict):
                    kptrlatt=kptrlatt, kptrlatt_orig=kptrlatt_orig, kptopt=kptopt)
 
     def __init__(self, *args, **kwargs):
-        super(KSamplingInfo, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         for k in self:
            if k not in self.KNOWN_KEYS:
                raise ValueError("Unknow key %s" % k)

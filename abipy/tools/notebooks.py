@@ -1,6 +1,4 @@
 """Tools for ipython notebooks."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 
 def print_source_in_module(function, module):  # pragma: no cover
     """

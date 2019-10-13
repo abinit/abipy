@@ -1,7 +1,5 @@
 # coding: utf-8
 """Objects to analyze the screening files produced by the GW code (optdriver 3)."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import numpy as np
 import six
 import abc
@@ -59,7 +57,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
         return cls(filepath)
 
     def __init__(self, filepath):
-        super(ScrFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = ScrReader(filepath)
 
     def close(self):
@@ -270,7 +268,7 @@ class ScrReader(ETSF_Reader):
     .. inheritance-diagram:: ScrReader
     """
     def __init__(self, filepath):
-        super(ScrReader, self).__init__(filepath)
+        super().__init__(filepath)
 
         # Read and store important quantities.
         self.structure = self.read_structure()

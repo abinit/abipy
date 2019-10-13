@@ -1,7 +1,5 @@
 # coding: utf-8
 """History file with structural relaxation results."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 import numpy as np
 import pymatgen.core.units as units
@@ -41,7 +39,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         return cls(filepath)
 
     def __init__(self, filepath):
-        super(HistFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = HistReader(filepath)
 
     def close(self):
@@ -537,7 +535,7 @@ class HistRobot(Robot):
         """String representation with verbosity level ``verbose``."""
         s = ""
         if verbose:
-            s = super(HistRobot, self).to_string(verbose=0)
+            s = super().to_string(verbose=0)
         df = self.get_dataframe()
         s_df = "Table with final structures, pressures in GPa and force stats in eV/Ang:\n\n%s" % str(df)
         if s:

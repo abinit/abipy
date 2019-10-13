@@ -24,7 +24,7 @@ class TransportFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, 
         return cls(filepath)
 
     def __init__(self, filepath):
-        super(TransportFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = TransportReader(filepath)
 
         #self.fermi = self.ebands.fermie * abu.eV_Ha
@@ -243,7 +243,7 @@ class TransportReader(ElectronsReader):
     """
     def __init__(self, filepath):
         self.filepath = filepath
-        super(TransportReader, self).__init__(filepath)
+        super().__init__(filepath)
         ktmesh = self.read_value("kTmesh")
         self.tmesh = ktmesh / abu.kb_HaK
         self.nsppol = self.read_dimvalue('nsppol')

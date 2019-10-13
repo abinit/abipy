@@ -1,6 +1,5 @@
 # coding: utf-8
 """Work subclasses related to DFTP."""
-from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
 

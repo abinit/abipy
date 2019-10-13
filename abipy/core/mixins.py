@@ -1,7 +1,5 @@
 # coding: utf-8
 """This module ..."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import abc
 import os
 import six
@@ -106,7 +104,7 @@ class BaseFile(object):
     #    try:
     #        self.close()
     #    finally:
-    #        super(BaseFile, self).__close__(self)
+    #        super().__close__(self)
 
 
 class TextFile(BaseFile):
@@ -190,7 +188,7 @@ class CubeFile(BaseFile):
     """
     def __init__(self, filepath):
         from abipy.iotools.cube import cube_read_structure_mesh_data
-        super(CubeFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.structure, self.mesh, self.data = cube_read_structure_mesh_data(self.filepath)
 
     def close(self):

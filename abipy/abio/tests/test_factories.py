@@ -1,5 +1,3 @@
-from __future__ import unicode_literals, division, print_function
-
 import abipy.data as abidata
 import abipy.abilab as abilab
 

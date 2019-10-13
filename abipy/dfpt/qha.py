@@ -1,6 +1,4 @@
 # coding: utf-8
-from __future__ import print_function, division, absolute_import
-
 import numpy as np
 import os
 import six
@@ -457,8 +455,7 @@ class QHA(AbstractQHA):
             eos_name: string indicating the expression used to fit the energies. See pymatgen.analysis.eos.EOS.
             pressure: value of the pressure in GPa that will be considered in the p*V contribution to the energy.
         """
-
-        super(QHA, self).__init__(structures=structures, energies=energies, eos_name=eos_name, pressure=pressure)
+        super().__init__(structures=structures, energies=energies, eos_name=eos_name, pressure=pressure)
         self.doses = doses
 
     def get_vib_free_energies(self, tstart=0, tstop=800, num=100):
@@ -561,7 +558,7 @@ class QHA3PF(AbstractQHA):
             pressure: value of the pressure in GPa that will be considered in the p*V contribution to the energy.
         """
 
-        super(QHA3PF, self).__init__(structures=structures, energies=energies, eos_name=eos_name, pressure=pressure)
+        super().__init__(structures=structures, energies=energies, eos_name=eos_name, pressure=pressure)
         self.doses = doses
         self.ind_doses = ind_doses
         self.fit_degree = fit_degree
@@ -700,7 +697,7 @@ class QHA3P(AbstractQHA):
             pressure: value of the pressure in GPa that will be considered in the p*V contribution to the energy.
         """
 
-        super(QHA3P, self).__init__(structures=structures, energies=energies, eos_name=eos_name, pressure=pressure)
+        super().__init__(structures=structures, energies=energies, eos_name=eos_name, pressure=pressure)
         self.grun = gruns
         self.ind_grun = ind_grun
         self._ind_energy_only = [i for i in range(len(structures)) if i not in ind_grun]

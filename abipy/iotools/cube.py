@@ -3,7 +3,6 @@
 Tools for writing cube files.
 See http://paulbourke.net/dataformats/cube/ and http://www.gaussian.com/g_tech/g_ur/u_cubegen.htm
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
 

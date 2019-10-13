@@ -8,8 +8,6 @@ Warning:
 
     Work in progress, DO NOT USE THIS CODE
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import tempfile
 import pickle
 import os
@@ -260,7 +258,7 @@ class QpTempList(list):
     A list of quasiparticle corrections (usually for a given spin).
     """
     def __init__(self, *args, **kwargs):
-        super(QpTempList, self).__init__(*args)
+        super().__init__(*args)
         self.is_e0sorted = kwargs.get("is_e0sorted", False)
 
     @property
@@ -797,7 +795,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         return cls(filepath)
 
     def __init__(self, filepath):
-        super(SigEPhFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = r = SigmaPhReader(filepath)
 
         # Get important dimensions.
@@ -1993,7 +1991,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
     EXT = "SIGEPH"
 
     def __init__(self, *args):
-        super(SigEPhRobot, self).__init__(*args)
+        super().__init__(*args)
         if len(self.abifiles) in (0, 1): return
 
         # Check dimensions and self-energy states and issue warning.
@@ -2798,7 +2796,7 @@ class SigmaPhReader(BaseEphReader):
     .. inheritance-diagram:: SigmaPhReader
     """
     def __init__(self, path):
-        super(SigmaPhReader, self).__init__(path)
+        super().__init__(path)
 
         self.nsppol = self.read_dimvalue("nsppol")
 

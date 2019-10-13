@@ -4,8 +4,6 @@ Preferred way to import the module is via the import syntax:
 
     import abipy.abidata as abidata
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 
 from abipy.core.structure import Structure
@@ -277,7 +275,7 @@ class AbinitFilesGenerator(FilesGenerator):
     executable = "abinit"
 
     def __init__(self, **kwargs):
-        super(AbinitFilesGenerator, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         # Add Absolute paths for the pseudopotentials.
         #self.pseudos = [p.filepath for p in pseudos(*self.pseudos)]
@@ -314,7 +312,7 @@ class AnaddbFilesGenerator(FilesGenerator):
     executable = "anaddb"
 
     def __init__(self, **kwargs):
-        super(AnaddbFilesGenerator, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         if self.in_ddb is None:
             raise ValueError("in_ddb must be specified")

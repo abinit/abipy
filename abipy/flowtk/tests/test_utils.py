@@ -1,6 +1,4 @@
 # coding: utf-8
-from __future__ import unicode_literals, division, print_function
-
 from abipy.core.testing import AbipyTest
 from abipy.flowtk.utils import *
 

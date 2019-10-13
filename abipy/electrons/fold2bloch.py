@@ -1,7 +1,5 @@
 # coding: utf-8
 """Fold2Bloch netcdf file."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 import numpy as np
 
@@ -64,7 +62,7 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
         return cls(ncpath)
 
     def __init__(self, filepath):
-        super(Fold2BlochNcfile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = ElectronsReader(filepath)
 
         # Initialize the electron bands from file.

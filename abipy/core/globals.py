@@ -1,8 +1,6 @@
 """
 Global variables used to initialize AbiPy environment in notebooks.
 """
-from __future__ import print_function, division, unicode_literals
-
 from monty.termcolor import cprint
 
 import os

@@ -1,7 +1,5 @@
 # coding: utf-8
 """Duck-typing tests"""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import collections
 import warnings
 import numpy as np

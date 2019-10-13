@@ -1,12 +1,9 @@
 """
-This module provides objects related to site symmetries 
+This module provides objects related to site symmetries
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import numpy as np
 import sympy as sp
 
-#from monty.functools import lazy_property
 from collections import OrderedDict
 from monty.termcolor import cprint
 from abipy.core.mixins import Has_Structure

@@ -2,8 +2,6 @@
 """
 Script to analyze/export/visualize the crystal structure saved in the netcdf files produced by ABINIT.
 """
-from __future__ import unicode_literals, division, print_function, absolute_import
-
 import sys
 import os
 import argparse

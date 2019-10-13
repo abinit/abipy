@@ -1,7 +1,5 @@
 # coding: utf-8
 """Tests for derivatives module."""
-from __future__ import division, print_function, absolute_import, unicode_literals
-
 import os
 import numpy as np
 

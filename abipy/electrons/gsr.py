@@ -2,8 +2,6 @@
 """
 Interface to the GSR.nc_ file storing the Ground-state results and the electron band structure.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import numpy as np
 import pandas as pd
 import pymatgen.core.units as units
@@ -55,8 +53,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         return cls(filepath)
 
     def __init__(self, filepath):
-        super(GsrFile, self).__init__(filepath)
-
+        super().__init__(filepath)
         self.reader = r = GsrReader(filepath)
 
         # Initialize the electron bands from file

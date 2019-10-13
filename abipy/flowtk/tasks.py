@@ -1,7 +1,5 @@
 # coding: utf-8
 """This module provides functions and classes related to Task objects."""
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import os
 import time
 import datetime
@@ -15,7 +13,6 @@ import numpy as np
 
 from pprint import pprint
 from itertools import product
-#from six.moves import map, zip, StringIO
 from monty.string import is_string, list_strings
 from monty.termcolor import colored, cprint
 from monty.collections import AttrDict

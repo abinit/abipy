@@ -1,6 +1,4 @@
 """Tests for frozen_phonons"""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 import warnings
 import abipy.data as abidata

@@ -2,8 +2,6 @@
 """
 Objects related to the computation of Debye-Waller tensors from the generalized phonon DOS.
 """
-from __future__ import print_function, division, absolute_import, unicode_literals
-
 import numpy as np
 import abipy.core.abinit_units as abu
 

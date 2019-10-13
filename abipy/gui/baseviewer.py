@@ -1,5 +1,3 @@
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 import wx
 import abc
@@ -7,7 +5,7 @@ import six
 import wx.lib.agw.flatnotebook as fnb
 import abipy.gui.awx as awx
 
-from monty.string import list_strings 
+from monty.string import list_strings
 
 
 @six.add_metaclass(abc.ABCMeta)

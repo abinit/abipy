@@ -1,6 +1,4 @@
 """"Tests for HIST.nc files."""
-from __future__ import division, print_function, unicode_literals
-
 import abipy.data as abidata
 from abipy import abilab
 from abipy.core.testing import AbipyTest

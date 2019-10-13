@@ -1,18 +1,12 @@
 # coding: utf-8
 """Decorators for AbinitInput or MultiDataset objects."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import six
 import abc
 import pymatgen.io.abinit.abiobjects as aobj
 
 from monty.inspect import initializer
 from monty.json import MSONable
-try:
-    from pymatgen.util.serialization import pmg_serialize
-except ImportError:
-    from pymatgen.serializers.json_coders import pmg_serialize
-
+from pymatgen.util.serialization import pmg_serialize
 from abipy.flowtk.abiobjects import LdauParams, LexxParams
 from .inputs import AbinitInput, MultiDataset
 

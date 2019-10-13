@@ -1,7 +1,5 @@
 # coding: utf-8
 """PSPS file with tabulated data."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import numpy as np
 
 from monty.bisect import find_gt
@@ -75,7 +73,7 @@ class PspsFile(AbinitNcFile):
         return cls(filepath)
 
     def __init__(self, filepath):
-        super(PspsFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = r = PspsReader(filepath)
 
     def close(self):
@@ -349,7 +347,7 @@ class PspsReader(ETSF_Reader):
     It provides helper function to access the most important quantities.
     """
     def __init__(self, filepath):
-        super(PspsReader, self).__init__(filepath)
+        super().__init__(filepath)
 
         # Get important quantities.
         self.usepaw, self.useylm = self.read_value("usepaw"), self.read_value("useylm")

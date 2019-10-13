@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 """Analyze the scalability of the OpenMP sections in the GS part. 1 k-point, cg method."""
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import sys
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk

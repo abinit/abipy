@@ -1,6 +1,5 @@
 # coding: utf-8
 """Interface between phonopy and abipy workflow model."""
-from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 import numpy as np
@@ -191,7 +190,7 @@ class PhonopyWork(Work):
         if self.cpdata2dst:
             self.outdir.copy_r(self.cpdata2dst)
 
-        return super(PhonopyWork, self).on_all_ok()
+        return super().on_all_ok()
 
 
 class PhonopyGruneisenWork(Work):
@@ -266,7 +265,7 @@ class PhonopyGruneisenWork(Work):
         have reached status S_OK.
         """
         self.add_phonopy_works_and_build()
-        return super(PhonopyGruneisenWork, self).on_all_ok()
+        return super().on_all_ok()
 
     def add_phonopy_works_and_build(self):
         """

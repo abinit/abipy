@@ -4,8 +4,6 @@ Tools and workflows for calculations within the quasi-harmonic approximation.
 
 WARNING: This code is still under development.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 import numpy as np
 
@@ -79,7 +77,7 @@ class RelaxAndPhononWork(Work, MergeDdb):
             self.merge_ddb_files()
             self.finalized = True
 
-        return super(RelaxAndPhononWork, self).on_all_ok()
+        return super().on_all_ok()
 
 
 class QhaFlow(Flow):
@@ -136,4 +134,4 @@ class QhaFlow(Flow):
         #with open(self.outdir.path_in("qha.sjon"), "wt") as fh:
         #    json.dump(fh, data)
 
-        return super(QhaFlow, self).finalize()
+        return super().finalize()

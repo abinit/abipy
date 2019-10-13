@@ -1,6 +1,4 @@
 """Tests for mesh3d module"""
-from __future__ import print_function, division
-
 import numpy as np
 
 from abipy.core.mesh3d import *

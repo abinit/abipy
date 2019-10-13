@@ -2,8 +2,6 @@
 """
 Object to plot DFPT potentials in the phonon mode representation.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import numpy as np
 
 from collections import OrderedDict
@@ -19,7 +17,7 @@ from abipy.iotools import Visualizer, xsf, ETSF_Reader #, cube
 class V1qnuFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     def __init__(self, filepath):
-        super(V1qnuFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = r = ETSF_Reader(filepath)
         # Read dimensions.
         self.nfft = r.read_dimvalue("nfft")

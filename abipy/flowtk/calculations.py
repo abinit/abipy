@@ -6,20 +6,10 @@ Factory functions producing ABINIT Works.
 Works are packed together in a flow. A flow can be ran using abirun (abipy)
 Entry points for client code (high-level interface)
 """
-from __future__ import unicode_literals, division, print_function
-
 import os
 
 from .abiobjects import KSampling, Screening, SelfEnergy, ExcHamiltonian, HilbertTransform
 from .works import BandStructureWork, G0W0Work, BseMdfWork
-
-
-__author__ = "Matteo Giantomassi"
-__copyright__ = "Copyright 2013, The Materials Project"
-__version__ = "0.1"
-__maintainer__ = "Matteo Giantomassi"
-__email__ = "gmatteo at gmail.com"
-
 
 
 def g0w0_extended_work(structure, pseudos, kppa, nscf_nband, ecuteps, ecutsigx, scf_nband, accuracy="normal",

@@ -5,8 +5,6 @@ Common test support for all AbiPy test scripts.
 This single module should provide all the common functionality for abipy tests
 in a single location, so that test scripts can just import it and work right away.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 import numpy
 import subprocess

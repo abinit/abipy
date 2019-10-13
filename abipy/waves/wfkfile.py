@@ -1,7 +1,5 @@
 # coding: utf-8
 """Wavefunction file."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import six
 import numpy as np
 
@@ -49,7 +47,7 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         """
         Initialize the object from a Netcdf file.
         """
-        super(WfkFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = reader = WFK_Reader(filepath)
         assert reader.has_pwbasis_set
 
@@ -315,7 +313,7 @@ class WFK_Reader(ElectronsReader):
 
     def __init__(self, filepath):
         """Initialize the object from a filename."""
-        super(WFK_Reader, self).__init__(filepath)
+        super().__init__(filepath)
 
         self.kpoints = self.read_kpoints()
         self.nfft1 = self.read_dimvalue("number_of_grid_points_vector1")

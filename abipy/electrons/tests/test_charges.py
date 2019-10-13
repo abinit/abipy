@@ -1,7 +1,5 @@
 # coding: utf-8
 """Tests for charges."""
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import numpy as np
 import os
 import abipy.data as abidata

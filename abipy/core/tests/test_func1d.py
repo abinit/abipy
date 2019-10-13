@@ -1,6 +1,4 @@
 """Tests for func1d module"""
-from __future__ import print_function, division
-
 import numpy as np
 import collections
 import tempfile

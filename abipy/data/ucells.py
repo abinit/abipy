@@ -1,5 +1,4 @@
 """Database of unit cells in the ABINIT format."""
-from __future__ import print_function, division, unicode_literals, absolute_import
 
 from abipy.abilab import Structure, ArrayWithUnit
 

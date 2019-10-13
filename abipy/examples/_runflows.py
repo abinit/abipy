@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 """
-This script runs all the python scripts located in this directory 
+This script runs all the python scripts located in this directory
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import sys
-import os 
+import os
 import argparse
 import shutil
 import tempfile

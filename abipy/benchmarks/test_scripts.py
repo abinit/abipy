@@ -2,8 +2,6 @@
 """
 This script runs all the python scripts located in this directory
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 import abipy.flowtk as flowtk
 

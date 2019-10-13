@@ -1,6 +1,5 @@
 # coding: utf-8
 """Mock objects for unit tests."""
-from __future__ import print_function, division, unicode_literals, absolute_import
 
 from .nodes import Status
 from .tasks import AbinitTask
@@ -30,7 +29,7 @@ def infinite_flow(flow):
 class InfiniteFlow(Flow):
     """A Flow that will never reach `all_ok`"""
     def check_status(self, **kwargs):
-        super(InfiniteFlow, self).check_status(**kwargs)
+        super().check_status(**kwargs)
 
         for task in self.iflat_tasks(status=self.S_OK):
             task.set_status(task.S_INIT)

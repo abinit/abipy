@@ -1,6 +1,5 @@
 # coding: utf-8
 """Release data for the AbiPy project."""
-from __future__ import print_function, division, unicode_literals
 
 from collections import OrderedDict
 

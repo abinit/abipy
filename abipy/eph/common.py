@@ -2,8 +2,6 @@
 """
 Objects common to the other eph modules.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import numpy as np
 import abipy.core.abinit_units as abu
 

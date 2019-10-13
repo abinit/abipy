@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 """Integration tests for the scheduler."""
-from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
 import os

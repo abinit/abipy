@@ -1,7 +1,5 @@
 # coding: utf-8
 """Interface to the win input file used by Wannier90."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import numpy as np
 
 from collections import OrderedDict

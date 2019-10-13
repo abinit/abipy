@@ -1,6 +1,4 @@
 """Tests for test_testing module"""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 from abipy.core.testing import AbipyTest
 from abipy.core.testing import input_equality_check

@@ -4,7 +4,6 @@ A Flow is a container for Works, and works consist of tasks.
 Flows are the final objects that can be dumped directly to a pickle file on disk
 Flows are executed using abirun (abipy).
 """
-
 import os
 import sys
 import time
@@ -16,7 +15,6 @@ import tempfile
 import numpy as np
 
 from pprint import pprint
-#from six.moves import map, StringIO
 from tabulate import tabulate
 from pydispatch import dispatcher
 from collections import OrderedDict

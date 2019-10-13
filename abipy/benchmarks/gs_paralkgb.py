@@ -3,8 +3,6 @@
 Benchmark paral_kgb=1 algorithm with wfoptalg in [default, 1].
 default correspongs to the lobpcg algorithm, 1 enables the Chebyschev solver.
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import sys
 import operator
 import abipy.abilab as abilab

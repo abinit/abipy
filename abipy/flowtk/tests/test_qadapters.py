@@ -1,8 +1,4 @@
 # coding: utf-8
-# Copyright (c) Pymatgen Development Team.
-# Distributed under the terms of the MIT License.
-from __future__ import unicode_literals, division, print_function
-
 import ruamel.yaml as yaml
 import unittest
 import sys

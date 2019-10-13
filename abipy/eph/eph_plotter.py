@@ -2,8 +2,6 @@
 """
 Objects to plot electronic, vibrational and e-ph properties.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import numpy as np
 
 from monty.string import marquee, list_strings

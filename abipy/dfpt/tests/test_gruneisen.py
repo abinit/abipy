@@ -1,6 +1,4 @@
 """Tests for Grunesein module."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 import numpy as np
 import abipy.data as abidata

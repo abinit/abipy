@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 """Tests for kpoints.kpoints module."""
-from __future__ import print_function, division
-
 import itertools
 import unittest
 import numpy as np

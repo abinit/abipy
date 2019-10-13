@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 """Compare GS calculations with NC pseudos performed with useylm in [0, 1]."""
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import sys
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk

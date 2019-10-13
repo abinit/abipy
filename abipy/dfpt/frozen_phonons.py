@@ -1,6 +1,5 @@
 # coding: utf-8
 """Objects to run and analyze the frozen phonons generated from displacements of atoms"""
-from __future__ import print_function, division, absolute_import
 
 import numpy as np
 import scipy.optimize as optimize

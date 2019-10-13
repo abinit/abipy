@@ -1,6 +1,4 @@
 """Tests for pandasw module."""
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import abipy.display.pandasw as pdw
 
 from abipy.core.testing import AbipyTest

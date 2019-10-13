@@ -1,7 +1,5 @@
 # coding: utf-8
 """Objects used to deal with symmetry operations in crystals."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import sys
 import abc
 import warnings
@@ -16,10 +14,7 @@ from monty.itertools import iuptri
 from monty.functools import lazy_property
 from monty.collections import dict2namedtuple
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-try:
-    from pymatgen.util.serialization import SlotPickleMixin
-except:
-    from pymatgen.serializers.pickle_coders import SlotPickleMixin
+from pymatgen.util.serialization import SlotPickleMixin
 from abipy.core.kpoints import wrap_to_ws, issamek, has_timrev_from_kptopt
 from abipy.iotools import as_etsfreader
 

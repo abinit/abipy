@@ -1,7 +1,5 @@
 # coding: utf-8
 """Tests for bessel module."""
-from __future__ import division, print_function, absolute_import, unicode_literals
-
 import numpy as np
 
 from abipy.tools import bessel

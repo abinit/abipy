@@ -1,7 +1,5 @@
 # coding: utf-8
 """Tools to analyze the output files produced by Lobster."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 import re
 import glob

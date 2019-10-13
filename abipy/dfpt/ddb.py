@@ -1,7 +1,5 @@
 # coding: utf-8
 """DDB File."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import sys
 import os
 import tempfile
@@ -12,6 +10,7 @@ import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
 from six.moves import map, zip
+from functools import lru_cache
 from monty.string import marquee, list_strings
 from monty.collections import AttrDict, dict2namedtuple, tree
 from monty.functools import lazy_property
@@ -35,11 +34,6 @@ from abipy.tools import duck
 from abipy.tools.tensors import DielectricTensor, ZstarTensor, Stress
 from abipy.abio.robots import Robot
 
-try:
-    from functools import lru_cache
-except ImportError:  # py2k
-    from abipy.tools.functools_lru_cache import lru_cache
-
 
 class DdbError(Exception):
     """Error class raised by DDB."""
@@ -54,7 +48,7 @@ class AnaddbError(DdbError):
     """
     def __init__(self, *args, **kwargs):
         self.task, self.report = kwargs.pop("task"), kwargs.pop("report")
-        super(AnaddbError, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def __str__(self):
         lines = ["\nworkdir = %s" % self.task.workdir]
@@ -128,7 +122,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return obj if isinstance(obj, cls) else cls.from_file(obj)
 
     def __init__(self, filepath):
-        super(DdbFile, self).__init__(filepath)
+        super().__init__(filepath)
 
         self._header = self._parse_header()
 

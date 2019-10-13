@@ -1,7 +1,5 @@
 # coding: utf-8
 """Density/potential files in netcdf/fortran format."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 import tempfile
 import numpy as np
@@ -36,7 +34,7 @@ class Cut3dDenPotNcFile(AbinitNcFile, Has_Structure):
     .. inheritance-diagram:: Cut3dDenPotNcFile
     """
     def __init__(self, filepath):
-        super(Cut3dDenPotNcFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = FieldReader(filepath)
         self.field = self.reader.read_field()
 
@@ -71,7 +69,7 @@ class _NcFileWithField(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
         return cls(filepath)
 
     def __init__(self, filepath):
-        super(_NcFileWithField, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = _DenPotNcReader(filepath)
 
     @lazy_property
@@ -187,7 +185,7 @@ class DensityNcFile(_NcFileWithField):
 
     def to_string(self, verbose=0):
         """String representation."""
-        s = super(DensityNcFile, self).to_string(verbose=verbose)
+        s = super().to_string(verbose=verbose)
 
         # Add density related stuff.
         lines = [" "]

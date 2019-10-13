@@ -1,6 +1,5 @@
 # coding: utf-8
 """Define a class used to execute a visualizer within the Python interpreter."""
-from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
 import os

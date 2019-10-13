@@ -1,7 +1,5 @@
 # coding: utf-8
 """The interatomic force constants calculated by anaddb."""
-from __future__ import print_function, division, absolute_import # unicode_literals,
-
 import numpy as np
 
 from monty.functools import lazy_property

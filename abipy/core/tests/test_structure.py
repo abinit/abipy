@@ -1,6 +1,4 @@
 """Tests for structure module"""
-from __future__ import print_function, division, absolute_import, unicode_literals
-
 import numpy as np
 import sys
 import abipy.data as abidata
@@ -57,11 +55,6 @@ class TestStructure(AbipyTest):
         kfrac_coords = si.get_kcoords_from_names(["G", "X", "L", "Gamma"])
         self.assert_equal(kfrac_coords,
             ([[0. , 0. , 0. ], [0.5, 0. , 0.5], [0.5, 0.5, 0.5], [0. , 0. , 0. ]]))
-
-        with self.assertRaises(TypeError):
-            Structure.as_structure({})
-        with self.assertRaises(TypeError):
-            Structure.as_structure([])
 
         si_wfk = Structure.as_structure(abidata.ref_file("si_scf_WFK.nc"))
         assert si_wfk.formula == "Si2"

@@ -1,7 +1,6 @@
 """
 Integration tests for flows (require pytest, ABINIT and a properly configured environment)
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
 
 import pytest
 import os

@@ -1,7 +1,5 @@
 #!/usr/bin/env python
-"""Benchmark for phonon calculation with DFPT.""" 
-from __future__ import division, print_function, unicode_literals, absolute_import
-
+"""Benchmark for phonon calculation with DFPT."""
 import sys
 import numpy as np
 import abipy.abilab as abilab

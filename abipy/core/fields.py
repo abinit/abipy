@@ -1,7 +1,5 @@
 # coding: utf-8
 """This module contains the class describing densities in real space on uniform 3D meshes."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import numpy as np
 import collections
 import pymatgen.core.units as pmgu

@@ -2,8 +2,6 @@
 """
 AnaddbNcFile provides a high-level interface to the data stored in the anaddb.nc file.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import pandas as pd
 import warnings
 
@@ -53,7 +51,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return cls(filepath)
 
     def __init__(self, filepath):
-        super(AnaddbNcFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = ETSF_Reader(filepath)
 
     def close(self):

@@ -3,8 +3,6 @@
 This script visualizes results with external graphical applications.
 or convert data from Abinit files (usually netcdf) to other formats.
 """
-from __future__ import unicode_literals, division, print_function, absolute_import
-
 import sys
 import os
 import argparse

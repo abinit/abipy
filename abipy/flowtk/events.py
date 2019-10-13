@@ -3,14 +3,11 @@
 This module defines the events signaled by abinit during the execution. It also
 provides a parser to extract these events form the main output file and the log file.
 """
-from __future__ import unicode_literals, division, print_function, absolute_import
-
 import sys
 import os.path
 import datetime
 import collections
 import ruamel.yaml as yaml
-#import six
 import abc
 import logging
 import numpy as np
@@ -518,7 +515,7 @@ class EventHandler(MSONable, metaclass=abc.ABCMeta):
 
     def __init__(self):
         """Simple init for compatibility with introspection in as_dict/from_dict"""
-        return super(EventHandler,self).__init__()
+        return super().__init__()
 
     @classmethod
     def cls2str(cls):

@@ -6,8 +6,6 @@ and Eliashberg function).
 Warning:
     Work in progress, DO NOT USE THIS CODE.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import numpy as np
 import pymatgen.core.units as units
 import abipy.core.abinit_units as abu
@@ -489,7 +487,7 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return cls(filepath)
 
     def __init__(self, filepath):
-        super(A2fFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = A2fReader(filepath)
 
     def __str__(self):

@@ -3,10 +3,7 @@
 This module defines constants and conversion factors matching those present in abinit that can be used when
 it is important to preserve consistency with the results produced by abinit.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import numpy as np
-
 
 # taken from abinit/10_defs/defs_basis.F90
 # 1 Bohr, in Angstrom

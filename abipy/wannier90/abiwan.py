@@ -3,8 +3,6 @@
 Interface to the ABIWAN netcdf file produced by abinit when calling wannier90 in library mode.
 Inspired to the Fortran version of wannier90.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import numpy as np
 import pandas as pd
 import time
@@ -42,8 +40,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         return cls(filepath)
 
     def __init__(self, filepath):
-        super(AbiwanFile, self).__init__(filepath)
-
+        super().__init__(filepath)
         self.reader = AbiwanReader(filepath)
 
         # Number of bands actually used to construct the Wannier functions

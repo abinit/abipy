@@ -1,6 +1,4 @@
 """Tests for htc.FilesFile."""
-from __future__ import print_function, division, unicode_literals
-
 import sys
 
 from abipy.core.testing import AbipyTest

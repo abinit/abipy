@@ -1,6 +1,4 @@
 # coding: utf-8
-from __future__ import print_function, division, absolute_import # unicode_literals,
-
 import sys
 import functools
 import numpy as np
@@ -1987,7 +1985,7 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
         Args:
             path: path to the file
         """
-        super(PhbstFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = PHBST_Reader(filepath)
 
         # Initialize Phonon bands and add metadata from ncfile
@@ -2549,7 +2547,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     def __init__(self, filepath):
         # Open the file, read data and create objects.
-        super(PhdosFile, self).__init__(filepath)
+        super().__init__(filepath)
 
         self.reader = r = PhdosReader(filepath)
         self.wmesh = r.wmesh

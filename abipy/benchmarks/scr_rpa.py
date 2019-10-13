@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 """Analyze the parallel efficiency of the RPA code (sum over states, 2 frequencies and gwpara==2)"""
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import sys
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk

@@ -3,8 +3,6 @@
 Titanium with 256 atoms and k-point sampling.
 GS calculations with paralkgb==1 and wfoptalg in [default, 1]
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import sys
 import operator
 import numpy as np

@@ -1,7 +1,5 @@
 # coding: utf-8
 """Tests for textools module."""
-from __future__ import division, print_function, absolute_import, unicode_literals
-
 from abipy.tools.text import *
 from abipy.core.testing import AbipyTest
 

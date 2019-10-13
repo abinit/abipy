@@ -1,7 +1,5 @@
 # coding: utf-8
 """Classes for the analysis of BSE calculations"""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import sys
 import os
 import itertools
@@ -331,7 +329,7 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return cls(filepath)
 
     def __init__(self, filepath):
-        super(MdfFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = MdfReader(filepath)
 
         # TODO Add electron Bands.
@@ -502,7 +500,7 @@ class MdfReader(ETSF_Reader): #ElectronsReader
     """
     def __init__(self, path):
         """Initialize the object from a filename."""
-        super(MdfReader, self).__init__(path)
+        super().__init__(path)
         # Read the structure here to facilitate the creation of the other objects.
         self._structure = self.read_structure()
 

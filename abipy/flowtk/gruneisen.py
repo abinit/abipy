@@ -4,8 +4,6 @@ Flow for the computation of Grunesein parameters with Abinit DFPT and finite dif
 
 WARNING: This code must be tested more carefully.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 from abipy.core.structure import Structure
 
 from .flows import Flow
@@ -76,7 +74,7 @@ class GruneseinenWork(Work):
         have reached status S_OK.
         """
         self.add_phonopy_works_and_build()
-        return super(GruneisenWork, self).on_all_ok()
+        return super().on_all_ok()
 
     def add_phonopy_works_and_build(self):
         """

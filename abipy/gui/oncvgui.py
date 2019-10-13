@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 """Gui for the oncvpsp norm-conserving pseudopotential generator."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 import copy
 import time

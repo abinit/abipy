@@ -4,8 +4,6 @@ Hydronium ion + NH3 molecule. String method.
 Moving the proton from H2O to NH3 keeping O and H atoms fixed.
 Based on tutoparal/tstring_04.in
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import sys
 import operator
 import numpy as np

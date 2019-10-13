@@ -1,6 +1,4 @@
 """This module contains lookup table with the name of the ABINIT variables."""
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import json
 import os
 import warnings
@@ -244,7 +242,7 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
         return cls(filename)
 
     def __init__(self, filepath):
-        super(AbinitInputFile, self).__init__(filepath)
+        super().__init__(filepath)
 
         with open(filepath, "rt") as fh:
             self.string = fh.read()

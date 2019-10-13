@@ -28,12 +28,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-__author__ = "Matteo Giantomassi"
-__copyright__ = "Copyright 2013, The Materials Project"
-__version__ = "0.1"
-__maintainer__ = "Matteo Giantomassi"
-
-
 def _2attrs(item):
     return item if item is None or isinstance(list, tuple) else (item,)
 

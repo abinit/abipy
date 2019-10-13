@@ -1,7 +1,5 @@
 # coding: utf-8
 """HirshfeldCharges."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 from abipy.core.mixins import Has_Structure
 from abipy.core.fields import Density
 from abipy.electrons.denpot import DensityFortranFile
@@ -14,6 +12,7 @@ from monty.os.path import which
 import numpy as np
 import os
 import tempfile
+
 import logging
 logger = logging.getLogger(__name__)
 

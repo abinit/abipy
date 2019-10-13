@@ -1,7 +1,5 @@
 # coding: utf-8
 """Interface to the wout output file produced by Wannier90."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import numpy as np
 import pandas as pd
 
@@ -28,7 +26,7 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
     .. inheritance-diagram:: WoutFile
     """
     def __init__(self, filepath):
-        super(WoutFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.warnings = []
         self.use_disentangle = False
         self.conv_df, self.dis_df = None, None

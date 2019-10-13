@@ -2,8 +2,6 @@
 """
 Benchmark IO sections with paral_kgb=1 algorithm (MPI-IO vs Netcdf)
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import sys
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk

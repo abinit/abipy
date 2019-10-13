@@ -2,8 +2,6 @@
 This module provides interfaces with the Materials Project REST API v2 to enable
 the creation of data structures and pymatgen objects using Materials Project data.
 """
-from __future__ import unicode_literals, print_function, division
-
 import sys
 
 from collections import OrderedDict
@@ -12,10 +10,7 @@ from monty.functools import lazy_property
 from monty.collections import dict2namedtuple
 from monty.string import marquee
 from pymatgen import SETTINGS
-try:
-    from pymatgen.ext.matproj import MPRester, MPRestError
-except ImportError:
-    from pymatgen.matproj.rest import MPRester, MPRestError
+from pymatgen.ext.matproj import MPRester, MPRestError
 from abipy.tools.printing import print_dataframe
 from abipy.core.mixins import NotebookWriter
 
@@ -342,7 +337,7 @@ class Dotdict(dict):
         """
         # if key is in dict access as normal
         if key in self:
-            return super(Dotdict,self).__getitem__(key)
+            return super().__getitem__(key)
 
         # Assume string
         i = -1

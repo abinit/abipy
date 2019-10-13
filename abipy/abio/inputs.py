@@ -2,8 +2,6 @@
 This module defines objects to facilitate the creation of ABINIT input files.
 The syntax is similar to the one used in ABINIT with small differences.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 import collections
 import warnings
@@ -16,18 +14,12 @@ import json
 import numpy as np
 
 from collections import OrderedDict
-try: # py3k
-    from collections.abc import MutableMapping
-except ImportError:
-    from collections import MutableMapping
+from collections.abc import MutableMapping
 from monty.collections import dict2namedtuple
 from monty.string import is_string, list_strings
 from monty.json import MontyDecoder, MSONable
 from pymatgen.core.units import Energy
-try:
-    from pymatgen.util.serialization import pmg_serialize
-except ImportError:
-    from pymatgen.serializers.json_coders import pmg_serialize
+from pymatgen.util.serialization import pmg_serialize
 
 from abipy.tools.numtools import is_diagonal
 from abipy.core.structure import Structure
@@ -446,7 +438,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
             logger.info("Replacing previously set tolerance variable: {0}."
                         .format(self.remove_vars(_TOLVARS_SCF, strict=False)))
 
-        return super(AbinitInput, self).__setitem__(key, value)
+        return super().__setitem__(key, value)
 
     def _check_varname(self, key):
         if key in GEOVARS:

@@ -1,6 +1,5 @@
 # coding: utf-8
 """Classes for the analysis of electronic fatbands and projected DOSes."""
-from __future__ import print_function, division, unicode_literals, absolute_import
 
 import traceback
 import numpy as np
@@ -89,7 +88,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         return cls(filepath)
 
     def __init__(self, filepath):
-        super(FatBandsFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = r = ElectronsReader(filepath)
 
         # Initialize the electron bands from file

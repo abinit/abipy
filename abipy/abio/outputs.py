@@ -1,8 +1,6 @@
 """
 Objects used to extract and plot results from output files in text format.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 import numpy as np
 import pandas as pd
@@ -93,7 +91,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
     # TODO: Extract number of errors and warnings.
 
     def __init__(self, filepath):
-        super(AbinitOutputFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.debug_level = 0
         self._parse()
 
@@ -974,7 +972,7 @@ class OutNcFile(AbinitNcFile):
     via instance attribute e.g. ``outfile.ecut``. Provides integration with ipython_.
     """
     def __init__(self, filepath):
-        super(OutNcFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = NetcdfReader(filepath)
         self._varscache= {k: None for k in self.reader.rootgrp.variables}
 
@@ -984,13 +982,13 @@ class OutNcFile(AbinitNcFile):
 
     def __getattribute__(self, name):
         try:
-            return super(OutNcFile, self).__getattribute__(name)
+            return super().__getattribute__(name)
         except AttributeError:
             # Look in self._varscache
-            varscache = super(OutNcFile, self).__getattribute__("_varscache")
+            varscache = super().__getattribute__("_varscache")
             if name not in varscache:
                 raise AttributeError("Cannot find attribute %s" % name)
-            reader = super(OutNcFile, self).__getattribute__("reader")
+            reader = super().__getattribute__("reader")
             if varscache[name] is None:
                 varscache[name] = reader.read_value(name)
             return varscache[name]

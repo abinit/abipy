@@ -1,11 +1,6 @@
 # coding: utf-8
-# Copyright (c) Pymatgen Development Team.
-# Distributed under the terms of the MIT License.
 """Tools and helper functions for abinit calculations"""
-from __future__ import unicode_literals, division, print_function
-
 import os
-#import six
 import re
 import collections
 import shutil
@@ -13,7 +8,6 @@ import operator
 import numpy as np
 
 from fnmatch import fnmatch
-#from six.moves import filter
 from monty.collections import dict2namedtuple
 from monty.string import list_strings
 from monty.fnmatch import WildCard

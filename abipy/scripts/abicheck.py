@@ -3,7 +3,6 @@
 This script checks that the options in ``manager.yml``, ``scheduler.yml``,
 and the environment on the local machine are properly configured.
 """
-from __future__ import unicode_literals, division, print_function, absolute_import
 
 import sys
 import os

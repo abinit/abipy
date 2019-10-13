@@ -6,8 +6,6 @@ Utilities for generating matplotlib plots.
 
     Avoid importing matplotlib in the module namespace otherwise startup is very slow.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 import time
 import itertools
@@ -397,7 +395,7 @@ class Marker(namedtuple("Marker", "x y s")):
         """Extends the base class adding consistency check."""
         if not xys:
             xys = ([], [], [])
-            return super(cls, Marker).__new__(cls, *xys)
+            return super().__new__(cls, *xys)
 
         if len(xys) != 3:
             raise TypeError("Expecting 3 entries in xys got %d" % len(xys))
@@ -411,7 +409,7 @@ class Marker(namedtuple("Marker", "x y s")):
             if np.iscomplex(s):
                 raise ValueError("Found ambiguous complex entry %s" % str(s))
 
-        return super(cls, Marker).__new__(cls, *xys)
+        return super().__new__(cls, *xys)
 
     def __bool__(self):
         return bool(len(self.s))

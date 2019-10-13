@@ -1,7 +1,5 @@
 # coding: utf-8
 """Factory functions for Abinit input files """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import numpy as np
 import pymatgen.io.abinit.abiobjects as aobj
 

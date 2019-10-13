@@ -1,7 +1,5 @@
 # coding: utf-8
 """Tests for tools __init__.py module."""
-from __future__ import division, print_function, absolute_import, unicode_literals
-
 import abipy.tools as at
 from abipy.core.testing import AbipyTest
 

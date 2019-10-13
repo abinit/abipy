@@ -1,7 +1,5 @@
 # coding: utf-8
 """Classes for the analysis of GW calculations."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import sys
 import copy
 import warnings
@@ -213,7 +211,7 @@ class QPList(list):
     A list of quasiparticle corrections for a given spin.
     """
     def __init__(self, *args, **kwargs):
-        super(QPList, self).__init__(*args)
+        super().__init__(*args)
         self.is_e0sorted = kwargs.get("is_e0sorted", False)
 
     def __repr__(self):
@@ -599,7 +597,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
     def __init__(self, filepath):
         """Read data from the netcdf file path."""
-        super(SigresFile, self).__init__(filepath)
+        super().__init__(filepath)
 
         # Keep a reference to the SigresReader.
         self.reader = reader = SigresReader(self.filepath)
@@ -1493,7 +1491,7 @@ class SigresReader(ETSF_Reader):
     def __init__(self, path):
         self.ks_bands = ElectronBands.from_file(path)
         self.nsppol = self.ks_bands.nsppol
-        super(SigresReader, self).__init__(path)
+        super().__init__(path)
 
         try:
             self.nomega_r = self.read_dimvalue("nomega_r")
@@ -1764,7 +1762,7 @@ class SigresRobot(Robot, RobotWithEbands):
     EXT = "SIGRES"
 
     def __init__(self, *args):
-        super(SigresRobot, self).__init__(*args)
+        super().__init__(*args)
         if len(self.abifiles) in (0, 1): return
 
         # TODO

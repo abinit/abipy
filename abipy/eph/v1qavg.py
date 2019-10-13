@@ -2,8 +2,6 @@
 """
 
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import numpy as np
 
 from collections import OrderedDict
@@ -36,7 +34,7 @@ def _get_style(reim, what):
 class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     def __init__(self, filepath):
-        super(V1qAvgFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = r = ETSF_Reader(filepath)
         self.has_zeff = bool(r.read_value("has_zeff"))
         self.has_dielt = bool(r.read_value("has_dielt"))

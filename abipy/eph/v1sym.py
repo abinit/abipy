@@ -2,8 +2,6 @@
 """
 Object to analyze the results stored in the V1SYM.nc file (mainly for debugging purposes)
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import numpy as np
 
 from collections import OrderedDict
@@ -19,7 +17,7 @@ from abipy.tools import duck
 class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     def __init__(self, filepath):
-        super(V1symFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = r = ETSF_Reader(filepath)
         # Read dimensions.
         self.nfft = r.read_dimvalue("nfft")

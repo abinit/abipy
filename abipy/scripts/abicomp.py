@@ -4,7 +4,6 @@ Script to analyze/compare results stored in multiple netcdf/output files.
 By default the script displays the results/plots in the shell.
 Use --ipython to start an ipython terminal or -nb to generate an ipython notebook.
 """
-from __future__ import unicode_literals, division, print_function, absolute_import
 
 import sys
 import os

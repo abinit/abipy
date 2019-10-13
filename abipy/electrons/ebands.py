@@ -1,7 +1,5 @@
 # coding: utf-8
 """Classes to analyse electronic structures."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import sys
 import os
 import copy
@@ -22,10 +20,7 @@ from monty.json import MSONable, MontyEncoder
 from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.bisect import find_le, find_gt
-try:
-    from pymatgen.util.serialization import pmg_serialize
-except ImportError:
-    from pymatgen.serializers.json_coders import pmg_serialize
+from pymatgen.util.serialization import pmg_serialize
 from pymatgen.electronic_structure.core import Spin as PmgSpin
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import Has_Structure, NotebookWriter
@@ -97,7 +92,7 @@ class Electron(namedtuple("Electron", "spin kpoint band eig occ kidx")):
 
     def as_dict(self):
         """Convert self into a dict."""
-        return super(Electron, self)._asdict()
+        return super()._asdict()
 
     def to_strdict(self, fmt=None):
         """Ordered dictionary mapping fields --> strings."""
@@ -267,7 +262,7 @@ class Smearing(AttrDict):
             raise TypeError("Don't know how to convert %s into Smearing object:\n%s" % (type(obj), str(exc)))
 
     def __init__(self, *args, **kwargs):
-        super(Smearing, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         for mkey in self._MANDATORY_KEYS:
             if mkey not in self:
                 raise ValueError("Mandatory key %s must be provided" % str(mkey))

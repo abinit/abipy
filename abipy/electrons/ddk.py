@@ -1,7 +1,5 @@
 # coding: utf-8
 """DDK.nc file."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import numpy as np
 import pymatgen.core.units as units
 
@@ -118,7 +116,7 @@ class DdkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         return cls(filepath)
 
     def __init__(self, filepath):
-        super(DdkFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = DdkReader(filepath)
 
         # Get info on perturbation and k-point sampling.
@@ -226,7 +224,7 @@ class DdkReader(ElectronsReader):
     It provides helper function to access the most important quantities.
     """
     def __init__(self, filepath):
-        super(DdkReader, self).__init__(filepath)
+        super().__init__(filepath)
         nband_sk = self.read_nband_sk()
         if np.any(nband_sk != nband_sk[0, 0]):
             raise NotImplementedError("Found different number of bands per k-point, spin.\nnband_sk: %s\n" %

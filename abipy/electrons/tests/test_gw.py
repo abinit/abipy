@@ -1,6 +1,4 @@
 """Tests for electrons.gw module"""
-from __future__ import print_function, division, absolute_import, unicode_literals
-
 import os
 import collections
 import numpy as np

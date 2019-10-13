@@ -2,8 +2,6 @@
 """
 Objects to read and analyze optical properties stored in the optic.nc file produced by optic executable.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import numpy as np
 import abipy.core.abinit_units as abu
 
@@ -117,7 +115,7 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
         return cls(filepath)
 
     def __init__(self, filepath):
-        super(OpticNcFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = OpticReader(filepath)
 
         # Read optic input variables and info on k-point sampling and store them in self.
@@ -405,7 +403,7 @@ class OpticReader(ElectronsReader):
     .. inheritance-diagram:: OpticReader
     """
     def __init__(self, filepath):
-        super(OpticReader, self).__init__(filepath)
+        super().__init__(filepath)
         self.ntemp = self.read_dimvalue("ntemp")
 
         self.computed_components = OrderedDict()

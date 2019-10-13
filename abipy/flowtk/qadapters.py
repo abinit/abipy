@@ -1,6 +1,4 @@
 # coding: utf-8
-# Copyright (c) Pymatgen Development Team.
-# Distributed under the terms of the MIT License.
 """
 The initial version of this module was based on a similar implementation
 present in FireWorks (https://pypi.python.org/pypi/FireWorks).
@@ -13,7 +11,6 @@ This programmatic interface is used by the `TaskManager` for optimizing the para
 of the run before submitting the job (Abinit provides the autoparal option that
 allows one to get a list of parallel configuration and their expected efficiency).
 """
-from __future__ import print_function, division, unicode_literals
 
 import sys
 import os
@@ -169,7 +166,7 @@ class OmpEnv(AttrDict):
 
         To create an instance from an INI file, use: OmpEnv.from_file(filename)
         """
-        super(OmpEnv, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         err_msg = ""
         for key, value in self.items():

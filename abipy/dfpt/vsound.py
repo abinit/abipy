@@ -1,7 +1,5 @@
 # coding: utf-8
 """Tools to compute speed of sound."""
-from __future__ import print_function, division, absolute_import  # unicode_literals,
-
 import os
 import math
 import numpy as np

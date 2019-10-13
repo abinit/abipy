@@ -2,8 +2,6 @@
 """
 This module defines basic objects representing the crystalline structure.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import sys
 import os
 import collections
@@ -275,7 +273,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         else:
             # Invoke pymatgen and change class
             # Note that AbinitSpacegroup is missing here.
-            new = super(Structure, cls).from_file(filepath, primitive=primitive, sort=sort)
+            new = super().from_file(filepath, primitive=primitive, sort=sort)
             if new.__class__ != cls: new.__class__ = cls
 
         return new
@@ -543,7 +541,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         if verbose:
             app(self.spget_summary(verbose=verbose))
         else:
-            app(super(Structure, self).__str__())
+            app(super().__str__())
 
         if self.abi_spacegroup is not None:
             app("\nAbinit Spacegroup: %s" % self.abi_spacegroup.to_string(verbose=verbose))
@@ -565,7 +563,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             else:
                 return self.abi_string
         else:
-            return super(Structure, self).to(fmt=fmt, filename=filename, **kwargs)
+            return super().to(fmt=fmt, filename=filename, **kwargs)
 
     def __mul__(self, scaling_matrix):
         """
@@ -574,7 +572,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         Wraps __mul__ operator of pymatgen structure to return abipy structure
         """
-        new = super(Structure, self).__mul__(scaling_matrix)
+        new = super().__mul__(scaling_matrix)
         return self.__class__.as_structure(new)
 
     __rmul__ = __mul__
@@ -1432,7 +1430,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             from abipy.wannier90.win import structure2wannier90
             return structure2wannier90(self)
         else:
-            return super(Structure, self).to(fmt=fmt, **kwargs)
+            return super().to(fmt=fmt, **kwargs)
 
     #def max_overlap_and_sites(self, pseudos):
     #    # For each site in self:

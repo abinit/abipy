@@ -1,5 +1,3 @@
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import collections
 
 from pymatgen.core.units import Energy
@@ -20,7 +18,7 @@ class LujForSpecie(collections.namedtuple("LdauForSpecie", "l u j unit")):
         """
         l = l
         u, j = Energy(u, unit), Energy(j, unit)
-        return super(cls, LujForSpecie).__new__(cls, l, u, j, unit)
+        return super().__new__(cls, l, u, j, unit)
 
 
 class LdauParams(object):
