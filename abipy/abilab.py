@@ -71,7 +71,7 @@ from abipy.eph.v1sym import V1symFile
 from abipy.eph.gkq import GkqFile, GkqRobot
 from abipy.eph.v1qnu import V1qnuFile
 from abipy.eph.v1qavg import V1qAvgFile
-from abipy.transport.transportfile import TransportFile
+from abipy.eph.transportfile import TransportFile
 from abipy.wannier90 import WoutFile, AbiwanFile, AbiwanRobot
 from abipy.electrons.lobster import CoxpFile, ICoxpFile, LobsterDoscarFile, LobsterInput, LobsterAnalyzer
 
