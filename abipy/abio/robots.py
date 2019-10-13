@@ -5,7 +5,6 @@ functions to plot the data e.g. convergence studies and to build pandas datafram
 """
 import sys
 import os
-import six
 import inspect
 import itertools
 import numpy as np
@@ -1105,7 +1104,7 @@ class HueGroup(object):
 
     def __iter__(self):
         """Iterate over (label, abifile, xvalue)."""
-        return six.moves.zip(self.labels, self.abifiles, self.xvalues)
+        return zip(self.labels, self.abifiles, self.xvalues)
 
     #@lazy_property
     #def pretty_hvalue(self):

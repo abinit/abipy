@@ -1,6 +1,5 @@
 # coding: utf-8
 """Decorators for AbinitInput or MultiDataset objects."""
-import six
 import abc
 import pymatgen.io.abinit.abiobjects as aobj
 
@@ -18,7 +17,7 @@ class InputDecoratorError(Exception):
     """Error class raised by :class:`AbinitInputDecorator`."""
 
 
-class AbinitInputDecorator(six.with_metaclass(abc.ABCMeta, MSONable)):
+class AbinitInputDecorator(MSONable, metaclass=abc.ABCMeta):
     """
     An `AbinitInputDecorator` adds new options to an existing :class:`AbinitInput`
     or an existing :class:`MultiDataset` without altering its structure. This is an abstract Base class.

@@ -1,15 +1,13 @@
 import os
 import wx
 import abc
-import six
 import wx.lib.agw.flatnotebook as fnb
 import abipy.gui.awx as awx
 
 from monty.string import list_strings
 
 
-@six.add_metaclass(abc.ABCMeta)
-class MultiViewerFrame(awx.Frame):
+class MultiViewerFrame(awx.Frame, metaclass=abc.ABCMeta):
     """
     Base class for Viewers that can handle the multiple netcdf files
     of the same type. A `MultiViewerFrame` has a notebook where

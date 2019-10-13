@@ -9,10 +9,8 @@ import time
 import abc
 import collections
 import numpy as np
-import six
 import copy
 
-from six.moves import filter
 from monty.collections import AttrDict
 from monty.itertools import chunks
 from monty.functools import lazy_property
@@ -74,7 +72,7 @@ class WorkError(NodeError):
     """Base class for the exceptions raised by Work objects."""
 
 
-class BaseWork(six.with_metaclass(abc.ABCMeta, Node)):
+class BaseWork(Node, metaclass=abc.ABCMeta):
     Error = WorkError
 
     Results = WorkResults
@@ -355,7 +353,7 @@ class BaseWork(six.with_metaclass(abc.ABCMeta, Node)):
         return fg
 
 
-class NodeContainer(six.with_metaclass(abc.ABCMeta)):
+class NodeContainer(metaclass=abc.ABCMeta):
     """
     Mixin classes for `Work` and `Flow` objects providing helper functions
     to register tasks in the container. The helper function call the

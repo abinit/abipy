@@ -1,7 +1,6 @@
 # coding: utf-8
 import numpy as np
 import os
-import six
 import abc
 from scipy.interpolate import UnivariateSpline
 
@@ -16,7 +15,7 @@ from abipy.dfpt.gruneisen import GrunsNcFile
 import abipy.core.abinit_units as abu
 
 
-class AbstractQHA(six.with_metaclass(abc.ABCMeta, object)):
+class AbstractQHA(metaclass=abc.ABCMeta):
     """
     Abstract class for the quasi-harmonic approximation  analysis.
     Provides some basic methods and plotting utils, plus a converter to write input files for phonopy-qha or to

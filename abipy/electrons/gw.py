@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 from collections import namedtuple, OrderedDict, defaultdict
-from six.moves import cStringIO
+from io import StringIO
 from tabulate import tabulate
 from monty.string import list_strings, is_string, marquee
 from monty.collections import AttrDict, dict2namedtuple
@@ -685,7 +685,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         app("")
 
         # Show QP results
-        strio = cStringIO()
+        strio = StringIO()
         self.print_qps(precision=3, ignore_imag=verbose==0, file=strio)
         strio.seek(0)
         app("")

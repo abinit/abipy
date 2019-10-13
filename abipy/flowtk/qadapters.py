@@ -18,7 +18,6 @@ import abc
 import string
 import copy
 import getpass
-import six
 import json
 import math
 from . import qutils as qu

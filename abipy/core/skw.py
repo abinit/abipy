@@ -6,7 +6,6 @@ For the theoretical background see :cite:`Euwema1969,Koelling1986,Pickett1988,Ma
 import abc
 import itertools
 import pickle
-import six
 import numpy as np
 import scipy
 import time
@@ -119,8 +118,7 @@ def map_bz2ibz(structure, ibz, ngkpt, has_timrev):
 #        self.is_shift, self.method, self.step, self.width = is_shift, method, step, width
 
 
-@six.add_metaclass(abc.ABCMeta)
-class ElectronInterpolator(object):
+class ElectronInterpolator(metaclass=abc.ABCMeta):
     """
     """
     # Tolerances passed to spglib.

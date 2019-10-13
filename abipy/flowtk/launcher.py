@@ -10,7 +10,7 @@ import pickle
 
 from collections import deque
 from datetime import timedelta
-from six.moves import cStringIO
+from io import StringIO
 from monty.io import get_open_fds
 from monty.string import boxed, is_string
 from monty.os.path import which
@@ -380,7 +380,7 @@ class PyFlowScheduler(object):
     @classmethod
     def from_string(cls, s):
         """Create an istance from string s containing a YAML dictionary."""
-        stream = cStringIO(s)
+        stream = StringIO(s)
         stream.seek(0)
         return cls(**yaml.safe_load(stream))
 
@@ -871,7 +871,7 @@ class PyFlowScheduler(object):
         app("Number of errored tasks: %d" % self.flow.num_errored_tasks)
         app("Number of unconverged tasks: %d" % self.flow.num_unconverged_tasks)
 
-        strio = cStringIO()
+        strio = StringIO()
         strio.writelines("\n".join(header) + 4 * "\n")
 
         # Add the status of the flow.

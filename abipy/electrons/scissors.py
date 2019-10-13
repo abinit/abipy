@@ -2,8 +2,8 @@
 """Scissors operator."""
 import os
 import numpy as np
+import pickle
 
-from six.moves import cPickle as pickle
 from collections import OrderedDict
 from monty.collections import AttrDict
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt

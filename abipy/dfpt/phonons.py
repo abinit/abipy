@@ -5,7 +5,6 @@ import numpy as np
 import itertools
 import pickle
 import os
-import six
 import json
 import warnings
 import abipy.core.abinit_units as abu
@@ -845,7 +844,7 @@ class PhononBands(object):
             elif highsym_qpts_mode == 'split':
                 data["highsym_qpts"] = split_non_collinear(qpoints)
             elif highsym_qpts_mode == 'std':
-                data["highsym_qpts"] = list(six.moves.zip(*self._make_ticks_and_labels(None)))
+                data["highsym_qpts"] = list(zip(*self._make_ticks_and_labels(None)))
         else:
             data["highsym_qpts"] = highsym_qpts
 

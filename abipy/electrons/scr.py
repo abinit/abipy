@@ -1,7 +1,6 @@
 # coding: utf-8
 """Objects to analyze the screening files produced by the GW code (optdriver 3)."""
 import numpy as np
-import six
 import abc
 import pymatgen.core.units as pmgu
 
@@ -745,7 +744,7 @@ class InverseDielectricFunction(_AwggMatrix):
     #    return fig
 
 
-#class PPModel(six.with_metaclass(abc.ABCMeta, object)):
+#class PPModel(metaclas=abc.ABCMeta):
 #    """
 #    Abstract base class for Plasmonpole models.
 #    """

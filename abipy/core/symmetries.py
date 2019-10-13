@@ -4,11 +4,9 @@ import sys
 import abc
 import warnings
 import collections
-import six
 import numpy as np
 import spglib
 
-from six.moves import cStringIO
 from monty.string import is_string
 from monty.itertools import iuptri
 from monty.functools import lazy_property
@@ -194,8 +192,7 @@ Should check atomic coordinates and symmetry group input data.
     return indsym
 
 
-@six.add_metaclass(abc.ABCMeta)
-class Operation(object):
+class Operation(metaclass=abc.ABCMeta):
     """
     Abstract base class that defines the methods that must be
     implemented by the concrete class representing some sort of operation

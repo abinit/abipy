@@ -1,10 +1,9 @@
 # coding: utf-8
 """Wavefunction file."""
-import six
 import numpy as np
 
 from monty.functools import lazy_property
-from monty.string import marquee # is_string, list_strings,
+from monty.string import marquee
 from abipy.core import Mesh3D, GSphere, Structure
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.iotools import ETSF_Reader, Visualizer
@@ -339,10 +338,7 @@ class WFK_Reader(ElectronsReader):
     def basis_set(self):
         """String defining the basis set."""
         basis_set = self.read_value("basis_set")
-        if six.PY2:
-            return "".join(basis_set).strip()
-        else:
-            return "".join(str(basis_set, encoding='UTF-8')).strip()
+        return "".join(str(basis_set, encoding='UTF-8')).strip()
 
     @property
     def has_pwbasis_set(self):

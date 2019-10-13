@@ -8,7 +8,6 @@ import warnings
 import itertools
 import copy
 import time
-import six
 import abc
 import json
 import numpy as np
@@ -107,7 +106,7 @@ _IRDVARS = set([
 #        raise ValueError("Don't know how to reallocate variable %s" % str(name))
 
 
-class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
+class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
     """
     Abstract class defining the methods that must be implemented by Input objects.
     """
@@ -297,7 +296,7 @@ class AbinitInputError(Exception):
     """Base error class for exceptions raised by ``AbinitInput``."""
 
 
-class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Has_Structure, object)):
+class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
     """
     This object stores the ABINIT variables for a single dataset.
 
@@ -582,14 +581,9 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             exclude: List of variable names that should be ignored.
         """
         if mode == "html":
-            if six.PY2:
-                import cgi
-                def escape(text):
-                    return cgi.escape(text, quote=True)
-            else:
-                import html
-                def escape(text):
-                    return html.escape(text, quote=True)
+            import html
+            def escape(text):
+                return html.escape(text, quote=True)
         else:
             def escape(text):
                 return text

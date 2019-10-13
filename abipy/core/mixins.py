@@ -1,8 +1,7 @@
 # coding: utf-8
-"""This module ..."""
+"""This module provides mixin classes"""
 import abc
 import os
-import six
 import collections
 import tempfile
 import pickle
@@ -26,8 +25,8 @@ __all__ = [
     "Has_Header",
 ]
 
-@six.add_metaclass(abc.ABCMeta)
-class BaseFile(object):
+
+class BaseFile(metaclass=abc.ABCMeta):
     """
     Abstract base class defining the methods that must be implemented
     by the concrete classes representing the different files produced by ABINIT.
@@ -138,7 +137,6 @@ class TextFile(BaseFile):
         self._file.seek(offset, whence)
 
 
-@six.add_metaclass(abc.ABCMeta)
 class AbinitNcFile(BaseFile):
     """
     Abstract class representing a Netcdf file with data saved
@@ -162,7 +160,6 @@ class AbinitNcFile(BaseFile):
         """
 
 
-@six.add_metaclass(abc.ABCMeta)
 class AbinitFortranFile(BaseFile):
     """
     Abstract class representing a fortran file containing output data from abinit.
@@ -201,8 +198,7 @@ class CubeFile(BaseFile):
     #        cube_write_data(fh, data, mesh):
 
 
-@six.add_metaclass(abc.ABCMeta)
-class Has_Structure(object):
+class Has_Structure(metaclass=abc.ABCMeta):
     """Mixin class for :class:`AbinitNcFile` containing crystallographic data."""
 
     @abc.abstractproperty
@@ -293,8 +289,7 @@ class Has_Structure(object):
         yield self.structure.plot(show=False)
 
 
-@six.add_metaclass(abc.ABCMeta)
-class Has_ElectronBands(object):
+class Has_ElectronBands(metaclass=abc.ABCMeta):
     """Mixin class for :class:`AbinitNcFile` containing electron data."""
 
     @abc.abstractproperty
@@ -387,8 +382,7 @@ class Has_ElectronBands(object):
             e(self.yield_ebands_figs(**kwargs))
 
 
-@six.add_metaclass(abc.ABCMeta)
-class Has_PhononBands(object):
+class Has_PhononBands(metaclass=abc.ABCMeta):
     """
     Mixin class for :class:`AbinitNcFile` containing phonon data.
     """
@@ -483,8 +477,7 @@ def get_filestat(filepath):
     ])
 
 
-@six.add_metaclass(abc.ABCMeta)
-class NotebookWriter(object):
+class NotebookWriter(metaclass=abc.ABCMeta):
     """
     Mixin class for objects that are able to generate jupyter_ notebooks.
     Subclasses must provide a concrete implementation of `write_notebook`.

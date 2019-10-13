@@ -9,7 +9,6 @@ import pandas as pd
 import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
-from six.moves import map, zip
 from functools import lru_cache
 from monty.string import marquee, list_strings
 from monty.collections import AttrDict, dict2namedtuple, tree

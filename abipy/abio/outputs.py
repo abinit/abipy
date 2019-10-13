@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 from collections import OrderedDict
-from six.moves import cStringIO
+from io import StringIO
 from monty.string import is_string, marquee
 from monty.functools import lazy_property
 from monty.termcolor import cprint
@@ -496,7 +496,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         from abipy.tools.printing import print_dataframe
         df = pd.DataFrame(rows, columns=list(rows[0].keys()) if rows else None)
         df = df.set_index('dataset')
-        strio = cStringIO()
+        strio = StringIO()
         print_dataframe(df, file=strio)
         strio.seek(0)
         app("")
