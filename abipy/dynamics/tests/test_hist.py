@@ -63,8 +63,8 @@ class HistFileTest(AbipyTest):
         self.assert_almost_equal(xdatcar.structures[-1].frac_coords, hist.structures[-1].frac_coords)
 
         xdatcar_nogroup = hist.to_xdatcar(filepath=None, groupby_type=False)
-        assert xdatcar.structures[0] ==  xdatcar_nogroup.structures[0]
-        assert xdatcar.structures[-1] ==  xdatcar_nogroup.structures[-1]
+        assert xdatcar.structures[0] == xdatcar_nogroup.structures[0]
+        assert xdatcar.structures[-1] == xdatcar_nogroup.structures[-1]
 
         # Test matplotlib plots.
         if self.has_matplotlib():

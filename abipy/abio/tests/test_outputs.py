@@ -85,30 +85,30 @@ class AbinitOutputTest(AbipyTest):
         """Testing AbinitOutputFile with phonon calculations."""
         abo_path = abidata.ref_file("refs/gs_dfpt.abo")
         with AbinitOutputFile(abo_path) as abo:
-             repr(abo); str(abo)
-             assert abo.to_string(verbose=2)
+            repr(abo); str(abo)
+            assert abo.to_string(verbose=2)
 
-             assert abo.version == "8.3.2"
-             assert abo.run_completed
-             assert not abo.dryrun_mode
-             assert abo.ndtset == 3
-             assert abo.has_same_initial_structures
-             assert abo.has_same_final_structures
-             assert len(abo.initial_structures) == 3
-             assert abo.initial_structure is not None
-             assert abo.initial_structure.abi_spacegroup is not None
-             assert abo.initial_structure == abo.final_structure
+            assert abo.version == "8.3.2"
+            assert abo.run_completed
+            assert not abo.dryrun_mode
+            assert abo.ndtset == 3
+            assert abo.has_same_initial_structures
+            assert abo.has_same_final_structures
+            assert len(abo.initial_structures) == 3
+            assert abo.initial_structure is not None
+            assert abo.initial_structure.abi_spacegroup is not None
+            assert abo.initial_structure == abo.final_structure
 
-             gs_cycle = abo.next_gs_scf_cycle()
-             assert gs_cycle is not None
-             ph_cycle = abo.next_d2de_scf_cycle()
-             assert ph_cycle is not None
-             if self.has_matplotlib():
+            gs_cycle = abo.next_gs_scf_cycle()
+            assert gs_cycle is not None
+            ph_cycle = abo.next_d2de_scf_cycle()
+            assert ph_cycle is not None
+            if self.has_matplotlib():
                 assert ph_cycle.plot(show=False)
                 assert abo.compare_d2de_scf_cycles([abo_path], show=False)
                 abo.plot(show=False)
 
-             if self.has_nbformat():
+            if self.has_nbformat():
                 abo.write_notebook(nbpath=self.get_tmpname(text=True))
 
     def test_dryrun_output(self):

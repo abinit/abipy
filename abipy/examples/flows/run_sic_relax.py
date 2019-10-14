@@ -46,7 +46,7 @@ def build_flow(options):
     )
 
     # K-points sampling
-    shiftk=[
+    shiftk = [
         [0.5,0.5,0.5],
         [0.5,0.0,0.0],
         [0.0,0.5,0.0],
@@ -83,7 +83,7 @@ def main(options):
     return build_flow(options)
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     sys.exit(main())
 
 

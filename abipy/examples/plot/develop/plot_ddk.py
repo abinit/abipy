@@ -3,7 +3,7 @@ r"""
 DDK.nc
 ======
 
-This example shows how to analyze DDK.nc files 
+This example shows how to analyze DDK.nc files
 containing the velocity matrix elements.
 """
 from abipy.abilab import abiopen

@@ -157,7 +157,7 @@ def itest_phonon_restart(fwp):
         ngkpt=[4, 4, 4],
         shiftk=[0, 0, 0],
         tolvrs=1.0e-5,
-   )
+    )
 
     multi = abilab.MultiDataset(structure=structure, pseudos=abidata.pseudos("13al.981214.fhi", "33as.pspnc"),
                                 ndtset=1 + len(qpoints))
@@ -177,7 +177,7 @@ def itest_phonon_restart(fwp):
         #rfdir   1 0 0   # Along the first reduced coordinate axis
         #kptopt   2      # Automatic generation of k points, taking
 
-                                                           # i == 0 --> restart from WFK
+        # i == 0 --> restart from WFK
         if i == 1: multi[i+1].set_vars(prtwf=-1, nstep=5)  # Restart with WFK and smart- io.
         if i == 2: multi[i+1].set_vars(prtwf=0, nstep=8)   # Restart from 1DEN. Too long --> disabled.
 

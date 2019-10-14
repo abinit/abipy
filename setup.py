@@ -21,6 +21,7 @@ ext_modules = []
 # Useful globals and utility functions
 #-------------------------------------------------------------------------------
 
+
 # A little utility we'll need below, since glob() does NOT allow you to do exclusion on multiple endings!
 def file_doesnt_end_with(test, endings):
     """
@@ -34,6 +35,7 @@ def file_doesnt_end_with(test, endings):
             return False
     return True
 
+
 #---------------------------------------------------------------------------
 # Basic project information
 #---------------------------------------------------------------------------
@@ -44,16 +46,6 @@ release_file = os.path.join('abipy','core','release.py')
 with open(release_file) as f:
     code = compile(f.read(), release_file, 'exec')
     exec(code)
-
-#---------------------------------------------------------------------------
-# Find packages
-#---------------------------------------------------------------------------
-#
-#def find_packages():
-#    """
-#    Find all of abipy's packages.
-#    """
-#    return find_packages(exclude=())
 
 
 #---------------------------------------------------------------------------
@@ -82,7 +74,7 @@ def find_package_data():
             "refs/*.log",
             "refs/*.abo",
         ],
-        'abipy.data.refs' : [
+        'abipy.data.refs': [
             "al_eph/*",
             "al_g0w0_spfunc/*",
             "alas_nl_dfpt/*",
@@ -98,7 +90,7 @@ def find_package_data():
             "sio2_screening/*",
             "znse_phonons/*",
         ],
-        'abipy.gui.awx' : ['images/*'],
+        'abipy.gui.awx': ['images/*'],
     }
 
     return package_data
@@ -143,8 +135,9 @@ def cleanup():
         except (IOError, OSError):
             try:
                 os.unlink('abipy.egg-info')
-            except:
+            except Exception:
                 pass
+
 
 # List of external packages we rely on.
 # Note setup install will download them from Pypi if they are not available.
@@ -152,20 +145,20 @@ def cleanup():
 #    install_requires = [s.strip() for s in fh]
 
 install_requires = [
-"tabulate",
-"apscheduler==2.1.0",
-"pydispatcher>=2.0.5",
-"tqdm",
-"html2text",
-"pyyaml>=3.11",
-"pandas",
-"numpy",
-"scipy",
-"spglib",
-"pymatgen>=2018.8.7",
-"netCDF4",
-"matplotlib",
-"seaborn",
+    "tabulate",
+    "apscheduler==2.1.0",
+    "pydispatcher>=2.0.5",
+    "tqdm",
+    "html2text",
+    "pyyaml>=3.11",
+    "pandas",
+    "numpy",
+    "scipy",
+    "spglib",
+    "pymatgen>=2018.8.7",
+    "netCDF4",
+    "matplotlib",
+    "seaborn",
 ]
 
 with_wxpython = False

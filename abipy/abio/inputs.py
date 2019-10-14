@@ -582,9 +582,11 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         """
         if mode == "html":
             import html
+
             def escape(text):
                 return html.escape(text, quote=True)
         else:
+
             def escape(text):
                 return text
 
@@ -988,7 +990,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         varnames, values = items[:i], items[i:]
         if len(varnames) != len(values):
             raise self.Error("The number of variables must equal the number of lists\n"
-                              "varnames: %s\nvalues %s" % (str(varnames), str(values)))
+                             "varnames: %s\nvalues %s" % (str(varnames), str(values)))
 
         # TODO: group varnames and varvalues!
         #varnames = [t[0] for t in items]
@@ -1117,8 +1119,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 raise NotImplementedError("kptrlatt in new_with_structure")
                 #new["kptrlatt"] = (np.rint(np.array(new["kptrlatt"]) / iscale)).astype(int)
             else:
-               # Single k-point
-               pass
+                # Single k-point
+                pass
 
             # Add chkprim if not yet done.
             new.set_vars_ifnotin(chkprim=0)
@@ -1217,7 +1219,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         # Note: this will work for phonons, but not for the other types of perturbations.
         for pert, ph_input in zip(perts, ph_inputs):
             rfdir = 3 * [0]
-            rfdir[pert.idir -1] = 1
+            rfdir[pert.idir - 1] = 1
 
             ph_input.set_vars(
                 rfphon=1,                           # Will consider phonon-type perturbation
@@ -1402,10 +1404,10 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 d3e_pert1_dir=rfdir1,  # Direction of the dte perturbation.
                 d3e_pert2_dir=rfdir2,
                 d3e_pert3_dir=rfdir3,
-                d3e_pert1_phon = 1 if pert.i1pert <= na else 0,
-                d3e_pert2_phon = 1 if pert.i2pert <= na else 0,
-                d3e_pert3_phon = 1 if pert.i3pert <= na else 0,
-                d3e_pert1_atpol = atpol,
+                d3e_pert1_phon=1 if pert.i1pert <= na else 0,
+                d3e_pert2_phon=1 if pert.i2pert <= na else 0,
+                d3e_pert3_phon=1 if pert.i3pert <= na else 0,
+                d3e_pert1_atpol=atpol,
                 nqpt=1,         # One wavevector is to be considered
                 qpt=(0, 0, 0),  # q-wavevector.
                 optdriver=5,    # non-linear response functions, using the 2n+1 theorem.
@@ -1437,7 +1439,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         # See tutorespfn/Input/trf1_5.in dataset 3
         for pert, inp in zip(perts, multi):
             rfdir = 3 * [0]
-            rfdir[pert.idir -1] = 1
+            rfdir[pert.idir - 1] = 1
 
             inp.set_vars(
                 rfphon=1,             # Activate the calculation of the atomic dispacement perturbations
@@ -1480,7 +1482,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         for pert, inp in zip(perts, multi):
             rfdir = 3 * [0]
-            rfdir[pert.idir -1] = 1
+            rfdir[pert.idir - 1] = 1
 
             if pert.ipert <= len(self.structure):
                 inp.set_vars(rfphon=1,             # Activate the calculation of the atomic dispacement perturbations
@@ -1550,11 +1552,12 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             retdict: True to return dictionary with space group information instead of Structure.
             workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
-	    verbose: Verbosity level.
+            verbose: Verbosity level.
 
         Return:
             |Structure| object with AbinitSpaceGroup obtained from the main output file if retdict is False
-	    else dict with e.g. {'bravais': 'Bravais cF (face-center cubic)', 'spg_number': 227, 'spg_symbol': 'Fd-3m'}.
+            else dict with e.g.
+            {'bravais': 'Bravais cF (face-center cubic)', 'spg_number': 227, 'spg_symbol': 'Fd-3m'}.
         """
         # Avoid modifications in self.
         inp = self.deepcopy()
@@ -1658,7 +1661,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         # 1) Abinit cannot be executed or runtime errors due e.g to libraries
         # 2) IO buffering (Abinit called MPI_ABORT but files are not flushed before aborting.
         # Try to return as much iformation as possible to aid debugging
-        errors = ["Problem in temp Task executed in %s" %  task.workdir,
+        errors = ["Problem in temp Task executed in %s" % task.workdir,
                   "Previous exception %s" % prev_exc]
 
         try:
@@ -2227,7 +2230,7 @@ class MultiDataset(object):
 
             for i, inp in enumerate(self):
                 header = "### DATASET %d ###" % (i + 1)
-                is_last = (i==self.ndtset - 1)
+                is_last = (i == self.ndtset - 1)
                 s = inp.to_string(post=str(i + 1), with_pseudos=is_last and with_pseudos, mode=mode,
                                   with_structure=not has_same_structures, exclude=global_vars)
                 if s:
@@ -2236,7 +2239,7 @@ class MultiDataset(object):
 
                 lines.append(s)
 
-            return "\n".join(lines) if mode=="text" else "\n".join(lines).replace("\n", "<br>")
+            return "\n".join(lines) if mode == "text" else "\n".join(lines).replace("\n", "<br>")
 
         else:
             # single datasets ==> don't append the dataset index to the variables.
@@ -2566,15 +2569,16 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         if lo_to_splitting:
             directions = []
+            rl = structure.lattice.reciprocal_lattice_crystallographic
             for i, qpt in enumerate(qptbounds):
                 if np.array_equal(qpt, (0, 0, 0)):
                     # anaddb expects cartesian coordinates for the qph2l list
                     if i > 0:
-                        directions.extend(structure.lattice.reciprocal_lattice_crystallographic.get_cartesian_coords(qptbounds[i-1]))
+                        directions.extend(rl.get_cartesian_coords(qptbounds[i-1]))
                         directions.append(0)
 
                     if i < len(qptbounds) - 1:
-                        directions.extend(structure.lattice.reciprocal_lattice_crystallographic.get_cartesian_coords(qptbounds[i+1]))
+                        directions.extend(rl.get_cartesian_coords(qptbounds[i+1]))
                         directions.append(0)
 
             if directions:
@@ -2872,7 +2876,6 @@ class OpticVar(collections.namedtuple("OpticVar", "name default group help")):
         return '<a href="%s" target="_blank">%s</a>' % (self.url, self.name if label is None else label)
 
 
-
 class OpticError(Exception):
     """Error class raised by OpticInput."""
 
@@ -2953,7 +2956,7 @@ class OpticInput(AbiAbstractInput, MSONable):
     def _check_varname(self, key):
         if key not in self._VARNAMES:
             raise self.Error("%s is not a valid optic variable.\n"
-                             "If you are sure the name is correct, please change the _VARIABLES list in:\n%s"  %
+                             "If you are sure the name is correct, please change the _VARIABLES list in:\n%s" %
                              (key, __file__))
 
     def get_default(self, key):

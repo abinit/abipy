@@ -211,11 +211,13 @@ def kdeplot(data, **kwargs):
                 sns_kdeplot,
                 color=ut.colors_dropdow(),
             )
-"""
 
+
+"""
 ####################
 # Regression plots #
 ####################
+
 
 @wraps(sns.lmplot)
 def lmplot(data, scatter_kws=None, line_kws=None):
@@ -424,7 +426,8 @@ def barplot(data, **kwargs):
         ax, fig, _ = ut.get_ax_fig_plt()
         return sns.barplot(x=x, y=y, hue=hue, data=data, order=None, hue_order=None, # estimator=<function mean>,
                            ci=95, n_boot=1000, units=None, orient=orient, color=color, palette=None,
-                           saturation=saturation, errcolor='.26', ax=ax, **kwargs) # errwidth=None, capsize=None, # New args added in ??
+                           saturation=saturation, errcolor='.26', ax=ax,
+                           **kwargs) # errwidth=None, capsize=None, # New args added in ??
 
     allcols = ["None"] + list(data.keys())
     return ipw.interact_manual(
@@ -460,6 +463,7 @@ def countplot(data, **kwargs):
 ################
 # Matrix plots #
 ################
+
 
 @wraps(sns.heatmap)
 def heatmap(data, annot_kws=None, cbar_kws=None, **kwargs):

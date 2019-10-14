@@ -71,6 +71,7 @@ else:
         (("paral_kgb", 1),),
     ]
 
+
 @pytest.fixture(params=_tvars_list)
 def tvars(request):
     """
@@ -126,4 +127,3 @@ def pytest_report_header(config):
 #    """Reporting hook"""
 #    if report.outcome == "failed":
 #        print("noedid", report.nodeid, "failed")
-

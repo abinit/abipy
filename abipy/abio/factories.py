@@ -63,6 +63,7 @@ _DEFAULTS = dict(
     kppa=1000,
 )
 
+
 class ShiftMode(Enum):
     """
     Class defining the mode to be used for the shifts.
@@ -1415,6 +1416,7 @@ def dfpt_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, do_ddk=True, do_dde=T
         multi.extend(multi_dte)
 
     return multi
+
 
 #FIXME if the pseudos are passed as a PseudoTable the whole table will be serialized,
 # it would be better to filter on the structure elements

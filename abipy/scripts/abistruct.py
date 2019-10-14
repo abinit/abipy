@@ -143,13 +143,14 @@ Usage example:
                                               to change output format. `-f None` to disable structure output.
   abistruct.py mp_pd FILE-or-elements      => Generate phase diagram with entries from the Materials Project.
   abistruct.py mp_ebands FILE             => Fetch electron band structure from MP database. Print gaps.
-                                              Accept FILE with structure if ebands fro structure is wanted     
+                                              Accept FILE with structure if ebands fro structure is wanted
                                               or mp id e.g. "mp-149 or list of elements e.g `Li-Fe-O` or chemical formula.
 
 `FILE` is any file supported by abipy/pymatgen e.g Netcdf files, Abinit input/output, POSCAR, xsf ...
 Use `abistruct.py --help` for help and `abistruct.py COMMAND --help` to get the documentation for `COMMAND`.
 Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 """
+
 
 def get_parser(with_epilog=False):
 
@@ -204,6 +205,7 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
             help="Enforce primitive standard cell.")
 
     supported_formats = "(abivars, cif, xsf, poscar, qe, siesta, wannier90, cssr, json, None)"
+
     def add_format_arg(parser, default, option=True, formats=None):
         """Add --format option to a parser with default value `default`."""
         formats = supported_formats if formats is None else formats
@@ -288,13 +290,13 @@ Has to be all integers. Several options are possible:
     p_wyckoff = subparsers.add_parser('wyckoff', parents=[copts_parser, spgopt_parser, path_selector],
             help="Print wyckoff positions. WARNING: still under development!")
     p_wyckoff.add_argument("--refine", default=False, action="store_true",
-                            help="Use spglib to refine structure before computation")
+                           help="Use spglib to refine structure before computation")
 
     # Subparser for tensor_site.
     p_tensor_site = subparsers.add_parser('tensor_site', parents=[copts_parser, spgopt_parser, path_selector],
             help="Print symmetry properties of tensors due to site-symmetries. WARNING: still under development!")
     p_tensor_site.add_argument("--refine", default=False, action="store_true",
-                                help="Use spglib to refine structure before computation")
+                               help="Use spglib to refine structure before computation")
 
     # Subparser for neighbors.
     p_neighbors = subparsers.add_parser('neighbors', parents=[copts_parser, path_selector],
@@ -472,6 +474,7 @@ ehull < show_unstable will be shown.""")
 
     return parser
 
+
 @prof_main
 def main():
 
@@ -608,7 +611,7 @@ def main():
             spg_symb, spg_num = sanitized.get_space_group_info(symprec=symprec, angle_tolerance=angle_tolerance)
             print(">>> Space-group number:", spg_symb, ", symbol:", spg_num, "for trial:", itrial)
             if spg_num == options.target_spgnum:
-                print(2 * "\n", "# Final structure with space group number:", spg_symb, ", symbol:", spg_num, 2 *"\n")
+                print(2 * "\n", "# Final structure with space group number:", spg_symb, ", symbol:", spg_num, 2 * "\n")
                 print(sanitized.convert(fmt="cif"))
                 break
 

@@ -639,7 +639,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                 ebands.plot_ax(ax, e0, spin=spin, **self.eb_plotax_kwargs(spin))
 
             if im == 2 * l:
-               ebands.decorate_ax(ax)
+                ebands.decorate_ax(ax)
             #if l > 0:
             #    ax.set_ylabel("")
 
@@ -845,7 +845,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     #            # Only the first column show labels.
     #            # Trick: Don't change the labels but set their fontsize to 0 otherwise
     #            # also the other axes are affecred (likely due to sharey=True).
-                 #ax.yaxis.set_tick_params(fontsize=0)
+    #             #ax.yaxis.set_tick_params(fontsize=0)
 
     #        idx = term2idx[term]
     #        color = self.spinors2color[term]
@@ -1040,7 +1040,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                     for isymb, symbol in enumerate(self.symbols):
                         yup = stack[isymb]
                         ydown = stack[isymb-1] if isymb != 0 else zerodos
-                        label ="%s (stacked)" % symbol if (l, spin) == (0, 0) else None
+                        label = "%s (stacked)" % symbol if (l, spin) == (0, 0) else None
                         fill = ax.fill_between if not exchange_xy else ax.fill_betweenx
                         fill(mesh, yup, ydown, alpha=self.alpha, facecolor=self.symbol2color[symbol],
                              label=label if with_info else None)
@@ -1196,7 +1196,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                     for l in range(min(self.lmax_symbol[symbol] + 1, mylsize)):
                         yup = stack[l]
                         ydown = stack[l-1] if l != 0 else zerodos
-                        label ="%s (stacked)" % self.l2tex[l] if (isymb, spin) == (0, 0) else None
+                        label = "%s (stacked)" % self.l2tex[l] if (isymb, spin) == (0, 0) else None
                         fill = ax.fill_between if not exchange_xy else ax.fill_betweenx
                         fill(mesh, yup, ydown, alpha=self.alpha, facecolor=self.l2color[l],
                              label=label if with_info else None)

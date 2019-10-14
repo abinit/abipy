@@ -56,15 +56,15 @@ class TestAbinitInput(AbipyTest):
         assert "foo" not in inp
         inp.set_spell_check(True)
 
-        inp["ecut" ] = 1
+        inp["ecut"] = 1
         assert inp.get("ecut") == 1 and len(inp) == 1 and "ecut" in inp.keys() and "foo" not in inp
 
         # Default is kptopt 1
         assert inp.uses_ktimereversal
 
-        assert inp.mnemonics == False
+        assert not inp.mnemonics
         inp.set_mnemonics(True)
-        assert inp.mnemonics == True
+        assert inp.mnemonics
 
         # Test to_string
         assert inp.to_string(sortmode="a", with_structure=True, with_pseudos=True)
@@ -186,7 +186,7 @@ class TestAbinitInput(AbipyTest):
         assert ngkpt.tolist() == [1, 4, 8]
         assert len(shiftk) == 1 and shiftk.ravel().tolist() == [0.5, 0.0, 0.0]
 
-        inp.set_vars(kptrlatt = [1, 2, 0, 0, 4, 0, 0, 0, 8], nshiftk=1, shiftk=shiftk)
+        inp.set_vars(kptrlatt=[1, 2, 0, 0, 4, 0, 0, 0, 8], nshiftk=1, shiftk=shiftk)
         ngkpt, shiftk = inp.get_ngkpt_shiftk()
         assert ngkpt is None
 
@@ -221,7 +221,7 @@ class TestAbinitInput(AbipyTest):
         prod_inps = inp.product("ngkpt", "tsmear", [[2, 2, 2], [4, 4, 4]], [0.1, 0.2, 0.3])
         assert len(prod_inps) == 6
         assert prod_inps[0]["ngkpt"] == [2, 2, 2] and prod_inps[0]["tsmear"] == 0.1
-        assert prod_inps[-1]["ngkpt"] ==  [4, 4, 4] and prod_inps[-1]["tsmear"] == 0.3
+        assert prod_inps[-1]["ngkpt"] == [4, 4, 4] and prod_inps[-1]["tsmear"] == 0.3
 
         inp["kptopt"] = 4
         assert not inp.uses_ktimereversal
@@ -511,7 +511,7 @@ class TestMultiDataset(AbipyTest):
 
         multi.addnew_from(0)
         assert multi.ndtset == 2 and multi[0] is not multi[1]
-        assert multi[0].structure ==  multi[1].structure
+        assert multi[0].structure == multi[1].structure
         assert multi[0].structure is not multi[1].structure
 
         multi.set_vars(ecut=2)
@@ -643,9 +643,9 @@ class AnaddbInputTest(AbipyTest):
         assert "qpath" in inp_loto
         assert inp_loto["nph2l"] == 3
         self.assert_almost_equal(inp_loto["qph2l"],
-            [[ 0.        , 0.184959  , 0.       , 0.],
-             [ 0.13871925, 0.13871925, 0.       , 0.],
-             [ 0.0924795 , 0.0924795 , 0.0924795, 0.]])
+            [[0.        , 0.184959  , 0.       , 0.],
+             [0.13871925, 0.13871925, 0.       , 0.],
+             [0.0924795 , 0.0924795 , 0.0924795, 0.]])
         self.abivalidate_input(inp_loto)
 
     def test_modes(self):

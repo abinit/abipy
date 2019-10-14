@@ -129,7 +129,6 @@ def raman_work(structure, pseudos, ngkpt, shiftk):
         ddk_t = work.register_ddk_task(inp, deps={nscf_t: "WFK"})
         ddk_nodes.append(ddk_t)
 
-
     optic_input = abilab.OpticInput(
         broadening=0.002,     # Value of the smearing factor, in Hartree
         domega=0.0003,        # Frequency mesh.

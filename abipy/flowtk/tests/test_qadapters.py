@@ -34,6 +34,8 @@ class ParseTimestr(AbipyTest):
         aequal(slurm_parse_timestr("3:20"), 3*minutes + 20*secs)
         # "hours:minutes:seconds",
         aequal(slurm_parse_timestr("3:2:5"), 3*hours + 2*minutes + 5*secs)
+        # Support numbers as well
+        aequal(slurm_parse_timestr(60), 1*minutes)
 
 
 @unittest.skipIf(sys.platform.startswith("win"), "Skipping for Windows")

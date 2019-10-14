@@ -14,6 +14,7 @@ def rearr(array):
 # See http://en.wikipedia.org/wiki/Finite_difference_coefficients
 # Derivative Accuracy -4 -3 -2 -1 0 1 2 3 4
 
+
 central_fdiff_weights = {
 1: {
     2: rearr([-1/2, 0, 1/2]),

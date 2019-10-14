@@ -48,7 +48,7 @@ def make_scf_nscf_inputs(structure, pseudos, paral_kgb=1):
         )
 
     # return GS, NSCF (band structure), DOSes input.
-    return  multi.split_datasets()
+    return multi.split_datasets()
 
 
 def build_flow(options):

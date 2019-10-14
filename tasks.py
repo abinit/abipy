@@ -14,6 +14,7 @@ from monty.os import cd
 ABIPY_ROOTDIR = os.path.dirname(__file__)
 DOCS_DIR = os.path.join(ABIPY_ROOTDIR, "docs")
 
+
 @task
 def make_doc(ctx):
     with cd(DOCS_DIR):
@@ -58,6 +59,7 @@ pytest -n 2 --cov-config=.coveragerc --cov=abipy -v --doctest-modules abipy \
 def plots(ctx):
     with cd(os.path.join(ABIPY_ROOTDIR, "abipy", "examples")):
         ctx.run("_runplots.py", pty=True)
+
 
 @task
 def flows(ctx):

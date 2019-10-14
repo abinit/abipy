@@ -29,7 +29,7 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
         ebands = ElectronBands.as_ebands(ebands)
 
         ntemp = len(tmesh)
-        nwr =  1000
+        nwr = 1000
         wr_step = 0.01
 
         aw = np.empty((ebands.nsppol, ebands.nkpt, ebands.mband, ntemp, nwr))
@@ -319,7 +319,7 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
                 for it, itemp in enumerate(temp_inds):
                     ys = spin_sign * atw[it] + (it * apad)
                     ax.plot(xs, ys, lw=2, alpha=0.8, color=cmap(float(it) / ntemp),
-                            label = "T = %.1f K" % self.tmesh[itemp] if (ik, isp) == (0, 0) else None)
+                            label="T = %.1f K" % self.tmesh[itemp] if (ik, isp) == (0, 0) else None)
 
                 if spin == 0:
                     kpt = self.ebands.kpoints[ikpt]

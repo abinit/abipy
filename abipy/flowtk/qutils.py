@@ -8,6 +8,7 @@ The preferred way of importing this module is:
 """
 from monty.string import is_string
 from pymatgen.core.units import Time, Memory
+from abipy.tools import duck
 
 import logging
 logger = logging.getLogger(__name__)
@@ -24,15 +25,14 @@ def slurm_parse_timestr(s):
         # "minutes:seconds",
         # "hours:minutes:seconds",
 
-    Returns:
-        Time in seconds.
+    Returns: Time in seconds.
 
     Raises:
         `ValueError` if string is not valid.
     """
     days, hours, minutes, seconds = 0, 0, 0, 0
 
-    if type(s) == type(1):
+    if duck.is_number_like(s):
         return Time(s, "s")
 
     if '-' in s:

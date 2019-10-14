@@ -84,6 +84,7 @@ def _straceback():
     import traceback
     return traceback.format_exc()
 
+
 # Abinit text files. Use OrderedDict for nice output in show_abiopen_exc2class.
 ext2file = collections.OrderedDict([
     (".abi", AbinitInputFile),

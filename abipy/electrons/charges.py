@@ -89,7 +89,6 @@ class HirshfeldCharges(Charges):
         else:
             raise RuntimeError('The file does not contain Hirshfeld charges')
 
-
         for i in range(start_hirshfeld_i, start_hirshfeld_i+len(structure)):
             l = lines[i]
             electron_charges.append(float(l.split()[2]))

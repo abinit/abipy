@@ -18,7 +18,7 @@ from abipy.tools.plotting import MplExpose, GenericDataFilePlotter
 def handle_overwrite(path, options):
     """Exit 1 if file ``path`` exists and not options.force else return path."""
     name_parts = os.path.splitext(path)
-    print("Writing %s file:" % name_parts[-1].replace("." , "").upper())
+    print("Writing %s file:" % name_parts[-1].replace(".", "").upper())
     if os.path.exists(path) and not options.force:
         cprint("Cannot overwrite pre-existent file. Use `-f` options.", "red")
         sys.exit(1)
@@ -231,7 +231,7 @@ num_points= {num_points}, asr = {asr}, chneut = {chneut}, dipdip = {dipdip}
 
     print("Invoking anaddb ...  ")
     sv = abilab.SoundVelocity.from_ddb(options.filepath, num_points=num_points,
-                                        asr=asr, chneut=chneut, dipdip=dipdip, verbose=options.verbose)
+                                       asr=asr, chneut=chneut, dipdip=dipdip, verbose=options.verbose)
     #print("Calculation completed.\nResults available in", os.path.dirname(phbst_file.filepath))
 
     df = sv.get_dataframe()
@@ -303,6 +303,7 @@ def abiview_phbands(options):
                            verbose=options.verbose, units="mev")
 
         return 0
+
 
 def abiview_denpot(options):
     """
@@ -402,6 +403,7 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 # TODO
 #abiview.py denpot out_DEN.nc              ==>  Visualize density with Vesta.
 #abiview.py denpot out_DEN.nc --chgcar     ==>  Convert DEN file into CHGCAR fileformat.
+
 
 def get_parser(with_epilog=False):
 
@@ -524,7 +526,7 @@ def get_parser(with_epilog=False):
         help=("Ratio between the number of star functions and the number of ab-initio k-points. "
               "The default should be OK in many systems, larger values may be required for accurate derivatives."))
     p_skw.add_argument("-ld", "--line-density", type=int, default=20,
-        help ="Number of points in the smallest segment of the k-path.")
+                      help="Number of points in the smallest segment of the k-path.")
 
     # Subparser for fs command.
     p_fs = subparsers.add_parser('fs', parents=[copts_parser], help=abiview_fs.__doc__)
@@ -612,6 +614,7 @@ def main():
 
     # Dispatch
     return globals()["abiview_" + options.command](options)
+
 
 if __name__ == "__main__":
     sys.exit(main())

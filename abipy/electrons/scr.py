@@ -367,7 +367,7 @@ class ScrReader(ETSF_Reader):
         # eelf = -Im(1 / eM)
         emacro_lf = self.read_emacro_lf(kpoint=kpoint)
         #emacro_lf = self.read_emacro_nlf(kpoint=kpoint)
-        values  = (-1 / emacro_lf.values).imag
+        values = (-1 / emacro_lf.values).imag
 
         return Function1D(emacro_lf.mesh.copy(), values)
 

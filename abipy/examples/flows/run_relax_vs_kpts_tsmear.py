@@ -59,6 +59,7 @@ def relax_input(tsmear, nksmall):
 
     return inp
 
+
 def build_flow(options):
     """
     Build and return a flow performing structural relaxations with different k-point samplings.

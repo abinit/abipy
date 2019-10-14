@@ -85,7 +85,7 @@ class Robot(NotebookWriter):
 
         Args:
             top (str): Root directory
-	    walk: if True, directories inside `top` are included as well.
+            walk: if True, directories inside `top` are included as well.
             abspath: True if paths in index should be absolute. Default: Relative to `top`.
         """
         new = cls(*cls._open_files_in_dir(top, walk))
@@ -98,7 +98,7 @@ class Robot(NotebookWriter):
         Similar to `from_dir` but accepts a list of directories instead of a single directory.
 
         Args:
-	    walk: if True, directories inside `top` are included as well.
+            walk: if True, directories inside `top` are included as well.
             abspath: True if paths in index should be absolute. Default: Relative to `top`.
         """
         items = []
@@ -119,7 +119,7 @@ class Robot(NotebookWriter):
 
         Args:
             pattern: Pattern string
-	    walk: if True, directories inside `top` are included as well.
+            walk: if True, directories inside `top` are included as well.
             abspath: True if paths in index should be absolute. Default: Relative to getcwd().
         """
         import glob
@@ -295,7 +295,7 @@ class Robot(NotebookWriter):
 
         Return:
             Number of files found.
-	"""
+        """
         count = 0
         for filepath, abifile in self.__class__._open_files_in_dir(top, walk):
             count += 1
@@ -692,7 +692,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
             if self._do_close.pop(abifile.filepath, False):
                 try:
                     abifile.close()
-                except:
+                except Exception:
                     print("Exception while closing: ", abifile.filepath)
                     print(exc)
 

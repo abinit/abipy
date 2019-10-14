@@ -34,7 +34,7 @@ def build_flow(options):
 
     # Usa same shifts in all tasks.
     ngkpt = [4, 4, 4]
-    shiftk= [
+    shiftk = [
         [0.5, 0.5, 0.5],
         [0.5, 0.0, 0.0],
         [0.0, 0.5, 0.0],

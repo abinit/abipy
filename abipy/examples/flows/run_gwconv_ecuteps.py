@@ -121,6 +121,7 @@ def build_flow(options):
 
     return flow
 
+
 # This block generates the thumbnails in the Abipy gallery.
 # You can safely REMOVE this part if you are using this script for production runs.
 if os.getenv("READTHEDOCS", False):
@@ -140,5 +141,6 @@ def main(options):
     """
     return build_flow(options)
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     sys.exit(main())

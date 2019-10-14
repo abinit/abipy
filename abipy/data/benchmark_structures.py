@@ -8,4 +8,3 @@ simple_semiconductors = ['mp-149', 'mp-66', 'mp-830', 'mp-1138', 'mp-1265']
 
 # simple metals: Na, Mg, Al
 simple_metals = ['mp-10172', 'mp-153', 'mp-134']
-

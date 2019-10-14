@@ -32,7 +32,7 @@ class RelaxAndPhononWork(Work, MergeDdb):
         relaxinp.pop_tolerances()
         relaxinp.set_vars(tolvrs=1e-10, toldff=1.e-6)
         relaxinp.set_vars(optcell=optcell, ionmov=ionmov)
-        if optcell is not None and optcell != 0 :
+        if optcell is not None and optcell != 0:
             relaxinp.set_vars_ifnotin(ecutsm=0.5, dilatmx=1.05)
 
         work.relax_task = work.register_relax_task(relaxinp)

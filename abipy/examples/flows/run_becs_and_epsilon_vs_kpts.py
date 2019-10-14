@@ -17,6 +17,7 @@ import abipy.data as abidata
 
 from abipy import flowtk
 
+
 def make_scf_input(ngkpt, paral_kgb=0):
     """
     This function constructs the input file for the GS calculation for a given IBZ sampling.

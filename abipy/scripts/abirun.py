@@ -135,6 +135,7 @@ def cli_abiopen(options, filepath):
         else:
             return make_and_open_notebook(options)
 
+
 # TODO: These should become flow methods.
 def flow_write_open_notebook(flow, options):
     """
@@ -622,6 +623,7 @@ def flow_watch_status(flow, delay=5, nids=None, verbose=0, func_name="show_func"
 
     except KeyboardInterrupt:
         cprint("Received KeyboardInterrupt from user\n", "yellow")
+
 
 def get_epilog():
     usage = """\
@@ -1253,7 +1255,7 @@ def main():
         else:
             flow.show_event_handlers(verbose=options.verbose)
 
-    elif options.command  == "single":
+    elif options.command == "single":
         nlaunch = flow.single_shot()
         if nlaunch: flow.show_status()
         cprint("Number of tasks launched: %d" % nlaunch, "yellow")
@@ -1397,7 +1399,7 @@ def main():
             cprint("No job is running. Exiting!", "magenta")
         else:
             cprint("Press <CTRL+C> to interrupt. Number of output files %d\n" % len(paths),
-                    color="magenta", end="", flush=True)
+                   color="magenta", end="", flush=True)
             try:
                 os.system("tail -f %s" % " ".join(paths))
             except KeyboardInterrupt:
@@ -1640,7 +1642,7 @@ def list_of_dict_with_vars(task):
 
         if len(tasks) not in (2, 3):
             if len(tasks) == 1:
-                cprint("task == task, returning\n" , color="magenta", end="", flush=True)
+                cprint("task == task, returning\n", color="magenta", end="", flush=True)
                 return 0
             else:
                 raise ValueError("Don't know how to compare files produced by %d tasks" % len(tasks))
@@ -1708,6 +1710,7 @@ def list_of_dict_with_vars(task):
         raise RuntimeError("Don't know what to do with command %s!" % options.command)
 
     return retcode
+
 
 if __name__ == "__main__":
     sys.exit(main())

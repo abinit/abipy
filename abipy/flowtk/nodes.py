@@ -10,6 +10,7 @@ import collections
 import abc
 import numpy as np
 
+from collections import OrderedDict
 from pprint import pprint
 from pymatgen.util.io_utils import AtomicFile
 from pydispatch import dispatcher
@@ -38,20 +39,31 @@ class Status(int):
     # Possible status of the node. See monty.termocolor for the meaning of color, on_color and attrs.
     _STATUS_INFO = [
         # (value, name, color, on_color, attrs)
-        (1,  "Initialized",   None     , None, None),         # Node has been initialized
-        (2,  "Locked",        "grey"   , None, None),         # Task is locked an must be explicitly unlocked by an external subject (Work).
-        (3,  "Ready",         None     , None, None),         # Node is ready i.e. all the depencies of the node have status S_OK
-        (4,  "Submitted",     "blue"   , None, None),         # Node has been submitted (The `Task` is running or we have started to finalize the Work)
-        (5,  "Running",       "magenta", None, None),         # Node is running.
-        (6,  "Done",          None     , None, None),         # Node done, This does not imply that results are ok or that the calculation completed successfully
-        (7,  "AbiCritical",   "red"    , None, None),         # Node raised an Error by ABINIT.
-        (8,  "QCritical",     "red"    , "on_white", None),   # Node raised an Error by submitting submission script, or by executing it
-        (9,  "Unconverged",   "red"    , "on_yellow", None),  # This usually means that an iterative algorithm didn't converge.
-        (10, "Error",         "red"    , None, None),         # Node raised an unrecoverable error, usually raised when an attempt to fix one of other types failed.
-        (11, "Completed",     "green"  , None, None),         # Execution completed successfully.
+        # Node has been initialized
+        (1, "Initialized", None, None, None),
+        # Task is locked an must be explicitly unlocked by an external subject (Work).
+        (2, "Locked", "grey", None, None),
+        # Node is ready i.e. all the depencies of the node have status S_OK
+        (3, "Ready", None, None, None),
+        # Node has been submitted (The `Task` is running or we have started to finalize the Work)
+        (4, "Submitted", "blue", None, None),
+        # Node is running.
+        (5, "Running", "magenta", None, None),
+        # Node done, This does not imply that results are ok or that the calculation completed successfully
+        (6, "Done", None, None, None),
+        # raised an Error by ABINIT.
+        (7, "AbiCritical", "red", None, None),
+        # Node raised an Error by submitting submission script, or by executing it
+        (8, "QCritical", "red", "on_white", None),
+        # This usually means that an iterative algorithm didn't converge.
+        (9, "Unconverged", "red", "on_yellow", None),
+        # Node raised an unrecoverable error, usually raised when an attempt to fix one of other types failed.
+        (10, "Error", "red", None, None),
+        # Execution completed successfully.
+        (11, "Completed", "green", None, None),
     ]
-    _STATUS2STR = collections.OrderedDict([(t[0], t[1]) for t in _STATUS_INFO])
-    _STATUS2COLOR_OPTS = collections.OrderedDict([(t[0], {"color": t[2], "on_color": t[3], "attrs": _2attrs(t[4])}) for t in _STATUS_INFO])
+    _STATUS2STR = OrderedDict([(t[0], t[1]) for t in _STATUS_INFO])
+    _STATUS2COLOR_OPTS = OrderedDict([(t[0], {"color": t[2], "on_color": t[3], "attrs": _2attrs(t[4])}) for t in _STATUS_INFO])
 
     def __repr__(self):
         return "<%s: %s, at %s>" % (self.__class__.__name__, str(self), id(self))

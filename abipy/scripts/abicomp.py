@@ -283,6 +283,7 @@ def abicomp_xrd(options):
                         annotate_peaks=not options.no_annotate_peaks, tight_layout=True)
     return 0
 
+
 def abicomp_data(options):
     """
     Compare results stored in multiple files with data in tabular format.
@@ -558,7 +559,7 @@ def abicomp_gkq(options):
     Compare multiple GKQ files with EPH matrix elements for a given q-point.
     """
     if options.diff:
-        robot = _build_robot(options, trim_paths=True) 
+        robot = _build_robot(options, trim_paths=True)
 
         robot.plot_gkq2_diff()
     else:
@@ -1172,7 +1173,7 @@ def main():
                 font='sans-serif', font_scale=1, color_codes=False, rc=None)
 
     if options.pylustrator:
-        # Start pylustrator to style matplotlib plots 
+        # Start pylustrator to style matplotlib plots
         import pylustrator
         pylustrator.start()
 

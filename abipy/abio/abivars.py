@@ -20,6 +20,7 @@ __all__ = [
     "AbinitInputParser",
 ]
 
+
 def is_anaddb_var(varname):
     """True if varname is a valid Anaddb variable."""
     return varname in get_codevars()["anaddb"]
@@ -43,6 +44,7 @@ ABI_UNIT_NAMES = {
         "eV", "Ha", "Hartree", "Hartrees", "K", "Ry", "Rydberg", "Rydbergs",
         "T", "Tesla",)
 }
+
 
 def is_abiunit(s):
     """
@@ -218,7 +220,7 @@ class Dataset(dict, Has_Structure):
             if mode == "html": vname = var_database[k].html_link(label=vname)
             app("%s %s" % (vname, str(self[k])))
 
-        return "\n".join(lines) if mode=="text" else "\n".join(lines).replace("\n", "<br>")
+        return "\n".join(lines) if mode == "text" else "\n".join(lines).replace("\n", "<br>")
 
     def _repr_html_(self):
         """Integration with jupyter_ notebooks."""
@@ -428,7 +430,7 @@ class AbinitInputParser(object):
 
         varpos.append(len(tokens))
 
-	# Build dict {varname --> value_string}
+        # Build dict {varname --> value_string}
         dvars = {}
         for i, pos in enumerate(varpos[:-1]):
             varname = tokens[pos]
@@ -452,7 +454,7 @@ class AbinitInputParser(object):
         if udtset is not None:
             raise NotImplementedError("udtset is not supported")
 
-	# Build list of datasets.
+        # Build list of datasets.
         datasets = [Dataset() for i in range(ndtset)]
 
         # Treat all variables without a dataset index
@@ -483,7 +485,7 @@ class AbinitInputParser(object):
             vname = k[:-1]
             start = str2array(dvars.pop(k))
 
-	    # Handle ecut+ or ecut*
+            # Handle ecut+ or ecut*
             incr = dvars.pop(vname + "+", None)
             if incr is not None:
                 incr = str2array(incr)
@@ -498,12 +500,12 @@ class AbinitInputParser(object):
                     dt[vname] = start.copy()
                     start *= mult
 
-	# Consistency check
-	# 1) dvars should be empty
+        # Consistency check
+        # 1) dvars should be empty
         if dvars:
             raise ValueError("Don't know how handle variables in:\n%s" % pformat(dvars), indent=4)
 
-	# 2) Keys in datasets should be valid Abinit input variables.
+        # 2) Keys in datasets should be valid Abinit input variables.
         wrong = []
         for i, dt in enumerate(datasets):
             wlist = [k for k in dt if not is_abivar(k)]
@@ -512,7 +514,7 @@ class AbinitInputParser(object):
         if wrong:
             raise ValueError("Found variables that are not registered in the abipy database:\n%s" % pformat(wrong, indent=4))
 
-	# 3) We don't support spg builder: dataset.structure will fail or, even worse,
+        # 3) We don't support spg builder: dataset.structure will fail or, even worse,
         #    spglib will segfault so it's better to raise here!
         for dt in datasets:
             if "spgroup" in dt or "nobj" in dt:
@@ -531,9 +533,9 @@ class AbinitInputParser(object):
         Receive a list of strings, find the occurences of operators supported
         in the input file (e.g. sqrt), evalute the expression and return new list of strings.
 
-	.. note:
+        .. note:
 
-	    This function is not recursive hence expr like sqrt(1/2) are not supported
+            This function is not recursive hence expr like sqrt(1/2) are not supported
         """
         import math
         import re

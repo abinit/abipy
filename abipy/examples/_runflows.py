@@ -25,7 +25,7 @@ def main():
     def show_examples_and_exit(err_msg=None, error_code=1):
         """Display the usage of the script."""
         sys.stderr.write(str_examples())
-        if err_msg: 
+        if err_msg:
             sys.stderr.write("Fatal Error\n" + err_msg + "\n")
         sys.exit(error_code)
 
@@ -50,7 +50,7 @@ def main():
 
     options = parser.parse_args()
 
-    # loglevel is bound to the string value obtained from the command line argument. 
+    # loglevel is bound to the string value obtained from the command line argument.
     # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
     import logging
     numeric_level = getattr(logging, options.loglevel.upper(), None)
@@ -81,11 +81,11 @@ def main():
             ret = call(["python", script, "--workdir", workdir])
             retcode += ret
 
-            if ret != 0: 
+            if ret != 0:
                 e = "python %s returned retcode !=0" % script
                 print(e)
                 errors.append(e)
-                if options.bail_on_failure: 
+                if options.bail_on_failure:
                     print("Exiting now since bail_on_failure")
                     break
 
@@ -105,7 +105,7 @@ def main():
                     s = "Exception raised during flow execution: %s\n:%s" % (flow, exc)
                     print(s)
                     errors.append(s)
-                    if options.bail_on_failure: 
+                    if options.bail_on_failure:
                         print("Exiting now since bail_on_failure")
                         break
                     retcode += ret

@@ -2,7 +2,7 @@
 Functions providing access to file data for unit tests and tutorials.
 Preferred way to import the module is via the import syntax:
 
-    import abipy.abidata as abidata
+    import abipy.data as abidata
 """
 import os
 
@@ -29,7 +29,6 @@ _PSEUDOS_DIRPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "pseu
 _VARIABLES_DIRPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "variables"))
 
 _MPDATA_DIRPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "mpdata"))
-
 
 _SCRIPTS_DIRPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "examples"))
 _SCRIPTS = None
@@ -112,7 +111,7 @@ def find_ncfiles(top, verbose=0):
             if basename.endswith(".nc"):
 
                 if basename in ncfiles:
-                    err_msg =  "Found duplicated basename %s\n" % basename
+                    err_msg = "Found duplicated basename %s\n" % basename
                     err_msg += "Stored: %s, new %s\n" % (ncfiles[basename], apath)
                     if not verbose:
                         import warnings
@@ -122,6 +121,7 @@ def find_ncfiles(top, verbose=0):
                     ncfiles[basename] = apath
 
     return ncfiles
+
 
 _DATA_NCFILES = find_ncfiles(top=os.path.join(os.path.dirname(__file__), "refs"))
 
@@ -152,14 +152,16 @@ def ncfiles_with_ext(ext):
 
     return ncfiles
 
+
 _MP_STRUCT_DICT = None
+
 
 def get_mp_structures_dict():
     """
     Returns a dictionary containing the structures stored in mpdata/mp_structures.
     """
     global _MP_STRUCT_DICT
-    if  _MP_STRUCT_DICT is not None:
+    if _MP_STRUCT_DICT is not None:
         return _MP_STRUCT_DICT
 
     import json

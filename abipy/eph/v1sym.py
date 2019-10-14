@@ -214,7 +214,7 @@ class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
             if nu == 0:
                 ax.set_ylabel(r"Abs diff")
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
-            if ipert == natom -1:
+            if ipert == natom - 1:
                 ax.set_xlabel(r"FFT index")
 
             #ax.axvline(stats["mean"], color='k', linestyle='dashed', linewidth=1)

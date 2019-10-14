@@ -15,6 +15,7 @@ import abipy.flowtk as flowtk
 
 from abipy import abilab
 
+
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:

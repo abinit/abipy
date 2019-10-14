@@ -4087,7 +4087,7 @@ class Bands3D(Has_Structure):
                     #, cmap='Spectral', lw=1, antialiased=True)
 
                 # mayavi package:
-                #mlab.triangular_mesh([v[0] for v in verts], [v[1] for v in verts], [v[2] for v in verts], faces) 
+                #mlab.triangular_mesh([v[0] for v in verts], [v[1] for v in verts], [v[2] for v in verts], faces)
                 #, color=(0, 0, 0))
 
         ax.set_axis_off()

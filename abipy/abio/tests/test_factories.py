@@ -147,7 +147,6 @@ class FactoryTest(AbipyTest):
         flow.register_work(G0W0Work(scf_input, nscf_input, scr_input, sigma_input))
         assert flow.build_and_pickle_dump(abivalidate=True) == 0
 
-
         # The default value of `shifts` changed in v0.3 from (0.5, 0.5, 0.5) to (0.0, 0.0, 0.0)
         multi = g0w0_with_ppmodel_inputs(self.si_structure, self.si_pseudo,
                                         scf_kppa, nscf_nband, ecuteps, ecutsigx,
@@ -300,7 +299,6 @@ class FactoryTest(AbipyTest):
         self.assert_input_equality('phonons_from_gsinput_dde.json', inp_dde_obj)
         self.assert_input_equality('phonons_from_gsinput_ph_q_pert_1.json', inp_ph_q_pert_1_obj)
         self.assert_input_equality('phonons_from_gsinput_ph_q_pert_2.json', inp_ph_q_pert_2_obj)
-
 
     def test_elastic_inputs_from_gsinput(self):
         """Testing elastic_inputs_from_gsinput."""

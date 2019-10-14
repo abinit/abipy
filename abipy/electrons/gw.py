@@ -686,7 +686,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         # Show QP results
         strio = StringIO()
-        self.print_qps(precision=3, ignore_imag=verbose==0, file=strio)
+        self.print_qps(precision=3, ignore_imag=verbose == 0, file=strio)
         strio.seek(0)
         app("")
         app(marquee("QP results for each k-point and spin (all in eV)", mark="="))
@@ -1268,7 +1268,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             ks_ebands_kmesh = ElectronBands.as_ebands(ks_ebands_kmesh)
             if bstop > ks_ebands_kmesh.nband:
                 raise ValueError("Not enough bands in ks_ebands_kmesh, found %s, minimum expected %d\n" % (
-                    ks_ebands_kmesh%nband, bstop))
+                    ks_ebands_kmesh.nband, bstop))
             if ks_ebands_kpath.structure != self.structure:
                 cprint("sigres.structure and ks_ebands_kpath.structures differ. Check your files!", "red")
                 #raise ValueError("sigres.structure and ks_ebands_kmesh.structures differ. Check your files!")
@@ -2068,7 +2068,7 @@ class SigresRobot(Robot, RobotWithEbands):
                 if sortby is not None:
                     label = "%s: %s" % (self._get_label(sortby), param)
                 fig = ncfile.plot_qps_vs_e0(with_fields=list_strings(field),
-                    e0=e0, ax_list=ax_list, color=cmap(i/ len(lnp_list)), fontsize=fontsize,
+                    e0=e0, ax_list=ax_list, color=cmap(i / len(lnp_list)), fontsize=fontsize,
                     sharey=sharey, label=label, show=False)
                 ax_list = fig.axes
         else:
@@ -2082,7 +2082,7 @@ class SigresRobot(Robot, RobotWithEbands):
                 ax_mat[0, ig].set_title(subtitle, fontsize=fontsize)
                 for i, (nclabel, ncfile, param) in enumerate(g):
                     fig = ncfile.plot_qps_vs_e0(with_fields=list_strings(field),
-                        e0=e0, ax_list=ax_mat[:, ig], color=cmap(i/ len(g)), fontsize=fontsize,
+                        e0=e0, ax_list=ax_mat[:, ig], color=cmap(i / len(g)), fontsize=fontsize,
                         sharey=sharey, label="%s: %s" % (self._get_label(sortby), param), show=False)
 
                 if ig != 0:

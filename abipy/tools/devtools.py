@@ -82,8 +82,7 @@ class HtmlDiff(object):
             import difflib
             #diff = difflib.HtmlDiff().make_table(fromlines, tolines,
             diff = difflib.HtmlDiff().make_file(fromlines, tolines,
-                                                 self.filepaths[0], path)
-                                                 #context=options.c, numlines=n)
+                                                self.filepaths[0], path) #context=options.c, numlines=n)
             with open(tmpname, "wt") as fh:
                 fh.writelines(diff)
 

@@ -94,9 +94,9 @@ def _get_det(mat):
     raises:
         ValueError if abs(det) != 1.
     """
-    det = mat[0,0]* (mat[1,1]*mat[2,2] - mat[1,2]*mat[2,1])\
-        - mat[0,1]* (mat[1,0]*mat[2,2] - mat[1,2]*mat[2,0])\
-        + mat[0,2]* (mat[1,0]*mat[2,1] - mat[1,1]*mat[2,0])
+    det = mat[0,0] * (mat[1,1] * mat[2,2] - mat[1,2] * mat[2,1])\
+        - mat[0,1] * (mat[1,0] * mat[2,2] - mat[1,2] * mat[2,0])\
+        + mat[0,2] * (mat[1,0] * mat[2,1] - mat[1,1] * mat[2,0])
 
     if abs(det) != 1:
         raise ValueError("Determinant must be +-1 while it is %s" % det)
@@ -241,7 +241,7 @@ class SymmOp(Operation, SlotPickleMixin):
     """
     Crystalline symmetry.
     """
-    _ATOL_TAU =  1e-8
+    _ATOL_TAU = 1e-8
 
     __slots__ = [
         "rot_r",
@@ -838,11 +838,11 @@ class AbinitSpaceGroup(OpSequence):
         """
         Test whether two k-points in fractional coordinates are symmetry equivalent
         i.e. if there's a symmetry operations TO (including time-reversal T, if present)
-	such that::
+        such that::
 
             TO(k1) = k2 + G0
 
-	Return: namedtuple with::
+        Return: namedtuple with::
 
             isym: The index of the symmetry operation such that TS(k1) = k2 + G0
                 Set to -1 if k1 and k2 are not related by symmetry.
@@ -884,6 +884,7 @@ class AbinitSpaceGroup(OpSequence):
         # List with the symmetry operation that preserve the kpoint.
         k_symmops = [self[i] for i in to_spgrp]
         return LittleGroup(kpoint, k_symmops, g0vecs)
+
 
 # FIXME To maintain backward compatibility.
 SpaceGroup = AbinitSpaceGroup
@@ -1072,10 +1073,10 @@ class LatticeRotation(Operation):
         return self.__class__(-self.mat)
 
     def __pow__(self, intexp, modulo=1):
-        if intexp ==  0: return self.__class__(self._E3D)
-        if intexp  >  0: return self.__class__(np.linalg.matrix_power(self.mat, intexp))
+        if intexp == 0: return self.__class__(self._E3D)
+        if intexp > 0: return self.__class__(np.linalg.matrix_power(self.mat, intexp))
         if intexp == -1: return self.inverse()
-        if intexp  <  0: return self.__pow__(-intexp).inverse()
+        if intexp < 0: return self.__pow__(-intexp).inverse()
         raise TypeError("type %s is not supported in __pow__" % type(intexp))
 
     @property
@@ -1287,7 +1288,7 @@ class BilbaoPointGroup(object):
         df.index.name = "Irrep"
         df.columns.name = self.sch_symbol
 
-	# TODO
+        # TODO
         #print(df)
         # Convert complex --> real if all entries in a colums are real.
         #for k in name_mult:

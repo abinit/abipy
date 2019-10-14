@@ -67,6 +67,7 @@ def build_flow(options):
     return flowtk.Flow.from_inputs(options.workdir, inputs=multi.split_datasets(),
                                    task_class=flowtk.RelaxTask)
 
+
 # This block generates the thumbnails in the Abipy gallery.
 # You can safely REMOVE this part if you are using this script for production runs.
 if os.getenv("READTHEDOCS", False):

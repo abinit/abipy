@@ -16,6 +16,7 @@ __all__ = [
     "TransportFile",
 ]
 
+
 class TransportFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     @classmethod
@@ -126,8 +127,8 @@ class TransportFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, 
         cmap = plt.get_cmap(colormap)
         for itemp in range(self.ntemp):
             temp = self.tmesh[itemp]
-            wmesh, vvdos = self.reader.read_vvdos_tau(itemp,component=component)
-            ax.plot(wmesh,vvdos,c=cmap(itemp/self.ntemp),label='T = %dK'%temp)
+            wmesh, vvdos = self.reader.read_vvdos_tau(itemp, component=component)
+            ax.plot(wmesh, vvdos, c=cmap(itemp / self.ntemp), label='T = %dK' % temp)
         ax.grid(True)
         ax.set_xlabel('Fermi level (eV)')
         ax.set_ylabel('VVDOS')
@@ -136,7 +137,7 @@ class TransportFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, 
         return fig
 
     @add_fig_kwargs
-    def plot_mobility(self,component='xx',ax=None,colormap='jet',fontsize=8, **kwargs):
+    def plot_mobility(self, component='xx', ax=None, colormap='jet', fontsize=8, **kwargs):
         """
         Read the Mobility from the netcdf file and plot it
 
@@ -152,8 +153,8 @@ class TransportFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, 
         cmap = plt.get_cmap(colormap)
         for itemp in range(self.ntemp):
             temp = self.tmesh[itemp]
-            wmesh, mu = self.reader.read_mobility(0,itemp,component,0)
-            ax.plot(wmesh,mu,c=cmap(itemp/self.ntemp),label='T = %dK'%temp)
+            wmesh, mu = self.reader.read_mobility(0, itemp, component,0)
+            ax.plot(wmesh, mu, c=cmap(itemp / self.ntemp), label='T = %dK' % temp)
         ax.grid(True)
         ax.set_xlabel('Fermi level (eV)')
         ax.set_ylabel(r'mobility $\mu(\epsilon_F)$ [cm$^2$/Vs]')
@@ -196,14 +197,14 @@ class TransportFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, 
 
         # Transport section.
         app(marquee("Transport calculation", mark="="))
-        app("Number of temperatures: %d"%self.ntemp)
+        app("Number of temperatures: %d" % self.ntemp)
         app("Mobility:")
         app("Temperature [K]     Electrons [cm^2/Vs]     Holes [cm^2/Vs]")
         for itemp in range(self.ntemp):
             temp = self.tmesh[itemp]
-            mobility_mu_e = self.get_mobility_mu(0,itemp)
-            mobility_mu_h = self.get_mobility_mu(1,itemp)
-            app("%14.1lf %18.6lf %18.6lf"%(temp,mobility_mu_e,mobility_mu_h))
+            mobility_mu_e = self.get_mobility_mu(0, itemp)
+            mobility_mu_h = self.get_mobility_mu(1, itemp)
+            app("%14.1lf %18.6lf %18.6lf" % (temp, mobility_mu_e, mobility_mu_h))
         return "\n".join(lines)
 
     def yield_figs(self, **kwargs):  # pragma: no cover
@@ -293,16 +294,16 @@ class TransportReader(ElectronsReader):
         """
         Read the Onsager coefficients computed in the transport driver in Abinit
         """
-        L0 = np.moveaxis(self.read_variable("L0")[itemp,:],[0,1,2,3],[3,2,0,1])
-        L1 = np.moveaxis(self.read_variable("L1")[itemp,:],[0,1,2,3],[3,2,0,1])
-        L2 = np.moveaxis(self.read_variable("L2")[itemp,:],[0,1,2,3],[3,2,0,1])
+        L0 = np.moveaxis(self.read_variable("L0")[itemp,:], [0,1,2,3], [3,2,0,1])
+        L1 = np.moveaxis(self.read_variable("L1")[itemp,:], [0,1,2,3], [3,2,0,1])
+        L2 = np.moveaxis(self.read_variable("L2")[itemp,:], [0,1,2,3], [3,2,0,1])
         return L0,L1,L2
 
     def read_transport(self,itemp):
-        sigma   = np.moveaxis(self.read_variable("sigma")[itemp,:],   [0,1,2,3],[3,2,0,1])
-        kappa   = np.moveaxis(self.read_variable("kappa")[itemp,:],   [0,1,2,3],[3,2,0,1])
+        sigma = np.moveaxis(self.read_variable("sigma")[itemp,:],     [0,1,2,3],[3,2,0,1])
+        kappa = np.moveaxis(self.read_variable("kappa")[itemp,:],     [0,1,2,3],[3,2,0,1])
         seebeck = np.moveaxis(self.read_variable("seebeck")[itemp,:], [0,1,2,3],[3,2,0,1])
-        pi      = np.moveaxis(self.read_variable("pi")[itemp,:],      [0,1,2,3],[3,2,0,1])
+        pi = np.moveaxis(self.read_variable("pi")[itemp,:],           [0,1,2,3],[3,2,0,1])
         return sigma, kappa, seebeck, pi
 
     def read_mobility(self,eh,itemp,component,spin):

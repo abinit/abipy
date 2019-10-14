@@ -87,18 +87,18 @@ class QueueJob(object):
     QTYPE = None
 
     # Used to handle other resource managers.
-    S_UNKNOWN   = JobStatus.from_string("UNKNOWN")
+    S_UNKNOWN = JobStatus.from_string("UNKNOWN")
     # Slurm status
-    S_PENDING   = JobStatus.from_string("PENDING")
-    S_RUNNING   = JobStatus.from_string("RUNNING")
-    S_RESIZING  = JobStatus.from_string("RESIZING")
+    S_PENDING = JobStatus.from_string("PENDING")
+    S_RUNNING = JobStatus.from_string("RUNNING")
+    S_RESIZING = JobStatus.from_string("RESIZING")
     S_SUSPENDED = JobStatus.from_string("SUSPENDED")
     S_COMPLETED = JobStatus.from_string("COMPLETED")
     S_CANCELLED = JobStatus.from_string("CANCELLED")
-    S_FAILED    = JobStatus.from_string("FAILED")
-    S_TIMEOUT   = JobStatus.from_string("TIMEOUT")
+    S_FAILED = JobStatus.from_string("FAILED")
+    S_TIMEOUT = JobStatus.from_string("TIMEOUT")
     S_PREEMPTED = JobStatus.from_string("PREEMPTED")
-    S_NODEFAIL  = JobStatus.from_string("NODEFAIL")
+    S_NODEFAIL = JobStatus.from_string("NODEFAIL")
 
     @staticmethod
     def from_qtype_and_id(qtype, queue_id, qname=None):
@@ -137,7 +137,6 @@ class QueueJob(object):
         return self.qid is not None
 
     __nonzero__ = __bool__
-
 
     #In many cases, we only need to know if job is terminated or not
     #def is_terminated()

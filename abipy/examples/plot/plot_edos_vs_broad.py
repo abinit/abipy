@@ -30,7 +30,7 @@ with abilab.abiopen(abidata.ref_file("ni_666k_GSR.nc")) as gsr:
 
 edos_plotter = ni_ebands_kmesh.compare_gauss_edos(widths=[0.1, 0.2, 0.3], step=0.2)
 
-title="e-DOS as function of the Gaussian broadening"
+title = "e-DOS as function of the Gaussian broadening"
 edos_plotter.combiplot(dos_mode="idos+dos")
 edos_plotter.combiplot(dos_mode="dos", spin_mode="resolved")
 

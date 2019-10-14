@@ -31,10 +31,10 @@ def build_flow(options, paral_kgb=0):
                                 pseudos=abidata.pseudos("31ga.pspnc", "33as.pspnc"), ndtset=2)
 
     # Usa same shifts in all tasks.
-    shiftk= [[0.5, 0.5, 0.5],
-             [0.5, 0.0, 0.0],
-             [0.0, 0.5, 0.0],
-             [0.0, 0.0, 0.5]]
+    shiftk = [[0.5, 0.5, 0.5],
+              [0.5, 0.0, 0.0],
+              [0.0, 0.5, 0.0],
+              [0.0, 0.0, 0.5]]
 
     # Global variables.
     multi.set_vars(ecut=2, paral_kgb=paral_kgb)

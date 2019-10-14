@@ -17,6 +17,7 @@ from abipy.core.kpoints import Kpath, IrredZone
 from abipy.abio.robots import Robot
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt #, get_axarray_fig_plt
 from abipy.electrons.ebands import ElectronBands, ElectronsReader, ElectronBandsPlotter, RobotWithEbands
+from abipy.core.skw import ElectronInterpolator
 
 
 class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
@@ -389,7 +390,6 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         return self._write_nb_nbpath(nb, nbpath)
 
 
-from abipy.core.skw import ElectronInterpolator
 class HWanR(ElectronInterpolator):
     """
     This object represents the KS Hamiltonian in the wannier-gauge representation.

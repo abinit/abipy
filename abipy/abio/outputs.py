@@ -237,6 +237,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
 
         # (varname, dtindex), [line1, line2 ...]
         stack_var, stack_lines = None, []
+
         def pop_stack():
             if stack_lines:
                 key, dtidx = stack_var
@@ -677,7 +678,6 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             except Exception:
                 print("Abinit output files does not contain timopt data")
 
-
     def compare_gs_scf_cycles(self, others, show=True):
         """
         Produce and returns a list of matplotlib_ figure comparing the GS self-consistent
@@ -974,7 +974,7 @@ class OutNcFile(AbinitNcFile):
     def __init__(self, filepath):
         super().__init__(filepath)
         self.reader = NetcdfReader(filepath)
-        self._varscache= {k: None for k in self.reader.rootgrp.variables}
+        self._varscache = {k: None for k in self.reader.rootgrp.variables}
 
     def __dir__(self):
         """Ipython integration."""

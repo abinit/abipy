@@ -316,7 +316,7 @@ class PspsFile(AbinitNcFile):
                 return {0: "red", 1: "blue"}[count]
             else:
                 cmap = plt.get_cmap("jet")
-                return cmap(float(count)/ (1 + len(others)))
+                return cmap(float(count) / (1 + len(others)))
 
         ic = 0; ax = ax_list[ic]
         self.plot_tcore_rspace(ax=ax, color=mkcolor(0), show=False, with_legend=False)

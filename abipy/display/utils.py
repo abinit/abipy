@@ -163,10 +163,11 @@ def saturation_slider(default=0.75, orientation="horizontal"):
         readout_format='.1f'
     )
 
+
 # Have colormaps separated into categories:
 # http://matplotlib.org/examples/color/colormaps_reference.html
 _mpl_categ_cmaps = OrderedDict([
-        #('Perceptually Uniform Sequential',
+    #('Perceptually Uniform Sequential',
     ('Uniform',        ['viridis', 'inferno', 'plasma', 'magma']),
     ('Sequential',     ['Blues', 'BuGn', 'BuPu',
                         'GnBu', 'Greens', 'Greys', 'Oranges', 'OrRd',
@@ -189,6 +190,7 @@ _mpl_categ_cmaps = OrderedDict([
 
 # flat list.
 _mpl_cmaps = [cm for sublist in _mpl_categ_cmaps.values() for cm in sublist]
+
 
 def colormap_widget(default=None):
     options = _mpl_cmaps

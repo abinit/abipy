@@ -83,7 +83,7 @@ class DdbTest(AbipyTest):
 
             lines = blocks[0]["data"]
             assert lines[0].rstrip() == " 2nd derivatives (non-stat.)  - # elements :      36"
-            assert lines[2].rstrip() ==  "   1   1   1   1  0.80977066582497D+01 -0.46347282336361D-16"
+            assert lines[2].rstrip() == "   1   1   1   1  0.80977066582497D+01 -0.46347282336361D-16"
             assert lines[-1].rstrip() == "   3   2   3   2  0.49482344898401D+01 -0.44885664256253D-17"
 
             for qpt in ddb.qpoints:
@@ -93,7 +93,7 @@ class DdbTest(AbipyTest):
             assert ddb.replace_block_for_qpoint(ddb.qpoints[0], blocks[0]["data"])
 
             # Write new DDB file.
-            tmp_file = nbpath=self.get_tmpname(text=True)
+            tmp_file = self.get_tmpname(text=True)
             ddb.write(tmp_file)
             with DdbFile(tmp_file) as new_ddb:
                 assert ddb.qpoints == new_ddb.qpoints
@@ -447,7 +447,7 @@ class DdbRobotTest(AbipyTest):
             assert len(robot) == 2
 
             # Test anacompare_elastic
-            ddb_header_keys=["nkpt", "tsmear"]
+            ddb_header_keys = ["nkpt", "tsmear"]
             r = robot.anacompare_elastic(ddb_header_keys=ddb_header_keys, with_path=True,
                 with_structure=True, with_spglib=False, relaxed_ion="automatic", piezo="automatic", verbose=1)
             df, edata_list = r.df, r.elastdata_list

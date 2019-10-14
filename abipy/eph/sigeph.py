@@ -285,7 +285,7 @@ class QpTempList(list):
         """String representation."""
         lines = []; app = lines.append
         app(marquee("QpTempList", mark="="))
-        app("nqps: %d"%len(self))
+        app("nqps: %d" % len(self))
         app("ntemps: %d" % self.ntemp)
         return "\n".join(lines)
 
@@ -1282,15 +1282,15 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         qpes = self.get_qp_array(mode='ks+lifetimes')
 
         # read from this class
-        nspn    = self.nspden
-        nkpt    = self.nkpt
+        nspn = self.nspden
+        nkpt = self.nkpt
         kpoints = self.kpoints
-        bstart  = self.reader.max_bstart
-        bstop   = self.reader.min_bstop
-        ntemp   = self.ntemp
-        tmesh   = self.tmesh
-        fermie  = self.ebands.fermie * abu.eV_Ry
-        struct  = self.ebands.structure
+        bstart = self.reader.max_bstart
+        bstop = self.reader.min_bstop
+        ntemp = self.ntemp
+        tmesh = self.tmesh
+        fermie = self.ebands.fermie * abu.eV_Ry
+        struct = self.ebands.structure
 
         def write_file(filename, tag, function, T=None):
             """Function to write files for BoltzTraP"""
@@ -1887,7 +1887,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         Args:
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
                 Case-insensitive.
-	    what: fandw for FAN, DW. gkq2 for $|gkq|^2$. Auto for automatic selection based on imag_only
+            what: fandw for FAN, DW. gkq2 for $|gkq|^2$. Auto for automatic selection based on imag_only
             sharey: True if Y axes should be shared.
             fontsize: legend and title fontsize.
 
@@ -2130,7 +2130,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
             groups = self.group_and_sortby(hue, sortby)
             nrows, ncols = 3, len(groups)
             ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                    sharex=True, sharey=True, squeeze=False)
+                                                   sharex=True, sharey=True, squeeze=False)
             for ig, g in enumerate(groups):
                 subtitle = "%s: %s" % (self._get_label(hue), g.hvalue)
                 ax_mat[0, ig].set_title(subtitle, fontsize=fontsize)
@@ -2588,7 +2588,7 @@ class TdepElectronBands(object): # pragma: no cover
         Args:
             itemp: Temperature index.
             ax_list: The axes for the bandstructure plot and the DOS plot. If ax_list is None, a new figure
-		is created and the two axes are automatically generated.
+                is created and the two axes are automatically generated.
             width_ratios: Defines the ratio between the band structure plot and the dos plot.
             function: Apply this function to the values before plotting.
 
@@ -2964,7 +2964,7 @@ class SigmaPhReader(BaseEphReader):
         # Get a2f_{sbk}(w)
         spin, ikc, ibc, kpoint = self.get_sigma_skb_kpoint(spin, kpoint, band)
         var = self.read_variable("gfw_vals")
-        values = var[spin, ikc, ibc]  * abu.Ha_eV # TODO check units
+        values = var[spin, ikc, ibc] * abu.Ha_eV # TODO check units
         gkq2, fan, dw = values[0], values[1], values[2]
 
         return A2feph(wmesh, gkq2, fan, dw, spin, kpoint, band)

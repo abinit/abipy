@@ -217,7 +217,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
             #dcart_bohr = self.reader.read_value("phdispl_cart_qvers", cmode="c").real
             gkq_lr = glr_frohlich(self.qpoint, self.becs_cart, self.epsinf_cart,
                                   dcart_bohr, self.phfreqs_ha, self.structure)
-                                  #self.phdispl_cart_bohr, self.phfreqs_ha, self.structure)
+            # self.phdispl_cart_bohr, self.phfreqs_ha, self.structure)
             gkq2_lr = np.abs(gkq_lr) * abu.Ha_meV
 
         natom = len(self.structure)

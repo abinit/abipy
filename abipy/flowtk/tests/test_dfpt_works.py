@@ -23,7 +23,7 @@ class TestDfptWorks(AbipyTest):
         den_deps = {scf_task: "DEN"}
         tolerances = dict(nscf={"tolwfr": 1.0e-10}, ddk={"tolwfr": 1.0e-12}, strain={"tolvrs": 1.0e-10})
         work = flowtk.ElasticWork.from_scf_input(scf_input,
-	    with_relaxed_ion=True, with_piezo=True, with_dde=True, tolerances=tolerances,
+            with_relaxed_ion=True, with_piezo=True, with_dde=True, tolerances=tolerances,
             den_deps=den_deps, manager=None)
         self.abivalidate_work(work)
 

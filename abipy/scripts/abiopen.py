@@ -41,8 +41,7 @@ import numpy as np
 #        font='sans-serif', font_scale=1, color_codes=False, rc=None)
 from abipy import abilab\
 """),
-
-    nbf.new_code_cell("abifile = abilab.abiopen('%s')" % options.filepath)
+        nbf.new_code_cell("abifile = abilab.abiopen('%s')" % options.filepath)
     ])
 
     import io, tempfile
@@ -83,6 +82,7 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 File extensions supported (including zipped files with extension in ".bz2", ".gz", ".z"):
 """
     return s + abilab.abiopen_ext2class_table()
+
 
 def get_parser(with_epilog=False):
     parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
@@ -164,7 +164,7 @@ def main():
                 font='sans-serif', font_scale=1, color_codes=False, rc=None)
 
     if options.pylustrator:
-        # Start pylustrator to style matplotlib plots 
+        # Start pylustrator to style matplotlib plots
         import pylustrator
         pylustrator.start()
 

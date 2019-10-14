@@ -150,7 +150,7 @@ class TestAbistruct(ScriptTest):
         """Testing abistruct supercell"""
         cif_file = abidata.cif_file("gan2.cif")
         env = self.get_env()
-        r = env.run(self.script, "supercell", cif_file, "-s 2" , "-f", "abivars", self.loglevel, self.verbose,
+        r = env.run(self.script, "supercell", cif_file, "-s 2", "-f", "abivars", self.loglevel, self.verbose,
                     expect_stderr=self.expect_stderr)
 
     def test_kpath(self):
