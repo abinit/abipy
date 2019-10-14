@@ -25,7 +25,6 @@ from monty.io import FileLock
 from monty.pprint import draw_tree
 from monty.termcolor import cprint, colored, cprint_map, get_terminal_size
 from monty.inspect import find_top_pyfile
-from monty.dev import deprecated
 from monty.json import MSONable
 from pymatgen.util.serialization import pmg_pickle_load, pmg_pickle_dump, pmg_serialize
 from pymatgen.core.units import Memory
@@ -55,7 +54,7 @@ __all__ = [
     "G0W0WithQptdmFlow",
     "bandstructure_flow",
     "g0w0_flow",
-    "phonon_flow",
+    #"phonon_flow",
 ]
 
 
@@ -2886,175 +2885,175 @@ class NonLinearCoeffFlow(Flow):
         return retcode
 
 
-def phonon_flow(workdir, scf_input, ph_inputs, with_nscf=False, with_ddk=False, with_dde=False,
-                manager=None, flow_class=PhononFlow, allocate=True):
-    """
-    Build a :class:`PhononFlow` for phonon calculations.
-
-    Args:
-        workdir: Working directory.
-        scf_input: Input for the GS SCF run.
-        ph_inputs: List of Inputs for the phonon runs.
-        with_nscf: add an nscf task in front of al phonon tasks to make sure the q point is covered
-        with_ddk: add the ddk step
-        with_dde: add the dde step it the dde is set ddk is switched on automatically
-        manager: :class:`TaskManager` used to submit the jobs
-                 Initialized from manager.yml if manager is None.
-        flow_class: Flow class
-
-    Returns:
-        :class:`Flow` object
-    """
-    logger.critical("phonon_flow is deprecated and could give wrong results")
-    if with_dde:
-        with_ddk = True
-
-    natom = len(scf_input.structure)
-
-    # Create the container that will manage the different works.
-    flow = flow_class(workdir, manager=manager)
-
-    # Register the first work (GS calculation)
-    # register_task creates a work for the task, registers it to the flow and returns the work
-    # the 0the element of the work is the task
-    scf_task = flow.register_task(scf_input, task_class=ScfTask)[0]
-
-    # Build a temporary work with a shell manager just to run
-    # ABINIT to get the list of irreducible pertubations for this q-point.
-    shell_manager = flow.manager.to_shell_manager(mpi_procs=1)
-
-    if with_ddk:
-        logger.info('add ddk')
-        # TODO
-        # MG Warning: be careful here because one should use tolde or tolwfr (tolvrs shall not be used!)
-        ddk_input = ph_inputs[0].deepcopy()
-        ddk_input.set_vars(qpt=[0, 0, 0], rfddk=1, rfelfd=2, rfdir=[1, 1, 1])
-        ddk_task = flow.register_task(ddk_input, deps={scf_task: 'WFK'}, task_class=DdkTask)[0]
-
-    if with_dde:
-        logger.info('add dde')
-        dde_input = ph_inputs[0].deepcopy()
-        dde_input.set_vars(qpt=[0, 0, 0], rfddk=1, rfelfd=2)
-        dde_input_idir = dde_input.deepcopy()
-        dde_input_idir.set_vars(rfdir=[1, 1, 1])
-        dde_task = flow.register_task(dde_input, deps={scf_task: 'WFK', ddk_task: 'DDK'}, task_class=DdeTask)[0]
-
-    if not isinstance(ph_inputs, (list, tuple)):
-        ph_inputs = [ph_inputs]
-
-    for i, ph_input in enumerate(ph_inputs):
-        fake_input = ph_input.deepcopy()
-
-        # Run abinit on the front-end to get the list of irreducible pertubations.
-        tmp_dir = os.path.join(workdir, "__ph_run" + str(i) + "__")
-        w = PhononWork(workdir=tmp_dir, manager=shell_manager)
-        fake_task = w.register(fake_input)
-
-        # Use the magic value paral_rf = -1 to get the list of irreducible perturbations for this q-point.
-        abivars = dict(
-            paral_rf=-1,
-            rfatpol=[1, natom],  # Set of atoms to displace.
-            rfdir=[1, 1, 1],     # Along this set of reduced coordinate axis.
-        )
-
-        fake_task.set_vars(abivars)
-        w.allocate()
-        w.start(wait=True)
-
-        # Parse the file to get the perturbations.
-        try:
-            irred_perts = yaml_read_irred_perts(fake_task.log_file.path)
-        except Exception:
-            print("Error in %s" % fake_task.log_file.path)
-            raise
-
-        logger.info(irred_perts)
-
-        w.rmtree()
-
-        # Now we can build the final list of works:
-        # One work per q-point, each work computes all
-        # the irreducible perturbations for a singe q-point.
-
-        work_qpt = PhononWork()
-
-        if with_nscf:
-            # MG: Warning this code assume 0 is Gamma!
-            nscf_input = copy.deepcopy(scf_input)
-            nscf_input.set_vars(kptopt=3, iscf=-3, qpt=irred_perts[0]['qpt'], nqpt=1)
-            nscf_task = work_qpt.register_nscf_task(nscf_input, deps={scf_task: "DEN"})
-            deps = {nscf_task: "WFQ", scf_task: "WFK"}
-        else:
-            deps = {scf_task: "WFK"}
-
-        if with_ddk:
-            deps[ddk_task] = 'DDK'
-
-        logger.info(irred_perts[0]['qpt'])
-
-        for irred_pert in irred_perts:
-            #print(irred_pert)
-            new_input = ph_input.deepcopy()
-
-            #rfatpol   1 1   # Only the first atom is displaced
-            #rfdir   1 0 0   # Along the first reduced coordinate axis
-            qpt = irred_pert["qpt"]
-            idir = irred_pert["idir"]
-            ipert = irred_pert["ipert"]
-
-            # TODO this will work for phonons, but not for the other types of perturbations.
-            rfdir = 3 * [0]
-            rfdir[idir - 1] = 1
-            rfatpol = [ipert, ipert]
-
-            new_input.set_vars(
-                #rfpert=1,
-                qpt=qpt,
-                rfdir=rfdir,
-                rfatpol=rfatpol,
-            )
-
-            if with_ddk:
-                new_input.set_vars(rfelfd=3)
-
-            work_qpt.register_phonon_task(new_input, deps=deps)
-
-        flow.register_work(work_qpt)
-
-    if allocate: flow.allocate()
-
-    return flow
-
-
-def phonon_conv_flow(workdir, scf_input, qpoints, params, manager=None, allocate=True):
-    """
-    Create a :class:`Flow` to perform convergence studies for phonon calculations.
-
-    Args:
-        workdir: Working directory of the flow.
-        scf_input: :class:`AbinitInput` object defining a GS-SCF calculation.
-        qpoints: List of list of lists with the reduced coordinates of the q-point(s).
-        params:
-            To perform a converge study wrt ecut: params=["ecut", [2, 4, 6]]
-        manager: :class:`TaskManager` object responsible for the submission of the jobs.
-            If manager is None, the object is initialized from the yaml file
-            located either in the working directory or in the user configuration dir.
-        allocate: True if the flow should be allocated before returning.
-
-    Return:
-        :class:`Flow` object.
-    """
-    qpoints = np.reshape(qpoints, (-1, 3))
-
-    flow = Flow(workdir=workdir, manager=manager)
-
-    for qpt in qpoints:
-        for gs_inp in scf_input.product(*params):
-            # Register the SCF task
-            work = flow.register_scf_task(gs_inp)
-
-            # Add the PhononWork connected to this scf_task.
-            flow.register_work(PhononWork.from_scf_task(work[0], qpoints=qpt))
-
-    if allocate: flow.allocate()
-    return flow
+#def phonon_flow(workdir, scf_input, ph_inputs, with_nscf=False, with_ddk=False, with_dde=False,
+#                manager=None, flow_class=PhononFlow, allocate=True):
+#    """
+#    Build a :class:`PhononFlow` for phonon calculations.
+#
+#    Args:
+#        workdir: Working directory.
+#        scf_input: Input for the GS SCF run.
+#        ph_inputs: List of Inputs for the phonon runs.
+#        with_nscf: add an nscf task in front of al phonon tasks to make sure the q point is covered
+#        with_ddk: add the ddk step
+#        with_dde: add the dde step it the dde is set ddk is switched on automatically
+#        manager: :class:`TaskManager` used to submit the jobs
+#                 Initialized from manager.yml if manager is None.
+#        flow_class: Flow class
+#
+#    Returns:
+#        :class:`Flow` object
+#    """
+#    logger.critical("phonon_flow is deprecated and could give wrong results")
+#    if with_dde:
+#        with_ddk = True
+#
+#    natom = len(scf_input.structure)
+#
+#    # Create the container that will manage the different works.
+#    flow = flow_class(workdir, manager=manager)
+#
+#    # Register the first work (GS calculation)
+#    # register_task creates a work for the task, registers it to the flow and returns the work
+#    # the 0the element of the work is the task
+#    scf_task = flow.register_task(scf_input, task_class=ScfTask)[0]
+#
+#    # Build a temporary work with a shell manager just to run
+#    # ABINIT to get the list of irreducible pertubations for this q-point.
+#    shell_manager = flow.manager.to_shell_manager(mpi_procs=1)
+#
+#    if with_ddk:
+#        logger.info('add ddk')
+#        # TODO
+#        # MG Warning: be careful here because one should use tolde or tolwfr (tolvrs shall not be used!)
+#        ddk_input = ph_inputs[0].deepcopy()
+#        ddk_input.set_vars(qpt=[0, 0, 0], rfddk=1, rfelfd=2, rfdir=[1, 1, 1])
+#        ddk_task = flow.register_task(ddk_input, deps={scf_task: 'WFK'}, task_class=DdkTask)[0]
+#
+#    if with_dde:
+#        logger.info('add dde')
+#        dde_input = ph_inputs[0].deepcopy()
+#        dde_input.set_vars(qpt=[0, 0, 0], rfddk=1, rfelfd=2)
+#        dde_input_idir = dde_input.deepcopy()
+#        dde_input_idir.set_vars(rfdir=[1, 1, 1])
+#        dde_task = flow.register_task(dde_input, deps={scf_task: 'WFK', ddk_task: 'DDK'}, task_class=DdeTask)[0]
+#
+#    if not isinstance(ph_inputs, (list, tuple)):
+#        ph_inputs = [ph_inputs]
+#
+#    for i, ph_input in enumerate(ph_inputs):
+#        fake_input = ph_input.deepcopy()
+#
+#        # Run abinit on the front-end to get the list of irreducible pertubations.
+#        tmp_dir = os.path.join(workdir, "__ph_run" + str(i) + "__")
+#        w = PhononWork(workdir=tmp_dir, manager=shell_manager)
+#        fake_task = w.register(fake_input)
+#
+#        # Use the magic value paral_rf = -1 to get the list of irreducible perturbations for this q-point.
+#        abivars = dict(
+#            paral_rf=-1,
+#            rfatpol=[1, natom],  # Set of atoms to displace.
+#            rfdir=[1, 1, 1],     # Along this set of reduced coordinate axis.
+#        )
+#
+#        fake_task.set_vars(abivars)
+#        w.allocate()
+#        w.start(wait=True)
+#
+#        # Parse the file to get the perturbations.
+#        try:
+#            irred_perts = yaml_read_irred_perts(fake_task.log_file.path)
+#        except Exception:
+#            print("Error in %s" % fake_task.log_file.path)
+#            raise
+#
+#        logger.info(irred_perts)
+#
+#        w.rmtree()
+#
+#        # Now we can build the final list of works:
+#        # One work per q-point, each work computes all
+#        # the irreducible perturbations for a singe q-point.
+#
+#        work_qpt = PhononWork()
+#
+#        if with_nscf:
+#            # MG: Warning this code assume 0 is Gamma!
+#            nscf_input = copy.deepcopy(scf_input)
+#            nscf_input.set_vars(kptopt=3, iscf=-3, qpt=irred_perts[0]['qpt'], nqpt=1)
+#            nscf_task = work_qpt.register_nscf_task(nscf_input, deps={scf_task: "DEN"})
+#            deps = {nscf_task: "WFQ", scf_task: "WFK"}
+#        else:
+#            deps = {scf_task: "WFK"}
+#
+#        if with_ddk:
+#            deps[ddk_task] = 'DDK'
+#
+#        logger.info(irred_perts[0]['qpt'])
+#
+#        for irred_pert in irred_perts:
+#            #print(irred_pert)
+#            new_input = ph_input.deepcopy()
+#
+#            #rfatpol   1 1   # Only the first atom is displaced
+#            #rfdir   1 0 0   # Along the first reduced coordinate axis
+#            qpt = irred_pert["qpt"]
+#            idir = irred_pert["idir"]
+#            ipert = irred_pert["ipert"]
+#
+#            # TODO this will work for phonons, but not for the other types of perturbations.
+#            rfdir = 3 * [0]
+#            rfdir[idir - 1] = 1
+#            rfatpol = [ipert, ipert]
+#
+#            new_input.set_vars(
+#                #rfpert=1,
+#                qpt=qpt,
+#                rfdir=rfdir,
+#                rfatpol=rfatpol,
+#            )
+#
+#            if with_ddk:
+#                new_input.set_vars(rfelfd=3)
+#
+#            work_qpt.register_phonon_task(new_input, deps=deps)
+#
+#        flow.register_work(work_qpt)
+#
+#    if allocate: flow.allocate()
+#
+#    return flow
+#
+#
+#def phonon_conv_flow(workdir, scf_input, qpoints, params, manager=None, allocate=True):
+#    """
+#    Create a :class:`Flow` to perform convergence studies for phonon calculations.
+#
+#    Args:
+#        workdir: Working directory of the flow.
+#        scf_input: :class:`AbinitInput` object defining a GS-SCF calculation.
+#        qpoints: List of list of lists with the reduced coordinates of the q-point(s).
+#        params:
+#            To perform a converge study wrt ecut: params=["ecut", [2, 4, 6]]
+#        manager: :class:`TaskManager` object responsible for the submission of the jobs.
+#            If manager is None, the object is initialized from the yaml file
+#            located either in the working directory or in the user configuration dir.
+#        allocate: True if the flow should be allocated before returning.
+#
+#    Return:
+#        :class:`Flow` object.
+#    """
+#    qpoints = np.reshape(qpoints, (-1, 3))
+#
+#    flow = Flow(workdir=workdir, manager=manager)
+#
+#    for qpt in qpoints:
+#        for gs_inp in scf_input.product(*params):
+#            # Register the SCF task
+#            work = flow.register_scf_task(gs_inp)
+#
+#            # Add the PhononWork connected to this scf_task.
+#            flow.register_work(PhononWork.from_scf_task(work[0], qpoints=qpt))
+#
+#    if allocate: flow.allocate()
+#    return flow

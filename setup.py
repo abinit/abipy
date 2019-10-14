@@ -9,12 +9,6 @@ import shutil
 from glob import glob
 from setuptools import find_packages, setup, Extension
 
-# This check is also made in abipy/__init__, don't forget to update both when
-# changing Python version requirements.
-#if sys.version[0:3] < '2.7':
-#    sys.stderr.write("abipy requires Python version 2.7 or above. Exiting.")
-#    sys.exit(1)
-
 ext_modules = []
 
 #-------------------------------------------------------------------------------
@@ -145,6 +139,7 @@ def cleanup():
 #    install_requires = [s.strip() for s in fh]
 
 install_requires = [
+    "monty",
     "tabulate",
     "apscheduler==2.1.0",
     "pydispatcher>=2.0.5",

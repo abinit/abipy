@@ -1029,7 +1029,6 @@ def _from_cart_to_red(cartesian_tensor,lattice):
 
 
 # TODO Remove
-#@deprecated(message="abipy.core.Tensor is deprecated and will be replaced by pymatgen tensor in v0.4")
 class _Tensor(object):
     """Representation of a 3x3 tensor"""
 

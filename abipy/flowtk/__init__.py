@@ -13,7 +13,7 @@ from .tasks import *
 from .tasks import EphTask, ElasticTask
 from .works import *
 from .flows import (Flow, G0W0WithQptdmFlow, bandstructure_flow, PhononFlow,
-    g0w0_flow, phonon_flow, phonon_conv_flow, NonLinearCoeffFlow)
+    g0w0_flow, NonLinearCoeffFlow)
 from .abitimer import AbinitTimerParser, AbinitTimerSection
 from pymatgen.io.abinit.abiinspect import GroundStateScfCycle, D2DEScfCycle
 
