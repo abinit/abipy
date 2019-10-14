@@ -10,6 +10,7 @@ from abipy.tools import duck
 # Array tools
 #########################################################################################
 
+
 def transpose_last3dims(arr):
     """
     Transpose the last three dimensions of arr: (...,x,y,z) --> (...,z,y,x).
@@ -71,7 +72,7 @@ def data_from_cplx_mode(cplx_mode, arr, tol=None):
             "all" for both re and im.
             "abs" means that the absolute value of the complex number is shown.
             "angle" will display the phase of the complex number in radians.
-	tol: If not None, values below tol are set to zero. Cannot be used with "angle"
+        tol: If not None, values below tol are set to zero. Cannot be used with "angle"
     """
     if cplx_mode == "re":
         val = arr.real
@@ -194,6 +195,7 @@ def prune_ord(alist):
 # Special functions
 #########################################################################################
 
+
 def gaussian(x, width, center=0.0, height=None):
     """
     Returns the values of gaussian(x) where x is array-like.
@@ -228,6 +230,7 @@ def lorentzian(x, width, center=0.0, height=None):
 #=====================================
 # === Data Interpolation/Smoothing ===
 #=====================================
+
 
 def smooth(x, window_len=11, window='hanning'):
     """

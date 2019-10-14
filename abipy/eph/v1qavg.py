@@ -22,8 +22,8 @@ def _get_style(reim, what):
     }[what]
 
     return dict(
-        #marker="x", markersize=1, 
-        label=r"$\langle \%s %s \rangle$" % ({0: "Re", 1: "Im"}[reim], symb), 
+        #marker="x", markersize=1,
+        label=r"$\langle \%s %s \rangle$" % ({0: "Re", 1: "Im"}[reim], symb),
         color={0: "blue", 1: "red"}[reim],
         linestyle=linestyle,
         linewidth=linewidth,
@@ -160,7 +160,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
             ax.set_title("idir: %d, iat: %d, %s" % (idir, iat, s), fontsize=fontsize)
 
         #if kwargs.pop("with_title", True):
-        #    ax.set_title("dvdb_add_lr %d, alpha_gmin: %s, symv1: %d" % (self.dvdb_add_lr, self.alpha_gmin, self.symv1), 
+        #    ax.set_title("dvdb_add_lr %d, alpha_gmin: %s, symv1: %d" % (self.dvdb_add_lr, self.alpha_gmin, self.symv1),
         #                 fontsize=fontsize)
 
         return fig
@@ -190,7 +190,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         ax.set_xlabel(r"$\|{\bf{R}}\|$ (Bohr)")
 
         #if kwargs.pop("with_title", True):
-        #    ax.set_title("dvdb_add_lr %d, qdamp: %s, symv1: %d" % (self.dvdb_add_lr, self.qdamp, self.symv1), 
+        #    ax.set_title("dvdb_add_lr %d, qdamp: %s, symv1: %d" % (self.dvdb_add_lr, self.qdamp, self.symv1),
         #                 fontsize=fontsize)
         return fig
 
@@ -207,7 +207,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         # Build grid of plots.
         natom = len(self.structure)
-        ncols, nrows = (2, natom //2) if natom % 2 == 0 else (1, natom)
+        ncols, nrows = (2, natom // 2) if natom % 2 == 0 else (1, natom)
 
         ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                 sharex=True, sharey=False, squeeze=False)
@@ -227,12 +227,12 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
             f(rmod, maxw[iatom, 1], marker="o", ls=":", lw=0, label="$L_y$" if iatom == 0 else None)
             f(rmod, maxw[iatom, 2], marker="o", ls=":", lw=0, label="$L_z$" if iatom == 0 else None)
             ax.grid(True)
-            if iatom == 0: 
+            if iatom == 0:
                 ax.set_ylabel(r"$Max_{{\bf{r}}} \| W({\bf{r}}, {\bf{R}}) \|$")
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
             if iatom == len(ax_list) - 1: ax.set_xlabel(r"$\|{\bf{R}}\|$ (Bohr)")
 
-        #fig.suptitle("dvdb_add_lr %d, qdamp: %s, symv1: %d" % (self.dvdb_add_lr, self.qdamp, self.symv1), 
+        #fig.suptitle("dvdb_add_lr %d, qdamp: %s, symv1: %d" % (self.dvdb_add_lr, self.qdamp, self.symv1),
         #             fontsize=fontsize)
         return fig
 
@@ -340,12 +340,12 @@ class V1qAvgRobot(Robot):
             site = ref_file.structure[iat]
             s = "%s [%.3f, %.3f, %.3f]" % (site.specie.symbol, site.frac_coords[0], site.frac_coords[1], site.frac_coords[2])
             ax.set_title("idir: %d, iat: %d, %s" % (idir, iat, s), fontsize=fontsize)
-                                                                                                                 
+
             if ticks:
                 ax.set_xticks(ticks, minor=False)
                 ax.set_xticklabels(labels, fontdict=None, minor=False, size=kwargs.get("qlabel_size", "large"))
                 ax.set_xlim(ticks[0], ticks[-1])
-                
+
         return fig
 
     @add_fig_kwargs

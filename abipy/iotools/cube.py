@@ -71,7 +71,7 @@ def cube_read_structure_mesh_data(file):
         ii = 0
         for line in fh:
             for val in line.split():
-                data[ii//(ny*nz), (ii//nz)%ny, ii%nz] = float(val)
+                data[ii // (ny * nz), (ii // nz) % ny, ii % nz] = float(val)
                 ii += 1
         data = data / (bohr_to_angstrom ** 3)
         if ii != nx*ny*nz:

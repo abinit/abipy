@@ -70,7 +70,7 @@ class Scissors(object):
         if blow.lower() == "c":
             try:
                 self.func_low = lambda x: float(bounds[0][1])
-            except:
+            except Exception:
                 x_low = self.domains[0,0]
                 fx_low = func_list[0](x_low)
                 self.func_low = lambda x: fx_low
@@ -80,7 +80,7 @@ class Scissors(object):
         if bhigh.lower() == "c":
             try:
                 self.func_high = lambda x: float(bounds[1][1])
-            except:
+            except Exception:
                 x_high = self.domains[1, -1]
                 fx_high = func_list[-1](x_high)
                 self.func_high = lambda x: fx_high

@@ -37,7 +37,7 @@ class Status(int):
 
     # Possible status of the node. See monty.termocolor for the meaning of color, on_color and attrs.
     _STATUS_INFO = [
-        #(value, name, color, on_color, attrs)
+        # (value, name, color, on_color, attrs)
         (1,  "Initialized",   None     , None, None),         # Node has been initialized
         (2,  "Locked",        "grey"   , None, None),         # Task is locked an must be explicitly unlocked by an external subject (Work).
         (3,  "Ready",         None     , None, None),         # Node is ready i.e. all the depencies of the node have status S_OK
@@ -440,7 +440,7 @@ class Node(metaclass=abc.ABCMeta):
     """
     Results = NodeResults
 
-    Error  = NodeError
+    Error = NodeError
     SpectatorError = SpectatorNodeError
 
     # Possible status of the node.
@@ -736,6 +736,7 @@ class Node(metaclass=abc.ABCMeta):
             # remove the same list of dependencies from the task in the work
             for task in self:
                 task.remove_deps(deps)
+
     @property
     def deps_status(self):
         """Returns a list with the status of the dependencies."""
@@ -924,9 +925,9 @@ class Node(metaclass=abc.ABCMeta):
         logger.debug("Node %s broadcasts signal %s" % (self, signal))
         dispatcher.send(signal=signal, sender=self)
 
-   ##########################
-   ### Abstract protocol ####
-   ##########################
+    ##########################
+    ### Abstract protocol ####
+    ##########################
 
     @property
     @abc.abstractmethod
@@ -1025,7 +1026,7 @@ Continuing anyway assuming that the netcdf file provides the API/dims/vars neeed
 
         #try to find file in the same path
         filepath = os.path.dirname(self.filepath)
-        glob_result = glob.glob(os.path.join(filepath,"*%s"%abiext))
+        glob_result = glob.glob(os.path.join(filepath, "*%s" % abiext))
         if len(glob_result): return abilab.abiopen(glob_result[0])
         return self.abiopen()
 
@@ -1268,4 +1269,3 @@ def save_lastnode_id():
 # Register function atexit
 import atexit
 atexit.register(save_lastnode_id)
-

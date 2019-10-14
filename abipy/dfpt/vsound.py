@@ -235,7 +235,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
             sv = []
             mt = []
 
-            cart_versor = qpt_cart_coords[end -1] / np.linalg.norm(qpt_cart_coords[end -1])
+            cart_versor = qpt_cart_coords[end - 1] / np.linalg.norm(qpt_cart_coords[end - 1])
             for k in range(3):
                 start_fit = 0
                 if ignore_neg_freqs and first_positive_freq_ind > 1:

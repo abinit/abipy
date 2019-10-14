@@ -642,7 +642,7 @@ def plot_structure(structure, ax=None, to_unit_cell=False, alpha=0.7,
     # https://gist.github.com/syrte/592a062c562cd2a98a83
     if "points" in style:
         x, y, z, s = xyzs.T.copy()
-        s = 5000 * s **2
+        s = 5000 * s ** 2
         ax.scatter(x, y, zs=z, s=s, c=colors, alpha=alpha)  #facecolors="white", #edgecolors="blue"
 
     ax.set_title(structure.composition.formula)

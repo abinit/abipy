@@ -21,6 +21,7 @@ def quadratic_fit_function(xx, aa, bb):
     """
     return aa * xx ** 2 + bb
 
+
 class FrozenPhonon(object):
     """
     Class defining a set of structures with displaced atoms.

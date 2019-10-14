@@ -860,7 +860,7 @@ class Flow(Node, NodeContainer, MSONable):
         lines = [str(self)]
         app = lines.append
 
-        app("Number of works: %d, total number of tasks: %s" % (len(self), self.num_tasks) )
+        app("Number of works: %d, total number of tasks: %s" % (len(self), self.num_tasks))
         app("Number of tasks with a given class:\n")
 
         # Build Table
@@ -995,7 +995,7 @@ class Flow(Node, NodeContainer, MSONable):
         Args:
             status: if not None, only the tasks with this status are select
             nids: optional list of node identifiers used to filter the tasks.
-	"""
+        """
         nrows, ncols = get_terminal_size()
 
         for task in self.iflat_tasks(status=status, nids=nids):
@@ -1959,8 +1959,8 @@ class Flow(Node, NodeContainer, MSONable):
                 self.flow.db_insert()
                 self.finalized = True
             except Exception:
-                 logger.critical("MongoDb insertion failed.")
-                 return 2
+                logger.critical("MongoDb insertion failed.")
+                return 2
 
         # Here we remove the big output files if we have the garbage collector
         # and the policy is set to "flow."
@@ -3004,7 +3004,7 @@ def phonon_flow(workdir, scf_input, ph_inputs, with_nscf=False, with_ddk=False, 
 
             # TODO this will work for phonons, but not for the other types of perturbations.
             rfdir = 3 * [0]
-            rfdir[idir -1] = 1
+            rfdir[idir - 1] = 1
             rfatpol = [ipert, ipert]
 
             new_input.set_vars(

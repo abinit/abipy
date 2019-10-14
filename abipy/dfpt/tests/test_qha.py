@@ -21,7 +21,6 @@ class QhaTest(AbipyTest):
 
     def test_qha(self):
         """Base tests for QHA"""
-
         qha = QHA.from_files(self.gsr_paths, self.dos_paths)
 
         self.assertEqual(qha.nvols, len(self.strains))

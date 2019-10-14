@@ -137,12 +137,12 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
     @classmethod
     def pickle_load(cls, filepath):
         """Loads the object from a pickle file."""
-        with open(filepath , "rb") as fh:
+        with open(filepath, "rb") as fh:
             return pickle.load(fh)
 
     def pickle_dump(self, filepath):
         """Save the status of the object in pickle format."""
-        with open(filepath , "wb") as fh:
+        with open(filepath, "wb") as fh:
             pickle.dump(self, fh)
 
     def get_sampling(self, mesh, is_shift):
@@ -593,8 +593,8 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
         for kmesh in kmeshes:
             jdos = self.get_jdos_q0(kmesh, is_shift=is_shift, method=method, step=step, width=width)
             for spin in range(self.nsppol):
-               spin_sign = +1 if spin == 0 else -1
-               ax.plot(jdos.mesh, jdos.values[spin] * spin_sign, label=str(kmesh) if spin == 0 else None)
+                spin_sign = +1 if spin == 0 else -1
+                ax.plot(jdos.mesh, jdos.values[spin] * spin_sign, label=str(kmesh) if spin == 0 else None)
 
         ax.grid(True)
         ax.set_xlabel("Energy (eV)")
@@ -1208,9 +1208,11 @@ class SkwInterpolator(ElectronInterpolator):
 
         start = time.time()
         for cnt, l in enumerate(itertools.product(range(-rmax[0], rmax[0] + 1),
-            range(-rmax[1], rmax[1] + 1), range(-rmax[2], rmax[2] + 1))):
-              rtmp[cnt] = l
-              r2tmp[cnt] = np.dot(l, np.matmul(self.rmet, l))
+                                                  range(-rmax[1], rmax[1] + 1),
+                                                  range(-rmax[2], rmax[2] + 1))):
+            rtmp[cnt] = l
+            r2tmp[cnt] = np.dot(l, np.matmul(self.rmet, l))
+
         if self.verbose: print("gen points", time.time() - start)
 
         start = time.time()

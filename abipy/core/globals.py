@@ -9,6 +9,7 @@ import tempfile
 
 __IN_NOTEBOOK = False
 
+
 def in_notebook():
     """True if we are running inside a jupyter notebook (and enable_notebook has been called)."""
     return __IN_NOTEBOOK
@@ -68,7 +69,7 @@ def abinb_mkstemp(force_abinb_workdir=False, use_relpath=False, **kwargs):
         d = kwargs.pop("dir", None)
         if d is not None:
             cprint("Files should be created inside abipy_nbworkdir if we are inside jupyter or force_abinb_workdir",
-                    "yellow")
+                   "yellow")
         fd, path = tempfile.mkstemp(dir=get_abinb_workdir(), **kwargs)
     else:
         fd, path = tempfile.mkstemp(**kwargs)

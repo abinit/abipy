@@ -75,10 +75,10 @@ class ElasticWork(Work, MergeDdb):
 
     Create a `Flow` for phonon calculations. The flow has one works with:
 
-	- 1 GS Task
-	- 3 DDK Task
-	- 4 Phonon Tasks (Gamma point)
-	- 6 Elastic tasks (3 uniaxial + 3 shear strain)
+        - 1 GS Task
+        - 3 DDK Task
+        - 4 Phonon Tasks (Gamma point)
+        - 6 Elastic tasks (3 uniaxial + 3 shear strain)
 
     The Phonon tasks and the elastic task will read the DDK produced at the beginning
     """

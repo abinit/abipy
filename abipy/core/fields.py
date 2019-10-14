@@ -39,7 +39,7 @@ def latexlabel_ispden(ispden, nspden):
 
     elif nspden == 2:
         return {k: v.replace("myuparrow", "uparrow") for k, v in
-            {0: r"$\sigma=\myuparrow$", 1: r"$\sigma=\downarrow$"}.items()}[ispden]
+               {0: r"$\sigma=\myuparrow$", 1: r"$\sigma=\downarrow$"}.items()}[ispden]
 
     else:
         raise NotImplementedError()
@@ -107,7 +107,7 @@ class _Field(Has_Structure):
         if not isinstance(other, _Field):
             try:
                 return self.__class__, float(other)
-            except:
+            except Exception:
                 raise TypeError('object of class %s is not an instance of _Field and cannot be converted to float' %
                     (other.__class__))
 
@@ -418,7 +418,7 @@ class _Field(Has_Structure):
 
         if max_nn is not None and len(nn_list) > max_nn:
             cprint("For radius %s, found %s neighbors but only max_nn %s sites are show." %
-                    (radius, len(nn_list), max_nn), "yellow")
+                   (radius, len(nn_list), max_nn), "yellow")
             nn_list = nn_list[:max_nn]
 
         # Get grid of axes.
@@ -430,7 +430,7 @@ class _Field(Has_Structure):
         interpolator = self.get_interpolator()
 
         for i, (nn, ax) in enumerate(zip(nn_list, ax_list)):
-            nn_site, nn_dist, nn_sc_index  = nn
+            nn_site, nn_dist, nn_sc_index = nn
             title = "%s, %s, dist=%.3f A" % (nn_site.species_string, str(nn_site.frac_coords), nn_dist)
 
             r = interpolator.eval_line(site.frac_coords, nn_site.frac_coords, num=num, kpoint=None)
@@ -487,7 +487,7 @@ class _Field(Has_Structure):
             symbol = site.specie.symbol
             phases = np.exp(2j * np.pi * np.dot(gvecs, site.frac_coords))
             fg = datag * phases * splines[symbol](gmods)
-            res_nspden = np.sum(fg, axis=1)  * (4 * np.pi)
+            res_nspden = np.sum(fg, axis=1) * (4 * np.pi)
             #print("result:", res_nspden, res_nspden.shape, (datag * fg).shape)
 
             # Compute densities and magnetization.
@@ -559,6 +559,7 @@ def core_density_from_file(filepath):
     else:
         raise ValueError('Exension not supported: {}'.format(ext))
 
+
 class Density(_DensityField):
     """
     Electronic density.
@@ -626,8 +627,8 @@ class Density(_DensityField):
             abs_max = abs(maxr)
             for r in rhoc:
                 try:
-                    ind = np.min(np.where(r[1]==0))
-                except:
+                    ind = np.min(np.where(r[1] == 0))
+                except Exception:
                     ind = -1
 
                 if r[0][ind] > maxr:
@@ -707,9 +708,9 @@ class Density(_DensityField):
             start = time.time()
             dist_gridpoints_sites = valence_density.mesh.dist_gridpoints_in_spheres(points=site_coords, radius=maxr)
             nnx, nny, nnz = small_dist_mesh
-            meshgrid = np.meshgrid(np.linspace(-0.5, 0.5, nnx, endpoint=False)+0.5/nnx,
-                                            np.linspace(-0.5, 0.5, nny, endpoint=False) + 0.5/nny,
-                                            np.linspace(-0.5, 0.5, nnz, endpoint=False) + 0.5/nnz)
+            meshgrid = np.meshgrid(np.linspace(-0.5, 0.5, nnx, endpoint=False) + 0.5 / nnx,
+                                   np.linspace(-0.5, 0.5, nny, endpoint=False) + 0.5 / nny,
+                                   np.linspace(-0.5, 0.5, nnz, endpoint=False) + 0.5 / nnz)
             coords_grid = np.outer(meshgrid[0], dvx) + np.outer(meshgrid[1], dvy) + np.outer(meshgrid[2], dvz)
             for isite, dist_gridpoints_site in enumerate(dist_gridpoints_sites):
                 for igp_uc, dist, igp in dist_gridpoints_site:
@@ -1136,7 +1137,7 @@ class FieldReader(ETSF_Reader):
 
             else:
                 raise ValueError("Invalid nspinor: %s, nspden: %s and nsppol: %s" % (
-                    dims.nspinor, dims.nspden, dims%nsppol))
+                                  dims.nspinor, dims.nspden, dims.nsppol))
                 #if issubclass(field_cls, _DensityField):
                 #elif issubclass(field_cls, _PotentialFieldField):
                 #else:

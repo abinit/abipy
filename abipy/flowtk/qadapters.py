@@ -287,6 +287,7 @@ class _ExcludeNodesFile(object):
                     d["qname"] = nodes
                 json.dump(d, fh)
 
+
 _EXCL_NODES_FILE = _ExcludeNodesFile()
 
 
@@ -899,7 +900,7 @@ limits:
         if mem_per_proc > hw.mem_per_node:
             raise self.Error(
                 "mem_per_proc > mem_per_node.\n Cannot distribute mpi_procs %d, omp_threads %d, mem_per_proc %s" %
-                             (mpi_procs, omp_threads, mem_per_proc))
+                 (mpi_procs, omp_threads, mem_per_proc))
 
         # Try to use all then cores in the node.
         num_nodes, rest_cores = hw.divmod_node(mpi_procs, omp_threads)
@@ -1168,9 +1169,9 @@ limits:
         """
         # TODO : find a formula that works for all max_cores
         if self.max_cores > 40:
-          base_increase = 4 * int(self.max_cores / 40)
+            base_increase = 4 * int(self.max_cores / 40)
         else:
-          base_increase = 4
+            base_increase = 4
 
         new_cores = self.hint_cores + factor * base_increase
 
@@ -1807,6 +1808,7 @@ class SGEAdapter(QueueAdapter):
 #$ -o $${_qout_path}
 $${qverbatim}
 """
+
     def set_qname(self, qname):
         super().set_qname(qname)
         if qname:
@@ -2030,12 +2032,12 @@ $${qverbatim}
         return os.system("llcancel %d" % job_id)
 
     def bgsize_rankspernode(self):
-	    """Return (bg_size, ranks_per_node) from mpi_procs and omp_threads."""
-	    bg_size = int(math.ceil((self.mpi_procs * self.omp_threads)/ self.hw.cores_per_node))
-	    bg_size = max(bg_size, 32) # TODO hardcoded
-	    ranks_per_node = int(math.ceil(self.mpi_procs / bg_size))
+        """Return (bg_size, ranks_per_node) from mpi_procs and omp_threads."""
+        bg_size = int(math.ceil((self.mpi_procs * self.omp_threads) / self.hw.cores_per_node))
+        bg_size = max(bg_size, 32) # TODO hardcoded
+        ranks_per_node = int(math.ceil(self.mpi_procs / bg_size))
 
-	    return bg_size, ranks_per_node
+        return bg_size, ranks_per_node
 
     def optimize_params(self, qnodes=None):
         params = {}

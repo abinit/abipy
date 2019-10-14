@@ -977,6 +977,7 @@ class BatchLauncher(object):
             max_depth: Search in directory only if it is N or fewer levels below top
         """
         from .flows import Flow
+
         def find_pickles(dirtop):
             # Walk through each directory inside path and find the pickle database.
             paths = []

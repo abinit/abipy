@@ -211,6 +211,7 @@ class AbinitYamlWarning(AbinitCriticalWarning):
 # Warnings triggering restart #
 ###############################
 
+
 class ScfConvergenceWarning(AbinitCriticalWarning):
     """Warning raised when the GS SCF cycle did not converge."""
     yaml_tag = '!ScfConvergenceWarning'
@@ -650,6 +651,7 @@ class ErrorHandler(EventHandler):
     """Base class for handlers associated to ABINIT errors."""
     event_class = AbinitError
 
+
 _ABC_EVHANDLER_CLASSES = set([ErrorHandler,])
 
 
@@ -863,12 +865,11 @@ class MemoryErrorHandler(ErrorHandler):
     can_change_physics = False
 
     def handle_task_event(self, task, event):
-
-      task.manager.increase_resources()
-      return self.FIXED
+        task.manager.increase_resources()
+        return self.FIXED
 
     def handle_input_event(self, abiinput, outdir, event):
-      """
-      Shouldn't do anything on the input
-      """
-      return None
+        """
+        Shouldn't do anything on the input
+        """
+        return None

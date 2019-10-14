@@ -466,7 +466,7 @@ class NodeContainer(metaclass=abc.ABCMeta):
                 task.set_vars(*args, **kwargs)
 
         else:
-            raise TypeError("Don't know how to set variables for object class %s"  % self.__class__.__name__)
+            raise TypeError("Don't know how to set variables for object class %s" % self.__class__.__name__)
 
 
 class Work(BaseWork, NodeContainer):
@@ -1265,6 +1265,7 @@ class QptdmWork(Work):
 
 # TODO: MergeDdb --> DfptWork(Work) postpone it because it may break pickle.
 
+
 class MergeDdb(object):
     """Mixin class for Works that have to merge the DDB files produced by the tasks."""
 
@@ -1279,13 +1280,12 @@ class MergeDdb(object):
             ph_tolerance: dict {"varname": value} with the tolerance used in the phonon run.
                 None to use AbiPy default.
 
-	Return:
-	    (ddk_tasks, bec_tasks)
-	"""
+        Return: (ddk_tasks, bec_tasks)
+        """
         if not isinstance(scf_task, ScfTask):
             raise TypeError("task `%s` does not inherit from ScfTask" % scf_task)
 
-	# DDK calculations (self-consistent to get electric field).
+        # DDK calculations (self-consistent to get electric field).
         multi_ddk = scf_task.input.make_ddk_inputs(tolerance=ddk_tolerance)
 
         ddk_tasks = []
@@ -1301,8 +1301,8 @@ class MergeDdb(object):
         bec_inputs = scf_task.input.make_bec_inputs(tolerance=ph_tolerance)
         bec_tasks = []
         for bec_inp in bec_inputs:
-             bec_task = self.register_bec_task(bec_inp, deps=bec_deps)
-             bec_tasks.append(bec_task)
+            bec_task = self.register_bec_task(bec_inp, deps=bec_deps)
+            bec_tasks.append(bec_task)
 
         return ddk_tasks, bec_tasks
 
@@ -1333,8 +1333,8 @@ class MergeDdb(object):
             my_tasks = [task for task in self]
 
         if only_dfpt_tasks:
-            ddb_files = list(filter(None, [task.outdir.has_abiext("DDB") for task in my_tasks \
-                                       if isinstance(task, DfptTask)]))
+            ddb_files = list(filter(None, [task.outdir.has_abiext("DDB") for task in my_tasks
+                                    if isinstance(task, DfptTask)]))
         else:
             ddb_files = list(filter(None, [task.outdir.has_abiext("DDB") for task in my_tasks]))
 
@@ -1610,10 +1610,10 @@ class PhononWfkqWork(Work, MergeDdb):
                 if task.status != task.S_OK: continue
                 children = self.wfkq_task_children[task]
                 if all(child.status == child.S_OK for child in children):
-                   path = task.outdir.has_abiext("WFQ")
-                   if path:
-                       self.history.info("Removing WFQ: %s" % path)
-                       os.remove(path)
+                    path = task.outdir.has_abiext("WFQ")
+                    if path:
+                        self.history.info("Removing WFQ: %s" % path)
+                        os.remove(path)
 
         return super().on_ok(sender)
 
@@ -1681,7 +1681,7 @@ class GKKPWork(Work):
             interp_inp = inp.new_with_vars(optdriver=7, eph_task=-5, ddb_ngqpt=ddb_ngqpt,
                                            ph_nqpath=len(qpath), ph_qpath=qpath, prtphdos=0)
             dvdb = new.register_eph_task(interp_inp, deps={wfk_task: "WFK", ddb_file: "DDB", dvdb_file: "DVDB"},
-                                          manager=tm)
+                                         manager=tm)
 
         # Create a WFK expansion task
         if expand:
@@ -1708,13 +1708,13 @@ class GKKPWork(Work):
             if is_gamma:
                 # Create a link from WFK to WFQ on_ok
                 wfkq_task = wfk_task
-                deps = {wfk_task: ["WFK","WFQ"], ddb_file: "DDB", dvdb: "DVDB" }
+                deps = {wfk_task: ["WFK","WFQ"], ddb_file: "DDB", dvdb: "DVDB"}
             else:
                 # Create a WFQ task
                 nscf_inp = nscf_inp.new_with_vars(kptopt=3, qpt=qpt, nqpt=1)
                 wfkq_task = new.register_nscf_task(nscf_inp, deps={den_file: "DEN"}, manager=tm)
                 new.wfkq_tasks.append(wfkq_task)
-                deps = {wfk_task: "WFK", wfkq_task: "WFQ", ddb_file: "DDB", dvdb: "DVDB" }
+                deps = {wfk_task: "WFK", wfkq_task: "WFQ", ddb_file: "DDB", dvdb: "DVDB"}
 
             # Create a EPH task
             eph_inp = inp.new_with_vars(optdriver=7, prtphdos=0, eph_task=-2, kptopt=3,
@@ -1742,7 +1742,7 @@ class GKKPWork(Work):
                 qpoints_deps.append(task.deps)
 
         # Create file nodes
-        ddb_path  = phononwfkq_work.outdir.has_abiext("DDB")
+        ddb_path = phononwfkq_work.outdir.has_abiext("DDB")
         dvdb_path = phononwfkq_work.outdir.has_abiext("DVDB")
         ddb_file = FileNode(ddb_path)
         dvdb_file = FileNode(dvdb_path)
@@ -1763,7 +1763,7 @@ class GKKPWork(Work):
             # Create eph task
             eph_input = scf_task.input.new_with_vars(optdriver=7, prtphdos=0, eph_task=-2,
                                                      ddb_ngqpt=[1,1,1], nqpt=1, qpt=qpt)
-            deps = {ddb_file: "DDB", dvdb_file: "DVDB" }
+            deps = {ddb_file: "DDB", dvdb_file: "DVDB"}
             for dep in qpoint_deps:
                 deps[dep.node] = dep.exts[0]
             # If no WFQ in deps link the WFK with WFQ extension
@@ -1791,10 +1791,10 @@ class GKKPWork(Work):
                 if task.status != task.S_OK: continue
                 children = self.wfkq_task_children[task]
                 if all(child.status == child.S_OK for child in children):
-                   path = task.outdir.has_abiext("WFQ")
-                   if path:
-                       self.history.info("Removing WFQ: %s" % path)
-                       os.remove(path)
+                    path = task.outdir.has_abiext("WFQ")
+                    if path:
+                        self.history.info("Removing WFQ: %s" % path)
+                        os.remove(path)
 
         # If wfk task we create a link to a wfq file so abinit is happy
         if sender == self.wfk_task:
@@ -1828,7 +1828,7 @@ class BecWork(Work, MergeDdb):
             ph_tolerance: dict {"varname": value} with the tolerance used in the phonon run.
                 None to use AbiPy default.
             manager: :class:`TaskManager` object.
-	"""
+        """
         new = cls(manager=manager)
         new.add_becs_from_scf_task(scf_task, ddk_tolerance, ph_tolerance)
         return new
@@ -1854,13 +1854,13 @@ class DteWork(Work, MergeDdb):
     @classmethod
     def from_scf_task(cls, scf_task, ddk_tolerance=None, manager=None):
         """
-	Build a DteWork from a ground-state task.
+        Build a DteWork from a ground-state task.
 
         Args:
             scf_task: ScfTask object.
             ddk_tolerance: tolerance used in the DDK run if with_becs. None to use AbiPy default.
             manager: :class:`TaskManager` object.
-	"""
+        """
         if not isinstance(scf_task, ScfTask):
             raise TypeError("task `%s` does not inherit from ScfTask" % scf_task)
 
@@ -1895,8 +1895,8 @@ class DteWork(Work, MergeDdb):
         multi_dte = scf_task.input.make_dte_inputs()
         dte_tasks = []
         for dte_inp in multi_dte:
-             dte_task = new.register_dte_task(dte_inp, deps=dte_deps)
-             dte_tasks.append(dte_task)
+            dte_task = new.register_dte_task(dte_inp, deps=dte_deps)
+            dte_tasks.append(dte_task)
 
         return new
 

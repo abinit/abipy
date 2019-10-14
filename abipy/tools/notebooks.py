@@ -1,5 +1,6 @@
 """Tools for ipython notebooks."""
 
+
 def print_source_in_module(function, module):  # pragma: no cover
     """
     For use inside an jupyter_ notebook: given a module and a function, print the source code.

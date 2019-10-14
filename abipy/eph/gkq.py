@@ -1,5 +1,5 @@
 """
-Interface to the GKQ.nc file storing the e-ph matrix elements 
+Interface to the GKQ.nc file storing the e-ph matrix elements
 in the atomic representation (idir, ipert) for a single q-point.
 """
 import numpy as np
@@ -124,7 +124,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         Read all eph matrix stored on disk.
 
         Args:
-            mode: "phonon" if for eph matrix elements in phonon representation, 
+            mode: "phonon" if for eph matrix elements in phonon representation,
                   "atom" for perturbation along (idir, iatom).
 
         Return: (nsppol, nkpt, 3*natom, mband, mband) complex array.
@@ -154,16 +154,16 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
                 g = np.reshape(gkq_atm[spin, ik], (-1, nb2))
                 for nu in range(natom3):
                     if phfreqs_ha[nu] > EPH_WTOL:
-                        cwork[nu] = np.dot(phdispl_red[nu], g) / np.sqrt(2.0 * phfreqs_ha[nu]) 
+                        cwork[nu] = np.dot(phdispl_red[nu], g) / np.sqrt(2.0 * phfreqs_ha[nu])
                     else:
                         cwork[nu] = 0.0
                 gkq_nu[spin, ik] = np.reshape(cwork, (natom3, nband, nband))
 
         return gkq_nu
 
-    #def get_averaged_gkq(self, spin, ik, band_k, band_kq, tol_deg=1e-3): 
+    #def get_averaged_gkq(self, spin, ik, band_k, band_kq, tol_deg=1e-3):
     #    natom3 = len(self.structure) * 3
-    #    e_k = self.ebands.eigens[spin, ik, band_k]) 
+    #    e_k = self.ebands.eigens[spin, ik, band_k])
     #    e_kq = self.eigens_kq[spin, ik, band_kq]
     #    e_k, ndeg_k, bids_k = _find_deg(spin, ik, self.ebands.eigens)
     #    e_kq, ndeg_kq, bids_kq = _find_deg(spin, ik, self.eigens_kq)
@@ -171,7 +171,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
     #    gkq2_nu = np.zeros(natom3))
     #    ncvar = abifile.reader.read_variable("gkq")
     #    for ib_k in bids_k:
-    #       
+    #
     #       for ib_kq in bids_kq:
     #           gkq_atm = ncvar[spin, ik, :, ib_k, ib_kq]
     #           gkq_atm = gkq_atm[:, 0] + 1j * gkq_atm[:, 1]
@@ -190,7 +190,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         """
         Plot the gkq matrix elements for a given q-point.
 
-            mode: "phonon" to plot eph matrix elements in the phonon representation, 
+            mode: "phonon" to plot eph matrix elements in the phonon representation,
                   "atom" for atomic representation.
             with_glr: True to plot the long-range component estimated from Verdi's model.
             fontsize: Label and title fontsize.
@@ -208,14 +208,14 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
             for ik in range(self.ebands.nkpt):
                 for ib_kq in range(self.ebands.mband):
                     for ib_k in range(self.ebands.mband):
-                        ed = np.abs(self.eigens_kq[spin, ik, ib_kq] - self.ebands.eigens[spin, ik, ib_k]) 
+                        ed = np.abs(self.eigens_kq[spin, ik, ib_kq] - self.ebands.eigens[spin, ik, ib_k])
                         ediffs[spin, ik, :, ib_k, ib_kq] = ed
 
         if with_glr and mode == "phonon":
             # Add horizontal bar with matrix elements computed from Verdi's model (only G = 0, \delta_nm in bands).
             dcart_bohr = self.phdispl_cart_bohr
             #dcart_bohr = self.reader.read_value("phdispl_cart_qvers", cmode="c").real
-            gkq_lr = glr_frohlich(self.qpoint, self.becs_cart, self.epsinf_cart, 
+            gkq_lr = glr_frohlich(self.qpoint, self.becs_cart, self.epsinf_cart,
                                   dcart_bohr, self.phfreqs_ha, self.structure)
                                   #self.phdispl_cart_bohr, self.phfreqs_ha, self.structure)
             gkq2_lr = np.abs(gkq_lr) * abu.Ha_meV
@@ -245,7 +245,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
                 ylabel = r"$|g^{atm}_{\bf q}|$" if mode == "atom" else r"$|g_{\bf q}|$ (meV)"
                 ax.set_ylabel(ylabel)
 
-            ax.set_title(r"$\nu$: %d, $\omega_{{\bf q}\nu}$ = %.2E (meV)" % 
+            ax.set_title(r"$\nu$: %d, $\omega_{{\bf q}\nu}$ = %.2E (meV)" %
                          (nu, self.phfreqs_ha[nu] * abu.Ha_meV), fontsize=fontsize)
 
             if with_glr:
@@ -260,7 +260,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         Produce scatter plot and histogram to compare the gkq matrix elements stored in two files.
 
             other: other GkqFile instance.
-            mode: "phonon" to plot eph matrix elements in the phonon representation, 
+            mode: "phonon" to plot eph matrix elements in the phonon representation,
                   "atom" for atomic representation.
             ax_list: List with 2 matplotlib axis. None if new ax_list should be created.
             labels: Labels associated to self and other
@@ -272,12 +272,12 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
             raise ValueError("Found different q-points: %s and %s" % (self.qpoint, other.qpoint))
 
         if labels is None:
-            labels = ["this (interpolated: %s)" % self.uses_interpolated_dvdb, 
-                      "other (interpolated: %s)" % other.uses_interpolated_dvdb] 
+            labels = ["this (interpolated: %s)" % self.uses_interpolated_dvdb,
+                      "other (interpolated: %s)" % other.uses_interpolated_dvdb]
 
         this_gkq = np.abs(self.read_all_gkq(mode=mode))
         other_gkq = np.abs(other.read_all_gkq(mode=mode))
-        if mode == "phonon": 
+        if mode == "phonon":
             this_gkq *= abu.Ha_meV
             other_gkq *= abu.Ha_meV
 
@@ -303,7 +303,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         xs = np.arange(len(data))
 
         ax = ax_list[0]
-        ax.scatter(xs, data, alpha=0.9, s=30, label=labels[0], 
+        ax.scatter(xs, data, alpha=0.9, s=30, label=labels[0],
                    facecolors='none', edgecolors='orange')
 
         data = other_gkq[absdiff_gkq > threshold].ravel()
@@ -315,7 +315,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         ylabel = r"$|g^{atm}_{\bf q}|$" if mode == "atom" else r"$|g_{\bf q}|$ (meV)"
         ax.set_ylabel(ylabel)
         ax.set_title(r"qpt: %s, $\Delta$ > %.1E (%.1f %%)" % (
-                     repr(self.qpoint), threshold, 100 * nshown / ntot), 
+                     repr(self.qpoint), threshold, 100 * nshown / ntot),
                      fontsize=fontsize)
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
@@ -327,8 +327,8 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
         ax.axvline(stats["mean"], color='k', linestyle='dashed', linewidth=1)
         _, max_ = ax.get_ylim()
-        ax.text(0.7, 0.7,  "\n".join("%s = %.1E" % item for item in stats.items()), 
-                fontsize=fontsize, horizontalalignment='center', verticalalignment='center', 
+        ax.text(0.7, 0.7,  "\n".join("%s = %.1E" % item for item in stats.items()),
+                fontsize=fontsize, horizontalalignment='center', verticalalignment='center',
                 transform=ax.transAxes)
 
         return fig
@@ -363,13 +363,13 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
 
 class GkqReader(ElectronsReader):
-     """
-     This object reads the results stored in the GKQ file produced by ABINIT.
-     It provides helper function to access the most important quantities.
- 
-     .. rubric:: Inheritance Diagram
-     .. inheritance-diagram:: GkqReader
-     """
+    """
+    This object reads the results stored in the GKQ file produced by ABINIT.
+    It provides helper function to access the most important quantities.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: GkqReader
+    """
 
 
 class GkqRobot(Robot, RobotWithEbands):
@@ -470,8 +470,8 @@ class GkqRobot(Robot, RobotWithEbands):
             for nu in nu_list:
                 ys = np.abs(gkq_snuq[spin, nu]) * abu.Ha_meV
                 pre_label = kwargs.pop("pre_label",r"$g_{\bf q}$")
-                if nsppol == 1: label = r"%s $\nu$: %s" % (pre_label, nu) 
-                if nsppol == 2: label = r"%s $\nu$: %s, spin: %s" % (pre_label, nu, spin) 
+                if nsppol == 1: label = r"%s $\nu$: %s" % (pre_label, nu)
+                if nsppol == 2: label = r"%s $\nu$: %s, spin: %s" % (pre_label, nu, spin)
                 ax.plot(xs, ys, linestyle="--", label=label)
                 if with_glr:
                     # Plot model with G = 0 and delta_nn'
@@ -500,7 +500,7 @@ class GkqRobot(Robot, RobotWithEbands):
     #        raise ValueError("len(all_labels) should be equal to 1 + len(other_robots)")
 
     #    ax, fig, plt = get_ax_fig_plt(ax=ax)
-    #    #self.plot_gkq2_qpath(self, band_kq, band_k, kpoint=kpoint, 
+    #    #self.plot_gkq2_qpath(self, band_kq, band_k, kpoint=kpoint,
     #    #                with_glr=False, qdamp=None, nu_list=None, # spherical_average=False,
     #    #                ax=ax, fontsize=8, eph_wtol=EPH_WTOL, **kwargs):
 

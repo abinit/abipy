@@ -92,7 +92,7 @@ def torange(obj):
     else:
         try:
             return obj.__iter__()
-        except:
+        except Exception:
             raise TypeError("Don't know how to convert %s into a range object" % str(obj))
 
 

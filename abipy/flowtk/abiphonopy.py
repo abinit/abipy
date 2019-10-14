@@ -49,22 +49,22 @@ class PhonopyWork(Work):
 
     .. attribute:: scdims(3)
 
-	numpy arrays with the number of cells in the supercell along the three reduced directions
+        numpy arrays with the number of cells in the supercell along the three reduced directions
 
     .. attribute:: phonon
 
-	:class:`Phonopy` object used to construct the supercells with displaced atoms.
+        :class:`Phonopy` object used to construct the supercells with displaced atoms.
 
     .. attribute:: phonopy_tasks
 
-	List of :class:`ScfTask`. Each task compute the forces in one perturbed supercell.
+        List of :class:`ScfTask`. Each task compute the forces in one perturbed supercell.
 
     .. attribute:: bec_tasks
 
     .. attribute:: cpdata2dst
 
-	If not None, the work will copy the output results to the outdir of the flow
-	once all_ok is invoked. Note that cpdata2dst must be an absolute path.
+        If not None, the work will copy the output results to the outdir of the flow
+        once all_ok is invoked. Note that cpdata2dst must be an absolute path.
     """
 
     @classmethod
@@ -72,18 +72,13 @@ class PhonopyWork(Work):
         """
         Build the work from an :class:`AbinitInput` object representing a GS calculations.
 
-	Args:
-	    gsinp:
-		:class:`AbinitInput` object representing a GS calculation in the initial unit cell.
-	    scdims:
-		Number of unit cell replicas along the three reduced directions.
-	    phonopy_kwargs:
-		(Optional) dictionary with arguments passed to Phonopy constructor.
-	    displ_kwargs:
-		(Optional) dictionary with arguments passed to generate_displacements.
+        Args:
+            gsinp::class:`AbinitInput` object representing a GS calculation in the initial unit cell.
+            scdims: Number of unit cell replicas along the three reduced directions.
+            phonopy_kwargs: (Optional) dictionary with arguments passed to Phonopy constructor.
+            displ_kwargs: (Optional) dictionary with arguments passed to generate_displacements.
 
-	Return:
-	    PhonopyWork instance.
+        Return: PhonopyWork instance.
         """
         new = cls()
         new.phonopy_tasks, new.bec_tasks = [], []
@@ -124,11 +119,11 @@ class PhonopyWork(Work):
         """
         phonon = self.phonon
 
-	# Write POSCAR with initial unit cell.
+        # Write POSCAR with initial unit cell.
         structure = structure_from_atoms(phonon.get_primitive())
         structure.to(filename=self.outdir.path_in("POSCAR"))
 
-	# Write yaml file with displacements.
+        # Write yaml file with displacements.
         supercell = phonon.get_supercell()
         displacements = phonon.get_displacements()
         #directions = phonon.get_displacement_directions()
@@ -140,7 +135,7 @@ class PhonopyWork(Work):
         num_atoms = supercell.get_number_of_atoms()
         force_sets = parse_set_of_forces(num_atoms, forces_filenames)
 
-	# Write FORCE_SETS file.
+        # Write FORCE_SETS file.
         displacements = file_IO.parse_disp_yaml(filename=self.outdir.path_in('disp.yaml'))
         num_atoms = displacements['natom']
         for forces, disp in zip(force_sets, displacements['first_atoms']):
@@ -204,33 +199,26 @@ class PhonopyGruneisenWork(Work):
 
     .. attribute:: scdims(3)
 
-	numpy arrays with the number of cells in the supercell along the three reduced directions.
-
+        numpy arrays with the number of cells in the supercell along the three reduced directions.
     """
     @classmethod
     def from_gs_input(cls, gsinp, voldelta, scdims, phonopy_kwargs=None, displ_kwargs=None):
         """
         Build the work from an :class:`AbinitInput` object representing a GS calculations.
 
-	Args:
-	    gsinp:
-		:class:`AbinitInput` object representing a GS calculation in the initial unit cell.
-	    voldelta:
-                Absolute increment for unit cell volume. The three volumes are:
-                     [v0 - voldelta, v0, v0 + voldelta] where v0 is taken from gsinp.structure.
-	    scdims:
-		Number of unit cell replicas along the three reduced directions.
-	    phonopy_kwargs:
-		(Optional) dictionary with arguments passed to Phonopy constructor.
-	    displ_kwargs:
-		(Optional) dictionary with arguments passed to generate_displacements.
+        Args:
+            gsinp: :class:`AbinitInput` object representing a GS calculation in the initial unit cell.
+            voldelta: Absolute increment for unit cell volume. The three volumes are:
+                [v0 - voldelta, v0, v0 + voldelta] where v0 is taken from gsinp.structure.
+            scdims: Number of unit cell replicas along the three reduced directions.
+            phonopy_kwargs: (Optional) dictionary with arguments passed to Phonopy constructor.
+            displ_kwargs: (Optional) dictionary with arguments passed to generate_displacements.
 
-	Return:
-	    `PhonopyGruneisenWork` instance.
+        Return: `PhonopyGruneisenWork` instance.
         """
         new = cls()
 
-	# Save arguments that will be used to call phonopy for creating
+        # Save arguments that will be used to call phonopy for creating
         # the supercells with the displacements once the three volumes have been relaxed.
         new.scdims = np.array(scdims)
         if new.scdims.shape != (3,):
@@ -242,7 +230,7 @@ class PhonopyGruneisenWork(Work):
         v0 = gsinp.structure.volume
         if voldelta <= 0:
             raise ValueError("voldelta must be > 0 but got %s" % voldelta)
-        volumes = [v0 - voldelta, v0, v0  + voldelta]
+        volumes = [v0 - voldelta, v0, v0 + voldelta]
         if any(v <= 0 for v in volumes):
             raise ValueError("volumes must be > 0 but got %s" % str(volumes))
 

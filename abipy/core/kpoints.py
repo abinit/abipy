@@ -521,7 +521,7 @@ def as_kpoints(obj, lattice, weights=None, names=None):
     # Iterable with K-points?
     if isinstance(obj, collections.Iterable):
         if isinstance(obj[0], Kpoint):
-            assert all( isinstance(o, Kpoint) for o in obj)
+            assert all(isinstance(o, Kpoint) for o in obj)
             return obj
 
     # Assume array-like
@@ -546,8 +546,8 @@ class Kpoint(SlotPickleMixin):
     Class defining one k-point. This object is immutable and can be used as key in dictionaries
 
     Note that we usually construct the object by passing pymatgen.reciprocal_lattice
-    that is the standard reciprocal lattice used for solid state physics 
-    with a factor of 2 * pi i.e. a_i . b_j = 2pi delta_ij. 
+    that is the standard reciprocal lattice used for solid state physics
+    with a factor of 2 * pi i.e. a_i . b_j = 2pi delta_ij.
     Abinit, on the contrary, uses the crystallographic reciprocal lattice i.e. no 2pi factor.
     so pay attention when converting Abinit routines to AbiPy.
     """
@@ -661,7 +661,7 @@ class Kpoint(SlotPickleMixin):
 
     def to_string(self, verbose=0):
         """String representation."""
-        s =  "[%+.3f, %+.3f, %+.3f]" % tuple(self.frac_coords)
+        s = "[%+.3f, %+.3f, %+.3f]" % tuple(self.frac_coords)
         if self.name is not None:
             s += ", name: %s" % self.name
         if self._weight is not None: s += ", weight: %.3f" % self.weight
@@ -1483,6 +1483,7 @@ class IrredZone(KpointList):
     #    kx, ky = np.meshgrid(kx, ky)
     #    return kx, ky, plane
 
+
 class KSamplingInfo(AttrDict):
     """
     Store metadata defining the k-point sampling according to the abinit conventions.
@@ -1560,8 +1561,8 @@ class KSamplingInfo(AttrDict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for k in self:
-           if k not in self.KNOWN_KEYS:
-               raise ValueError("Unknow key %s" % k)
+            if k not in self.KNOWN_KEYS:
+                raise ValueError("Unknow key %s" % k)
 
         # FIXME: monkhorst_pack_folding is not written in e.g. DEN.nc files
         # so we get crazy results because of netCDF4._default_fillvals
@@ -1579,7 +1580,6 @@ class KSamplingInfo(AttrDict):
 #Received {mpdivs}
 #Setting mpdivs to None, this may create problems in post-processing tools.
 #If needed, use python netcdf to change the value of `monkhorst_pack_folding`""".format(mpdivs=self["mpdivs"]))
-
 
     def __str__(self):
         return self.to_string()

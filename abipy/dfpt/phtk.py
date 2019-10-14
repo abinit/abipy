@@ -214,10 +214,11 @@ def open_file_phononwebsite(filename, port=8000,
 
     # Add CORS header to the website
     class CORSRequestHandler(SimpleHTTPRequestHandler):
-        def end_headers (self):
+        def end_headers(self):
             #self.send_header('Access-Control-Allow-Origin', website)
             self.send_header('Access-Control-Allow-Origin', "http://henriquemiranda.github.io")
             SimpleHTTPRequestHandler.end_headers(self)
+
         def log_message(self, format, *args):
             return
 
@@ -266,4 +267,3 @@ def open_file_phononwebsite(filename, port=8000,
     import signal
     signal.signal(signal.SIGINT, signal_handler)
     signal.pause()
-

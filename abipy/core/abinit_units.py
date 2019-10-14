@@ -28,7 +28,7 @@ eV_to_K = eV_Ha * Ha_K
 # 1 Hartree, in THz
 Ha_THz = 6579.683920722
 # 1 Hartree, in s
-Ha_s = Ha_THz * 1e12 * 2 * np.pi 
+Ha_s = Ha_THz * 1e12 * 2 * np.pi
 # 1 eV, in THz
 eV_to_THz = eV_Ha * Ha_THz
 # 1 eV, in cm-1
@@ -106,9 +106,9 @@ def wlabel_from_units(units):
     Return latex string for phonon frequencies in ``units``.
     """
     d = {'ev': 'Energy (eV)', 'mev': 'Energy (meV)', 'ha': 'Energy (Ha)',
-        'cm-1': r'Frequency (cm$^{-1}$)',
-        'cm^-1': r'Frequency (cm$^{-1}$)',
-        'thz': r'Frequency (Thz)',
+         'cm-1': r'Frequency (cm$^{-1}$)',
+         'cm^-1': r'Frequency (cm$^{-1}$)',
+         'thz': r'Frequency (Thz)',
     }
     try:
         return d[units.lower().strip()]
@@ -123,7 +123,7 @@ def phdos_label_from_units(units):
     d = {"ev": "(states/eV)", "mev": "(states/meV)", "ha": '(states/Ha)',
          "cm-1": "(states/cm$^{-1}$)", 'cm^-1': "(states/cm$^{-1}$)",
          "thz": '(states/Thz)',
-         }
+        }
     try:
         return d[units.lower().strip()]
     except KeyError:
@@ -164,6 +164,7 @@ def itup2s(t):
 
 # Use same tolerances as Abinit Fortran version in m_occ.F90.
 _maxFDarg = 500.0
+
 
 @np.vectorize
 def occ_fd(ee, kT, mu):

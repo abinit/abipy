@@ -13,7 +13,7 @@ def print_dataframe(frame, title=None, precision=6, sortby=None, file=sys.stdout
         precision: Floating point output precision (number of significant digits).
             This is only a suggestion [default: 6] [currently: 6]
         sortby: string name or list of names which refer to the axis items to be sorted (dataframe is not changed)
-        file: a file-like object (stream); defaults to the current sys.stdout. 
+        file: a file-like object (stream); defaults to the current sys.stdout.
             If file == "string", a temporary stream is created and a string is returned.
         display: Use ipython rich display protocol by invoking _repr_`display_ and returning the result.
             Use e.g. display="html" to get HTML table.

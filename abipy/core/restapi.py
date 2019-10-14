@@ -17,11 +17,12 @@ from abipy.core.mixins import NotebookWriter
 
 MP_DEFAULT_ENDPOINT = "https://materialsproject.org/rest/v2"
 
-MP_KEYS_FOR_DATAFRAME = ("pretty_formula", "e_above_hull", "energy_per_atom",
-                         "formation_energy_per_atom", "nsites", "volume",
-                         "spacegroup.symbol", "spacegroup.number",
-                         "band_gap", "total_magnetization", "material_id")
-                         # "unit_cell_formula", "icsd_id", "icsd_ids", "cif", , "tags", "elasticity")
+MP_KEYS_FOR_DATAFRAME = (
+    "pretty_formula", "e_above_hull", "energy_per_atom",
+    "formation_energy_per_atom", "nsites", "volume",
+    "spacegroup.symbol", "spacegroup.number",
+    "band_gap", "total_magnetization", "material_id" # "unit_cell_formula", "icsd_id", "icsd_ids", "cif", , "tags", "elasticity")
+)
 
 
 def get_mprester(api_key=None, endpoint=None):
@@ -101,8 +102,7 @@ class PhaseDiagramResults(object):
                 ehull < show_unstable will be shown.
             show: True to show plot.
 
-        Return:
-            plotter object.
+        Return: plotter object.
         """
         from pymatgen.analysis.phase_diagram import PDPlotter
         plotter = PDPlotter(self.phasediagram, show_unstable=show_unstable)
@@ -159,7 +159,7 @@ class DatabaseStructures(NotebookWriter):
             structures: List of structure objects
             ids: List of database ids.
             data: List of dictionaries with data associated to the structures (optional).
-	"""
+        """
         from abipy.core.structure import Structure
         self.structures = list(map(Structure.as_structure, structures))
         self.ids, self.data = ids, data
@@ -188,7 +188,7 @@ class DatabaseStructures(NotebookWriter):
            data_dict: Option dictionary with metadata.
         """
         if data_dict is None:
-           new_data = None if self.data is None else self.data + [{}]
+            new_data = None if self.data is None else self.data + [{}]
         else:
             assert self.data is not None
             new_data = self.data + [data_dict]
@@ -218,7 +218,7 @@ class DatabaseStructures(NotebookWriter):
         Set fmt to None or empty string to disable structure output.
         """
         print("\n# Found %s structures in %s database (use `verbose` to get further info)\n"
-                % (len(self.structures), self.dbname), file=file)
+              % (len(self.structures), self.dbname), file=file)
 
         if self.dataframe is not None: print_dataframe(self.dataframe, file=file)
         if verbose and self.data is not None: pprint(self.data, stream=file)
@@ -239,7 +239,7 @@ class DatabaseStructures(NotebookWriter):
         if len(self.structures) > 10:
             # Print info again
             print("\n# Found %s structures in %s database (use `verbose` to get further info)\n"
-                    % (len(self.structures), self.dbname), file=file)
+                  % (len(self.structures), self.dbname), file=file)
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """NOP required by NotebookWriter protocol."""

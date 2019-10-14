@@ -197,7 +197,7 @@ class ElasticData(Has_Structure, MSONable):
             # NB: asr and chneut are always present in the new anaddb.nc file
             # Use -666 to support old formats.
             asr=int(reader.read_value("asr", default=-666)),
-            chneut= int(reader.read_value("chneut", default=-666)),
+            chneut=int(reader.read_value("chneut", default=-666)),
             elaflag=int(reader.read_value("elaflag", default=0)),
             instrflag=int(reader.read_value("instrflag", default=0)),
             piezoflag=int(reader.read_value("piezoflag", default=0)),

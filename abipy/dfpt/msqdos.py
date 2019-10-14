@@ -219,7 +219,7 @@ class MsqDos(Has_Structure):
                     msq_d[iatom, :, :, it] = simps(ys, x=wvals) * fact * abu.Bohr_Ang ** 2
                 if "vel" in what_list:
                     # Mean square velocity for each atom as a function of T (bohr^2/atomic time unit^2)"
-                    ys = fn  * wvals
+                    ys = fn * wvals
                     fact = 1.0 / (self.amu_symbol[symbol] * abu.amu_emass)
                     msq_v[iatom, :, :, it] = simps(ys, x=wvals) * fact # * abu.velocity_at_to_si ** 2
 
@@ -376,7 +376,7 @@ _atom_site_aniso_U_12""".splitlines()
         ucart = np.reshape(ucart, (natom, 3, 3))
         ucif = self.convert_ucart(ucart, fmt="cif")
 
-        # Add matrix elements. Use 0 based index 
+        # Add matrix elements. Use 0 based index
         for iatom, site in enumerate(self.structure):
             site_label = "%s%d" % (site.specie.symbol, iatom)
             m = ucif[iatom]
@@ -522,7 +522,7 @@ _atom_site_aniso_U_12""".splitlines()
         }[components]
 
         components = self._get_components(components)
-        shape = np.reshape(components, (-1 ,3)).shape
+        shape = np.reshape(components, (-1, 3)).shape
         nrows, ncols = shape[0], shape[1]
 
         ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,

@@ -1107,7 +1107,7 @@ class ElectronBands(Has_Structure):
         from pymatgen.electronic_structure.bandstructure import BandStructure, BandStructureSymmLine
 
         # Cast to abipy structure and call spglib to init AbinitSpaceGroup.
-        abipy_structure= Structure.as_structure(pmg_bands.structure.copy())
+        abipy_structure = Structure.as_structure(pmg_bands.structure.copy())
         if not abipy_structure.has_abi_spacegroup:
             abipy_structure.spgset_abi_spacegroup(has_timerev)
 
@@ -1554,9 +1554,9 @@ class ElectronBands(Has_Structure):
         """
         edos_plotter = ElectronDosPlotter()
         for width in widths:
-           edos = self.get_edos(method="gaussian", step=0.1, width=width)
-           label=r"$\sigma = %s$ (eV)" % width
-           edos_plotter.add_edos(label, edos)
+            edos = self.get_edos(method="gaussian", step=0.1, width=width)
+            label = r"$\sigma = %s$ (eV)" % width
+            edos_plotter.add_edos(label, edos)
 
         return edos_plotter
 
@@ -1812,7 +1812,7 @@ class ElectronBands(Has_Structure):
 
     @add_fig_kwargs
     def plot(self, spin=None, band_range=None, klabels=None, e0="fermie", ax=None, ylims=None,
-	     points=None, with_gaps=False, max_phfreq=None, fontsize=8, **kwargs):
+             points=None, with_gaps=False, max_phfreq=None, fontsize=8, **kwargs):
         r"""
         Plot the electronic band structure.
 
@@ -2641,7 +2641,7 @@ class ElectronBandsPlotter(NotebookWriter):
 
     def iter_lineopt(self):
         """Generates matplotlib linestyles."""
-        for o in itertools.product( self._LINE_WIDTHS,  self._LINE_STYLES, self._LINE_COLORS):
+        for o in itertools.product(self._LINE_WIDTHS,  self._LINE_STYLES, self._LINE_COLORS):
             yield {"linewidth": o[0], "linestyle": o[1], "color": o[2]}
 
     def add_ebands(self, label, bands, edos=None, edos_kwargs=None):
@@ -2999,16 +2999,16 @@ class ElectronBandsPlotter(NotebookWriter):
 
         for ix, ax in enumerate(ax_list):
             for iband, (label, ebands) in enumerate(self.ebands_dict.items()):
-                if set_fermie_to_vbm: 
-                    # This is needed when the fermi energy is computed in the GS part 
+                if set_fermie_to_vbm:
+                    # This is needed when the fermi energy is computed in the GS part
                     # with a mesh that does not contain the band edges.
                     ebands.set_fermie_to_vbm()
 
-                if ix == 0: 
+                if ix == 0:
                     # Conduction
                     ymin = min((ebands.lumos[spin].eig for spin in ebands.spins)) - 0.1
                     ymax = ymin + epad_ev
-                elif ix == 1: 
+                elif ix == 1:
                     # Valence
                     ymax = max((ebands.homos[spin].eig for spin in ebands.spins)) + 0.1
                     ymin = ymax - epad_ev
@@ -3016,9 +3016,9 @@ class ElectronBandsPlotter(NotebookWriter):
                     raise ValueError("Wrong ix: %s" % ix)
 
                 # Defin ylims and energy shift.
-                this_e0 = ebands.get_e0(e0) 
+                this_e0 = ebands.get_e0(e0)
                 ylims = (ymin - this_e0, ymax - this_e0)
-                ebands.plot(ax=ax, e0=e0, color=cmap(float(iband) / nb), ylims=ylims, 
+                ebands.plot(ax=ax, e0=e0, color=cmap(float(iband) / nb), ylims=ylims,
                             label=label if ix == 0 else None, show=False)
             if ix == 0:
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
@@ -3362,7 +3362,7 @@ class ElectronDos(object):
             # If the last point in IDOS is sufficiently close to nelect
             # use it as Fermi level.
             if abs(idos.values[-1] - nelect) < 1e-3:
-                i = len(idos) -1
+                i = len(idos) - 1
             else:
                 raise ValueError("Cannot find I(e) such that I(e) > nelect")
 
@@ -3405,7 +3405,7 @@ class ElectronDos(object):
             else:
                 try:
                     return float(e0)
-                except:
+                except Exception:
                     raise TypeError("Wrong value for e0: %s" % str(e0))
         else:
             # Assume number
@@ -4087,7 +4087,8 @@ class Bands3D(Has_Structure):
                     #, cmap='Spectral', lw=1, antialiased=True)
 
                 # mayavi package:
-                #mlab.triangular_mesh([v[0] for v in verts], [v[1] for v in verts], [v[2] for v in verts], faces) #, color=(0, 0, 0))
+                #mlab.triangular_mesh([v[0] for v in verts], [v[1] for v in verts], [v[2] for v in verts], faces) 
+                #, color=(0, 0, 0))
 
         ax.set_axis_off()
 

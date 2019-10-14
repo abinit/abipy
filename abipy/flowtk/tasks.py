@@ -60,6 +60,7 @@ logger = logging.getLogger(__name__)
 
 # Tools and helper functions.
 
+
 def straceback():
     """Returns a string with the traceback."""
     import traceback
@@ -76,21 +77,20 @@ def lennone(PropperOrNone):
 def nmltostring(nml):
     """Convert a dictionary representing a Fortran namelist into a string."""
     if not isinstance(nml,dict):
-      raise ValueError("nml should be a dict !")
+        raise ValueError("nml should be a dict !")
 
     curstr = ""
     for key,group in nml.items():
-       namelist = ["&" + key]
-       for k, v in group.items():
-         if isinstance(v, list) or isinstance(v, tuple):
-           namelist.append(k + " = " + ",".join(map(str, v)) + ",")
-         elif is_string(v):
-           namelist.append(k + " = '" + str(v) + "',")
-         else:
-           namelist.append(k + " = " + str(v) + ",")
-       namelist.append("/")
-
-       curstr = curstr + "\n".join(namelist) + "\n"
+        namelist = ["&" + key]
+        for k, v in group.items():
+            if isinstance(v, list) or isinstance(v, tuple):
+                namelist.append(k + " = " + ",".join(map(str, v)) + ",")
+            elif is_string(v):
+                namelist.append(k + " = '" + str(v) + "',")
+            else:
+                namelist.append(k + " = " + str(v) + ",")
+        namelist.append("/")
+        curstr = curstr + "\n".join(namelist) + "\n"
 
     return curstr
 
@@ -520,7 +520,7 @@ _USER_CONFIG_TASKMANAGER = None
 def set_user_config_taskmanager(manager):
     """Change the default manager returned by TaskManager.from_user_config."""
     global _USER_CONFIG_TASKMANAGER
-    _USER_CONFIG_TASKMANAGER  = manager
+    _USER_CONFIG_TASKMANAGER = manager
 
 
 class TaskManager(MSONable):
@@ -587,8 +587,8 @@ batch_adapter:
 
         if not os.path.exists(path):
             raise RuntimeError(colored(
-		"\nCannot locate %s neither in current directory nor in %s\n"
-                "!!! PLEASE READ THIS: !!!\n"
+                "\nCannot locate %s neither in current directory nor in %s\n"
+                "PLEASE READ THIS: !!!\n"
                 "To use AbiPy to run jobs this file must be present\n"
                 "It provides a description of the cluster/computer you are running on\n"
                 "Examples are provided in abipy/data/managers." % (cls.YAML_FILE, path), color="red"))
@@ -786,7 +786,7 @@ batch_adapter:
                 possible_pconfs = [pc for pc in pconfs if qad.can_run_pconf(pc)]
 
                 if qad.allocation == "nodes":
-                #if qad.allocation in ["nodes", "force_nodes"]:
+                    #if qad.allocation in ["nodes", "force_nodes"]:
                     # Select the configuration divisible by nodes if possible.
                     for pconf in possible_pconfs:
                         if pconf.num_cores % qad.hw.cores_per_node == 0:
@@ -4210,10 +4210,10 @@ class OpticTask(Task):
     def make_input(self):
         """Construct and write the input file of the calculation."""
         # Set the file paths.
-        all_files ={"ddkfile_" + str(n + 1): ddk for n, ddk in enumerate(self.ddk_filepaths)}
+        all_files = {"ddkfile_" + str(n + 1): ddk for n, ddk in enumerate(self.ddk_filepaths)}
         all_files.update({"wfkfile": self.wfk_filepath})
         files_nml = {"FILES": all_files}
-        files= nmltostring(files_nml)
+        files = nmltostring(files_nml)
 
         # Get the input specified by the user
         user_file = nmltostring(self.input.as_dict())
@@ -4687,4 +4687,3 @@ class BoxcuttedPhononTask(PhononTask):
             self.restart()
 
         return results
-

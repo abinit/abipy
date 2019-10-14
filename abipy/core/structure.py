@@ -103,7 +103,7 @@ def mp_search(chemsys_formula_id, api_key=None, endpoint=None):
             data = rest.get_data(chemsys_formula_id, prop="")
             if data:
                 structures = [Structure.from_str(d["cif"], fmt="cif", primitive=False, sort=False)
-                                for d in data]
+                              for d in data]
                 mpids = [d["material_id"] for d in data]
                 # Want AbiPy structure.
                 structures = list(map(Structure.as_structure, structures))
@@ -482,26 +482,26 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
     @classmethod
     def ABO3(cls, a, species, units="ang", **kwargs):
-       """
-       Peroviskite structures.
+        """
+        Peroviskite structures.
 
-       Args:
+        Args:
             a: Lattice parameter (Angstrom if units is not given)
             species: Chemical species. See __init__ method of :class:`pymatgen.Structure`
             units: Units of input lattice parameters e.g. "bohr", "pm"
             kwargs: All keyword arguments accepted by :class:`pymatgen.Structure`
-       """
-       a = pmg_units.Length(a, units).to("ang")
-       lattice = float(a) * np.eye(3)
-       frac_coords = np.reshape([
-          0,     0,   0,  # A (2a)
-          0.5, 0.5, 0.5,  # B (2a)
-          0.5, 0.5, 0.0,  # O (6b)
-          0.5, 0.0, 0.5,  # O (6b)
-          0.0, 0.5, 0.5,  # O (6b)
-         ], (5, 3))
+        """
+        a = pmg_units.Length(a, units).to("ang")
+        lattice = float(a) * np.eye(3)
+        frac_coords = np.reshape([
+            0,     0,   0,  # A (2a)
+            0.5, 0.5, 0.5,  # B (2a)
+            0.5, 0.5, 0.0,  # O (6b)
+            0.5, 0.0, 0.5,  # O (6b)
+            0.0, 0.5, 0.5,  # O (6b)
+        ], (5, 3))
 
-       return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
+        return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
 
     @classmethod
     def from_abistring(cls, string):
@@ -550,7 +550,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
     def to(self, fmt=None, filename=None, **kwargs):
         __doc__ = pymatgen.Structure.to.__doc__ + \
-        "\n Accepts also fmt='abivars' and `.abi` as Abinit input file extension"
+            "\n Accepts also fmt='abivars' and `.abi` as Abinit input file extension"
 
         filename = filename or ""
         fmt = "" if fmt is None else fmt.lower()
@@ -599,14 +599,14 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         return("\n".join(lines))
 
-    def get_conventional_standard_structure(self, international_monoclinic=True, symprec=1e-3, angle_tolerance=5):
+    def get_conventional_standard_structure(self, international_monoclinic=True,
+                                           symprec=1e-3, angle_tolerance=5):
         """
         Gives a structure with a conventional cell according to certain
-	standards. The standards are defined in :cite:`Setyawan2010`
+        standards. The standards are defined in :cite:`Setyawan2010`
         They basically enforce as much as possible norm(a1) < norm(a2) < norm(a3)
 
-        Returns:
-            The structure in a conventional standardized cell
+        Returns: The structure in a conventional standardized cell
         """
         spga = SpacegroupAnalyzer(self, symprec=symprec, angle_tolerance=angle_tolerance)
         new = spga.get_conventional_standard_structure(international_monoclinic=international_monoclinic)
@@ -916,15 +916,14 @@ class Structure(pymatgen.Structure, NotebookWriter):
     def spgset_abi_spacegroup(self, has_timerev, overwrite=False):
         """
         Call spglib to find the spacegroup of the crystal, create new
-	:class:`AbinitSpaceGroup` object and store it in ``self.abi_spacegroup``.
+        :class:`AbinitSpaceGroup` object and store it in ``self.abi_spacegroup``.
 
         Args:
             has_timerev (bool): True if time-reversal can be used.
             overwrite (bool): By default, the method raises `ValueError` if the object
                 already has the list of symmetries found by Abinit.
 
-        Returns:
-	    :class:`AbinitSpaceGroup`
+        Returns: :class:`AbinitSpaceGroup`
 
         .. warning:
 
@@ -1002,13 +1001,13 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
     def abiget_spginfo(self, tolsym=None, pre=None):
         """
-	Call Abinit to get spacegroup information.
-	Return dictionary with e.g.
+        Call Abinit to get spacegroup information.
+        Return dictionary with e.g.
         {'bravais': 'Bravais cF (face-center cubic)', 'spg_number': 227, 'spg_symbol': 'Fd-3m'}.
 
-	Args:
+        Args:
             tolsym: Abinit tolsym input variable. None correspondes to the default value.
-	    pre: Keywords in dictionary are prepended with this string
+            pre: Keywords in dictionary are prepended with this string
         """
         from abipy.data.hgh_pseudos import HGH_TABLE
         from abipy.abio import factories
@@ -1131,7 +1130,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             if issamek(kpoint.frac_coords, star.base_point.frac_coords):
                 return star.name
 
-	# Now check if kpoint is in one of the stars.
+        # Now check if kpoint is in one of the stars.
         for star in self.hsym_stars:
             i = star.find(kpoint)
             if i != -1:
@@ -2051,7 +2050,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
 
 def dataframes_from_structures(struct_objects, index=None, symprec=1e-2, angle_tolerance=5,
-	                       with_spglib=True, cart_coords=False):
+                               with_spglib=True, cart_coords=False):
     """
     Build two pandas Dataframes_ with the most important geometrical parameters associated to
     a list of structures or a list of objects that can be converted into structures.
@@ -2083,8 +2082,8 @@ def dataframes_from_structures(struct_objects, index=None, symprec=1e-2, angle_t
     structures = [Structure.as_structure(obj) for obj in struct_objects]
     # Build Frame with lattice parameters.
     # Use OrderedDict to have columns ordered nicely.
-    odict_list = [(structure.get_dict4pandas(with_spglib=with_spglib, symprec=symprec, angle_tolerance=angle_tolerance))
-	          for structure in structures]
+    odict_list = [(structure.get_dict4pandas(with_spglib=with_spglib, symprec=symprec,
+                                             angle_tolerance=angle_tolerance)) for structure in structures]
 
     import pandas as pd
     lattice_frame = pd.DataFrame(odict_list, index=index,

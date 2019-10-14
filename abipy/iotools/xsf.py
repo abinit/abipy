@@ -132,7 +132,7 @@ def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None):
         for z in range(fgrid[0]):
             for y in range(fgrid[1]):
                 slice_x = fdata[dg,z,y]
-                fwrite(' '.join(['%f' % d for d in slice_x]) )
+                fwrite(' '.join(['%f' % d for d in slice_x]))
                 fwrite('\n')
             fwrite('\n')
 

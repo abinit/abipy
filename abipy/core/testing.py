@@ -54,7 +54,9 @@ def has_abinit(version=None, op=">=", manager=None):
     else:
         return cmp_version(build.version, version, op=op)
 
+
 _HAS_MATPLOTLIB_CALLS = 0
+
 
 def has_matplotlib(version=None, op=">="):
     """

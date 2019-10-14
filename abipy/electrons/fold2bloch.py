@@ -67,10 +67,10 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
 
         # Initialize the electron bands from file.
         # Spectral weights are dimensioned with `nss`
-	# Fortran arrays.
-	# nctkarr_t("reduced_coordinates_of_unfolded_kpoints", "dp", "number_of_reduced_dimensions, nk_unfolded")
-	# nctkarr_t("unfolded_eigenvalues", "dp", "max_number_of_states, nk_unfolded, number_of_spins")
-	# nctkarr_t("spectral_weights", "dp", "max_number_of_states, nk_unfolded, nsppol_times_nspinor")
+        # Fortran arrays.
+        # nctkarr_t("reduced_coordinates_of_unfolded_kpoints", "dp", "number_of_reduced_dimensions, nk_unfolded")
+        # nctkarr_t("unfolded_eigenvalues", "dp", "max_number_of_states, nk_unfolded, number_of_spins")
+        # nctkarr_t("spectral_weights", "dp", "max_number_of_states, nk_unfolded, nsppol_times_nspinor")
         self._ebands = self.reader.read_ebands()
         self.nss = max(self.nsppol, self.nspinor)
         self.fold_matrix = self.reader.read_value("fold_matrix")
@@ -199,7 +199,7 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
             fontsize: Legend and title fontsize.
 
         Returns: |matplotlib-Figure|
-	"""
+        """
         cart_bounds = [self.pc_lattice.reciprocal_lattice.get_cartesian_coords(c)
                        for c in np.reshape(kbounds, (-1, 3))]
         uf_cart = self.uf_kpoints.get_cart_coords()

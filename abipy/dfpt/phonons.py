@@ -37,6 +37,7 @@ __all__ = [
     "PhdosFile",
 ]
 
+
 @functools.total_ordering
 class PhononMode(object):
     """
@@ -81,7 +82,7 @@ class PhononMode(object):
         Args:
             verbose: Verbosity level.
             with_displ: True to print phonon displacement.
-	"""
+        """
         lines = ["%s: q-point %s, frequency %.5f (eV)" % (self.__class__.__name__, self.qpoint, self.freq)]
         app = lines.append
 
@@ -128,7 +129,7 @@ class PhononBands(object):
                 amu = {at: a for at, a in zip(atomic_numbers, amu_list)}
             else:
                 cprint("Warning: file %s does not contain atomic_numbers.\nParticular methods need them!" %
-                        filepath, "red")
+                       filepath, "red")
                 amu = None
 
             non_anal_ph = None
@@ -255,11 +256,12 @@ class PhononBands(object):
     @property
     def nqpt(self):
         """An alias for num_qpoints."""
-        return  self.num_qpoints
+        return self.num_qpoints
 
     def __repr__(self):
         """String representation (short version)"""
-        return "<%s, nk=%d, %s, id=%s>" % (self.__class__.__name__, self.num_qpoints, self.structure.formula, id(self))
+        return "<%s, nk=%d, %s, id=%s>" % (
+                self.__class__.__name__, self.num_qpoints, self.structure.formula, id(self))
 
     def __str__(self):
         return self.to_string()
@@ -468,7 +470,7 @@ class PhononBands(object):
         w("@link page off")
         w("@with g0")
         w("@world xmin 0.00")
-        w('@world xmax %d' % (self.num_qpoints -1))
+        w('@world xmax %d' % (self.num_qpoints - 1))
         w('@world ymin %s' % wqnu_units.min())
         w('@world ymax %s' % wqnu_units.max())
         w('@default linewidth 1.5')
@@ -519,9 +521,7 @@ class PhononBands(object):
     #    return PhononBands3D(self.structure, self.qpoints, has_timrev, self.phfreqs, fermie)
 
     def qindex(self, qpoint):
-        """
-	Returns the index of the qpoint. Accepts integer or reduced coordinates.
-	"""
+        """Returns the index of the qpoint. Accepts integer or reduced coordinates."""
         if duck.is_intlike(qpoint):
             return int(qpoint)
         else:
@@ -737,7 +737,7 @@ class PhononBands(object):
                     q[0], q[1], q[2], self.phfreqs[iqpt, imode]))
 
                 for displ in displ_list[imode]:
-                    line = "#; "+ "; ".join("{:.6f}".format(i) for i in displ.real) + "; " \
+                    line = "#; " + "; ".join("{:.6f}".format(i) for i in displ.real) + "; " \
                            + "; ".join("{:.6f}".format(i) for i in displ.imag) + " \\"
                     lines.append(line)
 
@@ -816,9 +816,9 @@ class PhononBands(object):
             return h
 
         def reasonable_repetitions(natoms):
-            if (natoms < 4):        return (3,3,3)
-            if (4 < natoms < 50):   return (2,2,2)
-            if (50 < natoms):       return (1,1,1)
+            if (natoms < 4): return (3,3,3)
+            if (4 < natoms < 50): return (2,2,2)
+            if (50 < natoms): return (1,1,1)
 
         # http://henriquemiranda.github.io/phononwebsite/index.html
         data = {}
@@ -1829,7 +1829,7 @@ class PhononBands(object):
                 # not be repeated (if they are the real first or last point) or they will be already reapeated due
                 # to the split.
                 if any(np.allclose(q, labelled_q) for labelled_q in labelled_q_list):
-                    if 0 < i <len(split_q) - 1:
+                    if 0 < i < len(split_q) - 1:
                         ph_freqs.append(phf)
                         qpts.append(q)
                         displ.append(d)
@@ -2056,7 +2056,7 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
 
         Args:
             qpoint: integer, vector of reduced coordinates or |Kpoint| object.
-	    with_structure: True to add structural parameters.
+            with_structure: True to add structural parameters.
         """
         qindex, qpoint = self.qindex_qpoint(qpoint)
         phfreqs = self.phbands.phfreqs
@@ -2493,8 +2493,8 @@ class PhdosReader(ETSF_Reader):
 
         od = OrderedDict()
         for symbol in self.chemical_symbols:
-           type_idx = self.typeidx_from_symbol(symbol)
-           od[symbol] = values[type_idx]
+            type_idx = self.typeidx_from_symbol(symbol)
+            od[symbol] = values[type_idx]
 
         return od
 
@@ -2521,7 +2521,8 @@ class PhdosReader(ETSF_Reader):
         Return: |MsqDos| object.
         """
         if "msqd_dos_atom" not in self.rootgrp.variables:
-            raise RuntimeError("PHBST file does not contain `msqd_dos_atom` variable.\nPlease use a more recent Abinit version >= 9")
+            raise RuntimeError("PHBST file does not contain `msqd_dos_atom` variable.\n" +
+                               "Please use a more recent Abinit version >= 9")
 
         # nctkarr_t('msqd_dos_atom', "dp", 'number_of_frequencies, three, three, number_of_atoms') &
         # symmetric tensor still transpose (3,3) to be consistent.
@@ -3227,10 +3228,12 @@ class PhononBandsPlotter(NotebookWriter):
         if self.phdoses_dict and with_dos:
             phdos_objects = list(self.phdoses_dict.values())
 
-        return phbands_gridplot(phb_objects, titles=titles, phdos_objects=phdos_objects, units=units, fontsize=fontsize, show=False)
+        return phbands_gridplot(phb_objects, titles=titles, phdos_objects=phdos_objects,
+                                units=units, fontsize=fontsize, show=False)
 
     @add_fig_kwargs
-    def gridplot_with_hue(self, hue, with_dos=False, units="eV", width_ratios=(2, 1), ylims=None, fontsize=8, **kwargs):
+    def gridplot_with_hue(self, hue, with_dos=False, units="eV", width_ratios=(2, 1),
+                          ylims=None, fontsize=8, **kwargs):
         """
         Plot multiple phonon bandstructures and optionally DOSes on a grid.
         Group results by ``hue``.
@@ -3885,6 +3888,7 @@ class RobotWithPhbands(object):
             nbv.new_code_cell("robot.get_phbands_plotter().ipw_select_plot();"),
             nbv.new_code_cell("#robot.plot_phdispl(qpoint=(0, 0, 0));"),
         ]
+
 
 # TODO: PhdosRobot
 class PhbstRobot(Robot, RobotWithPhbands):

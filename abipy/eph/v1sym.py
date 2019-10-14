@@ -85,7 +85,7 @@ class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
     def read_v1_at_iq(self, key, iq, reshape_nfft_nspden=False):
         # Fortran array ("two, nfft, nspden, natom3, nqpt")
         v1 = self.reader.read_variable(key)[iq]
-        v1 = v1[..., 0] + 1j * v1[..., 1]  
+        v1 = v1[..., 0] + 1j * v1[..., 1]
         # reshape (nspden, nfft) dims because we are not interested in the spin dependence.
         if reshape_nfft_nspden: v1 = np.reshape(v1, (self.natom3, self.nspden * self.nfft))
         return v1
@@ -129,13 +129,13 @@ class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
             xs = np.arange(len(abs_diff))
             ax.hist(abs_diff, facecolor='g', alpha=0.75)
             ax.grid(True)
-            ax.set_title("idir: %d, iat: %d, pertsy: %d" % (idir, ipert, self.pertsy_qpt[iq, ipert, idir]), 
+            ax.set_title("idir: %d, iat: %d, pertsy: %d" % (idir, ipert, self.pertsy_qpt[iq, ipert, idir]),
                          fontsize=fontsize)
 
             ax.axvline(stats["mean"], color='k', linestyle='dashed', linewidth=1)
             _, max_ = ax.get_ylim()
-            ax.text(0.7, 0.7, "\n".join("%s = %.1E" % item for item in stats.items()), 
-                    fontsize=fontsize, horizontalalignment='center', verticalalignment='center', 
+            ax.text(0.7, 0.7, "\n".join("%s = %.1E" % item for item in stats.items()),
+                    fontsize=fontsize, horizontalalignment='center', verticalalignment='center',
                     transform=ax.transAxes)
 
         fig.suptitle("qpoint: %s" % repr(qpoint))
@@ -180,7 +180,7 @@ class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
             ])
 
             ax.grid(True)
-            ax.set_title("idir: %d, iat: %d, pertsy: %d" % (idir, ipert, self.pertsy_qpt[iq, ipert, idir]), 
+            ax.set_title("idir: %d, iat: %d, pertsy: %d" % (idir, ipert, self.pertsy_qpt[iq, ipert, idir]),
                          fontsize=fontsize)
             # Plot absolute error
             #ax.plot(xs, abs_diff, linestyle="-", color="red", alpha=1.0, label="Abs diff" if nu == 0 else None)
@@ -196,36 +196,36 @@ class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
             data = np.angle(origin_v1[nu], deg=True) - np.angle(symm_v1[nu], deg=True)
             #data = data[abs_diff > stats["mean"]]
             data = data[np.abs(origin_v1[nu]) > 1e-5]
-            ax.plot(np.arange(len(data)), data, 
+            ax.plot(np.arange(len(data)), data,
                     linestyle="--", color="red", alpha=0.4, label="diff angle degrees" if nu == 0 else None)
 
             #ax.plot(xs, origin_v1[nu].real, linestyle="--", color="red", alpha=0.4, label="Re Origin" if nu == 0 else None)
             #ax.plot(xs, -symm_v1[nu].real, linestyle="--", color="blue", alpha=0.4, label="Re Symm" if nu == 0 else None)
 
-            #ax.plot(xs, origin_v1[nu].real - symm_v1[nu].real, linestyle="--", color="red", alpha=0.4, 
+            #ax.plot(xs, origin_v1[nu].real - symm_v1[nu].real, linestyle="--", color="red", alpha=0.4,
             #        label="Re Origin" if nu == 0 else None)
 
             #ax.plot(xs, origin_v1[nu].imag, linestyle=":", color="red", alpha=0.4, label="Imag Origin" if nu == 0 else None)
             #ax.plot(xs, -symm_v1[nu].imag, linestyle=":", color="blue", alpha=0.4, label="Imag Symm" if nu == 0 else None)
 
-            #ax.plot(xs, origin_v1[nu].imag - symm_v1[nu].imag, linestyle="--", color="blue", alpha=0.4, 
+            #ax.plot(xs, origin_v1[nu].imag - symm_v1[nu].imag, linestyle="--", color="blue", alpha=0.4,
             #        label="Re Origin" if nu == 0 else None)
 
-            if nu == 0: 
+            if nu == 0:
                 ax.set_ylabel(r"Abs diff")
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
-            if ipert == natom -1: 
+            if ipert == natom -1:
                 ax.set_xlabel(r"FFT index")
 
             #ax.axvline(stats["mean"], color='k', linestyle='dashed', linewidth=1)
             _, max_ = ax.get_ylim()
-            ax.text(0.7, 0.7, "\n".join("%s = %.1E" % item for item in stats.items()), 
-                    fontsize=fontsize, horizontalalignment='center', verticalalignment='center', 
+            ax.text(0.7, 0.7, "\n".join("%s = %.1E" % item for item in stats.items()),
+                    fontsize=fontsize, horizontalalignment='center', verticalalignment='center',
                     transform=ax.transAxes)
 
             #ax2 = ax.twinx()
-            #rerr = 100 * abs_diff / np.abs(origin_v1[nu]) 
-            #ax2.plot(xs, rerr, linestyle="--", color="blue", alpha=0.4, 
+            #rerr = 100 * abs_diff / np.abs(origin_v1[nu])
+            #ax2.plot(xs, rerr, linestyle="--", color="blue", alpha=0.4,
             #          label=r"|V_{\mathrm{origin}}|" if nu == 0 else None)
 
         fig.suptitle("qpoint: %s" % repr(qpoint))

@@ -189,7 +189,7 @@ class GSphere(collections.abc.Sequence):
         """
         Transfer ``arr_on_mesh`` given on the FFT mesh to the G-sphere.
         """
-        indim =  arr_on_mesh.ndim
+        indim = arr_on_mesh.ndim
         arr_on_mesh = mesh.reshape(arr_on_mesh)
         ishape = arr_on_mesh.shape
         s0 = ishape[0]

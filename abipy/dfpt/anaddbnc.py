@@ -65,11 +65,11 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     def params(self):
         # -666 to support old anaddb.nc files without metadata
         return OrderedDict([
-	    ("asr", int(self.reader.read_value("asr", default=-666))),
-	    ("chneut", int(self.reader.read_value("chneut", default=-666))),
-	    ("dipdip", int(self.reader.read_value("dipdip", default=-666))),
-	    ("symdynmat", int(self.reader.read_value("symdynmat", default=-666))),
-	])
+            ("asr", int(self.reader.read_value("asr", default=-666))),
+            ("chneut", int(self.reader.read_value("chneut", default=-666))),
+            ("dipdip", int(self.reader.read_value("dipdip", default=-666))),
+            ("symdynmat", int(self.reader.read_value("symdynmat", default=-666))),
+        ])
 
     def __str__(self):
         return self.to_string()
@@ -393,7 +393,7 @@ class AnaddbNcRobot(Robot):
         ax.set_xticklabels(self.keys(), fontsize=fontsize)
         rotate_ticklabels(ax, 15)
 
-        if ix != len(ax_list) -1:
+        if ix != len(ax_list) - 1:
             for ix in range(ix + 1, len(ax_list)):
                 ax_list[ix].axis('off')
 

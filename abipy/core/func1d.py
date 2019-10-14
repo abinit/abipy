@@ -324,7 +324,7 @@ class Function1D(object):
     @lazy_property
     def l2_norm(self):
         r"""Compute :math:`\sqrt{\int |f(x)|^2 dx}`."""
-        return np.sqrt( (abs(self)**2).integral()[-1][1] )
+        return np.sqrt((abs(self)**2).integral()[-1][1])
 
     def fft(self):
         """Compute the FFT transform (negative sign)."""

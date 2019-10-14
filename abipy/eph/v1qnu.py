@@ -74,7 +74,7 @@ class V1qnuFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         # Fortran array nctkarr_t("v1_qnu", "dp", "two, nfft, nspden, natom3, nqlist")])
         v1_qnu = self.reader.read_variable("v1_qnu")[iq, nu, spin]
-        v1_qnu = v1_qnu[:, 0] + 1j * v1_qnu[:, 1]  
+        v1_qnu = v1_qnu[:, 0] + 1j * v1_qnu[:, 1]
         #wqnu = self.reader.read_variable["phfreqs"][nu]
         #v1_qnu /= np.sqrt(2 * wqnu)
         datar = np.reshape(np.abs(v1_qnu), self.ngfft)
@@ -92,7 +92,7 @@ class V1qnuFile(AbinitNcFile, Has_Structure, NotebookWriter):
                 xsf.xsf_write_data(fh, self.structure, datar, add_replicas=True)
             else:
                 raise NotImplementedError("extension %s is not supported." % ext)
-            
+
         return visu(filename)
 
     @add_fig_kwargs
@@ -143,7 +143,7 @@ class V1qnuFile(AbinitNcFile, Has_Structure, NotebookWriter):
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
         #title = "band_kq: %s, band_k: %s, kpoint: %s" % (band_kq, band_k, repr(kpoint))
         #ax.set_title(title, fontsize=fontsize)
-        
+
         return fig
 
     def yield_figs(self, **kwargs):  # pragma: no cover

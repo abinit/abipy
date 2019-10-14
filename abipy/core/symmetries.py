@@ -22,6 +22,7 @@ __all__ = [
     "AbinitSpaceGroup",
 ]
 
+
 def wrap_in_ucell(x):
     """
     Transforms x in its corresponding reduced number in the interval [0,1[."

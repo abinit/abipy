@@ -17,6 +17,7 @@ __all__ = [
     "PWWaveFunction",
 ]
 
+
 def latex_label_ispinor(ispinor, nspinor):
     if nspinor == 1:
         return ""
@@ -445,7 +446,7 @@ class PWWaveFunction(WaveFunction):
         nn_list = list(sorted(nn_list, key=lambda t: t[1]))
         if max_nn is not None and len(nn_list) > max_nn:
             cprint("For radius %s, found %s neighbors but only max_nn %s sites are show." %
-                    (radius, len(nn_list), max_nn), "yellow")
+                   (radius, len(nn_list), max_nn), "yellow")
             nn_list = nn_list[:max_nn]
 
         # Get grid of axes (one row for neighbor)
@@ -460,7 +461,7 @@ class PWWaveFunction(WaveFunction):
 
         # For each neighbor, plot psi along the line connecting site to nn.
         for i, (nn, ax) in enumerate(zip(nn_list, ax_list)):
-            nn_site, nn_dist, nn_sc_index  = nn
+            nn_site, nn_dist, nn_sc_index = nn
             title = "%s, %s, dist=%.3f A" % (nn_site.species_string, str(nn_site.frac_coords), nn_dist)
 
             r = interpolator.eval_line(site.frac_coords, nn_site.frac_coords, num=num, kpoint=kpoint)

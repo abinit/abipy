@@ -73,7 +73,7 @@ class ETSF_Reader(ionc.ETSF_Reader):
 
             Only netcdf files with phonon-related quantities contain this variable.
         """
-        for k in ("atomic_mass_units" , "atomic_numbers"):
+        for k in ("atomic_mass_units", "atomic_numbers"):
             if k not in self.rootgrp.variables:
                 raise RuntimeError("`%s` does not contain `%s` variable." % (self.path, k))
 

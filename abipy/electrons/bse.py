@@ -666,7 +666,7 @@ class MultipleMdfPlotter(object):
     MDF_TYPECPLX2TEX = {
         "exc": dict(re=r"$\Re(\varepsilon_{exc})$", im=r"$\Im(\varepsilon_{exc}$)", abs=r"$|\varepsilon_{exc}|$"),
         "rpa": dict(re=r"$\Re(\varepsilon_{rpa})$", im=r"$\Im(\varepsilon_{rpa})$", abs=r"$|\varepsilon_{rpa}|$"),
-        "gwrpa": dict(re=r"$\Re(\varepsilon_{gw-rpa})$", im=r"$\Im(\varepsilon_{gw-rpa})$", abs= r"$|\varepsilon_{gw-rpa}|$"),
+        "gwrpa": dict(re=r"$\Re(\varepsilon_{gw-rpa})$", im=r"$\Im(\varepsilon_{gw-rpa})$", abs=r"$|\varepsilon_{gw-rpa}|$"),
         }
 
     #alpha = 0.6
@@ -1054,7 +1054,7 @@ class _Tensor(object):
             raise ValueError("space should be either 'g' or 'r'")
 
     def __eq__(self, other):
-        if other is None:  return False
+        if other is None: return False
         return (np.allclose(self.reduced_tensor, other.reduced_tensor) and
                 self.lattice == other.lattice and
                 self.space == other.space)

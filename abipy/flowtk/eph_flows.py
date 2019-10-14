@@ -11,10 +11,10 @@ from .flows import Flow
 
 class GkqPathFlow(Flow):
     r"""
-    This flow computes the gkq e-ph matrix elements <k+q|\Delta V_q|k> for a list of q-points (usually a q-path). 
-    The results stored in the GKQ.nc files for the different q-points can be used to analyze the behaviour 
+    This flow computes the gkq e-ph matrix elements <k+q|\Delta V_q|k> for a list of q-points (usually a q-path).
+    The results stored in the GKQ.nc files for the different q-points can be used to analyze the behaviour
     of the e-ph matrix elements as a function of q with the the objects provided by the abipy.eph.gkq module.
-    It is also possible to compute the e-ph matrix elements using the interpolated DFPT potentials 
+    It is also possible to compute the e-ph matrix elements using the interpolated DFPT potentials
     if test_ft_interpolation is set to True.
     """
 
@@ -27,14 +27,14 @@ class GkqPathFlow(Flow):
         Args:
             workdir: Path to the working directory.
             scf_input: Input for the GS SCF run.
-            ngqpt: 3 integers defining the q-mesh. 
+            ngqpt: 3 integers defining the q-mesh.
             qbounds: List of boundaries defining the q-path used for the computation of the GKQ files.
-                The q-path is automatically generated using `ndivsm` and the reciprocal-space metric. 
+                The q-path is automatically generated using `ndivsm` and the reciprocal-space metric.
                 If `ndivsm` is negative, the code assumes that `qbounds` contains the full list of q-points
                 and no pre-processing is performed.
             with_becs: Activate calculation of Electric field and Born effective charges.
             ddk_tolerance: dict {"varname": value} with the tolerance used in the DDK run if `with_becs`.
-            test_ft_interpolation: True to add an extra Work in which the GKQ files are computed 
+            test_ft_interpolation: True to add an extra Work in which the GKQ files are computed
                 using the interpolated DFPT potentials and the q-mesh defined by `ngqpt`.
                 The quality of the interpolation depends on the convergence of the BECS, epsinf and `ngqpt`.
             prepgkk: 1 to activate computation of all 3*natom perts (debugging option).
@@ -46,7 +46,7 @@ class GkqPathFlow(Flow):
         scf_task = flow.register_scf_task(scf_input)[0]
 
         # Second work to compute phonons on the nqgpt q-mesh.
-        work_qmesh = PhononWork.from_scf_task(scf_task, qpoints=ngqpt, is_ngqpt=True, 
+        work_qmesh = PhononWork.from_scf_task(scf_task, qpoints=ngqpt, is_ngqpt=True,
                                               with_becs=with_becs, ddk_tolerance=ddk_tolerance)
         flow.register_work(work_qmesh)
 
@@ -57,7 +57,7 @@ class GkqPathFlow(Flow):
             # Use input list of q-pooints.
             qpath_list = np.reshape(qbounds, (-1, 3))
 
-        # Compute WFK/WFQ and phonons for qpt in qpath_list. 
+        # Compute WFK/WFQ and phonons for qpt in qpath_list.
         # Don't include BECS because they have been already computed in the previous work.
         work_qpath = PhononWfkqWork.from_scf_task(scf_task, qpath_list, ph_tolerance=None, tolwfr=1.0e-22, nband=None,
                       with_becs=False, ddk_tolerance=None, shiftq=(0, 0, 0), is_ngqpt=False, remove_wfkq=False,

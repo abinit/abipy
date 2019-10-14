@@ -604,17 +604,17 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         if limit_frequencies == "debye":
             adt = self.acoustic_debye_temp
-            ind = np.where((0<=w) & (w <= adt * abu.kb_eVK))
+            ind = np.where((0 <= w) & (w <= adt * abu.kb_eVK))
         elif limit_frequencies == "acoustic":
             w_acoustic = w[:, :3]
             ind = np.where(w_acoustic >= 0)
         elif limit_frequencies is None:
-            ind = np.where(w>=0)
+            ind = np.where(w >= 0)
         else:
             raise ValueError("{} is not an accepted value for limit_frequencies".format(limit_frequencies))
 
         weights = self.doses['qpoints'].weights
-        g = np.dot(weights[ind[0]], np.multiply(cv, gamma)[ind]).sum()/ np.dot(weights[ind[0]], cv[ind]).sum()
+        g = np.dot(weights[ind[0]], np.multiply(cv, gamma)[ind]).sum() / np.dot(weights[ind[0]], cv[ind]).sum()
 
         if squared:
             g = np.sqrt(g)
@@ -639,7 +639,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         average_mass = np.mean([s.specie.atomic_mass for s in self.structure]) * amu_to_kg
         mean_g = self.average_gruneisen(t=None, squared=squared, limit_frequencies=limit_frequencies)
         theta_d = self.acoustic_debye_temp
-        factor1 = 0.849 * 3 * (4) ** (1. / 3.) / ( 20 * np.pi ** 3 * (1 - 0.514 * mean_g ** -1 + 0.228 * mean_g ** -2))
+        factor1 = 0.849 * 3 * (4) ** (1. / 3.) / (20 * np.pi ** 3 * (1 - 0.514 * mean_g ** -1 + 0.228 * mean_g ** -2))
         factor2 = (const.k * theta_d / const.hbar) ** 2
         factor3 = const.k * average_mass * self.structure.volume ** (1. / 3.) * 1e-10 / (const.hbar * mean_g ** 2)
         return factor1 * factor2 * factor3

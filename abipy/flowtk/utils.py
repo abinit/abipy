@@ -234,7 +234,8 @@ class Directory(object):
 
         Args:
             wildcard: String of tokens separated by "|". Each token represents a pattern.
-                If wildcard is not None, we return only those files that match the given shell pattern (uses fnmatch).
+                If wildcard is not None, we return only those files that match
+                the given shell pattern (uses fnmatch).
                 Example:
                   wildcard="*.nc|*.pdf" selects only those files that end with .nc or .pdf
         """
@@ -451,12 +452,14 @@ class Directory(object):
         pertfile_list = sorted(pertfile_list, key=lambda t: t[0])
         return [dict2namedtuple(pertcase=item[0], path=item[1]) for item in pertfile_list]
 
+
 # This dictionary maps ABINIT file extensions to the variables that must be used to read the file in input.
 #
 # TODO: It would be nice to pass absolute paths to abinit with getden_path
 # so that I can avoid creating symbolic links before running but
 # the presence of the C-bindings complicates the implementation
 # (gfortran SIGFAULTs if I add strings to dataset_type!
+
 _EXT2VARS = {
     "DEN": {"irdden": 1},
     "WFK": {"irdwfk": 1},
@@ -628,6 +631,7 @@ def _bop_or(obj1, obj2):
 def _bop_divisible(num1, num2):
     """Return True if num1 is divisible by num2."""
     return (num1 % num2) == 0.0
+
 
 # Mapping string --> operator.
 _UNARY_OPS = {
