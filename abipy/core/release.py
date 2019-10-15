@@ -3,7 +3,7 @@
 
 from collections import OrderedDict
 
-# Name of the package for release purposes.  This is the name which labels
+# Name of the package for release purposes. This is the name which labels
 # the tarballs and RPMs made by distutils, so it's best to lowercase it.
 name = 'abipy'
 
@@ -12,8 +12,8 @@ name = 'abipy'
 _version_major = 0
 _version_minor = 7
 _version_micro = '0'  # use '' for first of series, number for 1 and above
-_version_extra = 'dev'
-#_version_extra = ''  # Uncomment this for full releases
+#_version_extra = 'dev'
+_version_extra = ''  # Uncomment this for full releases
 
 # Construct full version string from these.
 _ver = [_version_major, _version_minor]

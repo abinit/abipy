@@ -144,7 +144,6 @@ install_requires = [
     "apscheduler==2.1.0",
     "pydispatcher>=2.0.5",
     "tqdm",
-    "html2text",
     "pyyaml>=3.11",
     "pandas",
     "numpy",
