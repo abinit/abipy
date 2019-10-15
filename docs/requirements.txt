@@ -1,10 +1,10 @@
 ipython
-sphinx==1.6.5
+sphinx
+#==1.6.5
 sphinxcontrib-napoleon
 sphinxcontrib-programoutput
 sphinx-gallery
 sphinx-argparse
 sphinx_bootstrap_theme
-#nbsphinx
 sphinxcontrib-bibtex
 releases
