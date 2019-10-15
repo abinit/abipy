@@ -12,8 +12,6 @@ import itertools
 import numpy as np
 
 from collections import OrderedDict, namedtuple
-from monty.string import list_strings
-from monty.functools import lazy_property
 from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt, get_ax3d_fig_plt, get_axarray_fig_plt
 from .numtools import data_from_cplx_mode
 

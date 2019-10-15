@@ -3,10 +3,9 @@
 
 import numpy as np
 
-from itertools import product as iproduct
-from collections import deque
+#from itertools import product as iproduct
 from monty.functools import lazy_property
-from numpy.random import random
+#from numpy.random import random
 from numpy.fft import fftn, ifftn, fftshift, ifftshift, fftfreq
 from abipy.tools import duck
 

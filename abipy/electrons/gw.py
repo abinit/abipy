@@ -6,11 +6,11 @@ import warnings
 import numpy as np
 import pandas as pd
 
-from collections import namedtuple, OrderedDict, defaultdict
+from collections import namedtuple, OrderedDict
 from io import StringIO
 from tabulate import tabulate
 from monty.string import list_strings, is_string, marquee
-from monty.collections import AttrDict, dict2namedtuple
+from monty.collections import dict2namedtuple
 from monty.functools import lazy_property
 from monty.termcolor import cprint
 from monty.bisect import find_le, find_ge
@@ -19,7 +19,7 @@ from abipy.core.kpoints import Kpoint, KpointList, Kpath, IrredZone, has_timrev_
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.iotools import ETSF_Reader
 from abipy.tools.plotting import (ArrayPlotter, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, Marker,
-    set_axlims, set_visible, rotate_ticklabels, ax_append_title)
+    set_axlims, set_visible, rotate_ticklabels)
 from abipy.tools import duck
 from abipy.abio.robots import Robot
 from abipy.electrons.ebands import ElectronBands, RobotWithEbands

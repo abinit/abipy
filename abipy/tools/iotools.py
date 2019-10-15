@@ -1,7 +1,6 @@
 # coding: utf-8
 """IO related utilities."""
 import os
-import tempfile
 
 from subprocess import call
 from monty.termcolor import cprint

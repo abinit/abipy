@@ -7,7 +7,7 @@ import numpy as np
 from collections import OrderedDict
 from monty.string import list_strings, marquee
 from monty.functools import lazy_property
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, linestyles
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
 from abipy.core.kpoints import Kpath
 from abipy.abio.robots import Robot
@@ -370,6 +370,7 @@ class V1qAvgRobot(Robot):
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
+        args = [(l, f.filepath) for l, f in self.items()]
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("robot = abilab.V1qAvgRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),

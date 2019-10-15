@@ -1,12 +1,8 @@
 """Database with the names of the input variables used in Abinit and in other main programs."""
 import sys
-import os
 
 from collections import OrderedDict
 
-# Unit names.
-# Operators.
-from abipy.abio.abivar_database.variables import ABI_UNITS, ABI_OPS
 
 ##############
 # Public API #

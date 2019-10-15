@@ -3,7 +3,6 @@ This module gathers the most important classes and helper functions used for scr
 """
 from __future__ import print_function, division, unicode_literals
 
-import sys
 import os
 import collections
 
@@ -24,7 +23,7 @@ ArrayWithUnit = units.ArrayWithUnit
 ####################
 ### Abipy import ###
 ####################
-from abipy.flowtk import Pseudo, PseudoTable, Mrgscr, Mrgddb, Mrggkk, Flow, Work, TaskManager, AbinitBuild, flow_main
+from abipy.flowtk import Pseudo, PseudoTable, Mrgscr, Mrgddb, Flow, Work, TaskManager, AbinitBuild, flow_main
 from abipy.core.release import __version__, min_abinit_version
 from abipy.core.globals import enable_notebook, in_notebook, disable_notebook
 from abipy.core import restapi

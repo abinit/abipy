@@ -1,11 +1,10 @@
 """Integration tests for GW flows."""
 
-import pytest
 import abipy.data as abidata
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk
 
-from abipy.core.testing import has_abinit, has_matplotlib
+#from abipy.core.testing import has_abinit, has_matplotlib
 
 
 def make_g0w0_inputs(ngkpt, tvars):

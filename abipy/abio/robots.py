@@ -692,7 +692,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
             if self._do_close.pop(abifile.filepath, False):
                 try:
                     abifile.close()
-                except Exception:
+                except Exception as exc:
                     print("Exception while closing: ", abifile.filepath)
                     print(exc)
 

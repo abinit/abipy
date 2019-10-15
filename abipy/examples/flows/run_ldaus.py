@@ -10,7 +10,6 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import sys
 import os
-import numpy as np
 import abipy.data as abidata
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk

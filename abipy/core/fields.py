@@ -8,7 +8,7 @@ import os
 from collections import OrderedDict
 from monty.collections import AttrDict
 from monty.functools import lazy_property
-from monty.string import is_string
+from monty.string import is_string, marquee
 from monty.termcolor import cprint
 from monty.inspect import all_subclasses
 from pymatgen.io.vasp.inputs import Poscar
@@ -502,7 +502,7 @@ class _Field(Has_Structure):
 
             elif self.nspinor == 2:
                 raise NotImplementedError()
-                ntot, mx, my, mz = scalvec_from_spinmat(res_nspden)
+                #ntot, mx, my, mz = scalvec_from_spinmat(res_nspden)
                 nup, ndown = 0.5 * (ntot + mz), 0.5 * (ntot - mz)
 
             # Fill DataFrame row.

@@ -3,8 +3,7 @@
 import os
 import numpy as np
 
-from collections import OrderedDict
-from monty.string import marquee # is_string, list_strings,
+from monty.string import marquee
 from monty.functools import lazy_property
 from monty.collections import dict2namedtuple
 from monty.termcolor import cprint

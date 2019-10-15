@@ -7,7 +7,6 @@ import sys
 from collections import OrderedDict
 from pprint import pprint
 from monty.functools import lazy_property
-from monty.collections import dict2namedtuple
 from monty.string import marquee
 from pymatgen import SETTINGS
 from pymatgen.ext.matproj import MPRester, MPRestError

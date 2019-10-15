@@ -53,47 +53,6 @@ class TransportFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, 
         od = self.get_ebands_params()
         return od
 
-    # These methods are related to the old Bolztrap2 interface
-    def get_transport_result(self,itemp=None,el_temp=300):
-        """
-        Get one instance of TransportResult according to a temperature
-
-        Args:
-            itemp: the index of the temperature from which to create the TransportResult class
-                   if None, read the transport value without tau
-            el_temp: temperature to use in the Fermi integrations
-        """
-        reader = self.reader
-        wmesh, dos, idos = reader.read_dos()
-
-        if itemp is None:
-            wmesh, vvdos = reader.read_vvdos()
-            tau_temp = None
-        else:
-            wmesh, vvdos = reader.read_vvdos_tau(itemp)
-            tau_temp = reader.tmesh[itemp]
-            el_temp = tau_temp
-
-        # TODO spin
-        #self.nsppol
-        dos = dos[0]
-        vvdos = vvdos[:,:,0]
-
-        volume_b3 = self.structure.volume * abu.Ang_Bohr**3
-        fermi_ha = self.ebands.fermie * abu.eV_Ha
-        tr = TransportResult(wmesh,wmesh,dos,vvdos,fermi_ha,el_temp,volume_b3,self.nelect,
-                             tau_temp=tau_temp,nsppol=reader.nsppol)
-        tr._L0,tr._L1,tr._L2 = reader.read_onsager(itemp)
-        tr._sigma,tr._seebeck,tr._kappa,_ = reader.read_transport(itemp)
-        return tr
-
-    def get_all_transport_results(self):
-        """
-        Return multiple instances of TransportResults from the data in the TRANSPORT.nc file
-        """
-        results = [self.get_transport_result(itemp=itemp) for itemp in list(range(self.ntemp))]
-        return TransportResultRobot(results)
-
     @add_fig_kwargs
     def plot_dos(self, ax=None, **kwargs):
         """

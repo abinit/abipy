@@ -4,7 +4,6 @@
 import ipywidgets as ipw
 
 from collections import OrderedDict
-from abipy.tools.plotting import get_ax_fig_plt
 
 
 #def add_docstrings(*tuples):

@@ -4,11 +4,9 @@ Interface to the database of ABINIT input variables
 """
 
 import sys
-import os
 import argparse
 import abipy.flowtk as flowtk
 
-from pprint import pprint
 from monty.functools import prof_main
 from monty.termcolor import cprint
 from abipy.core.release import __version__

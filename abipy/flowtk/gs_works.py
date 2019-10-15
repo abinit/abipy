@@ -1,7 +1,6 @@
 # coding: utf-8
 """Work subclasses related to GS calculations."""
 import json
-import numpy as np
 
 from .works import Work
 from abipy.core.structure import Structure

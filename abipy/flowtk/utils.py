@@ -854,7 +854,7 @@ class SparseHistogram(object):
         if num is None and step is None:
             raise ValueError("Either num or step must be specified")
 
-        from collections import defaultdict, OrderedDict
+        from collections import defaultdict
 
         values = [key(item) for item in items] if key is not None else items
         start, stop = min(values), max(values)
@@ -933,11 +933,11 @@ class Dirviz(object):
 
         # Add input attributes.
         if graph_attr is not None:
-            fg.graph_attr.update(**graph_attr)
+            g.graph_attr.update(**graph_attr)
         if node_attr is not None:
-            fg.node_attr.update(**node_attr)
+            g.node_attr.update(**node_attr)
         if edge_attr is not None:
-            fg.edge_attr.update(**edge_attr)
+            g.edge_attr.update(**edge_attr)
 
         def node_kwargs(path):
             return dict(

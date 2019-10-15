@@ -199,8 +199,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         try:
             return InteratomicForceConstants.from_file(self.filepath)
         except Exception as exc:
-            #print(exc)
-            #cprint("Interatomic force constants have not been calculated. Returning None", "red")
+            cprint("Interatomic force constants have not been calculated. Returning None", "red")
             return None
 
     @lazy_property

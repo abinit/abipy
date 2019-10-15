@@ -6,7 +6,6 @@ or convert data from Abinit files (usually netcdf) to other formats.
 import sys
 import os
 import argparse
-import numpy as np
 
 from monty.functools import prof_main
 from monty.termcolor import cprint

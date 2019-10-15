@@ -1188,6 +1188,7 @@ class A2fRobot(Robot, RobotWithEbands, RobotWithPhbands):
             if hue is None:
                 params_are_string = duck.is_string(params[0])
                 xvals = params if not params_are_string else range(len(params))
+                l = None
                 for iq, qsamp in enumerate(qsamps):
                     a2f_list = [ncfile.get_a2f_qsamp(qsamp) for ncfile in ncfiles]
                     yvals = [getattr(a2f, what) for a2f in a2f_list]

@@ -1,10 +1,10 @@
 """Integration tests for BSE flows."""
-import pytest
+#import pytest
 import abipy.data as abidata
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk
 
-from abipy.core.testing import has_abinit, has_matplotlib
+#from abipy.core.testing import has_abinit, has_matplotlib
 
 # TODO
 #def itest_bse_with_mdf(fwp, tvars):

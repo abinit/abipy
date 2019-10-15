@@ -1,5 +1,4 @@
 # coding: utf-8
-import sys
 import functools
 import numpy as np
 import itertools
@@ -11,7 +10,7 @@ import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
 from monty.string import is_string, list_strings, marquee
-from monty.collections import AttrDict, dict2namedtuple
+from monty.collections import dict2namedtuple
 from monty.functools import lazy_property
 from monty.termcolor import cprint
 from pymatgen.core.units import eV_to_Ha, Energy
@@ -3671,7 +3670,6 @@ class PhononDosPlotter(NotebookWriter):
         titles = list(self._phdoses_dict.keys())
         phdos_list = list(self._phdoses_dict.values())
 
-        import matplotlib.pyplot as plt
         nrows, ncols = 1, 1
         numeb = len(phdos_list)
         if numeb > 1:

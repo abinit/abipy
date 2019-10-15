@@ -25,7 +25,7 @@ from .utils import File, Directory, irdvars_for_ext, abi_splitext, FilepathFixer
 from .qadapters import make_qadapter, QueueAdapter, QueueAdapterError
 from . import qutils as qu
 from .db import DBConnector
-from .nodes import Status, Node, NodeError, NodeResults, NodeCorrections, FileNode, check_spectator
+from .nodes import Status, Node, NodeError, NodeResults, FileNode #, check_spectator
 from . import abiinspect
 from . import events
 from .abitimer import AbinitTimerParser
@@ -539,7 +539,6 @@ class TaskManager(MSONable):
 
     @classmethod
     def autodoc(cls):
-        from abipy.flowtk.db import DBConnector
         s = """
 # TaskManager configuration file (YAML Format)
 
@@ -564,7 +563,6 @@ batch_adapter:
 """
         s += "policy: " + TaskPolicy.autodoc() + "\n"
         s += "qadapter: " + QueueAdapter.autodoc() + "\n"
-        #s += "db_connector: " + DBConnector.autodoc()
         return s
 
     @classmethod

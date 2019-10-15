@@ -1,5 +1,4 @@
 import string
-import warnings
 import collections
 import numpy as np
 

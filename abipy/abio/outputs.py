@@ -370,7 +370,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         if self.run_completed:
             return self._get_structures("footer")
         else:
-            print("Cannot extract final structures from file.\n %s" % str(exc))
+            cprint("Cannot extract final structures from file.\n %s" % self.filepath, "red")
             return []
 
     @lazy_property

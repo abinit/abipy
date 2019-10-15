@@ -7,9 +7,7 @@ Alternatively, it is possible to generate automatically a jupyter notebook to ex
 """
 import sys
 import os
-import io
 import argparse
-import tempfile
 
 from monty.os.path import which
 from monty.termcolor import cprint

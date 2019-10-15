@@ -5,15 +5,14 @@ import os
 import collections
 import tempfile
 import pickle
+import numpy as np
 
 from time import ctime
-import numpy as np
 from monty.os.path import which
 from monty.termcolor import cprint
-from monty.string import is_string, list_strings
+from monty.string import list_strings
 from monty.collections import dict2namedtuple
 from monty.functools import lazy_property
-from abipy.flowtk.netcdf import NetcdfReader, NO_DEFAULT
 
 
 __all__ = [

@@ -10,6 +10,7 @@ import spglib
 from monty.string import is_string
 from monty.itertools import iuptri
 from monty.functools import lazy_property
+from monty.termcolor import cprint
 from monty.collections import dict2namedtuple
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.util.serialization import SlotPickleMixin
@@ -699,17 +700,17 @@ class AbinitSpaceGroup(OpSequence):
                    has_timerev=has_timrev_from_kptopt(kptopt),
                    inord=inord)
 
-    @classmethod
-    def from_file(cls, ncfile, inord="F"):
-        """
-        Initialize the object from a Netcdf file.
-        """
-        r, closeit = as_etsfreader(ncfile)
-        new = cls.from_ncreader(r)
-        if closeit:
-            file.close()
+    #@classmethod
+    #def from_file(cls, ncfile, inord="F"):
+    #    """
+    #    Initialize the object from a Netcdf file.
+    #    """
+    #    r, closeit = as_etsfreader(ncfile)
+    #    new = cls.from_ncreader(r)
+    #    if closeit:
+    #        file.close()
 
-        return new
+    #    return new
 
     @classmethod
     def from_structure(cls, structure, has_timerev=True, symprec=1e-5, angle_tolerance=5):

@@ -2,7 +2,7 @@
 """Density/potential files in netcdf/fortran format."""
 import os
 import tempfile
-import numpy as np
+#import numpy as np
 
 from monty.string import marquee
 from monty.termcolor import cprint

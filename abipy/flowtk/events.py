@@ -12,7 +12,7 @@ import abc
 import logging
 import numpy as np
 
-from monty.string import indent, is_string, list_strings
+from monty.string import indent, is_string
 from monty.fnmatch import WildCard
 from monty.termcolor import colored
 from monty.inspect import all_subclasses

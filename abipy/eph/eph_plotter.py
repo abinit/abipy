@@ -4,10 +4,7 @@ Objects to plot electronic, vibrational and e-ph properties.
 """
 import numpy as np
 
-from monty.string import marquee, list_strings
-from monty.termcolor import cprint
-from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
-    rotate_ticklabels, ax_append_title, set_ax_xylabels, ax_share)
+from abipy.tools.plotting import (add_fig_kwargs, get_axarray_fig_plt, set_axlims, set_visible, ax_share)
 from abipy.tools import duck
 from abipy.electrons.ebands import ElectronBands
 from abipy.dfpt.ddb import DdbFile

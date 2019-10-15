@@ -27,7 +27,7 @@ from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fi
     rotate_ticklabels, ax_append_title, set_ax_xylabels, linestyles)
 from abipy.tools import gaussian, duck
 from abipy.electrons.ebands import ElectronBands, ElectronDos, RobotWithEbands, ElectronBandsPlotter, ElectronDosPlotter
-from abipy.dfpt.phonons import PhononDos # PhononBands, RobotWithPhbands, factor_ev2units, unit_tag, dos_label_from_units
+#from abipy.dfpt.phonons import PhononDos # PhononBands, RobotWithPhbands, factor_ev2units, unit_tag, dos_label_from_units
 from abipy.abio.robots import Robot
 from abipy.eph.common import BaseEphReader
 

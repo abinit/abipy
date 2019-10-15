@@ -4,7 +4,6 @@ The syntax is similar to the one used in ABINIT with small differences.
 """
 import os
 import collections
-import warnings
 import itertools
 import copy
 import time
@@ -263,10 +262,10 @@ class AbiAbstractInput(AbstractInput):
         the corresponding variables to the input.
         """
         d = {}
-        for aobj in abi_objects:
-            if not hasattr(aobj, "to_abivars"):
-                raise TypeError("type %s: %s does not have `to_abivars` method" % (type(aobj), repr(aobj)))
-            d.update(self.set_vars(aobj.to_abivars()))
+        for obj in abi_objects:
+            if not hasattr(obj, "to_abivars"):
+                raise TypeError("type %s: %s does not have `to_abivars` method" % (type(obj), repr(obj)))
+            d.update(self.set_vars(obj.to_abivars()))
         return d
 
     @abc.abstractmethod
@@ -369,12 +368,9 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
         import hashlib
         sha1 = hashlib.sha1()
 
-        try:
-            tos = unicode
-        except NameError:
-            # Py3K
-            def tos(s):
-                return str(s).encode(encoding="utf-8")
+        # Py3K
+        def tos(s):
+            return str(s).encode(encoding="utf-8")
 
         # Add key, values to sha1
         # (not sure this is code is portable: roundoff errors and conversion to string)

@@ -8,12 +8,12 @@ from collections import OrderedDict, defaultdict
 from tabulate import tabulate
 from monty.termcolor import cprint
 from monty.functools import lazy_property
-from monty.string import marquee, list_strings
+from monty.string import marquee #, list_strings
 from pymatgen.core.periodic_table import Element
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.electrons.ebands import ElectronsReader
 from abipy.tools import gaussian
-from abipy.tools.plotting import set_axlims, get_axarray_fig_plt, add_fig_kwargs, get_ax_fig_plt
+from abipy.tools.plotting import set_axlims, get_axarray_fig_plt, add_fig_kwargs #, get_ax_fig_plt
 
 
 def gaussians_dos(dos, mesh, width, values, energies, weights):
@@ -256,7 +256,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             else:
                 print("natsph < natom. Will set to zero the PJDOS contributions for the atoms that are not included.")
                 assert self.natsph < self.natom
-                filedata = np.reshape(r.read_value(key),
+                filedata = np.reshape(self.reader.read_value(key),
                                      (self.natsph, self.mbesslang**2, self.nsppol, self.mband, self.nkpt))
                 for i, iatom in enumerate(self.iatsph):
                     walm_sbk[iatom] = filedata[i]
@@ -608,7 +608,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         # Build plot grid.
         import matplotlib.pyplot as plt
-        from matplotlib.gridspec import GridSpec, GridSpecFromSubplotSpec
+        from matplotlib.gridspec import GridSpec #, GridSpecFromSubplotSpec
         fig = plt.figure()
         nrows, ncols = 2 * (mylmax+1), mylmax + 1
         gspec = GridSpec(nrows=nrows, ncols=ncols, wspace=0.1, hspace=0.1)
@@ -1407,6 +1407,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         # Build plot grid.
         nrows, ncols = np.count_nonzero(self.has_atom), self.lsize
+        ax_mat = None
         ax_mat, fig, plt = get_axarray_fig_plt(ax_mat, nrows=nrows, ncols=ncols,
                                                sharex=True, sharey=True, squeeze=False)
         ax_mat = np.reshape(ax_mat, (nrows, ncols))

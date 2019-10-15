@@ -1,12 +1,11 @@
 """Integration tests for structural relaxations."""
 
-import pytest
 import numpy as np
 import abipy.data as abidata
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk
 
-from abipy.core.testing import has_abinit, has_matplotlib
+from abipy.core.testing import has_matplotlib
 
 
 def ion_relaxation(tvars, ntime=50):

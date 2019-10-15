@@ -1,6 +1,5 @@
 # coding: utf-8
 """Classes to analyse electronic structures."""
-import sys
 import os
 import copy
 import itertools
@@ -16,7 +15,7 @@ from collections import OrderedDict, namedtuple
 from collections.abc import Iterable
 from monty.string import is_string, list_strings, marquee
 from monty.termcolor import cprint
-from monty.json import MSONable, MontyEncoder
+from monty.json import MontyEncoder
 from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.bisect import find_le, find_gt
@@ -25,7 +24,7 @@ from pymatgen.electronic_structure.core import Spin as PmgSpin
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import Has_Structure, NotebookWriter
 from abipy.core.kpoints import (Kpoint, KpointList, Kpath, IrredZone, KSamplingInfo, KpointsReaderMixin,
-    Ktables, has_timrev_from_kptopt, map_grid2ibz, kmesh_from_mpdivs)
+    Ktables, has_timrev_from_kptopt, map_grid2ibz) #, kmesh_from_mpdivs)
 from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader
 from abipy.tools import gaussian, duck
@@ -2951,7 +2950,6 @@ class ElectronBandsPlotter(NotebookWriter):
         # Merge frames ignoring index (not meaningful)
         data = pd.concat(frames, ignore_index=True)
 
-        import matplotlib.pyplot as plt
         import seaborn as sns
         if not spin_polarized:
             ax, fig, plt = get_ax_fig_plt(ax=ax)
@@ -2961,6 +2959,7 @@ class ElectronBandsPlotter(NotebookWriter):
                 sns.swarmplot(x="band", y="eig", data=data, hue="label", color=".25", ax=ax)
         else:
             # Generate two subplots for spin-up / spin-down channels.
+            import matplotlib.pyplot as plt
             if ax is not None:
                 raise NotImplementedError("ax == None not implemented when nsppol==2")
             fig, ax_list = plt.subplots(nrows=2, ncols=1, sharex=True, squeeze=False)
@@ -3939,7 +3938,7 @@ class Bands3D(Has_Structure):
             for ikuc, ik_ibz in enumerate(self.uc2ibz):
                 ucdata_sbk[:, :, ikuc] = scalars[:, :, ik_ibz]
         else:
-            raise ValueError("Wrong inshape: %s" % str(insp))
+            raise ValueError("Wrong inshape: %s" % str(inshape))
 
         return ucdata_sbk
 

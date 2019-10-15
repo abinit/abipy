@@ -2,7 +2,6 @@
 """This module provides functions to compute integrals of Bessel functions."""
 import numpy as np
 
-from collections import deque
 from scipy.special import spherical_jn
 from scipy.interpolate import UnivariateSpline
 from scipy.integrate import simps # cumtrapz, quad

@@ -7,7 +7,7 @@ import numpy as np
 from collections import OrderedDict
 from monty.string import marquee
 from monty.functools import lazy_property
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
 from abipy.core.kpoints import KpointList, Kpoint
 from abipy.tools import duck

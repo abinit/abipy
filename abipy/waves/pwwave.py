@@ -1,13 +1,11 @@
 # coding: utf-8
 """This module contains the class describing a planewave wavefunction."""
-import tempfile
-import copy
-import itertools
+#import copy
 import numpy as np
 
 from monty.termcolor import cprint
 from abipy.core import Mesh3D
-from abipy.core.kpoints import Kpoint
+#from abipy.core.kpoints import Kpoint
 from abipy.iotools import Visualizer
 from abipy.iotools.xsf import xsf_write_structure, xsf_write_data
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
@@ -23,7 +21,7 @@ def latex_label_ispinor(ispinor, nspinor):
         return ""
     elif nspinor == 2:
         return {k: v.replace("myuparrow", "uparrow") for k, v in
-            {0: r"$\sigma=\myuparrow$", 1: r"$\sigma=\downarrow$"}.items()}[ispden]
+            {0: r"$\sigma=\myuparrow$", 1: r"$\sigma=\downarrow$"}.items()}[ispinor]
     else:
         raise ValueError("Wrong value for nspinor: %s" % nspinor)
 

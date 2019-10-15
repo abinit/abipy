@@ -11,12 +11,12 @@ import abipy.core.abinit_units as abu
 from collections import OrderedDict
 from functools import lru_cache
 from monty.string import marquee, list_strings
-from monty.collections import AttrDict, dict2namedtuple, tree
+from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.termcolor import cprint
 from monty.dev import deprecated
-from pymatgen.core.units import eV_to_Ha, bohr_to_angstrom, ang_to_bohr, Energy
-from abipy.flowtk import NetcdfReader, AnaddbTask
+from pymatgen.core.units import eV_to_Ha, bohr_to_angstrom, Energy
+from abipy.flowtk import AnaddbTask
 from abipy.core.mixins import TextFile, Has_Structure, NotebookWriter
 from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.core.structure import Structure
@@ -28,7 +28,7 @@ from abipy.dfpt.phonons import PhononDosPlotter, PhononBandsPlotter
 from abipy.dfpt.ifc import InteratomicForceConstants
 from abipy.dfpt.elastic import ElasticData
 from abipy.core.abinit_units import phfactor_ev2units, phunit_tag
-from abipy.tools.plotting import Marker, add_fig_kwargs, get_ax_fig_plt, set_axlims, get_axarray_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.tools import duck
 from abipy.tools.tensors import DielectricTensor, ZstarTensor, Stress
 from abipy.abio.robots import Robot
@@ -1138,7 +1138,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                     plotter: |PhononDosPlotter| object.
                         Client code can use ``plotter.gridplot()`` to visualize the results.
         """
-        num_cpus = get_ncpus() // 2 if num_cpus is None else num_cpus
+        #num_cpus = get_ncpus() // 2 if num_cpus is None else num_cpus
         if num_cpus <= 0: num_cpus = 1
         num_cpus = min(num_cpus, len(nqsmalls))
 
@@ -1840,7 +1840,7 @@ class DielectricTensorGenerator(Has_Structure):
         # the possible imaginary parts of degenerate modes will cancel.
         if duck.is_listlike(gamma_ev):
             gammas = np.asarray(gamma_ev)
-            assert len(gammas) == len(phfreqs)
+            assert len(gammas) == len(self.phfreqs)
         else:
             gammas = np.ones(len(self.phfreqs)) * float(gamma_ev)
 
@@ -1850,16 +1850,8 @@ class DielectricTensorGenerator(Has_Structure):
             t += self.oscillator_strength[i].real / (self.phfreqs[i]**2 - w**2 - 1j*g)
 
         vol = self.structure.volume / bohr_to_angstrom ** 3
-        t = 4 * np.pi * t / vol / eV_to_Ha**2
+        t = 4 * np.pi * t / vol / eV_to_Ha ** 2
         t += self.epsinf
-
-        #t = np.zeros((3, 3))
-        #w = w * eV_to_Ha
-        #for i in range(3, len(self.phfreqs)):
-        #    phw = self.phfreqs[i] * eV_to_Ha
-        #    t += self.oscillator_strength[i].real / (phw**2 - w**2)
-        #t *= 4 * np.pi / (self.structure.volume * ang_to_bohr ** 3)
-        #t += self.epsinf
 
         return DielectricTensor(t)
 

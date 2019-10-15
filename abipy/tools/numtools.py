@@ -1,7 +1,6 @@
 # coding: utf-8
 """Numeric tools."""
 import numpy as np
-import bisect as bs
 
 from monty.collections import dict2namedtuple
 from abipy.tools import duck
@@ -437,7 +436,7 @@ class BlochRegularGridInterpolator(object):
         frac_coords = np.reshape(frac_coords, (-1, 3))
         if cartesian:
             red_from_cart = self.structure.lattice.inv_matrix.T
-            frac_coords = [np.dot(red_from, v) for v in frac_coords]
+            frac_coords = [np.dot(red_from_cart, v) for v in frac_coords]
 
         uc_coords = np.reshape(frac_coords, (-1, 3)) % 1
 

@@ -1,8 +1,6 @@
 # coding: utf-8
 """Work subclasses related to DFTP."""
 
-import numpy as np
-
 from .works import Work, MergeDdb
 
 

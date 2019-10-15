@@ -19,7 +19,6 @@ __date__ = "$Feb 21, 2013M$"
 
 __all__ = [
     "Mrgscr",
-    "Mrggkk",
     "Mrgddb",
     "Mrgdvdb",
 ]
@@ -142,68 +141,6 @@ class Mrgscr(ExecWrapper):
             os.fsync(fh.fileno())
 
         self.execute(workdir)
-
-
-class Mrggkk(ExecWrapper):
-    _name = "mrggkk"
-
-    def merge(self, workdir, gswfk_file, dfpt_files, gkk_files, out_gkk, binascii=0):
-        """
-        Merge GGK files, return the absolute path of the new database.
-
-        Args:
-            gswfk_file: Ground-state WFK filename
-            dfpt_files: List of 1WFK files to merge.
-            gkk_files: List of GKK files to merge.
-            out_gkk: Name of the output GKK file
-            binascii: Integer flat. 0 --> binary output, 1 --> ascii formatted output
-        """
-        raise NotImplementedError("This method should be tested")
-        #out_gkk = out_gkk if cwd is None else os.path.join(os.path.abspath(cwd), out_gkk)
-
-        # We work with absolute paths.
-        gswfk_file = os.path.absath(gswfk_file)
-        dfpt_files = [os.path.abspath(s) for s in list_strings(dfpt_files)]
-        gkk_files = [os.path.abspath(s) for s in list_strings(gkk_files)]
-
-        print("Will merge %d 1WF files, %d GKK file in output %s" %
-              (len(dfpt_files), len(gkk_files), out_gkk))
-
-        if self.verbose:
-            for i, f in enumerate(dfpt_files): print(" [%d] 1WF %s" % (i, f))
-            for i, f in enumerate(gkk_files): print(" [%d] GKK %s" % (i, f))
-
-        self.stdin_fname, self.stdout_fname, self.stderr_fname = \
-            map(os.path.join, 3 * [workdir], ["mrggkk.stdin", "mrggkk.stdout", "mrggkk.stderr"])
-
-        inp = StringIO()
-        inp.write(out_gkk + "\n")        # Name of the output file
-        inp.write(str(binascii) + "\n")  # Integer flag: 0 --> binary output, 1 --> ascii formatted output
-        inp.write(gswfk_file + "\n")     # Name of the groud state wavefunction file WF
-
-        #dims = len(dfpt_files, gkk_files, ?)
-        dims = " ".join([str(d) for d in dims])
-        inp.write(dims + "\n")             # Number of 1WF, of GKK files, and number of 1WF files in all the GKK files
-
-        # Names of the 1WF files...
-        for fname in dfpt_files:
-            inp.write(fname + "\n")
-
-        # Names of the GKK files...
-        for fname in gkk_files:
-            inp.write(fname + "\n")
-
-        self.stdin_data = [s for s in inp.getvalue()]
-
-        with open(self.stdin_fname, "w") as fh:
-            fh.writelines(self.stdin_data)
-            # Force OS to write data to disk.
-            fh.flush()
-            os.fsync(fh.fileno())
-
-        self.execute(workdir)
-
-        return out_gkk
 
 
 class Mrgddb(ExecWrapper):

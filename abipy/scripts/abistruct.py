@@ -9,7 +9,6 @@ import numpy as np
 
 from pprint import pprint
 from tabulate import tabulate
-from warnings import warn
 from monty.string import marquee
 from monty.functools import prof_main
 from monty.termcolor import cprint

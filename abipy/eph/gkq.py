@@ -8,7 +8,6 @@ import abipy.core.abinit_units as abu
 from collections import OrderedDict
 from monty.string import marquee
 from monty.functools import lazy_property
-from monty.termcolor import cprint
 from abipy.core.kpoints import Kpoint
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
@@ -546,6 +545,7 @@ class GkqRobot(Robot, RobotWithEbands):
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
+        args = [(l, f.filepath) for l, f in self.items()]
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("robot = abilab.GkqRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),

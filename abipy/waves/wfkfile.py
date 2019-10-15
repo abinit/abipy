@@ -1,12 +1,12 @@
 # coding: utf-8
 """Wavefunction file."""
-import numpy as np
+#import numpy as np
 
 from monty.functools import lazy_property
 from monty.string import marquee
-from abipy.core import Mesh3D, GSphere, Structure
+from abipy.core import Mesh3D, GSphere
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.iotools import ETSF_Reader, Visualizer
+from abipy.iotools import Visualizer
 from abipy.electrons.ebands import ElectronsReader
 from abipy.waves.pwwave import PWWaveFunction
 from abipy.tools import duck

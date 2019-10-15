@@ -1,5 +1,4 @@
 """This module contains lookup table with the name of the ABINIT variables."""
-import json
 import os
 import warnings
 import numpy as np
@@ -547,7 +546,7 @@ class AbinitInputParser(object):
             if m:
                 tok = tok.replace("sqrt", "math.sqrt")
                 tok = str(eval(tok))
-            if "/" in tok: # Note true_division from __future__
+            if "/" in tok: 
                 tok = str(eval(tok))
             values.append(tok)
         return values

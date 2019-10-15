@@ -1,22 +1,21 @@
 # coding: utf-8
 """Objects to analyze the screening files produced by the GW code (optdriver 3)."""
 import numpy as np
-import abc
 import pymatgen.core.units as pmgu
 
-from monty.string import marquee # is_string, list_strings,
+from monty.string import marquee 
 from monty.inspect import all_subclasses
 from monty.termcolor import cprint
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from monty.bisect import index as bs_index
 from abipy.core.func1d import Function1D
-from abipy.core.kpoints import Kpoint, KpointList
+from abipy.core.kpoints import KpointList
 from abipy.core.gsphere import GSphere
-from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
+from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, NotebookWriter
 from abipy.electrons.ebands import ElectronBands
 from abipy.iotools import ETSF_Reader
-from abipy.tools.plotting import ArrayPlotter, plot_array, data_from_cplx_mode, add_fig_kwargs, get_ax_fig_plt, set_axlims
+from abipy.tools.plotting import ArrayPlotter, data_from_cplx_mode, add_fig_kwargs, get_ax_fig_plt, set_axlims
 from abipy.tools import duck
 
 import logging

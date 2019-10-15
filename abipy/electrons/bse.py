@@ -1,13 +1,11 @@
 # coding: utf-8
 """Classes for the analysis of BSE calculations"""
-import sys
 import os
 import itertools
 import numpy as np
 import pandas as pd
 
 from collections import OrderedDict
-from monty.collections import AttrDict
 from monty.functools import lazy_property
 from monty.string import marquee, is_string
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
@@ -231,12 +229,6 @@ class DielectricFunction(object):
     #def calc_type(self):
     #    """String with the type of calculation."""
     #    return self.info["calc_type"]
-
-    #def show_info(self, stream=sys.stdout):
-    #    """Pretty print of the info."""
-    #    import pprint
-    #    printer = pprint.PrettyPrinter(self, width=80, depth=None, stream=stream)
-    #    printer.pprint(self.info)
 
     @add_fig_kwargs
     def plot(self, ax=None, **kwargs):

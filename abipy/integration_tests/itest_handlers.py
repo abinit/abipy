@@ -1,6 +1,4 @@
 
-import sys
-import os
 import pytest
 import abipy.data as abidata
 import abipy.abilab as abilab

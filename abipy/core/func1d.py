@@ -3,7 +3,6 @@
 Function1D describes a function of a single variable and provides an easy-to-use API
 for performing common tasks such as algebraic operations, integrations, differentiations, plots ...
 """
-import itertools
 import numpy as np
 
 from io import StringIO

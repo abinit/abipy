@@ -3,7 +3,7 @@
 
 import numpy as np
 
-from pymatgen.core.units import Energy, EnergyArray, ArrayWithUnit
+from pymatgen.core.units import Energy, EnergyArray #, ArrayWithUnit
 from abipy.tools import transpose_last3dims, add_periodic_replicas
 
 

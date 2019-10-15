@@ -11,7 +11,7 @@ import pickle
 import pymatgen
 import pymatgen.core.units as pmg_units
 
-from pprint import pprint, pformat
+from pprint import pformat
 from warnings import warn
 from collections import OrderedDict
 from monty.collections import AttrDict, dict2namedtuple
@@ -25,7 +25,7 @@ from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.flowtk import PseudoTable
 from abipy.core.mixins import NotebookWriter
 from abipy.core.symmetries import AbinitSpaceGroup
-from abipy.iotools import as_etsfreader, Visualizer, xsf
+from abipy.iotools import as_etsfreader, Visualizer
 from abipy.flowtk.abiobjects import structure_from_abivars, structure_to_abivars
 
 
@@ -1264,7 +1264,6 @@ class Structure(pymatgen.Structure, NotebookWriter):
         """
         from pymatgen.electronic_structure.plotter import plot_brillouin_zone, plot_brillouin_zone_from_kpath
         labels = None if not with_labels else self.hsym_kpath.kpath["kpoints"]
-        #pprint(labels)
         if pmg_path:
             return plot_brillouin_zone_from_kpath(self.hsym_kpath, ax=ax, show=False, **kwargs)
         else:

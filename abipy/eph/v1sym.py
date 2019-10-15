@@ -37,10 +37,9 @@ class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         Determine the symmetrical perturbations. Meaning of pertsy:
 
-            0 for non-target perturbations.
-            1 for basis perturbations.
-           -1 for perturbations that can be found from basis perturbations.
-
+        0 for non-target perturbations.
+        1 for basis perturbations.
+        -1 for perturbations that can be found from basis perturbations.
         """
         # Fortran array: nctkarr_t("pertsy_qpt", "int", "three, mpert, nqpt")))
         return self.reader.read_value("pertsy_qpt")

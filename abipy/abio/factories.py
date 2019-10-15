@@ -9,7 +9,6 @@ from monty.collections import AttrDict
 from monty.string import is_string
 from monty.json import jsanitize, MontyDecoder
 from pymatgen.util.serialization import pmg_serialize
-from abipy.flowtk import PseudoTable
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput, MultiDataset
 from abipy.abio.input_tags import *

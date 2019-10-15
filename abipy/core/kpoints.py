@@ -8,10 +8,9 @@ import numpy as np
 
 from itertools import product
 from tabulate import tabulate
-from monty.json import MSONable, MontyEncoder
+from monty.json import MontyEncoder
 from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
-from monty.termcolor import cprint
 from monty.string import marquee
 from pymatgen.core.lattice import Lattice
 from pymatgen.util.serialization import pmg_serialize
@@ -348,7 +347,7 @@ def map_kpoints(other_kpoints, other_lattice, ref_lattice, ref_kpoints, ref_symr
         found = False
         for ik_ref, kref in enumerate(ref_kpoints):
             if found: break
-            for tsign in tsign:
+            for tsign in tsigns:
                 for isym, symrec in enumerate(ref_symrecs):
                     krot = tsign * np.matmul(symrec, kref)
                     if issamek(okpt_red, krot):
