@@ -16,18 +16,18 @@ matrix:
     - os: linux
       python: 3.6
       env: 
-        - ABIPY_INSTALLER=conda ABIPY_COVERALLS=yes
+        - ABIPY_INSTALLER=pip ABIPY_PYTEST=no
     - os: linux
-      python: 3.6
+      python: 3.7
       env: 
-        - ABIPY_INSTALLER=pip ABIPY_SPHINX=yes ABIPY_PYTEST=no
+        - ABIPY_INSTALLER=conda ABIPY_COVERALLS=yes
     - os: linux
       python: 3.7
       # https://github.com/travis-ci/travis-ci/issues/9815
       dist: xenial
       sudo: true
       env: 
-        - ABIPY_INSTALLER=pip
+        - ABIPY_INSTALLER=pip ABIPY_SPHINX=yes 
 
 install:
   #- set -ev  # exit on first error, print each command
