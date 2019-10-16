@@ -29,14 +29,13 @@ from monty.json import MSONable
 from pymatgen.util.serialization import pmg_pickle_load, pmg_pickle_dump, pmg_serialize
 from pymatgen.core.units import Memory
 from pymatgen.util.io_utils import AtomicFile
-from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.flowtk import wrappers
 from .nodes import Status, Node, NodeError, NodeResults, Dependency, GarbageCollector, check_spectator
 from .tasks import ScfTask, TaskManager, FixQueueCriticalError
 from .utils import File, Directory, Editor
 from .works import NodeContainer, Work, BandStructureWork, PhononWork, BecWork, G0W0Work, QptdmWork, DteWork
 from .events import EventsParser
-
 
 import logging
 logger = logging.getLogger(__name__)

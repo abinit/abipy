@@ -13,8 +13,8 @@ import time
 from collections import deque, OrderedDict
 from monty.termcolor import cprint
 from monty.collections import dict2namedtuple
-from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt
-from abipy.tools import gaussian
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
+from abipy.tools.numtools import gaussian, find_degs_sk
 from abipy.core.kpoints import Kpath
 from abipy.core.symmetries import mati3inv
 
@@ -37,39 +37,6 @@ def n_fermi_dirac(enes, mu, temp):
         enes = np.asarray(enes)
         n = np.where(enes <= mu, 1, 0)
         return np.where(enes == mu, 0.5, enes)
-
-
-def find_degs_sk(enesb, atol):
-    """
-    Return list of lists with the indices of the degenerated bands.
-
-    Args:
-        enesb: Iterable with energies for the different bands.
-            Energies are assumed to be ordered.
-        atol: Absolute tolerance. Two states are degenerated if they differ by less than `atol`.
-
-    Return:
-        List of lists. The i-th item contains the indices of the degenerates states
-            for the i-th degenerated set.
-
-    :Examples:
-
-    >>> find_degs_sk([1, 1, 2, 3.4, 3.401], atol=0.01)
-    [[0, 1], [2], [3, 4]]
-    """
-    ndeg = 0
-    degs = [[0]]
-    e0 = enesb[0]
-    for ib, ee in enumerate(enesb[1:]):
-        ib += 1
-        if abs(ee - e0) > atol:
-            e0 = ee
-            ndeg += 1
-            degs.append([ib])
-        else:
-            degs[ndeg].append(ib)
-
-    return degs
 
 
 def map_bz2ibz(structure, ibz, ngkpt, has_timrev):

@@ -12,7 +12,7 @@ from monty.collections import dict2namedtuple
 from monty.string import list_strings
 from monty.fnmatch import WildCard
 from monty.shutil import copy_r
-from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 
 import logging
 logger = logging.getLogger(__name__)

@@ -59,3 +59,12 @@ class DuckTest(AbipyTest):
         assert duck.list_ints(1) == [1]
         assert duck.list_ints([1]) == [1]
         assert duck.list_ints([1, 2, 3]) == [1, 2, 3]
+
+    def test_getattrd(self):
+        """Testing getattrd and hasattrd."""
+        getattrd, hasattrd = duck.getattrd, duck.hasattrd
+        with self.assertRaises(AttributeError): getattrd(int, 'a')
+        assert getattrd(int, 'a', default=None) is None
+        assert getattrd(int, '__class__.__name__') == "type"
+        assert hasattrd(int, '__class__.__name__')
+        assert not hasattrd(int, 'foobar.__name__')

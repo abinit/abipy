@@ -18,7 +18,8 @@ from abipy.core.structure import Structure
 from abipy.core.mesh3d import Mesh3D
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import Has_Structure
-from abipy.tools import transpose_last3dims, duck
+from abipy.tools import duck
+from abipy.tools.numtools import transpose_last3dims
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.iotools import Visualizer, xsf, ETSF_Reader, cube
 

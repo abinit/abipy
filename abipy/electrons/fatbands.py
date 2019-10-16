@@ -8,12 +8,12 @@ from collections import OrderedDict, defaultdict
 from tabulate import tabulate
 from monty.termcolor import cprint
 from monty.functools import lazy_property
-from monty.string import marquee #, list_strings
+from monty.string import marquee
 from pymatgen.core.periodic_table import Element
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.electrons.ebands import ElectronsReader
-from abipy.tools import gaussian
-from abipy.tools.plotting import set_axlims, get_axarray_fig_plt, add_fig_kwargs #, get_ax_fig_plt
+from abipy.tools.numtools import gaussian
+from abipy.tools.plotting import set_axlims, get_axarray_fig_plt, add_fig_kwargs
 
 
 def gaussians_dos(dos, mesh, width, values, energies, weights):

@@ -22,7 +22,8 @@ from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_PhononBands, Note
 from abipy.core.kpoints import Kpoint, Kpath
 from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
-from abipy.tools import gaussian, duck
+from abipy.tools import duck
+from abipy.tools.numtools import gaussian, sort_and_groupby
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims, get_axarray_fig_plt, set_visible, set_ax_xylabels
 from .phtk import match_eigenvectors, get_dyn_mat_eigenvec, open_file_phononwebsite, NonAnalyticalPh
 
@@ -3265,15 +3266,13 @@ class PhononBandsPlotter(NotebookWriter):
         if self.phdoses_dict and with_dos:
             all_phdos_objects = list(self.phdoses_dict.values())
 
-        from abipy.tools import sort_and_groupby, getattrd, hasattrd
-
         # Need index to handle all_phdos_objects if DOSes are wanted.
         if callable(hue):
             items = [(hue(phb), phb, i, label) for i, (phb, label) in enumerate(zip(all_phb_objects, all_labels))]
         else:
             # Assume string. Either phbands.hue or phbands.params[hue].
-            if hasattrd(all_phb_objects[0], hue):
-                items = [(getattrd(phb, hue), phb, i, label) for i, (phb, label) in enumerate(zip(all_phb_objects, all_labels))]
+            if duck.hasattrd(all_phb_objects[0], hue):
+                items = [(duck.getattrd(phb, hue), phb, i, label) for i, (phb, label) in enumerate(zip(all_phb_objects, all_labels))]
             else:
                 items = [(phb.params[hue], phb, i, label) for i, (phb, label) in enumerate(zip(all_phb_objects, all_labels))]
 

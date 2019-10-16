@@ -27,7 +27,8 @@ from abipy.core.kpoints import (Kpoint, KpointList, Kpath, IrredZone, KSamplingI
     Ktables, has_timrev_from_kptopt, map_grid2ibz) #, kmesh_from_mpdivs)
 from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader
-from abipy.tools import gaussian, duck
+from abipy.tools import duck
+from abipy.tools.numtools import gaussian
 from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
     get_ax3d_fig_plt, rotate_ticklabels, set_visible, plot_unit_cell, set_ax_xylabels)
 

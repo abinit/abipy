@@ -143,7 +143,7 @@ class DBConnector(object):
         from pymongo import MongoClient
 
         if self.host and self.port:
-            client = MongoClient(host=config.host, port=config.port)
+            client = MongoClient(host=self.config.host, port=self.config.port)
         else:
             client = MongoClient()
         db = client[self.dbname]
