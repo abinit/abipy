@@ -44,14 +44,6 @@ flowtk Package
    :undoc-members:
    :show-inheritance:
 
-:mod:`calculations` Module
---------------------------
-
-.. automodule:: abipy.flowtk.calculations
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 :mod:`dfpt_works` Module
 ------------------------
 

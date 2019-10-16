@@ -1,16 +1,15 @@
 """
 Integration tests for flows (require pytest, ABINIT and a properly configured environment)
 """
-
-import pytest
 import os
+import unittest
 import numpy.testing.utils as nptu
 import abipy.data as abidata
 import abipy.flowtk as flowtk
 import abipy.flowtk.abiphonopy as abiph
 
 from abipy.abio.factories import gs_input
-from abipy.core.testing import AbipyTest, has_phonopy
+from abipy.core.testing import has_phonopy
 
 
 def itest_phonopy_flow(fwp, tvars):
@@ -64,7 +63,7 @@ def itest_phonopy_flow(fwp, tvars):
     assert nmiss == 0
 
 
-def itest_phonopy_flow(fwp, tvars):
+def itest_phonopy_gruneisen_flow(fwp, tvars):
     """
     Testing phonopy Gruneisen flow with the scheduler.
     """

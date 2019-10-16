@@ -1,3 +1,4 @@
+# flake8: noqa
 import collections
 
 from pymatgen.core.units import Energy

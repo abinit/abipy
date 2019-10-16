@@ -34,7 +34,6 @@ class OpticTest(AbipyTest):
             assert optic.reader.computed_components["leo"] == ["xyz"]
             #assert not optic.reader.computed_components["leo2"]
 
-
             # Test plot methods
             if self.has_matplotlib():
                 assert optic.plot_linear_epsilon(show=False)

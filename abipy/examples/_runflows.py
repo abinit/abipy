@@ -8,10 +8,9 @@ import argparse
 import shutil
 import tempfile
 
-from subprocess import call, Popen
+from subprocess import call
 from abipy import __version__
-
-#root = os.path.abspath(os.path.join(os.path.dirname(__file__)), "flows")
+from abipy import flowtk
 
 
 def main():
@@ -96,7 +95,7 @@ def main():
                 cnt += 1
                 ret = 0
                 try:
-                    flow = Flow.pickle_load(workdir)
+                    flow = flowtk.Flow.pickle_load(workdir)
                     flow.make_scheduler().start()
                     if not flow.all_ok: retcode += 1
 

@@ -1,4 +1,5 @@
 """Core objects."""
+# flake8: noqa
 from .kpoints import *
 from .structure import *
 from .symmetries import *

@@ -7,8 +7,7 @@ WARNING: This code is still under development.
 import numpy as np
 
 from abipy.core.structure import Structure
-#from abipy.abio.inputs import AbinitInput
-from abipy.flowtk.works import Work, MergeDdb # RelaxWork, PhononWork, 
+from abipy.flowtk.works import Work, MergeDdb # RelaxWork, PhononWork,
 from abipy.flowtk.flows import Flow
 
 import logging

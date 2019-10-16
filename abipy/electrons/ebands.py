@@ -3656,6 +3656,7 @@ class ElectronDosPlotter(NotebookWriter):
                 elif spin_mode == "resolved":
                     # Plot spin resolved quantiies with sign.
                     # Note get_color to have same color for both spins.
+                    lines = None
                     for spin in range(edos.nsppol):
                         fact = 1 if spin == 0 else -1
                         lines = edos.plot_ax(ax, e0, what=what, spin=spin, fact=fact,
@@ -3738,6 +3739,7 @@ class ElectronDosPlotter(NotebookWriter):
             elif spin_mode == "resolved":
                 # Plot spin resolved quantiies with sign.
                 # Note get_color to have same color for both spins.
+                lines = None
                 for spin in range(edos.nsppol):
                     fact = 1 if spin == 0 else -1
                     lines = edos.plot_ax(ax, e0, what=what, spin=spin, fact=fact,
@@ -4040,22 +4042,20 @@ class Bands3D(Has_Structure):
         Return: |matplotlib-Figure|
         """
         try:
-            import skimage
-        except ImportError:
-            raise ImportError("scikit-image not installed.\n"
-                "Please install with it with `conda install scikit-image` or `pip install scikit-image`")
-
-        try:
             from skimage.measure import marching_cubes_lewiner as marching_cubes
         except ImportError:
-            from skimage.measure import marching_cubes
+            try:
+                from skimage.measure import marching_cubes
+            except ImportError:
+                raise ImportError("scikit-image not installed.\n"
+                    "Please install with it with `conda install scikit-image` or `pip install scikit-image`")
 
         e0 = self.get_e0(e0)
         isobands = self.get_isobands(e0)
         if isobands is None: return None
         if verbose: print("Bands for isosurface:", isobands)
 
-        from pymatgen.electronic_structure.plotter import plot_lattice_vectors, plot_wigner_seitz
+        #from pymatgen.electronic_structure.plotter import plot_lattice_vectors, plot_wigner_seitz
         ax, fig, plt = get_ax3d_fig_plt(ax=None)
         plot_unit_cell(self.reciprocal_lattice, ax=ax, color="k", linewidth=1)
         #plot_wigner_seitz(self.reciprocal_lattice, ax=ax, color="k", linewidth=1)

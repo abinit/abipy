@@ -1,5 +1,5 @@
 # coding: utf-8
-
+# flake8: noqa
 import numpy as np
 import pymatgen.io.abinit.netcdf as ionc
 
@@ -15,7 +15,7 @@ as_etsfreader = ionc.as_etsfreader
 class ETSF_Reader(ionc.ETSF_Reader):
     """
     Provides high-level API to read data from netcdf files written
-    folloing the ETSF-IO specifications described in :cite:`Caliste2008`
+    following the ETSF-IO specifications described in :cite:`Caliste2008`
     """
 
     def read_structure(self):

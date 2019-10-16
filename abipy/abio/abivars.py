@@ -536,7 +536,7 @@ class AbinitInputParser(object):
 
             This function is not recursive hence expr like sqrt(1/2) are not supported
         """
-        import math
+        import math # flake8: noqa
         import re
         re_sqrt = re.compile(r"[+|-]?sqrt\((.+)\)")
 
@@ -546,7 +546,7 @@ class AbinitInputParser(object):
             if m:
                 tok = tok.replace("sqrt", "math.sqrt")
                 tok = str(eval(tok))
-            if "/" in tok: 
+            if "/" in tok:
                 tok = str(eval(tok))
             values.append(tok)
         return values

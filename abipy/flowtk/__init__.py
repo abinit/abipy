@@ -21,7 +21,7 @@ from pymatgen.io.abinit.abiinspect import GroundStateScfCycle, D2DEScfCycle, yam
 from .events import EventsParser, autodoc_event_handlers
 #from abipy.flowtk.works import *
 #from abipy.flowtk.gs_works import EosWork
-from abipy.flowtk.dfpt_works import ElasticWork
+from abipy.flowtk.dfpt_works import ElasticWork, NscfDdksWork
 
 
 def flow_main(main):  # pragma: no cover
