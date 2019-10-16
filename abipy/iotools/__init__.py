@@ -1,6 +1,5 @@
 # coding: utf-8
-from __future__ import print_function, division, unicode_literals, absolute_import
-
+# flake8: noqa
 import numpy as np
 import pymatgen.io.abinit.netcdf as ionc
 
@@ -16,7 +15,7 @@ as_etsfreader = ionc.as_etsfreader
 class ETSF_Reader(ionc.ETSF_Reader):
     """
     Provides high-level API to read data from netcdf files written
-    folloing the ETSF-IO specifications described in :cite:`Caliste2008`
+    following the ETSF-IO specifications described in :cite:`Caliste2008`
     """
 
     def read_structure(self):
@@ -74,7 +73,7 @@ class ETSF_Reader(ionc.ETSF_Reader):
 
             Only netcdf files with phonon-related quantities contain this variable.
         """
-        for k in ("atomic_mass_units" , "atomic_numbers"):
+        for k in ("atomic_mass_units", "atomic_numbers"):
             if k not in self.rootgrp.variables:
                 raise RuntimeError("`%s` does not contain `%s` variable." % (self.path, k))
 

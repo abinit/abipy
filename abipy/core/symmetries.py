@@ -1,33 +1,27 @@
 # coding: utf-8
 """Objects used to deal with symmetry operations in crystals."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import sys
 import abc
 import warnings
 import collections
-import six
 import numpy as np
 import spglib
 
-from six.moves import cStringIO
 from monty.string import is_string
 from monty.itertools import iuptri
 from monty.functools import lazy_property
+from monty.termcolor import cprint
 from monty.collections import dict2namedtuple
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-try:
-    from pymatgen.util.serialization import SlotPickleMixin
-except:
-    from pymatgen.serializers.pickle_coders import SlotPickleMixin
+from pymatgen.util.serialization import SlotPickleMixin
 from abipy.core.kpoints import wrap_to_ws, issamek, has_timrev_from_kptopt
-from abipy.iotools import as_etsfreader
 
 
 __all__ = [
     "LatticeRotation",
     "AbinitSpaceGroup",
 ]
+
 
 def wrap_in_ucell(x):
     """
@@ -100,9 +94,9 @@ def _get_det(mat):
     raises:
         ValueError if abs(det) != 1.
     """
-    det = mat[0,0]* (mat[1,1]*mat[2,2] - mat[1,2]*mat[2,1])\
-        - mat[0,1]* (mat[1,0]*mat[2,2] - mat[1,2]*mat[2,0])\
-        + mat[0,2]* (mat[1,0]*mat[2,1] - mat[1,1]*mat[2,0])
+    det = mat[0,0] * (mat[1,1] * mat[2,2] - mat[1,2] * mat[2,1])\
+        - mat[0,1] * (mat[1,0] * mat[2,2] - mat[1,2] * mat[2,0])\
+        + mat[0,2] * (mat[1,0] * mat[2,1] - mat[1,1] * mat[2,0])
 
     if abs(det) != 1:
         raise ValueError("Determinant must be +-1 while it is %s" % det)
@@ -199,8 +193,7 @@ Should check atomic coordinates and symmetry group input data.
     return indsym
 
 
-@six.add_metaclass(abc.ABCMeta)
-class Operation(object):
+class Operation(metaclass=abc.ABCMeta):
     """
     Abstract base class that defines the methods that must be
     implemented by the concrete class representing some sort of operation
@@ -248,7 +241,7 @@ class SymmOp(Operation, SlotPickleMixin):
     """
     Crystalline symmetry.
     """
-    _ATOL_TAU =  1e-8
+    _ATOL_TAU = 1e-8
 
     __slots__ = [
         "rot_r",
@@ -440,7 +433,7 @@ class SymmOp(Operation, SlotPickleMixin):
         return wrap_in_ucell(rotm1_rmt) if in_ucell else rotm1_rmt
 
 
-class OpSequence(collections.Sequence):
+class OpSequence(collections.abc.Sequence):
     """
     Mixin class providing the basic method that are common to containers of operations.
     """
@@ -706,17 +699,18 @@ class AbinitSpaceGroup(OpSequence):
                    has_timerev=has_timrev_from_kptopt(kptopt),
                    inord=inord)
 
-    @classmethod
-    def from_file(cls, ncfile, inord="F"):
-        """
-        Initialize the object from a Netcdf file.
-        """
-        r, closeit = as_etsfreader(ncfile)
-        new = cls.from_ncreader(r)
-        if closeit:
-            file.close()
+    #@classmethod
+    #def from_file(cls, ncfile, inord="F"):
+    #    """
+    #    Initialize the object from a Netcdf file.
+    #    """
+    #    from abipy.iotools import as_etsfreader
+    #    r, closeit = as_etsfreader(ncfile)
+    #    new = cls.from_ncreader(r)
+    #    if closeit:
+    #        file.close()
 
-        return new
+    #    return new
 
     @classmethod
     def from_structure(cls, structure, has_timerev=True, symprec=1e-5, angle_tolerance=5):
@@ -845,11 +839,11 @@ class AbinitSpaceGroup(OpSequence):
         """
         Test whether two k-points in fractional coordinates are symmetry equivalent
         i.e. if there's a symmetry operations TO (including time-reversal T, if present)
-	such that::
+        such that::
 
             TO(k1) = k2 + G0
 
-	Return: namedtuple with::
+        Return: namedtuple with::
 
             isym: The index of the symmetry operation such that TS(k1) = k2 + G0
                 Set to -1 if k1 and k2 are not related by symmetry.
@@ -891,6 +885,7 @@ class AbinitSpaceGroup(OpSequence):
         # List with the symmetry operation that preserve the kpoint.
         k_symmops = [self[i] for i in to_spgrp]
         return LittleGroup(kpoint, k_symmops, g0vecs)
+
 
 # FIXME To maintain backward compatibility.
 SpaceGroup = AbinitSpaceGroup
@@ -1079,10 +1074,10 @@ class LatticeRotation(Operation):
         return self.__class__(-self.mat)
 
     def __pow__(self, intexp, modulo=1):
-        if intexp ==  0: return self.__class__(self._E3D)
-        if intexp  >  0: return self.__class__(np.linalg.matrix_power(self.mat, intexp))
+        if intexp == 0: return self.__class__(self._E3D)
+        if intexp > 0: return self.__class__(np.linalg.matrix_power(self.mat, intexp))
         if intexp == -1: return self.inverse()
-        if intexp  <  0: return self.__pow__(-intexp).inverse()
+        if intexp < 0: return self.__pow__(-intexp).inverse()
         raise TypeError("type %s is not supported in __pow__" % type(intexp))
 
     @property
@@ -1294,7 +1289,7 @@ class BilbaoPointGroup(object):
         df.index.name = "Irrep"
         df.columns.name = self.sch_symbol
 
-	# TODO
+        # TODO
         #print(df)
         # Convert complex --> real if all entries in a colums are real.
         #for k in name_mult:

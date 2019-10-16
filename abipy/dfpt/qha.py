@@ -1,9 +1,6 @@
 # coding: utf-8
-from __future__ import print_function, division, absolute_import
-
 import numpy as np
 import os
-import six
 import abc
 from scipy.interpolate import UnivariateSpline
 
@@ -18,9 +15,9 @@ from abipy.dfpt.gruneisen import GrunsNcFile
 import abipy.core.abinit_units as abu
 
 
-class AbstractQHA(six.with_metaclass(abc.ABCMeta, object)):
+class AbstractQHA(metaclass=abc.ABCMeta):
     """
-    Abstract class for the quasi-harmonic approximation  analysis.
+    Abstract class for the quasi-harmonic approximation analysis.
     Provides some basic methods and plotting utils, plus a converter to write input files for phonopy-qha or to
     generate an instance of phonopy.qha.QHA. These can be used to obtain other quantities and plots.
     Does not include electronic entropic contributions for metals.
@@ -34,7 +31,6 @@ class AbstractQHA(six.with_metaclass(abc.ABCMeta, object)):
             eos_name: string indicating the expression used to fit the energies. See pymatgen.analysis.eos.EOS.
             pressure: value of the pressure in GPa that will be considered in the p*V contribution to the energy.
         """
-
         self.structures = structures
         self.energies = np.array(energies)
         self.eos = EOS(eos_name)
@@ -63,7 +59,6 @@ class AbstractQHA(six.with_metaclass(abc.ABCMeta, object)):
                 temp: numpy array with the temperatures considered
 
         """
-
         tmesh = np.linspace(tstart, tstop, num)
 
         # array with phonon energies and shape (n_vol, n_temp)
@@ -91,9 +86,8 @@ class AbstractQHA(six.with_metaclass(abc.ABCMeta, object)):
             num: int, optional Number of samples to generate. Default is 100.
 
         Returns:
-            A numpy array of `num` values of of the vibrational contribution to the free energy
+            A numpy array of `num` values of the vibrational contribution to the free energy
         """
-        pass
 
     @abc.abstractmethod
     def get_thermodynamic_properties(self, tstart=0, tstop=800, num=100):
@@ -114,7 +108,6 @@ class AbstractQHA(six.with_metaclass(abc.ABCMeta, object)):
                 entropy: entropy, in eV/K. Shape (nvols, num).
                 zpe: zero point energy in eV. Shape (nvols).
         """
-        pass
 
     @property
     def nvols(self):
@@ -131,7 +124,6 @@ class AbstractQHA(six.with_metaclass(abc.ABCMeta, object)):
         Args:
             eos_name: string indicating the expression used to fit the energies. See pymatgen.analysis.eos.EOS.
         """
-
         self.eos = EOS(eos_name)
 
     @add_fig_kwargs
@@ -147,7 +139,6 @@ class AbstractQHA(six.with_metaclass(abc.ABCMeta, object)):
 
         Returns: |matplotlib-Figure|
         """
-
         f = self.fit_energies(tstart, tstop, num)
 
         ax, fig, plt = get_ax_fig_plt(ax)
@@ -158,7 +149,7 @@ class AbstractQHA(six.with_metaclass(abc.ABCMeta, object)):
             ax.scatter(self.volumes, e, label=t, color='b', marker='x', s=5)
             ax.plot(x, fit.func(x) - self.energies[self.iv0], color='b', lw=1)
 
-        ax.plot(f.min_vol, f.min_en - self.energies[self.iv0] , color='r', lw=1, marker='x', ms=5)
+        ax.plot(f.min_vol, f.min_en - self.energies[self.iv0], color='r', lw=1, marker='x', ms=5)
 
         ax.set_xlabel(r'V (${\AA}^3$)')
         ax.set_ylabel('E (eV)')
@@ -177,7 +168,6 @@ class AbstractQHA(six.with_metaclass(abc.ABCMeta, object)):
 
         Returns: |Function1D|
         """
-
         f = self.fit_energies(tstart, tstop, num)
 
         dt = f.temp[1] - f.temp[0]
@@ -198,7 +188,6 @@ class AbstractQHA(six.with_metaclass(abc.ABCMeta, object)):
 
         Returns: |matplotlib-Figure|
         """
-
         ax, fig, plt = get_ax_fig_plt(ax)
 
         if 'linewidth' not in kwargs and 'lw' not in kwargs:
@@ -301,7 +290,6 @@ class AbstractQHA(six.with_metaclass(abc.ABCMeta, object)):
         Returns:
             The volume
         """
-
         f = self.fit_energies(t, t, 1)
 
         return f.min_vol[0]
@@ -321,10 +309,8 @@ class AbstractQHA(six.with_metaclass(abc.ABCMeta, object)):
             A list of lists of temperatures. For each volume more than one temperature can
             be identified.
         """
-
         if not isinstance(vols, (list, tuple, np.ndarray)):
             vols = [vols]
-
 
         f = self.fit_energies(0, t_max, t_max+1)
 
@@ -347,7 +333,6 @@ class AbstractQHA(six.with_metaclass(abc.ABCMeta, object)):
             num: int, optional Number of samples to generate. Default is 211.
             path: a path to a folder where the files will be stored
         """
-
         if path is None:
             path = os.getcwd()
 
@@ -373,7 +358,7 @@ class AbstractQHA(six.with_metaclass(abc.ABCMeta, object)):
             lines.append("num_integrated_modes: %d" % (3 * self.natoms))
 
             lines.append("")
-            lines.append("zero_point_energy: %15.7f" % (thermo.zpe[j] * abu.e_Cb * abu.Avogadro ))
+            lines.append("zero_point_energy: %15.7f" % (thermo.zpe[j] * abu.e_Cb * abu.Avogadro))
             lines.append("high_T_entropy:    %15.7f" % 0) # high_T_entropy is not used in QHA
             lines.append("")
             lines.append("thermal_properties:")
@@ -457,8 +442,7 @@ class QHA(AbstractQHA):
             eos_name: string indicating the expression used to fit the energies. See pymatgen.analysis.eos.EOS.
             pressure: value of the pressure in GPa that will be considered in the p*V contribution to the energy.
         """
-
-        super(QHA, self).__init__(structures=structures, energies=energies, eos_name=eos_name, pressure=pressure)
+        super().__init__(structures=structures, energies=energies, eos_name=eos_name, pressure=pressure)
         self.doses = doses
 
     def get_vib_free_energies(self, tstart=0, tstop=800, num=100):
@@ -471,7 +455,7 @@ class QHA(AbstractQHA):
             num: int, optional Number of samples to generate. Default is 100.
 
         Returns:
-            AA numpy array of `num` values of of the vibrational contribution to the free energy
+            A numpy array of `num` values of the vibrational contribution to the free energy
         """
         f = np.zeros((self.nvols, num))
 
@@ -503,7 +487,7 @@ class QHA(AbstractQHA):
         free_energy = np.zeros((self.nvols, num))
         entropy = np.zeros((self.nvols, num))
         internal_energy = np.zeros((self.nvols, num))
-        zpe  = np.zeros(self.nvols)
+        zpe = np.zeros(self.nvols)
 
         for i, d in enumerate(self.doses):
             cv[i] = d.get_cv(tstart, tstop, num).values
@@ -517,7 +501,7 @@ class QHA(AbstractQHA):
     @classmethod
     def from_files(cls, gsr_files_paths, phdos_files_paths):
         """
-        Creates an instance of QHA from a list og GSR files and a list PHDOS.nc files.
+        Creates an instance of QHA from a list of GSR files and a list of PHDOS.nc files.
         The list should have the same size and the volumes should match.
 
         Args:
@@ -527,7 +511,6 @@ class QHA(AbstractQHA):
         Returns:
             A new instance of QHA
         """
-
         energies = []
         structures = []
         for gp in gsr_files_paths:
@@ -560,8 +543,7 @@ class QHA3PF(AbstractQHA):
             eos_name: string indicating the expression used to fit the energies. See pymatgen.analysis.eos.EOS.
             pressure: value of the pressure in GPa that will be considered in the p*V contribution to the energy.
         """
-
-        super(QHA3PF, self).__init__(structures=structures, energies=energies, eos_name=eos_name, pressure=pressure)
+        super().__init__(structures=structures, energies=energies, eos_name=eos_name, pressure=pressure)
         self.doses = doses
         self.ind_doses = ind_doses
         self.fit_degree = fit_degree
@@ -589,7 +571,7 @@ class QHA3PF(AbstractQHA):
         cv = self._get_thermodynamic_prop("cv", tstart, tstop, num)
         free_energy = self._get_thermodynamic_prop("free_energy", tstart, tstop, num)
         entropy = self._get_thermodynamic_prop("entropy", tstart, tstop, num)
-        zpe  = np.zeros(self.nvols)
+        zpe = np.zeros(self.nvols)
 
         for i, dos in zip(self.ind_doses, self.doses):
             zpe[i] = dos.zero_point_energy
@@ -618,7 +600,6 @@ class QHA3PF(AbstractQHA):
             Numpy array with the values of the thermodynamic properties at the different
             volumes with size (nvols, num).
         """
-
         prop_doses = np.array([getattr(dos, "get_" + name)(tstart, tstop, num).values for dos in self.doses])
 
         p = np.zeros((self.nvols, num))
@@ -639,7 +620,7 @@ class QHA3PF(AbstractQHA):
     def get_vib_free_energies(self, tstart=0, tstop=800, num=100):
         """
         Generates the vibrational free energy corresponding to all the structures, either from the phonon DOS
-        or from a fit of the know values.
+        or from a fit of the known values.
 
         Args:
             tstart: The starting value (in Kelvin) of the temperature mesh.
@@ -647,7 +628,7 @@ class QHA3PF(AbstractQHA):
             num: int, optional Number of samples to generate. Default is 100.
 
         Returns:
-            A numpy array of `num` values of of the vibrational contribution to the free energy
+            A numpy array of `num` values of the vibrational contribution to the free energy
         """
 
         return self._get_thermodynamic_prop("free_energy", tstart, tstop, num)
@@ -679,6 +660,7 @@ class QHA3PF(AbstractQHA):
 
         return cls(structures, doses, energies, ind_doses)
 
+
 class QHA3P(AbstractQHA):
     """
         Object to extract results in the quasi-harmonic approximation from several electronic energies at different
@@ -700,7 +682,7 @@ class QHA3P(AbstractQHA):
             pressure: value of the pressure in GPa that will be considered in the p*V contribution to the energy.
         """
 
-        super(QHA3P, self).__init__(structures=structures, energies=energies, eos_name=eos_name, pressure=pressure)
+        super().__init__(structures=structures, energies=energies, eos_name=eos_name, pressure=pressure)
         self.grun = gruns
         self.ind_grun = ind_grun
         self._ind_energy_only = [i for i in range(len(structures)) if i not in ind_grun]
@@ -708,7 +690,7 @@ class QHA3P(AbstractQHA):
     def get_thermodynamic_properties(self, tstart=0, tstop=800, num=100):
         """
         Generates the thermodynamic properties corresponding to all the structures, either from the phonon
-        frequencies or from a fit of the know values..
+        frequencies or from a fit of the know values.
 
         Args:
             tstart: The starting value (in Kelvin) of the temperature mesh.
@@ -782,7 +764,7 @@ class QHA3P(AbstractQHA):
             num: int, optional Number of samples to generate. Default is 100.
 
         Returns:
-            A numpy array of `num` values of of the vibrational contribution to the free energy
+            A numpy array of `num` values of the vibrational contribution to the free energy
         """
 
         w = self.fitted_frequencies
@@ -862,6 +844,7 @@ def get_cv(w, weights, t):
 
     return np.dot(weights[ind[0]], cv[ind]).sum()
 
+
 def get_zero_point_energy(w, weights):
     """
     Calculates the zero point energy in eV from the phonon frequencies on a regular grid.
@@ -875,6 +858,7 @@ def get_zero_point_energy(w, weights):
     ind = np.where(w >= 0)
 
     return np.dot(weights[ind[0]], zpe[ind]).sum()
+
 
 def get_entropy(w, weights, t):
     """

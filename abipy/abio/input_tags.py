@@ -1,5 +1,4 @@
 """This module contains a list of default tags for the AbinitInput object"""
-from __future__ import print_function, division, unicode_literals, absolute_import
 
 GROUND_STATE = "ground_state"
 SCF = "scf"
@@ -9,7 +8,7 @@ IONCELL_RELAX = "ioncell_relax"
 NSCF = "nscf"
 BANDS = "bands"
 DOS = "dos"
-MOLECULAR_DYNACMICS="molecular_dynamics"
+MOLECULAR_DYNAMICS = "molecular_dynamics"
 DFPT = "dfpt"
 PHONON = "phonon"
 DDK = "ddk"

@@ -6,16 +6,12 @@ Utilities for generating matplotlib plots.
 
     Avoid importing matplotlib in the module namespace otherwise startup is very slow.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 import time
 import itertools
 import numpy as np
 
 from collections import OrderedDict, namedtuple
-from monty.string import list_strings
-from monty.functools import lazy_property
 from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt, get_ax3d_fig_plt, get_axarray_fig_plt
 from .numtools import data_from_cplx_mode
 
@@ -397,7 +393,7 @@ class Marker(namedtuple("Marker", "x y s")):
         """Extends the base class adding consistency check."""
         if not xys:
             xys = ([], [], [])
-            return super(cls, Marker).__new__(cls, *xys)
+            return super().__new__(cls, *xys)
 
         if len(xys) != 3:
             raise TypeError("Expecting 3 entries in xys got %d" % len(xys))
@@ -411,7 +407,7 @@ class Marker(namedtuple("Marker", "x y s")):
             if np.iscomplex(s):
                 raise ValueError("Found ambiguous complex entry %s" % str(s))
 
-        return super(cls, Marker).__new__(cls, *xys)
+        return super().__new__(cls, *xys)
 
     def __bool__(self):
         return bool(len(self.s))
@@ -629,7 +625,7 @@ def plot_structure(structure, ax=None, to_unit_cell=False, alpha=0.7,
         symbol = site.specie.symbol
         color = tuple(i / 255 for i in EL_COLORS[color_scheme][symbol])
         radius = CovalentRadius.radius[symbol]
-        if to_unit_cell and hasattr(site, "to_unit_cell"): site = site.to_unit_cell
+        if to_unit_cell and hasattr(site, "to_unit_cell"): site = site.to_unit_cell()
         # Use cartesian coordinates.
         x, y, z = site.coords
         xyzs[i] = (x, y, z, radius)
@@ -644,7 +640,7 @@ def plot_structure(structure, ax=None, to_unit_cell=False, alpha=0.7,
     # https://gist.github.com/syrte/592a062c562cd2a98a83
     if "points" in style:
         x, y, z, s = xyzs.T.copy()
-        s = 5000 * s **2
+        s = 5000 * s ** 2
         ax.scatter(x, y, zs=z, s=s, c=colors, alpha=alpha)  #facecolors="white", #edgecolors="blue"
 
     ax.set_title(structure.composition.formula)

@@ -24,6 +24,7 @@ import abipy.flowtk as flowtk
 def build_flow(options):
     # Set working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
+        if os.getenv("READTHEDOCS", False): __file__ = os.path.join(os.getcwd(), "run_gaas_ebands_soc.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     structure = abidata.structure_from_ucell("GaAs")
@@ -33,7 +34,7 @@ def build_flow(options):
 
     # Usa same shifts in all tasks.
     ngkpt = [4, 4, 4]
-    shiftk= [
+    shiftk = [
         [0.5, 0.5, 0.5],
         [0.5, 0.0, 0.0],
         [0.0, 0.5, 0.0],

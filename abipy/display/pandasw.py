@@ -1,6 +1,5 @@
 # coding: utf-8
 """Widgets for Pandas Dataframes."""
-from __future__ import print_function, division, unicode_literals, absolute_import
 
 import pandas as pd
 import ipywidgets as ipw

@@ -8,8 +8,6 @@ Warning:
 
     Work in progress, DO NOT USE THIS CODE
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import tempfile
 import pickle
 import os
@@ -17,7 +15,8 @@ import numpy as np
 import pandas as pd
 import abipy.core.abinit_units as abu
 
-from collections import OrderedDict, namedtuple, Iterable
+from collections import OrderedDict, namedtuple
+from collections.abc import Iterable
 from tabulate import tabulate
 from monty.string import marquee, list_strings
 from monty.functools import lazy_property
@@ -26,9 +25,9 @@ from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, No
 from abipy.core.kpoints import Kpoint, KpointList, Kpath, IrredZone, has_timrev_from_kptopt
 from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
     rotate_ticklabels, ax_append_title, set_ax_xylabels, linestyles)
-from abipy.tools import gaussian, duck
+from abipy.tools import duck
+from abipy.tools.numtools import gaussian
 from abipy.electrons.ebands import ElectronBands, ElectronDos, RobotWithEbands, ElectronBandsPlotter, ElectronDosPlotter
-from abipy.dfpt.phonons import PhononDos #PhononBands, RobotWithPhbands, factor_ev2units, unit_tag, dos_label_from_units
 from abipy.abio.robots import Robot
 from abipy.eph.common import BaseEphReader
 
@@ -46,6 +45,7 @@ __all__ = [
 # __eq__ based on skb?
 # broadening, adiabatic ??
 
+
 class QpTempState(namedtuple("QpTempState", "spin kpoint band tmesh e0 qpe ze0 fan0 dw qpe_oms")):
     """
     Quasi-particle result for given (spin, kpoint, band).
@@ -62,7 +62,7 @@ class QpTempState(namedtuple("QpTempState", "spin kpoint band tmesh e0 qpe ze0 f
         fan0: Fan term (complex) at e_KS
         dw: Debye-Waller (static, real)
         qpe_oms: Quasiparticle energy (real) in the on-the-mass-shell approximation:
-	    qpe_oms = e0 + Sigma(e0)
+            qpe_oms = e0 + Sigma(e0)
 
     .. note::
 
@@ -253,12 +253,13 @@ class QpTempState(namedtuple("QpTempState", "spin kpoint band tmesh e0 qpe ze0 f
         #fig.tight_layout()
         return fig
 
+
 class QpTempList(list):
     """
     A list of quasiparticle corrections (usually for a given spin).
     """
     def __init__(self, *args, **kwargs):
-        super(QpTempList, self).__init__(*args)
+        super().__init__(*args)
         self.is_e0sorted = kwargs.get("is_e0sorted", False)
 
     @property
@@ -283,9 +284,9 @@ class QpTempList(list):
     def to_string(self, verbose=0, title=None):
         """String representation."""
         lines = []; app = lines.append
-        app(marquee("QpTempList",mark="="))
-        app("nqps: %d"%len(self))
-        app("ntemps: %d"%self.ntemp)
+        app(marquee("QpTempList", mark="="))
+        app("nqps: %d" % len(self))
+        app("ntemps: %d" % self.ntemp)
         return "\n".join(lines)
 
     #def copy(self):
@@ -716,7 +717,7 @@ class A2feph(object):
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
-	    what=: fandw for FAN, DW. gkq2 for |gkq|^2
+            what=: fandw for FAN, DW. gkq2 for |gkq|^2
             exchange_xy: True to exchange x-y axis.
             with_ahc_zpr:
             fontsize: legend and title fontsize.
@@ -795,7 +796,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         return cls(filepath)
 
     def __init__(self, filepath):
-        super(SigEPhFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = r = SigmaPhReader(filepath)
 
         # Get important dimensions.
@@ -866,8 +867,15 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         else:
             app("Calculation type: Real + Imaginary part of SigmaEPh")
         app("Number of k-points computed: %d" % (self.nkcalc))
+        # These variables have added recently
+        sigma_ngkpt = self.reader.read_value("sigma_ngkpt", default=None)
+        sigma_erange = self.reader.read_value("sigma_erange", default=None)
+        #dvdb_add_lr = self.reader.read_value("dvdb_add_lr", default=None)
+        app("sigma_ngkpt: %s, sigma_erange: %s" % (sigma_ngkpt, sigma_erange))
         app("Max bstart: %d, min bstop: %d" % (self.reader.max_bstart, self.reader.min_bstop))
-        app("Q-mesh: nqibz: %s, nqbz: %s, ngqpt: %s" % (self.nqibz, self.nqbz, str(self.ngqpt)))
+        app("Ab-initio q-mesh: nqibz: %s, nqbz: %s, ngqpt: %s" % (self.nqibz, self.nqbz, str(self.ngqpt)))
+        eph_ngqpt_fine = self.reader.read_value("eph_ngqpt_fine")
+        app("q-mesh for self-energy integration (eph_ngqpt_fine): %s" % (str(eph_ngqpt_fine)))
         app("K-mesh for electrons:")
         app(self.ebands.kpoints.ksampling.to_string(verbose=verbose))
         app("Number of bands included in self-energy: %d" % (self.nbsum))
@@ -949,6 +957,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         Return a mapping of the kpoints at which the self energy was calculated and the ibz
         i.e. the list of k-points in the band structure used to construct the self-energy.
         """
+        # TODO: This field is not available in the netcdf file.
         if (len(self.sigma_kpoints) == len(self.ebands.kpoints) and
             all(k1 == k2 for (k1, k2) in zip(self.sigma_kpoints, self.ebands.kpoints))):
             return np.arange(len(self.sigma_kpoints))
@@ -959,6 +968,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         for ikc, sigkpt in enumerate(self.sigma_kpoints):
             kcalc2ibz[ikc] = self.ebands.kpoints.index(sigkpt)
 
+        #assert np.all(kcalc2ibz == self.reader.read_value("kcalc2ibz")[0] - 1)
         return kcalc2ibz
 
     @lazy_property
@@ -995,7 +1005,9 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     def edos(self):
         """
         |ElectronDos| object computed by Abinit with the input WFK file without doping (if any).
+        Since this field is optional, None is returned if netcdf variable is not present
         """
+        if "edos_mesh" not in self.reader.rootgrp.variables: return None
         # See m_ebands.edos_ncwrite for fileformat
         mesh = self.reader.read_value("edos_mesh") * abu.Ha_eV
         # nctkarr_t("edos_dos", "dp", "edos_nw, nsppol_plus1"), &
@@ -1270,26 +1282,26 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         qpes = self.get_qp_array(mode='ks+lifetimes')
 
         # read from this class
-        nspn    = self.nspden
-        nkpt    = self.nkpt
+        nspn = self.nspden
+        nkpt = self.nkpt
         kpoints = self.kpoints
-        bstart  = self.reader.max_bstart
-        bstop   = self.reader.min_bstop
-        ntemp   = self.ntemp
-        tmesh   = self.tmesh
-        fermie  = self.ebands.fermie * abu.eV_Ry
-        struct  = self.ebands.structure
+        bstart = self.reader.max_bstart
+        bstop = self.reader.min_bstop
+        ntemp = self.ntemp
+        tmesh = self.tmesh
+        fermie = self.ebands.fermie * abu.eV_Ry
+        struct = self.ebands.structure
 
         def write_file(filename, tag, function, T=None):
             """Function to write files for BoltzTraP"""
             with open(os.path.join(workdir, filename), 'wt') as f:
-                ttag = ' for T=%12.6lf'%T if T else ''
+                ttag = ' for T=%12.6lf' % T if T else ''
                 f.write('BoltzTraP %s file generated by abipy%s.\n' % (tag,ttag))
                 f.write('%5d %5d %20.12e ! nk, nspin : lifetimes below in s \n' % (nkpt, nspn, fermie))
                 for ispin in range(nspn):
                     for ik in range(nkpt):
                         kpt = kpoints[ik]
-                        fmt = '%20.12e '*3 + '%d !kpt nband\n' % (bstop-bstart)
+                        fmt = '%20.12e ' * 3 + '%d !kpt nband\n' % (bstop - bstart)
                         f.write(fmt % tuple(kpt))
                         for ibnd in range(bstart,bstop):
                             f.write('%20.12e\n' % (function(qpes[ispin,ik,ibnd,itemp])))
@@ -1298,7 +1310,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         for itemp in range(ntemp):
             T = tmesh[itemp]
             filename_tau = basename + '_%dK_BLZTRP.tau_k' % T
-            function = lambda x: 1.0/(2*abs(x.imag)*abu.eV_s)
+            function = lambda x: 1.0 / (2 * abs(x.imag) * abu.eV_s)
             write_file(filename_tau, 'tau_k', function,T)
 
         # write energies
@@ -1311,12 +1323,12 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         path = os.path.join(workdir, basename + '_BLZTRP.structure')
         with open(path, 'wt') as f:
             f.write('BoltzTraP geometry file generated by abipy.\n')
-            f.write(fmt3 % tuple(struct.lattice.matrix[0]*abu.Ang_Bohr))
-            f.write(fmt3 % tuple(struct.lattice.matrix[1]*abu.Ang_Bohr))
-            f.write(fmt3 % tuple(struct.lattice.matrix[2]*abu.Ang_Bohr))
-            f.write("%d\n"%len(struct))
+            f.write(fmt3 % tuple(struct.lattice.matrix[0] * abu.Ang_Bohr))
+            f.write(fmt3 % tuple(struct.lattice.matrix[1] * abu.Ang_Bohr))
+            f.write(fmt3 % tuple(struct.lattice.matrix[2] * abu.Ang_Bohr))
+            f.write("%d\n" % len(struct))
             for atom in struct:
-                f.write("%s "% atom.specie + fmt3 % tuple(atom.coords*abu.Ang_Bohr))
+                f.write("%s " % atom.specie + fmt3 % tuple(atom.coords * abu.Ang_Bohr))
 
     def interpolate(self, itemp_list=None, lpratio=5, mode="qp", ks_ebands_kpath=None, ks_ebands_kmesh=None,
                     ks_degatol=1e-4, vertices_names=None, line_density=20, filter_params=None,
@@ -1700,13 +1712,72 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         Returns: |matplotlib-Figure|
         """
-        # This is a bit slow if several k-points but data is scatted due to symsigma.
+        # This is a bit slow if several k-points but data is scattered due to symsigma.
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         if "markersize" not in kwargs: kwargs["markersize"] = 2
         return self.plot_qps_vs_e0(itemp_list=itemp_list, with_fields="fan0", reim="imag",
                                    function=abs, e0=e0, colormap=colormap, xlims=xlims, ylims=ylims,
                                    exchange_xy=exchange_xy, ax_list=[ax], fontsize=fontsize, show=False,
                                    **kwargs)
+
+    @add_fig_kwargs
+    def plot_tau_vtau(self, itemp=0, ax_list=None, **kwargs):
+
+        r = self.reader
+        # Diagonal elements of velocity operator in cartesian coordinates for all states in Sigma_nk.
+        # nctkarr_t("vcar_calc", "dp", "three, max_nbcalc, nkcalc, nsppol")]))
+        # nctkarr_t("ks_enes", "dp", "max_nbcalc, nkcalc, nsppol")
+        # nctkarr_t("vals_e0ks", "dp", "two, ntemp, max_nbcalc, nkcalc, nsppol")
+        v_var = r.read_variable("vcar_calc")
+        ks_enes_var = r.read_variable("ks_enes")
+        vals_e0ks_var = r.read_variable("vals_e0ks")
+
+        ks_enes, taus, vels = [], [], []
+        for spin in range(self.nsppol):
+            for ikc, kpoint in enumerate(self.sigma_kpoints):
+                nb = r.nbcalc_sk[spin, ikc]
+                ks_enes.extend(ks_enes_var[spin, ikc, :nb] * abu.Ha_eV)
+                # TODO: times conversion fact!
+                asimag = np.abs(vals_e0ks_var[spin, ikc, :nb, itemp, 1])
+                asimag = np.where(asimag > 1e-8, asimag, 1e-8)
+                print(asimag)
+                taus.extend(1.0 / (2.0 * asimag))
+                vels.extend(np.linalg.norm(v_var[spin, ikc, :nb, :], axis=-1))
+
+        ks_enes = np.reshape(np.array(ks_enes), (self.nsppol, -1))
+        taus = np.reshape(np.array(taus), (self.nsppol, -1))
+        vels = np.reshape(np.array(vels), (self.nsppol, -1))
+        #ks_enes, taus, vels = [np.reshape(a, (self.nsppol, -1)) for a in map(np.array, (ks_enes, taus, vels))]
+
+        #v = np.linalg.norm(v, axis=-1)
+        #nctkarr_t("vals_e0ks", "dp", "two, ntemp, max_nbcalc, nkcalc, nsppol"), &
+        #tau_var = r.read_variable("vals_e0ks")[..., itemp, 1]
+        #tau = 1.0 / (2.0 * np.abs(tau)) # TODO: times conversion fact!
+        #ks_enes = r.read_value("ks_enes") * abu.Ha_eV
+
+        nrows, ncols = 3, 1
+        axmat, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
+                                              sharex=True, sharey=False, squeeze=True)
+
+        data = {
+             0: dict(vals=taus, ylabel="Tau"),
+             1: dict(vals=vels, ylabel="Group velocity"),
+             2: dict(vals=vels * taus, ylabel="Tau V"),
+        }
+
+        for ix, ax in enumerate(axmat):
+            d = data[ix]
+            for spin in range(self.nsppol):
+                xs, ys = ks_enes[spin].ravel(), d["vals"][spin].ravel()
+                ax.scatter(xs, ys)
+                if ix == len(axmat) - 1:
+                    ax.set_xlabel("Energy (eV)")
+                if spin == 0:
+                    ax.set_ylabel(d["ylabel"])
+            ax.grid(True)
+            #ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        return fig
 
     @add_fig_kwargs
     def plot_a2fw_skb(self, spin, kpoint, band, what="auto", ax=None, fontsize=12, units="meV", **kwargs):
@@ -1718,7 +1789,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             spin: Spin index
             kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
             band: Band index.
-	    what: fandw for FAN, DW. gkq2 for $|gkq|^2$. Auto for automatic selection based on imag_only
+            what: fandw for FAN, DW. gkq2 for $|gkq|^2$. Auto for automatic selection based on imag_only
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: legend and title fontsize.
@@ -1816,7 +1887,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         Args:
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
                 Case-insensitive.
-	    what: fandw for FAN, DW. gkq2 for $|gkq|^2$. Auto for automatic selection based on imag_only
+            what: fandw for FAN, DW. gkq2 for $|gkq|^2$. Auto for automatic selection based on imag_only
             sharey: True if Y axes should be shared.
             fontsize: legend and title fontsize.
 
@@ -1869,6 +1940,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         verbose = kwargs.pop("verbose", 0)
         if self.imag_only:
             yield self.plot_qps_vs_e0(with_fields="fan0", reim="imag", function=abs, show=False)
+            yield self.plot_tau_vtau(show=False)
 
         else:
             yield self.plot_qpbands_ibzt(show=False)
@@ -1880,7 +1952,8 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 yield self.plot_qpgaps_t(qp_kpoints=qp_kpt, show=False)
             yield self.plot_qps_vs_e0(show=False)
 
-        yield self.edos.plot(show=False)
+        if self.edos is not None:
+            yield self.edos.plot(show=False)
 
     def write_notebook(self, nbpath=None, title=None):
         """
@@ -1919,7 +1992,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
     EXT = "SIGEPH"
 
     def __init__(self, *args):
-        super(SigEPhRobot, self).__init__(*args)
+        super().__init__(*args)
         if len(self.abifiles) in (0, 1): return
 
         # Check dimensions and self-energy states and issue warning.
@@ -2057,7 +2130,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
             groups = self.group_and_sortby(hue, sortby)
             nrows, ncols = 3, len(groups)
             ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                    sharex=True, sharey=True, squeeze=False)
+                                                   sharex=True, sharey=True, squeeze=False)
             for ig, g in enumerate(groups):
                 subtitle = "%s: %s" % (self._get_label(hue), g.hvalue)
                 ax_mat[0, ig].set_title(subtitle, fontsize=fontsize)
@@ -2515,7 +2588,7 @@ class TdepElectronBands(object): # pragma: no cover
         Args:
             itemp: Temperature index.
             ax_list: The axes for the bandstructure plot and the DOS plot. If ax_list is None, a new figure
-		is created and the two axes are automatically generated.
+                is created and the two axes are automatically generated.
             width_ratios: Defines the ratio between the band structure plot and the dos plot.
             function: Apply this function to the values before plotting.
 
@@ -2688,7 +2761,7 @@ class TdepElectronBands(object): # pragma: no cover
                 edos_kwargs=edos_kwargs)
 
         for itemp in range(self.ntemp):
-            label="T = %.1f K" % self.tmesh[itemp]
+            label = "T = %.1f K" % self.tmesh[itemp]
             ebands_plotter.add_ebands(label, self.qp_ebands_kpath_t[itemp],
                 edos=self.qp_ebands_kmesh_t[itemp] if (self.has_kmesh and with_edos) else None,
                 edos_kwargs=edos_kwargs)
@@ -2724,7 +2797,7 @@ class SigmaPhReader(BaseEphReader):
     .. inheritance-diagram:: SigmaPhReader
     """
     def __init__(self, path):
-        super(SigmaPhReader, self).__init__(path)
+        super().__init__(path)
 
         self.nsppol = self.read_dimvalue("nsppol")
 
@@ -2891,7 +2964,7 @@ class SigmaPhReader(BaseEphReader):
         # Get a2f_{sbk}(w)
         spin, ikc, ibc, kpoint = self.get_sigma_skb_kpoint(spin, kpoint, band)
         var = self.read_variable("gfw_vals")
-        values = var[spin, ikc, ibc]  * abu.Ha_eV # TODO check units
+        values = var[spin, ikc, ibc] * abu.Ha_eV # TODO check units
         gkq2, fan, dw = values[0], values[1], values[2]
 
         return A2feph(wmesh, gkq2, fan, dw, spin, kpoint, band)

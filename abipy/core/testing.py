@@ -1,18 +1,16 @@
 # coding: utf-8
+# flake8: noqa
 """
 Common test support for all AbiPy test scripts.
 
 This single module should provide all the common functionality for abipy tests
 in a single location, so that test scripts can just import it and work right away.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 import numpy
 import subprocess
 import json
 import tempfile
-import shutil
 import unittest
 import numpy.testing.utils as nptu
 import abipy.data as abidata
@@ -56,7 +54,9 @@ def has_abinit(version=None, op=">=", manager=None):
     else:
         return cmp_version(build.version, version, op=op)
 
+
 _HAS_MATPLOTLIB_CALLS = 0
+
 
 def has_matplotlib(version=None, op=">="):
     """
@@ -237,8 +237,8 @@ def input_equality_check(ref_file, input2, rtol=1e-05, atol=1e-08, equal_nan=Fal
 
 
 def get_gsinput_si(usepaw=0, as_task=False):
-    # Build GS input file.
-    pseudos = abidata.pseudos("14si.pspnc") if usepaw == 0 else data.pseudos("Si.GGA_PBE-JTH-paw.xml")
+    """Build and return GS input file for silicon."""
+    pseudos = abidata.pseudos("14si.pspnc") if usepaw == 0 else abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
     #silicon = abilab.Structure.zincblende(5.431, ["Si", "Si"], units="ang")
     silicon = abidata.cif_file("si.cif")
 

@@ -1,6 +1,4 @@
 """Tests for phtk module."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 import abipy.data as abidata
 

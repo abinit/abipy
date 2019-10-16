@@ -13,30 +13,21 @@ env:
 
 matrix:
   include:
-    #- os: linux
-    #  python: 2.7
-    #  env: 
-    #    - ABIPY_INSTALLER=conda
     - os: linux
       python: 3.6
+      env: 
+        - ABIPY_INSTALLER=pip ABIPY_PYTEST=no
+    - os: linux
+      python: 3.7
       env: 
         - ABIPY_INSTALLER=conda ABIPY_COVERALLS=yes
-    - os: linux
-      python: 3.6
-      env: 
-        - ABIPY_INSTALLER=pip ABIPY_SPHINX=yes ABIPY_PYTEST=no
-    #- os: osx
-    #  python: 3.6
-    #  language: generic
-    #  env: 
-    #    - ABIPY_INSTALLER=conda ABIPY_PYTEST=no
     - os: linux
       python: 3.7
       # https://github.com/travis-ci/travis-ci/issues/9815
       dist: xenial
       sudo: true
       env: 
-        - ABIPY_INSTALLER=pip
+        - ABIPY_INSTALLER=pip ABIPY_SPHINX=yes 
 
 install:
   #- set -ev  # exit on first error, print each command
@@ -47,8 +38,8 @@ install:
       if [ "${ABIPY_INSTALLER}" == "pip" ]; then
         # pip-based installation.
         source dev_scripts/conda_get.sh  # Needed for Abinit
-        echo "Installing abinit from abinit channel ..."
         conda config --add channels conda-forge
+        echo "Installing abinit from abinit channel ..."
         conda install -y -c abinit abinit=${ABINIT_VERSION}
         abinit --version
         abinit --build
@@ -95,9 +86,6 @@ before_script:
     # This to run tests requiring a graphical user e.g. mayavi
     # https://docs.travis-ci.com/user/gui-and-headless-browsers/#Using-xvfb-to-Run-Tests-That-Require-a-GUI
     - "export DISPLAY=:99.0"
-    - "sh -e /etc/init.d/xvfb start"
-    - sleep 3 # give xvfb some time to start
-    # https://github.com/travis-ci/travis-ci/issues/6307
     - if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then rvm get head || true; fi 
 
 # command to run tests

@@ -2,8 +2,6 @@
 """
 This benchmark compares GS calculations at the Gamma point done with istwfk in [1,2]
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import sys
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk

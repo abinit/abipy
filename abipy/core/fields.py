@@ -1,7 +1,5 @@
 # coding: utf-8
 """This module contains the class describing densities in real space on uniform 3D meshes."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import numpy as np
 import collections
 import pymatgen.core.units as pmgu
@@ -10,7 +8,7 @@ import os
 from collections import OrderedDict
 from monty.collections import AttrDict
 from monty.functools import lazy_property
-from monty.string import is_string
+from monty.string import is_string, marquee
 from monty.termcolor import cprint
 from monty.inspect import all_subclasses
 from pymatgen.io.vasp.inputs import Poscar
@@ -20,7 +18,8 @@ from abipy.core.structure import Structure
 from abipy.core.mesh3d import Mesh3D
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import Has_Structure
-from abipy.tools import transpose_last3dims, duck
+from abipy.tools import duck
+from abipy.tools.numtools import transpose_last3dims
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.iotools import Visualizer, xsf, ETSF_Reader, cube
 
@@ -41,7 +40,7 @@ def latexlabel_ispden(ispden, nspden):
 
     elif nspden == 2:
         return {k: v.replace("myuparrow", "uparrow") for k, v in
-            {0: r"$\sigma=\myuparrow$", 1: r"$\sigma=\downarrow$"}.items()}[ispden]
+               {0: r"$\sigma=\myuparrow$", 1: r"$\sigma=\downarrow$"}.items()}[ispden]
 
     else:
         raise NotImplementedError()
@@ -109,7 +108,7 @@ class _Field(Has_Structure):
         if not isinstance(other, _Field):
             try:
                 return self.__class__, float(other)
-            except:
+            except Exception:
                 raise TypeError('object of class %s is not an instance of _Field and cannot be converted to float' %
                     (other.__class__))
 
@@ -411,7 +410,7 @@ class _Field(Has_Structure):
         Return: |matplotlib-Figure|
         """
         site = self.structure[site_index]
-        nn_list = self.structure.get_neighbors(site, radius, include_index=True)
+        nn_list = self.structure.get_neighbors_old(site, radius, include_index=True)
         if not nn_list:
             cprint("Zero neighbors found for radius %s Ang. Returning None." % radius, "yellow")
             return None
@@ -420,7 +419,7 @@ class _Field(Has_Structure):
 
         if max_nn is not None and len(nn_list) > max_nn:
             cprint("For radius %s, found %s neighbors but only max_nn %s sites are show." %
-                    (radius, len(nn_list), max_nn), "yellow")
+                   (radius, len(nn_list), max_nn), "yellow")
             nn_list = nn_list[:max_nn]
 
         # Get grid of axes.
@@ -432,7 +431,7 @@ class _Field(Has_Structure):
         interpolator = self.get_interpolator()
 
         for i, (nn, ax) in enumerate(zip(nn_list, ax_list)):
-            nn_site, nn_dist, nn_sc_index  = nn
+            nn_site, nn_dist, nn_sc_index = nn
             title = "%s, %s, dist=%.3f A" % (nn_site.species_string, str(nn_site.frac_coords), nn_dist)
 
             r = interpolator.eval_line(site.frac_coords, nn_site.frac_coords, num=num, kpoint=None)
@@ -489,7 +488,7 @@ class _Field(Has_Structure):
             symbol = site.specie.symbol
             phases = np.exp(2j * np.pi * np.dot(gvecs, site.frac_coords))
             fg = datag * phases * splines[symbol](gmods)
-            res_nspden = np.sum(fg, axis=1)  * (4 * np.pi)
+            res_nspden = np.sum(fg, axis=1) * (4 * np.pi)
             #print("result:", res_nspden, res_nspden.shape, (datag * fg).shape)
 
             # Compute densities and magnetization.
@@ -504,7 +503,7 @@ class _Field(Has_Structure):
 
             elif self.nspinor == 2:
                 raise NotImplementedError()
-                ntot, mx, my, mz = scalvec_from_spinmat(res_nspden)
+                #ntot, mx, my, mz = scalvec_from_spinmat(res_nspden)
                 nup, ndown = 0.5 * (ntot + mz), 0.5 * (ntot - mz)
 
             # Fill DataFrame row.
@@ -561,6 +560,7 @@ def core_density_from_file(filepath):
     else:
         raise ValueError('Exension not supported: {}'.format(ext))
 
+
 class Density(_DensityField):
     """
     Electronic density.
@@ -611,7 +611,7 @@ class Density(_DensityField):
         if isinstance(rhoc, (list, tuple)):
             if len(structure) != len(rhoc):
                 raise ValueError('Number of rhoc files should be equal to the number of sites in the structure')
-        elif isinstance(rhoc, collections.Mapping):
+        elif isinstance(rhoc, collections.abc.Mapping):
             atoms_symbols = [elmt.symbol for elmt in structure.composition]
             if not np.all([atom in rhoc for atom in atoms_symbols]):
                 raise ValueError('The rhoc files should be provided for all the atoms in the structure')
@@ -628,8 +628,8 @@ class Density(_DensityField):
             abs_max = abs(maxr)
             for r in rhoc:
                 try:
-                    ind = np.min(np.where(r[1]==0))
-                except:
+                    ind = np.min(np.where(r[1] == 0))
+                except Exception:
                     ind = -1
 
                 if r[0][ind] > maxr:
@@ -709,9 +709,9 @@ class Density(_DensityField):
             start = time.time()
             dist_gridpoints_sites = valence_density.mesh.dist_gridpoints_in_spheres(points=site_coords, radius=maxr)
             nnx, nny, nnz = small_dist_mesh
-            meshgrid = np.meshgrid(np.linspace(-0.5, 0.5, nnx, endpoint=False)+0.5/nnx,
-                                            np.linspace(-0.5, 0.5, nny, endpoint=False) + 0.5/nny,
-                                            np.linspace(-0.5, 0.5, nnz, endpoint=False) + 0.5/nnz)
+            meshgrid = np.meshgrid(np.linspace(-0.5, 0.5, nnx, endpoint=False) + 0.5 / nnx,
+                                   np.linspace(-0.5, 0.5, nny, endpoint=False) + 0.5 / nny,
+                                   np.linspace(-0.5, 0.5, nnz, endpoint=False) + 0.5 / nnz)
             coords_grid = np.outer(meshgrid[0], dvx) + np.outer(meshgrid[1], dvy) + np.outer(meshgrid[2], dvz)
             for isite, dist_gridpoints_site in enumerate(dist_gridpoints_sites):
                 for igp_uc, dist, igp in dist_gridpoints_site:
@@ -1138,7 +1138,7 @@ class FieldReader(ETSF_Reader):
 
             else:
                 raise ValueError("Invalid nspinor: %s, nspden: %s and nsppol: %s" % (
-                    dims.nspinor, dims.nspden, dims%nsppol))
+                                  dims.nspinor, dims.nspden, dims.nsppol))
                 #if issubclass(field_cls, _DensityField):
                 #elif issubclass(field_cls, _PotentialFieldField):
                 #else:

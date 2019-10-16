@@ -18,6 +18,7 @@ import abipy.data as abidata
 
 from abipy import flowtk
 
+
 def make_scf_input(paral_kgb=0):
     """
     This function constructs the input file for the GS calculation:
@@ -59,6 +60,7 @@ def build_flow(options):
     """
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
+        if os.getenv("READTHEDOCS", False): __file__ = os.path.join(os.getcwd(), "run_phonons.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     # Build input for GS calculation
@@ -113,7 +115,7 @@ if __name__ == "__main__":
 # .. code-block:: bash
 #
 #    ===================================================================================================================================
-#    ====================================== <PhononWork, node_id=241274, workdir=flow_phonons/w1> ======================================
+#    ====================================== <PhononWork, node_id=241274, workdir=flow_phonons/w1> ===============================
 #    ===================================================================================================================================
 #    [Thu Dec  7 22:55:02 2017] Finalized set to True
 #    [Thu Dec  7 22:55:02 2017] Will call mrgddb to merge [ .... ]

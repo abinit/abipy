@@ -1,6 +1,4 @@
 """Tests for phonons"""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 import numpy as np
 import abipy.data as abidata
@@ -22,8 +20,8 @@ class AnaddbNcFileTest(AbipyTest):
             assert not anc.has_elastic_data
             assert not anc.has_piezoelectric_data
             assert anc.becs is not None
-            assert anc.emacro is not None
-            assert anc.emacro_rlx is not None
+            assert anc.epsinf is not None
+            assert anc.eps0 is not None
             assert anc.dchidt is not None
             assert anc.dchide is not None
             assert anc.oscillator_strength is not None

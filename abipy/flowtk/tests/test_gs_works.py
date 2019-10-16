@@ -1,13 +1,9 @@
 """Tests for gs_works module"""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import abipy.data as abidata
 import abipy.flowtk as flowtk
 
 from abipy.core.testing import AbipyTest
-#from abipy.abio.factories import gs_input
 from abipy.flowtk import gs_works
-#from abipy.flowtk import mocks
 
 
 class TestGsWorks(AbipyTest):

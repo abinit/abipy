@@ -10,7 +10,7 @@ from __future__ import division, print_function
 
 from abipy import abilab
 import abipy.data as abidata
-import numpy as np
+
 
 with abilab.abiopen(abidata.ref_file("h6_FOLD2BLOCH.nc")) as ncfile:
     print(ncfile)

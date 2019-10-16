@@ -1,11 +1,8 @@
 """Configuration file for pytest."""
-from __future__ import print_function, division
-
 import os
 import pytest
 import yaml
 import copy
-import abipy.abilab as abilab
 import abipy.flowtk as flowtk
 
 from monty.collections import AttrDict
@@ -24,7 +21,7 @@ USER_CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".abinit", "abipy")
 
 # Read the base configuration from file
 with open(os.path.join(USER_CONFIG_DIR, "manager.yml")) as fh:
-    base_conf = yaml.load(fh)
+    base_conf = yaml.safe_load(fh)
 
 # Build list of configurations.
 _manager_confs = []
@@ -72,6 +69,7 @@ else:
         #(("paral_kgb", 0),),
         (("paral_kgb", 1),),
     ]
+
 
 @pytest.fixture(params=_tvars_list)
 def tvars(request):
@@ -128,4 +126,3 @@ def pytest_report_header(config):
 #    """Reporting hook"""
 #    if report.outcome == "failed":
 #        print("noedid", report.nodeid, "failed")
-

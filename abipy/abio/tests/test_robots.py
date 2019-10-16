@@ -1,7 +1,5 @@
 # coding: utf-8
 """Test for Robots"""
-from __future__ import unicode_literals, division, print_function
-
 import sys
 import os
 import abipy.data as abidata

@@ -1,6 +1,4 @@
 """Tests for sigeph module."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 import collections
 import numpy as np
@@ -26,7 +24,7 @@ class SigEPhFileTest(AbipyTest):
         self.assert_equal(sigeph.ngqpt.flatten(), [4, 4, 4])
         assert not sigeph.imag_only
         assert sigeph.symsigma == 0
-        assert sigeph.ntemp ==  6
+        assert sigeph.ntemp == 6
         assert sigeph.nband == 54
         assert sigeph.nqbz == sigeph.ngqpt.prod()
         assert sigeph.nqibz == 8

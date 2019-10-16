@@ -2,16 +2,12 @@
 """
 Objects to analyze elastic and piezoelectric tensors computed by anaddb.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import pandas as pd
 
 from collections import OrderedDict
 from monty.string import list_strings, marquee
 from monty.collections import AttrDict
 from monty.json import MSONable
-#from monty.functools import lazy_property
-
 from abipy.core.mixins import Has_Structure
 from abipy.tools.tensors import Tensor, ElasticTensor, PiezoTensor
 from abipy.flowtk.netcdf import ETSF_Reader
@@ -201,7 +197,7 @@ class ElasticData(Has_Structure, MSONable):
             # NB: asr and chneut are always present in the new anaddb.nc file
             # Use -666 to support old formats.
             asr=int(reader.read_value("asr", default=-666)),
-            chneut= int(reader.read_value("chneut", default=-666)),
+            chneut=int(reader.read_value("chneut", default=-666)),
             elaflag=int(reader.read_value("elaflag", default=0)),
             instrflag=int(reader.read_value("instrflag", default=0)),
             piezoflag=int(reader.read_value("piezoflag", default=0)),

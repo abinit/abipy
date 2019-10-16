@@ -4,15 +4,11 @@ Tools and workflows for calculations within the quasi-harmonic approximation.
 
 WARNING: This code is still under development.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
-import os
 import numpy as np
 
-from pymatgen.io.abinit.flows import Flow
-from pymatgen.io.abinit.works import Work, RelaxWork, PhononWork, MergeDdb
 from abipy.core.structure import Structure
-from abipy.abio.inputs import AbinitInput
+from abipy.flowtk.works import Work, MergeDdb # RelaxWork, PhononWork,
+from abipy.flowtk.flows import Flow
 
 import logging
 logger = logging.getLogger(__name__)
@@ -34,7 +30,7 @@ class RelaxAndPhononWork(Work, MergeDdb):
         relaxinp.pop_tolerances()
         relaxinp.set_vars(tolvrs=1e-10, toldff=1.e-6)
         relaxinp.set_vars(optcell=optcell, ionmov=ionmov)
-        if optcell is not None and optcell != 0 :
+        if optcell is not None and optcell != 0:
             relaxinp.set_vars_ifnotin(ecutsm=0.5, dilatmx=1.05)
 
         work.relax_task = work.register_relax_task(relaxinp)
@@ -79,7 +75,7 @@ class RelaxAndPhononWork(Work, MergeDdb):
             self.merge_ddb_files()
             self.finalized = True
 
-        return super(RelaxAndPhononWork, self).on_all_ok()
+        return super().on_all_ok()
 
 
 class QhaFlow(Flow):
@@ -136,4 +132,4 @@ class QhaFlow(Flow):
         #with open(self.outdir.path_in("qha.sjon"), "wt") as fh:
         #    json.dump(fh, data)
 
-        return super(QhaFlow, self).finalize()
+        return super().finalize()

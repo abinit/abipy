@@ -6,15 +6,12 @@ the user to change the matplotlib backend.
 Usage:
     _runplots.py [backend]
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import sys
 import os
 import time
 import argparse
 
 from subprocess import call, Popen
-#from abipy.core.testing import change_matplotlib_backend, revert_matplotlib_backend
 
 
 def str_examples():

@@ -1,15 +1,12 @@
 # coding: utf-8
 """Wavefunction file."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
-import six
-import numpy as np
+#import numpy as np
 
 from monty.functools import lazy_property
-from monty.string import marquee # is_string, list_strings,
-from abipy.core import Mesh3D, GSphere, Structure
+from monty.string import marquee
+from abipy.core import Mesh3D, GSphere
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.iotools import ETSF_Reader, Visualizer
+from abipy.iotools import Visualizer
 from abipy.electrons.ebands import ElectronsReader
 from abipy.waves.pwwave import PWWaveFunction
 from abipy.tools import duck
@@ -49,7 +46,7 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         """
         Initialize the object from a Netcdf file.
         """
-        super(WfkFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = reader = WFK_Reader(filepath)
         assert reader.has_pwbasis_set
 
@@ -315,7 +312,7 @@ class WFK_Reader(ElectronsReader):
 
     def __init__(self, filepath):
         """Initialize the object from a filename."""
-        super(WFK_Reader, self).__init__(filepath)
+        super().__init__(filepath)
 
         self.kpoints = self.read_kpoints()
         self.nfft1 = self.read_dimvalue("number_of_grid_points_vector1")
@@ -341,10 +338,7 @@ class WFK_Reader(ElectronsReader):
     def basis_set(self):
         """String defining the basis set."""
         basis_set = self.read_value("basis_set")
-        if six.PY2:
-            return "".join(basis_set).strip()
-        else:
-            return "".join(str(basis_set, encoding='UTF-8')).strip()
+        return "".join(str(basis_set, encoding='UTF-8')).strip()
 
     @property
     def has_pwbasis_set(self):

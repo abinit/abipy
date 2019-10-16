@@ -1,5 +1,3 @@
-from __future__ import unicode_literals, division, print_function
-
 import abipy.data as abidata
 import abipy.abilab as abilab
 
@@ -86,8 +84,6 @@ class FactoryTest(AbipyTest):
         assert len(multi_dos) == 4
         self.assert_equal(multi_dos.get("iscf"), [None, -2, -2, -2])
 
-
-
     def test_ion_ioncell_relax_input(self):
         """Testing ion_ioncell_relax_input factory."""
         multi = ion_ioncell_relax_input(self.si_structure, self.si_pseudo, kppa=10, ecut=2)
@@ -150,7 +146,6 @@ class FactoryTest(AbipyTest):
         flow = Flow.temporary_flow()
         flow.register_work(G0W0Work(scf_input, nscf_input, scr_input, sigma_input))
         assert flow.build_and_pickle_dump(abivalidate=True) == 0
-
 
         # The default value of `shifts` changed in v0.3 from (0.5, 0.5, 0.5) to (0.0, 0.0, 0.0)
         multi = g0w0_with_ppmodel_inputs(self.si_structure, self.si_pseudo,
@@ -305,7 +300,6 @@ class FactoryTest(AbipyTest):
         self.assert_input_equality('phonons_from_gsinput_ph_q_pert_1.json', inp_ph_q_pert_1_obj)
         self.assert_input_equality('phonons_from_gsinput_ph_q_pert_2.json', inp_ph_q_pert_2_obj)
 
-
     def test_elastic_inputs_from_gsinput(self):
         """Testing elastic_inputs_from_gsinput."""
         gs_inp = gs_input(self.si_structure, self.si_pseudo, kppa=None, ecut=2, spin_mode="unpolarized")
@@ -368,7 +362,6 @@ class FactoryTest(AbipyTest):
         factory_obj = IoncellRelaxFromGsFactory()
         self.assertMSONable(factory_obj)
         icrelax_input_obj = factory_obj.build_input(gs_inp)
-
 
     def test_hybrid_oneshot_input(self):
         """Testing hybrid_oneshot_input."""
@@ -471,4 +464,3 @@ class FactoryTest(AbipyTest):
         self.assert_input_equality('dfpt_from_gsinput_ph_q_pert_2.json', inp_ph_q_pert_2)
         self.assert_input_equality('dfpt_from_gsinput_strain.json', inp_strain)
         self.assert_input_equality('dfpt_from_gsinput_dte.json', inp_dte)
-

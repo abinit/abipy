@@ -1,7 +1,6 @@
 # coding: utf-8
-from __future__ import print_function, division, unicode_literals, absolute_import
 
-_PTG_IRREPS_DB =\
+_PTG_IRREPS_DB = \
 {'C1': {'class_names': ['1+'],
         'class_range': [(0, 1)],
         'irreps': {'A': {'dim': 1, 'matrices': [[[1.0]]]}},

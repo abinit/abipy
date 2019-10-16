@@ -1,8 +1,4 @@
-#!/usr/bin/env python
 """Tests for visualizer module"""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
-#import abipy.data as abidata
 
 from abipy.core.testing import AbipyTest
 from abipy.iotools.visualizer import Visualizer, Xcrysden, Vesta, V_Sim, Ovito, Avogadro

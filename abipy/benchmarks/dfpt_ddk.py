@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 """Benchmark for DDK calculations."""
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import sys
 import abipy.abilab as abilab
 import abipy.data as abidata

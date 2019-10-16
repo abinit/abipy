@@ -1,18 +1,16 @@
 # coding: utf-8
 """Classes for the analysis of GW calculations."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import sys
 import copy
 import warnings
 import numpy as np
 import pandas as pd
 
-from collections import namedtuple, OrderedDict, Iterable, defaultdict
-from six.moves import cStringIO
+from collections import namedtuple, OrderedDict
+from io import StringIO
 from tabulate import tabulate
 from monty.string import list_strings, is_string, marquee
-from monty.collections import AttrDict, dict2namedtuple
+from monty.collections import dict2namedtuple
 from monty.functools import lazy_property
 from monty.termcolor import cprint
 from monty.bisect import find_le, find_ge
@@ -21,7 +19,7 @@ from abipy.core.kpoints import Kpoint, KpointList, Kpath, IrredZone, has_timrev_
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.iotools import ETSF_Reader
 from abipy.tools.plotting import (ArrayPlotter, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, Marker,
-    set_axlims, set_visible, rotate_ticklabels, ax_append_title)
+    set_axlims, set_visible, rotate_ticklabels)
 from abipy.tools import duck
 from abipy.abio.robots import Robot
 from abipy.electrons.ebands import ElectronBands, RobotWithEbands
@@ -213,7 +211,7 @@ class QPList(list):
     A list of quasiparticle corrections for a given spin.
     """
     def __init__(self, *args, **kwargs):
-        super(QPList, self).__init__(*args)
+        super().__init__(*args)
         self.is_e0sorted = kwargs.get("is_e0sorted", False)
 
     def __repr__(self):
@@ -599,7 +597,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
     def __init__(self, filepath):
         """Read data from the netcdf file path."""
-        super(SigresFile, self).__init__(filepath)
+        super().__init__(filepath)
 
         # Keep a reference to the SigresReader.
         self.reader = reader = SigresReader(self.filepath)
@@ -687,8 +685,8 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         app("")
 
         # Show QP results
-        strio = cStringIO()
-        self.print_qps(precision=3, ignore_imag=verbose==0, file=strio)
+        strio = StringIO()
+        self.print_qps(precision=3, ignore_imag=verbose == 0, file=strio)
         strio.seek(0)
         app("")
         app(marquee("QP results for each k-point and spin (all in eV)", mark="="))
@@ -1270,7 +1268,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             ks_ebands_kmesh = ElectronBands.as_ebands(ks_ebands_kmesh)
             if bstop > ks_ebands_kmesh.nband:
                 raise ValueError("Not enough bands in ks_ebands_kmesh, found %s, minimum expected %d\n" % (
-                    ks_ebands_kmesh%nband, bstop))
+                    ks_ebands_kmesh.nband, bstop))
             if ks_ebands_kpath.structure != self.structure:
                 cprint("sigres.structure and ks_ebands_kpath.structures differ. Check your files!", "red")
                 #raise ValueError("sigres.structure and ks_ebands_kmesh.structures differ. Check your files!")
@@ -1493,7 +1491,7 @@ class SigresReader(ETSF_Reader):
     def __init__(self, path):
         self.ks_bands = ElectronBands.from_file(path)
         self.nsppol = self.ks_bands.nsppol
-        super(SigresReader, self).__init__(path)
+        super().__init__(path)
 
         try:
             self.nomega_r = self.read_dimvalue("nomega_r")
@@ -1734,7 +1732,7 @@ class SigresReader(ETSF_Reader):
         params = OrderedDict()
         for pname in param_names:
             v = self.read_value(pname, default=None)
-            params[pname] = v if v is None else np.asscalar(v)
+            params[pname] = v if v is None else np.asarray(v).item()
 
         # Other quantities that might be subject to convergence studies.
         #params["nkibz"] = len(self.ibz)
@@ -1764,7 +1762,7 @@ class SigresRobot(Robot, RobotWithEbands):
     EXT = "SIGRES"
 
     def __init__(self, *args):
-        super(SigresRobot, self).__init__(*args)
+        super().__init__(*args)
         if len(self.abifiles) in (0, 1): return
 
         # TODO
@@ -2070,7 +2068,7 @@ class SigresRobot(Robot, RobotWithEbands):
                 if sortby is not None:
                     label = "%s: %s" % (self._get_label(sortby), param)
                 fig = ncfile.plot_qps_vs_e0(with_fields=list_strings(field),
-                    e0=e0, ax_list=ax_list, color=cmap(i/ len(lnp_list)), fontsize=fontsize,
+                    e0=e0, ax_list=ax_list, color=cmap(i / len(lnp_list)), fontsize=fontsize,
                     sharey=sharey, label=label, show=False)
                 ax_list = fig.axes
         else:
@@ -2084,7 +2082,7 @@ class SigresRobot(Robot, RobotWithEbands):
                 ax_mat[0, ig].set_title(subtitle, fontsize=fontsize)
                 for i, (nclabel, ncfile, param) in enumerate(g):
                     fig = ncfile.plot_qps_vs_e0(with_fields=list_strings(field),
-                        e0=e0, ax_list=ax_mat[:, ig], color=cmap(i/ len(g)), fontsize=fontsize,
+                        e0=e0, ax_list=ax_mat[:, ig], color=cmap(i / len(g)), fontsize=fontsize,
                         sharey=sharey, label="%s: %s" % (self._get_label(sortby), param), show=False)
 
                 if ig != 0:

@@ -1,11 +1,9 @@
 # coding: utf-8
 """Define a class used to execute a visualizer within the Python interpreter."""
-from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
 import os
 import abc
-import six
 
 from monty.os.path import which
 from monty.termcolor import cprint
@@ -72,8 +70,7 @@ class VisualizerError(Exception):
     """Base class for Visualizer errors"""
 
 
-@six.add_metaclass(abc.ABCMeta)
-class Visualizer(object):
+class Visualizer(metaclass=abc.ABCMeta):
     """
     Handle the visualization of data.
     """

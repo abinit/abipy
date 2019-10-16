@@ -1,15 +1,11 @@
 # coding: utf-8
 """Classes for the analysis of BSE calculations"""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
-import sys
 import os
 import itertools
 import numpy as np
 import pandas as pd
 
 from collections import OrderedDict
-from monty.collections import AttrDict
 from monty.functools import lazy_property
 from monty.string import marquee, is_string
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
@@ -234,12 +230,6 @@ class DielectricFunction(object):
     #    """String with the type of calculation."""
     #    return self.info["calc_type"]
 
-    #def show_info(self, stream=sys.stdout):
-    #    """Pretty print of the info."""
-    #    import pprint
-    #    printer = pprint.PrettyPrinter(self, width=80, depth=None, stream=stream)
-    #    printer.pprint(self.info)
-
     @add_fig_kwargs
     def plot(self, ax=None, **kwargs):
         """
@@ -331,7 +321,7 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return cls(filepath)
 
     def __init__(self, filepath):
-        super(MdfFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = MdfReader(filepath)
 
         # TODO Add electron Bands.
@@ -502,7 +492,7 @@ class MdfReader(ETSF_Reader): #ElectronsReader
     """
     def __init__(self, path):
         """Initialize the object from a filename."""
-        super(MdfReader, self).__init__(path)
+        super().__init__(path)
         # Read the structure here to facilitate the creation of the other objects.
         self._structure = self.read_structure()
 
@@ -668,7 +658,7 @@ class MultipleMdfPlotter(object):
     MDF_TYPECPLX2TEX = {
         "exc": dict(re=r"$\Re(\varepsilon_{exc})$", im=r"$\Im(\varepsilon_{exc}$)", abs=r"$|\varepsilon_{exc}|$"),
         "rpa": dict(re=r"$\Re(\varepsilon_{rpa})$", im=r"$\Im(\varepsilon_{rpa})$", abs=r"$|\varepsilon_{rpa}|$"),
-        "gwrpa": dict(re=r"$\Re(\varepsilon_{gw-rpa})$", im=r"$\Im(\varepsilon_{gw-rpa})$", abs= r"$|\varepsilon_{gw-rpa}|$"),
+        "gwrpa": dict(re=r"$\Re(\varepsilon_{gw-rpa})$", im=r"$\Im(\varepsilon_{gw-rpa})$", abs=r"$|\varepsilon_{gw-rpa}|$"),
         }
 
     #alpha = 0.6
@@ -1031,7 +1021,6 @@ def _from_cart_to_red(cartesian_tensor,lattice):
 
 
 # TODO Remove
-#@deprecated(message="abipy.core.Tensor is deprecated and will be replaced by pymatgen tensor in v0.4")
 class _Tensor(object):
     """Representation of a 3x3 tensor"""
 
@@ -1056,7 +1045,7 @@ class _Tensor(object):
             raise ValueError("space should be either 'g' or 'r'")
 
     def __eq__(self, other):
-        if other is None:  return False
+        if other is None: return False
         return (np.allclose(self.reduced_tensor, other.reduced_tensor) and
                 self.lattice == other.lattice and
                 self.space == other.space)

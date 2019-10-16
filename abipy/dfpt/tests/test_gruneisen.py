@@ -1,6 +1,4 @@
 """Tests for Grunesein module."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 import numpy as np
 import abipy.data as abidata
@@ -35,10 +33,14 @@ class GrunsFileTest(AbipyTest):
 
             assert ncfile.phdos
 
-            self.assertAlmostEqual(ncfile.average_gruneisen(t=None, squared=True, limit_frequencies=None), 1.4206573918609795)
-            self.assertAlmostEqual(ncfile.average_gruneisen(t=None, squared=False, limit_frequencies="debye"), 1.2121437911186166)
-            self.assertAlmostEqual(ncfile.average_gruneisen(t=None, squared=False, limit_frequencies="acoustic"), 1.213016691881557)
-            self.assertAlmostEqual(ncfile.thermal_conductivity_slack(squared=True, limit_frequencies=None), 14.553100876473687)
+            self.assertAlmostEqual(ncfile.average_gruneisen(t=None, squared=True, limit_frequencies=None),
+                                   1.4206573918609795)
+            self.assertAlmostEqual(ncfile.average_gruneisen(t=None, squared=False, limit_frequencies="debye"),
+                                   1.2121437911186166)
+            self.assertAlmostEqual(ncfile.average_gruneisen(t=None, squared=False, limit_frequencies="acoustic"),
+                                   1.213016691881557)
+            self.assertAlmostEqual(ncfile.thermal_conductivity_slack(squared=True, limit_frequencies=None),
+                                   14.553100876473687)
             self.assertAlmostEqual(ncfile.debye_temp, 429.05702577371898)
             self.assertAlmostEqual(ncfile.acoustic_debye_temp, 297.49152615955893)
 
@@ -57,7 +59,7 @@ class GrunsFileTest(AbipyTest):
 
                 plotter = ncfile.get_plotter()
                 assert plotter.combiboxplot(show=False)
-                assert plotter.animate()
+                assert plotter.animate(show=False)
 
                 assert ncfile.plot_gruns_scatter(units='cm-1', show=False)
                 assert ncfile.plot_gruns_scatter(values="groupv", units='cm-1', show=False)

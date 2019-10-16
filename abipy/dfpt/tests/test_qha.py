@@ -1,6 +1,4 @@
 """Tests for frozen_phonons"""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 import warnings
 import abipy.data as abidata
@@ -23,7 +21,6 @@ class QhaTest(AbipyTest):
 
     def test_qha(self):
         """Base tests for QHA"""
-
         qha = QHA.from_files(self.gsr_paths, self.dos_paths)
 
         self.assertEqual(qha.nvols, len(self.strains))

@@ -2,14 +2,9 @@
 """
 Objects to plot electronic, vibrational and e-ph properties.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import numpy as np
 
-from monty.string import marquee, list_strings
-from monty.termcolor import cprint
-from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
-    rotate_ticklabels, ax_append_title, set_ax_xylabels, ax_share)
+from abipy.tools.plotting import (add_fig_kwargs, get_axarray_fig_plt, set_axlims, set_visible, ax_share)
 from abipy.tools import duck
 from abipy.electrons.ebands import ElectronBands
 from abipy.dfpt.ddb import DdbFile
@@ -53,7 +48,7 @@ class EphPlotter(object):
 
     def __init__(self, ebands_kpath, phbst_file, phdos_file, ebands_kmesh=None):
         self.eb_kpath = ElectronBands.as_ebands(ebands_kpath)
-        self.eb_kmesh = ElectronBabds.as_ebands(ebands_kmesh) if ebands_kmesh is not None else None
+        self.eb_kmesh = ElectronBands.as_ebands(ebands_kmesh) if ebands_kmesh is not None else None
 
         self.phbst_file = phbst_file
         if duck.is_string(self.phbst_file):

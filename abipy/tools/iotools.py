@@ -1,9 +1,6 @@
 # coding: utf-8
 """IO related utilities."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
-import tempfile
 
 from subprocess import call
 from monty.termcolor import cprint
@@ -82,7 +79,7 @@ class Editor(object):  # pragma: no cover
     def edit_file(self, fname):
         retcode = call([self.editor, fname])
         if retcode != 0:
-            cprint("Retcode %s while editing file: %s" % (retcode, fname) ,"red")
+            cprint("Retcode %s while editing file: %s" % (retcode, fname), "red")
         return retcode
 
     def edit_files(self, fnames, ask_for_exit=True):

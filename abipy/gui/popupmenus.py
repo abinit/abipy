@@ -1,6 +1,4 @@
 """Collections of Popup menus associated to filenames."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import wx
 import wx.lib.dialogs as wxdg
 import abipy.gui.awx as awx

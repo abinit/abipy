@@ -1,7 +1,5 @@
 # coding: utf-8
 """Tools to compute speed of sound."""
-from __future__ import print_function, division, absolute_import  # unicode_literals,
-
 import os
 import math
 import numpy as np
@@ -38,7 +36,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
             qpts: array with shape (len(directions), num_points, 3) with the coordinates of
                 the qpoints in fractional used to fit the phonon frequencies.
         """
-        self.directions = directions
+        self.directions = np.array(directions)
         self.sound_velocities = np.array(sound_velocities)
         self.mode_types = mode_types
         self.labels = labels
@@ -237,10 +235,13 @@ class SoundVelocity(Has_Structure, NotebookWriter):
             sv = []
             mt = []
 
-            cart_versor = qpt_cart_coords[end -1] / np.linalg.norm(qpt_cart_coords[end -1])
+            cart_versor = qpt_cart_coords[end - 1] / np.linalg.norm(qpt_cart_coords[end - 1])
             for k in range(3):
-                slope, se, _, _ = np.linalg.lstsq(qpt_cart_norms[start:end][:, np.newaxis],
-                                                  acoustic_freqs[:, k] * eV_to_Ha, rcond=None)
+                start_fit = 0
+                if ignore_neg_freqs and first_positive_freq_ind > 1:
+                    start_fit = first_positive_freq_ind
+                slope, se, _, _ = np.linalg.lstsq(qpt_cart_norms[start+start_fit:end][:, np.newaxis],
+                                                  acoustic_freqs[start_fit:, k] * eV_to_Ha, rcond=None)
                 sv.append(slope[0] * abu.velocity_at_to_si)
 
                 # identify the type of the mode (longitudinal/transversal) based on the
@@ -320,6 +321,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
             ax.plot(qpt_cart_coords, slope[i] * qpt_cart_coords * units_factor, color=c, ls="-")
 
         ax.set_title(title)
+        ax.grid(True)
         ax.set_xlabel("Wave Vector")
         ax.set_ylabel(abu.wlabel_from_units(units))
 

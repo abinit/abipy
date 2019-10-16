@@ -1,6 +1,4 @@
 """Tests for electrons.bse module"""
-from __future__ import print_function, division, absolute_import, unicode_literals
-
 import abipy.data as abidata
 
 from abipy.core.testing import AbipyTest

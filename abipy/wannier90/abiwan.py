@@ -3,8 +3,6 @@
 Interface to the ABIWAN netcdf file produced by abinit when calling wannier90 in library mode.
 Inspired to the Fortran version of wannier90.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import numpy as np
 import pandas as pd
 import time
@@ -19,6 +17,7 @@ from abipy.core.kpoints import Kpath, IrredZone
 from abipy.abio.robots import Robot
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt #, get_axarray_fig_plt
 from abipy.electrons.ebands import ElectronBands, ElectronsReader, ElectronBandsPlotter, RobotWithEbands
+from abipy.core.skw import ElectronInterpolator
 
 
 class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
@@ -42,8 +41,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         return cls(filepath)
 
     def __init__(self, filepath):
-        super(AbiwanFile, self).__init__(filepath)
-
+        super().__init__(filepath)
         self.reader = AbiwanReader(filepath)
 
         # Number of bands actually used to construct the Wannier functions
@@ -392,7 +390,6 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         return self._write_nb_nbpath(nb, nbpath)
 
 
-from abipy.core.skw import ElectronInterpolator
 class HWanR(ElectronInterpolator):
     """
     This object represents the KS Hamiltonian in the wannier-gauge representation.

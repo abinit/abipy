@@ -1,18 +1,10 @@
 # coding: utf-8
 """Decorators for AbinitInput or MultiDataset objects."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
-import six
 import abc
 import pymatgen.io.abinit.abiobjects as aobj
 
-from monty.inspect import initializer
 from monty.json import MSONable
-try:
-    from pymatgen.util.serialization import pmg_serialize
-except ImportError:
-    from pymatgen.serializers.json_coders import pmg_serialize
-
+from pymatgen.util.serialization import pmg_serialize
 from abipy.flowtk.abiobjects import LdauParams, LexxParams
 from .inputs import AbinitInput, MultiDataset
 
@@ -24,7 +16,7 @@ class InputDecoratorError(Exception):
     """Error class raised by :class:`AbinitInputDecorator`."""
 
 
-class AbinitInputDecorator(six.with_metaclass(abc.ABCMeta, MSONable)):
+class AbinitInputDecorator(MSONable, metaclass=abc.ABCMeta):
     """
     An `AbinitInputDecorator` adds new options to an existing :class:`AbinitInput`
     or an existing :class:`MultiDataset` without altering its structure. This is an abstract Base class.
@@ -243,13 +235,13 @@ class LexxDecorator(AbinitInputDecorator):
             if symbol not in self.symbols_lexx: continue
             lexx_params.lexx_for_symbol(symbol, l=self.symbols_lexx[symbol])
 
-        # Context : the value of the variable useexexch is   1.
+        # Context: the value of the variable useexexch is   1.
         # The value of the input variable ixc is    7, while it must be
         # equal to one of the following:  11  23
         # Action : you should change the input variables ixc or useexexch.
         inp.set_vars(lexx_params.to_abivars())
         dt_ixc = inp.get("ixc")
-        if dt_ixc is None or ixc not in [11, 23]: inp.set_vars(ixc=11)
+        if dt_ixc is None or dt_ixc not in [11, 23]: inp.set_vars(ixc=11)
         if self.exchmix is not None: inp.set_vars(exchmix=self.exchmix)
 
         return inp

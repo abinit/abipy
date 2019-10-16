@@ -1,12 +1,9 @@
 # coding: utf-8
 """Fold2Bloch netcdf file."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 import numpy as np
 
-from collections import OrderedDict
-from monty.string import marquee # is_string, list_strings,
+from monty.string import marquee
 from monty.functools import lazy_property
 from monty.collections import dict2namedtuple
 from monty.termcolor import cprint
@@ -64,15 +61,15 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
         return cls(ncpath)
 
     def __init__(self, filepath):
-        super(Fold2BlochNcfile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = ElectronsReader(filepath)
 
         # Initialize the electron bands from file.
         # Spectral weights are dimensioned with `nss`
-	# Fortran arrays.
-	# nctkarr_t("reduced_coordinates_of_unfolded_kpoints", "dp", "number_of_reduced_dimensions, nk_unfolded")
-	# nctkarr_t("unfolded_eigenvalues", "dp", "max_number_of_states, nk_unfolded, number_of_spins")
-	# nctkarr_t("spectral_weights", "dp", "max_number_of_states, nk_unfolded, nsppol_times_nspinor")
+        # Fortran arrays.
+        # nctkarr_t("reduced_coordinates_of_unfolded_kpoints", "dp", "number_of_reduced_dimensions, nk_unfolded")
+        # nctkarr_t("unfolded_eigenvalues", "dp", "max_number_of_states, nk_unfolded, number_of_spins")
+        # nctkarr_t("spectral_weights", "dp", "max_number_of_states, nk_unfolded, nsppol_times_nspinor")
         self._ebands = self.reader.read_ebands()
         self.nss = max(self.nsppol, self.nspinor)
         self.fold_matrix = self.reader.read_value("fold_matrix")
@@ -201,7 +198,7 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
             fontsize: Legend and title fontsize.
 
         Returns: |matplotlib-Figure|
-	"""
+        """
         cart_bounds = [self.pc_lattice.reciprocal_lattice.get_cartesian_coords(c)
                        for c in np.reshape(kbounds, (-1, 3))]
         uf_cart = self.uf_kpoints.get_cart_coords()

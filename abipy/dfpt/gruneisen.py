@@ -1,12 +1,12 @@
 # coding: utf-8
 """Objects to analyze the results stored in the GRUNS.nc file produced by anaddb."""
-from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
 import os
 import abipy.core.abinit_units as abu
 import scipy.constants as const
 
+from functools import lru_cache
 from collections import OrderedDict
 from monty.string import marquee, list_strings
 from monty.termcolor import cprint
@@ -21,15 +21,8 @@ from abipy.iotools import ETSF_Reader
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims
 from abipy.flowtk import AnaddbTask
 from abipy.tools.derivatives import finite_diff
-#from abipy.tools import duck
 from pymatgen.core.units import amu_to_kg
 from pymatgen.core.periodic_table import Element
-
-try:
-    from functools import lru_cache
-except ImportError:  # py2k
-    from abipy.tools.functools_lru_cache import lru_cache
-
 
 # DOS name --> meta-data
 _ALL_DOS_NAMES = OrderedDict([
@@ -62,7 +55,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return cls(filepath)
 
     def __init__(self, filepath):
-        super(GrunsNcFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = GrunsReader(filepath)
 
     def close(self):
@@ -611,17 +604,17 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         if limit_frequencies == "debye":
             adt = self.acoustic_debye_temp
-            ind = np.where((0<=w) & (w <= adt * abu.kb_eVK))
+            ind = np.where((0 <= w) & (w <= adt * abu.kb_eVK))
         elif limit_frequencies == "acoustic":
             w_acoustic = w[:, :3]
             ind = np.where(w_acoustic >= 0)
         elif limit_frequencies is None:
-            ind = np.where(w>=0)
+            ind = np.where(w >= 0)
         else:
             raise ValueError("{} is not an accepted value for limit_frequencies".format(limit_frequencies))
 
         weights = self.doses['qpoints'].weights
-        g = np.dot(weights[ind[0]], np.multiply(cv, gamma)[ind]).sum()/ np.dot(weights[ind[0]], cv[ind]).sum()
+        g = np.dot(weights[ind[0]], np.multiply(cv, gamma)[ind]).sum() / np.dot(weights[ind[0]], cv[ind]).sum()
 
         if squared:
             g = np.sqrt(g)
@@ -646,7 +639,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         average_mass = np.mean([s.specie.atomic_mass for s in self.structure]) * amu_to_kg
         mean_g = self.average_gruneisen(t=None, squared=squared, limit_frequencies=limit_frequencies)
         theta_d = self.acoustic_debye_temp
-        factor1 = 0.849 * 3 * (4) ** (1. / 3.) / ( 20 * np.pi ** 3 * (1 - 0.514 * mean_g ** -1 + 0.228 * mean_g ** -2))
+        factor1 = 0.849 * 3 * (4) ** (1. / 3.) / (20 * np.pi ** 3 * (1 - 0.514 * mean_g ** -1 + 0.228 * mean_g ** -2))
         factor2 = (const.k * theta_d / const.hbar) ** 2
         factor3 = const.k * average_mass * self.structure.volume ** (1. / 3.) * 1e-10 / (const.hbar * mean_g ** 2)
         return factor1 * factor2 * factor3
@@ -845,7 +838,7 @@ class GrunsReader(ETSF_Reader):
     #nctkarr_t("gruns_xred", "dp", "three, number_of_atoms, gruns_nvols") &
 
     def __init__(self, filepath):
-        super(GrunsReader, self).__init__(filepath)
+        super().__init__(filepath)
 
         # Read and store important quantities.
         self.structure = self.read_structure()

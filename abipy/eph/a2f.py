@@ -6,8 +6,6 @@ and Eliashberg function).
 Warning:
     Work in progress, DO NOT USE THIS CODE.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import numpy as np
 import pymatgen.core.units as units
 import abipy.core.abinit_units as abu
@@ -19,7 +17,7 @@ from monty.functools import lazy_property
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.core.kpoints import Kpath
 from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
-    rotate_ticklabels)
+                                  rotate_ticklabels)
 from abipy.tools import duck
 from abipy.electrons.ebands import ElectronDos, RobotWithEbands
 from abipy.dfpt.phonons import PhononBands, PhononDos, RobotWithPhbands
@@ -103,7 +101,8 @@ class A2f(object):
         app("Eliashberg Function" if not title else str(title))
         # TODO: Add ElectronDos
         #app("Isotropic lambda: %.3f" % (self.lambda_iso))
-        app("Isotropic lambda: %.2f, omega_log: %.3f (eV), %.3f (K)" % (self.lambda_iso, self.omega_log, self.omega_log * abu.eV_to_K))
+        app("Isotropic lambda: %.2f, omega_log: %.3f (eV), %.3f (K)" % (
+            self.lambda_iso, self.omega_log, self.omega_log * abu.eV_to_K))
         app("Q-mesh: %s" % str(self.ngqpt))
         app("Mesh from %.4f to %.4f (eV) with %d points" % (
             self.mesh[0], self.mesh[-1], len(self.mesh)))
@@ -111,6 +110,7 @@ class A2f(object):
         if verbose:
             for mustar in (0.1, 0.12, 0.2):
                 app("\tFor mustar %s: McMillan Tc: %s [K]" % (mustar, self.get_mcmillan_tc(mustar)))
+
         if verbose > 1:
             # $\int dw [a2F(w)/w] w^n$
             for n in [0, 4]:
@@ -209,7 +209,7 @@ class A2f(object):
             exchange_xy: True to exchange x-y axes.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
-		or scalar e.g. ``left``. If left (right) is None, default values are used
+                or scalar e.g. ``left``. If left (right) is None, default values are used
             ylims: Limits for y-axis. See xlims for API.
             label: True to add legend label to each curve.
             fontsize: Legend and title fontsize
@@ -271,7 +271,7 @@ class A2f(object):
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             xlims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
-		or scalar e.g. ``left``. If left (right) is None, default values are used
+                or scalar e.g. ``left``. If left (right) is None, default values are used
             fontsize: Legend and title fontsize
 
         Returns: |matplotlib-Figure|
@@ -298,7 +298,7 @@ class A2f(object):
             ax_mat: Matrix of axis of shape [natom, 3]. None if a new figure should be created.
             fontsize: Legend and title fontsize.
             xlims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
-		or scalar e.g. ``left``. If left (right) is None, default values are used
+                or scalar e.g. ``left``. If left (right) is None, default values are used
             ylims: Limits for y-axis. See xlims for API.
             label: True to add legend label to each curve.
 
@@ -347,7 +347,7 @@ class A2f(object):
                 #ax.set_yticklabels([])
                 #ax.set_yticks([])
 
-            if iatom == self.natom -1:
+            if iatom == self.natom - 1:
                 ax.set_xlabel(abu.wlabel_from_units(units))
             #set_axlims(ax, xlims, "x")
             #set_axlims(ax, ylims, "y")
@@ -445,10 +445,10 @@ class A2Ftr(object):
         """
         Args:
             mesh: Energy mesh in eV
-	    vals_in(nomega,3,3,0:natom3,nsppol):
-		Eliashberg transport functions for in and out scattering
-	    vals_in(w,3,3,1:natom3,1:nsppol): a2f_tr(w) decomposed per phonon branch and spin
-	    vals_in(w,3,3,0,1:nsppol): a2f_tr(w) summed over phonons modes, decomposed in spin
+            vals_in(nomega,3,3,0:natom3,nsppol):
+                Eliashberg transport functions for in and out scattering
+            vals_in(w,3,3,1:natom3,1:nsppol): a2f_tr(w) decomposed per phonon branch and spin
+            vals_in(w,3,3,0,1:nsppol): a2f_tr(w) summed over phonons modes, decomposed in spin
         """
         self.mesh = mesh
 
@@ -488,7 +488,7 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return cls(filepath)
 
     def __init__(self, filepath):
-        super(A2fFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = A2fReader(filepath)
 
     def __str__(self):
@@ -773,6 +773,7 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             cqn = lambdas
         else:
             raise ValueError("Invalid what: `%s`" % str(what))
+
         vmin, vmax = cqn.min(), cqn.max()
 
         sc = ax.scatter(np.tile(xvals, len(self.phbands.branches)),
@@ -837,7 +838,7 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             qsamp:
             phdos: |PhononDos| object. Used to plot the PhononDos on the right.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
-		or scalar e.g. ``left``. If left (right) is None, default values are used
+                or scalar e.g. ``left``. If left (right) is None, default values are used
 
         Returns: |matplotlib-Figure|
         """
@@ -911,12 +912,17 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         yield self.plot(show=False)
         #yield self.plot_eph_strength(show=False)
         yield self.plot_with_a2f(show=False)
+
         for qsamp in ["qcoarse", "qintp"]:
             a2f = self.get_a2f_qsamp(qsamp)
-            yield a2f.plot_with_lambda(show=False)
+            yield a2f.plot_with_lambda(title="q-sampling: %s (%s)" % (str(a2f.ngqpt), qsamp), show=False)
+
         #yield self.plot_nuterms(show=False)
         #yield self.plot_a2(show=False)
         #yield self.plot_tc_vs_mustar(show=False)
+
+        #if self.has_a2ftr:
+        #    ncfile.a2ftr.plot();
 
     def write_notebook(self, nbpath=None):
         """
@@ -1182,6 +1188,7 @@ class A2fRobot(Robot, RobotWithEbands, RobotWithPhbands):
             if hue is None:
                 params_are_string = duck.is_string(params[0])
                 xvals = params if not params_are_string else range(len(params))
+                l = None
                 for iq, qsamp in enumerate(qsamps):
                     a2f_list = [ncfile.get_a2f_qsamp(qsamp) for ncfile in ncfiles]
                     yvals = [getattr(a2f, what) for a2f in a2f_list]
@@ -1222,7 +1229,7 @@ class A2fRobot(Robot, RobotWithEbands, RobotWithPhbands):
 
         Args:
             xlims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
-		or scalar e.g. ``left``. If left (right) is None, default values are used
+                or scalar e.g. ``left``. If left (right) is None, default values are used
             sharex, sharey: True to share x- and y-axis.
             fontsize: Legend and title fontsize
         """
@@ -1418,7 +1425,7 @@ class A2fReader(BaseEphReader):
         Read and return the Eliashberg function :class:`A2F`.
         """
         assert qsamp in ("qcoarse", "qintp")
-        mesh = self.read_value("a2f_mesh_" + qsamp)  * units.Ha_to_eV
+        mesh = self.read_value("a2f_mesh_" + qsamp) * units.Ha_to_eV
         # C shape [nsppol, natom + 1, nomega]
         data = self.read_value("a2f_values_" + qsamp) # * 0.25
         values_spin = data[:, 0, :].copy()

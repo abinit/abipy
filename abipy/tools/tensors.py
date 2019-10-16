@@ -2,20 +2,13 @@
 """
 This modules provides subclasses of pymatgen tensor objects.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import numpy as np
 import pandas as pd
 
-try:
-    from pymatgen.core.tensors import Tensor, SquareTensor
-except ImportError:
-    # Can be removed in v2019.1.1
-    from pymatgen.analysis.elasticity.tensors import Tensor, SquareTensor
-
-from pymatgen.analysis.elasticity.elastic import ElasticTensor
-from pymatgen.analysis.elasticity.stress import Stress as pmg_Stress
-from pymatgen.analysis.piezo import PiezoTensor
+from pymatgen.core.tensors import Tensor, SquareTensor
+from pymatgen.analysis.elasticity.elastic import ElasticTensor  # flake8: noqa
+from pymatgen.analysis.elasticity.stress import Stress as pmg_Stress 
+from pymatgen.analysis.piezo import PiezoTensor # flake8: noqa
 from abipy.iotools import ETSF_Reader
 
 

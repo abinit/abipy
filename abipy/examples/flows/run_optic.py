@@ -24,16 +24,17 @@ def build_flow(options, paral_kgb=0):
     """
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
+        if os.getenv("READTHEDOCS", False): __file__ = os.path.join(os.getcwd(), "run_optic.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     multi = abilab.MultiDataset(structure=abidata.structure_from_ucell("GaAs"),
                                 pseudos=abidata.pseudos("31ga.pspnc", "33as.pspnc"), ndtset=2)
 
     # Usa same shifts in all tasks.
-    shiftk= [[0.5, 0.5, 0.5],
-             [0.5, 0.0, 0.0],
-             [0.0, 0.5, 0.0],
-             [0.0, 0.0, 0.5]]
+    shiftk = [[0.5, 0.5, 0.5],
+              [0.5, 0.0, 0.0],
+              [0.0, 0.5, 0.0],
+              [0.0, 0.0, 0.5]]
 
     # Global variables.
     multi.set_vars(ecut=2, paral_kgb=paral_kgb)

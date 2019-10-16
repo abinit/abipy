@@ -1,14 +1,12 @@
 """
 Objects used to extract and plot results from output files in text format.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 import numpy as np
 import pandas as pd
 
 from collections import OrderedDict
-from six.moves import cStringIO
+from io import StringIO
 from monty.string import is_string, marquee
 from monty.functools import lazy_property
 from monty.termcolor import cprint
@@ -93,7 +91,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
     # TODO: Extract number of errors and warnings.
 
     def __init__(self, filepath):
-        super(AbinitOutputFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.debug_level = 0
         self._parse()
 
@@ -239,6 +237,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
 
         # (varname, dtindex), [line1, line2 ...]
         stack_var, stack_lines = None, []
+
         def pop_stack():
             if stack_lines:
                 key, dtidx = stack_var
@@ -371,7 +370,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         if self.run_completed:
             return self._get_structures("footer")
         else:
-            print("Cannot extract final structures from file.\n %s" % str(exc))
+            cprint("Cannot extract final structures from file.\n %s" % self.filepath, "red")
             return []
 
     @lazy_property
@@ -498,7 +497,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         from abipy.tools.printing import print_dataframe
         df = pd.DataFrame(rows, columns=list(rows[0].keys()) if rows else None)
         df = df.set_index('dataset')
-        strio = cStringIO()
+        strio = StringIO()
         print_dataframe(df, file=strio)
         strio.seek(0)
         app("")
@@ -678,7 +677,6 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                 yield self.get_timer().plot_all(tight_layout=tight_layout, show=False)
             except Exception:
                 print("Abinit output files does not contain timopt data")
-
 
     def compare_gs_scf_cycles(self, others, show=True):
         """
@@ -974,9 +972,9 @@ class OutNcFile(AbinitNcFile):
     via instance attribute e.g. ``outfile.ecut``. Provides integration with ipython_.
     """
     def __init__(self, filepath):
-        super(OutNcFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = NetcdfReader(filepath)
-        self._varscache= {k: None for k in self.reader.rootgrp.variables}
+        self._varscache = {k: None for k in self.reader.rootgrp.variables}
 
     def __dir__(self):
         """Ipython integration."""
@@ -984,13 +982,13 @@ class OutNcFile(AbinitNcFile):
 
     def __getattribute__(self, name):
         try:
-            return super(OutNcFile, self).__getattribute__(name)
+            return super().__getattribute__(name)
         except AttributeError:
             # Look in self._varscache
-            varscache = super(OutNcFile, self).__getattribute__("_varscache")
+            varscache = super().__getattribute__("_varscache")
             if name not in varscache:
                 raise AttributeError("Cannot find attribute %s" % name)
-            reader = super(OutNcFile, self).__getattribute__("reader")
+            reader = super().__getattribute__("reader")
             if varscache[name] is None:
                 varscache[name] = reader.read_value(name)
             return varscache[name]

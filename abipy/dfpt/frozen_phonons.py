@@ -1,6 +1,5 @@
 # coding: utf-8
 """Objects to run and analyze the frozen phonons generated from displacements of atoms"""
-from __future__ import print_function, division, absolute_import
 
 import numpy as np
 import scipy.optimize as optimize
@@ -21,6 +20,7 @@ def quadratic_fit_function(xx, aa, bb):
         bb: the constant term
     """
     return aa * xx ** 2 + bb
+
 
 class FrozenPhonon(object):
     """

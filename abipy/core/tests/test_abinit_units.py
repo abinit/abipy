@@ -1,6 +1,4 @@
 """Tests for core.abinit_units"""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import abipy.core.abinit_units as abu
 
 from abipy.core.testing import AbipyTest

@@ -10,7 +10,6 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import sys
 import os
-import numpy as np
 
 import abipy.abilab as abilab
 import abipy.data as data
@@ -20,6 +19,7 @@ import abipy.flowtk as flowtk
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
+        if os.getenv("READTHEDOCS", False): __file__ = os.path.join(os.getcwd(), "run_sic_relax.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     pseudos = data.pseudos("14si.pspnc", "6c.pspnc")
@@ -45,7 +45,7 @@ def build_flow(options):
     )
 
     # K-points sampling
-    shiftk=[
+    shiftk = [
         [0.5,0.5,0.5],
         [0.5,0.0,0.0],
         [0.0,0.5,0.0],
@@ -82,7 +82,7 @@ def main(options):
     return build_flow(options)
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     sys.exit(main())
 
 

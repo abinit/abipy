@@ -2,9 +2,8 @@
 """
 Phonon Toolkit: This module gathers low-level tools to operate on phonons.
 """
-from __future__ import print_function, division, absolute_import  # unicode_literals,
-
 import warnings
+import sys
 import numpy as np
 import abipy.core.abinit_units as abu
 
@@ -211,19 +210,15 @@ def open_file_phononwebsite(filename, port=8000,
     else:
         filetype = "rest"
 
-    try:
-        from http.server import HTTPServer, SimpleHTTPRequestHandler
-    except ImportError:
-        from BaseHTTPServer import HTTPServer
-        # python 2 requires internal implementation
-        from abipy.tools.SimpleHTTPServer import SimpleHTTPRequestHandler
+    from http.server import HTTPServer, SimpleHTTPRequestHandler
 
     # Add CORS header to the website
-    class CORSRequestHandler (SimpleHTTPRequestHandler):
-        def end_headers (self):
+    class CORSRequestHandler(SimpleHTTPRequestHandler):
+        def end_headers(self):
             #self.send_header('Access-Control-Allow-Origin', website)
             self.send_header('Access-Control-Allow-Origin', "http://henriquemiranda.github.io")
             SimpleHTTPRequestHandler.end_headers(self)
+
         def log_message(self, format, *args):
             return
 
@@ -265,11 +260,10 @@ def open_file_phononwebsite(filename, port=8000,
     import webbrowser
     webbrowser.get(browser).open_new_tab(url)
 
-    # Quit application when SIGINT is received
     def signal_handler(signal, frame):
+        """Quit application when SIGINT is received"""
         sys.exit(0)
 
     import signal
     signal.signal(signal.SIGINT, signal_handler)
     signal.pause()
-

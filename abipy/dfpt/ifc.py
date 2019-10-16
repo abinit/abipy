@@ -1,7 +1,5 @@
 # coding: utf-8
 """The interatomic force constants calculated by anaddb."""
-from __future__ import print_function, division, absolute_import # unicode_literals,
-
 import numpy as np
 
 from monty.functools import lazy_property
@@ -52,7 +50,7 @@ class InteratomicForceConstants(Has_Structure):
                 ifc_cart_coord = r.read_value("ifc_matrix_cart_coord")
                 ifc_cart_coord_short_range = r.read_value("ifc_matrix_cart_coord_short_range", default=None)
                 local_vectors = r.read_value("ifc_local_vectors", default=None)
-            except:
+            except Exception:
                 import traceback
                 msg = traceback.format_exc()
                 msg += ("Error while trying to read IFCs from file.\n"
@@ -213,7 +211,7 @@ class InteratomicForceConstants(Has_Structure):
         ind = self._filter_ifc_indices(atom_indices=atom_indices, atom_element=atom_element,
                                        neighbour_element=neighbour_element, min_dist=min_dist, max_dist=max_dist)
 
-        dist, filtered_ifc =  self.distances[ind], ifc[ind]
+        dist, filtered_ifc = self.distances[ind], ifc[ind]
 
         if 'color' not in kwargs: kwargs['color'] = 'blue'
         if 'marker' not in kwargs: kwargs['marker'] = 'o'

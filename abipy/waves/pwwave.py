@@ -1,16 +1,11 @@
 # coding: utf-8
 """This module contains the class describing a planewave wavefunction."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
-import tempfile
-import copy
-import six
-import itertools
+#import copy
 import numpy as np
 
 from monty.termcolor import cprint
 from abipy.core import Mesh3D
-from abipy.core.kpoints import Kpoint
+#from abipy.core.kpoints import Kpoint
 from abipy.iotools import Visualizer
 from abipy.iotools.xsf import xsf_write_structure, xsf_write_data
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
@@ -20,12 +15,13 @@ __all__ = [
     "PWWaveFunction",
 ]
 
+
 def latex_label_ispinor(ispinor, nspinor):
     if nspinor == 1:
         return ""
     elif nspinor == 2:
         return {k: v.replace("myuparrow", "uparrow") for k, v in
-            {0: r"$\sigma=\myuparrow$", 1: r"$\sigma=\downarrow$"}.items()}[ispden]
+            {0: r"$\sigma=\myuparrow$", 1: r"$\sigma=\downarrow$"}.items()}[ispinor]
     else:
         raise ValueError("Wrong value for nspinor: %s" % nspinor)
 
@@ -44,10 +40,7 @@ class WaveFunction(object):
 
     def __iter__(self):
         """Yields G, ug[0:nspinor, G]"""
-        if six.PY2:
-            return itertools.izip(self.gvecs, self.ug.T)
-        else:
-            return zip(self.gvecs, self.ug.T)
+        return zip(self.gvecs, self.ug.T)
 
     def __getitem__(self, slice):
         return self.gvecs[slice], self.ug[:, slice]
@@ -442,7 +435,7 @@ class PWWaveFunction(WaveFunction):
         Return: |matplotlib-Figure|
         """
         site = self.structure[site_index]
-        nn_list = self.structure.get_neighbors(site, radius, include_index=True)
+        nn_list = self.structure.get_neighbors_old(site, radius, include_index=True)
         if not nn_list:
             cprint("Zero neighbors found for radius %s Ang. Returning None." % radius, "yellow")
             return None
@@ -451,7 +444,7 @@ class PWWaveFunction(WaveFunction):
         nn_list = list(sorted(nn_list, key=lambda t: t[1]))
         if max_nn is not None and len(nn_list) > max_nn:
             cprint("For radius %s, found %s neighbors but only max_nn %s sites are show." %
-                    (radius, len(nn_list), max_nn), "yellow")
+                   (radius, len(nn_list), max_nn), "yellow")
             nn_list = nn_list[:max_nn]
 
         # Get grid of axes (one row for neighbor)
@@ -466,7 +459,7 @@ class PWWaveFunction(WaveFunction):
 
         # For each neighbor, plot psi along the line connecting site to nn.
         for i, (nn, ax) in enumerate(zip(nn_list, ax_list)):
-            nn_site, nn_dist, nn_sc_index  = nn
+            nn_site, nn_dist, nn_sc_index = nn
             title = "%s, %s, dist=%.3f A" % (nn_site.species_string, str(nn_site.frac_coords), nn_dist)
 
             r = interpolator.eval_line(site.frac_coords, nn_site.frac_coords, num=num, kpoint=kpoint)

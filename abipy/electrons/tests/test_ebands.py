@@ -1,6 +1,4 @@
 """Tests for electrons.ebands module"""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import sys
 import numpy as np
 import unittest
@@ -560,6 +558,7 @@ class ElectronBandsPlotterTest(AbipyTest):
                 plotter.combiboxplot(title="Silicon band structure", swarm=True, show=False)
             assert plotter.gridplot(title="Silicon band structure", with_gaps=True, show=False)
             assert plotter.boxplot(title="Silicon band structure", swarm=True, show=False)
+            assert plotter.plot_band_edges(epad_ev=2.0, show=False)
             assert plotter.animate(show=False)
 
         if self.has_ipywidgets():

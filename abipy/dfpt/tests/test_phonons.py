@@ -1,6 +1,4 @@
 """Tests for phonons"""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import unittest
 import sys
 import os
@@ -96,7 +94,7 @@ class PhononBandsTest(AbipyTest):
         for iq in range(len(eig)):
             #print("About to test iq", iq, np.dot(eig[iq], eig[iq].T))
             #assert np.allclose(np.dot(eig[iq], eig[iq].T), cidentity , atol=1e-5, rtol=1e-3)
-            assert np.allclose(np.dot(eig[iq].conjugate().T, eig[iq]), cidentity , atol=1e-5, rtol=1e-3)
+            assert np.allclose(np.dot(eig[iq].conjugate().T, eig[iq]), cidentity, atol=1e-5, rtol=1e-3)
             #self.assert_almost_equal(np.dot(eig[iq].conjugate().T, eig[iq]), cidentity)
 
         # Mapping reduced coordinates -> labels

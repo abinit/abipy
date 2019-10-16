@@ -17,6 +17,7 @@ import abipy.data as abidata
 
 from abipy import flowtk
 
+
 def make_scf_input(ngkpt, paral_kgb=0):
     """
     This function constructs the input file for the GS calculation for a given IBZ sampling.
@@ -58,6 +59,7 @@ def build_flow(options):
     """
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
+        if os.getenv("READTHEDOCS", False): __file__ = os.path.join(os.getcwd(), "run_becs_and_epsilon_vs_kpts.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     flow = flowtk.Flow(workdir=options.workdir)

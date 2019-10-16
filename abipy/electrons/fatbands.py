@@ -1,6 +1,5 @@
 # coding: utf-8
 """Classes for the analysis of electronic fatbands and projected DOSes."""
-from __future__ import print_function, division, unicode_literals, absolute_import
 
 import traceback
 import numpy as np
@@ -9,12 +8,12 @@ from collections import OrderedDict, defaultdict
 from tabulate import tabulate
 from monty.termcolor import cprint
 from monty.functools import lazy_property
-from monty.string import marquee, list_strings
+from monty.string import marquee
 from pymatgen.core.periodic_table import Element
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.electrons.ebands import ElectronsReader
-from abipy.tools import gaussian
-from abipy.tools.plotting import set_axlims, get_axarray_fig_plt, add_fig_kwargs, get_ax_fig_plt
+from abipy.tools.numtools import gaussian
+from abipy.tools.plotting import set_axlims, get_axarray_fig_plt, add_fig_kwargs
 
 
 def gaussians_dos(dos, mesh, width, values, energies, weights):
@@ -89,7 +88,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         return cls(filepath)
 
     def __init__(self, filepath):
-        super(FatBandsFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = r = ElectronsReader(filepath)
 
         # Initialize the electron bands from file
@@ -257,7 +256,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             else:
                 print("natsph < natom. Will set to zero the PJDOS contributions for the atoms that are not included.")
                 assert self.natsph < self.natom
-                filedata = np.reshape(r.read_value(key),
+                filedata = np.reshape(self.reader.read_value(key),
                                      (self.natsph, self.mbesslang**2, self.nsppol, self.mband, self.nkpt))
                 for i, iatom in enumerate(self.iatsph):
                     walm_sbk[iatom] = filedata[i]
@@ -307,9 +306,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         app(self.ebands.to_string(with_structure=True, title="Electronic Bands"))
         app("")
         app(marquee("Fatbands Info", mark="="))
-        app("prtdos=%d, prtdosm=%d, mbesslang=%d, pawprtdos=%d, usepaw=%d" % (
+        app("prtdos: %d, prtdosm: %d, mbesslang: %d, pawprtdos: %d, usepaw: %d" % (
             self.prtdos, self.prtdosm, self.mbesslang, self.pawprtdos, self.usepaw))
-        app("nsppol=%d, nkpt=%d, mband=%d" % (self.nsppol, self.nkpt, self.mband))
+        app("nsppol: %d, nkpt: %d, mband: %d" % (self.nsppol, self.nkpt, self.mband))
         app("")
 
         if self.prtdos == 3:
@@ -555,8 +554,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                     # Only the first column show labels.
                     # Trick: Don't change the labels but set their fontsize to 0 otherwise
                     # also the other axes are affected (likely due to sharey=True).
+                    #ax.yaxis.set_tick_params(fontsize=0)
                     for tick in ax.yaxis.get_major_ticks():
-                        tick.label.set_fontsize(0)
+                        tick.label1.set_fontsize(0)
 
                 for ib, band in enumerate(mybands):
                     yup = ebands.eigens[spin, :, band] - e0
@@ -608,7 +608,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         # Build plot grid.
         import matplotlib.pyplot as plt
-        from matplotlib.gridspec import GridSpec, GridSpecFromSubplotSpec
+        from matplotlib.gridspec import GridSpec #, GridSpecFromSubplotSpec
         fig = plt.figure()
         nrows, ncols = 2 * (mylmax+1), mylmax + 1
         gspec = GridSpec(nrows=nrows, ncols=ncols, wspace=0.1, hspace=0.1)
@@ -639,7 +639,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                 ebands.plot_ax(ax, e0, spin=spin, **self.eb_plotax_kwargs(spin))
 
             if im == 2 * l:
-               ebands.decorate_ax(ax)
+                ebands.decorate_ax(ax)
             #if l > 0:
             #    ax.set_ylabel("")
 
@@ -845,8 +845,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     #            # Only the first column show labels.
     #            # Trick: Don't change the labels but set their fontsize to 0 otherwise
     #            # also the other axes are affecred (likely due to sharey=True).
-    #            for tick in ax.yaxis.get_major_ticks():
-    #                tick.label.set_fontsize(0)
+    #             #ax.yaxis.set_tick_params(fontsize=0)
 
     #        idx = term2idx[term]
     #        color = self.spinors2color[term]
@@ -1041,7 +1040,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                     for isymb, symbol in enumerate(self.symbols):
                         yup = stack[isymb]
                         ydown = stack[isymb-1] if isymb != 0 else zerodos
-                        label ="%s (stacked)" % symbol if (l, spin) == (0, 0) else None
+                        label = "%s (stacked)" % symbol if (l, spin) == (0, 0) else None
                         fill = ax.fill_between if not exchange_xy else ax.fill_betweenx
                         fill(mesh, yup, ydown, alpha=self.alpha, facecolor=self.symbol2color[symbol],
                              label=label if with_info else None)
@@ -1080,10 +1079,10 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                 else:
                     # Plots in the middle: don't show labels.
                     # Trick: Don't change the labels but set their fontsize to 0 otherwise
-                    # also the other axes are affecred (likely due to sharey=True).
-                    # ax.set_yticklabels([])
+                    # also the other axes are affected (likely due to sharey=True).
+                    #ax.yaxis.set_tick_params(fontsize=0)
                     for tick in ax.yaxis.get_major_ticks():
-                        tick.label.set_fontsize(0)
+                        tick.label1.set_fontsize(0)
 
         return fig
 
@@ -1197,7 +1196,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                     for l in range(min(self.lmax_symbol[symbol] + 1, mylsize)):
                         yup = stack[l]
                         ydown = stack[l-1] if l != 0 else zerodos
-                        label ="%s (stacked)" % self.l2tex[l] if (isymb, spin) == (0, 0) else None
+                        label = "%s (stacked)" % self.l2tex[l] if (isymb, spin) == (0, 0) else None
                         fill = ax.fill_between if not exchange_xy else ax.fill_betweenx
                         fill(mesh, yup, ydown, alpha=self.alpha, facecolor=self.l2color[l],
                              label=label if with_info else None)
@@ -1236,9 +1235,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                     # Plots in the middle: don't show labels.
                     # Trick: Don't change the labels but set their fontsize to 0 otherwise
                     # also the other axes are affected (likely due to sharey=True).
-                    # ax.set_yticklabels([])
+                    #ax.yaxis.set_tick_params(fontsize=0)
                     for tick in ax.yaxis.get_major_ticks():
-                        tick.label.set_fontsize(0)
+                        tick.label1.set_fontsize(0)
 
         return fig
 
@@ -1329,9 +1328,11 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         for ax in pjdos_axmat.ravel():
             ax.set_xlabel("")
             ax.set_ylabel("")
+            #ax.xaxis.set_tick_params(fontsize=0)
+            #ax.yaxis.set_tick_params(fontsize=0)
             for xtick, ytick in zip(ax.xaxis.get_major_ticks(), ax.yaxis.get_major_ticks()):
-                xtick.label.set_fontsize(0)
-                ytick.label.set_fontsize(0)
+                xtick.label1.set_fontsize(0)
+                ytick.label1.set_fontsize(0)
 
         if closeit: pjdosfile.close()
         return fig
@@ -1406,6 +1407,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         # Build plot grid.
         nrows, ncols = np.count_nonzero(self.has_atom), self.lsize
+        ax_mat = None
         ax_mat, fig, plt = get_axarray_fig_plt(ax_mat, nrows=nrows, ncols=ncols,
                                                sharex=True, sharey=True, squeeze=False)
         ax_mat = np.reshape(ax_mat, (nrows, ncols))
@@ -1425,8 +1427,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                 if l != 0:
                     ax.set_ylabel("")
                     # Only the first column show labels.
+                    #ax.yaxis.set_tick_params(fontsize=0)
                     for tick in ax.yaxis.get_major_ticks():
-                        tick.label.set_fontsize(0)
+                        tick.label1.set_fontsize(0)
 
                 for spin in range(self.nsppol):
                     spin_sign = +1 if spin == 0 else -1

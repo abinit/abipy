@@ -1,13 +1,11 @@
 """Integration tests for structural relaxations."""
-from __future__ import print_function, division, unicode_literals, absolute_import
 
-import pytest
 import numpy as np
 import abipy.data as abidata
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk
 
-from abipy.core.testing import has_abinit, has_matplotlib
+from abipy.core.testing import has_matplotlib
 
 
 def ion_relaxation(tvars, ntime=50):
@@ -185,32 +183,32 @@ def itest_relaxation_with_restart_from_den(fwp, tvars):
 
 
 def itest_dilatmx_error_handler(fwp, tvars):
-     """
-     Test cell relaxation with automatic restart in the presence of dilatmx error.
-     """
-     # Build the flow
-     flow = flowtk.Flow(fwp.workdir, manager=fwp.manager)
+    """
+    Test cell relaxation with automatic restart in the presence of dilatmx error.
+    """
+    # Build the flow
+    flow = flowtk.Flow(fwp.workdir, manager=fwp.manager)
 
-     # Decrease the volume to trigger DilatmxError
-     ion_input, ioncell_input = make_ion_ioncell_inputs(tvars, dilatmx=1.01, scalevol=0.8)
+    # Decrease the volume to trigger DilatmxError
+    ion_input, ioncell_input = make_ion_ioncell_inputs(tvars, dilatmx=1.01, scalevol=0.8)
 
-     work = flowtk.Work()
-     work.register_relax_task(ioncell_input)
+    work = flowtk.Work()
+    work.register_relax_task(ioncell_input)
 
-     flow.register_work(work)
-     flow.allocate()
-     assert flow.make_scheduler().start() == 0
-     flow.show_status()
+    flow.register_work(work)
+    flow.allocate()
+    assert flow.make_scheduler().start() == 0
+    flow.show_status()
 
-     assert all(work.finalized for work in flow)
-     assert flow.all_ok
+    assert all(work.finalized for work in flow)
+    assert flow.all_ok
 
-     # t0 should have reached S_OK, and we should have DilatmxError in the corrections.
-     t0 = work[0]
-     assert t0.status == t0.S_OK
-     print(t0.corrections)
-     assert t0.num_corrections > 0
-     assert t0.corrections[0]["event"]["@class"] == "DilatmxError"
+    # t0 should have reached S_OK, and we should have DilatmxError in the corrections.
+    t0 = work[0]
+    assert t0.status == t0.S_OK
+    print(t0.corrections)
+    assert t0.num_corrections > 0
+    assert t0.corrections[0]["event"]["@class"] == "DilatmxError"
 
 
 def itest_relaxation_with_target_dilatmx(fwp, tvars):

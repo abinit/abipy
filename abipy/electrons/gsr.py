@@ -2,20 +2,18 @@
 """
 Interface to the GSR.nc_ file storing the Ground-state results and the electron band structure.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import numpy as np
 import pandas as pd
 import pymatgen.core.units as units
 import abipy.core.abinit_units as abu
 
-from collections import OrderedDict, Iterable, defaultdict
+from collections import OrderedDict
 from tabulate import tabulate
-from monty.string import is_string, list_strings, marquee
+from monty.string import list_strings, marquee
 from monty.termcolor import cprint
 from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
-from pymatgen.core.units import EnergyArray, ArrayWithUnit
+from pymatgen.core.units import ArrayWithUnit
 from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt
@@ -55,8 +53,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         return cls(filepath)
 
     def __init__(self, filepath):
-        super(GsrFile, self).__init__(filepath)
-
+        super().__init__(filepath)
         self.reader = r = GsrReader(filepath)
 
         # Initialize the electron bands from file

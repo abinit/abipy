@@ -1,11 +1,10 @@
 # coding: utf-8
 """Tools for writing Xcrysden files."""
-from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
 
-from pymatgen.core.units import Energy, EnergyArray, ArrayWithUnit
-from abipy.tools import transpose_last3dims, add_periodic_replicas
+from pymatgen.core.units import Energy, EnergyArray #, ArrayWithUnit
+from abipy.tools.numtools import transpose_last3dims, add_periodic_replicas
 
 
 __all__ = [
@@ -133,7 +132,7 @@ def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None):
         for z in range(fgrid[0]):
             for y in range(fgrid[1]):
                 slice_x = fdata[dg,z,y]
-                fwrite(' '.join(['%f' % d for d in slice_x]) )
+                fwrite(' '.join(['%f' % d for d in slice_x]))
                 fwrite('\n')
             fwrite('\n')
 

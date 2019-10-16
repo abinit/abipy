@@ -4,10 +4,9 @@ Flow for the computation of Grunesein parameters with Abinit DFPT and finite dif
 
 WARNING: This code must be tested more carefully.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
+import os
 
 from abipy.core.structure import Structure
-
 from .flows import Flow
 from .works import Work
 
@@ -27,18 +26,14 @@ class GruneseinenFlow(Flow):
         """
         Build the work from an :class:`AbinitInput` object representing a GS calculations.
 
-	Args:
-	    gsinp:
-		:class:`AbinitInput` object representing a GS calculation in the initial unit cell.
-	    voldelta:
-                Absolute increment for unit cell volume. The three volumes are:
-                     [v0 - voldelta, v0, v0 + voldelta] where v0 is taken from gsinp.structure.
-
-	Return:
+        Args:
+            gsinp: :class:`AbinitInput` object representing a GS calculation in the initial unit cell.
+            voldelta: Absolute increment for unit cell volume. The three volumes are:
+                [v0 - voldelta, v0, v0 + voldelta] where v0 is taken from gsinp.structure.
         """
         new = cls(workdir=workdir, manager=manager)
 
-	# Save arguments that will be used to call phonopy for creating
+        # Save arguments that will be used to call phonopy for creating
         # the supercells with the displacements once the three volumes have been relaxed.
         #new.scdims = np.array(scdims)
         #if new.scdims.shape != (3,):
@@ -50,7 +45,7 @@ class GruneseinenFlow(Flow):
         v0 = gsinp.structure.volume
         if voldelta <= 0:
             raise ValueError("voldelta must be > 0 but got %s" % voldelta)
-        volumes = [v0 - voldelta, v0, v0  + voldelta]
+        volumes = [v0 - voldelta, v0, v0 + voldelta]
         if any(v <= 0 for v in volumes):
             raise ValueError("volumes must be > 0 but got %s" % str(volumes))
 
@@ -76,7 +71,7 @@ class GruneseinenWork(Work):
         have reached status S_OK.
         """
         self.add_phonopy_works_and_build()
-        return super(GruneisenWork, self).on_all_ok()
+        return super().on_all_ok()
 
     def add_phonopy_works_and_build(self):
         """

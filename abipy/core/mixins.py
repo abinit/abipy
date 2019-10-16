@@ -1,22 +1,18 @@
 # coding: utf-8
-"""This module ..."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
+"""This module provides mixin classes"""
 import abc
 import os
-import six
 import collections
 import tempfile
 import pickle
+import numpy as np
 
 from time import ctime
-import numpy as np
 from monty.os.path import which
 from monty.termcolor import cprint
-from monty.string import is_string, list_strings
+from monty.string import list_strings
 from monty.collections import dict2namedtuple
 from monty.functools import lazy_property
-from abipy.flowtk.netcdf import NetcdfReader, NO_DEFAULT
 
 
 __all__ = [
@@ -28,8 +24,8 @@ __all__ = [
     "Has_Header",
 ]
 
-@six.add_metaclass(abc.ABCMeta)
-class BaseFile(object):
+
+class BaseFile(metaclass=abc.ABCMeta):
     """
     Abstract base class defining the methods that must be implemented
     by the concrete classes representing the different files produced by ABINIT.
@@ -106,7 +102,7 @@ class BaseFile(object):
     #    try:
     #        self.close()
     #    finally:
-    #        super(BaseFile, self).__close__(self)
+    #        super().__close__(self)
 
 
 class TextFile(BaseFile):
@@ -140,7 +136,6 @@ class TextFile(BaseFile):
         self._file.seek(offset, whence)
 
 
-@six.add_metaclass(abc.ABCMeta)
 class AbinitNcFile(BaseFile):
     """
     Abstract class representing a Netcdf file with data saved
@@ -164,7 +159,6 @@ class AbinitNcFile(BaseFile):
         """
 
 
-@six.add_metaclass(abc.ABCMeta)
 class AbinitFortranFile(BaseFile):
     """
     Abstract class representing a fortran file containing output data from abinit.
@@ -190,7 +184,7 @@ class CubeFile(BaseFile):
     """
     def __init__(self, filepath):
         from abipy.iotools.cube import cube_read_structure_mesh_data
-        super(CubeFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.structure, self.mesh, self.data = cube_read_structure_mesh_data(self.filepath)
 
     def close(self):
@@ -203,8 +197,7 @@ class CubeFile(BaseFile):
     #        cube_write_data(fh, data, mesh):
 
 
-@six.add_metaclass(abc.ABCMeta)
-class Has_Structure(object):
+class Has_Structure(metaclass=abc.ABCMeta):
     """Mixin class for :class:`AbinitNcFile` containing crystallographic data."""
 
     @abc.abstractproperty
@@ -295,8 +288,7 @@ class Has_Structure(object):
         yield self.structure.plot(show=False)
 
 
-@six.add_metaclass(abc.ABCMeta)
-class Has_ElectronBands(object):
+class Has_ElectronBands(metaclass=abc.ABCMeta):
     """Mixin class for :class:`AbinitNcFile` containing electron data."""
 
     @abc.abstractproperty
@@ -389,8 +381,7 @@ class Has_ElectronBands(object):
             e(self.yield_ebands_figs(**kwargs))
 
 
-@six.add_metaclass(abc.ABCMeta)
-class Has_PhononBands(object):
+class Has_PhononBands(metaclass=abc.ABCMeta):
     """
     Mixin class for :class:`AbinitNcFile` containing phonon data.
     """
@@ -485,8 +476,7 @@ def get_filestat(filepath):
     ])
 
 
-@six.add_metaclass(abc.ABCMeta)
-class NotebookWriter(object):
+class NotebookWriter(metaclass=abc.ABCMeta):
     """
     Mixin class for objects that are able to generate jupyter_ notebooks.
     Subclasses must provide a concrete implementation of `write_notebook`.
@@ -555,6 +545,11 @@ import sys, os
 import numpy as np
 
 %matplotlib notebook
+
+# Use this magic for jupyterlab.
+# For installation instructions, see https://github.com/matplotlib/jupyter-matplotlib
+#%matplotlib widget
+
 from IPython.display import display
 
 # This to render pandas DataFrames with https://github.com/quantopian/qgrid

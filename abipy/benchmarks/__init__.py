@@ -1,5 +1,3 @@
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 import ast
 import types
@@ -106,7 +104,7 @@ class BenchmarkFlow(Flow):
             #  (task, task.manager.qadapter.mpi_procs, task.manager.qadapter.omp_threads))
 
         print("Total number of benchmarks: %d" % cnt)
-        return super(BenchmarkFlow, self).build_and_pickle_dump(**kwargs)
+        return super().build_and_pickle_dump(**kwargs)
 
     #def make_tarball(self):
     #    self.make_tarfile(self, name=None, max_filesize=None, exclude_exts=None, exclude_dirs=None, verbose=0, **kwargs):

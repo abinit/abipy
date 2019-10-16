@@ -2,8 +2,6 @@
 """
 Script to analyze/export/visualize the crystal structure saved in the netcdf files produced by ABINIT.
 """
-from __future__ import unicode_literals, division, print_function, absolute_import
-
 import sys
 import os
 import argparse
@@ -11,7 +9,6 @@ import numpy as np
 
 from pprint import pprint
 from tabulate import tabulate
-from warnings import warn
 from monty.string import marquee
 from monty.functools import prof_main
 from monty.termcolor import cprint
@@ -144,12 +141,15 @@ Usage example:
                                               Print info and Abinit input files. Use e.g. `-f POSCAR`
                                               to change output format. `-f None` to disable structure output.
   abistruct.py mp_pd FILE-or-elements      => Generate phase diagram with entries from the Materials Project.
-                                              Accept FILE with structure or list of elements e.g `Li-Fe-O`
+  abistruct.py mp_ebands FILE             => Fetch electron band structure from MP database. Print gaps.
+                                              Accept FILE with structure if ebands fro structure is wanted
+                                              or mp id e.g. "mp-149 or list of elements e.g `Li-Fe-O` or chemical formula.
 
 `FILE` is any file supported by abipy/pymatgen e.g Netcdf files, Abinit input/output, POSCAR, xsf ...
 Use `abistruct.py --help` for help and `abistruct.py COMMAND --help` to get the documentation for `COMMAND`.
 Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 """
+
 
 def get_parser(with_epilog=False):
 
@@ -204,6 +204,7 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
             help="Enforce primitive standard cell.")
 
     supported_formats = "(abivars, cif, xsf, poscar, qe, siesta, wannier90, cssr, json, None)"
+
     def add_format_arg(parser, default, option=True, formats=None):
         """Add --format option to a parser with default value `default`."""
         formats = supported_formats if formats is None else formats
@@ -288,13 +289,13 @@ Has to be all integers. Several options are possible:
     p_wyckoff = subparsers.add_parser('wyckoff', parents=[copts_parser, spgopt_parser, path_selector],
             help="Print wyckoff positions. WARNING: still under development!")
     p_wyckoff.add_argument("--refine", default=False, action="store_true",
-                            help="Use spglib to refine structure before computation")
+                           help="Use spglib to refine structure before computation")
 
     # Subparser for tensor_site.
     p_tensor_site = subparsers.add_parser('tensor_site', parents=[copts_parser, spgopt_parser, path_selector],
             help="Print symmetry properties of tensors due to site-symmetries. WARNING: still under development!")
     p_tensor_site.add_argument("--refine", default=False, action="store_true",
-                                help="Use spglib to refine structure before computation")
+                               help="Use spglib to refine structure before computation")
 
     # Subparser for neighbors.
     p_neighbors = subparsers.add_parser('neighbors', parents=[copts_parser, path_selector],
@@ -426,7 +427,7 @@ closest points in this particular structure. This is usually what you want in a 
     p_mpsearch = subparsers.add_parser('mp_search', parents=[mp_rest_parser, copts_parser, nb_parser],
         help="Get structure from the pymatgen database. Requires internet connection and PMG_MAPI_KEY")
     p_mpsearch.add_argument("chemsys_formula_id", type=str, default=None,
-        help="A chemical system (e.g., Li-Fe-O), or formula (e.g., Fe2O3) or materials_id (e.g., mp-1234).")
+        help="A chemical system (e.g., Li-Fe-O), or formula (e.g., Fe2O3) or materials_id (e.g., mp-149).")
     p_mpsearch.add_argument("-s", "--select-spgnum", type=int, default=None,
         help="Select structures with this space group number.")
     add_format_arg(p_mpsearch, default="abivars")
@@ -441,6 +442,13 @@ closest points in this particular structure. This is usually what you want in a 
         help="""Whether unstable phases will be plotted as
 well as red crosses. If a number > 0 is entered, all phases with
 ehull < show_unstable will be shown.""")
+
+    # Subparser for mp_ebands command.
+    p_mp_ebands = subparsers.add_parser('mp_ebands', parents=[copts_parser, mp_rest_parser],
+        help="Get structure from the pymatgen database. Export to format. Requires internet connection and PMG_MAPI_KEY.")
+    p_mp_ebands.add_argument("chemsys_formula_id", type=str, default=None,
+        help="A chemical system (e.g., Li-Fe-O), or formula (e.g., Fe2O3) or materials_id (e.g., mp-149).")
+    #add_format_arg(p_mp_ebands, default="cif")
 
     # Subparser for cod_search command.
     p_codsearch = subparsers.add_parser('cod_search', parents=[copts_parser, nb_parser],
@@ -465,6 +473,7 @@ ehull < show_unstable will be shown.""")
 
     return parser
 
+
 @prof_main
 def main():
 
@@ -484,6 +493,9 @@ def main():
 
     if not options.command:
         show_examples_and_exit(error_code=1)
+
+    if hasattr(options, "format"):
+        options.format = options.format.strip()
 
     # loglevel is bound to the string value obtained from the command line argument.
     # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
@@ -598,7 +610,7 @@ def main():
             spg_symb, spg_num = sanitized.get_space_group_info(symprec=symprec, angle_tolerance=angle_tolerance)
             print(">>> Space-group number:", spg_symb, ", symbol:", spg_num, "for trial:", itrial)
             if spg_num == options.target_spgnum:
-                print(2 * "\n", "# Final structure with space group number:", spg_symb, ", symbol:", spg_num, 2 *"\n")
+                print(2 * "\n", "# Final structure with space group number:", spg_symb, ", symbol:", spg_num, 2 * "\n")
                 print(sanitized.convert(fmt="cif"))
                 break
 
@@ -876,6 +888,34 @@ def main():
             pdr = rest.get_phasediagram_results(elements)
             pdr.print_dataframes(verbose=options.verbose)
             pdr.plot(show_unstable=options.show_unstable)
+
+    elif options.command == "mp_ebands":
+        if os.path.exists(options.chemsys_formula_id):
+            mp = abilab.mp_match_structure(options.chemsys_formula_id)
+            for mpid in mp.ids:
+                ebands = abilab.ElectronBands.from_mpid(mpid, api_key=options.mapi_key, endpoint=options.endpoint)
+                print(ebands)
+        else:
+            if options.chemsys_formula_id.startswith("mp-"):
+                # Assume valid mp identifier.
+                mpid = options.chemsys_formula_id
+                ebands = abilab.ElectronBands.from_mpid(mpid, api_key=options.mapi_key, endpoint=options.endpoint)
+                print(ebands)
+            else:
+                mp = abilab.mp_search(options.chemsys_formula_id)
+                if not mp.structures:
+                    cprint("No structure found in Materials Project database", "yellow")
+                    return 1
+
+                for mpid, structure in zip(mp.ids, mp.structures):
+                    if structure is None:
+                        cprint("ignoring mpid %s because cannot find structure" % mpid, "red")
+                        continue
+                    ebands = abilab.ElectronBands.from_mpid(mpid, api_key=options.mapi_key, endpoint=options.endpoint)
+                    if ebands is None:
+                        cprint("Cannot get ebands for structure:\n%s" % str(structure), "red")
+                    else:
+                        print(ebands)
 
     elif options.command == "cod_search":
         cod = abilab.cod_search(options.formula, primitive=options.primitive)

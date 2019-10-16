@@ -5,13 +5,9 @@ other files are supported as well). By default the script starts an interactive 
 session so that one can interact with the file and call its methods.
 Alternatively, it is possible to generate automatically a jupyter notebook to execute code.
 """
-from __future__ import unicode_literals, division, print_function, absolute_import
-
 import sys
 import os
-import io
 import argparse
-import tempfile
 
 from monty.os.path import which
 from monty.termcolor import cprint
@@ -43,8 +39,7 @@ import numpy as np
 #        font='sans-serif', font_scale=1, color_codes=False, rc=None)
 from abipy import abilab\
 """),
-
-    nbf.new_code_cell("abifile = abilab.abiopen('%s')" % options.filepath)
+        nbf.new_code_cell("abifile = abilab.abiopen('%s')" % options.filepath)
     ])
 
     import io, tempfile
@@ -86,6 +81,7 @@ File extensions supported (including zipped files with extension in ".bz2", ".gz
 """
     return s + abilab.abiopen_ext2class_table()
 
+
 def get_parser(with_epilog=False):
     parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -120,6 +116,8 @@ def get_parser(with_epilog=False):
         help=("Set matplotlib interactive backend. "
               "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
               "See also: https://matplotlib.org/faq/usage_faq.html#what-is-a-backend."))
+    parser.add_argument('--pylustrator', action='store_true', default=False,
+        help="Style matplotlib plots with pylustrator. See https://pylustrator.readthedocs.io/en/latest/")
 
     return parser
 
@@ -162,6 +160,11 @@ def main():
         import seaborn as sns
         sns.set(context=options.seaborn, style='darkgrid', palette='deep',
                 font='sans-serif', font_scale=1, color_codes=False, rc=None)
+
+    if options.pylustrator:
+        # Start pylustrator to style matplotlib plots
+        import pylustrator
+        pylustrator.start()
 
     if not os.path.exists(options.filepath):
         raise RuntimeError("%s: no such file" % options.filepath)
@@ -208,7 +211,7 @@ def main():
         # Use embed because I don't know how to show a header with start_ipython.
         import IPython
         IPython.embed(header="""
-The Abinit file is bound to the `abifile` variable.
+The Abinit file object is associated to the `abifile` python variable.
 Use `abifile.<TAB>` to list available methods.
 Use e.g. `abifile.plot?` to access docstring and `abifile.plot??` to visualize source.
 Use `print(abifile)` to print the object.

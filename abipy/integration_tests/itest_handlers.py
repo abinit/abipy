@@ -1,7 +1,4 @@
-from __future__ import print_function, division, unicode_literals, absolute_import
 
-import sys
-import os
 import pytest
 import abipy.data as abidata
 import abipy.abilab as abilab
@@ -24,10 +21,10 @@ def itest_tolsymerror_handler(fwp):
     """
     structure = dict(
         acell=(1.0, 1.0, 1.0),
-        xred = [
+        xred=[
            1.0001907690, 1.0040151117, 0.0099335191,
            0.2501907744, 0.2540150788, 0.2599335332],
-        rprim = [
+        rprim=[
           -6.2733366562, 0.0000000000, -3.6219126071,
           -6.2733366562, 0.0000000000,  3.6219126071,
           -4.1822244376, 5.9145585205,  0.0000000000],

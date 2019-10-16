@@ -1,21 +1,16 @@
 # coding: utf-8
-from __future__ import print_function, division, absolute_import # unicode_literals,
-
-import sys
 import functools
 import numpy as np
 import itertools
 import pickle
 import os
-import six
 import json
 import warnings
 import abipy.core.abinit_units as abu
 
-
 from collections import OrderedDict
 from monty.string import is_string, list_strings, marquee
-from monty.collections import AttrDict, dict2namedtuple
+from monty.collections import dict2namedtuple
 from monty.functools import lazy_property
 from monty.termcolor import cprint
 from pymatgen.core.units import eV_to_Ha, Energy
@@ -27,7 +22,8 @@ from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_PhononBands, Note
 from abipy.core.kpoints import Kpoint, Kpath
 from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
-from abipy.tools import gaussian, duck
+from abipy.tools import duck
+from abipy.tools.numtools import gaussian, sort_and_groupby
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims, get_axarray_fig_plt, set_visible, set_ax_xylabels
 from .phtk import match_eigenvectors, get_dyn_mat_eigenvec, open_file_phononwebsite, NonAnalyticalPh
 
@@ -40,6 +36,7 @@ __all__ = [
     "PhdosReader",
     "PhdosFile",
 ]
+
 
 @functools.total_ordering
 class PhononMode(object):
@@ -85,7 +82,7 @@ class PhononMode(object):
         Args:
             verbose: Verbosity level.
             with_displ: True to print phonon displacement.
-	"""
+        """
         lines = ["%s: q-point %s, frequency %.5f (eV)" % (self.__class__.__name__, self.qpoint, self.freq)]
         app = lines.append
 
@@ -132,7 +129,7 @@ class PhononBands(object):
                 amu = {at: a for at, a in zip(atomic_numbers, amu_list)}
             else:
                 cprint("Warning: file %s does not contain atomic_numbers.\nParticular methods need them!" %
-                        filepath, "red")
+                       filepath, "red")
                 amu = None
 
             non_anal_ph = None
@@ -259,11 +256,12 @@ class PhononBands(object):
     @property
     def nqpt(self):
         """An alias for num_qpoints."""
-        return  self.num_qpoints
+        return self.num_qpoints
 
     def __repr__(self):
         """String representation (short version)"""
-        return "<%s, nk=%d, %s, id=%s>" % (self.__class__.__name__, self.num_qpoints, self.structure.formula, id(self))
+        return "<%s, nk=%d, %s, id=%s>" % (
+                self.__class__.__name__, self.num_qpoints, self.structure.formula, id(self))
 
     def __str__(self):
         return self.to_string()
@@ -472,7 +470,7 @@ class PhononBands(object):
         w("@link page off")
         w("@with g0")
         w("@world xmin 0.00")
-        w('@world xmax %d' % (self.num_qpoints -1))
+        w('@world xmax %d' % (self.num_qpoints - 1))
         w('@world ymin %s' % wqnu_units.min())
         w('@world ymax %s' % wqnu_units.max())
         w('@default linewidth 1.5')
@@ -523,9 +521,7 @@ class PhononBands(object):
     #    return PhononBands3D(self.structure, self.qpoints, has_timrev, self.phfreqs, fermie)
 
     def qindex(self, qpoint):
-        """
-	Returns the index of the qpoint. Accepts integer or reduced coordinates.
-	"""
+        """Returns the index of the qpoint. Accepts integer or reduced coordinates."""
         if duck.is_intlike(qpoint):
             return int(qpoint)
         else:
@@ -741,7 +737,7 @@ class PhononBands(object):
                     q[0], q[1], q[2], self.phfreqs[iqpt, imode]))
 
                 for displ in displ_list[imode]:
-                    line = "#; "+ "; ".join("{:.6f}".format(i) for i in displ.real) + "; " \
+                    line = "#; " + "; ".join("{:.6f}".format(i) for i in displ.real) + "; " \
                            + "; ".join("{:.6f}".format(i) for i in displ.imag) + " \\"
                     lines.append(line)
 
@@ -819,6 +815,11 @@ class PhononBands(object):
 
             return h
 
+        def reasonable_repetitions(natoms):
+            if (natoms < 4): return (3,3,3)
+            if (4 < natoms < 50): return (2,2,2)
+            if (50 < natoms): return (1,1,1)
+
         # http://henriquemiranda.github.io/phononwebsite/index.html
         data = {}
         data["name"] = name or self.structure.composition.reduced_formula
@@ -827,7 +828,7 @@ class PhononBands(object):
         data["atom_types"] = [e.name for e in self.structure.species]
         data["atom_numbers"] = self.structure.atomic_numbers
         data["formula"] = self.structure.formula.replace(" ", "")
-        data["repetitions"] = repetitions or (3, 3, 3)
+        data["repetitions"] = repetitions or reasonable_repetitions(self.num_atoms)
         data["atom_pos_car"] = self.structure.cart_coords.tolist()
         data["atom_pos_red"] = self.structure.frac_coords.tolist()
         data["chemical_symbols"] = self.structure.symbol_set
@@ -843,7 +844,7 @@ class PhononBands(object):
             elif highsym_qpts_mode == 'split':
                 data["highsym_qpts"] = split_non_collinear(qpoints)
             elif highsym_qpts_mode == 'std':
-                data["highsym_qpts"] = list(six.moves.zip(*self._make_ticks_and_labels(None)))
+                data["highsym_qpts"] = list(zip(*self._make_ticks_and_labels(None)))
         else:
             data["highsym_qpts"] = highsym_qpts
 
@@ -871,7 +872,8 @@ class PhononBands(object):
                             self.split_matched_indices[i][...,None],
                             np.arange(vect.shape[2])[None, None,:]]
             v = vect.reshape((len(vect), self.num_branches,self.num_atoms, 3))
-            v /= np.linalg.norm(v[0,0,0])
+            norm = [np.linalg.norm(vi) for vi in v[0,0]]
+            v /= max(norm)
             v = np.stack([v.real, v.imag], axis=-1)
 
             vectors.extend(v.tolist())
@@ -1827,7 +1829,7 @@ class PhononBands(object):
                 # not be repeated (if they are the real first or last point) or they will be already reapeated due
                 # to the split.
                 if any(np.allclose(q, labelled_q) for labelled_q in labelled_q_list):
-                    if 0 < i <len(split_q) - 1:
+                    if 0 < i < len(split_q) - 1:
                         ph_freqs.append(phf)
                         qpts.append(q)
                         displ.append(d)
@@ -1982,7 +1984,7 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
         Args:
             path: path to the file
         """
-        super(PhbstFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = PHBST_Reader(filepath)
 
         # Initialize Phonon bands and add metadata from ncfile
@@ -2054,7 +2056,7 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
 
         Args:
             qpoint: integer, vector of reduced coordinates or |Kpoint| object.
-	    with_structure: True to add structural parameters.
+            with_structure: True to add structural parameters.
         """
         qindex, qpoint = self.qindex_qpoint(qpoint)
         phfreqs = self.phbands.phfreqs
@@ -2491,8 +2493,8 @@ class PhdosReader(ETSF_Reader):
 
         od = OrderedDict()
         for symbol in self.chemical_symbols:
-           type_idx = self.typeidx_from_symbol(symbol)
-           od[symbol] = values[type_idx]
+            type_idx = self.typeidx_from_symbol(symbol)
+            od[symbol] = values[type_idx]
 
         return od
 
@@ -2515,10 +2517,12 @@ class PhdosReader(ETSF_Reader):
     def read_msq_dos(self):
         """
         Read generalized DOS with MSQ displacement tensor in cartesian coords.
-        Return |MsqDos| object.
+
+        Return: |MsqDos| object.
         """
         if "msqd_dos_atom" not in self.rootgrp.variables:
-            raise RuntimeError("PHBST file does not contain `msqd_dos_atom` variable.\nPlease use a more recent Abinit version")
+            raise RuntimeError("PHBST file does not contain `msqd_dos_atom` variable.\n" +
+                               "Please use a more recent Abinit version >= 9")
 
         # nctkarr_t('msqd_dos_atom', "dp", 'number_of_frequencies, three, three, number_of_atoms') &
         # symmetric tensor still transpose (3,3) to be consistent.
@@ -2528,7 +2532,7 @@ class PhdosReader(ETSF_Reader):
         amu_symbol = self.read_amu_symbol()
 
         from abipy.dfpt.msqdos import MsqDos
-        return MsqDos(self.structure, self.wmesh.copy(), values, amu_symbol)
+        return MsqDos(self.structure, self.wmesh, values, amu_symbol)
 
 
 class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
@@ -2543,7 +2547,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     def __init__(self, filepath):
         # Open the file, read data and create objects.
-        super(PhdosFile, self).__init__(filepath)
+        super().__init__(filepath)
 
         self.reader = r = PhdosReader(filepath)
         self.wmesh = r.wmesh
@@ -3224,10 +3228,12 @@ class PhononBandsPlotter(NotebookWriter):
         if self.phdoses_dict and with_dos:
             phdos_objects = list(self.phdoses_dict.values())
 
-        return phbands_gridplot(phb_objects, titles=titles, phdos_objects=phdos_objects, units=units, fontsize=fontsize, show=False)
+        return phbands_gridplot(phb_objects, titles=titles, phdos_objects=phdos_objects,
+                                units=units, fontsize=fontsize, show=False)
 
     @add_fig_kwargs
-    def gridplot_with_hue(self, hue, with_dos=False, units="eV", width_ratios=(2, 1), ylims=None, fontsize=8, **kwargs):
+    def gridplot_with_hue(self, hue, with_dos=False, units="eV", width_ratios=(2, 1),
+                          ylims=None, fontsize=8, **kwargs):
         """
         Plot multiple phonon bandstructures and optionally DOSes on a grid.
         Group results by ``hue``.
@@ -3260,17 +3266,17 @@ class PhononBandsPlotter(NotebookWriter):
         if self.phdoses_dict and with_dos:
             all_phdos_objects = list(self.phdoses_dict.values())
 
-        from abipy.tools import sort_and_groupby, getattrd, hasattrd
-
         # Need index to handle all_phdos_objects if DOSes are wanted.
         if callable(hue):
             items = [(hue(phb), phb, i, label) for i, (phb, label) in enumerate(zip(all_phb_objects, all_labels))]
         else:
             # Assume string. Either phbands.hue or phbands.params[hue].
-            if hasattrd(all_phb_objects[0], hue):
-                items = [(getattrd(phb, hue), phb, i, label) for i, (phb, label) in enumerate(zip(all_phb_objects, all_labels))]
+            if duck.hasattrd(all_phb_objects[0], hue):
+                items = [(duck.getattrd(phb, hue), phb, i, label)
+                        for i, (phb, label) in enumerate(zip(all_phb_objects, all_labels))]
             else:
-                items = [(phb.params[hue], phb, i, label) for i, (phb, label) in enumerate(zip(all_phb_objects, all_labels))]
+                items = [(phb.params[hue], phb, i, label)
+                        for i, (phb, label) in enumerate(zip(all_phb_objects, all_labels))]
 
         # Group items by hue value.
         hvalues, groups = sort_and_groupby(items, key=lambda t: t[0], ret_lists=True)
@@ -3665,7 +3671,6 @@ class PhononDosPlotter(NotebookWriter):
         titles = list(self._phdoses_dict.keys())
         phdos_list = list(self._phdoses_dict.values())
 
-        import matplotlib.pyplot as plt
         nrows, ncols = 1, 1
         numeb = len(phdos_list)
         if numeb > 1:
@@ -3882,6 +3887,7 @@ class RobotWithPhbands(object):
             nbv.new_code_cell("robot.get_phbands_plotter().ipw_select_plot();"),
             nbv.new_code_cell("#robot.plot_phdispl(qpoint=(0, 0, 0));"),
         ]
+
 
 # TODO: PhdosRobot
 class PhbstRobot(Robot, RobotWithPhbands):

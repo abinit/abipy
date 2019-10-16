@@ -59,12 +59,14 @@ def relax_input(tsmear, nksmall):
 
     return inp
 
+
 def build_flow(options):
     """
     Build and return a flow performing structural relaxations with different k-point samplings.
     """
     # Set working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
+        if os.getenv("READTHEDOCS", False): __file__ = os.path.join(os.getcwd(), "run_relax_vs_kpts_tsmear.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     # Let generate multiple inputs for different (tsmear, nksmall)

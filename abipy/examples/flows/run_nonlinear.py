@@ -56,6 +56,7 @@ def make_scf_input(ecut=10, ngkpt=(8, 8, 8)):
 
 def build_flow(options):
     if not options.workdir:
+        if os.getenv("READTHEDOCS", False): __file__ = os.path.join(os.getcwd(), "run_nonlinear.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     scf_input = make_scf_input(ecut=10, ngkpt=(6, 6, 6))
@@ -73,7 +74,6 @@ if os.getenv("READTHEDOCS", False):
     build_flow(options).graphviz_imshow()
 
 
-
 @flowtk.flow_main
 def main(options):
     """
@@ -82,7 +82,7 @@ def main(options):
     Command line args are stored in `options`.
     """
     # Temporarily disabled in v8.8.2
-    return 0
+    #return 0
     return build_flow(options)
 
 

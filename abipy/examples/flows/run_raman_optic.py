@@ -38,7 +38,8 @@ def build_flow(options):
 
     # Initialize flow. Each workflow in the flow defines a complete BSE calculation for given eta.
     if not options.workdir:
-        options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_")
+        if os.getenv("READTHEDOCS", False): __file__ = os.path.join(os.getcwd(), "run_raman_optic.py")
+        options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     flow = flowtk.Flow(options.workdir, manager=options.manager)
 
@@ -127,7 +128,6 @@ def raman_work(structure, pseudos, ngkpt, shiftk):
     for inp in ddk_inputs:
         ddk_t = work.register_ddk_task(inp, deps={nscf_t: "WFK"})
         ddk_nodes.append(ddk_t)
-
 
     optic_input = abilab.OpticInput(
         broadening=0.002,     # Value of the smearing factor, in Hartree

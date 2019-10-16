@@ -1,8 +1,5 @@
 # coding: utf-8
 """Classes to analyse electronic structures."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
-import sys
 import os
 import copy
 import itertools
@@ -14,25 +11,24 @@ import numpy as np
 import pandas as pd
 import pymatgen.core.units as units
 
-from collections import OrderedDict, namedtuple, Iterable
+from collections import OrderedDict, namedtuple
+from collections.abc import Iterable
 from monty.string import is_string, list_strings, marquee
 from monty.termcolor import cprint
-from monty.json import MSONable, MontyEncoder
+from monty.json import MontyEncoder
 from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.bisect import find_le, find_gt
-try:
-    from pymatgen.util.serialization import pmg_serialize
-except ImportError:
-    from pymatgen.serializers.json_coders import pmg_serialize
+from pymatgen.util.serialization import pmg_serialize
 from pymatgen.electronic_structure.core import Spin as PmgSpin
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import Has_Structure, NotebookWriter
 from abipy.core.kpoints import (Kpoint, KpointList, Kpath, IrredZone, KSamplingInfo, KpointsReaderMixin,
-    Ktables, has_timrev_from_kptopt, map_grid2ibz, kmesh_from_mpdivs)
+    Ktables, has_timrev_from_kptopt, map_grid2ibz) #, kmesh_from_mpdivs)
 from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader
-from abipy.tools import gaussian, duck
+from abipy.tools import duck
+from abipy.tools.numtools import gaussian
 from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
     get_ax3d_fig_plt, rotate_ticklabels, set_visible, plot_unit_cell, set_ax_xylabels)
 
@@ -57,7 +53,7 @@ class Electron(namedtuple("Electron", "spin kpoint band eig occ kidx")):
 
         spin: spin index (C convention, i.e >= 0)
         kpoint: |Kpoint| object.
-        band: band index. (C convention, i.e >= 0).
+        band: band index. (C convention, i.e >= 0
         eig: KS eigenvalue.
         occ: Occupation factor.
         kidx: Index of the k-point in the initial array.
@@ -96,7 +92,7 @@ class Electron(namedtuple("Electron", "spin kpoint band eig occ kidx")):
 
     def as_dict(self):
         """Convert self into a dict."""
-        return super(Electron, self)._asdict()
+        return super()._asdict()
 
     def to_strdict(self, fmt=None):
         """Ordered dictionary mapping fields --> strings."""
@@ -266,7 +262,7 @@ class Smearing(AttrDict):
             raise TypeError("Don't know how to convert %s into Smearing object:\n%s" % (type(obj), str(exc)))
 
     def __init__(self, *args, **kwargs):
-        super(Smearing, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         for mkey in self._MANDATORY_KEYS:
             if mkey not in self:
                 raise ValueError("Mandatory key %s must be provided" % str(mkey))
@@ -402,10 +398,10 @@ class ElectronBands(Has_Structure):
 
     @classmethod
     def from_mpid(cls, material_id, api_key=None, endpoint=None,
-                  nelect=None, has_timerev=True, nspinor=1, nspden=None):
+                  nelect=None, has_timerev=True, nspinor=1, nspden=None, line_mode=True):
         """
         Read bandstructure data corresponding to a materials project ``material_id``.
-        and return Abipy ElectronBands object.
+        and return Abipy ElectronBands object. Return None if bands are not available.
 
         Args:
             material_id (str): Materials Project material_id (a string, e.g., mp-1234).
@@ -421,21 +417,24 @@ class ElectronBands(Has_Structure):
                 can be changed to other urls implementing a similar interface.
             nelect: Number of electrons in the unit cell.
             nspinor: Number of spinor components.
+            line_mode (bool): If True, fetch a BandStructureSymmLine object
+                (default). If False, return the uniform band structure.
         """
         # Get pytmatgen structure and convert it to abipy structure
         from abipy.core import restapi
         with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
-            pmgb = rest.get_bandstructure_by_material_id(material_id=material_id)
+            pmgb = rest.get_bandstructure_by_material_id(material_id=material_id, line_mode=line_mode)
+            if pmgb is None: return None
 
             # Structure is set to None so we have to perform another request and patch the object.
             structure = rest.get_structure_by_material_id(material_id, final=True)
             if pmgb.structure is None: pmgb.structure = structure
-            #pmgb = pmgb.__class__.from_dict(pmgb.as_dict())
 
         if nelect is None:
             # Get nelect from valence band maximum index.
             if pmgb.is_metal():
-                raise RuntimeError("Nelect must be specified if metallic bands.")
+                cprint("Nelect must be specified if metallic bands.", "red")
+                return None
             else:
                 d = pmgb.get_vbm()
                 iv_up = max(d["band_index"][PmgSpin.up])
@@ -446,7 +445,6 @@ class ElectronBands(Has_Structure):
                     assert iv_down == iv_up
 
         #ksampling = KSamplingInfo.from_kbounds(kbounds)
-
         return cls.from_pymatgen(pmgb, nelect, weights=None, has_timerev=has_timerev,
                                  ksampling=None, smearing=None, nspinor=nspinor, nspden=nspden)
 
@@ -1109,7 +1107,7 @@ class ElectronBands(Has_Structure):
         from pymatgen.electronic_structure.bandstructure import BandStructure, BandStructureSymmLine
 
         # Cast to abipy structure and call spglib to init AbinitSpaceGroup.
-        abipy_structure= Structure.as_structure(pmg_bands.structure.copy())
+        abipy_structure = Structure.as_structure(pmg_bands.structure.copy())
         if not abipy_structure.has_abi_spacegroup:
             abipy_structure.spgset_abi_spacegroup(has_timerev)
 
@@ -1556,9 +1554,9 @@ class ElectronBands(Has_Structure):
         """
         edos_plotter = ElectronDosPlotter()
         for width in widths:
-           edos = self.get_edos(method="gaussian", step=0.1, width=width)
-           label=r"$\sigma = %s$ (eV)" % width
-           edos_plotter.add_edos(label, edos)
+            edos = self.get_edos(method="gaussian", step=0.1, width=width)
+            label = r"$\sigma = %s$ (eV)" % width
+            edos_plotter.add_edos(label, edos)
 
         return edos_plotter
 
@@ -1814,7 +1812,7 @@ class ElectronBands(Has_Structure):
 
     @add_fig_kwargs
     def plot(self, spin=None, band_range=None, klabels=None, e0="fermie", ax=None, ylims=None,
-	     points=None, with_gaps=False, max_phfreq=None, fontsize=8, **kwargs):
+             points=None, with_gaps=False, max_phfreq=None, fontsize=8, **kwargs):
         r"""
         Plot the electronic band structure.
 
@@ -1871,7 +1869,8 @@ class ElectronBands(Has_Structure):
             if "lw" in kwargs: opts.pop("linewidth")
             opts.update(kwargs)
 
-            for band in band_list:
+            for ib, band in enumerate(band_list):
+                if ib != 0: opts.pop("label", None)
                 self.plot_ax(ax, e0, spin=spin, band=band, **opts)
 
         if points is not None:
@@ -2013,7 +2012,6 @@ class ElectronBands(Has_Structure):
             #print("ticks", ticks, "\nlabels", labels)
             ax.set_xticks(ticks, minor=False)
             ax.set_xticklabels(labels, fontdict=None, minor=False, size=kwargs.pop("klabel_size", "large"))
-
             #print("ticks", len(ticks), ticks)
             ax.set_xlim(ticks[0], ticks[-1])
 
@@ -2643,7 +2641,7 @@ class ElectronBandsPlotter(NotebookWriter):
 
     def iter_lineopt(self):
         """Generates matplotlib linestyles."""
-        for o in itertools.product( self._LINE_WIDTHS,  self._LINE_STYLES, self._LINE_COLORS):
+        for o in itertools.product(self._LINE_WIDTHS,  self._LINE_STYLES, self._LINE_COLORS):
             yield {"linewidth": o[0], "linestyle": o[1], "color": o[2]}
 
     def add_ebands(self, label, bands, edos=None, edos_kwargs=None):
@@ -2953,7 +2951,6 @@ class ElectronBandsPlotter(NotebookWriter):
         # Merge frames ignoring index (not meaningful)
         data = pd.concat(frames, ignore_index=True)
 
-        import matplotlib.pyplot as plt
         import seaborn as sns
         if not spin_polarized:
             ax, fig, plt = get_ax_fig_plt(ax=ax)
@@ -2963,6 +2960,7 @@ class ElectronBandsPlotter(NotebookWriter):
                 sns.swarmplot(x="band", y="eig", data=data, hue="label", color=".25", ax=ax)
         else:
             # Generate two subplots for spin-up / spin-down channels.
+            import matplotlib.pyplot as plt
             if ax is not None:
                 raise NotImplementedError("ax == None not implemented when nsppol==2")
             fig, ax_list = plt.subplots(nrows=2, ncols=1, sharex=True, squeeze=False)
@@ -2972,6 +2970,58 @@ class ElectronBandsPlotter(NotebookWriter):
                 sns.boxplot(x="band", y="eig", data=data_spin, hue="label", ax=ax, **kwargs)
                 if swarm:
                     sns.swarmplot(x="band", y="eig", data=data_spin, hue="label", color=".25", ax=ax)
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_band_edges(self, e0="fermie", epad_ev=1.0, set_fermie_to_vbm=True, colormap="viridis", fontsize=8, **kwargs):
+        """
+        Plot the band edges for electrons and holes on two separated plots for all ebands in ebands_dict.
+        Useful for comparing band structures obtained with/without SOC or bands obtained with different settings.
+
+        Args:
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
+            epad_ev: Add this energy window in eV above VBM and below CBM.
+            set_fermie_to_vbm: True if Fermi energy should be recomputed and fixed at max occupied energy level.
+            colormap: matplotlib colormap.
+            fontsize: legend and title fontsize.
+        """
+        # Two subplots for CBM and VBM
+        num_plots, ncols, nrows = 2, 1, 2
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=False, sharey=False, squeeze=False)
+        ax_list = ax_list.ravel()
+        cmap = plt.get_cmap(colormap)
+        nb = len(self.ebands_dict.items())
+
+        for ix, ax in enumerate(ax_list):
+            for iband, (label, ebands) in enumerate(self.ebands_dict.items()):
+                if set_fermie_to_vbm:
+                    # This is needed when the fermi energy is computed in the GS part
+                    # with a mesh that does not contain the band edges.
+                    ebands.set_fermie_to_vbm()
+
+                if ix == 0:
+                    # Conduction
+                    ymin = min((ebands.lumos[spin].eig for spin in ebands.spins)) - 0.1
+                    ymax = ymin + epad_ev
+                elif ix == 1:
+                    # Valence
+                    ymax = max((ebands.homos[spin].eig for spin in ebands.spins)) + 0.1
+                    ymin = ymax - epad_ev
+                else:
+                    raise ValueError("Wrong ix: %s" % ix)
+
+                # Defin ylims and energy shift.
+                this_e0 = ebands.get_e0(e0)
+                ylims = (ymin - this_e0, ymax - this_e0)
+                ebands.plot(ax=ax, e0=e0, color=cmap(float(iband) / nb), ylims=ylims,
+                            label=label if ix == 0 else None, show=False)
+            if ix == 0:
+                ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
@@ -3312,7 +3362,7 @@ class ElectronDos(object):
             # If the last point in IDOS is sufficiently close to nelect
             # use it as Fermi level.
             if abs(idos.values[-1] - nelect) < 1e-3:
-                i = len(idos) -1
+                i = len(idos) - 1
             else:
                 raise ValueError("Cannot find I(e) such that I(e) > nelect")
 
@@ -3355,7 +3405,7 @@ class ElectronDos(object):
             else:
                 try:
                     return float(e0)
-                except:
+                except Exception:
                     raise TypeError("Wrong value for e0: %s" % str(e0))
         else:
             # Assume number
@@ -3607,6 +3657,7 @@ class ElectronDosPlotter(NotebookWriter):
                 elif spin_mode == "resolved":
                     # Plot spin resolved quantiies with sign.
                     # Note get_color to have same color for both spins.
+                    lines = None
                     for spin in range(edos.nsppol):
                         fact = 1 if spin == 0 else -1
                         lines = edos.plot_ax(ax, e0, what=what, spin=spin, fact=fact,
@@ -3689,6 +3740,7 @@ class ElectronDosPlotter(NotebookWriter):
             elif spin_mode == "resolved":
                 # Plot spin resolved quantiies with sign.
                 # Note get_color to have same color for both spins.
+                lines = None
                 for spin in range(edos.nsppol):
                     fact = 1 if spin == 0 else -1
                     lines = edos.plot_ax(ax, e0, what=what, spin=spin, fact=fact,
@@ -3889,7 +3941,7 @@ class Bands3D(Has_Structure):
             for ikuc, ik_ibz in enumerate(self.uc2ibz):
                 ucdata_sbk[:, :, ikuc] = scalars[:, :, ik_ibz]
         else:
-            raise ValueError("Wrong inshape: %s" % str(insp))
+            raise ValueError("Wrong inshape: %s" % str(inshape))
 
         return ucdata_sbk
 
@@ -3991,22 +4043,20 @@ class Bands3D(Has_Structure):
         Return: |matplotlib-Figure|
         """
         try:
-            import skimage
-        except ImportError:
-            raise ImportError("scikit-image not installed.\n"
-                "Please install with it with `conda install scikit-image` or `pip install scikit-image`")
-
-        try:
             from skimage.measure import marching_cubes_lewiner as marching_cubes
         except ImportError:
-            from skimage.measure import marching_cubes
+            try:
+                from skimage.measure import marching_cubes
+            except ImportError:
+                raise ImportError("scikit-image not installed.\n"
+                    "Please install with it with `conda install scikit-image` or `pip install scikit-image`")
 
         e0 = self.get_e0(e0)
         isobands = self.get_isobands(e0)
         if isobands is None: return None
         if verbose: print("Bands for isosurface:", isobands)
 
-        from pymatgen.electronic_structure.plotter import plot_lattice_vectors, plot_wigner_seitz
+        #from pymatgen.electronic_structure.plotter import plot_lattice_vectors, plot_wigner_seitz
         ax, fig, plt = get_ax3d_fig_plt(ax=None)
         plot_unit_cell(self.reciprocal_lattice, ax=ax, color="k", linewidth=1)
         #plot_wigner_seitz(self.reciprocal_lattice, ax=ax, color="k", linewidth=1)
@@ -4037,7 +4087,8 @@ class Bands3D(Has_Structure):
                     #, cmap='Spectral', lw=1, antialiased=True)
 
                 # mayavi package:
-                #mlab.triangular_mesh([v[0] for v in verts], [v[1] for v in verts], [v[2] for v in verts], faces) #, color=(0, 0, 0))
+                #mlab.triangular_mesh([v[0] for v in verts], [v[1] for v in verts], [v[2] for v in verts], faces)
+                #, color=(0, 0, 0))
 
         ax.set_axis_off()
 
@@ -4184,6 +4235,7 @@ class Bands3D(Has_Structure):
 
 class ElectronBands3D(Bands3D):
     pass
+    #def make_fermisurfer_dir(self, workdir)
 
 #class PhononBands3D(Bands3D):
 #    pass

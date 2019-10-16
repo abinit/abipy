@@ -1,5 +1,4 @@
 """Database of unit cells in the ABINIT format."""
-from __future__ import print_function, division, unicode_literals, absolute_import
 
 from abipy.abilab import Structure, ArrayWithUnit
 
@@ -41,6 +40,17 @@ _UCELLS = {
                xred=[ [0.0 , 0.0 , 0.0],
                       [0.25, 0.25, 0.25]],
                     ),
+    "Si-shifted": dict(ntypat=1,
+               natom=2,
+               typat=[1, 1],
+               znucl=14,
+               acell=3*[10.217],
+               rprim=[[0.0,  0.5,  0.5],
+                      [0.5,  0.0,  0.5],
+                      [0.5,  0.5,  0.0]],
+               xred=[ [1.0 , 1.0 , 1.0],
+                      [0.25, 0.25, 0.25]],
+                    ),
     "Al": dict(ntypat=1,
                natom=1,
                typat=[1],
@@ -51,7 +61,6 @@ _UCELLS = {
                       [0.5,  0.5,  0.0]],
                xred=[ [0.0 , 0.0 , 0.0]],
                     ),
-
     "Al-negative-volume": dict(ntypat=1,
                natom=1,
                typat=[1],
@@ -62,16 +71,14 @@ _UCELLS = {
                       [0.5,  0.5,  0.0]],
                xred=[ [0.0 , 0.0 , 0.0]],
                     ),
-
     "ZnO": dict(ntypat=2,
                 natom=2,
                 typat=[1, 2],
-                acell= 3*[8.6277],
-                rprim= [[.0, .5, .5], [.5, .0, .5], [.5, .5, .0]],
+                acell=3*[8.6277],
+                rprim=[[.0, .5, .5], [.5, .0, .5], [.5, .5, .0]],
                 znucl=[30, 8],
                 xred=[[.0, .0, .0], [.25,.25,.25]],
     ),
-
     "SiC": dict(ntypat=2,
                 natom=2,
                 typat=[1, 2],
@@ -80,10 +87,9 @@ _UCELLS = {
                        [.5, .0, .5],
                        [.5, .5, .0]],
                 znucl=[6, 14],
-                xred=[ [.0, .0, .0],
-                       [.25,.25,.25] ]
+                xred=[[.0, .0, .0],
+                      [.25,.25,.25]]
                 ),
-
     "AlAs": dict(natom=2,
                  typat=[1, 2],
                  acell=3*[10.61],
@@ -94,7 +100,6 @@ _UCELLS = {
                  xred=[[0.0,  0.0,  0.0],
                        [0.25, 0.25, 0.25]]
                 ),
-
     "GaAs": dict(natom=2,
                  typat=[1, 2],
                  acell=3*[10.60],
@@ -102,10 +107,9 @@ _UCELLS = {
                         [0.5, 0.0, 0.5],
                         [0.5, 0.5, 0.0]],
                  znucl=[31, 33],
-                       xred=[3 *[0.00],
-                             3 *[0.25]]
+                 xred=[3 * [0.00],
+                       3 * [0.25]]
                 ),
-
     "NiO": dict(natom=4,
                 typat=[1, 1, 2, 2],
                 acell=3 * [7.92],
@@ -122,22 +126,22 @@ _UCELLS = {
     "MgB2": dict(natom=3,
                  typat=[1, 2, 2],
                  acell=ArrayWithUnit([3.086, 3.086, 3.523], "ang").to("bohr"),
-                 rprim= [ 0.866025403784439, 0.5, 0.0,
-                         -0.866025403784439, 0.5, 0.0,
-                          0.0              , 0.0, 1.0],
+                 rprim=[0.866025403784439, 0.5, 0.0,
+                        -0.866025403784439, 0.5, 0.0,
+                        0.0               , 0.0, 1.0],
                  znucl=[12, 5],
                  xred=[0.0, 0.0, 0.0, # Mg
                        1/3, 2/3, 0.5, # B
                        2/3, 1/3, 0.5] # B
                 ),
-    "Fe-fm":  dict(natom=1,
-                   typat=1,
-                   acell=3*[5.42],
-                   rprim=[-0.5,  0.5,  0.5,
-                           0.5, -0.5,  0.5,
-                           0.5,  0.5, -0.5],
-                   znucl=26,
-                   xred=[0.0, 0.0, 0.0],
+    "Fe-fm": dict(natom=1,
+                  typat=1,
+                  acell=3*[5.42],
+                  rprim=[-0.5,  0.5,  0.5,
+                         0.5, -0.5,  0.5,
+                         0.5,  0.5, -0.5],
+                  znucl=26,
+                  xred=[0.0, 0.0, 0.0],
                   ),
     "SiO2-alpha": dict(natom=9,
                   typat=3*[1] + 6*[2],

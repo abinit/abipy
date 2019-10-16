@@ -1,13 +1,10 @@
+.. :Release: |version| :Date: |today|
+
 .. _scripts-index:
 
 =======
 Scripts
 =======
-
-.. htmlonly::
-
-   :Release: |version|
-   :Date: |today|
 
 This page documents the usage of the AbiPy scripts, 
 the subcommands available and the options supported by each subcommand.

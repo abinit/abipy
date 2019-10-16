@@ -1,6 +1,4 @@
 """Tests for flowtk __init__ module"""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import abipy.flowtk as flowtk
 
 from abipy.core.testing import AbipyTest

@@ -16,7 +16,7 @@ import abipy.flowtk as flowtk
 
 def make_scf_nscf_inputs(paral_kgb=0, usepaw=0):
     """Returns two input files: GS run and NSCF on a high symmetry k-mesh."""
-    pseudos = abidata.pseudos("14si.pspnc") if usepaw == 0 else data.pseudos("Si.GGA_PBE-JTH-paw.xml")
+    pseudos = abidata.pseudos("14si.pspnc") if usepaw == 0 else abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
 
     # Get structure from cif file.
     multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"), pseudos=pseudos, ndtset=2)
@@ -56,6 +56,7 @@ def make_scf_nscf_inputs(paral_kgb=0, usepaw=0):
 def build_flow(options):
     # Set working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
+        if os.getenv("READTHEDOCS", False): __file__ = os.path.join(os.getcwd(), "run_si_ebands.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     # Get the SCF and the NSCF input.

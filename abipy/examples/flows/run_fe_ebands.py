@@ -54,7 +54,8 @@ def make_scf_nscf_inputs(nsppol, paral_kgb=1):
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
-        options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_")
+        if os.getenv("READTHEDOCS", False): __file__ = os.path.join(os.getcwd(), "run_fe_ebands.py")
+        options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     # Create the Flow.
     flow = flowtk.Flow(options.workdir, manager=options.manager)

@@ -3,7 +3,6 @@
 This script checks that the options in ``manager.yml``, ``scheduler.yml``,
 and the environment on the local machine are properly configured.
 """
-from __future__ import unicode_literals, division, print_function, absolute_import
 
 import sys
 import os
@@ -32,6 +31,7 @@ def show_managers(options):
     print(tabulate(table, headers=["hostname", "queue-type", "filepath"], tablefmt="rst"))
     return 0
 
+
 def get_epilog():
     return """\
 Usage example:
@@ -39,16 +39,17 @@ Usage example:
     abicheck.py --with-flow    ==> Consistency check + execution of AbiPy flow.
 """
 
+
 def get_parser(with_epilog=False):
 
     parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument('--loglevel', default="ERROR", type=str,
-                         help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+                        help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
     parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
     parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-                         help='verbose, can be supplied multiple times to increase verbosity.')
+                        help='verbose, can be supplied multiple times to increase verbosity.')
     parser.add_argument('--no-colors', default=False, action="store_true", help='Disable ASCII colors.')
     parser.add_argument('--with-flow', default=False, action="store_true", help='Build and run small abipy flow for testing.')
     parser.add_argument("-m", '--show-managers', default=False, action="store_true",
@@ -94,7 +95,7 @@ def main():
         cprint(errmsg, "red")
         cprint("TIP: Use `--show-managers` to print the manager files provided by AbiPy.\n" +
                "If abicheck.py is failing because it cannot find the manager.yml configuration file",
-                "yellow")
+               "yellow")
         return 2
     else:
         print()
@@ -180,6 +181,7 @@ def run_flow(options):
         retcode = 1
 
     return retcode
+
 
 if __name__ == "__main__":
     sys.exit(main())

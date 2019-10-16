@@ -3,12 +3,9 @@
 This script visualizes results with external graphical applications.
 or convert data from Abinit files (usually netcdf) to other formats.
 """
-from __future__ import unicode_literals, division, print_function, absolute_import
-
 import sys
 import os
 import argparse
-import numpy as np
 
 from monty.functools import prof_main
 from monty.termcolor import cprint
@@ -20,7 +17,7 @@ from abipy.tools.plotting import MplExpose, GenericDataFilePlotter
 def handle_overwrite(path, options):
     """Exit 1 if file ``path`` exists and not options.force else return path."""
     name_parts = os.path.splitext(path)
-    print("Writing %s file:" % name_parts[-1].replace("." , "").upper())
+    print("Writing %s file:" % name_parts[-1].replace(".", "").upper())
     if os.path.exists(path) and not options.force:
         cprint("Cannot overwrite pre-existent file. Use `-f` options.", "red")
         sys.exit(1)
@@ -233,7 +230,7 @@ num_points= {num_points}, asr = {asr}, chneut = {chneut}, dipdip = {dipdip}
 
     print("Invoking anaddb ...  ")
     sv = abilab.SoundVelocity.from_ddb(options.filepath, num_points=num_points,
-                                        asr=asr, chneut=chneut, dipdip=dipdip, verbose=options.verbose)
+                                       asr=asr, chneut=chneut, dipdip=dipdip, verbose=options.verbose)
     #print("Calculation completed.\nResults available in", os.path.dirname(phbst_file.filepath))
 
     df = sv.get_dataframe()
@@ -305,6 +302,7 @@ def abiview_phbands(options):
                            verbose=options.verbose, units="mev")
 
         return 0
+
 
 def abiview_denpot(options):
     """
@@ -404,6 +402,7 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 # TODO
 #abiview.py denpot out_DEN.nc              ==>  Visualize density with Vesta.
 #abiview.py denpot out_DEN.nc --chgcar     ==>  Convert DEN file into CHGCAR fileformat.
+
 
 def get_parser(with_epilog=False):
 
@@ -509,7 +508,7 @@ def get_parser(with_epilog=False):
     # Subparser for abo command.
     #p_abo = subparsers.add_parser('abo', parents=[copts_parser], help=abiview_abo.__doc__)
 
-    # Subparser for log command.
+    # Subparser for dirviz command.
     p_dirviz = subparsers.add_parser('dirviz', parents=[copts_parser], help=abiview_dirviz.__doc__)
     p_dirviz.add_argument("-e", "--engine", type=str, default="fdp",
         help=("graphviz engine: ['dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage']. "
@@ -526,7 +525,7 @@ def get_parser(with_epilog=False):
         help=("Ratio between the number of star functions and the number of ab-initio k-points. "
               "The default should be OK in many systems, larger values may be required for accurate derivatives."))
     p_skw.add_argument("-ld", "--line-density", type=int, default=20,
-        help ="Number of points in the smallest segment of the k-path.")
+                      help="Number of points in the smallest segment of the k-path.")
 
     # Subparser for fs command.
     p_fs = subparsers.add_parser('fs', parents=[copts_parser], help=abiview_fs.__doc__)
@@ -614,6 +613,7 @@ def main():
 
     # Dispatch
     return globals()["abiview_" + options.command](options)
+
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -1,10 +1,9 @@
 # coding: utf-8
 """Release data for the AbiPy project."""
-from __future__ import print_function, division, unicode_literals
 
 from collections import OrderedDict
 
-# Name of the package for release purposes.  This is the name which labels
+# Name of the package for release purposes. This is the name which labels
 # the tarballs and RPMs made by distutils, so it's best to lowercase it.
 name = 'abipy'
 
@@ -13,8 +12,8 @@ name = 'abipy'
 _version_major = 0
 _version_minor = 7
 _version_micro = '0'  # use '' for first of series, number for 1 and above
-_version_extra = 'dev'
-#_version_extra = ''  # Uncomment this for full releases
+#_version_extra = 'dev'
+_version_extra = ''  # Uncomment this for full releases
 
 # Construct full version string from these.
 _ver = [_version_major, _version_minor]
@@ -39,13 +38,18 @@ ab-initio calculations and typical convergence studies.
 AbiPy is interfaced with `Pymatgen <http://www.pymatgen.org>`_ allowing users to
 benefit from the different tools and python objects available in the pymatgen ecosystem.
 
+The official documentation is hosted on `github pages <http://abinit.github.io/abipy>`_.
+
 AbiPy can be used in conjunction with  `matplotlib <http://matplotlib.org>`_, `pandas <http://pandas.pydata.org>`_,
 `ipython <https://ipython.org/index.html>`_ and `jupyter <http://jupyter.org/>`_
 thus providing a powerful and user-friendly environment for data analysis and visualization.
 Check out the list of plotting scripts available in our :doc:`gallery </examples/index>`.
 To learn more about the integration between jupyter and AbiPy, visit our collection of `notebooks
-<http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/index.ipynb>`_
-and the `AbiPy lessons <http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/lessons/index.ipynb>`_.
+<http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/index.ipynb>`_ and the
+`AbiPy lessons <http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/lessons/index.ipynb>`_.
+
+To learn more about the integration between jupyter and AbiPy, visit `our collection of notebooks
+<https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/index.ipynb>`_
 
 The latest development version is always available from <https://github.com/abinit/abipy>
 """
@@ -67,9 +71,7 @@ url = "https://github.com/abinit/abipy"
 download_url = "https://github.com/abinit/abipy"
 platforms = ['Linux', 'darwin']
 keywords = ["ABINIT", "ab-initio", "density-function-theory", "first-principles", "electronic-structure", "pymatgen"]
-classifiers=[
-    "Programming Language :: Python :: 2",
-    "Programming Language :: Python :: 2.7",
+classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.6",
     "Programming Language :: Python :: 3.7",

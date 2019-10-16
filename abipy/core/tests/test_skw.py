@@ -1,6 +1,4 @@
 """Tests for core.skw module"""
-from __future__ import print_function, division, unicode_literals
-
 import numpy as np
 import abipy.data as abidata
 

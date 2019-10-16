@@ -2,8 +2,6 @@
 """
 Interface to the ESKW.nc file storing the (star-function) interpolated band structure produced by Abinit.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 from monty.functools import lazy_property
 from monty.string import marquee
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
@@ -31,7 +29,7 @@ class EskwFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return cls(filepath)
 
     def __init__(self, filepath):
-        super(EskwFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = ElectronsReader(filepath)
 
     @lazy_property

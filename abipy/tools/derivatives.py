@@ -1,7 +1,5 @@
 # coding: utf-8
 """Tools for computing derivatives by finite differences."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import numpy as np
 
 __all__ = [
@@ -15,6 +13,7 @@ def rearr(array):
 # This table contains the coefficients of the central differences, for several order of accuracy: [1]
 # See http://en.wikipedia.org/wiki/Finite_difference_coefficients
 # Derivative Accuracy -4 -3 -2 -1 0 1 2 3 4
+
 
 central_fdiff_weights = {
 1: {

@@ -1,11 +1,6 @@
 """Tests for electrons.arpes module"""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
-#import os
-#import numpy as np
 import abipy.data as abidata
 
-#from abipy import abilab
 from abipy.core.testing import AbipyTest
 from abipy.electrons.arpes import ArpesPlotter
 

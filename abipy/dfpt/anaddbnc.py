@@ -2,8 +2,6 @@
 """
 AnaddbNcFile provides a high-level interface to the data stored in the anaddb.nc file.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import pandas as pd
 import warnings
 
@@ -53,7 +51,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return cls(filepath)
 
     def __init__(self, filepath):
-        super(AnaddbNcFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = ETSF_Reader(filepath)
 
     def close(self):
@@ -67,11 +65,11 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     def params(self):
         # -666 to support old anaddb.nc files without metadata
         return OrderedDict([
-	    ("asr", int(self.reader.read_value("asr", default=-666))),
-	    ("chneut", int(self.reader.read_value("chneut", default=-666))),
-	    ("dipdip", int(self.reader.read_value("dipdip", default=-666))),
-	    ("symdynmat", int(self.reader.read_value("symdynmat", default=-666))),
-	])
+            ("asr", int(self.reader.read_value("asr", default=-666))),
+            ("chneut", int(self.reader.read_value("chneut", default=-666))),
+            ("dipdip", int(self.reader.read_value("dipdip", default=-666))),
+            ("symdynmat", int(self.reader.read_value("symdynmat", default=-666))),
+        ])
 
     def __str__(self):
         return self.to_string()
@@ -174,7 +172,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     # FIXME To maintain backward compatibility
     @property
     def emacro_rlx(self):
-        msg = "emacro_rlx is deprecated and will removed in abipy 0.8. Use epsinf"
+        msg = "emacro_rlx is deprecated and will removed in abipy 0.8. Use eps0"
         warnings.simplefilter('default')
         warnings.warn(msg, DeprecationWarning, stacklevel=2)
         return self.eps0
@@ -201,8 +199,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         try:
             return InteratomicForceConstants.from_file(self.filepath)
         except Exception as exc:
-            #print(exc)
-            #cprint("Interatomic force constants have not been calculated. Returning None", "red")
+            cprint("Interatomic force constants have not been calculated. Returning None", "red")
             return None
 
     @lazy_property
@@ -395,7 +392,7 @@ class AnaddbNcRobot(Robot):
         ax.set_xticklabels(self.keys(), fontsize=fontsize)
         rotate_ticklabels(ax, 15)
 
-        if ix != len(ax_list) -1:
+        if ix != len(ax_list) - 1:
             for ix in range(ix + 1, len(ax_list)):
                 ax_list[ix].axis('off')
 
