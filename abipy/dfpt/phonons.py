@@ -3272,9 +3272,11 @@ class PhononBandsPlotter(NotebookWriter):
         else:
             # Assume string. Either phbands.hue or phbands.params[hue].
             if duck.hasattrd(all_phb_objects[0], hue):
-                items = [(duck.getattrd(phb, hue), phb, i, label) for i, (phb, label) in enumerate(zip(all_phb_objects, all_labels))]
+                items = [(duck.getattrd(phb, hue), phb, i, label)
+                        for i, (phb, label) in enumerate(zip(all_phb_objects, all_labels))]
             else:
-                items = [(phb.params[hue], phb, i, label) for i, (phb, label) in enumerate(zip(all_phb_objects, all_labels))]
+                items = [(phb.params[hue], phb, i, label)
+                        for i, (phb, label) in enumerate(zip(all_phb_objects, all_labels))]
 
         # Group items by hue value.
         hvalues, groups = sort_and_groupby(items, key=lambda t: t[0], ret_lists=True)
