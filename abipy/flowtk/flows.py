@@ -35,7 +35,7 @@ from .nodes import Status, Node, NodeError, NodeResults, Dependency, GarbageColl
 from .tasks import ScfTask, TaskManager, FixQueueCriticalError
 from .utils import File, Directory, Editor
 from .works import NodeContainer, Work, BandStructureWork, PhononWork, BecWork, G0W0Work, QptdmWork, DteWork
-from .events import EventsParser 
+from .events import EventsParser
 
 
 import logging

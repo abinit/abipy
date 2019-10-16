@@ -45,7 +45,6 @@ from abipy.electrons.ebands import (ElectronBands, ElectronBandsPlotter, Electro
 from abipy.electrons.gsr import GsrFile, GsrRobot
 from abipy.electrons.eskw import EskwFile
 from abipy.electrons.psps import PspsFile
-from abipy.electrons.ddk import DdkFile
 from abipy.electrons.gw import SigresFile, SigresRobot
 from abipy.electrons.bse import MdfFile, MdfRobot
 from abipy.electrons.scissors import ScissorsBuilder
@@ -60,7 +59,6 @@ from abipy.dfpt.phonons import (PhbstFile, PhbstRobot, PhononBands, PhononBandsP
 from abipy.dfpt.ddb import DdbFile, DdbRobot
 from abipy.dfpt.anaddbnc import AnaddbNcFile, AnaddbNcRobot
 from abipy.dfpt.gruneisen import GrunsNcFile
-#from abipy.dfpt.vsound import SoundVelocity
 from abipy.dynamics.hist import HistFile, HistRobot
 from abipy.waves import WfkFile
 from abipy.eph.a2f import A2fFile, A2fRobot
@@ -115,7 +113,6 @@ abiext2ncfile = collections.OrderedDict([
     ("ESKW.nc", EskwFile),
     ("DEN.nc", DensityNcFile),
     ("OUT.nc", OutNcFile),
-    ("DDK.nc", DdkFile),
     ("VHA.nc", VhartreeNcFile),
     ("VXC.nc", VxcNcFile),
     ("VHXC.nc", VhxcNcFile),

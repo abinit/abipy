@@ -2,17 +2,16 @@
 """Factory functions for Abinit input files """
 import numpy as np
 import pymatgen.io.abinit.abiobjects as aobj
+import abipy.abio.input_tags as atags
 
 from enum import Enum
 from collections import namedtuple
 from monty.collections import AttrDict
 from monty.string import is_string
-from monty.json import jsanitize, MontyDecoder
+from monty.json import jsanitize, MontyDecoder, MSONable
 from pymatgen.util.serialization import pmg_serialize
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput, MultiDataset
-from abipy.abio.input_tags import *
-from monty.json import MSONable
 
 import logging
 logger = logging.getLogger(__file__)
@@ -927,7 +926,7 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, wit
             for q, nscf_inp in zip(nscf_qpt, multi_nscf):
                 nscf_inp.set_vars(qpt=q)
 
-            multi_nscf.add_tags(NSCF)
+            multi_nscf.add_tags(atags.NSCF)
 
             multi.extend(multi_nscf)
 
@@ -937,24 +936,24 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, wit
         if np.allclose(qpt, 0):
             if with_ddk:
                 multi_ddk = gs_inp.make_ddk_inputs(tolerance=ddk_tol)
-                multi_ddk.add_tags(DDK)
+                multi_ddk.add_tags(atags.DDK)
                 multi.extend(multi_ddk)
             if with_dde:
                 multi_dde = gs_inp.make_dde_inputs(dde_tol, manager=manager)
-                multi_dde.add_tags(DDE)
+                multi_dde.add_tags(atags.DDE)
                 multi.extend(multi_dde)
             elif with_bec:
                 multi_bec = gs_inp.make_bec_inputs(ph_tol, manager=manager)
-                multi_bec.add_tags(BEC)
+                multi_bec.add_tags(atags.BEC)
                 multi.extend(multi_bec)
                 continue
 
         multi_ph_q = gs_inp.make_ph_inputs_qpoint(qpt, ph_tol)
-        multi_ph_q.add_tags(PH_Q_PERT)
+        multi_ph_q.add_tags(atags.PH_Q_PERT)
         multi.extend(multi_ph_q)
 
     multi = MultiDataset.from_inputs(multi)
-    multi.add_tags(PHONON)
+    multi.add_tags(atags.PHONON)
 
     return multi
 
@@ -1001,7 +1000,7 @@ def piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_spl
             ddk_inp.set_vars(nband=ddk_inp['nband']+nbdbuf, nbdbuf=nbdbuf)
 
         multi = MultiDataset.from_inputs([ddk_inp])
-    multi.add_tags(DDK)
+    multi.add_tags(atags.DDK)
 
     # Response Function input(s)
     if rf_split:
@@ -1035,10 +1034,10 @@ def piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_spl
             rf_inp.set_vars(nband=rf_inp['nband']+nbdbuf, nbdbuf=nbdbuf)
 
         multi_rf = MultiDataset.from_inputs([rf_inp])
-    multi_rf.add_tags([DFPT, STRAIN])
+    multi_rf.add_tags([atags.DFPT, atags.STRAIN])
     for inp in multi_rf:
         if inp.get('rfphon', 0) == 1:
-            inp.add_tags(PHONON)
+            inp.add_tags(atags.PHONON)
 
     multi.extend(multi_rf)
 
@@ -1283,15 +1282,15 @@ def dte_from_gsinput(gs_inp, use_phonons=True, ph_tol=None, ddk_tol=None, dde_to
     multi = []
 
     multi_ddk = gs_inp.make_ddk_inputs(tolerance=ddk_tol)
-    multi_ddk.add_tags(DDK)
+    multi_ddk.add_tags(atags.DDK)
     multi.extend(multi_ddk)
     multi_dde = gs_inp.make_dde_inputs(dde_tol, use_symmetries=False, manager=manager)
-    multi_dde.add_tags(DDE)
+    multi_dde.add_tags(atags.DDE)
     multi.extend(multi_dde)
 
     if use_phonons:
         multi_ph = gs_inp.make_ph_inputs_qpoint([0,0,0], ph_tol, manager=manager)
-        multi_ph.add_tags(PH_Q_PERT)
+        multi_ph.add_tags(atags.PH_Q_PERT)
         multi.extend(multi_ph)
 
     # non-linear calculations do not accept more bands than those in the valence. Set the correct values.
@@ -1303,11 +1302,11 @@ def dte_from_gsinput(gs_inp, use_phonons=True, ph_tol=None, ddk_tol=None, dde_to
     gs_inp.pop('nbdbuf', None)
     multi_dte = gs_inp.make_dte_inputs(phonon_pert=use_phonons, skip_permutations=skip_dte_permutations,
                                        manager=manager)
-    multi_dte.add_tags(DTE)
+    multi_dte.add_tags(atags.DTE)
     multi.extend(multi_dte)
 
     multi = MultiDataset.from_inputs(multi)
-    multi.add_tags(DFPT)
+    multi.add_tags(atags.DFPT)
 
     return multi
 
@@ -1376,7 +1375,7 @@ def dfpt_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, do_ddk=True, do_dde=T
         do_dde = True
 
     multi = MultiDataset.from_inputs([gs_inp])
-    multi[0].add_tags(SCF)
+    multi[0].add_tags(atags.SCF)
 
     do_phonons = ph_ngqpt is not None or qpoints is not None
     has_gamma = False
@@ -1388,17 +1387,17 @@ def dfpt_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, do_ddk=True, do_dde=T
 
     if do_ddk:
         multi_ddk = gs_inp.make_ddk_inputs(tolerance=ddk_tol)
-        multi_ddk.add_tags(DDK)
+        multi_ddk.add_tags(atags.DDK)
         multi.extend(multi_ddk)
     if do_dde:
         multi_dde = gs_inp.make_dde_inputs(dde_tol, use_symmetries=not do_dte, manager=manager)
-        multi_dde.add_tags(DDE)
+        multi_dde.add_tags(atags.DDE)
         multi.extend(multi_dde)
 
     if do_strain:
         multi_strain = gs_inp.make_strain_perts_inputs(tolerance=strain_tol, manager=manager, phonon_pert=False,
                                                        kptopt=2)
-        multi_strain.add_tags([DFPT, STRAIN])
+        multi_strain.add_tags([atags.DFPT, atags.STRAIN])
         multi.extend(multi_strain)
 
     if do_dte:
@@ -1411,7 +1410,7 @@ def dfpt_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, do_ddk=True, do_dde=T
         gs_inp_copy.pop('nbdbuf', None)
         multi_dte = gs_inp_copy.make_dte_inputs(phonon_pert=do_phonons and has_gamma,
                                                 skip_permutations=skip_dte_permutations, manager=manager)
-        multi_dte.add_tags([DTE, DFPT])
+        multi_dte.add_tags([atags.DTE, atags.DFPT])
         multi.extend(multi_dte)
 
     return multi

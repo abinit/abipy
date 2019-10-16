@@ -10,7 +10,6 @@ import os
 import argparse
 import numpy as np
 
-from collections import OrderedDict
 from pprint import pprint
 from monty.functools import prof_main
 from monty.termcolor import cprint
@@ -594,41 +593,12 @@ def abicomp_abiwan(options):
     return _invoke_robot(options)
 
 
-def dataframe_from_pseudos(pseudos, index=None):
-    """
-    Build pandas dataframe with the most important info associated to
-    a list of pseudos or a list of objects that can be converted into pseudos.
-
-    Args:
-        pseudos: List of objects that can be converted to pseudos.
-        index: Index of the dataframe.
-
-    Return:
-        pandas Dataframe.
-    """
-    from abipy.flowtk import PseudoTable
-    pseudos = PseudoTable.as_table(pseudos)
-
-    import pandas as pd
-    attname = ["Z_val", "l_max", "l_local", "nlcc_radius", "xc", "supports_soc", "type"]
-    rows = []
-    for p in pseudos:
-        row = OrderedDict([(k, getattr(p, k, None)) for k in attname])
-        row["ecut_normal"], row["pawecutdg_normal"] = None, None
-        if p.has_hints:
-            hint = p.hint_for_accuracy(accuracy="normal")
-            row["ecut_normal"] = hint.ecut
-            if hint.pawecutdg: row["pawecutdg_normal"] = hint.pawecutdg
-        rows.append(row)
-
-    return pd.DataFrame(rows, index=index, columns=list(rows[0].keys()) if rows else None)
-
-
 def abicomp_pseudos(options):
     """"Compare multiple pseudos Print table to terminal."""
     # Make sure entries in index are unique.
     index = [os.path.basename(p) for p in options.paths]
     if len(index) != len(set(index)): index = [os.path.relpath(p) for p in options.paths]
+    from abipy.electrons.psps import dataframe_from_pseudos
     df = dataframe_from_pseudos(options.paths, index=index)
     abilab.print_dataframe(df, sortby="Z_val")
     return 0

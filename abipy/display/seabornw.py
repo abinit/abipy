@@ -42,14 +42,13 @@ FacetGrid(data[, row, col, hue, col_wrap, ...])	Subplot grid for plotting condit
 PairGrid(data[, hue, hue_order, palette, ...])	Subplot grid for plotting pairwise relationships in a dataset.
 JointGrid(x, y[, data, size, ratio, space, ...])	Grid for drawing a bivariate plot with marginal univariate plots.
 """
-import sys
 import ipywidgets as ipw
 import seaborn as sns
 import abipy.display.utils as ut
 
 from functools import wraps
-from collections import OrderedDict
-from IPython.display import display, clear_output
+#from collections import OrderedDict
+#from IPython.display import display, clear_output
 
 __all__ = [
     #"api_selector",

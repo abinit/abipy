@@ -15,7 +15,6 @@ from monty.collections import dict2namedtuple
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.util.serialization import SlotPickleMixin
 from abipy.core.kpoints import wrap_to_ws, issamek, has_timrev_from_kptopt
-from abipy.iotools import as_etsfreader
 
 
 __all__ = [
@@ -705,6 +704,7 @@ class AbinitSpaceGroup(OpSequence):
     #    """
     #    Initialize the object from a Netcdf file.
     #    """
+    #    from abipy.iotools import as_etsfreader
     #    r, closeit = as_etsfreader(ncfile)
     #    new = cls.from_ncreader(r)
     #    if closeit:

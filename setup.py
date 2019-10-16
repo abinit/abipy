@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# flake8: noqa
 """Setup script for abipy."""
 from __future__ import print_function
 
@@ -7,7 +8,7 @@ import os
 import shutil
 
 from glob import glob
-from setuptools import find_packages, setup, Extension
+from setuptools import find_packages, setup
 
 ext_modules = []
 
@@ -35,7 +36,7 @@ def file_doesnt_end_with(test, endings):
 #---------------------------------------------------------------------------
 
 # release.py contains version, authors, license, url, keywords, etc.
-release_file = os.path.join('abipy','core','release.py')
+release_file = os.path.join('abipy', 'core', 'release.py')
 
 with open(release_file) as f:
     code = compile(f.read(), release_file, 'exec')
@@ -113,7 +114,6 @@ def find_scripts():
 def get_long_desc():
     with open("README.rst") as f:
         return f.read()
-        return long_desc
 
 
 #-----------------------------------------------------------------------------

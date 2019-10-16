@@ -15,7 +15,7 @@ from monty.termcolor import cprint
 from monty.collections import dict2namedtuple
 from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.tools import gaussian
-from abipy.core.kpoints import Ktables, Kpath
+from abipy.core.kpoints import Kpath
 from abipy.core.symmetries import mati3inv
 
 
@@ -191,8 +191,6 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
         return dict2namedtuple(mesh=mesh, shift=kshift,
                                ibz=ibz, nibz=len(ibz), weights=weights,
                                bz=bz, nbz=len(bz), grid=grid, bz2ibz=bz2ibz)
-
-        #return Ktables(structure, mesh, is_shift, has_timrev)
 
     #def recalc_fermie(self, kmesh, is_shift=None)
     #    # Compute DOS

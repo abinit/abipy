@@ -9,7 +9,6 @@ import time
 import abc
 import collections
 import numpy as np
-import copy
 
 from monty.collections import AttrDict
 from monty.itertools import chunks
@@ -18,7 +17,7 @@ from monty.fnmatch import WildCard
 from pydispatch import dispatcher
 from pymatgen.core.units import EnergyArray
 from . import wrappers
-from .nodes import Dependency, Node, NodeError, NodeResults, FileNode, check_spectator
+from .nodes import Dependency, Node, NodeError, NodeResults, FileNode #, check_spectator
 from .tasks import (Task, AbinitTask, ScfTask, NscfTask, DfptTask, PhononTask, ElasticTask, DdkTask,
                     BseTask, RelaxTask, DdeTask, BecTask, ScrTask, SigmaTask, TaskManager,
                     DteTask, EphTask, CollinearThenNonCollinearScfTask)
@@ -558,7 +557,7 @@ class Work(BaseWork, NodeContainer):
         for tasks in chunks(self, chunk_size):
             yield tasks
 
-    def opath_from_ext(self, ext):
+    def ipath_from_ext(self, ext):
         """
         Returns the path of the output file with extension ext.
         Use it when the file does not exist yet.

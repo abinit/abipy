@@ -10,6 +10,7 @@ import time
 import abc
 import json
 import numpy as np
+import abipy.abio.input_tags as atags
 
 from collections import OrderedDict
 from collections.abc import MutableMapping
@@ -18,7 +19,8 @@ from monty.string import is_string, list_strings
 from monty.json import MontyDecoder, MSONable
 from pymatgen.core.units import Energy
 from pymatgen.util.serialization import pmg_serialize
-
+from pymatgen.symmetry.bandstructure import HighSymmKpath
+from pymatgen.io.abinit.abiobjects import KSampling
 from abipy.tools.numtools import is_diagonal
 from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure
@@ -26,12 +28,9 @@ from abipy.core.kpoints import has_timrev_from_kptopt
 from abipy.abio.variable import InputVariable
 from abipy.abio.abivars import is_abivar, is_anaddb_var
 from abipy.abio.abivars_db import get_abinit_variables
-from abipy.abio.input_tags import *
 from abipy.flowtk import PseudoTable, Pseudo, AbinitTask, AnaddbTask, ParalHintsParser, NetcdfReader
 from abipy.flowtk.abiinspect import yaml_read_irred_perts
 from abipy.flowtk import abiobjects as aobj
-from pymatgen.symmetry.bandstructure import HighSymmKpath
-from pymatgen.io.abinit.abiobjects import KSampling
 
 import logging
 logger = logging.getLogger(__file__)
@@ -469,50 +468,50 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         runlevel = set()
         if optdriver == 0:
-            runlevel.add(GROUND_STATE)
+            runlevel.add(atags.GROUND_STATE)
             iscf = self.get("iscf", 17 if self.pseudos[0].ispaw else 7)
             ionmov = self.get("ionmov", 0)
             optcell = self.get("optcell", 0)
             if ionmov == 0:
                 if iscf < -1:
-                    runlevel.add(NSCF)
+                    runlevel.add(atags.NSCF)
                     if self.get("kptbounds") is not None:
-                        runlevel.add(BANDS)
+                        runlevel.add(atags.BANDS)
                 else:
-                    runlevel.add(SCF)
+                    runlevel.add(atags.SCF)
             elif ionmov in (2, 3, 4, 5, 7, 10, 11, 20):
-                runlevel.add(RELAX)
+                runlevel.add(atags.RELAX)
                 if optcell == 0:
-                    runlevel.add(ION_RELAX)
+                    runlevel.add(atags.ION_RELAX)
                 else:
-                    runlevel.add(IONCELL_RELAX)
+                    runlevel.add(atags.IONCELL_RELAX)
             elif ionmov in [1, 6, 8, 9, 12, 13, 14, 23]:
-                runlevel.add(MOLECULAR_DYNACMICS)
+                runlevel.add(atags.MOLECULAR_DYNAMICS)
         elif optdriver == 1:
-            runlevel.add(DFPT)
+            runlevel.add(atags.DFPT)
             rfelfd = self.get("rfelfd")
             rfphon = self.get("rfphon")
             if self.get("rfddk") == 1 or rfelfd == 2:
-                runlevel.add(DDK)
+                runlevel.add(atags.DDK)
             elif rfelfd == 3:
                 if rfphon == 1:
-                    runlevel.add(BEC)
+                    runlevel.add(atags.BEC)
                 else:
-                    runlevel.add(DDE)
+                    runlevel.add(atags.DDE)
             elif rfphon == 1:
-                runlevel.add(PH_Q_PERT)
+                runlevel.add(atags.PH_Q_PERT)
             elif self.get("rfstrs ") > 0:
-                runlevel.add(STRAIN)
+                runlevel.add(atags.STRAIN)
         elif optdriver == 3:
-            runlevel.update([MANY_BODY, SCREENING])
+            runlevel.update([atags.MANY_BODY, atags.SCREENING])
         elif optdriver == 4:
             gwcalctyp = self.get("gwcalctyp")
             if int(gwcalctyp) > 100:
-                runlevel.add(HYBRID)
+                runlevel.add(atags.HYBRID)
             else:
-                runlevel.update([MANY_BODY, SIGMA])
+                runlevel.update([atags.MANY_BODY, atags.SIGMA])
         elif optdriver == 99:
-            runlevel.update([MANY_BODY, BSE])
+            runlevel.update([atags.MANY_BODY, atags.BSE])
 
         return runlevel
 

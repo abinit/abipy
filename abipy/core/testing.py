@@ -1,4 +1,5 @@
 # coding: utf-8
+# flake8: noqa
 """
 Common test support for all AbiPy test scripts.
 
@@ -10,7 +11,6 @@ import numpy
 import subprocess
 import json
 import tempfile
-import shutil
 import unittest
 import numpy.testing.utils as nptu
 import abipy.data as abidata
@@ -237,8 +237,8 @@ def input_equality_check(ref_file, input2, rtol=1e-05, atol=1e-08, equal_nan=Fal
 
 
 def get_gsinput_si(usepaw=0, as_task=False):
-    # Build GS input file.
-    pseudos = abidata.pseudos("14si.pspnc") if usepaw == 0 else data.pseudos("Si.GGA_PBE-JTH-paw.xml")
+    """Build and return GS input file for silicon."""
+    pseudos = abidata.pseudos("14si.pspnc") if usepaw == 0 else abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
     #silicon = abilab.Structure.zincblende(5.431, ["Si", "Si"], units="ang")
     silicon = abidata.cif_file("si.cif")
 

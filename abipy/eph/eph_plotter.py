@@ -48,7 +48,7 @@ class EphPlotter(object):
 
     def __init__(self, ebands_kpath, phbst_file, phdos_file, ebands_kmesh=None):
         self.eb_kpath = ElectronBands.as_ebands(ebands_kpath)
-        self.eb_kmesh = ElectronBabds.as_ebands(ebands_kmesh) if ebands_kmesh is not None else None
+        self.eb_kmesh = ElectronBands.as_ebands(ebands_kmesh) if ebands_kmesh is not None else None
 
         self.phbst_file = phbst_file
         if duck.is_string(self.phbst_file):

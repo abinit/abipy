@@ -5,8 +5,6 @@ import abipy.data as abidata
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk
 
-from abipy.core.testing import has_abinit
-
 
 def make_inputs(tvars):
     """Construct input files."""

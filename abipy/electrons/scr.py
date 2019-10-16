@@ -3,7 +3,7 @@
 import numpy as np
 import pymatgen.core.units as pmgu
 
-from monty.string import marquee 
+from monty.string import marquee
 from monty.inspect import all_subclasses
 from monty.termcolor import cprint
 from monty.collections import AttrDict

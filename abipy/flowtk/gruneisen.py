@@ -4,8 +4,9 @@ Flow for the computation of Grunesein parameters with Abinit DFPT and finite dif
 
 WARNING: This code must be tested more carefully.
 """
-from abipy.core.structure import Structure
+import os
 
+from abipy.core.structure import Structure
 from .flows import Flow
 from .works import Work
 

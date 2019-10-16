@@ -37,14 +37,6 @@ electrons Package
    :undoc-members:
    :show-inheritance:
 
-:mod:`ddk` Module
------------------
-
-.. automodule:: abipy.electrons.ddk
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 :mod:`denpot` Module
 --------------------
 

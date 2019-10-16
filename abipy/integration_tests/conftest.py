@@ -3,7 +3,6 @@ import os
 import pytest
 import yaml
 import copy
-import abipy.abilab as abilab
 import abipy.flowtk as flowtk
 
 from monty.collections import AttrDict
