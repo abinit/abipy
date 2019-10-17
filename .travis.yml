@@ -44,6 +44,7 @@ install:
         abinit --version
         abinit --build
 
+        # We are gonna use the github version
         sed -i '/pymatgen/d' requirements.txt
         # https://github.com/pypa/pipenv/issues/2596
         #pipenv lock --clear

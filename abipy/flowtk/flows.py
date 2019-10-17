@@ -2869,3 +2869,35 @@ class NonLinearCoeffFlow(Flow):
         print("retcode", retcode)
         #if retcode != 0: return retcode
         return retcode
+
+
+def phonon_conv_flow(workdir, scf_input, qpoints, params, manager=None, allocate=True):
+    """
+    Create a :class:`Flow` to perform convergence studies for phonon calculations.
+    Args:
+        workdir: Working directory of the flow.
+        scf_input: :class:`AbinitInput` object defining a GS-SCF calculation.
+        qpoints: List of list of lists with the reduced coordinates of the q-point(s).
+        params:
+            To perform a converge study wrt ecut: params=["ecut", [2, 4, 6]]
+        manager: :class:`TaskManager` object responsible for the submission of the jobs.
+            If manager is None, the object is initialized from the yaml file
+            located either in the working directory or in the user configuration dir.
+        allocate: True if the flow should be allocated before returning.
+    Return:
+        :class:`Flow` object.
+    """
+    qpoints = np.reshape(qpoints, (-1, 3))
+
+    flow = Flow(workdir=workdir, manager=manager)
+
+    for qpt in qpoints:
+        for gs_inp in scf_input.product(*params):
+            # Register the SCF task
+            work = flow.register_scf_task(gs_inp)
+
+            # Add the PhononWork connected to this scf_task.
+            flow.register_work(PhononWork.from_scf_task(work[0], qpoints=qpt))
+
+    if allocate: flow.allocate()
+    return flow
