@@ -2,7 +2,7 @@
 set -e  # exit on first error
 
 echo "Installing AbiPy dependencies with conda."
-echo "Adding conda-forge, matsci and abinit to channels"
+echo "Adding conda-forge and abinit to channels"
 echo "Working in CONDA_PREFIX: ${CONDA_PREFIX} ..."
 conda config --add channels conda-forge
 #conda config --add channels matsci
