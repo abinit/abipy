@@ -29,6 +29,7 @@ min_abinit_version = "8.0.8"
 
 description = "Python package to automate ABINIT calculations and analyze the results."
 
+# Don't add spaces becase pypi complains about RST
 long_description = """\
 AbiPy is a Python library to analyze the results produced by `ABINIT <https://www.abinit.org>`_,
 an open-source program for the ab-initio calculations of the physical properties of materials
@@ -37,20 +38,15 @@ AbiPy also provides tools to generate input files and workflows to automate
 ab-initio calculations and typical convergence studies.
 AbiPy is interfaced with `Pymatgen <http://www.pymatgen.org>`_ allowing users to
 benefit from the different tools and python objects available in the pymatgen ecosystem.
-
 The official documentation is hosted on `github pages <http://abinit.github.io/abipy>`_.
-
-AbiPy can be used in conjunction with  `matplotlib <http://matplotlib.org>`_, `pandas <http://pandas.pydata.org>`_,
+AbiPy can be used in conjunction with `matplotlib <http://matplotlib.org>`_, `pandas <http://pandas.pydata.org>`_,
 `ipython <https://ipython.org/index.html>`_ and `jupyter <http://jupyter.org/>`_
 thus providing a powerful and user-friendly environment for data analysis and visualization.
-Check out the list of plotting scripts available in our :doc:`gallery </examples/index>`.
+Check out our `gallery of plotting scripts <http://abinit.github.io/abipy/gallery/index.html>`_
+and the `gallery of AbiPy workflows <http://abinit.github.io/abipy/flow_gallery/index.html>`_.
 To learn more about the integration between jupyter and AbiPy, visit our collection of `notebooks
 <http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/index.ipynb>`_ and the
 `AbiPy lessons <http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/lessons/index.ipynb>`_.
-
-To learn more about the integration between jupyter and AbiPy, visit `our collection of notebooks
-<https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/index.ipynb>`_
-
 The latest development version is always available from <https://github.com/abinit/abipy>
 """
 
