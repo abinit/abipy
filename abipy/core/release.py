@@ -10,9 +10,9 @@ name = 'abipy'
 # version information.  An empty _version_extra corresponds to a full
 # release.  'dev' as a _version_extra string means this is a development version
 _version_major = 0
-_version_minor = 7
+_version_minor = 8
 _version_micro = '0'  # use '' for first of series, number for 1 and above
-#_version_extra = 'dev'
+_version_extra = 'dev'
 _version_extra = ''  # Uncomment this for full releases
 
 # Construct full version string from these.
@@ -29,7 +29,7 @@ min_abinit_version = "8.0.8"
 
 description = "Python package to automate ABINIT calculations and analyze the results."
 
-# Don't add spaces becase pypi complains about RST
+# Don't add spaces because pypi complains about RST
 long_description = """\
 AbiPy is a Python library to analyze the results produced by `ABINIT <https://www.abinit.org>`_,
 an open-source program for the ab-initio calculations of the physical properties of materials

@@ -2,12 +2,7 @@ TODO list:
 
 ## High priority
 
-* DONE Get rid of readthedocs
-
-* Reorganize modules in flowtk to prepare future migration. Modules with gs_works, dfpt_works ...
-  qadapter package ... (postponed to v0.7)
-
-* Use angdeg instead of rprimd in structure_to_abivars if hex or rhomboedral lattice 
+* Use angdeg instead of rprimd in structure_to_abivars if hex or rhomboedral lattice
   (tricky because input settings should be preserved)
 
 * introduce new status for tasks that are removed at runtime e.g. S_CANCELLED
@@ -18,11 +13,7 @@ TODO list:
 
 * Fix annoying warnings about k-point sampling.
 
-* DONE Reintegrate AbiPy with new abivars (cleanup?)
-
 * Check Positive gw_qprange in EPH (Fixed by Henrique)
-
-* DONE abicomp should accept tolsym args
 
 * Add support for PSML/UPF format
 
@@ -30,7 +21,7 @@ TODO list:
 
 * Improve exception handling in NetcdfReader
 
-* Read forces in read_structure ?
+* Read forces in read_structure ? Fix problem  MSONable and ArrayWithUnit
 
 * Automate CHANGELOG creation.
 
@@ -43,13 +34,9 @@ TODO list:
 
 ## Medium priority
 
-* remove phononflow
-
 * Add DOS to GSR file (useful if tetra)  Create Dosfile ? Fortran exec?
 
-* videos in README (atom and hydrogen)
-
-* ALMOST DONE: Fix travis warnings.
+* videos in README (atom and hydrogen) or screenshot based on jupyterlab
 
 * Refactor/improve Visualizer
 
@@ -58,17 +45,11 @@ TODO list:
 * add possibility of changing amu in anaddb/abinit and API to "mix" DDB files
   phonon group velocities (requires extension in netcdf files).
 
-* DONE Solve problem with visualize in jupyter notebooks (files should be produced in workdir)
-
 * Scheduler should report info on exceptions (especially if at the end when on_all_ok is invoked)
-
-* ALMOST DONE: Replace core.tensor with pymatgen tensor
-  DONE Use pmg tensor for stress as well.
-  Check DielectricTensor in Anaddb from DDB.
 
 * Add nsppol, nspinor, nspden to HIST file (and other stuff?)
 
-* Fix bug with SCGW and SKW interpolation reported by Ahn.
+* Fix bug with SCGW and SKW interpolation reported by Ahn. Sort energies
 
 * Optimize SKW (slow if dense IBZ). Add possibility of initializing SKW
   from nc file produced by Fortran version.
@@ -82,15 +63,13 @@ TODO list:
 
 * Investigate NaN issue in BECS reported by Ahn if tolvrs instead of tolwfr (tolwfr could activate nbdbuf)
 
-* DONE Check infra-red dielectric function from DDB.
-
 * Add input file to NC files (?)
 
-* Add phonon plot with Longitudinal/transverse character and Z q 
+* Add phonon plot with Longitudinal/transverse character and Z q
 
 ## Low priority
 
-* Rationalze wrappers for mrgdddb .... (raise exception in python if clear error, retcode 
+* Rationalze wrappers for mrgdddb .... (raise exception in python if clear error, retcode
   is the returncode of the script not necessarily the retcode of the exe, need to
   parse log file and make sure that all scripts write log files in "abinit" format
   that can be read with EventsParser.
@@ -104,21 +83,18 @@ TODO list:
 
 * Fix issue with DOJO_REPORT and PAW XML files.
 
-* DONE plot_networkx does not work with flows containing callbacks e.g. run_qptdm_flow
-  FIXED with graphviz
-
 * Check xsf_write_data and visualization of potentials.
 
 * Add phbands.to_bxsf and histogram for phonon modes at a given q-point.
   overlap matrix for displacements?
 
-* Add possibility of specifying the max number of CPUs that can be used  
+* Add possibility of specifying the max number of CPUs that can be used
   for a flow at the level of the scheduler.
 
 * Fix problem with AbiniEvent format, src_file and scr_line (see src/67_common/scprqt.F90)
   Introduce an integer flag (msg_level) to be passed to msg_hndl
 
-* ABINIT abort file should not be produced if the exit is expected otherwise we 
+* ABINIT abort file should not be produced if the exit is expected otherwise we
   can have IO race conditions and ABI_CRITICAL events!!!!!!!
 
 * Add option max_num_launchers in scheduler.yml
@@ -128,7 +104,7 @@ TODO list:
 
 * Improvement in the dilatmx error handler:
 
-        [30/03/15 15:15:58] guido petretto: cmq ci sarebbe un'altra cosa che non so se avevi già considerato. 
+        [30/03/15 15:15:58] guido petretto: cmq ci sarebbe un'altra cosa che non so se avevi già considerato.
          Questo non porta a errori, ma non so se è il
         modo più corretto di gestire la cosa, anche perché non sono sicuro di cosa faaccia abinit esattamente
         [30/03/15 15:16:10] guido petretto: esempio:
@@ -150,8 +126,6 @@ TODO list:
 
 * integrate improvements in skw by Nicholas.
   Finalize baseclass for ElectronInterpolator
-
-* ALMOST DONE lobster interface from Guido
 
 * context manager to change variables (e.g. autoparal)
 
