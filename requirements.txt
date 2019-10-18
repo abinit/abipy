@@ -9,7 +9,6 @@ numpy
 scipy
 sympy
 spglib
-#pymatgen>=2018.8.7
 pymatgen>=2019.10.16
 netCDF4
 matplotlib
