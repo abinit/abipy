@@ -96,10 +96,9 @@ and activate it with::
 
 You should see the name of the conda environment in the shell prompt.
 
-Now add ``conda-forge``, ``matsci`` and ``abinit`` to your conda channels with::
+Now add ``conda-forge``, and ``abinit`` to your conda channels with::
 
     conda config --add channels conda-forge
-    conda config --add channels matsci
     conda config --add channels abinit
 
 These are the channels from which we will download pymatgen, abipy and abinit.
@@ -133,10 +132,9 @@ based on python3.6 with::
     conda create -n abienv python=3.6
     source activate abienv
 
-Add ``conda-forge``, ``matsci`` and ``abinit`` to your channels with::
+Add ``conda-forge``, and ``abinit`` to your channels with::
 
     conda config --add channels conda-forge
-    conda config --add channels matsci
     conda config --add channels abinit
 
 and install the AbiPy dependencies with::
@@ -473,7 +471,7 @@ Let's start by creating a conda environment with::
     source activate glibc_env
     conda config --add channels conda-forge
 
-Use pip to install spglib (the version from the ``matsci`` channel will trigger the same GLIBC error)::
+Use pip to install spglib::
 
     pip install spglib
 
@@ -484,7 +482,7 @@ Download the pymatgen repository from github with::
     git clone https://github.com/materialsproject/pymatgen.git
     cd pymatgen
 
-If git is not installed, use ``conda install git`` 
+If git is not installed, use ``conda install git``
 
 Now use conda to install the pymatgen requirements listed in ``requirements.txt``
 but before that make sure that ``gcc`` is in ``$PATH``.

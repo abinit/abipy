@@ -342,7 +342,7 @@ class Has_NetcdfFiles(metaclass=abc.ABCMeta):
         NcViewerFrame(self, filepaths=self.nc_filepaths).Show()
 
 
-class Has_Phbands(metaclass=abc.ABCMeta)
+class Has_Phbands(metaclass=abc.ABCMeta):
     """
     Mixin class that provides a menu and callbacks for analyzing phonon bands.
     """
