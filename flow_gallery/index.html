@@ -2,30 +2,19 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Flow Gallery &#8212; abipy 0.7.0.dev documentation</title>
+    <meta charset="utf-8" />
+    <title>Flow Gallery &#8212; abipy 0.7.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../',
-        VERSION:     '0.7.0.dev',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
-    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
-    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Band structure Flow with factory functions" href="run_ht_si_ebands.html" />
@@ -34,9 +23,12 @@
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
 
-  </head>
-  <body>
+  </head><body>
 
   <div id="navbar" class="navbar navbar-default navbar-fixed-top">
     <div class="container">
@@ -49,7 +41,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0.dev</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -146,196 +138,204 @@
 
 <div class="container">
   <div class="row">
-    <div class="col-md-12 content">
+    <div class="body col-md-12 content" role="main">
       
   <div class="section" id="flow-gallery">
-<span id="id1"></span><h1>Flow Gallery<a class="headerlink" href="#flow-gallery" title="Permalink to this headline">¶</a></h1>
+<span id="sphx-glr-flow-gallery"></span><span id="id1"></span><h1>Flow Gallery<a class="headerlink" href="#flow-gallery" title="Permalink to this headline">¶</a></h1>
 <p>This gallery contains python scripts to generate AbiPy flows from the command line.</p>
 <p>Run the scripts to generate the directory with the flow and then use <a class="reference internal" href="../scripts/abirun.html#abirun-py"><span class="std std-ref">abirun.py</span></a> to execute the flow.
-Alternatively, one can use the <code class="docutils literal"><span class="pre">-s</span></code> option to generate the flow and run it immediately with the scheduler.
-Use <code class="docutils literal"><span class="pre">--help</span></code> for further information on the available options.</p>
+Alternatively, one can use the <code class="docutils literal notranslate"><span class="pre">-s</span></code> option to generate the flow and run it immediately with the scheduler.
+Use <code class="docutils literal notranslate"><span class="pre">--help</span></code> for further information on the available options.</p>
 <div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The following examples show how to use python and the AbiPy API to generate and run
+<p class="admonition-title">Warning</p>
+<p>The following examples show how to use python and the AbiPy API to generate and run
 Abinit calculations in a semi-automatic way.
 These examples are not supposed to produce physically meaningful results
 as input parameters are usually underconverged.</p>
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example show how to build a flow to compute the band structure and the DOS of silicon. Inp..."><div class="figure" id="id2">
+<div class="sphx-glr-thumbcontainer" tooltip="This example show how to build a flow to compute the band structure and the DOS of silicon. Inp..."><div class="figure align-default" id="id2">
 <img alt="../_images/sphx_glr_run_ht_si_ebands_thumb.png" src="../_images/sphx_glr_run_ht_si_ebands_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_ht_si_ebands.html#sphx-glr-flow-gallery-run-ht-si-ebands-py"><span class="std std-ref">Band structure Flow with factory functions</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_ht_si_ebands.html#sphx-glr-flow-gallery-run-ht-si-ebands-py"><span class="std std-ref">Band structure Flow with factory functions</span></a></span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute phonon frequencies with phonopy (supercells and finite-differ..."><div class="figure" id="id3">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute phonon frequencies with phonopy (supercells and finite-differ..."><div class="figure align-default" id="id3">
 <img alt="../_images/sphx_glr_run_phonopy_si_thumb.png" src="../_images/sphx_glr_run_phonopy_si_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_phonopy_si.html#sphx-glr-flow-gallery-run-phonopy-si-py"><span class="std std-ref">Phonopy + Abinit Flow</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_phonopy_si.html#sphx-glr-flow-gallery-run-phonopy-si-py"><span class="std std-ref">Phonopy + Abinit Flow</span></a></span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to build a very simple Flow for the structural relaxation of SiC. One co..."><div class="figure" id="id4">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to build a very simple Flow for the structural relaxation of SiC. One co..."><div class="figure align-default" id="id4">
 <img alt="../_images/sphx_glr_run_sic_relax_thumb.png" src="../_images/sphx_glr_run_sic_relax_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_sic_relax.html#sphx-glr-flow-gallery-run-sic-relax-py"><span class="std std-ref">Relaxation Flow</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_sic_relax.html#sphx-glr-flow-gallery-run-sic-relax-py"><span class="std std-ref">Relaxation Flow</span></a></span><a class="headerlink" href="#id4" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="G0W0 corrections with the HT interface. "><div class="figure" id="id5">
-<img alt="../_images/sphx_glr_run_ht_si_g0w0ppm_thumb.png" src="../_images/sphx_glr_run_ht_si_g0w0ppm_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_ht_si_g0w0ppm.html#sphx-glr-flow-gallery-run-ht-si-g0w0ppm-py"><span class="std std-ref">G0W0 Flow with factory functions</span></a></span></p>
-</div>
-</div><div class="toctree-wrapper compound">
-</div>
-<div class="sphx-glr-thumbcontainer" tooltip="Flow to compute the equation of state by fitting E(V) at T = 0. "><div class="figure" id="id6">
+<div class="sphx-glr-thumbcontainer" tooltip="Flow to compute the equation of state by fitting E(V) at T = 0."><div class="figure align-default" id="id5">
 <img alt="../_images/sphx_glr_run_eos_thumb.png" src="../_images/sphx_glr_run_eos_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_eos.html#sphx-glr-flow-gallery-run-eos-py"><span class="std std-ref">Flow for Equation of State</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_eos.html#sphx-glr-flow-gallery-run-eos-py"><span class="std std-ref">Flow for Equation of State</span></a></span><a class="headerlink" href="#id5" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="Calculation of the BSE spectrum with the High-throuhput interface (factory functions). "><div class="figure" id="id7">
+<div class="sphx-glr-thumbcontainer" tooltip="G0W0 corrections with the HT interface."><div class="figure align-default" id="id6">
+<img alt="../_images/sphx_glr_run_ht_si_g0w0ppm_thumb.png" src="../_images/sphx_glr_run_ht_si_g0w0ppm_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_ht_si_g0w0ppm.html#sphx-glr-flow-gallery-run-ht-si-g0w0ppm-py"><span class="std std-ref">G0W0 Flow with factory functions</span></a></span><a class="headerlink" href="#id6" title="Permalink to this image">¶</a></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-thumbcontainer" tooltip="Calculation of the BSE spectrum with the High-throuhput interface (factory functions)."><div class="figure align-default" id="id7">
 <img alt="../_images/sphx_glr_run_ht_si_bsemdf_thumb.png" src="../_images/sphx_glr_run_ht_si_bsemdf_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_ht_si_bsemdf.html#sphx-glr-flow-gallery-run-ht-si-bsemdf-py"><span class="std std-ref">Bethe-Salpeter Flow with factory functions</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_ht_si_bsemdf.html#sphx-glr-flow-gallery-run-ht-si-bsemdf-py"><span class="std std-ref">Bethe-Salpeter Flow with factory functions</span></a></span><a class="headerlink" href="#id7" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="Flow to compute non-linear optical properties with DFPT (static limit). "><div class="figure" id="id8">
+<div class="sphx-glr-thumbcontainer" tooltip="Flow to compute non-linear optical properties with DFPT (static limit)."><div class="figure align-default" id="id8">
 <img alt="../_images/sphx_glr_run_nonlinear_thumb.png" src="../_images/sphx_glr_run_nonlinear_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_nonlinear.html#sphx-glr-flow-gallery-run-nonlinear-py"><span class="std std-ref">Flow for Non-linear optic with DFPT</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_nonlinear.html#sphx-glr-flow-gallery-run-nonlinear-py"><span class="std std-ref">Flow for Non-linear optic with DFPT</span></a></span><a class="headerlink" href="#id8" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="Flow to compute the band structure of silicon. "><div class="figure" id="id9">
+<div class="sphx-glr-thumbcontainer" tooltip="Flow to compute the band structure of silicon."><div class="figure align-default" id="id9">
 <img alt="../_images/sphx_glr_run_si_ebands_thumb.png" src="../_images/sphx_glr_run_si_ebands_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_si_ebands.html#sphx-glr-flow-gallery-run-si-ebands-py"><span class="std std-ref">Band structure Flow</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_si_ebands.html#sphx-glr-flow-gallery-run-si-ebands-py"><span class="std std-ref">Band structure Flow</span></a></span><a class="headerlink" href="#id9" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="Calculation of the band structure of Fe with and without magnetization. See also &lt;~abinit/tutor..."><div class="figure" id="id10">
+<div class="sphx-glr-thumbcontainer" tooltip="Calculation of the band structure of Fe with and without magnetization. See also &lt;~abinit/tutor..."><div class="figure align-default" id="id10">
 <img alt="../_images/sphx_glr_run_fe_ebands_thumb.png" src="../_images/sphx_glr_run_fe_ebands_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_fe_ebands.html#sphx-glr-flow-gallery-run-fe-ebands-py"><span class="std std-ref">Band structure w/wo magnetization</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_fe_ebands.html#sphx-glr-flow-gallery-run-fe-ebands-py"><span class="std std-ref">Band structure w/wo magnetization</span></a></span><a class="headerlink" href="#id10" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="In this example, we employ the relaxation algorithms implemented in Abinit (``ionmov`` and ``op..."><div class="figure" id="id11">
+<div class="sphx-glr-thumbcontainer" tooltip="In this example, we employ the relaxation algorithms implemented in Abinit (``ionmov`` and optc..."><div class="figure align-default" id="id11">
 <img alt="../_images/sphx_glr_run_relax_vs_kpts_thumb.png" src="../_images/sphx_glr_run_relax_vs_kpts_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_relax_vs_kpts.html#sphx-glr-flow-gallery-run-relax-vs-kpts-py"><span class="std std-ref">Relaxation of GaN with different K-meshes</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_relax_vs_kpts.html#sphx-glr-flow-gallery-run-relax-vs-kpts-py"><span class="std std-ref">Relaxation of GaN with different K-meshes</span></a></span><a class="headerlink" href="#id11" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute phonons with arbitrary q-points and WFQ files. Symmetries are..."><div class="figure" id="id12">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to use WFQ files to compute phonons on a q-mesh that is not necessarily ..."><div class="figure align-default" id="id12">
 <img alt="../_images/sphx_glr_run_phonons_wkq_thumb.png" src="../_images/sphx_glr_run_phonons_wkq_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_phonons_wkq.html#sphx-glr-flow-gallery-run-phonons-wkq-py"><span class="std std-ref">Phonons with WFQ files (q-mesh denser than k-mesh)</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_phonons_wkq.html#sphx-glr-flow-gallery-run-phonons-wkq-py"><span class="std std-ref">Phonons with WFQ files (q-mesh denser than k-mesh)</span></a></span><a class="headerlink" href="#id12" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This examples shows how to build a Flow to compute the band structure and the electron DOS of M..."><div class="figure" id="id13">
+<div class="sphx-glr-thumbcontainer" tooltip="This examples shows how to build a Flow to compute the band structure and the electron DOS of M..."><div class="figure align-default" id="id13">
 <img alt="../_images/sphx_glr_run_mgb2_edoses_thumb.png" src="../_images/sphx_glr_run_mgb2_edoses_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_mgb2_edoses.html#sphx-glr-flow-gallery-run-mgb2-edoses-py"><span class="std std-ref">Flow for convergence studies of e-DOS wrt ngkpt</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_mgb2_edoses.html#sphx-glr-flow-gallery-run-mgb2-edoses-py"><span class="std std-ref">Flow for convergence studies of e-DOS wrt ngkpt</span></a></span><a class="headerlink" href="#id13" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to build a flow for Nscf calculations in which the dependency is given b..."><div class="figure" id="id14">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to build a flow for Nscf calculations in which the dependency is given b..."><div class="figure align-default" id="id14">
 <img alt="../_images/sphx_glr_run_from_files_thumb.png" src="../_images/sphx_glr_run_from_files_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_from_files.html#sphx-glr-flow-gallery-run-from-files-py"><span class="std std-ref">Starting a Flow from external files</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_from_files.html#sphx-glr-flow-gallery-run-from-files-py"><span class="std std-ref">Starting a Flow from external files</span></a></span><a class="headerlink" href="#id14" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the Born effective charges and the dielectric tensors (e0, ei..."><div class="figure" id="id15">
-<img alt="../_images/sphx_glr_run_becs_and_epsilon_vs_kpts_thumb.png" src="../_images/sphx_glr_run_becs_and_epsilon_vs_kpts_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_becs_and_epsilon_vs_kpts.html#sphx-glr-flow-gallery-run-becs-and-epsilon-vs-kpts-py"><span class="std std-ref">Flow for Born effective charges and dielectric tensors with DFPT</span></a></span></p>
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the phonon band structure of AlAs with AbiPy flows. The final..."><div class="figure align-default" id="id15">
+<img alt="../_images/sphx_glr_run_gkq_thumb.png" src="../_images/sphx_glr_run_gkq_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_gkq.html#sphx-glr-flow-gallery-run-gkq-py"><span class="std std-ref">Flow for computing e-ph matrix elements along a q-path</span></a></span><a class="headerlink" href="#id15" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the phonon band structure of AlAs with AbiPy flows. Symmetrie..."><div class="figure" id="id16">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the phonon band structure of AlAs with AbiPy flows. Symmetrie..."><div class="figure align-default" id="id16">
 <img alt="../_images/sphx_glr_run_phonons_thumb.png" src="../_images/sphx_glr_run_phonons_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_phonons.html#sphx-glr-flow-gallery-run-phonons-py"><span class="std std-ref">Flow for phonons with DFPT</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_phonons.html#sphx-glr-flow-gallery-run-phonons-py"><span class="std std-ref">Flow for phonons with DFPT</span></a></span><a class="headerlink" href="#id16" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="Electronic band structure of silicon in a distorted geometry (frozen phonon at q=0) "><div class="figure" id="id17">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the Born effective charges and the dielectric tensors (e0, ei..."><div class="figure align-default" id="id17">
+<img alt="../_images/sphx_glr_run_becs_and_epsilon_vs_kpts_thumb.png" src="../_images/sphx_glr_run_becs_and_epsilon_vs_kpts_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_becs_and_epsilon_vs_kpts.html#sphx-glr-flow-gallery-run-becs-and-epsilon-vs-kpts-py"><span class="std std-ref">Flow for Born effective charges and dielectric tensors with DFPT</span></a></span><a class="headerlink" href="#id17" title="Permalink to this image">¶</a></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-thumbcontainer" tooltip="Electronic band structure of silicon in a distorted geometry (frozen phonon at q=0)"><div class="figure align-default" id="id18">
 <img alt="../_images/sphx_glr_run_phfrozen_ebands_thumb.png" src="../_images/sphx_glr_run_phfrozen_ebands_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_phfrozen_ebands.html#sphx-glr-flow-gallery-run-phfrozen-ebands-py"><span class="std std-ref">Flow for e-Bands with frozen phonon</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_phfrozen_ebands.html#sphx-glr-flow-gallery-run-phfrozen-ebands-py"><span class="std std-ref">Flow for e-Bands with frozen phonon</span></a></span><a class="headerlink" href="#id18" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the band structure of GaAs with and without spin-orbit term. ..."><div class="figure" id="id18">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the band structure of GaAs with and without spin-orbit term. ..."><div class="figure align-default" id="id19">
 <img alt="../_images/sphx_glr_run_gaas_ebands_soc_thumb.png" src="../_images/sphx_glr_run_gaas_ebands_soc_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_gaas_ebands_soc.html#sphx-glr-flow-gallery-run-gaas-ebands-soc-py"><span class="std std-ref">Band structure with/without spin-orbit</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_gaas_ebands_soc.html#sphx-glr-flow-gallery-run-gaas-ebands-soc-py"><span class="std std-ref">Band structure with/without spin-orbit</span></a></span><a class="headerlink" href="#id19" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This examples shows how to build a Flow to compute the phonon band structure in a metallic syst..."><div class="figure" id="id19">
+<div class="sphx-glr-thumbcontainer" tooltip="This examples shows how to build a Flow to compute the phonon band structure in a metallic syst..."><div class="figure align-default" id="id20">
 <img alt="../_images/sphx_glr_run_mgb2_phonons_nkpt_tsmear_thumb.png" src="../_images/sphx_glr_run_mgb2_phonons_nkpt_tsmear_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_mgb2_phonons_nkpt_tsmear.html#sphx-glr-flow-gallery-run-mgb2-phonons-nkpt-tsmear-py"><span class="std std-ref">Flow to analyze the convergence of phonons in metals wrt ngkpt and tsmear</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_mgb2_phonons_nkpt_tsmear.html#sphx-glr-flow-gallery-run-mgb2-phonons-nkpt-tsmear-py"><span class="std std-ref">Flow to analyze the convergence of phonons in metals wrt ngkpt and tsmear</span></a></span><a class="headerlink" href="#id20" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This script shows how to perform a structural relaxation in two steps:"><div class="figure" id="id20">
+<div class="sphx-glr-thumbcontainer" tooltip="This script shows how to perform a structural relaxation in two steps:"><div class="figure align-default" id="id21">
 <img alt="../_images/sphx_glr_run_relax_thumb.png" src="../_images/sphx_glr_run_relax_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_relax.html#sphx-glr-flow-gallery-run-relax-py"><span class="std std-ref">Relaxation Flow</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_relax.html#sphx-glr-flow-gallery-run-relax-py"><span class="std std-ref">Relaxation Flow</span></a></span><a class="headerlink" href="#id21" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to use AbiPy to calculate physical properties related to strain for an i..."><div class="figure" id="id21">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to use AbiPy to calculate physical properties related to strain for an i..."><div class="figure align-default" id="id22">
 <img alt="../_images/sphx_glr_run_elastic_thumb.png" src="../_images/sphx_glr_run_elastic_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_elastic.html#sphx-glr-flow-gallery-run-elastic-py"><span class="std std-ref">Flow for elastic constants and piezoelectric tensor with DFPT</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_elastic.html#sphx-glr-flow-gallery-run-elastic-py"><span class="std std-ref">Flow for elastic constants and piezoelectric tensor with DFPT</span></a></span><a class="headerlink" href="#id22" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the LDA+U band structure of NiO with PAW for several values o..."><div class="figure" id="id22">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the LDA+U band structure of NiO with PAW for several values o..."><div class="figure align-default" id="id23">
 <img alt="../_images/sphx_glr_run_ldaus_thumb.png" src="../_images/sphx_glr_run_ldaus_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_ldaus.html#sphx-glr-flow-gallery-run-ldaus-py"><span class="std std-ref">Flow for LDA+U calculations</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_ldaus.html#sphx-glr-flow-gallery-run-ldaus-py"><span class="std std-ref">Flow for LDA+U calculations</span></a></span><a class="headerlink" href="#id23" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="G0W0 convergence study wrt ecuteps and the number of bands in W. "><div class="figure" id="id23">
+<div class="sphx-glr-thumbcontainer" tooltip="G0W0 convergence study wrt ecuteps and the number of bands in W."><div class="figure align-default" id="id24">
 <img alt="../_images/sphx_glr_run_gwconv_ecuteps_thumb.png" src="../_images/sphx_glr_run_gwconv_ecuteps_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_gwconv_ecuteps.html#sphx-glr-flow-gallery-run-gwconv-ecuteps-py"><span class="std std-ref">G0W0 convergence study</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_gwconv_ecuteps.html#sphx-glr-flow-gallery-run-gwconv-ecuteps-py"><span class="std std-ref">G0W0 convergence study</span></a></span><a class="headerlink" href="#id24" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This script shows how to compute the G0W0 corrections in silicon. More specifically, we build a..."><div class="figure" id="id24">
+<div class="sphx-glr-thumbcontainer" tooltip="This script shows how to compute the G0W0 corrections in silicon. More specifically, we build a..."><div class="figure align-default" id="id25">
 <img alt="../_images/sphx_glr_run_si_g0w0_thumb.png" src="../_images/sphx_glr_run_si_g0w0_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_si_g0w0.html#sphx-glr-flow-gallery-run-si-g0w0-py"><span class="std std-ref">G0W0 Flow with convergence study wrt nband</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_si_g0w0.html#sphx-glr-flow-gallery-run-si-g0w0-py"><span class="std std-ref">G0W0 Flow with convergence study wrt nband</span></a></span><a class="headerlink" href="#id25" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to create a flow to compute optical spectra with Optic (independent part..."><div class="figure" id="id25">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to create a flow to compute optical spectra with Optic (independent part..."><div class="figure align-default" id="id26">
 <img alt="../_images/sphx_glr_run_optic_thumb.png" src="../_images/sphx_glr_run_optic_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_optic.html#sphx-glr-flow-gallery-run-optic-py"><span class="std std-ref">Optic Flow</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_optic.html#sphx-glr-flow-gallery-run-optic-py"><span class="std std-ref">Optic Flow</span></a></span><a class="headerlink" href="#id26" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This script shows how to perform a Raman calculation with excitonic effects included with the B..."><div class="figure" id="id26">
+<div class="sphx-glr-thumbcontainer" tooltip="This script shows how to perform a Raman calculation with excitonic effects included with the B..."><div class="figure align-default" id="id27">
 <img alt="../_images/sphx_glr_run_raman_bse_thumb.png" src="../_images/sphx_glr_run_raman_bse_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_raman_bse.html#sphx-glr-flow-gallery-run-raman-bse-py"><span class="std std-ref">Raman Flow with BSE and frozen phonon</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_raman_bse.html#sphx-glr-flow-gallery-run-raman-bse-py"><span class="std std-ref">Raman Flow with BSE and frozen phonon</span></a></span><a class="headerlink" href="#id27" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="In this example, we employ the relaxation algorithms implemented in Abinit (``ionmov`` and ``op..."><div class="figure" id="id27">
+<div class="sphx-glr-thumbcontainer" tooltip="In this example, we employ the relaxation algorithms implemented in Abinit (``ionmov`` and optc..."><div class="figure align-default" id="id28">
 <img alt="../_images/sphx_glr_run_relax_vs_kpts_tsmear_thumb.png" src="../_images/sphx_glr_run_relax_vs_kpts_tsmear_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_relax_vs_kpts_tsmear.html#sphx-glr-flow-gallery-run-relax-vs-kpts-tsmear-py"><span class="std std-ref">Relaxation of GaN with different K-meshes</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_relax_vs_kpts_tsmear.html#sphx-glr-flow-gallery-run-relax-vs-kpts-tsmear-py"><span class="std std-ref">Relaxation of GaN with different K-meshes</span></a></span><a class="headerlink" href="#id28" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This script shows how to perform a structural relaxation and a band structure calculation"><div class="figure" id="id28">
+<div class="sphx-glr-thumbcontainer" tooltip="This script shows how to perform a structural relaxation and a band structure calculation"><div class="figure align-default" id="id29">
 <img alt="../_images/sphx_glr_run_relax_and_ebands_thumb.png" src="../_images/sphx_glr_run_relax_and_ebands_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_relax_and_ebands.html#sphx-glr-flow-gallery-run-relax-and-ebands-py"><span class="std std-ref">Flow for Relaxation + Bands</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_relax_and_ebands.html#sphx-glr-flow-gallery-run-relax-and-ebands-py"><span class="std std-ref">Flow for Relaxation + Bands</span></a></span><a class="headerlink" href="#id29" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This script shows how to perform a Raman calculation with excitonic effects included with the B..."><div class="figure" id="id29">
+<div class="sphx-glr-thumbcontainer" tooltip="This script shows how to perform a Raman calculation with excitonic effects included with the B..."><div class="figure align-default" id="id30">
 <img alt="../_images/sphx_glr_run_raman_optic_thumb.png" src="../_images/sphx_glr_run_raman_optic_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_raman_optic.html#sphx-glr-flow-gallery-run-raman-optic-py"><span class="std std-ref">Raman Flow with independent-particle approximation (optic)</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_raman_optic.html#sphx-glr-flow-gallery-run-raman-optic-py"><span class="std std-ref">Raman Flow with independent-particle approximation (optic)</span></a></span><a class="headerlink" href="#id30" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
 <div style='clear:both'></div><div class="sphx-glr-footer class sphx-glr-footer-gallery docutils container">
 <div class="sphx-glr-download docutils container">
-<a class="reference download internal" href="../_downloads/flow_gallery_python.zip" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">all</span> <span class="pre">examples</span> <span class="pre">in</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">flow_gallery_python.zip</span></code></a></div>
-<div class="sphx-glr-download docutils container">
-<a class="reference download internal" href="../_downloads/flow_gallery_jupyter.zip" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">all</span> <span class="pre">examples</span> <span class="pre">in</span> <span class="pre">Jupyter</span> <span class="pre">notebooks:</span> <span class="pre">flow_gallery_jupyter.zip</span></code></a></div>
+<p><a class="reference download internal" download="" href="../_downloads/c6891195fb81c2c4db1688d348a7f366/flow_gallery_python.zip"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">all</span> <span class="pre">examples</span> <span class="pre">in</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">flow_gallery_python.zip</span></code></a></p>
 </div>
-<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.readthedocs.io">Gallery generated by Sphinx-Gallery</a></p>
+<div class="sphx-glr-download docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/d61e39c1954cbfffb06dbc34ee06a2ab/flow_gallery_jupyter.zip"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">all</span> <span class="pre">examples</span> <span class="pre">in</span> <span class="pre">Jupyter</span> <span class="pre">notebooks:</span> <span class="pre">flow_gallery_jupyter.zip</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
 </div>
 
 
@@ -351,8 +351,8 @@ as input parameters are usually underconverged.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Sep 18, 2018.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+      Last updated on Oct 18, 2019.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>
 </footer>

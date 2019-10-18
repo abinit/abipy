@@ -2,30 +2,19 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Phonons with WFQ files (q-mesh denser than k-mesh) &#8212; abipy 0.7.0.dev documentation</title>
+    <meta charset="utf-8" />
+    <title>Phonons with WFQ files (q-mesh denser than k-mesh) &#8212; abipy 0.7.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../',
-        VERSION:     '0.7.0.dev',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
-    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
-    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Flow for convergence studies of e-DOS wrt ngkpt" href="run_mgb2_edoses.html" />
@@ -34,9 +23,12 @@
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
 
-  </head>
-  <body>
+  </head><body>
 
   <div id="navbar" class="navbar navbar-default navbar-fixed-top">
     <div class="container">
@@ -49,7 +41,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0.dev</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -144,28 +136,30 @@
 
 <div class="container">
   <div class="row">
-    <div class="col-md-12 content">
+    <div class="body col-md-12 content" role="main">
       
   <div class="sphx-glr-download-link-note admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Click <a class="reference internal" href="#sphx-glr-download-flow-gallery-run-phonons-wkq-py"><span class="std std-ref">here</span></a> to download the full example code</p>
+<p class="admonition-title">Note</p>
+<p>Click <a class="reference internal" href="#sphx-glr-download-flow-gallery-run-phonons-wkq-py"><span class="std std-ref">here</span></a> to download the full example code</p>
 </div>
 <div class="sphx-glr-example-title section" id="phonons-with-wfq-files-q-mesh-denser-than-k-mesh">
 <span id="sphx-glr-flow-gallery-run-phonons-wkq-py"></span><h1>Phonons with WFQ files (q-mesh denser than k-mesh)<a class="headerlink" href="#phonons-with-wfq-files-q-mesh-denser-than-k-mesh" title="Permalink to this headline">¶</a></h1>
-<p>This example shows how to compute phonons with arbitrary q-points and WFQ files.
+<p>This example shows how to use WFQ files to compute phonons on a q-mesh
+that is not necessarily commensurate with the k-mesh used for electrons.
 Symmetries are taken into account: only q-points in the IBZ are generated.
-Moreover WFQ file are computed only if k + q does not belong to the initial mesh and,
+Moreover WFQ files are computed only if k + q does not belong to the initial mesh and,
 for each q-point, only the independent atomic perturbations are computed.
 The final results (out_DDB, out_DVDB) will be produced automatically at the end of the run
-and saved in the <code class="docutils literal"><span class="pre">outdata/</span></code> of the work.</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+and saved in the <code class="docutils literal notranslate"><span class="pre">outdata/</span></code> of the work.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
 
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">abipy.abilab</span> <span class="kn">as</span> <span class="nn">abilab</span>
-<span class="kn">import</span> <span class="nn">abipy.data</span> <span class="kn">as</span> <span class="nn">abidata</span>
+<span class="kn">import</span> <span class="nn">abipy.abilab</span> <span class="k">as</span> <span class="nn">abilab</span>
+<span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
 
-<span class="kn">from</span> <span class="nn">abipy</span> <span class="kn">import</span> <span class="n">flowtk</span>
+<span class="kn">from</span> <span class="nn">abipy</span> <span class="k">import</span> <span class="n">flowtk</span>
+
 
 <span class="k">def</span> <span class="nf">make_scf_input</span><span class="p">(</span><span class="n">paral_kgb</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -201,6 +195,7 @@ and saved in the <code class="docutils literal"><span class="pre">outdata/</span
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Working directory (default is the name of the script with &#39;.py&#39; removed and &quot;run_&quot; replaced by &quot;flow_&quot;)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">workdir</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;READTHEDOCS&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span> <span class="vm">__file__</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="s2">&quot;run_phonons_wkq.py&quot;</span><span class="p">)</span>
         <span class="n">options</span><span class="o">.</span><span class="n">workdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.py&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;run_&quot;</span><span class="p">,</span> <span class="s2">&quot;flow_&quot;</span><span class="p">)</span>
 
     <span class="n">flow</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">Flow</span><span class="p">(</span><span class="n">workdir</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">workdir</span><span class="p">)</span>
@@ -212,7 +207,7 @@ and saved in the <code class="docutils literal"><span class="pre">outdata/</span
 
     <span class="c1"># Create work for phonon calculation with WFQ files with a [4, 4, 4] q-mesh.</span>
     <span class="c1"># Electric field and Born effective charges are also computed.</span>
-    <span class="n">wfkq_work</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">PhononWfkqWork</span><span class="o">.</span><span class="n">from_scf_task</span><span class="p">(</span><span class="n">scf_task</span><span class="p">,</span> <span class="n">ngqpt</span><span class="o">=</span><span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="n">with_becs</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">wfkq_work</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">PhononWfkqWork</span><span class="o">.</span><span class="n">from_scf_task</span><span class="p">(</span><span class="n">scf_task</span><span class="p">,</span> <span class="n">ngqpt</span><span class="o">=</span><span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="n">with_becs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">flow</span><span class="o">.</span><span class="n">register_work</span><span class="p">(</span><span class="n">wfkq_work</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">flow</span>
@@ -220,15 +215,15 @@ and saved in the <code class="docutils literal"><span class="pre">outdata/</span
 
 <span class="c1"># This block generates the thumbnails in the Abipy gallery.</span>
 <span class="c1"># You can safely REMOVE this part if you are using this script for production runs.</span>
-<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;READTHEDOCS&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
-    <span class="vm">__name__</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;READTHEDOCS&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="vm">__name__</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="kn">import</span> <span class="nn">tempfile</span>
     <span class="n">options</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">build_flow_main_parser</span><span class="p">()</span><span class="o">.</span><span class="n">parse_args</span><span class="p">([</span><span class="s2">&quot;-w&quot;</span><span class="p">,</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()])</span>
     <span class="c1">#build_flow(options).plot_networkx(with_edge_labels=False, tight_layout=True)</span>
     <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span><span class="o">.</span><span class="n">graphviz_imshow</span><span class="p">()</span>
 
 
-<span class="nd">@flowtk.flow_main</span>
+<span class="nd">@flowtk</span><span class="o">.</span><span class="n">flow_main</span>
 <span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This is our main function that will be invoked by the script.</span>
@@ -243,16 +238,23 @@ and saved in the <code class="docutils literal"><span class="pre">outdata/</span
 </pre></div>
 </div>
 <img alt="../_images/sphx_glr_run_phonons_wkq_001.png" class="sphx-glr-single-img" src="../_images/sphx_glr_run_phonons_wkq_001.png" />
+<p class="sphx-glr-script-out">Out:</p>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+  plt.show()
+</pre></div>
+</div>
 <p>Run the script with:</p>
 <blockquote>
-<div>run_phonons_wfq.py -s</div></blockquote>
+<div><p>run_phonons_wfq.py -s</p>
+</div></blockquote>
 <p>then use:</p>
 <blockquote>
-<div>abirun.py flow_phonons_wkq history</div></blockquote>
+<div><p>abirun.py flow_phonons_wkq history</p>
+</div></blockquote>
 <p>to get the list of actions perfomed by AbiPy to complete the flow.
-Note how the <code class="docutils literal"><span class="pre">PhononWfkqWork</span></code> has merged all the partial DDB/DVDB files
+Note how the <code class="docutils literal notranslate"><span class="pre">PhononWfkqWork</span></code> has merged all the partial DDB/DVDB files
 and removed the WFQ files at runtime to optimize the disk space.</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="o">=========================================================================================================================</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">=========================================================================================================================</span>
 <span class="o">=============================</span> &lt;PhononWfkqWork, <span class="nv">node_id</span><span class="o">=</span><span class="m">360036</span>, <span class="nv">workdir</span><span class="o">=</span>flow_phonons_wkq/w1&gt; <span class="o">=============================</span>
 <span class="o">=========================================================================================================================</span>
 <span class="o">[</span>Tue Sep <span class="m">18</span> <span class="m">00</span>:04:18 <span class="m">2018</span><span class="o">]</span> Removing WFQ: flow_phonons_wkq/w1/t5/outdata/out_WFQ
@@ -261,22 +263,25 @@ and removed the WFQ files at runtime to optimize the disk space.</p>
 </div>
 <p>Now open the final DDB file with:</p>
 <blockquote>
-<div>abiopen.py flow_phonons_wkq/w1/outdata/out_DDB</div></blockquote>
+<div><p>abiopen.py flow_phonons_wkq/w1/outdata/out_DDB</p>
+</div></blockquote>
 <p>and invoke anaddb to compute the phonon band structure and the phonon DOS with:</p>
-<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="n">phbst_file</span><span class="p">,</span> <span class="n">phdos_file</span> <span class="o">=</span> <span class="n">abifile</span><span class="o">.</span><span class="n">anaget_phbst_and_phdos_files</span><span class="p">()</span>
+<div class="highlight-ipython notranslate"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="n">phbst_file</span><span class="p">,</span> <span class="n">phdos_file</span> <span class="o">=</span> <span class="n">abifile</span><span class="o">.</span><span class="n">anaget_phbst_and_phdos_files</span><span class="p">()</span>
 <span class="gp">In [2]: </span><span class="o">%</span><span class="k">matplotlib</span>
 <span class="gp">In [3]: </span><span class="n">phbst_file</span><span class="o">.</span><span class="n">plot_phbands</span><span class="p">()</span>
 </pre></div>
 </div>
 <img alt="Phonon band structure of AlAs." src="https://github.com/abinit/abipy_assets/blob/master/run_phonons.png?raw=true" />
-<p><strong>Total running time of the script:</strong> ( 0 minutes  6.821 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  1.668 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-flow-gallery-run-phonons-wkq-py">
 <div class="sphx-glr-download docutils container">
-<a class="reference download internal" href="../_downloads/run_phonons_wkq.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">run_phonons_wkq.py</span></code></a></div>
-<div class="sphx-glr-download docutils container">
-<a class="reference download internal" href="../_downloads/run_phonons_wkq.ipynb" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">run_phonons_wkq.ipynb</span></code></a></div>
+<p><a class="reference download internal" download="" href="../_downloads/8fe8acc58ae8a7138e7d1ff5917ef4c7/run_phonons_wkq.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">run_phonons_wkq.py</span></code></a></p>
 </div>
-<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.readthedocs.io">Gallery generated by Sphinx-Gallery</a></p>
+<div class="sphx-glr-download docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/ce980763f8e1c8642673dd35c31c168c/run_phonons_wkq.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">run_phonons_wkq.ipynb</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
 </div>
 
 
@@ -292,8 +297,8 @@ and removed the WFQ files at runtime to optimize the disk space.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Sep 18, 2018.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+      Last updated on Oct 18, 2019.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>
 </footer>

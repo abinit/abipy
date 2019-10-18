@@ -2,30 +2,19 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abicheck.py &#8212; abipy 0.7.0.dev documentation</title>
+    <meta charset="utf-8" />
+    <title>abicheck.py &#8212; abipy 0.7.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../',
-        VERSION:     '0.7.0.dev',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
-    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
-    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="abicomp.py" href="abicomp.html" />
@@ -34,9 +23,12 @@
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
 
-  </head>
-  <body>
+  </head><body>
 
   <div id="navbar" class="navbar navbar-default navbar-fixed-top">
     <div class="container">
@@ -49,7 +41,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0.dev</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -98,7 +90,7 @@
   <ul class="dropdown-menu localtoc"
       role="menu"
       aria-labelledby="dLabelLocalToc"><ul>
-<li><a class="reference internal" href="#"><code class="docutils literal"><span class="pre">abicheck.py</span></code></a><ul>
+<li><a class="reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">abicheck.py</span></code></a><ul>
 <li><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
 </ul>
 </li>
@@ -147,92 +139,66 @@
 
 <div class="container">
   <div class="row">
-    <div class="col-md-12 content">
+    <div class="body col-md-12 content" role="main">
       
   <div class="section" id="abicheck-py">
-<span id="id1"></span><h1><code class="docutils literal"><span class="pre">abicheck.py</span></code><a class="headerlink" href="#abicheck-py" title="Permalink to this headline">¶</a></h1>
-<p>This script checks that the options specified in <code class="docutils literal"><span class="pre">manager.yml</span></code>, <code class="docutils literal"><span class="pre">scheduler.yml</span></code>,
+<span id="id1"></span><h1><code class="docutils literal notranslate"><span class="pre">abicheck.py</span></code><a class="headerlink" href="#abicheck-py" title="Permalink to this headline">¶</a></h1>
+<p>This script checks that the options specified in <code class="docutils literal notranslate"><span class="pre">manager.yml</span></code>, <code class="docutils literal notranslate"><span class="pre">scheduler.yml</span></code>,
 and the environment on the local machine are properly configured.
 Please consult the documentation on the <a class="reference internal" href="../workflows/taskmanager.html#taskmanager"><span class="std std-ref">TaskManager</span></a> for a more detailed description of these <a class="reference external" href="https://en.wikipedia.org/wiki/YAML">YAML</a> files.</p>
-<div class="highlight-text"><div class="highlight"><pre><span></span>$ abicheck.py --no-colors
-AbiPy Manager:
-[Qadapter 0]
-ShellAdapter:localhost
-Hardware:
-   num_nodes: 2, sockets_per_node: 1, cores_per_socket: 2, mem_per_node 4096,
-Qadapter selected: 0
-
-Abinitbuild:
-Abinit Build Information:
-    Abinit version: 8.9.4
-    MPI: True, MPI-IO: True, OpenMP: False
-    Netcdf: True
-
-Abipy Scheduler:
-PyFlowScheduler, Pid: 15977
-Scheduler options: {&#39;weeks&#39;: 0, &#39;days&#39;: 0, &#39;hours&#39;: 0, &#39;minutes&#39;: 0, &#39;seconds&#39;: 5}
-
-Installed packages:
-Package         Version
---------------  ---------
-system          Darwin
-python_version  3.6.1
-numpy           1.14.5
-scipy           1.1.0
-netCDF4         1.3.1
-apscheduler     2.1.0
-pydispatch      2.0.5
-yaml            3.12
-pymatgen        2018.9.12
-
-
-Abipy requirements are properly configured
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ abicheck.py --no-colors
+Traceback (most recent call last):
+  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/bin/abicheck.py&quot;, line 4, in &lt;module&gt;
+    __import__(&#39;pkg_resources&#39;).require(&#39;abipy==0.7.0.dev0&#39;)
+  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3250, in &lt;module&gt;
+    @_call_aside
+  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3234, in _call_aside
+    f(*args, **kwargs)
+  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3263, in _initialize_master_working_set
+    working_set = WorkingSet._build_master()
+  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 583, in _build_master
+    ws.require(__requires__)
+  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 900, in require
+    needed = self.resolve(parse_requirements(requirements))
+  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 786, in resolve
+    raise DistributionNotFound(req, requirers)
+pkg_resources.DistributionNotFound: The &#39;abipy==0.7.0.dev0&#39; distribution was not found and is required by the application
 </pre></div>
 </div>
-<p>The command <code class="docutils literal"><span class="pre">abicheck.py</span> <span class="pre">--with-flow</span></code> can be used to run a small AbiPy flow in order to
+<p>The command <code class="docutils literal notranslate"><span class="pre">abicheck.py</span> <span class="pre">--with-flow</span></code> can be used to run a small AbiPy flow in order to
 check the interface with the Abinit executables.</p>
 <p>Complete command line reference</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">abicheck</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">V</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">abicheck</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">V</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span>
                    <span class="p">[</span><span class="o">--</span><span class="k">with</span><span class="o">-</span><span class="n">flow</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">m</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="Named Arguments">
 <h2>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h2>
-<table class="docutils option-list" frame="void" rules="none">
-<col class="option" />
-<col class="description" />
-<tbody valign="top">
-<tr><td class="option-group">
-<kbd>--loglevel</kbd></td>
-<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
-<p class="last">Default: “ERROR”</p>
-</td></tr>
-<tr><td class="option-group">
-<kbd>-V, --version</kbd></td>
-<td>show program’s version number and exit</td></tr>
-<tr><td class="option-group">
-<kbd>-v, --verbose</kbd></td>
-<td><p class="first">verbose, can be supplied multiple times to increase verbosity.</p>
-<p class="last">Default: 0</p>
-</td></tr>
-<tr><td class="option-group">
-<kbd>--no-colors</kbd></td>
-<td><p class="first">Disable ASCII colors.</p>
-<p class="last">Default: False</p>
-</td></tr>
-<tr><td class="option-group">
-<kbd>--with-flow</kbd></td>
-<td><p class="first">Build and run small abipy flow for testing.</p>
-<p class="last">Default: False</p>
-</td></tr>
-<tr><td class="option-group" colspan="2">
-<kbd>-m, --show-managers</kbd></td>
-</tr>
-<tr><td>&#160;</td><td><p class="first">Print table with manager files provided by AbiPy.</p>
-<p class="last">Default: False</p>
-</td></tr>
-</tbody>
-</table>
+<dl class="option-list">
+<dt><kbd>--loglevel</kbd></dt>
+<dd><p>Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p>Default: “ERROR”</p>
+</dd>
+<dt><kbd>-V, --version</kbd></dt>
+<dd><p>show program’s version number and exit</p>
+</dd>
+<dt><kbd>-v, --verbose</kbd></dt>
+<dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
+<p>Default: 0</p>
+</dd>
+<dt><kbd>--no-colors</kbd></dt>
+<dd><p>Disable ASCII colors.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--with-flow</kbd></dt>
+<dd><p>Build and run small abipy flow for testing.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-m, --show-managers</kbd></dt>
+<dd><p>Print table with manager files provided by AbiPy.</p>
+<p>Default: False</p>
+</dd>
+</dl>
 </div>
 </div>
 
@@ -249,8 +215,8 @@ check the interface with the Abinit executables.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Sep 18, 2018.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+      Last updated on Oct 18, 2019.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>
 </footer>

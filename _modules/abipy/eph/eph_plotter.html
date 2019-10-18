@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>abipy.eph.eph_plotter &#8212; abipy 0.7.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <h1>Source code for abipy.eph.eph_plotter</h1><div class="highlight"><pre>
+<span></span><span class="c1"># coding: utf-8</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Objects to plot electronic, vibrational and e-ph properties.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="p">(</span><span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_axarray_fig_plt</span><span class="p">,</span> <span class="n">set_axlims</span><span class="p">,</span> <span class="n">set_visible</span><span class="p">,</span> <span class="n">ax_share</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">abipy.tools</span> <span class="k">import</span> <span class="n">duck</span>
+<span class="kn">from</span> <span class="nn">abipy.electrons.ebands</span> <span class="k">import</span> <span class="n">ElectronBands</span>
+<span class="kn">from</span> <span class="nn">abipy.dfpt.ddb</span> <span class="k">import</span> <span class="n">DdbFile</span>
+<span class="kn">from</span> <span class="nn">abipy.dfpt.phonons</span> <span class="k">import</span> <span class="n">PhbstFile</span><span class="p">,</span> <span class="n">PhdosFile</span>
+<span class="kn">from</span> <span class="nn">abipy.eph.sigeph</span> <span class="k">import</span> <span class="n">SigEPhFile</span>
+
+
+<div class="viewcode-block" id="EphPlotter"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.eph_plotter.EphPlotter">[docs]</a><span class="k">class</span> <span class="nc">EphPlotter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This object provides methods to plot electron and phonons for a single system.</span>
+<span class="sd">    An EphPlotter has:</span>
+
+<span class="sd">        - An |ElectronBands| on a k-path</span>
+<span class="sd">        - An |ElectronBands| on a k-mesh (optional)</span>
+<span class="sd">        - A |PhbstFile| with phonons along a q-path.</span>
+<span class="sd">        - A |PhdosFile| with different kinds of phonon DOSes.</span>
+
+<span class="sd">    EphPlotter uses these objects/files and other inputs/files provided by</span>
+<span class="sd">    the user to generate matplotlib plots related to e-ph interaction.</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: EphPlotter</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="EphPlotter.from_ddb"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.eph_plotter.EphPlotter.from_ddb">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_ddb</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">ddb</span><span class="p">,</span> <span class="n">ebands_kpath</span><span class="p">,</span> <span class="n">ebands_kmesh</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build the object from the ddb file, invoke anaddb to get phonon properties.</span>
+<span class="sd">        This entry point is needed to have phonon plots with LO-TO splitting</span>
+<span class="sd">        as AbiPy will generate an anaddb input with the different q --&gt; 0 directions</span>
+<span class="sd">        required in phbands.plot to plot the LO-TO splitting correctly.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ddb: |DdbFile| or filepath.</span>
+<span class="sd">            ebands_kpath: |ElectronBands| with energies on a k-path or filepath.</span>
+<span class="sd">            ebands_kpath: (optional) |ElectronBands| with energies on a k-mesh or filepath.</span>
+<span class="sd">            kwargs: Passed to anaget_phbst_and_phdos_files</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ddb</span> <span class="o">=</span> <span class="n">DdbFile</span><span class="o">.</span><span class="n">as_ddb</span><span class="p">(</span><span class="n">ddb</span><span class="p">)</span>
+        <span class="n">phbst_file</span><span class="p">,</span> <span class="n">phdos_file</span> <span class="o">=</span> <span class="n">ddb</span><span class="o">.</span><span class="n">anaget_phbst_and_phdos_files</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">ebands_kpath</span><span class="p">,</span> <span class="n">phbst_file</span><span class="p">,</span> <span class="n">phdos_file</span><span class="p">,</span> <span class="n">ebands_kmesh</span><span class="o">=</span><span class="n">ebands_kmesh</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ebands_kpath</span><span class="p">,</span> <span class="n">phbst_file</span><span class="p">,</span> <span class="n">phdos_file</span><span class="p">,</span> <span class="n">ebands_kmesh</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eb_kpath</span> <span class="o">=</span> <span class="n">ElectronBands</span><span class="o">.</span><span class="n">as_ebands</span><span class="p">(</span><span class="n">ebands_kpath</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eb_kmesh</span> <span class="o">=</span> <span class="n">ElectronBands</span><span class="o">.</span><span class="n">as_ebands</span><span class="p">(</span><span class="n">ebands_kmesh</span><span class="p">)</span> <span class="k">if</span> <span class="n">ebands_kmesh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">phbst_file</span> <span class="o">=</span> <span class="n">phbst_file</span>
+        <span class="k">if</span> <span class="n">duck</span><span class="o">.</span><span class="n">is_string</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phbst_file</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">phbst_file</span> <span class="o">=</span> <span class="n">PhbstFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phbst_file</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">phb_qpath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phbst_file</span><span class="o">.</span><span class="n">phbands</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">phdos_file</span> <span class="o">=</span> <span class="n">phdos_file</span>
+        <span class="k">if</span> <span class="n">duck</span><span class="o">.</span><span class="n">is_string</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phdos_file</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">phdos_file</span> <span class="o">=</span> <span class="n">PhdosFile</span><span class="p">(</span><span class="n">phdos_file</span><span class="p">)</span>
+
+<div class="viewcode-block" id="EphPlotter.plot"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.eph_plotter.EphPlotter.plot">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">eb_ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot electrons with possible (phonon-mediated) scattering channels for the CBM and VBM.</span>
+<span class="sd">        Also plot phonon band structure and phonon PJDOS.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            eb_ylims: Set the data limits for the y-axis of the electron band. Accept tuple e.g. ``(left, right)``</span>
+<span class="sd">                or scalar e.g. ``left``. If None, limits are selected automatically.</span>
+
+<span class="sd">        Return: |matplotlib-Figure|</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Build grid. Share y-axis for Phbands and Phdos</span>
+        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+        <span class="n">ax0</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot2grid</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">colspan</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">rowspan</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">ax1</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot2grid</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">colspan</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">rowspan</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">ax2</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot2grid</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">colspan</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">rowspan</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">get_shared_y_axes</span><span class="p">()</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span>
+
+        <span class="c1"># Plot electrons with possible e-ph scattering channels.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eb_kpath</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax0</span><span class="p">,</span> <span class="n">with_gaps</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="n">eb_ylims</span><span class="p">,</span> <span class="n">max_phfreq</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">phb_qpath</span><span class="o">.</span><span class="n">maxfreq</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="c1"># Plot phonon bands</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">phb_qpath</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax1</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="c1">#ax1.yaxis.set_visible(False)</span>
+        <span class="c1">#set_visible(ax1, False, &quot;ylabel&quot;)</span>
+
+        <span class="c1"># Plot phonon PJDOS</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">phdos_file</span><span class="o">.</span><span class="n">plot_pjdos_type</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax2</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">exchange_xy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">set_visible</span><span class="p">(</span><span class="n">ax2</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;ylabel&quot;</span><span class="p">)</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">labelleft</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">labelright</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># Adjust y-limits for phonons</span>
+        <span class="n">ylims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phb_qpath</span><span class="o">.</span><span class="n">minfreq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">phb_qpath</span><span class="o">.</span><span class="n">maxfreq</span> <span class="o">+</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phb_qpath</span><span class="o">.</span><span class="n">maxfreq</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">):</span>
+            <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">ylims</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fig</span></div>
+
+<div class="viewcode-block" id="EphPlotter.plot_phonons_occ"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.eph_plotter.EphPlotter.plot_phonons_occ">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_phonons_occ</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temps</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">400</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot phonon band structure with markers proportional to the occupation</span>
+<span class="sd">        of each phonon mode for different temperatures.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            temps: List of temperatures in Kelvin.</span>
+
+<span class="sd">        Return: |matplotlib-Figure|</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">temps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">temps</span><span class="p">)</span>
+        <span class="n">ntemp</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">temps</span><span class="p">)</span>
+
+        <span class="c1"># Build plot grid.</span>
+        <span class="n">num_plots</span><span class="p">,</span> <span class="n">ncols</span><span class="p">,</span> <span class="n">nrows</span> <span class="o">=</span> <span class="n">ntemp</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">num_plots</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">ncols</span> <span class="o">=</span> <span class="mi">2</span>
+            <span class="n">nrows</span> <span class="o">=</span> <span class="p">(</span><span class="n">num_plots</span> <span class="o">//</span> <span class="n">ncols</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">num_plots</span> <span class="o">%</span> <span class="n">ncols</span><span class="p">)</span>
+
+        <span class="n">ax_list</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_axarray_fig_plt</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span>
+                                                <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">squeeze</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">ax_list</span> <span class="o">=</span> <span class="n">ax_list</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">ax</span><span class="p">,</span> <span class="n">temp</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ax_list</span><span class="p">,</span> <span class="n">temps</span><span class="o">.</span><span class="n">ravel</span><span class="p">()):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">phb_qpath</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="n">temp</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fig</span></div>
+
+<div class="viewcode-block" id="EphPlotter.plot_linewidths_sigeph"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.eph_plotter.EphPlotter.plot_linewidths_sigeph">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_linewidths_sigeph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sigeph</span><span class="p">,</span> <span class="n">eb_ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot e-bands + e-DOS + Im(Sigma_{eph}) + phonons + gkq^2</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sigeph: |SigephFile| or string with path to file.</span>
+<span class="sd">            eb_ylims: Set the data limits for the y-axis of the electron band. Accept tuple e.g. ``(left, right)``</span>
+<span class="sd">                or scalar e.g. ``left``. If None, limits are selected automatically.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">closeit</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">duck</span><span class="o">.</span><span class="n">is_string</span><span class="p">(</span><span class="n">sigeph</span><span class="p">):</span>
+            <span class="n">sigeph</span> <span class="o">=</span> <span class="n">SigEPhFile</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">sigeph</span><span class="p">)</span>
+            <span class="n">closeit</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># Build grid. share y-axis for Phbands and Phdos</span>
+        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+
+        <span class="c1"># Electrons</span>
+        <span class="n">ax0</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot2grid</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">colspan</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">rowspan</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">ax1</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot2grid</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">colspan</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">rowspan</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">ax2</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot2grid</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">colspan</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">rowspan</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># Share y-axis</span>
+        <span class="n">ax_share</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">ax0</span><span class="p">,</span> <span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span>
+
+        <span class="c1"># Phonons</span>
+        <span class="n">ax3</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot2grid</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">colspan</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">rowspan</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">ax4</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot2grid</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">colspan</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">rowspan</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">ax5</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot2grid</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">colspan</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">rowspan</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># Share y-axis</span>
+        <span class="n">ax_share</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">ax3</span><span class="p">,</span> <span class="n">ax4</span><span class="p">,</span> <span class="n">ax5</span><span class="p">)</span>
+
+        <span class="n">e0</span> <span class="o">=</span> <span class="s2">&quot;fermie&quot;</span>
+
+        <span class="c1"># Plot electrons with possible e-ph scattering channels.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eb_kpath</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax0</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="n">e0</span><span class="p">,</span> <span class="n">with_gaps</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="n">eb_ylims</span><span class="p">,</span> <span class="n">max_phfreq</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">phb_qpath</span><span class="o">.</span><span class="n">maxfreq</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">sigeph</span><span class="o">.</span><span class="n">plot_lws_vs_e0</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax1</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="n">e0</span><span class="p">,</span> <span class="n">exchange_xy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">sigeph</span><span class="o">.</span><span class="n">edos</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax2</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="n">e0</span><span class="p">,</span> <span class="n">exchange_xy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="c1"># Plot phonon bands</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">phb_qpath</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax3</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">sigeph</span><span class="o">.</span><span class="n">plot_a2fw_skb_sum</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax4</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">&quot;gkq2&quot;</span><span class="p">,</span> <span class="n">exchange_xy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="c1"># Plot phonon PJDOS</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">phdos_file</span><span class="o">.</span><span class="n">plot_pjdos_type</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax5</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">exchange_xy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="c1">#set_visible(ax4, False, &quot;ylabel&quot;)</span>
+        <span class="c1">#ax4.tick_params(&quot;y&quot;, left=False, labelleft=False)</span>
+        <span class="c1">#ax4.tick_params(&quot;y&quot;, right=True, labelright=True)</span>
+
+        <span class="k">if</span> <span class="n">closeit</span><span class="p">:</span> <span class="n">sigeph</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">fig</span></div></div>
+
+    <span class="c1">#def close(self):</span>
+    <span class="c1">#    self.phbst_file.close()</span>
+    <span class="c1">#    self.phdos_file.close()</span>
+
+
+<span class="c1">#class EphMultiPlotter(object):</span>
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
+      Last updated on Oct 18, 2019.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

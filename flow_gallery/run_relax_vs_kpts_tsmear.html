@@ -2,30 +2,19 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Relaxation of GaN with different K-meshes &#8212; abipy 0.7.0.dev documentation</title>
+    <meta charset="utf-8" />
+    <title>Relaxation of GaN with different K-meshes &#8212; abipy 0.7.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../',
-        VERSION:     '0.7.0.dev',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
-    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
-    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Flow for Relaxation + Bands" href="run_relax_and_ebands.html" />
@@ -34,9 +23,12 @@
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
 
-  </head>
-  <body>
+  </head><body>
 
   <div id="navbar" class="navbar navbar-default navbar-fixed-top">
     <div class="container">
@@ -49,7 +41,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0.dev</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -144,29 +136,29 @@
 
 <div class="container">
   <div class="row">
-    <div class="col-md-12 content">
+    <div class="body col-md-12 content" role="main">
       
   <div class="sphx-glr-download-link-note admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Click <a class="reference internal" href="#sphx-glr-download-flow-gallery-run-relax-vs-kpts-tsmear-py"><span class="std std-ref">here</span></a> to download the full example code</p>
+<p class="admonition-title">Note</p>
+<p>Click <a class="reference internal" href="#sphx-glr-download-flow-gallery-run-relax-vs-kpts-tsmear-py"><span class="std std-ref">here</span></a> to download the full example code</p>
 </div>
 <div class="sphx-glr-example-title section" id="relaxation-of-gan-with-different-k-meshes">
 <span id="sphx-glr-flow-gallery-run-relax-vs-kpts-tsmear-py"></span><h1>Relaxation of GaN with different K-meshes<a class="headerlink" href="#relaxation-of-gan-with-different-k-meshes" title="Permalink to this headline">¶</a></h1>
-<p>In this example, we employ the relaxation algorithms implemented in Abinit (<code class="docutils literal"><span class="pre">ionmov</span></code> and <code class="docutils literal"><span class="pre">optcell</span></code>)
+<p>In this example, we employ the relaxation algorithms implemented in Abinit (<code class="docutils literal notranslate"><span class="pre">ionmov</span></code> and <code class="docutils literal notranslate"><span class="pre">optcell</span></code>)
 to find the equilibrium configuration of GaN (atomic positions and lattice vectors).
 The relaxation is done with different k-meshes to monitor the convergence of the results.
 You will observe a change of the equilibrium parameters with respect to the k-point mesh.</p>
 <p>Note the we are using pseudopotentials generated with the GGA which tends to
 overestimate the lattice parameters and ecut is way too low.
 If you replace GGA with LDA, you will observe that LDA tends to underestimate the parameters.</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
 
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">os</span>
 
-<span class="kn">import</span> <span class="nn">abipy.abilab</span> <span class="kn">as</span> <span class="nn">abilab</span>
-<span class="kn">import</span> <span class="nn">abipy.flowtk</span> <span class="kn">as</span> <span class="nn">flowtk</span>
-<span class="kn">import</span> <span class="nn">abipy.data</span> <span class="kn">as</span> <span class="nn">abidata</span>
+<span class="kn">import</span> <span class="nn">abipy.abilab</span> <span class="k">as</span> <span class="nn">abilab</span>
+<span class="kn">import</span> <span class="nn">abipy.flowtk</span> <span class="k">as</span> <span class="nn">flowtk</span>
+<span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
 
 
 <span class="k">def</span> <span class="nf">relax_input</span><span class="p">(</span><span class="n">tsmear</span><span class="p">,</span> <span class="n">nksmall</span><span class="p">):</span>
@@ -206,12 +198,14 @@ If you replace GGA with LDA, you will observe that LDA tends to underestimate th
 
     <span class="k">return</span> <span class="n">inp</span>
 
+
 <span class="k">def</span> <span class="nf">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Build and return a flow performing structural relaxations with different k-point samplings.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Set working directory (default is the name of the script with &#39;.py&#39; removed and &quot;run_&quot; replaced by &quot;flow_&quot;)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">workdir</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;READTHEDOCS&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span> <span class="vm">__file__</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="s2">&quot;run_relax_vs_kpts_tsmear.py&quot;</span><span class="p">)</span>
         <span class="n">options</span><span class="o">.</span><span class="n">workdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.py&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;run_&quot;</span><span class="p">,</span> <span class="s2">&quot;flow_&quot;</span><span class="p">)</span>
 
     <span class="c1"># Let generate multiple inputs for different (tsmear, nksmall)</span>
@@ -220,7 +214,7 @@ If you replace GGA with LDA, you will observe that LDA tends to underestimate th
     <span class="n">tsmear_list</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">,</span> <span class="mf">0.03</span><span class="p">,</span> <span class="mf">0.04</span><span class="p">)</span>
     <span class="n">nksmall_list</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
 
-    <span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">product</span>
+    <span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">product</span>
     <span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">relax_input</span><span class="p">(</span><span class="n">tsmear</span><span class="p">,</span> <span class="n">nksmall</span><span class="p">)</span> <span class="k">for</span> <span class="n">tsmear</span><span class="p">,</span> <span class="n">nksmall</span> <span class="ow">in</span> <span class="n">product</span><span class="p">(</span><span class="n">tsmear_list</span><span class="p">,</span> <span class="n">nksmall_list</span><span class="p">)]</span>
 
     <span class="c1"># Build flow form inputs.</span>
@@ -236,15 +230,15 @@ If you replace GGA with LDA, you will observe that LDA tends to underestimate th
 
 <span class="c1"># This block generates the thumbnails in the Abipy gallery.</span>
 <span class="c1"># You can safely REMOVE this part if you are using this script for production runs.</span>
-<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;READTHEDOCS&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
-    <span class="vm">__name__</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;READTHEDOCS&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="vm">__name__</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="kn">import</span> <span class="nn">tempfile</span>
     <span class="n">options</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">build_flow_main_parser</span><span class="p">()</span><span class="o">.</span><span class="n">parse_args</span><span class="p">([</span><span class="s2">&quot;-w&quot;</span><span class="p">,</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()])</span>
     <span class="c1">#build_flow(options).plot_networkx(with_edge_labels=True, tight_layout=True)</span>
     <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span><span class="o">.</span><span class="n">graphviz_imshow</span><span class="p">()</span>
 
 
-<span class="nd">@flowtk.flow_main</span>
+<span class="nd">@flowtk</span><span class="o">.</span><span class="n">flow_main</span>
 <span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This is our main function that will be invoked by the script.</span>
@@ -259,22 +253,29 @@ If you replace GGA with LDA, you will observe that LDA tends to underestimate th
 </pre></div>
 </div>
 <img alt="../_images/sphx_glr_run_relax_vs_kpts_tsmear_001.png" class="sphx-glr-single-img" src="../_images/sphx_glr_run_relax_vs_kpts_tsmear_001.png" />
+<p class="sphx-glr-script-out">Out:</p>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+  plt.show()
+</pre></div>
+</div>
 <p>Run the script with:</p>
 <blockquote>
 <div><blockquote>
-<div>run_relax_vs_kpts_tsmear.py -s</div></blockquote>
+<div><p>run_relax_vs_kpts_tsmear.py -s</p>
+</div></blockquote>
 <p>then use:</p>
 <blockquote>
-<div>abirun.py flow_relax_vs_kpts_tsmear hist -p</div></blockquote>
+<div><p>abirun.py flow_relax_vs_kpts_tsmear hist -p</p>
+</div></blockquote>
 <p>to print (and plot) the structural relaxation for all the tasks:</p>
 <img alt="Commbiplot of the HIST files for the different (nkpt, tsmear) params" src="https://github.com/abinit/abipy_assets/blob/master/run_relax_vs_kpts_tsmear_hist.png?raw=true" />
 <p>To analyze the convergence of the relaxed lattice parameters, use:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>abirun.py flow_relax_vs_kpts_tsmear robot GSR
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>abirun.py flow_relax_vs_kpts_tsmear robot GSR
 </pre></div>
 </div>
 <p>to create a GSR robot for all the tasks in the flow and open an ipyton shell.</p>
 <p>Then, inside ipython, type:</p>
-<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="o">%</span><span class="k">matplotlib</span>
+<div class="highlight-ipython notranslate"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="o">%</span><span class="k">matplotlib</span>
 <span class="gp">In [2]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">robot</span><span class="o">.</span><span class="n">get_dataframe</span><span class="p">()</span>
 <span class="go"># Let&#39;s do some math with pandas to retrieve the Abinit acell from the a lattice parameter given in Ang.</span>
 <span class="gp">In [3]: </span><span class="kn">import</span> <span class="nn">math</span>
@@ -283,7 +284,7 @@ If you replace GGA with LDA, you will observe that LDA tends to underestimate th
 </pre></div>
 </div>
 </div></blockquote>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1">#        In [7]: df[&quot;acell&quot;]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#        In [7]: df[&quot;acell&quot;]</span>
 <span class="c1">#        Out[7]:</span>
 <span class="c1">#        flow_relax_vs_kpts_tsmear/w0/t0/outdata/out_GSR.nc     7.558770</span>
 <span class="c1">#        flow_relax_vs_kpts_tsmear/w0/t1/outdata/out_GSR.nc     7.505486</span>
@@ -306,14 +307,16 @@ If you replace GGA with LDA, you will observe that LDA tends to underestimate th
 <span class="c1">#    :alt: optimized acell as function of nkpt and tsmear</span>
 </pre></div>
 </div>
-<p><strong>Total running time of the script:</strong> ( 0 minutes  1.322 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  1.121 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-flow-gallery-run-relax-vs-kpts-tsmear-py">
 <div class="sphx-glr-download docutils container">
-<a class="reference download internal" href="../_downloads/run_relax_vs_kpts_tsmear.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">run_relax_vs_kpts_tsmear.py</span></code></a></div>
-<div class="sphx-glr-download docutils container">
-<a class="reference download internal" href="../_downloads/run_relax_vs_kpts_tsmear.ipynb" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">run_relax_vs_kpts_tsmear.ipynb</span></code></a></div>
+<p><a class="reference download internal" download="" href="../_downloads/219751794b4d2f1c817192df3e446d76/run_relax_vs_kpts_tsmear.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">run_relax_vs_kpts_tsmear.py</span></code></a></p>
 </div>
-<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.readthedocs.io">Gallery generated by Sphinx-Gallery</a></p>
+<div class="sphx-glr-download docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/787e0f31158a72b5cf73fcc57e1cfc4f/run_relax_vs_kpts_tsmear.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">run_relax_vs_kpts_tsmear.ipynb</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
 </div>
 
 
@@ -329,8 +332,8 @@ If you replace GGA with LDA, you will observe that LDA tends to underestimate th
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Sep 18, 2018.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+      Last updated on Oct 18, 2019.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>
 </footer>

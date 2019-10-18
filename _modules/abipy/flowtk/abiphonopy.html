@@ -2,39 +2,31 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.flowtk.abiphonopy &#8212; abipy 0.7.0.dev documentation</title>
+    <meta charset="utf-8" />
+    <title>abipy.flowtk.abiphonopy &#8212; abipy 0.7.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../../',
-        VERSION:     '0.7.0.dev',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js"></script>
-    <script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
-    <script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
 
-  </head>
-  <body>
+  </head><body>
 
   <div id="navbar" class="navbar navbar-default navbar-fixed-top">
     <div class="container">
@@ -47,7 +39,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0.dev</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -127,12 +119,11 @@
 
 <div class="container">
   <div class="row">
-    <div class="col-md-12 content">
+    <div class="body col-md-12 content" role="main">
       
   <h1>Source code for abipy.flowtk.abiphonopy</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding: utf-8</span>
 <span class="sd">&quot;&quot;&quot;Interface between phonopy and abipy workflow model.&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -145,8 +136,8 @@
     <span class="kn">import</span> <span class="nn">warnings</span>
     <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;phonopy is required by abiphonopy. Install it with conda or pip install phonopy&quot;</span><span class="p">)</span>
 
-<span class="kn">from</span> <span class="nn">pymatgen.io.abinit.works</span> <span class="k">import</span> <span class="n">Work</span>
 <span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="n">Structure</span>
+<span class="kn">from</span> <span class="nn">abipy.flowtk.works</span> <span class="k">import</span> <span class="n">Work</span>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -182,22 +173,22 @@
 
 <span class="sd">    .. attribute:: scdims(3)</span>
 
-<span class="sd">	numpy arrays with the number of cells in the supercell along the three reduced directions</span>
+<span class="sd">        numpy arrays with the number of cells in the supercell along the three reduced directions</span>
 
 <span class="sd">    .. attribute:: phonon</span>
 
-<span class="sd">	:class:`Phonopy` object used to construct the supercells with displaced atoms.</span>
+<span class="sd">        :class:`Phonopy` object used to construct the supercells with displaced atoms.</span>
 
 <span class="sd">    .. attribute:: phonopy_tasks</span>
 
-<span class="sd">	List of :class:`ScfTask`. Each task compute the forces in one perturbed supercell.</span>
+<span class="sd">        List of :class:`ScfTask`. Each task compute the forces in one perturbed supercell.</span>
 
 <span class="sd">    .. attribute:: bec_tasks</span>
 
 <span class="sd">    .. attribute:: cpdata2dst</span>
 
-<span class="sd">	If not None, the work will copy the output results to the outdir of the flow</span>
-<span class="sd">	once all_ok is invoked. Note that cpdata2dst must be an absolute path.</span>
+<span class="sd">        If not None, the work will copy the output results to the outdir of the flow</span>
+<span class="sd">        once all_ok is invoked. Note that cpdata2dst must be an absolute path.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="PhonopyWork.from_gs_input"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.abiphonopy.PhonopyWork.from_gs_input">[docs]</a>    <span class="nd">@classmethod</span>
@@ -205,18 +196,13 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build the work from an :class:`AbinitInput` object representing a GS calculations.</span>
 
-<span class="sd">	Args:</span>
-<span class="sd">	    gsinp:</span>
-<span class="sd">		:class:`AbinitInput` object representing a GS calculation in the initial unit cell.</span>
-<span class="sd">	    scdims:</span>
-<span class="sd">		Number of unit cell replicas along the three reduced directions.</span>
-<span class="sd">	    phonopy_kwargs:</span>
-<span class="sd">		(Optional) dictionary with arguments passed to Phonopy constructor.</span>
-<span class="sd">	    displ_kwargs:</span>
-<span class="sd">		(Optional) dictionary with arguments passed to generate_displacements.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            gsinp::class:`AbinitInput` object representing a GS calculation in the initial unit cell.</span>
+<span class="sd">            scdims: Number of unit cell replicas along the three reduced directions.</span>
+<span class="sd">            phonopy_kwargs: (Optional) dictionary with arguments passed to Phonopy constructor.</span>
+<span class="sd">            displ_kwargs: (Optional) dictionary with arguments passed to generate_displacements.</span>
 
-<span class="sd">	Return:</span>
-<span class="sd">	    PhonopyWork instance.</span>
+<span class="sd">        Return: PhonopyWork instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
         <span class="n">new</span><span class="o">.</span><span class="n">phonopy_tasks</span><span class="p">,</span> <span class="n">new</span><span class="o">.</span><span class="n">bec_tasks</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
@@ -257,11 +243,11 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">phonon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phonon</span>
 
-	<span class="c1"># Write POSCAR with initial unit cell.</span>
+        <span class="c1"># Write POSCAR with initial unit cell.</span>
         <span class="n">structure</span> <span class="o">=</span> <span class="n">structure_from_atoms</span><span class="p">(</span><span class="n">phonon</span><span class="o">.</span><span class="n">get_primitive</span><span class="p">())</span>
         <span class="n">structure</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">path_in</span><span class="p">(</span><span class="s2">&quot;POSCAR&quot;</span><span class="p">))</span>
 
-	<span class="c1"># Write yaml file with displacements.</span>
+        <span class="c1"># Write yaml file with displacements.</span>
         <span class="n">supercell</span> <span class="o">=</span> <span class="n">phonon</span><span class="o">.</span><span class="n">get_supercell</span><span class="p">()</span>
         <span class="n">displacements</span> <span class="o">=</span> <span class="n">phonon</span><span class="o">.</span><span class="n">get_displacements</span><span class="p">()</span>
         <span class="c1">#directions = phonon.get_displacement_directions()</span>
@@ -273,7 +259,7 @@
         <span class="n">num_atoms</span> <span class="o">=</span> <span class="n">supercell</span><span class="o">.</span><span class="n">get_number_of_atoms</span><span class="p">()</span>
         <span class="n">force_sets</span> <span class="o">=</span> <span class="n">parse_set_of_forces</span><span class="p">(</span><span class="n">num_atoms</span><span class="p">,</span> <span class="n">forces_filenames</span><span class="p">)</span>
 
-	<span class="c1"># Write FORCE_SETS file.</span>
+        <span class="c1"># Write FORCE_SETS file.</span>
         <span class="n">displacements</span> <span class="o">=</span> <span class="n">file_IO</span><span class="o">.</span><span class="n">parse_disp_yaml</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">path_in</span><span class="p">(</span><span class="s1">&#39;disp.yaml&#39;</span><span class="p">))</span>
         <span class="n">num_atoms</span> <span class="o">=</span> <span class="n">displacements</span><span class="p">[</span><span class="s1">&#39;natom&#39;</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">forces</span><span class="p">,</span> <span class="n">disp</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">force_sets</span><span class="p">,</span> <span class="n">displacements</span><span class="p">[</span><span class="s1">&#39;first_atoms&#39;</span><span class="p">]):</span>
@@ -323,7 +309,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cpdata2dst</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">copy_r</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cpdata2dst</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">PhonopyWork</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">on_all_ok</span><span class="p">()</span></div></div>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">on_all_ok</span><span class="p">()</span></div></div>
 
 
 <div class="viewcode-block" id="PhonopyGruneisenWork"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.abiphonopy.PhonopyGruneisenWork">[docs]</a><span class="k">class</span> <span class="nc">PhonopyGruneisenWork</span><span class="p">(</span><span class="n">Work</span><span class="p">):</span>
@@ -337,33 +323,26 @@
 
 <span class="sd">    .. attribute:: scdims(3)</span>
 
-<span class="sd">	numpy arrays with the number of cells in the supercell along the three reduced directions.</span>
-
+<span class="sd">        numpy arrays with the number of cells in the supercell along the three reduced directions.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="PhonopyGruneisenWork.from_gs_input"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.abiphonopy.PhonopyGruneisenWork.from_gs_input">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_gs_input</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">gsinp</span><span class="p">,</span> <span class="n">voldelta</span><span class="p">,</span> <span class="n">scdims</span><span class="p">,</span> <span class="n">phonopy_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">displ_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build the work from an :class:`AbinitInput` object representing a GS calculations.</span>
 
-<span class="sd">	Args:</span>
-<span class="sd">	    gsinp:</span>
-<span class="sd">		:class:`AbinitInput` object representing a GS calculation in the initial unit cell.</span>
-<span class="sd">	    voldelta:</span>
-<span class="sd">                Absolute increment for unit cell volume. The three volumes are:</span>
-<span class="sd">                     [v0 - voldelta, v0, v0 + voldelta] where v0 is taken from gsinp.structure.</span>
-<span class="sd">	    scdims:</span>
-<span class="sd">		Number of unit cell replicas along the three reduced directions.</span>
-<span class="sd">	    phonopy_kwargs:</span>
-<span class="sd">		(Optional) dictionary with arguments passed to Phonopy constructor.</span>
-<span class="sd">	    displ_kwargs:</span>
-<span class="sd">		(Optional) dictionary with arguments passed to generate_displacements.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            gsinp: :class:`AbinitInput` object representing a GS calculation in the initial unit cell.</span>
+<span class="sd">            voldelta: Absolute increment for unit cell volume. The three volumes are:</span>
+<span class="sd">                [v0 - voldelta, v0, v0 + voldelta] where v0 is taken from gsinp.structure.</span>
+<span class="sd">            scdims: Number of unit cell replicas along the three reduced directions.</span>
+<span class="sd">            phonopy_kwargs: (Optional) dictionary with arguments passed to Phonopy constructor.</span>
+<span class="sd">            displ_kwargs: (Optional) dictionary with arguments passed to generate_displacements.</span>
 
-<span class="sd">	Return:</span>
-<span class="sd">	    `PhonopyGruneisenWork` instance.</span>
+<span class="sd">        Return: `PhonopyGruneisenWork` instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
 
-	<span class="c1"># Save arguments that will be used to call phonopy for creating</span>
+        <span class="c1"># Save arguments that will be used to call phonopy for creating</span>
         <span class="c1"># the supercells with the displacements once the three volumes have been relaxed.</span>
         <span class="n">new</span><span class="o">.</span><span class="n">scdims</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">scdims</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">new</span><span class="o">.</span><span class="n">scdims</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,):</span>
@@ -375,7 +354,7 @@
         <span class="n">v0</span> <span class="o">=</span> <span class="n">gsinp</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">volume</span>
         <span class="k">if</span> <span class="n">voldelta</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;voldelta must be &gt; 0 but got </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">voldelta</span><span class="p">)</span>
-        <span class="n">volumes</span> <span class="o">=</span> <span class="p">[</span><span class="n">v0</span> <span class="o">-</span> <span class="n">voldelta</span><span class="p">,</span> <span class="n">v0</span><span class="p">,</span> <span class="n">v0</span>  <span class="o">+</span> <span class="n">voldelta</span><span class="p">]</span>
+        <span class="n">volumes</span> <span class="o">=</span> <span class="p">[</span><span class="n">v0</span> <span class="o">-</span> <span class="n">voldelta</span><span class="p">,</span> <span class="n">v0</span><span class="p">,</span> <span class="n">v0</span> <span class="o">+</span> <span class="n">voldelta</span><span class="p">]</span>
         <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">v</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">volumes</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;volumes must be &gt; 0 but got </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">volumes</span><span class="p">))</span>
 
@@ -398,7 +377,7 @@
 <span class="sd">        have reached status S_OK.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">add_phonopy_works_and_build</span><span class="p">()</span>
-        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">PhonopyGruneisenWork</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">on_all_ok</span><span class="p">()</span></div>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">on_all_ok</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="PhonopyGruneisenWork.add_phonopy_works_and_build"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.abiphonopy.PhonopyGruneisenWork.add_phonopy_works_and_build">[docs]</a>    <span class="k">def</span> <span class="nf">add_phonopy_works_and_build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -435,8 +414,8 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Sep 18, 2018.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+      Last updated on Oct 18, 2019.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>
 </footer>

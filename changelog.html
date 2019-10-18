@@ -2,30 +2,19 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Changelog &#8212; abipy 0.7.0.dev documentation</title>
+    <meta charset="utf-8" />
+    <title>Changelog &#8212; abipy 0.7.0 documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/gallery.css" type="text/css" />
-    <link rel="stylesheet" href="_static/my_style.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '0.7.0.dev',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="_static/my_style.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <script type="text/javascript" src="_static/js/jquery-1.11.0.min.js"></script>
-    <script type="text/javascript" src="_static/js/jquery-fix.js"></script>
-    <script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Bibliography" href="zzbiblio.html" />
@@ -34,9 +23,12 @@
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="_static/bootstrap-sphinx.js "></script>
 
-  </head>
-  <body>
+  </head><body>
 
   <div id="navbar" class="navbar navbar-default navbar-fixed-top">
     <div class="container">
@@ -49,7 +41,7 @@
         </button>
         <a class="navbar-brand" href="index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0.dev</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -144,40 +136,48 @@
 
 <div class="container">
   <div class="row">
-    <div class="col-md-12 content">
+    <div class="body col-md-12 content" role="main">
       
   <div class="section" id="changelog">
 <span id="id1"></span><h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="0.3.0">
-<h2 style="margin-bottom: 0.3em;"><a class="reference external" href="https://github.com/abinit/abipy/tree/0.3.0">0.3.0</a> <span style="font-size: 75%;">2017-12-26</span></h2><ul class="simple">
-<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span>: Add Shankland-Koelling-Wood Fourier interpolation scheme.
-For the theoretical background see <a class="reference internal" href="zzbiblio.html#euwema1969" id="id2">[Euwema1969]</a><a class="reference internal" href="zzbiblio.html#koelling1986" id="id3">[Koelling1986]</a><a class="reference internal" href="zzbiblio.html#pickett1988" id="id4">[Pickett1988]</a><a class="reference internal" href="zzbiblio.html#madsen2006" id="id5">[Madsen2006]</a>.</li>
-<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Add several new options to <a class="reference internal" href="scripts/abirun.html#abirun-py"><span class="std std-ref">abirun.py</span></a>, <a class="reference internal" href="scripts/abicomp.html#abicomp-py"><span class="std std-ref">abicomp.py</span></a> and <a class="reference internal" href="scripts/abistruct.html#abistruct-py"><span class="std std-ref">abistruct.py</span></a> scripts.</li>
-<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Add robots for comparing/analyzing multiple files of the same type (<a class="reference internal" href="api/dfpt_api.html#abipy.dfpt.ddb.DdbRobot" title="abipy.dfpt.ddb.DdbRobot"><code class="xref py py-class docutils literal"><span class="pre">abipy.dfpt.ddb.DdbRobot</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.gsr.GsrRobot</span></code> …)
-Some of the robot capabilities are exposed via the <a class="reference internal" href="scripts/abicomp.html#abicomp-py"><span class="std std-ref">abicomp.py</span></a> and the <a class="reference internal" href="scripts/abirun.html#abirun-py"><span class="std std-ref">abirun.py</span></a> scripts.</li>
-<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Add interface with <a class="reference external" href="http://henriquemiranda.github.io/phononwebsite/">phononwebsite</a>: <cite>abiview.py phbands out_PHBST.nc -web</cite>.</li>
-<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Change default value of <code class="docutils literal"><span class="pre">shifts</span></code> in <a class="reference internal" href="api/abio_api.html#abipy.abio.factories.g0w0_with_ppmodel_inputs" title="abipy.abio.factories.g0w0_with_ppmodel_inputs"><code class="xref py py-func docutils literal"><span class="pre">abipy.abio.factories.g0w0_with_ppmodel_inputs()</span></code></a>.</li>
-<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Solve problem with visualize in <a class="reference external" href="http://jupyter.org/">jupyter</a> notebooks (files should be produced in workdir)</li>
-<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Autodetect presence in <a class="reference internal" href="api/dfpt_api.html#abipy.dfpt.ddb.DdbFile" title="abipy.dfpt.ddb.DdbFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.dfpt.ddb.DdbFile</span></code></a> of data required for the LO-TO splitting.</li>
-<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Add <code class="docutils literal"><span class="pre">mpirunner_options</span></code> and <code class="docutils literal"><span class="pre">shell_runner_options</span></code> to <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.9.12)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a>.</li>
-<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Improve coverage</li>
-<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Add AbinitInput.set_spell_check to activate/deactivate spell-checker</li>
-<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> <a class="reference internal" href="scripts/abicheck.html#abicheck-py"><span class="std std-ref">abicheck.py</span></a> accepts <code class="docutils literal"><span class="pre">-with-flow</span></code> options</li>
-<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Add <a class="reference internal" href="scripts/abiview.html#abiview-py"><span class="std std-ref">abiview.py</span></a> script for a quick visualization of results.</li>
-<li>[<span style="color: #A04040;">Bug</span>]<span>:</span><span> </span> Fix bug in thermodinamical properties (zero-point energy was included twice)</li>
-<li>[<span style="color: #A04040;">Bug</span>]<span>:</span><span> </span> Fix bug in in <cite>SigresFile.get_dataframe</cite> if QP states do not start with the same band index.</li>
-<li>[<span style="color: #4070A0;">Support</span>]<span>:</span><span> </span> Significant improvements to the documentation and the website: add <a class="reference internal" href="gallery/index.html#plot-gallery"><span class="std std-ref">AbiPy Gallery</span></a> with matplotlib plots
-and <a class="reference internal" href="flow_gallery/index.html#flow-gallery"><span class="std std-ref">Flow Gallery</span></a> with AbiPy flows are now automatically generated.</li>
+<p>Release 0.7.0: 2019-10-18</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Remove support for py2. Now Abipy requires py &gt;= 3.6 (3.8 is not yet supported)</p></li>
+<li><p>AbiPy now requires pymatgen &gt;= 2019.10.16</p></li>
+<li><p>Move workflow code from pymatgen to abipy.flowk</p></li>
+<li><p>Improved support for EPH calculations.</p></li>
 </ul>
-</div>
-<div class="section" id="0.2.0">
-<h2 style="margin-bottom: 0.3em;"><a class="reference external" href="https://github.com/abinit/abipy/tree/0.2.0">0.2.0</a> <span style="font-size: 75%;">2017-03-10</span></h2><ul class="simple">
-<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> This is the first official release in which we have reached a relatively stable API
+</div></blockquote>
+<p>Release:0.3.0 2017-12-26</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Add <code class="docutils literal notranslate"><span class="pre">abiview.py</span></code> script for a quick visualization of results.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">abicheck.py</span></code> accepts <code class="docutils literal notranslate"><span class="pre">-with-flow</span></code> option</p></li>
+<li><p>Add AbinitInput.set_spell_check to activate/deactivate spell-checker</p></li>
+<li><p>Improve coverage</p></li>
+<li><p>Fix bug in in <code class="docutils literal notranslate"><span class="pre">SigresFile.get_dataframe</span></code> if QP states do not start with the same band index.</p></li>
+<li><p>Fix bug in thermodinamical properties (zero-point energy was included twice)</p></li>
+<li><p>Add <code class="docutils literal notranslate"><span class="pre">mpirunner_options</span></code> and <code class="docutils literal notranslate"><span class="pre">shell_runner_options</span></code> to TaskManager.</p></li>
+<li><p>Autodetect presence in DdbFile of data required for the LO-TO splitting.</p></li>
+<li><p>Solve problem with visualize in jupyter notebooks (files should be produced in workdir)</p></li>
+<li><p>Change default value of <code class="docutils literal notranslate"><span class="pre">shifts</span></code> in <code class="docutils literal notranslate"><span class="pre">abipy.abio.factories.g0w0_with_ppmodel_inputs</span></code>.</p></li>
+<li><p>Add interface with phononwebsite: <code class="docutils literal notranslate"><span class="pre">abiview.py</span> <span class="pre">phbands</span> <span class="pre">out_PHBST.nc</span> <span class="pre">-web</span></code>.</p></li>
+<li><p>Add robots for comparing/analyzing multiple files of the same type (<code class="docutils literal notranslate"><span class="pre">DdbRobot</span></code>, <code class="docutils literal notranslate"><span class="pre">GsrRobot</span></code> …)
+Some of the robot capabilities are exposed via the <code class="docutils literal notranslate"><span class="pre">abicomp.py</span></code> and the <code class="docutils literal notranslate"><span class="pre">abirun.py</span></code> scripts.</p></li>
+<li><p>Add several new options to <code class="docutils literal notranslate"><span class="pre">abirun.py</span></code>, <code class="docutils literal notranslate"><span class="pre">abicomp.py</span></code> and <code class="docutils literal notranslate"><span class="pre">abistruct.py</span></code> scripts.</p></li>
+<li><p>Significant improvements to the documentation and the website: add <code class="docutils literal notranslate"><span class="pre">plot-gallery</span></code> with matplotlib plots
+and <code class="docutils literal notranslate"><span class="pre">flow-gallery</span></code> with AbiPy flows are now automatically generated.</p></li>
+<li><p>Add Shankland-Koelling-Wood Fourier interpolation scheme.</p></li>
+</ul>
+</div></blockquote>
+<p>Release 0.2.0 &lt;2017-03-10&gt;</p>
+<blockquote>
+<div><p>This is the first official release in which we have reached a relatively stable API
 and a well-defined interface with the netcdf files produced by Abinit.
 We recommend Abinit &gt;= 8.0.8b, version 8.2.2 is required to analyze the electronic fatbands
-saved in the <a class="reference external" href="https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/efatbands.ipynb">FATBANDS.nc</a> file.</li>
-</ul>
-</div>
+saved in the FATBANDS.nc file.</p>
+</div></blockquote>
 </div>
 
 
@@ -193,8 +193,8 @@ saved in the <a class="reference external" href="https://nbviewer.jupyter.org/gi
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Sep 18, 2018.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+      Last updated on Oct 18, 2019.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>
 </footer>

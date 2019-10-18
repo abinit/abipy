@@ -1,5 +1,9 @@
 :orphan:
 
+
+
+.. _sphx_glr_gallery:
+
 .. _plot-gallery:
 
 AbiPy Gallery
@@ -43,7 +47,7 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to display the Brillouin zone with pymatgen and matplotlib. ">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to display the Brillouin zone with pymatgen and matplotlib.">
 
 .. only:: html
 
@@ -63,7 +67,7 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to display the unit cell with matplotlib. ">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to display the unit cell with matplotlib.">
 
 .. only:: html
 
@@ -123,7 +127,7 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the X-ray diffraction pattern with pymatgen ">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the X-ray diffraction pattern with pymatgen">
 
 .. only:: html
 
@@ -143,7 +147,27 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to visualize the SCGW QP amplitudes in the KS basis set. ">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the speed of sound by fitting phonon frequencies along select...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_speed_of_sound_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_speed_of_sound.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_speed_of_sound
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to visualize the SCGW QP amplitudes in the KS basis set.">
 
 .. only:: html
 
@@ -363,7 +387,7 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the Fermi surface with matplotlib ">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the Fermi surface with matplotlib">
 
 .. only:: html
 
@@ -423,7 +447,7 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze multiple MDF files. ">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze multiple MDF files.">
 
 .. only:: html
 
@@ -543,7 +567,7 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the projected phonon DOS of AlAs. See tutorial/lesson_rf2.html ">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the projected phonon DOS of AlAs. See tutorial/lesson_rf2.html">
 
 .. only:: html
 
@@ -583,6 +607,26 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the infrared spectrum of a polar semiconductor (AlAs) from the D...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_phonons_infrared_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_phonons_infrared.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_phonons_infrared
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="This examples shows how to plot the matrix elements of the inverse dielectric function stored i...">
 
 .. only:: html
@@ -607,9 +651,9 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_qpconverge_thumb.png
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_qpconvergence_thumb.png
 
-        :ref:`sphx_glr_gallery_plot_qpconverge.py`
+        :ref:`sphx_glr_gallery_plot_qpconvergence.py`
 
 .. raw:: html
 
@@ -619,7 +663,7 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 .. toctree::
    :hidden:
 
-   /gallery/plot_qpconverge
+   /gallery/plot_qpconvergence
 
 .. raw:: html
 
@@ -643,7 +687,7 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the electronic density stored in the DEN.nc file. ">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the electronic density stored in the DEN.nc file.">
 
 .. only:: html
 
@@ -663,7 +707,7 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to use the Function1D object to analyze and plot results. ">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to use the Function1D object to analyze and plot results.">
 
 .. only:: html
 
@@ -723,7 +767,7 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the phonon band structure of AlAs. See tutorial/lesson_rf2.html ">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the phonon band structure of AlAs. See tutorial/lesson_rf2.html">
 
 .. only:: html
 
@@ -743,7 +787,7 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the phonon band structure of AlAs. See tutorial/lesson_rf2.html ">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the phonon band structure of AlAs. See tutorial/lesson_rf2.html">
 
 .. only:: html
 
@@ -843,7 +887,7 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the phonon fatbands of AlAs. See tutorial/lesson_rf2.html ">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the phonon fatbands of AlAs. See tutorial/lesson_rf2.html">
 
 .. only:: html
 
@@ -880,6 +924,26 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
    :hidden:
 
    /gallery/plot_wannier90_abiwan
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the generalized phonon DOS with the mean square displacement ten...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_phonons_msqd_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_phonons_msqd.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_phonons_msqd
 
 .. raw:: html
 
@@ -923,7 +987,7 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the potentials stored in netcdf files. Use the input variables `...">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the potentials stored in netcdf files. Use the input variables p...">
 
 .. only:: html
 
@@ -943,7 +1007,7 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the wavefunctions stored in the WFK.nc file. ">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the wavefunctions stored in the WFK.nc file.">
 
 .. only:: html
 
@@ -1107,4 +1171,4 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
  .. rst-class:: sphx-glr-signature
 
-    `Gallery generated by Sphinx-Gallery <https://sphinx-gallery.readthedocs.io>`_
+    `Gallery generated by Sphinx-Gallery <https://sphinx-gallery.github.io>`_

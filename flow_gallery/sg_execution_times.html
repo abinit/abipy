@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Computation times &#8212; abipy 0.7.0 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../zzbiblio.html">Bibliography</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../postprocessing_howto.html">Post-processing How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documenting AbiPy</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">Computation times</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/flow_gallery/sg_execution_times.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <div class="section" id="computation-times">
+<span id="sphx-glr-flow-gallery-sg-execution-times"></span><h1>Computation times<a class="headerlink" href="#computation-times" title="Permalink to this headline">¶</a></h1>
+<p><strong>00:26.603</strong> total execution time for <strong>flow_gallery</strong> files:</p>
+<ul class="simple">
+<li><p><strong>00:04.148</strong>: <a class="reference internal" href="run_mgb2_phonons_nkpt_tsmear.html#sphx-glr-flow-gallery-run-mgb2-phonons-nkpt-tsmear-py"><span class="std std-ref">Flow to analyze the convergence of phonons in metals wrt ngkpt and tsmear</span></a> (<code class="docutils literal notranslate"><span class="pre">run_mgb2_phonons_nkpt_tsmear.py</span></code>)</p></li>
+<li><p><strong>00:02.636</strong>: <a class="reference internal" href="run_gkq.html#sphx-glr-flow-gallery-run-gkq-py"><span class="std std-ref">Flow for computing e-ph matrix elements along a q-path</span></a> (<code class="docutils literal notranslate"><span class="pre">run_gkq.py</span></code>)</p></li>
+<li><p><strong>00:01.957</strong>: <a class="reference internal" href="run_phonons.html#sphx-glr-flow-gallery-run-phonons-py"><span class="std std-ref">Flow for phonons with DFPT</span></a> (<code class="docutils literal notranslate"><span class="pre">run_phonons.py</span></code>)</p></li>
+<li><p><strong>00:01.668</strong>: <a class="reference internal" href="run_phonons_wkq.html#sphx-glr-flow-gallery-run-phonons-wkq-py"><span class="std std-ref">Phonons with WFQ files (q-mesh denser than k-mesh)</span></a> (<code class="docutils literal notranslate"><span class="pre">run_phonons_wkq.py</span></code>)</p></li>
+<li><p><strong>00:01.121</strong>: <a class="reference internal" href="run_relax_vs_kpts_tsmear.html#sphx-glr-flow-gallery-run-relax-vs-kpts-tsmear-py"><span class="std std-ref">Relaxation of GaN with different K-meshes</span></a> (<code class="docutils literal notranslate"><span class="pre">run_relax_vs_kpts_tsmear.py</span></code>)</p></li>
+<li><p><strong>00:01.007</strong>: <a class="reference internal" href="run_becs_and_epsilon_vs_kpts.html#sphx-glr-flow-gallery-run-becs-and-epsilon-vs-kpts-py"><span class="std std-ref">Flow for Born effective charges and dielectric tensors with DFPT</span></a> (<code class="docutils literal notranslate"><span class="pre">run_becs_and_epsilon_vs_kpts.py</span></code>)</p></li>
+<li><p><strong>00:00.903</strong>: <a class="reference internal" href="run_ht_si_ebands.html#sphx-glr-flow-gallery-run-ht-si-ebands-py"><span class="std std-ref">Band structure Flow with factory functions</span></a> (<code class="docutils literal notranslate"><span class="pre">run_ht_si_ebands.py</span></code>)</p></li>
+<li><p><strong>00:00.867</strong>: <a class="reference internal" href="run_nonlinear.html#sphx-glr-flow-gallery-run-nonlinear-py"><span class="std std-ref">Flow for Non-linear optic with DFPT</span></a> (<code class="docutils literal notranslate"><span class="pre">run_nonlinear.py</span></code>)</p></li>
+<li><p><strong>00:00.823</strong>: <a class="reference internal" href="run_optic.html#sphx-glr-flow-gallery-run-optic-py"><span class="std std-ref">Optic Flow</span></a> (<code class="docutils literal notranslate"><span class="pre">run_optic.py</span></code>)</p></li>
+<li><p><strong>00:00.814</strong>: <a class="reference internal" href="run_raman_optic.html#sphx-glr-flow-gallery-run-raman-optic-py"><span class="std std-ref">Raman Flow with independent-particle approximation (optic)</span></a> (<code class="docutils literal notranslate"><span class="pre">run_raman_optic.py</span></code>)</p></li>
+<li><p><strong>00:00.788</strong>: <a class="reference internal" href="run_elastic.html#sphx-glr-flow-gallery-run-elastic-py"><span class="std std-ref">Flow for elastic constants and piezoelectric tensor with DFPT</span></a> (<code class="docutils literal notranslate"><span class="pre">run_elastic.py</span></code>)</p></li>
+<li><p><strong>00:00.752</strong>: <a class="reference internal" href="run_raman_bse.html#sphx-glr-flow-gallery-run-raman-bse-py"><span class="std std-ref">Raman Flow with BSE and frozen phonon</span></a> (<code class="docutils literal notranslate"><span class="pre">run_raman_bse.py</span></code>)</p></li>
+<li><p><strong>00:00.738</strong>: <a class="reference internal" href="run_gwconv_ecuteps.html#sphx-glr-flow-gallery-run-gwconv-ecuteps-py"><span class="std std-ref">G0W0 convergence study</span></a> (<code class="docutils literal notranslate"><span class="pre">run_gwconv_ecuteps.py</span></code>)</p></li>
+<li><p><strong>00:00.706</strong>: <a class="reference internal" href="run_phfrozen_ebands.html#sphx-glr-flow-gallery-run-phfrozen-ebands-py"><span class="std std-ref">Flow for e-Bands with frozen phonon</span></a> (<code class="docutils literal notranslate"><span class="pre">run_phfrozen_ebands.py</span></code>)</p></li>
+<li><p><strong>00:00.673</strong>: <a class="reference internal" href="run_gaas_ebands_soc.html#sphx-glr-flow-gallery-run-gaas-ebands-soc-py"><span class="std std-ref">Band structure with/without spin-orbit</span></a> (<code class="docutils literal notranslate"><span class="pre">run_gaas_ebands_soc.py</span></code>)</p></li>
+<li><p><strong>00:00.641</strong>: <a class="reference internal" href="run_eos.html#sphx-glr-flow-gallery-run-eos-py"><span class="std std-ref">Flow for Equation of State</span></a> (<code class="docutils literal notranslate"><span class="pre">run_eos.py</span></code>)</p></li>
+<li><p><strong>00:00.610</strong>: <a class="reference internal" href="run_fe_ebands.html#sphx-glr-flow-gallery-run-fe-ebands-py"><span class="std std-ref">Band structure w/wo magnetization</span></a> (<code class="docutils literal notranslate"><span class="pre">run_fe_ebands.py</span></code>)</p></li>
+<li><p><strong>00:00.594</strong>: <a class="reference internal" href="run_ldaus.html#sphx-glr-flow-gallery-run-ldaus-py"><span class="std std-ref">Flow for LDA+U calculations</span></a> (<code class="docutils literal notranslate"><span class="pre">run_ldaus.py</span></code>)</p></li>
+<li><p><strong>00:00.553</strong>: <a class="reference internal" href="run_si_g0w0.html#sphx-glr-flow-gallery-run-si-g0w0-py"><span class="std std-ref">G0W0 Flow with convergence study wrt nband</span></a> (<code class="docutils literal notranslate"><span class="pre">run_si_g0w0.py</span></code>)</p></li>
+<li><p><strong>00:00.532</strong>: <a class="reference internal" href="run_mgb2_edoses.html#sphx-glr-flow-gallery-run-mgb2-edoses-py"><span class="std std-ref">Flow for convergence studies of e-DOS wrt ngkpt</span></a> (<code class="docutils literal notranslate"><span class="pre">run_mgb2_edoses.py</span></code>)</p></li>
+<li><p><strong>00:00.491</strong>: <a class="reference internal" href="run_relax_and_ebands.html#sphx-glr-flow-gallery-run-relax-and-ebands-py"><span class="std std-ref">Flow for Relaxation + Bands</span></a> (<code class="docutils literal notranslate"><span class="pre">run_relax_and_ebands.py</span></code>)</p></li>
+<li><p><strong>00:00.483</strong>: <a class="reference internal" href="run_ht_si_g0w0ppm.html#sphx-glr-flow-gallery-run-ht-si-g0w0ppm-py"><span class="std std-ref">G0W0 Flow with factory functions</span></a> (<code class="docutils literal notranslate"><span class="pre">run_ht_si_g0w0ppm.py</span></code>)</p></li>
+<li><p><strong>00:00.482</strong>: <a class="reference internal" href="run_phonopy_si.html#sphx-glr-flow-gallery-run-phonopy-si-py"><span class="std std-ref">Phonopy + Abinit Flow</span></a> (<code class="docutils literal notranslate"><span class="pre">run_phonopy_si.py</span></code>)</p></li>
+<li><p><strong>00:00.468</strong>: <a class="reference internal" href="run_relax_vs_kpts.html#sphx-glr-flow-gallery-run-relax-vs-kpts-py"><span class="std std-ref">Relaxation of GaN with different K-meshes</span></a> (<code class="docutils literal notranslate"><span class="pre">run_relax_vs_kpts.py</span></code>)</p></li>
+<li><p><strong>00:00.459</strong>: <a class="reference internal" href="run_relax.html#sphx-glr-flow-gallery-run-relax-py"><span class="std std-ref">Relaxation Flow</span></a> (<code class="docutils literal notranslate"><span class="pre">run_relax.py</span></code>)</p></li>
+<li><p><strong>00:00.445</strong>: <a class="reference internal" href="run_ht_si_bsemdf.html#sphx-glr-flow-gallery-run-ht-si-bsemdf-py"><span class="std std-ref">Bethe-Salpeter Flow with factory functions</span></a> (<code class="docutils literal notranslate"><span class="pre">run_ht_si_bsemdf.py</span></code>)</p></li>
+<li><p><strong>00:00.438</strong>: <a class="reference internal" href="run_si_ebands.html#sphx-glr-flow-gallery-run-si-ebands-py"><span class="std std-ref">Band structure Flow</span></a> (<code class="docutils literal notranslate"><span class="pre">run_si_ebands.py</span></code>)</p></li>
+<li><p><strong>00:00.428</strong>: <a class="reference internal" href="run_from_files.html#sphx-glr-flow-gallery-run-from-files-py"><span class="std std-ref">Starting a Flow from external files</span></a> (<code class="docutils literal notranslate"><span class="pre">run_from_files.py</span></code>)</p></li>
+<li><p><strong>00:00.379</strong>: <a class="reference internal" href="run_sic_relax.html#sphx-glr-flow-gallery-run-sic-relax-py"><span class="std std-ref">Relaxation Flow</span></a> (<code class="docutils literal notranslate"><span class="pre">run_sic_relax.py</span></code>)</p></li>
+</ul>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
+      Last updated on Oct 18, 2019.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

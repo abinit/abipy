@@ -2,39 +2,31 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.electrons.psps &#8212; abipy 0.7.0.dev documentation</title>
+    <meta charset="utf-8" />
+    <title>abipy.electrons.psps &#8212; abipy 0.7.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../../',
-        VERSION:     '0.7.0.dev',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js"></script>
-    <script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
-    <script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
 
-  </head>
-  <body>
+  </head><body>
 
   <div id="navbar" class="navbar navbar-default navbar-fixed-top">
     <div class="container">
@@ -47,7 +39,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0.dev</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -127,45 +119,22 @@
 
 <div class="container">
   <div class="row">
-    <div class="col-md-12 content">
+    <div class="body col-md-12 content" role="main">
       
   <h1>Source code for abipy.electrons.psps</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding: utf-8</span>
 <span class="sd">&quot;&quot;&quot;PSPS file with tabulated data.&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
-
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">monty.bisect</span> <span class="k">import</span> <span class="n">find_gt</span>
 <span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span><span class="p">,</span> <span class="n">get_axarray_fig_plt</span>
-<span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">Pseudo</span>
 <span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">ETSF_Reader</span>
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">AbinitNcFile</span>
 
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
-
-
-<span class="c1">#def compare_pseudos(filepaths, ecut=30):</span>
-<span class="c1">#    &quot;&quot;&quot;</span>
-<span class="c1">#    This function receives a list of pseudopotential files, call</span>
-<span class="c1">#    Abinit to produced the PSPS.nc files and produces matplotlib plots</span>
-<span class="c1">#    comparing the behaviour of the pseudos in real and in reciprocal space.</span>
-<span class="c1">#</span>
-<span class="c1">#    Args:</span>
-<span class="c1">#        filepaths: List of file names.</span>
-<span class="c1">#        ecut: Cutoff energy in Ha for the wavefunctions.</span>
-<span class="c1">#    &quot;&quot;&quot;</span>
-<span class="c1">#    pseudos = [Pseudo.from_file(path) for path in filepaths]</span>
-<span class="c1">#</span>
-<span class="c1">#    psps_files = [p.open_pspsfile(ecut=ecut) for p in pseudos]</span>
-<span class="c1">#</span>
-<span class="c1">#    p0 = psps_files[0]</span>
-<span class="c1">#    p0.compare(psps_files[1:])</span>
-<span class="c1">#</span>
-<span class="c1">#    for pfile in psps_files:</span>
-<span class="c1">#        pfile.close()</span>
 
 
 <div class="viewcode-block" id="mklabel"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.psps.mklabel">[docs]</a><span class="k">def</span> <span class="nf">mklabel</span><span class="p">(</span><span class="n">fsym</span><span class="p">,</span> <span class="n">der</span><span class="p">,</span> <span class="n">arg</span><span class="p">):</span>
@@ -184,6 +153,35 @@
     <span class="n">amax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
     <span class="n">fact</span> <span class="o">=</span> <span class="n">scale</span> <span class="o">/</span> <span class="n">amax</span> <span class="k">if</span> <span class="n">amax</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">1</span>
     <span class="k">return</span> <span class="n">fact</span> <span class="o">*</span> <span class="n">arr</span><span class="p">,</span> <span class="n">fact</span></div>
+
+
+<div class="viewcode-block" id="dataframe_from_pseudos"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.psps.dataframe_from_pseudos">[docs]</a><span class="k">def</span> <span class="nf">dataframe_from_pseudos</span><span class="p">(</span><span class="n">pseudos</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Build pandas dataframe with the most important info associated to</span>
+<span class="sd">    a list of pseudos or a list of objects that can be converted into pseudos.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        pseudos: List of objects that can be converted to pseudos.</span>
+<span class="sd">        index: Index of the dataframe.</span>
+
+<span class="sd">    Return: pandas Dataframe.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">PseudoTable</span>
+    <span class="n">pseudos</span> <span class="o">=</span> <span class="n">PseudoTable</span><span class="o">.</span><span class="n">as_table</span><span class="p">(</span><span class="n">pseudos</span><span class="p">)</span>
+
+    <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+    <span class="n">attname</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Z_val&quot;</span><span class="p">,</span> <span class="s2">&quot;l_max&quot;</span><span class="p">,</span> <span class="s2">&quot;l_local&quot;</span><span class="p">,</span> <span class="s2">&quot;nlcc_radius&quot;</span><span class="p">,</span> <span class="s2">&quot;xc&quot;</span><span class="p">,</span> <span class="s2">&quot;supports_soc&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">]</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pseudos</span><span class="p">:</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([(</span><span class="n">k</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">attname</span><span class="p">])</span>
+        <span class="n">row</span><span class="p">[</span><span class="s2">&quot;ecut_normal&quot;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;pawecutdg_normal&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">has_hints</span><span class="p">:</span>
+            <span class="n">hint</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">hint_for_accuracy</span><span class="p">(</span><span class="n">accuracy</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">)</span>
+            <span class="n">row</span><span class="p">[</span><span class="s2">&quot;ecut_normal&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hint</span><span class="o">.</span><span class="n">ecut</span>
+            <span class="k">if</span> <span class="n">hint</span><span class="o">.</span><span class="n">pawecutdg</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;pawecutdg_normal&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hint</span><span class="o">.</span><span class="n">pawecutdg</span>
+        <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="k">if</span> <span class="n">rows</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="PspsFile"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.psps.PspsFile">[docs]</a><span class="k">class</span> <span class="nc">PspsFile</span><span class="p">(</span><span class="n">AbinitNcFile</span><span class="p">):</span>
@@ -207,7 +205,7 @@
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">PspsFile</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reader</span> <span class="o">=</span> <span class="n">r</span> <span class="o">=</span> <span class="n">PspsReader</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
 
 <div class="viewcode-block" id="PspsFile.close"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.psps.PspsFile.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -450,7 +448,7 @@
                 <span class="k">return</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;red&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;blue&quot;</span><span class="p">}[</span><span class="n">count</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">cmap</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s2">&quot;jet&quot;</span><span class="p">)</span>
-                <span class="k">return</span> <span class="n">cmap</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">count</span><span class="p">)</span><span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">others</span><span class="p">)))</span>
+                <span class="k">return</span> <span class="n">cmap</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">count</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">others</span><span class="p">)))</span>
 
         <span class="n">ic</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">ax_list</span><span class="p">[</span><span class="n">ic</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">plot_tcore_rspace</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">mkcolor</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_legend</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -481,7 +479,7 @@
 <span class="sd">    It provides helper function to access the most important quantities.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">PspsReader</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
 
         <span class="c1"># Get important quantities.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">usepaw</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">useylm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;usepaw&quot;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;useylm&quot;</span><span class="p">)</span>
@@ -660,8 +658,8 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Sep 18, 2018.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+      Last updated on Oct 18, 2019.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>
 </footer>

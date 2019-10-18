@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>abipy.dfpt.vsound &#8212; abipy 0.7.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <h1>Source code for abipy.dfpt.vsound</h1><div class="highlight"><pre>
+<span></span><span class="c1"># coding: utf-8</span>
+<span class="sd">&quot;&quot;&quot;Tools to compute speed of sound.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">abipy.core.abinit_units</span> <span class="k">as</span> <span class="nn">abu</span>
+
+<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">NotebookWriter</span>
+<span class="kn">from</span> <span class="nn">abipy.dfpt.ddb</span> <span class="k">import</span> <span class="n">DdbFile</span>
+<span class="kn">from</span> <span class="nn">abipy.dfpt.phonons</span> <span class="k">import</span> <span class="n">PhononBands</span><span class="p">,</span> <span class="n">get_dyn_mat_eigenvec</span><span class="p">,</span> <span class="n">match_eigenvectors</span>
+<span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="k">import</span> <span class="n">AnaddbInput</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.units</span> <span class="k">import</span> <span class="n">bohr_to_angstrom</span><span class="p">,</span> <span class="n">eV_to_Ha</span>
+
+
+<div class="viewcode-block" id="SoundVelocity"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.vsound.SoundVelocity">[docs]</a><span class="k">class</span> <span class="nc">SoundVelocity</span><span class="p">(</span><span class="n">Has_Structure</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the speed of sound by fitting phonon frequencies along selected directions</span>
+<span class="sd">    by linear least-squares fit.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">directions</span><span class="p">,</span> <span class="n">sound_velocities</span><span class="p">,</span> <span class="n">mode_types</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span>
+                 <span class="n">labels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">phfreqs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">qpts</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            directions: list of qpoints identifying the directions for the calculation</span>
+<span class="sd">                of the speed of sound. In fractional coordinates.</span>
+<span class="sd">            sound_velocities: array of shape (len(directions), 3) with the values of the</span>
+<span class="sd">                sound velocities in SI units.</span>
+<span class="sd">            mode_types: array of shape (len(directions), 3) with the type of modes (transverse,</span>
+<span class="sd">                longitudinal). None if not known.</span>
+<span class="sd">            structure: |Structure| object.</span>
+<span class="sd">            labels: list with the same length as direction with labels for the directions.</span>
+<span class="sd">            phfreqs: array with shape (len(directions), 3, num_points) with the acoustic phonon</span>
+<span class="sd">                frequencies along the directions.</span>
+<span class="sd">            qpts: array with shape (len(directions), num_points, 3) with the coordinates of</span>
+<span class="sd">                the qpoints in fractional used to fit the phonon frequencies.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">directions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">directions</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sound_velocities</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sound_velocities</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mode_types</span> <span class="o">=</span> <span class="n">mode_types</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">phfreqs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">phfreqs</span><span class="p">)</span> <span class="k">if</span> <span class="n">phfreqs</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qpts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">qpts</span><span class="p">)</span> <span class="k">if</span> <span class="n">qpts</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span> <span class="o">=</span> <span class="n">structure</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;|Structure| object&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">n_directions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Number of directions.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">directions</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SoundVelocity.from_ddb"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.vsound.SoundVelocity.from_ddb">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_ddb</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">ddb_path</span><span class="p">,</span> <span class="n">directions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_points</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">qpt_norm</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+                 <span class="n">ignore_neg_freqs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ngqpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">spell_check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mpi_procs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates and instance of the object. Runs anaddb along the specified</span>
+<span class="sd">        directions or the standard directions in the standard paths given</span>
+<span class="sd">        in :cite:`Setyawan2010`. The values of the speed of sound</span>
+<span class="sd">        will be calculated as the slope of the linear fits along each direction.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ddb_path (str): path to the ddb file.</span>
+<span class="sd">            directions (list): list of qpoints identifying the directions for the calculation</span>
+<span class="sd">                of the speed of sound. In fractional coordinates.</span>
+<span class="sd">            labels (list): list of string with the name of the directions.</span>
+<span class="sd">            num_points (int): number of points calculated along each direction and used to</span>
+<span class="sd">                fit the speed of sound.</span>
+<span class="sd">            qpt_norm (float): Norm of the largest point in fractional coordinates for</span>
+<span class="sd">                each of the directions considered.</span>
+<span class="sd">            ignore_neg_freqs (bool): if True points with negative frequencies will not be</span>
+<span class="sd">                considered in the fit, in order to ignore inaccuracies in the long range</span>
+<span class="sd">                behavior.</span>
+<span class="sd">            asr, chneut, dipdip: Anaddb input variable. See official documentation.</span>
+<span class="sd">            ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default).</span>
+<span class="sd">            anaddb_kwargs: additional kwargs for anaddb.</span>
+<span class="sd">            verbose: verbosity level. Set it to a value &gt; 0 to get more information.</span>
+<span class="sd">            mpi_procs: Number of MPI processes to use.</span>
+<span class="sd">            workdir: Working directory. If None, a temporary directory is created.</span>
+<span class="sd">            manager: |TaskManager| object. If None, the object is initialized from the configuration file.</span>
+<span class="sd">        long.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            an instance of SoundVelocity</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="n">DdbFile</span><span class="p">(</span><span class="n">ddb_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">ddb</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ngqpt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">ngqpt</span> <span class="o">=</span> <span class="n">ddb</span><span class="o">.</span><span class="n">guessed_ngqpt</span>
+
+            <span class="n">inp</span> <span class="o">=</span> <span class="n">AnaddbInput</span><span class="p">(</span><span class="n">ddb</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;ANADDB input for speed of sound&quot;</span><span class="p">,</span>
+                              <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="n">anaddb_kwargs</span><span class="p">,</span> <span class="n">spell_check</span><span class="o">=</span><span class="n">spell_check</span><span class="p">)</span>
+
+            <span class="n">q1shft</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]]</span>
+            <span class="n">inp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
+                <span class="n">ifcflag</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">ngqpt</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ngqpt</span><span class="p">),</span>
+                <span class="n">q1shft</span><span class="o">=</span><span class="n">q1shft</span><span class="p">,</span>
+                <span class="n">nqshft</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">q1shft</span><span class="p">),</span>
+                <span class="n">asr</span><span class="o">=</span><span class="n">asr</span><span class="p">,</span>
+                <span class="n">chneut</span><span class="o">=</span><span class="n">chneut</span><span class="p">,</span>
+                <span class="n">dipdip</span><span class="o">=</span><span class="n">dipdip</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">directions</span><span class="p">:</span>
+                <span class="n">hs</span> <span class="o">=</span> <span class="n">ddb</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">hsym_kpath</span>
+                <span class="n">kpath</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">kpath</span>
+
+                <span class="n">directions</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">labels</span> <span class="o">=</span> <span class="p">[]</span>
+
+                <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">kpath</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]:</span>
+                    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">q</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">chunk</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="s2">&quot;Gamma&quot;</span> <span class="ow">in</span> <span class="n">q</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">q</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">:</span>
+                                <span class="n">new_q</span> <span class="o">=</span> <span class="n">kpath</span><span class="p">[</span><span class="s2">&quot;kpoints&quot;</span><span class="p">][</span><span class="n">chunk</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]]</span>
+                                <span class="n">directions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_q</span><span class="p">)</span>
+                                <span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chunk</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+                            <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">q</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">:</span>
+                                <span class="n">new_q</span> <span class="o">=</span> <span class="n">kpath</span><span class="p">[</span><span class="s2">&quot;kpoints&quot;</span><span class="p">][</span><span class="n">chunk</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]]</span>
+                                <span class="n">directions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_q</span><span class="p">)</span>
+                                <span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chunk</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+
+            <span class="n">qpts</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">directions</span><span class="p">:</span>
+                <span class="n">q</span> <span class="o">=</span> <span class="n">qpt_norm</span> <span class="o">*</span> <span class="n">q</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
+                <span class="n">steps</span> <span class="o">=</span> <span class="n">q</span> <span class="o">/</span> <span class="n">num_points</span>
+                <span class="n">qpts</span><span class="o">.</span><span class="n">extend</span><span class="p">((</span><span class="n">steps</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">num_points</span><span class="p">))</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+
+            <span class="n">n_qpoints</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">qpts</span><span class="p">)</span>
+            <span class="n">qph1l</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_qpoints</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+
+            <span class="n">qph1l</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">qpts</span>
+            <span class="n">qph1l</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+            <span class="n">inp</span><span class="p">[</span><span class="s1">&#39;qph1l&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">qph1l</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="n">inp</span><span class="p">[</span><span class="s1">&#39;nph1l&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">n_qpoints</span>
+
+            <span class="n">task</span> <span class="o">=</span> <span class="n">ddb</span><span class="o">.</span><span class="n">_run_anaddb_task</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">mpi_procs</span><span class="o">=</span><span class="n">mpi_procs</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">,</span>
+                                        <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+
+            <span class="n">phbst_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="s2">&quot;run.abo_PHBST.nc&quot;</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_phbst</span><span class="p">(</span><span class="n">phbst_path</span><span class="p">,</span> <span class="n">ignore_neg_freqs</span><span class="o">=</span><span class="n">ignore_neg_freqs</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">labels</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SoundVelocity.from_phbst"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.vsound.SoundVelocity.from_phbst">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_phbst</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">phbst_path</span><span class="p">,</span> <span class="n">ignore_neg_freqs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates an instance of the object starting interpolating the acoustic frequencies</span>
+<span class="sd">        from a PHBST netcdf file.</span>
+<span class="sd">        The file should contain a series of directions starting from gamma and with the</span>
+<span class="sd">        same number of points for each direction, as the one produced in the from_ddb method.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            phbst_path: path to the PHBST netcdf file.</span>
+<span class="sd">            ignore_neg_freqs (bool): if True points with negative frequencies will not be</span>
+<span class="sd">                considered in the fit, in order to ignore inaccuracies in the long range</span>
+<span class="sd">                behavior.</span>
+<span class="sd">            labels (list): list of string with the name of the directions.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            an instance of SoundVelocity</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">phb</span> <span class="o">=</span> <span class="n">PhononBands</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">phbst_path</span><span class="p">)</span>
+        <span class="n">structure</span> <span class="o">=</span> <span class="n">phb</span><span class="o">.</span><span class="n">structure</span>
+
+        <span class="n">rlatt</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">reciprocal_lattice</span>
+        <span class="c1"># q points in cartesian coordinate in 1/bohr, the original units are 1/A</span>
+        <span class="n">qpt_cart_coords</span> <span class="o">=</span> <span class="p">[</span><span class="n">rlatt</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">*</span> <span class="n">bohr_to_angstrom</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span>
+                           <span class="n">phb</span><span class="o">.</span><span class="n">qpoints</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">]</span>
+        <span class="n">qpt_cart_norms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">qpt_cart_coords</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># find the indices of the gamma points</span>
+        <span class="n">gamma_ind</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">q</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">phb</span><span class="o">.</span><span class="n">qpoints</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]):</span>
+                <span class="n">gamma_ind</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+        <span class="n">n_directions</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gamma_ind</span><span class="p">)</span>
+
+        <span class="n">n_points</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">phb</span><span class="o">.</span><span class="n">qpoints</span><span class="p">)</span> <span class="o">/</span> <span class="n">n_directions</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">n_points</span><span class="o">.</span><span class="n">is_integer</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Error extracting information from </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">phbst_path</span><span class="p">))</span>
+        <span class="n">n_points</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_points</span><span class="p">)</span>
+
+        <span class="n">phfreqs</span> <span class="o">=</span> <span class="n">phb</span><span class="o">.</span><span class="n">phfreqs</span>
+        <span class="n">eigdisp</span> <span class="o">=</span> <span class="n">phb</span><span class="o">.</span><span class="n">phdispl_cart</span>
+
+        <span class="n">sound_velocities</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">mode_types</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">directions</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">all_acoustic_freqs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">all_qpts</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_directions</span><span class="p">):</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">n_points</span> <span class="o">*</span> <span class="n">i</span>
+            <span class="c1"># index of the end point used for the slice</span>
+            <span class="c1"># (the position of the last point is actually end-1)</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">n_points</span> <span class="o">*</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">dir_freqs</span> <span class="o">=</span> <span class="n">phfreqs</span><span class="p">[</span><span class="n">start</span><span class="p">:</span> <span class="n">end</span><span class="p">]</span>
+            <span class="n">dir_displ</span> <span class="o">=</span> <span class="n">eigdisp</span><span class="p">[</span><span class="n">start</span><span class="p">:</span> <span class="n">end</span><span class="p">]</span>
+
+            <span class="c1"># matching bands</span>
+            <span class="n">dir_eigv</span> <span class="o">=</span> <span class="n">get_dyn_mat_eigenvec</span><span class="p">(</span><span class="n">dir_displ</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">amu</span><span class="o">=</span><span class="n">phb</span><span class="o">.</span><span class="n">amu</span><span class="p">)</span>
+            <span class="n">n_freqs</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span>
+            <span class="n">ind_match</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_points</span><span class="p">,</span> <span class="n">n_freqs</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+            <span class="n">ind_match</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_freqs</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_points</span><span class="p">):</span>
+                <span class="n">k</span> <span class="o">=</span> <span class="n">j</span> <span class="o">-</span> <span class="mi">1</span>
+                <span class="n">match</span> <span class="o">=</span> <span class="n">match_eigenvectors</span><span class="p">(</span><span class="n">dir_eigv</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">dir_eigv</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+                <span class="n">ind_match</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">match</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">ind_match</span><span class="p">[</span><span class="n">k</span><span class="p">]]</span>
+
+            <span class="n">acoustic_freqs</span> <span class="o">=</span> <span class="p">(</span><span class="n">dir_freqs</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_points</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">ind_match</span><span class="p">])[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+            <span class="n">acoustic_displ</span> <span class="o">=</span> <span class="p">(</span><span class="n">dir_displ</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_points</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">ind_match</span><span class="p">])[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+
+            <span class="n">direction</span> <span class="o">=</span> <span class="n">phb</span><span class="o">.</span><span class="n">qpoints</span><span class="p">[</span><span class="n">end</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">frac_coords</span>
+            <span class="n">direction</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span>
+            <span class="n">directions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span>
+
+            <span class="c1"># identify the first (not gamma) qpoint with all positive frequencies</span>
+            <span class="n">first_positive_freq_ind</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_points</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">min</span><span class="p">(</span><span class="n">acoustic_freqs</span><span class="p">[</span><span class="n">j</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">first_positive_freq_ind</span> <span class="o">=</span> <span class="n">j</span>
+                    <span class="k">break</span>
+
+            <span class="k">if</span> <span class="n">first_positive_freq_ind</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">first_positive_freq_ind</span> <span class="o">-</span> <span class="n">n_points</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;too many negative frequencies along direction </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">direction</span><span class="p">))</span>
+
+            <span class="n">sv</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">mt</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="n">cart_versor</span> <span class="o">=</span> <span class="n">qpt_cart_coords</span><span class="p">[</span><span class="n">end</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">qpt_cart_coords</span><span class="p">[</span><span class="n">end</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                <span class="n">start_fit</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">if</span> <span class="n">ignore_neg_freqs</span> <span class="ow">and</span> <span class="n">first_positive_freq_ind</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">start_fit</span> <span class="o">=</span> <span class="n">first_positive_freq_ind</span>
+                <span class="n">slope</span><span class="p">,</span> <span class="n">se</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">qpt_cart_norms</span><span class="p">[</span><span class="n">start</span><span class="o">+</span><span class="n">start_fit</span><span class="p">:</span><span class="n">end</span><span class="p">][:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span>
+                                                  <span class="n">acoustic_freqs</span><span class="p">[</span><span class="n">start_fit</span><span class="p">:,</span> <span class="n">k</span><span class="p">]</span> <span class="o">*</span> <span class="n">eV_to_Ha</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+                <span class="n">sv</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">slope</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">velocity_at_to_si</span><span class="p">)</span>
+
+                <span class="c1"># identify the type of the mode (longitudinal/transversal) based on the</span>
+                <span class="c1"># scalar product between the eigendisplacement and the direction.</span>
+                <span class="n">disp_0</span> <span class="o">=</span> <span class="n">acoustic_displ</span><span class="p">[</span><span class="n">first_positive_freq_ind</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+                <span class="n">disp_0</span> <span class="o">=</span> <span class="n">disp_0</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">disp_0</span><span class="p">)</span>
+
+                <span class="n">scalar_prod</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">disp_0</span><span class="p">,</span> <span class="n">cart_versor</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">scalar_prod</span> <span class="o">&gt;</span> <span class="mf">0.9</span><span class="p">:</span>
+                    <span class="n">mt</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;longitudinal&quot;</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">scalar_prod</span> <span class="o">&lt;</span> <span class="mf">0.1</span><span class="p">:</span>
+                    <span class="n">mt</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;transversal&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">mt</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+
+            <span class="c1"># sort the lists based on the sound velocites</span>
+            <span class="n">sv</span><span class="p">,</span> <span class="n">mt</span><span class="p">,</span> <span class="n">freqs</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">sv</span><span class="p">,</span> <span class="n">mt</span><span class="p">,</span> <span class="n">acoustic_freqs</span><span class="o">.</span><span class="n">T</span><span class="p">)))</span>
+
+            <span class="n">sound_velocities</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sv</span><span class="p">)</span>
+            <span class="n">mode_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mt</span><span class="p">)</span>
+            <span class="n">all_acoustic_freqs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">freqs</span><span class="p">)</span>
+            <span class="n">all_qpts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">phb</span><span class="o">.</span><span class="n">qpoints</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">directions</span><span class="o">=</span><span class="n">directions</span><span class="p">,</span> <span class="n">sound_velocities</span><span class="o">=</span><span class="n">sound_velocities</span><span class="p">,</span> <span class="n">mode_types</span><span class="o">=</span><span class="n">mode_types</span><span class="p">,</span>
+                   <span class="n">structure</span><span class="o">=</span><span class="n">structure</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span> <span class="n">phfreqs</span><span class="o">=</span><span class="n">all_acoustic_freqs</span><span class="p">,</span> <span class="n">qpts</span><span class="o">=</span><span class="n">all_qpts</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SoundVelocity.get_dataframe"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.vsound.SoundVelocity.get_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">get_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a |pandas-DataFrame| with the data of the speed of sound.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;direction&quot;</span><span class="p">,</span> <span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="s2">&quot;sound velocity (m/s)&quot;</span><span class="p">,</span> <span class="s2">&quot;mode type&quot;</span><span class="p">]</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_directions</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">([</span>
+                    <span class="nb">tuple</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">directions</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">5</span><span class="p">)),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">sound_velocities</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">m</span><span class="p">],</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">mode_types</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">m</span><span class="p">]</span>
+                <span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">&quot;direction&quot;</span><span class="p">,</span> <span class="s2">&quot;label&quot;</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="SoundVelocity.plot_fit_freqs_dir"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.vsound.SoundVelocity.plot_fit_freqs_dir">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_fit_freqs_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idir</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plots the phonon frequencies, if available, along the specified direction.</span>
+<span class="sd">        The line representing the fitted value will be shown as well.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            idir: index of the direction.</span>
+<span class="sd">            ax: |matplotlib-Axes| or None if a new figure should be created.</span>
+<span class="sd">            units: Units for phonon plots. Possible values in (&quot;eV&quot;, &quot;meV&quot;, &quot;Ha&quot;, &quot;cm-1&quot;, &quot;Thz&quot;). Case-insensitive.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            |matplotlib-Figure|</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">phfreqs</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">qpts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The plot requires the phonon frequencies and the qpoints.&quot;</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">margins</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">rlatt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">reciprocal_lattice</span>
+        <span class="n">freqs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phfreqs</span><span class="p">[</span><span class="n">idir</span><span class="p">]</span>
+        <span class="n">qpt_cart_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">rlatt</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">(</span><span class="n">c</span><span class="p">))</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">qpts</span><span class="p">[</span><span class="n">idir</span><span class="p">]])</span>
+        <span class="n">slope</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sound_velocities</span><span class="p">[</span><span class="n">idir</span><span class="p">]</span> <span class="o">/</span> <span class="n">abu</span><span class="o">.</span><span class="n">velocity_at_to_si</span> <span class="o">*</span> <span class="n">bohr_to_angstrom</span> <span class="o">/</span> <span class="n">eV_to_Ha</span>
+
+        <span class="n">units_factor</span> <span class="o">=</span> <span class="n">abu</span><span class="o">.</span><span class="n">phfactor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+
+        <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{:.4f}</span><span class="s2">, </span><span class="si">{:.4f}</span><span class="s2">, </span><span class="si">{:.4f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">directions</span><span class="p">[</span><span class="n">idir</span><span class="p">])</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">:</span>
+            <span class="n">title</span> <span class="o">+=</span> <span class="s2">&quot; - </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">[</span><span class="n">idir</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;g&quot;</span><span class="p">]):</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">qpt_cart_coords</span><span class="p">,</span> <span class="n">freqs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">units_factor</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">c</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">qpt_cart_coords</span><span class="p">,</span> <span class="n">slope</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">qpt_cart_coords</span> <span class="o">*</span> <span class="n">units_factor</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">c</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Wave Vector&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">abu</span><span class="o">.</span><span class="n">wlabel_from_units</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">fig</span></div>
+
+<div class="viewcode-block" id="SoundVelocity.plot"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.vsound.SoundVelocity.plot">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plots the phonon frequencies, if available, along all the directions.</span>
+<span class="sd">        The lines representing the fitted values will be shown as well.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ax: |matplotlib-Axes| or None if a new figure should be created.</span>
+<span class="sd">            units: Units for phonon plots. Possible values in (&quot;eV&quot;, &quot;meV&quot;, &quot;Ha&quot;, &quot;cm-1&quot;, &quot;Thz&quot;). Case-insensitive.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            |matplotlib-Figure|</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="kn">from</span> <span class="nn">matplotlib.gridspec</span> <span class="k">import</span> <span class="n">GridSpec</span>
+
+        <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_directions</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span>  <span class="mi">2</span>
+        <span class="n">gspec</span> <span class="o">=</span> <span class="n">GridSpec</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span> <span class="n">wspace</span><span class="o">=</span><span class="mf">0.15</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=</span><span class="mf">0.25</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_directions</span><span class="p">):</span>
+            <span class="n">axi</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">gspec</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">plot_fit_freqs_dir</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">axi</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fig</span></div>
+
+<div class="viewcode-block" id="SoundVelocity.yield_figs"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.vsound.SoundVelocity.yield_figs">[docs]</a>    <span class="k">def</span> <span class="nf">yield_figs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>   <span class="c1"># pragma: no cover</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function *generates* a predefined list of matplotlib figures with minimal input from the user.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_directions</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_fit_freqs_dir</span><span class="p">(</span><span class="n">i</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SoundVelocity.write_notebook"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.vsound.SoundVelocity.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write an jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current</span>
+<span class="sd">        working directory is created. Return path to the notebook.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv_nb</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="n">tmpfile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pickle_dump</span><span class="p">()</span>
+
+        <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;sv = abilab.SoundVelocity.pickle_load(&#39;</span><span class="si">{}</span><span class="s2">&#39;)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tmpfile</span><span class="p">)),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;frame = sv.get_dataframe()</span><span class="se">\n</span><span class="s2">display(frame)&quot;</span><span class="p">)</span>
+        <span class="p">])</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">phfreqs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">qpts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_directions</span><span class="p">):</span>
+                <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;sv.plot_fit_freqs_dir(</span><span class="si">{}</span><span class="s2">);&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)))</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div></div>
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
+      Last updated on Oct 18, 2019.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

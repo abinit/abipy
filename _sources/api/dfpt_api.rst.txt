@@ -53,6 +53,22 @@ dfpt Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`ifc` Module
+-----------------
+
+.. automodule:: abipy.dfpt.ifc
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`msqdos` Module
+--------------------
+
+.. automodule:: abipy.dfpt.msqdos
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`phonons` Module
 ---------------------
 
@@ -61,10 +77,26 @@ dfpt Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`phtk` Module
+------------------
+
+.. automodule:: abipy.dfpt.phtk
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`qha` Module
 -----------------
 
 .. automodule:: abipy.dfpt.qha
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`vsound` Module
+--------------------
+
+.. automodule:: abipy.dfpt.vsound
    :members:
    :undoc-members:
    :show-inheritance:

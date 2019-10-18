@@ -2,39 +2,31 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.tools.numtools &#8212; abipy 0.7.0.dev documentation</title>
+    <meta charset="utf-8" />
+    <title>abipy.tools.numtools &#8212; abipy 0.7.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../../',
-        VERSION:     '0.7.0.dev',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js"></script>
-    <script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
-    <script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
 
-  </head>
-  <body>
+  </head><body>
 
   <div id="navbar" class="navbar navbar-default navbar-fixed-top">
     <div class="container">
@@ -47,7 +39,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0.dev</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -127,15 +119,12 @@
 
 <div class="container">
   <div class="row">
-    <div class="col-md-12 content">
+    <div class="body col-md-12 content" role="main">
       
   <h1>Source code for abipy.tools.numtools</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding: utf-8</span>
 <span class="sd">&quot;&quot;&quot;Numeric tools.&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
-
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">bisect</span> <span class="k">as</span> <span class="nn">bs</span>
 
 <span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">dict2namedtuple</span>
 <span class="kn">from</span> <span class="nn">abipy.tools</span> <span class="k">import</span> <span class="n">duck</span>
@@ -143,6 +132,7 @@
 <span class="c1">#########################################################################################</span>
 <span class="c1"># Array tools</span>
 <span class="c1">#########################################################################################</span>
+
 
 <div class="viewcode-block" id="transpose_last3dims"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.numtools.transpose_last3dims">[docs]</a><span class="k">def</span> <span class="nf">transpose_last3dims</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -205,7 +195,7 @@
 <span class="sd">            &quot;all&quot; for both re and im.</span>
 <span class="sd">            &quot;abs&quot; means that the absolute value of the complex number is shown.</span>
 <span class="sd">            &quot;angle&quot; will display the phase of the complex number in radians.</span>
-<span class="sd">	tol: If not None, values below tol are set to zero. Cannot be used with &quot;angle&quot;</span>
+<span class="sd">        tol: If not None, values below tol are set to zero. Cannot be used with &quot;angle&quot;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">cplx_mode</span> <span class="o">==</span> <span class="s2">&quot;re&quot;</span><span class="p">:</span>
         <span class="n">val</span> <span class="o">=</span> <span class="n">arr</span><span class="o">.</span><span class="n">real</span>
@@ -328,6 +318,7 @@
 <span class="c1"># Special functions</span>
 <span class="c1">#########################################################################################</span>
 
+
 <div class="viewcode-block" id="gaussian"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.numtools.gaussian">[docs]</a><span class="k">def</span> <span class="nf">gaussian</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the values of gaussian(x) where x is array-like.</span>
@@ -362,6 +353,7 @@
 <span class="c1">#=====================================</span>
 <span class="c1"># === Data Interpolation/Smoothing ===</span>
 <span class="c1">#=====================================</span>
+
 
 <div class="viewcode-block" id="smooth"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.numtools.smooth">[docs]</a><span class="k">def</span> <span class="nf">smooth</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">window_len</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="s1">&#39;hanning&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -568,7 +560,7 @@
         <span class="n">frac_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">frac_coords</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">cartesian</span><span class="p">:</span>
             <span class="n">red_from_cart</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">inv_matrix</span><span class="o">.</span><span class="n">T</span>
-            <span class="n">frac_coords</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">red_from</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">frac_coords</span><span class="p">]</span>
+            <span class="n">frac_coords</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">red_from_cart</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">frac_coords</span><span class="p">]</span>
 
         <span class="n">uc_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">frac_coords</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span> <span class="o">%</span> <span class="mi">1</span>
 
@@ -585,6 +577,39 @@
             <span class="n">values</span> <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">2</span><span class="n">j</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">frac_coords</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="n">values</span></div></div>
+
+
+<div class="viewcode-block" id="find_degs_sk"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.numtools.find_degs_sk">[docs]</a><span class="k">def</span> <span class="nf">find_degs_sk</span><span class="p">(</span><span class="n">enesb</span><span class="p">,</span> <span class="n">atol</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return list of lists with the indices of the degenerated bands.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        enesb: Iterable with energies for the different bands.</span>
+<span class="sd">            Energies are assumed to be ordered.</span>
+<span class="sd">        atol: Absolute tolerance. Two states are degenerated if they differ by less than `atol`.</span>
+
+<span class="sd">    Return:</span>
+<span class="sd">        List of lists. The i-th item contains the indices of the degenerates states</span>
+<span class="sd">            for the i-th degenerated set.</span>
+
+<span class="sd">    :Examples:</span>
+
+<span class="sd">    &gt;&gt;&gt; find_degs_sk([1, 1, 2, 3.4, 3.401], atol=0.01)</span>
+<span class="sd">    [[0, 1], [2], [3, 4]]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ndeg</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">degs</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">]]</span>
+    <span class="n">e0</span> <span class="o">=</span> <span class="n">enesb</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">ib</span><span class="p">,</span> <span class="n">ee</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">enesb</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+        <span class="n">ib</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">ee</span> <span class="o">-</span> <span class="n">e0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">atol</span><span class="p">:</span>
+            <span class="n">e0</span> <span class="o">=</span> <span class="n">ee</span>
+            <span class="n">ndeg</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">degs</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">ib</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">degs</span><span class="p">[</span><span class="n">ndeg</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ib</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">degs</span></div>
 </pre></div>
 
     </div>
@@ -599,8 +624,8 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Sep 18, 2018.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+      Last updated on Oct 18, 2019.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>
 </footer>

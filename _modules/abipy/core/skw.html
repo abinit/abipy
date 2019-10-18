@@ -2,39 +2,31 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.core.skw &#8212; abipy 0.7.0.dev documentation</title>
+    <meta charset="utf-8" />
+    <title>abipy.core.skw &#8212; abipy 0.7.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../../',
-        VERSION:     '0.7.0.dev',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js"></script>
-    <script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
-    <script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
 
-  </head>
-  <body>
+  </head><body>
 
   <div id="navbar" class="navbar navbar-default navbar-fixed-top">
     <div class="container">
@@ -47,7 +39,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0.dev</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -127,7 +119,7 @@
 
 <div class="container">
   <div class="row">
-    <div class="col-md-12 content">
+    <div class="body col-md-12 content" role="main">
       
   <h1>Source code for abipy.core.skw</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding: utf-8</span>
@@ -135,12 +127,9 @@
 <span class="sd">Shankland-Koelling-Wood Fourier interpolation scheme.</span>
 <span class="sd">For the theoretical background see :cite:`Euwema1969,Koelling1986,Pickett1988,Madsen2006`.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
-
 <span class="kn">import</span> <span class="nn">abc</span>
 <span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">import</span> <span class="nn">pickle</span>
-<span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">scipy</span>
 <span class="kn">import</span> <span class="nn">time</span>
@@ -148,113 +137,13 @@
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">deque</span><span class="p">,</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
 <span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">dict2namedtuple</span>
-<span class="kn">from</span> <span class="nn">pymatgen.util.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span>
-<span class="kn">from</span> <span class="nn">abipy.tools</span> <span class="k">import</span> <span class="n">gaussian</span>
-<span class="kn">from</span> <span class="nn">abipy.core.kpoints</span> <span class="k">import</span> <span class="n">Ktables</span><span class="p">,</span> <span class="n">Kpath</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.numtools</span> <span class="k">import</span> <span class="n">gaussian</span><span class="p">,</span> <span class="n">find_degs_sk</span>
+<span class="kn">from</span> <span class="nn">abipy.core.kpoints</span> <span class="k">import</span> <span class="n">Kpath</span>
 <span class="kn">from</span> <span class="nn">abipy.core.symmetries</span> <span class="k">import</span> <span class="n">mati3inv</span>
 
 
-<div class="viewcode-block" id="n_fermi_dirac"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.skw.n_fermi_dirac">[docs]</a><span class="k">def</span> <span class="nf">n_fermi_dirac</span><span class="p">(</span><span class="n">enes</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">temp</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Fermi-Dirac distribution.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        enes: Energies in eV</span>
-<span class="sd">        mu: Chemical potential in eV.</span>
-<span class="sd">        temp: Temperature in Kelvin.</span>
-
-<span class="sd">    Return:</span>
-<span class="sd">        numpy array with occupations in [0, 1].</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">temp</span> <span class="o">&gt;</span> <span class="mf">1e-2</span><span class="p">:</span>
-        <span class="k">return</span> <span class="mf">1.</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">((</span><span class="n">enes</span> <span class="o">-</span> <span class="n">mu</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">kboltz</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">enes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">enes</span><span class="p">)</span>
-        <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">enes</span> <span class="o">&lt;=</span> <span class="n">mu</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">enes</span> <span class="o">==</span> <span class="n">mu</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">enes</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="find_degs_sk"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.skw.find_degs_sk">[docs]</a><span class="k">def</span> <span class="nf">find_degs_sk</span><span class="p">(</span><span class="n">enesb</span><span class="p">,</span> <span class="n">atol</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Return list of lists with the indices of the degenerated bands.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        enesb: Iterable with energies for the different bands.</span>
-<span class="sd">            Energies are assumed to be ordered.</span>
-<span class="sd">        atol: Absolute tolerance. Two states are degerated if they differ by less than `atol`.</span>
-
-<span class="sd">    Return:</span>
-<span class="sd">        List of lists. The i-th item contains the indices of the degenerates states</span>
-<span class="sd">            for the i-th degenerated set.</span>
-
-<span class="sd">    :Examples:</span>
-
-<span class="sd">    &gt;&gt;&gt; find_degs_sk([1, 1, 2, 3.4, 3.401], atol=0.01)</span>
-<span class="sd">    [[0, 1], [2], [3, 4]]</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">ndeg</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">degs</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">]]</span>
-    <span class="n">e0</span> <span class="o">=</span> <span class="n">enesb</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="k">for</span> <span class="n">ib</span><span class="p">,</span> <span class="n">ee</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">enesb</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
-        <span class="n">ib</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">ee</span> <span class="o">-</span> <span class="n">e0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">atol</span><span class="p">:</span>
-            <span class="n">e0</span> <span class="o">=</span> <span class="n">ee</span>
-            <span class="n">ndeg</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="n">degs</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">ib</span><span class="p">])</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">degs</span><span class="p">[</span><span class="n">ndeg</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ib</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">degs</span></div>
-
-
-<div class="viewcode-block" id="map_bz2ibz"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.skw.map_bz2ibz">[docs]</a><span class="k">def</span> <span class="nf">map_bz2ibz</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">ibz</span><span class="p">,</span> <span class="n">ngkpt</span><span class="p">,</span> <span class="n">has_timrev</span><span class="p">):</span>
-    <span class="n">ngkpt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">ngkpt</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dp</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
-
-    <span class="c1">#ibz_grid = [k * ngkpt for k in ibz]</span>
-    <span class="c1">#ibz_grid = ibz[..., :] * ngkpt</span>
-    <span class="c1">#for i, k in enumerate(ibz_grid):</span>
-    <span class="c1">#    ibz_grid[ik] = ibz_grid[ik] % ngkpt</span>
-
-    <span class="n">bzgrid2ibz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ngkpt</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
-    <span class="c1">#for i, gp in enumerate(itertools.product(range(ngkpt[0] + 1), range(ngkpt[1] + 1), range(ngkpt[2] + 1))):</span>
-    <span class="c1">#      bzgrid2ibz[gp] = i</span>
-
-    <span class="n">symrec_fm</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">spacegroup</span><span class="o">.</span><span class="n">symrec</span>
-    <span class="n">time_signs</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-
-    <span class="k">for</span> <span class="n">ik_ibz</span><span class="p">,</span> <span class="n">kibz</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ibz</span><span class="p">):</span>
-        <span class="n">gp_ibz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">kibz</span> <span class="o">*</span> <span class="n">mesh</span><span class="p">)</span>
-        <span class="n">rotated_gps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">symref_fm</span><span class="p">,</span> <span class="n">gp_ibz</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
-        <span class="k">for</span> <span class="n">tsign</span> <span class="ow">in</span> <span class="n">tsigns</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">tsign</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="n">rotated_gps</span> <span class="o">=</span> <span class="n">tsign</span> <span class="o">*</span> <span class="n">rotated_gps</span>
-            <span class="k">for</span> <span class="n">rot_gp</span> <span class="ow">in</span> <span class="n">rotated_gps</span><span class="p">:</span>
-                <span class="n">gp_bz</span> <span class="o">=</span> <span class="n">rot_gp</span> <span class="o">%</span> <span class="n">ngkpt</span>
-                <span class="n">bzgrid2ibz</span><span class="p">[</span><span class="n">gp_bz</span><span class="p">]</span> <span class="o">=</span> <span class="n">ik_ibz</span>
-
-    <span class="c1">#bz2ibz = -np.ones(len(bz), dtype=np.int)</span>
-    <span class="c1">#from abipy.core.kpoints import issamek</span>
-    <span class="c1">#for ik_bz, kbz in enumerate(bz):</span>
-    <span class="c1">#    found = False</span>
-    <span class="c1">#    for ik_ibz, kibz in enumerate(ibz):</span>
-    <span class="c1">#        if found: break</span>
-    <span class="c1">#        for symmop in structure.spacegroup:</span>
-    <span class="c1">#            krot = symmop.rotate_k(kibz)</span>
-    <span class="c1">#            if issamek(krot, kbz):</span>
-    <span class="c1">#                bz2ibz[ik_bz] = ik_ibz</span>
-    <span class="c1">#                found = True</span>
-    <span class="c1">#                break</span>
-
-    <span class="k">return</span> <span class="n">bz2ibz</span></div>
-
-
-<span class="c1">#class EDOS(object):</span>
-<span class="c1">#    def __init__(self, mesh, values, integral, is_shift, method, step, width):</span>
-<span class="c1">#        self.mesh, self.values, self.integral = mesh, values, integral</span>
-<span class="c1">#        self.is_shift, self.method, self.step, self.width = is_shift, method, step, width</span>
-
-
-<div class="viewcode-block" id="ElectronInterpolator"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.skw.ElectronInterpolator">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">ElectronInterpolator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="ElectronInterpolator"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.skw.ElectronInterpolator">[docs]</a><span class="k">class</span> <span class="nc">ElectronInterpolator</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Tolerances passed to spglib.</span>
@@ -273,12 +162,12 @@
 <div class="viewcode-block" id="ElectronInterpolator.pickle_load"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.skw.ElectronInterpolator.pickle_load">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">pickle_load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Loads the object from a pickle file.&quot;&quot;&quot;</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span> <span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ElectronInterpolator.pickle_dump"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.skw.ElectronInterpolator.pickle_dump">[docs]</a>    <span class="k">def</span> <span class="nf">pickle_dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Save the status of the object in pickle format.&quot;&quot;&quot;</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span> <span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
             <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fh</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ElectronInterpolator.get_sampling"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.skw.ElectronInterpolator.get_sampling">[docs]</a>    <span class="k">def</span> <span class="nf">get_sampling</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">is_shift</span><span class="p">):</span>
@@ -328,8 +217,6 @@
                                <span class="n">ibz</span><span class="o">=</span><span class="n">ibz</span><span class="p">,</span> <span class="n">nibz</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">ibz</span><span class="p">),</span> <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">,</span>
                                <span class="n">bz</span><span class="o">=</span><span class="n">bz</span><span class="p">,</span> <span class="n">nbz</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">bz</span><span class="p">),</span> <span class="n">grid</span><span class="o">=</span><span class="n">grid</span><span class="p">,</span> <span class="n">bz2ibz</span><span class="o">=</span><span class="n">bz2ibz</span><span class="p">)</span></div>
 
-        <span class="c1">#return Ktables(structure, mesh, is_shift, has_timrev)</span>
-
     <span class="c1">#def recalc_fermie(self, kmesh, is_shift=None)</span>
     <span class="c1">#    # Compute DOS</span>
     <span class="c1">#    edos = _get_cached_edos(kmesh, is_shift)</span>
@@ -373,46 +260,46 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">nelect</span> <span class="o">=</span> <span class="n">idos</span><span class="o">.</span><span class="n">spline</span><span class="p">(</span><span class="n">fermie</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nelect</span></div>
 
-<div class="viewcode-block" id="ElectronInterpolator.set_nelect"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.skw.ElectronInterpolator.set_nelect">[docs]</a>    <span class="k">def</span> <span class="nf">set_nelect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nelect</span><span class="p">,</span> <span class="n">kmesh</span><span class="p">,</span> <span class="n">is_shift</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Change the total number of electrons. Use the IDOS computed on the k-grid specifined by</span>
-<span class="sd">        `kmesh` and `is_shift` to recompute the new Fermi level</span>
+    <span class="c1">#def set_nelect(self, nelect, kmesh, is_shift=None):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    Change the total number of electrons. Use the IDOS computed on the k-grid specifined by</span>
+    <span class="c1">#    `kmesh` and `is_shift` to recompute the new Fermi level</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            nelect: New numbre of electrons.</span>
-<span class="sd">            kmesh: Three integers with the number of divisions along the reciprocal primitive axes.</span>
-<span class="sd">            is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along</span>
-<span class="sd">                the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.</span>
+    <span class="c1">#    Args:</span>
+    <span class="c1">#        nelect: New numbre of electrons.</span>
+    <span class="c1">#        kmesh: Three integers with the number of divisions along the reciprocal primitive axes.</span>
+    <span class="c1">#        is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along</span>
+    <span class="c1">#            the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.</span>
 
-<span class="sd">        Return:</span>
-<span class="sd">            New value of `self.fermie`.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Compute DOS</span>
-        <span class="n">edos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_cached_edos</span><span class="p">(</span><span class="n">kmesh</span><span class="p">,</span> <span class="n">is_shift</span><span class="p">)</span>
-        <span class="c1">#if edos is None:</span>
-        <span class="c1">#    edos = self.get_edos(kmesh, is_shift=is_shift, method=&quot;gaussian&quot;, step=0.1, width=0.2, wmesh=None)</span>
-        <span class="c1">#    self._cache_edos(kmesh, is_shift, edos)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">nelect</span> <span class="o">=</span> <span class="n">nelect</span>
-        <span class="c1"># Find new chemical potential from nelect.</span>
-        <span class="n">idos</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">fermie</span> <span class="o">=</span> <span class="n">new_fermie</span>
-        <span class="k">return</span> <span class="n">new_fermie</span></div>
+    <span class="c1">#    Return:</span>
+    <span class="c1">#        New value of `self.fermie`.</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    # Compute DOS</span>
+    <span class="c1">#    edos = self._get_cached_edos(kmesh, is_shift)</span>
+    <span class="c1">#    #if edos is None:</span>
+    <span class="c1">#    #    edos = self.get_edos(kmesh, is_shift=is_shift, method=&quot;gaussian&quot;, step=0.1, width=0.2, wmesh=None)</span>
+    <span class="c1">#    #    self._cache_edos(kmesh, is_shift, edos)</span>
+    <span class="c1">#    self.nelect = nelect</span>
+    <span class="c1">#    # Find new chemical potential from nelect.</span>
+    <span class="c1">#    idos</span>
+    <span class="c1">#    self.fermie = new_fermie</span>
+    <span class="c1">#    return new_fermie</span>
 
     <span class="c1">#def set_charge_per_ucell(self, charge, kmesh, is_shift=None):</span>
 
-<div class="viewcode-block" id="ElectronInterpolator.get_occfacts"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.skw.ElectronInterpolator.get_occfacts">[docs]</a>    <span class="k">def</span> <span class="nf">get_occfacts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">eigens</span><span class="p">,</span> <span class="n">temp</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Compute occupation factors from the eigenvalues `eigens` and</span>
-<span class="sd">        the temperature `temp` in K. occfacts in [0, 1].</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">occtype</span> <span class="o">==</span> <span class="s2">&quot;insulator&quot;</span><span class="p">:</span>
-            <span class="n">occfacts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">eigens</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-            <span class="n">occfacts</span><span class="p">[:,</span> <span class="p">:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">val_ib</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="mf">0.0</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">{</span>
-                <span class="c1">#&quot;gaussian&quot;: n_gaussian,</span>
-                <span class="s2">&quot;fermi-dirac&quot;</span><span class="p">:</span> <span class="n">n_fermi_dirac</span><span class="p">,</span>
-            <span class="p">}[</span><span class="bp">self</span><span class="o">.</span><span class="n">occtype</span><span class="p">](</span><span class="n">eigens</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fermie</span><span class="p">,</span> <span class="n">temp</span><span class="p">)</span></div>
+    <span class="c1">#def get_occfacts(self, eigens, temp):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    Compute occupation factors from the eigenvalues `eigens` and</span>
+    <span class="c1">#    the temperature `temp` in K. occfacts in [0, 1].</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    if self.occtype == &quot;insulator&quot;:</span>
+    <span class="c1">#        occfacts = np.ones(eigens.shape)</span>
+    <span class="c1">#        occfacts[:, :, self.val_ib + 1:] = 0.0</span>
+    <span class="c1">#    else:</span>
+    <span class="c1">#        return {</span>
+    <span class="c1">#            #&quot;gaussian&quot;: n_gaussian,</span>
+    <span class="c1">#            &quot;fermi-dirac&quot;: n_fermi_dirac,</span>
+    <span class="c1">#        }[self.occtype](eigens, self.fermie, temp)</span>
 
 <div class="viewcode-block" id="ElectronInterpolator.get_edos"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.skw.ElectronInterpolator.get_edos">[docs]</a>    <span class="k">def</span> <span class="nf">get_edos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kmesh</span><span class="p">,</span> <span class="n">is_shift</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">wmesh</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -520,7 +407,6 @@
         <span class="n">integral</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">integrate</span><span class="o">.</span><span class="n">cumtrapz</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">wmesh</span><span class="p">,</span> <span class="n">initial</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">mesh</span><span class="o">=</span><span class="n">wmesh</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">values</span><span class="p">,</span> <span class="n">integral</span><span class="o">=</span><span class="n">integral</span><span class="p">)</span></div>
-        <span class="c1">#return ElectronJointDos(wmesh, values, integral, is_shift, method, step, width)</span>
 
     <span class="c1">#def get_jdos_qpts(self, qpoints, kmesh, is_shift=None, method=&quot;gaussian&quot;, step=0.1, width=0.2, wmesh=None):</span>
     <span class="c1">#    qpoints = np.reshape(qpoints, (-1, 3))</span>
@@ -729,8 +615,8 @@
         <span class="k">for</span> <span class="n">kmesh</span> <span class="ow">in</span> <span class="n">kmeshes</span><span class="p">:</span>
             <span class="n">jdos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_jdos_q0</span><span class="p">(</span><span class="n">kmesh</span><span class="p">,</span> <span class="n">is_shift</span><span class="o">=</span><span class="n">is_shift</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="n">step</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">):</span>
-               <span class="n">spin_sign</span> <span class="o">=</span> <span class="o">+</span><span class="mi">1</span> <span class="k">if</span> <span class="n">spin</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
-               <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">jdos</span><span class="o">.</span><span class="n">mesh</span><span class="p">,</span> <span class="n">jdos</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">spin</span><span class="p">]</span> <span class="o">*</span> <span class="n">spin_sign</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">kmesh</span><span class="p">)</span> <span class="k">if</span> <span class="n">spin</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="n">spin_sign</span> <span class="o">=</span> <span class="o">+</span><span class="mi">1</span> <span class="k">if</span> <span class="n">spin</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">jdos</span><span class="o">.</span><span class="n">mesh</span><span class="p">,</span> <span class="n">jdos</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">spin</span><span class="p">]</span> <span class="o">*</span> <span class="n">spin_sign</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">kmesh</span><span class="p">)</span> <span class="k">if</span> <span class="n">spin</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Energy (eV)&quot;</span><span class="p">)</span>
@@ -812,32 +698,32 @@
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
-<div class="viewcode-block" id="ElectronInterpolator.plot_group_velocites"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.skw.ElectronInterpolator.plot_group_velocites">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
-    <span class="k">def</span> <span class="nf">plot_group_velocites</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vertices_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">line_density</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Plot (interpolated) group velocities computed along an arbitrary k-path.</span>
+    <span class="c1">#@add_fig_kwargs</span>
+    <span class="c1">#def plot_group_velocites(self, vertices_names=None, line_density=20, ax=None, **kwargs):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    Plot (interpolated) group velocities computed along an arbitrary k-path.</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            vertices_names</span>
-<span class="sd">            line_density:</span>
-<span class="sd">            ax: |matplotlib-Axes| or None if a new figure should be created.</span>
+    <span class="c1">#    Args:</span>
+    <span class="c1">#        vertices_names</span>
+    <span class="c1">#        line_density:</span>
+    <span class="c1">#        ax: |matplotlib-Axes| or None if a new figure should be created.</span>
 
-<span class="sd">        Returns: |matplotlib-Figure|</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
-        <span class="n">kfrac_coords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_kpts_kticks_klabels</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">vertices_names</span><span class="p">,</span> <span class="n">line_density</span><span class="p">)</span>
+    <span class="c1">#    Returns: |matplotlib-Figure|</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    ax, fig, plt = get_ax_fig_plt(ax=ax)</span>
+    <span class="c1">#    kfrac_coords = self._get_kpts_kticks_klabels(ax, vertices_names, line_density)</span>
 
-        <span class="c1">#v_skb = self.interp_kpts(kfrac_coords, dk1=v_skb)</span>
-        <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">band</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nband</span><span class="p">):</span>
-                <span class="c1"># plot |v|</span>
-                <span class="n">v_skb</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="p">:,</span> <span class="n">band</span><span class="p">]</span>
-                <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span> <span class="k">if</span> <span class="n">spin</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+    <span class="c1">#    #v_skb = self.interp_kpts(kfrac_coords, dk1=v_skb)</span>
+    <span class="c1">#    for spin in range(self.nsppol):</span>
+    <span class="c1">#        for band in range(self.nband):</span>
+    <span class="c1">#            # plot |v|</span>
+    <span class="c1">#            v_skb[spin, :, band]</span>
+    <span class="c1">#            ax.plot(vals, color=&quot;k&quot; if spin == 0 else &quot;r&quot;)</span>
 
-        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Group Velocities&#39;</span><span class="p">)</span>
+    <span class="c1">#    ax.grid(True)</span>
+    <span class="c1">#    ax.set_ylabel(&#39;Group Velocities&#39;)</span>
 
-        <span class="k">return</span> <span class="n">fig</span></div>
+    <span class="c1">#    return fig</span>
 
     <span class="k">def</span> <span class="nf">_get_kpts_kticks_klabels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">vertices_names</span><span class="p">,</span> <span class="n">line_density</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">vertices_names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -952,6 +838,13 @@
 <span class="sd">    the names of the variables are chosen assuming we are interpolating electronic eigenvalues</span>
 <span class="sd">    but the same object can be used to interpolate other quantities. Just set the first dimension to 1.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#@class method</span>
+    <span class="c1">#def from_ncreader(cls, reader):</span>
+    <span class="c1">#    return cls(lpratio, kpts, eigens, fermie, nelect, cell, symrel, has_timrev,</span>
+    <span class="c1">#               filter_params=None, verbose=1)</span>
+
+    <span class="c1">#@class method</span>
+    <span class="c1">#def from_file(cls, filepath)</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lpratio</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">eigens</span><span class="p">,</span> <span class="n">fermie</span><span class="p">,</span> <span class="n">nelect</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">symrel</span><span class="p">,</span> <span class="n">has_timrev</span><span class="p">,</span>
                  <span class="n">filter_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
@@ -1089,7 +982,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">rcut</span> <span class="o">=</span> <span class="n">filter_params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">r2vals</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">rsigma</span> <span class="o">=</span> <span class="n">rsigma</span> <span class="o">=</span> <span class="n">filter_params</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Applying filter (Eq 9 of PhysRevB.61.1639) with rcut:&quot;</span><span class="p">,</span> <span class="n">rcut</span><span class="p">,</span> <span class="s2">&quot;, rsigma&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rsigma</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Applying filter (Eq 9 of PhysRevB.61.1639) with rcut:&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rcut</span><span class="p">,</span> <span class="s2">&quot;, rsigma&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rsigma</span><span class="p">)</span>
             <span class="kn">from</span> <span class="nn">scipy.special</span> <span class="k">import</span> <span class="n">erfc</span>
             <span class="k">for</span> <span class="n">ir</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nr</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">coefs</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">ir</span><span class="p">]</span> <span class="o">*=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">erfc</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">r2vals</span><span class="p">[</span><span class="n">ir</span><span class="p">])</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">rcut</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">rsigma</span><span class="p">)</span>
@@ -1337,9 +1230,11 @@
 
         <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">cnt</span><span class="p">,</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">rmax</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rmax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
-            <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">rmax</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">rmax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">rmax</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">rmax</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))):</span>
-              <span class="n">rtmp</span><span class="p">[</span><span class="n">cnt</span><span class="p">]</span> <span class="o">=</span> <span class="n">l</span>
-              <span class="n">r2tmp</span><span class="p">[</span><span class="n">cnt</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rmet</span><span class="p">,</span> <span class="n">l</span><span class="p">))</span>
+                                                  <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">rmax</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">rmax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
+                                                  <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">rmax</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">rmax</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))):</span>
+            <span class="n">rtmp</span><span class="p">[</span><span class="n">cnt</span><span class="p">]</span> <span class="o">=</span> <span class="n">l</span>
+            <span class="n">r2tmp</span><span class="p">[</span><span class="n">cnt</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rmet</span><span class="p">,</span> <span class="n">l</span><span class="p">))</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;gen points&quot;</span><span class="p">,</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span>
 
         <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
@@ -1476,8 +1371,8 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Sep 18, 2018.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+      Last updated on Oct 18, 2019.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>
 </footer>

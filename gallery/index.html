@@ -2,30 +2,19 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>AbiPy Gallery &#8212; abipy 0.7.0.dev documentation</title>
+    <meta charset="utf-8" />
+    <title>AbiPy Gallery &#8212; abipy 0.7.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../',
-        VERSION:     '0.7.0.dev',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
-    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
-    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="e-bands scatter3d" href="plot_ebands_scatter3d.html" />
@@ -34,9 +23,12 @@
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
 
-  </head>
-  <body>
+  </head><body>
 
   <div id="navbar" class="navbar navbar-default navbar-fixed-top">
     <div class="container">
@@ -49,7 +41,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0.dev</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -146,346 +138,367 @@
 
 <div class="container">
   <div class="row">
-    <div class="col-md-12 content">
+    <div class="body col-md-12 content" role="main">
       
   <div class="section" id="abipy-gallery">
-<span id="plot-gallery"></span><h1>AbiPy Gallery<a class="headerlink" href="#abipy-gallery" title="Permalink to this headline">¶</a></h1>
+<span id="plot-gallery"></span><span id="sphx-glr-gallery"></span><h1>AbiPy Gallery<a class="headerlink" href="#abipy-gallery" title="Permalink to this headline">¶</a></h1>
 <p>There are a variety of ways to use the AbiPy post-processing tools,
 and most of them are illustrated in the examples in this directory.</p>
 <p>Remember that one can also generate a jupyter notebook directly from the command line with
 the <a class="reference internal" href="../scripts/abiopen.html#abiopen-py"><span class="std std-ref">abiopen.py</span></a> script and the command:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiopen</span><span class="o">.</span><span class="n">py</span> <span class="n">FILE</span> <span class="o">-</span><span class="n">nb</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abiopen</span><span class="o">.</span><span class="n">py</span> <span class="n">FILE</span> <span class="o">-</span><span class="n">nb</span>
 </pre></div>
 </div>
 <p>issue</p>
 <blockquote>
-<div>abiopen.py FILE –expose</div></blockquote>
+<div><p>abiopen.py FILE –expose</p>
+</div></blockquote>
 <p>to generate plots automatically or use one of the options of <a class="reference internal" href="../scripts/abiview.html#abiview-py"><span class="std std-ref">abiview.py</span></a> to plot the results automatically.</p>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot a particular &quot;band&quot; in 3D with matplotlib scatter3D. The color o..."><div class="figure" id="id1">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot a particular &quot;band&quot; in 3D with matplotlib scatter3D. The color o..."><div class="figure align-default" id="id1">
 <img alt="../_images/sphx_glr_plot_ebands_scatter3d_thumb.png" src="../_images/sphx_glr_plot_ebands_scatter3d_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_ebands_scatter3d.html#sphx-glr-gallery-plot-ebands-scatter3d-py"><span class="std std-ref">e-bands scatter3d</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_ebands_scatter3d.html#sphx-glr-gallery-plot-ebands-scatter3d-py"><span class="std std-ref">e-bands scatter3d</span></a></span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to display the Brillouin zone with pymatgen and matplotlib. "><div class="figure" id="id2">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to display the Brillouin zone with pymatgen and matplotlib."><div class="figure align-default" id="id2">
 <img alt="../_images/sphx_glr_plot_bz_thumb.png" src="../_images/sphx_glr_plot_bz_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_bz.html#sphx-glr-gallery-plot-bz-py"><span class="std std-ref">Brillouin zone</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_bz.html#sphx-glr-gallery-plot-bz-py"><span class="std std-ref">Brillouin zone</span></a></span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to display the unit cell with matplotlib. "><div class="figure" id="id3">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to display the unit cell with matplotlib."><div class="figure align-default" id="id3">
 <img alt="../_images/sphx_glr_plot_structure_thumb.png" src="../_images/sphx_glr_plot_structure_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_structure.html#sphx-glr-gallery-plot-structure-py"><span class="std std-ref">Unit cell</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_structure.html#sphx-glr-gallery-plot-structure-py"><span class="std std-ref">Unit cell</span></a></span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to use seaborn to draw a box plot showing the distributions of eigenvalu..."><div class="figure" id="id4">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to use seaborn to draw a box plot showing the distributions of eigenvalu..."><div class="figure align-default" id="id4">
 <img alt="../_images/sphx_glr_plot_ebands_boxplot_thumb.png" src="../_images/sphx_glr_plot_ebands_boxplot_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_ebands_boxplot.html#sphx-glr-gallery-plot-ebands-boxplot-py"><span class="std std-ref">Seaborn boxplot</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_ebands_boxplot.html#sphx-glr-gallery-plot-ebands-boxplot-py"><span class="std std-ref">Seaborn boxplot</span></a></span><a class="headerlink" href="#id4" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This examples shows how to plot the G0W0 spectral functions A(w) at the gamma point. See also l..."><div class="figure" id="id5">
+<div class="sphx-glr-thumbcontainer" tooltip="This examples shows how to plot the G0W0 spectral functions A(w) at the gamma point. See also l..."><div class="figure align-default" id="id5">
 <img alt="../_images/sphx_glr_plot_gw_spectral_functions_thumb.png" src="../_images/sphx_glr_plot_gw_spectral_functions_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_gw_spectral_functions.html#sphx-glr-gallery-plot-gw-spectral-functions-py"><span class="std std-ref">G0W0 spectral function</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_gw_spectral_functions.html#sphx-glr-gallery-plot-gw-spectral-functions-py"><span class="std std-ref">G0W0 spectral function</span></a></span><a class="headerlink" href="#id5" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the X-ray diffraction pattern with pymatgen "><div class="figure" id="id6">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the X-ray diffraction pattern with pymatgen"><div class="figure align-default" id="id6">
 <img alt="../_images/sphx_glr_plot_xrd_thumb.png" src="../_images/sphx_glr_plot_xrd_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_xrd.html#sphx-glr-gallery-plot-xrd-py"><span class="std std-ref">X-ray diffraction pattern</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_xrd.html#sphx-glr-gallery-plot-xrd-py"><span class="std std-ref">X-ray diffraction pattern</span></a></span><a class="headerlink" href="#id6" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to visualize the SCGW QP amplitudes in the KS basis set. "><div class="figure" id="id7">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the speed of sound by fitting phonon frequencies along select..."><div class="figure align-default" id="id7">
+<img alt="../_images/sphx_glr_plot_speed_of_sound_thumb.png" src="../_images/sphx_glr_plot_speed_of_sound_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_speed_of_sound.html#sphx-glr-gallery-plot-speed-of-sound-py"><span class="std std-ref">Speed of Sound</span></a></span><a class="headerlink" href="#id7" title="Permalink to this image">¶</a></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to visualize the SCGW QP amplitudes in the KS basis set."><div class="figure align-default" id="id8">
 <img alt="../_images/sphx_glr_plot_scqpgw_thumb.png" src="../_images/sphx_glr_plot_scqpgw_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_scqpgw.html#sphx-glr-gallery-plot-scqpgw-py"><span class="std std-ref">self-consistent GW</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_scqpgw.html#sphx-glr-gallery-plot-scqpgw-py"><span class="std std-ref">self-consistent GW</span></a></span><a class="headerlink" href="#id8" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to visualize the QP results stored in the SIGRES produced by the GW code..."><div class="figure" id="id8">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to visualize the QP results stored in the SIGRES produced by the GW code..."><div class="figure align-default" id="id9">
 <img alt="../_images/sphx_glr_plot_qps_thumb.png" src="../_images/sphx_glr_plot_qps_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_qps.html#sphx-glr-gallery-plot-qps-py"><span class="std std-ref">SIGRES file (GW)</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_qps.html#sphx-glr-gallery-plot-qps-py"><span class="std std-ref">SIGRES file (GW)</span></a></span><a class="headerlink" href="#id9" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the convergence of the wannierization cycle using the .wout file..."><div class="figure" id="id9">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the convergence of the wannierization cycle using the .wout file..."><div class="figure align-default" id="id10">
 <img alt="../_images/sphx_glr_plot_wannier90_wout_thumb.png" src="../_images/sphx_glr_plot_wannier90_wout_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_wannier90_wout.html#sphx-glr-gallery-plot-wannier90-wout-py"><span class="std std-ref">Wannier90 wout file</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_wannier90_wout.html#sphx-glr-gallery-plot-wannier90-wout-py"><span class="std std-ref">Wannier90 wout file</span></a></span><a class="headerlink" href="#id10" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot a phonon band structure with and without imposing the acoustic s..."><div class="figure" id="id10">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot a phonon band structure with and without imposing the acoustic s..."><div class="figure align-default" id="id11">
 <img alt="../_images/sphx_glr_plot_ddb_asr_thumb.png" src="../_images/sphx_glr_plot_ddb_asr_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_ddb_asr.html#sphx-glr-gallery-plot-ddb-asr-py"><span class="std std-ref">Phonon Bands with/without ASR</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_ddb_asr.html#sphx-glr-gallery-plot-ddb-asr-py"><span class="std std-ref">Phonon Bands with/without ASR</span></a></span><a class="headerlink" href="#id11" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the results of multiple structure relaxations with the HIST r..."><div class="figure" id="id11">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the results of multiple structure relaxations with the HIST r..."><div class="figure align-default" id="id12">
 <img alt="../_images/sphx_glr_plot_multiple_hist_thumb.png" src="../_images/sphx_glr_plot_multiple_hist_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_multiple_hist.html#sphx-glr-gallery-plot-multiple-hist-py"><span class="std std-ref">Multiple Structural relaxations</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_multiple_hist.html#sphx-glr-gallery-plot-multiple-hist-py"><span class="std std-ref">Multiple Structural relaxations</span></a></span><a class="headerlink" href="#id12" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the results produced by fold2bloch. &lt;http://www.abinit.org/doc/h..."><div class="figure" id="id12">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the results produced by fold2bloch. &lt;http://www.abinit.org/doc/h..."><div class="figure align-default" id="id13">
 <img alt="../_images/sphx_glr_plot_fold2bloch_thumb.png" src="../_images/sphx_glr_plot_fold2bloch_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_fold2bloch.html#sphx-glr-gallery-plot-fold2bloch-py"><span class="std std-ref">Unfolding with fold2bloch</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_fold2bloch.html#sphx-glr-gallery-plot-fold2bloch-py"><span class="std std-ref">Unfolding with fold2bloch</span></a></span><a class="headerlink" href="#id13" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the DOS from the eigenvalues stored in the WFK file with the ..."><div class="figure" id="id13">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the DOS from the eigenvalues stored in the WFK file with the ..."><div class="figure align-default" id="id14">
 <img alt="../_images/sphx_glr_plot_edos_thumb.png" src="../_images/sphx_glr_plot_edos_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_edos.html#sphx-glr-gallery-plot-edos-py"><span class="std std-ref">Electron DOS</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_edos.html#sphx-glr-gallery-plot-edos-py"><span class="std std-ref">Electron DOS</span></a></span><a class="headerlink" href="#id14" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to extract energies along a k-path from a calculation done with a (relat..."><div class="figure" id="id14">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to extract energies along a k-path from a calculation done with a (relat..."><div class="figure align-default" id="id15">
 <img alt="../_images/sphx_glr_plot_kpath_from_ibz_thumb.png" src="../_images/sphx_glr_plot_kpath_from_ibz_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_kpath_from_ibz.html#sphx-glr-gallery-plot-kpath-from-ibz-py"><span class="std std-ref">K-path from IBZ</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_kpath_from_ibz.html#sphx-glr-gallery-plot-kpath-from-ibz-py"><span class="std std-ref">K-path from IBZ</span></a></span><a class="headerlink" href="#id15" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the results of a structure relaxation run using the HIST.nc f..."><div class="figure" id="id15">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the results of a structure relaxation run using the HIST.nc f..."><div class="figure align-default" id="id16">
 <img alt="../_images/sphx_glr_plot_hist_thumb.png" src="../_images/sphx_glr_plot_hist_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_hist.html#sphx-glr-gallery-plot-hist-py"><span class="std std-ref">Structural relaxation</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_hist.html#sphx-glr-gallery-plot-hist-py"><span class="std std-ref">Structural relaxation</span></a></span><a class="headerlink" href="#id16" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the results of the DFPT self-consistent cycle reported in the ma..."><div class="figure" id="id16">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the results of the DFPT self-consistent cycle reported in the ma..."><div class="figure align-default" id="id17">
 <img alt="../_images/sphx_glr_plot_dfpt_cycle_thumb.png" src="../_images/sphx_glr_plot_dfpt_cycle_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_dfpt_cycle.html#sphx-glr-gallery-plot-dfpt-cycle-py"><span class="std std-ref">DFPT SCF cycle</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_dfpt_cycle.html#sphx-glr-gallery-plot-dfpt-cycle-py"><span class="std std-ref">DFPT SCF cycle</span></a></span><a class="headerlink" href="#id17" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the results of the GS self-consistent cycle reported in the main..."><div class="figure" id="id17">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the results of the GS self-consistent cycle reported in the main..."><div class="figure align-default" id="id18">
 <img alt="../_images/sphx_glr_plot_gscycle_thumb.png" src="../_images/sphx_glr_plot_gscycle_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_gscycle.html#sphx-glr-gallery-plot-gscycle-py"><span class="std std-ref">Ground-state SCF cycle</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_gscycle.html#sphx-glr-gallery-plot-gscycle-py"><span class="std std-ref">Ground-state SCF cycle</span></a></span><a class="headerlink" href="#id18" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the Fermi surface with matplotlib "><div class="figure" id="id18">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the Fermi surface with matplotlib"><div class="figure align-default" id="id19">
 <img alt="../_images/sphx_glr_plot_fermisurface_thumb.png" src="../_images/sphx_glr_plot_fermisurface_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_fermisurface.html#sphx-glr-gallery-plot-fermisurface-py"><span class="std std-ref">MgB2 Fermi surface</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_fermisurface.html#sphx-glr-gallery-plot-fermisurface-py"><span class="std std-ref">MgB2 Fermi surface</span></a></span><a class="headerlink" href="#id19" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This examples shows how to plot the macroscopic dielectric function computed in the GW code (op..."><div class="figure" id="id19">
+<div class="sphx-glr-thumbcontainer" tooltip="This examples shows how to plot the macroscopic dielectric function computed in the GW code (op..."><div class="figure align-default" id="id20">
 <img alt="../_images/sphx_glr_plot_scr_thumb.png" src="../_images/sphx_glr_plot_scr_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_scr.html#sphx-glr-gallery-plot-scr-py"><span class="std std-ref">Dielectric function with LFE</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_scr.html#sphx-glr-gallery-plot-scr-py"><span class="std std-ref">Dielectric function with LFE</span></a></span><a class="headerlink" href="#id20" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the output files produced by Lobster code &lt;&lt;http://schmeling...."><div class="figure" id="id20">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the output files produced by Lobster code &lt;&lt;http://schmeling...."><div class="figure align-default" id="id21">
 <img alt="../_images/sphx_glr_plot_lobster_files_thumb.png" src="../_images/sphx_glr_plot_lobster_files_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_lobster_files.html#sphx-glr-gallery-plot-lobster-files-py"><span class="std std-ref">Lobster COHP/COP/DOS</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_lobster_files.html#sphx-glr-gallery-plot-lobster-files-py"><span class="std std-ref">Lobster COHP/COP/DOS</span></a></span><a class="headerlink" href="#id21" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze multiple MDF files. "><div class="figure" id="id21">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze multiple MDF files."><div class="figure align-default" id="id22">
 <img alt="../_images/sphx_glr_plot_multiple_mdf_thumb.png" src="../_images/sphx_glr_plot_multiple_mdf_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_multiple_mdf.html#sphx-glr-gallery-plot-multiple-mdf-py"><span class="std std-ref">Multiple Bethe-Salpeter calculations</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_multiple_mdf.html#sphx-glr-gallery-plot-multiple-mdf-py"><span class="std std-ref">Multiple Bethe-Salpeter calculations</span></a></span><a class="headerlink" href="#id22" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the Eliashberg function a2F(w) and the e-ph coupling strenght in..."><div class="figure" id="id22">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the Eliashberg function a2F(w) and the e-ph coupling strenght in..."><div class="figure align-default" id="id23">
 <img alt="../_images/sphx_glr_plot_a2f_thumb.png" src="../_images/sphx_glr_plot_a2f_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_a2f.html#sphx-glr-gallery-plot-a2f-py"><span class="std std-ref">Eliashberg function</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_a2f.html#sphx-glr-gallery-plot-a2f-py"><span class="std std-ref">Eliashberg function</span></a></span><a class="headerlink" href="#id23" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how plot the different contributions to the electronic joint density of stat..."><div class="figure" id="id23">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how plot the different contributions to the electronic joint density of stat..."><div class="figure align-default" id="id24">
 <img alt="../_images/sphx_glr_plot_ejdos_thumb.png" src="../_images/sphx_glr_plot_ejdos_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_ejdos.html#sphx-glr-gallery-plot-ejdos-py"><span class="std std-ref">Joint Density of States</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_ejdos.html#sphx-glr-gallery-plot-ejdos-py"><span class="std std-ref">Joint Density of States</span></a></span><a class="headerlink" href="#id24" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot a band structure using the eigenvalues stored in the GSR file pr..."><div class="figure" id="id24">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot a band structure using the eigenvalues stored in the GSR file pr..."><div class="figure align-default" id="id25">
 <img alt="../_images/sphx_glr_plot_ebands_thumb.png" src="../_images/sphx_glr_plot_ebands_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_ebands.html#sphx-glr-gallery-plot-ebands-py"><span class="std std-ref">Band structure plot</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_ebands.html#sphx-glr-gallery-plot-ebands-py"><span class="std std-ref">Band structure plot</span></a></span><a class="headerlink" href="#id25" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the DOS and plot a band structure with DOS using two GSR file..."><div class="figure" id="id25">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the DOS and plot a band structure with DOS using two GSR file..."><div class="figure align-default" id="id26">
 <img alt="../_images/sphx_glr_plot_ebands_edos_thumb.png" src="../_images/sphx_glr_plot_ebands_edos_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_ebands_edos.html#sphx-glr-gallery-plot-ebands-edos-py"><span class="std std-ref">Bands + DOS</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_ebands_edos.html#sphx-glr-gallery-plot-ebands-edos-py"><span class="std std-ref">Bands + DOS</span></a></span><a class="headerlink" href="#id26" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the COHPCAR file produced by Lobster code &lt;http://schmeling.a..."><div class="figure" id="id26">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the COHPCAR file produced by Lobster code &lt;http://schmeling.a..."><div class="figure align-default" id="id27">
 <img alt="../_images/sphx_glr_plot_lobster_cohp_thumb.png" src="../_images/sphx_glr_plot_lobster_cohp_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_lobster_cohp.html#sphx-glr-gallery-plot-lobster-cohp-py"><span class="std std-ref">Lobster COHPCAR</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_lobster_cohp.html#sphx-glr-gallery-plot-lobster-cohp-py"><span class="std std-ref">Lobster COHPCAR</span></a></span><a class="headerlink" href="#id27" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the projected phonon DOS of AlAs. See tutorial/lesson_rf2.html "><div class="figure" id="id27">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the projected phonon DOS of AlAs. See tutorial/lesson_rf2.html"><div class="figure align-default" id="id28">
 <img alt="../_images/sphx_glr_plot_phonon_pjdos_thumb.png" src="../_images/sphx_glr_plot_phonon_pjdos_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_phonon_pjdos.html#sphx-glr-gallery-plot-phonon-pjdos-py"><span class="std std-ref">Projected phonon DOS</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_phonon_pjdos.html#sphx-glr-gallery-plot-phonon-pjdos-py"><span class="std std-ref">Projected phonon DOS</span></a></span><a class="headerlink" href="#id28" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute and plot thermodinamic properties within the harmonic approxi..."><div class="figure" id="id28">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute and plot thermodinamic properties within the harmonic approxi..."><div class="figure align-default" id="id29">
 <img alt="../_images/sphx_glr_plot_phthermo_thumb.png" src="../_images/sphx_glr_plot_phthermo_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_phthermo.html#sphx-glr-gallery-plot-phthermo-py"><span class="std std-ref">Thermodinamic properties</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_phthermo.html#sphx-glr-gallery-plot-phthermo-py"><span class="std std-ref">Thermodinamic properties</span></a></span><a class="headerlink" href="#id29" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This examples shows how to plot the matrix elements of the inverse dielectric function stored i..."><div class="figure" id="id29">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the infrared spectrum of a polar semiconductor (AlAs) from the D..."><div class="figure align-default" id="id30">
+<img alt="../_images/sphx_glr_plot_phonons_infrared_thumb.png" src="../_images/sphx_glr_plot_phonons_infrared_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_phonons_infrared.html#sphx-glr-gallery-plot-phonons-infrared-py"><span class="std std-ref">Infrared spectrum of AlAs</span></a></span><a class="headerlink" href="#id30" title="Permalink to this image">¶</a></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-thumbcontainer" tooltip="This examples shows how to plot the matrix elements of the inverse dielectric function stored i..."><div class="figure align-default" id="id31">
 <img alt="../_images/sphx_glr_plot_scr_matrix_thumb.png" src="../_images/sphx_glr_plot_scr_matrix_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_scr_matrix.html#sphx-glr-gallery-plot-scr-matrix-py"><span class="std std-ref">SCR matrix</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_scr_matrix.html#sphx-glr-gallery-plot-scr-matrix-py"><span class="std std-ref">SCR matrix</span></a></span><a class="headerlink" href="#id31" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to use the SigresRobot to visualize the convergence of the QP results st..."><div class="figure" id="id30">
-<img alt="../_images/sphx_glr_plot_qpconverge_thumb.png" src="../_images/sphx_glr_plot_qpconverge_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_qpconverge.html#sphx-glr-gallery-plot-qpconverge-py"><span class="std std-ref">GW Convergence</span></a></span></p>
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to use the SigresRobot to visualize the convergence of the QP results st..."><div class="figure align-default" id="id32">
+<img alt="../_images/sphx_glr_plot_qpconvergence_thumb.png" src="../_images/sphx_glr_plot_qpconvergence_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_qpconvergence.html#sphx-glr-gallery-plot-qpconvergence-py"><span class="std std-ref">GW Convergence</span></a></span><a class="headerlink" href="#id32" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot several phonon band structures on a grid."><div class="figure" id="id31">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot several phonon band structures on a grid."><div class="figure align-default" id="id33">
 <img alt="../_images/sphx_glr_plot_phbands_nkpt_tsmear_thumb.png" src="../_images/sphx_glr_plot_phbands_nkpt_tsmear_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_phbands_nkpt_tsmear.html#sphx-glr-gallery-plot-phbands-nkpt-tsmear-py"><span class="std std-ref">Multiple phonon bands</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_phbands_nkpt_tsmear.html#sphx-glr-gallery-plot-phbands-nkpt-tsmear-py"><span class="std std-ref">Multiple phonon bands</span></a></span><a class="headerlink" href="#id33" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the electronic density stored in the DEN.nc file. "><div class="figure" id="id32">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the electronic density stored in the DEN.nc file."><div class="figure align-default" id="id34">
 <img alt="../_images/sphx_glr_plot_den_thumb.png" src="../_images/sphx_glr_plot_den_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_den.html#sphx-glr-gallery-plot-den-py"><span class="std std-ref">Density</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_den.html#sphx-glr-gallery-plot-den-py"><span class="std std-ref">Density</span></a></span><a class="headerlink" href="#id34" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to use the Function1D object to analyze and plot results. "><div class="figure" id="id33">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to use the Function1D object to analyze and plot results."><div class="figure align-default" id="id35">
 <img alt="../_images/sphx_glr_plot_funcs_thumb.png" src="../_images/sphx_glr_plot_funcs_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_funcs.html#sphx-glr-gallery-plot-funcs-py"><span class="std std-ref">Function1D object</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_funcs.html#sphx-glr-gallery-plot-funcs-py"><span class="std std-ref">Function1D object</span></a></span><a class="headerlink" href="#id35" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the LM-projected fatbands. The FATBANDS file must have benn prod..."><div class="figure" id="id34">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the LM-projected fatbands. The FATBANDS file must have benn prod..."><div class="figure align-default" id="id36">
 <img alt="../_images/sphx_glr_plot_efatbands_lm_thumb.png" src="../_images/sphx_glr_plot_efatbands_lm_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_efatbands_lm.html#sphx-glr-gallery-plot-efatbands-lm-py"><span class="std std-ref">LM-fatbands</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_efatbands_lm.html#sphx-glr-gallery-plot-efatbands-lm-py"><span class="std std-ref">LM-fatbands</span></a></span><a class="headerlink" href="#id36" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the macroscopic dielectric function (MDF) computed in the Bethe-..."><div class="figure" id="id35">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the macroscopic dielectric function (MDF) computed in the Bethe-..."><div class="figure align-default" id="id37">
 <img alt="../_images/sphx_glr_plot_mdf_thumb.png" src="../_images/sphx_glr_plot_mdf_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_mdf.html#sphx-glr-gallery-plot-mdf-py"><span class="std std-ref">Bethe-Salpeter</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_mdf.html#sphx-glr-gallery-plot-mdf-py"><span class="std std-ref">Bethe-Salpeter</span></a></span><a class="headerlink" href="#id37" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the phonon band structure of AlAs. See tutorial/lesson_rf2.html "><div class="figure" id="id36">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the phonon band structure of AlAs. See tutorial/lesson_rf2.html"><div class="figure align-default" id="id38">
 <img alt="../_images/sphx_glr_plot_phonons_thumb.png" src="../_images/sphx_glr_plot_phonons_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_phonons.html#sphx-glr-gallery-plot-phonons-py"><span class="std std-ref">AlAs Phonon bands</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_phonons.html#sphx-glr-gallery-plot-phonons-py"><span class="std std-ref">AlAs Phonon bands</span></a></span><a class="headerlink" href="#id38" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the phonon band structure of AlAs. See tutorial/lesson_rf2.html "><div class="figure" id="id37">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the phonon band structure of AlAs. See tutorial/lesson_rf2.html"><div class="figure align-default" id="id39">
 <img alt="../_images/sphx_glr_plot_phbands_and_dos_thumb.png" src="../_images/sphx_glr_plot_phbands_and_dos_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_phbands_and_dos.html#sphx-glr-gallery-plot-phbands-and-dos-py"><span class="std std-ref">Phonon Band structures</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_phbands_and_dos.html#sphx-glr-gallery-plot-phbands-and-dos-py"><span class="std std-ref">Phonon Band structures</span></a></span><a class="headerlink" href="#id39" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the phonon band structure of AlAs including the LO-TO splitting...."><div class="figure" id="id38">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the phonon band structure of AlAs including the LO-TO splitting...."><div class="figure align-default" id="id40">
 <img alt="../_images/sphx_glr_plot_phonons_lo_to_thumb.png" src="../_images/sphx_glr_plot_phonons_lo_to_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_phonons_lo_to.html#sphx-glr-gallery-plot-phonons-lo-to-py"><span class="std std-ref">Phonon Bands with LO-TO</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_phonons_lo_to.html#sphx-glr-gallery-plot-phonons-lo-to-py"><span class="std std-ref">Phonon Bands with LO-TO</span></a></span><a class="headerlink" href="#id40" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the Gruneisen parameters computed by anaddb via finite differ..."><div class="figure" id="id39">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the Gruneisen parameters computed by anaddb via finite differ..."><div class="figure align-default" id="id41">
 <img alt="../_images/sphx_glr_plot_gruneisen_thumb.png" src="../_images/sphx_glr_plot_gruneisen_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_gruneisen.html#sphx-glr-gallery-plot-gruneisen-py"><span class="std std-ref">Gruneisen parameters</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_gruneisen.html#sphx-glr-gallery-plot-gruneisen-py"><span class="std std-ref">Gruneisen parameters</span></a></span><a class="headerlink" href="#id41" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot several band structures on a grid"><div class="figure" id="id40">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot several band structures on a grid"><div class="figure align-default" id="id42">
 <img alt="../_images/sphx_glr_plot_ebands_grid_thumb.png" src="../_images/sphx_glr_plot_ebands_grid_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_ebands_grid.html#sphx-glr-gallery-plot-ebands-grid-py"><span class="std std-ref">ElectronBandsPlotter</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_ebands_grid.html#sphx-glr-gallery-plot-ebands-grid-py"><span class="std std-ref">ElectronBandsPlotter</span></a></span><a class="headerlink" href="#id42" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute and plot multiple electron DOSes obtained with different valu..."><div class="figure" id="id41">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute and plot multiple electron DOSes obtained with different valu..."><div class="figure align-default" id="id43">
 <img alt="../_images/sphx_glr_plot_edos_vs_broad_thumb.png" src="../_images/sphx_glr_plot_edos_vs_broad_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_edos_vs_broad.html#sphx-glr-gallery-plot-edos-vs-broad-py"><span class="std std-ref">Multiple e-DOSes</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_edos_vs_broad.html#sphx-glr-gallery-plot-edos-vs-broad-py"><span class="std std-ref">Multiple e-DOSes</span></a></span><a class="headerlink" href="#id43" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the phonon fatbands of AlAs. See tutorial/lesson_rf2.html "><div class="figure" id="id42">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the phonon fatbands of AlAs. See tutorial/lesson_rf2.html"><div class="figure align-default" id="id44">
 <img alt="../_images/sphx_glr_plot_phonon_fatbands_thumb.png" src="../_images/sphx_glr_plot_phonon_fatbands_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_phonon_fatbands.html#sphx-glr-gallery-plot-phonon-fatbands-py"><span class="std std-ref">Phonon fatbands</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_phonon_fatbands.html#sphx-glr-gallery-plot-phonon-fatbands-py"><span class="std std-ref">Phonon fatbands</span></a></span><a class="headerlink" href="#id44" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the wannier90 results using the ABIWAN.nc netcdf file produce..."><div class="figure" id="id43">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the wannier90 results using the ABIWAN.nc netcdf file produce..."><div class="figure align-default" id="id45">
 <img alt="../_images/sphx_glr_plot_wannier90_abiwan_thumb.png" src="../_images/sphx_glr_plot_wannier90_abiwan_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_wannier90_abiwan.html#sphx-glr-gallery-plot-wannier90-abiwan-py"><span class="std std-ref">Band structure interpolation with Wannier functions</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_wannier90_abiwan.html#sphx-glr-gallery-plot-wannier90-abiwan-py"><span class="std std-ref">Band structure interpolation with Wannier functions</span></a></span><a class="headerlink" href="#id45" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the optical properties computed by optic within the independent-..."><div class="figure" id="id44">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the generalized phonon DOS with the mean square displacement ten..."><div class="figure align-default" id="id46">
+<img alt="../_images/sphx_glr_plot_phonons_msqd_thumb.png" src="../_images/sphx_glr_plot_phonons_msqd_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_phonons_msqd.html#sphx-glr-gallery-plot-phonons-msqd-py"><span class="std std-ref">Projected phonon DOS</span></a></span><a class="headerlink" href="#id46" title="Permalink to this image">¶</a></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the optical properties computed by optic within the independent-..."><div class="figure align-default" id="id47">
 <img alt="../_images/sphx_glr_plot_optic_thumb.png" src="../_images/sphx_glr_plot_optic_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_optic.html#sphx-glr-gallery-plot-optic-py"><span class="std std-ref">Optic results</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_optic.html#sphx-glr-gallery-plot-optic-py"><span class="std std-ref">Optic results</span></a></span><a class="headerlink" href="#id47" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot several phonon band structures on a grid."><div class="figure" id="id45">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot several phonon band structures on a grid."><div class="figure align-default" id="id48">
 <img alt="../_images/sphx_glr_plot_phbands_grid_thumb.png" src="../_images/sphx_glr_plot_phbands_grid_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_phbands_grid.html#sphx-glr-gallery-plot-phbands-grid-py"><span class="std std-ref">Multiple phonon bands</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_phbands_grid.html#sphx-glr-gallery-plot-phbands-grid-py"><span class="std std-ref">Multiple phonon bands</span></a></span><a class="headerlink" href="#id48" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the potentials stored in netcdf files. Use the input variables `..."><div class="figure" id="id46">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the potentials stored in netcdf files. Use the input variables p..."><div class="figure align-default" id="id49">
 <img alt="../_images/sphx_glr_plot_potentials_thumb.png" src="../_images/sphx_glr_plot_potentials_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_potentials.html#sphx-glr-gallery-plot-potentials-py"><span class="std std-ref">Potentials</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_potentials.html#sphx-glr-gallery-plot-potentials-py"><span class="std std-ref">Potentials</span></a></span><a class="headerlink" href="#id49" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the wavefunctions stored in the WFK.nc file. "><div class="figure" id="id47">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the wavefunctions stored in the WFK.nc file."><div class="figure align-default" id="id50">
 <img alt="../_images/sphx_glr_plot_wfk_thumb.png" src="../_images/sphx_glr_plot_wfk_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_wfk.html#sphx-glr-gallery-plot-wfk-py"><span class="std std-ref">Wavefunction file</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_wfk.html#sphx-glr-gallery-plot-wfk-py"><span class="std std-ref">Wavefunction file</span></a></span><a class="headerlink" href="#id50" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the band structure of nickel using the eigenvalues stored in the..."><div class="figure" id="id48">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the band structure of nickel using the eigenvalues stored in the..."><div class="figure align-default" id="id51">
 <img alt="../_images/sphx_glr_plot_ebands_spin_thumb.png" src="../_images/sphx_glr_plot_ebands_spin_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_ebands_spin.html#sphx-glr-gallery-plot-ebands-spin-py"><span class="std std-ref">Spin-polarized e-bands</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_ebands_spin.html#sphx-glr-gallery-plot-ebands-spin-py"><span class="std std-ref">Spin-polarized e-bands</span></a></span><a class="headerlink" href="#id51" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to dowload the electronic band structure and the DDB file using the mp i..."><div class="figure" id="id49">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to dowload the electronic band structure and the DDB file using the mp i..."><div class="figure align-default" id="id52">
 <img alt="../_images/sphx_glr_plot_eph_from_mp_thumb.png" src="../_images/sphx_glr_plot_eph_from_mp_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_eph_from_mp.html#sphx-glr-gallery-plot-eph-from-mp-py"><span class="std std-ref">Electrons and Phonons from the materials project website</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_eph_from_mp.html#sphx-glr-gallery-plot-eph-from-mp-py"><span class="std std-ref">Electrons and Phonons from the materials project website</span></a></span><a class="headerlink" href="#id52" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the L-projected fatbands of MgB2 using the FATBANDS.nc files pro..."><div class="figure" id="id50">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the L-projected fatbands of MgB2 using the FATBANDS.nc files pro..."><div class="figure align-default" id="id53">
 <img alt="../_images/sphx_glr_plot_efatbands_thumb.png" src="../_images/sphx_glr_plot_efatbands_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_efatbands.html#sphx-glr-gallery-plot-efatbands-py"><span class="std std-ref">MgB2 fatbands</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_efatbands.html#sphx-glr-gallery-plot-efatbands-py"><span class="std std-ref">MgB2 fatbands</span></a></span><a class="headerlink" href="#id53" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the L-projected fatbands of Ni using the results stored in the F..."><div class="figure" id="id51">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the L-projected fatbands of Ni using the results stored in the F..."><div class="figure align-default" id="id54">
 <img alt="../_images/sphx_glr_plot_efatbands_spin_thumb.png" src="../_images/sphx_glr_plot_efatbands_spin_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_efatbands_spin.html#sphx-glr-gallery-plot-efatbands-spin-py"><span class="std std-ref">spin-polarized fatbands</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_efatbands_spin.html#sphx-glr-gallery-plot-efatbands-spin-py"><span class="std std-ref">spin-polarized fatbands</span></a></span><a class="headerlink" href="#id54" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to generate an energy-dependent scissors operator by fitting the GW corr..."><div class="figure" id="id52">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to generate an energy-dependent scissors operator by fitting the GW corr..."><div class="figure align-default" id="id55">
 <img alt="../_images/sphx_glr_plot_qpbands_with_scissor_thumb.png" src="../_images/sphx_glr_plot_qpbands_with_scissor_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_qpbands_with_scissor.html#sphx-glr-gallery-plot-qpbands-with-scissor-py"><span class="std std-ref">GW with scissors operator</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_qpbands_with_scissor.html#sphx-glr-gallery-plot-qpbands-with-scissor-py"><span class="std std-ref">GW with scissors operator</span></a></span><a class="headerlink" href="#id55" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to interpolate the GW corrections and use the interpolated values to cor..."><div class="figure" id="id53">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to interpolate the GW corrections and use the interpolated values to cor..."><div class="figure align-default" id="id56">
 <img alt="../_images/sphx_glr_plot_qpbands_with_interpolation_thumb.png" src="../_images/sphx_glr_plot_qpbands_with_interpolation_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_qpbands_with_interpolation.html#sphx-glr-gallery-plot-qpbands-with-interpolation-py"><span class="std std-ref">GW corrections</span></a></span></p>
+<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_qpbands_with_interpolation.html#sphx-glr-gallery-plot-qpbands-with-interpolation-py"><span class="std std-ref">GW corrections</span></a></span><a class="headerlink" href="#id56" title="Permalink to this image">¶</a></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
 <div style='clear:both'></div><div class="sphx-glr-footer class sphx-glr-footer-gallery docutils container">
 <div class="sphx-glr-download docutils container">
-<a class="reference download internal" href="../_downloads/gallery_python.zip" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">all</span> <span class="pre">examples</span> <span class="pre">in</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">gallery_python.zip</span></code></a></div>
-<div class="sphx-glr-download docutils container">
-<a class="reference download internal" href="../_downloads/gallery_jupyter.zip" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">all</span> <span class="pre">examples</span> <span class="pre">in</span> <span class="pre">Jupyter</span> <span class="pre">notebooks:</span> <span class="pre">gallery_jupyter.zip</span></code></a></div>
+<p><a class="reference download internal" download="" href="../_downloads/8c905fdc5e2a2ae3c0f5bf27ee4410be/gallery_python.zip"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">all</span> <span class="pre">examples</span> <span class="pre">in</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">gallery_python.zip</span></code></a></p>
 </div>
-<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.readthedocs.io">Gallery generated by Sphinx-Gallery</a></p>
+<div class="sphx-glr-download docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/6affbb696d0404d68b29d75e39557263/gallery_jupyter.zip"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">all</span> <span class="pre">examples</span> <span class="pre">in</span> <span class="pre">Jupyter</span> <span class="pre">notebooks:</span> <span class="pre">gallery_jupyter.zip</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
 </div>
 
 
@@ -501,8 +514,8 @@ the <a class="reference internal" href="../scripts/abiopen.html#abiopen-py"><spa
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Sep 18, 2018.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+      Last updated on Oct 18, 2019.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>
 </footer>

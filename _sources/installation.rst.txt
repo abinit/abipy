@@ -72,9 +72,9 @@ By default, the installer creates the ``anaconda`` directory in your home.
 Anaconda will add one line to your ``.bashrc`` to enable access to the anaconda executables.
 Once the installation is completed, execute::
 
-    source ~/anaconda/bin/activate root
+    source ~/anaconda/bin/activate base
 
-to activate the ``root`` environment.
+to activate the ``base`` environment.
 The output of ``which python`` should show that you are using the python interpreter provided by anaconda.
 
 Use the conda_ command-line interface to install the packages not included in the official distribution.
@@ -86,16 +86,16 @@ Remember that if a package is not available in the official conda repository, yo
 download the package from one of the conda channels or use ``pip install`` if no conda package is available.
 
 Fortunately there are conda channels providing all dependencies needed by AbiPy.
-To install the pymatgen_ package from the matsci_ channel, use::
+Now add ``conda-forge``, ``matsci`` and ``abinit`` to your conda channels with::
 
-    conda install pymatgen --channel matsci
+    conda config --add channels conda-forge
+    conda config --add channels matsci
+    conda config --add channels abinit
 
-then install Abipy from the abinit-channel_ with::
+These are the channels from which we will download pymatgen, abipy and abinit.
+Finally, install AbiPy from the abinit-channel_ with::
 
     conda install abipy --channel abinit
-
-Visit `materials.sh <http://materials.sh>`_ for instructions on how to use the
-matsci channel to install pymatgen and other packages.
 
 Once you have completed the installation of AbiPy and pymatgen, open the ipython_ shell and type::
 

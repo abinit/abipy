@@ -2,39 +2,31 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.abio.variable &#8212; abipy 0.7.0.dev documentation</title>
+    <meta charset="utf-8" />
+    <title>abipy.abio.variable &#8212; abipy 0.7.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../../',
-        VERSION:     '0.7.0.dev',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js"></script>
-    <script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
-    <script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
 
-  </head>
-  <body>
+  </head><body>
 
   <div id="navbar" class="navbar navbar-default navbar-fixed-top">
     <div class="container">
@@ -47,7 +39,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0.dev</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -127,13 +119,10 @@
 
 <div class="container">
   <div class="row">
-    <div class="col-md-12 content">
+    <div class="body col-md-12 content" role="main">
       
   <h1>Source code for abipy.abio.variable</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span> <span class="c1">#, unicode_literals</span>
-
-<span class="kn">import</span> <span class="nn">string</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
+<span></span><span class="kn">import</span> <span class="nn">string</span>
 <span class="kn">import</span> <span class="nn">collections</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
@@ -151,44 +140,12 @@
 <span class="n">_SPECIAL_CONVERSION</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">_INTERNAL_DATASET_INDICES</span><span class="p">,</span> <span class="n">_SPECIAL_DATASET_INDICES</span><span class="p">)</span>
 
 <span class="n">_UNITS</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;bohr&#39;</span> <span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
-    <span class="s1">&#39;angstrom&#39;</span> <span class="p">:</span> <span class="mf">1.8897261328856432</span><span class="p">,</span>
-    <span class="s1">&#39;hartree&#39;</span> <span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
-    <span class="s1">&#39;Ha&#39;</span> <span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
-    <span class="s1">&#39;eV&#39;</span> <span class="p">:</span> <span class="mf">0.03674932539796232</span><span class="p">,</span>
+    <span class="s1">&#39;bohr&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="s1">&#39;angstrom&#39;</span><span class="p">:</span> <span class="mf">1.8897261328856432</span><span class="p">,</span>
+    <span class="s1">&#39;hartree&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="s1">&#39;Ha&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="s1">&#39;eV&#39;</span><span class="p">:</span> <span class="mf">0.03674932539796232</span><span class="p">,</span>
 <span class="p">}</span>
-
-
-<span class="c1">#def convert_number(value):</span>
-<span class="c1">#    &quot;&quot;&quot;</span>
-<span class="c1">#    Converts some object to a float or a string.</span>
-<span class="c1">#    If the argument is an integer or a float, returns the same object.</span>
-<span class="c1">#    If the argument is a string, tries to convert to an integer,</span>
-<span class="c1">#    then to a float.</span>
-<span class="c1">#    The string &#39;1.0d-03&#39; will be treated the same as &#39;1.0e-03&#39;</span>
-<span class="c1">#    &quot;&quot;&quot;</span>
-<span class="c1">#    if isinstance(value, (float, int)):</span>
-<span class="c1">#        return value</span>
-<span class="c1">#</span>
-<span class="c1">#    elif isinstance(value, str):</span>
-<span class="c1">#</span>
-<span class="c1">#        if is_number(value):</span>
-<span class="c1">#            try:</span>
-<span class="c1">#                val = int(value)</span>
-<span class="c1">#            except ValueError:</span>
-<span class="c1">#                val = float(value)</span>
-<span class="c1">#            return val</span>
-<span class="c1">#</span>
-<span class="c1">#        else:</span>
-<span class="c1">#            val = value.replace(&#39;d&#39;, &#39;e&#39;)</span>
-<span class="c1">#            if is_number(val):</span>
-<span class="c1">#                val = float(val)</span>
-<span class="c1">#                return val</span>
-<span class="c1">#            else:</span>
-<span class="c1">#                raise ValueError(&#39;convert_number failed&#39;)</span>
-<span class="c1">#</span>
-<span class="c1">#    else:</span>
-<span class="c1">#        raise ValueError(&#39;convert_number failed&#39;)</span>
 
 
 <div class="viewcode-block" id="InputVariable"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.variable.InputVariable">[docs]</a><span class="k">class</span> <span class="nc">InputVariable</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -204,7 +161,6 @@
         <span class="c1"># Maximum number of values per line.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">valperline</span> <span class="o">=</span> <span class="n">valperline</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;bdgw&#39;</span><span class="p">]:</span>
-            <span class="c1">#TODO Shouldn&#39;t do that</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">valperline</span> <span class="o">=</span> <span class="mi">2</span>
 
         <span class="k">if</span> <span class="p">(</span><span class="n">is_iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">_UNITS</span><span class="p">):</span>
@@ -250,14 +206,12 @@
         <span class="c1"># By default, do not impose a number of decimal points</span>
         <span class="n">floatdecimal</span> <span class="o">=</span> <span class="mi">0</span>
 
-        <span class="c1"># For some inputs, impose number of decimal points...</span>
+        <span class="c1"># For some inputs, enforce number of decimal points...</span>
         <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">inp</span> <span class="ow">in</span> <span class="n">var</span> <span class="k">for</span> <span class="n">inp</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;xred&#39;</span><span class="p">,</span> <span class="s1">&#39;xcart&#39;</span><span class="p">,</span> <span class="s1">&#39;rprim&#39;</span><span class="p">,</span> <span class="s1">&#39;qpt&#39;</span><span class="p">,</span> <span class="s1">&#39;kpt&#39;</span><span class="p">)):</span>
-            <span class="c1">#TODO Shouldn&#39;t do that</span>
             <span class="n">floatdecimal</span> <span class="o">=</span> <span class="mi">16</span>
 
         <span class="c1"># ...but not for those</span>
         <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">inp</span> <span class="ow">in</span> <span class="n">var</span> <span class="k">for</span> <span class="n">inp</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;ngkpt&#39;</span><span class="p">,</span> <span class="s1">&#39;kptrlatt&#39;</span><span class="p">,</span> <span class="s1">&#39;ngqpt&#39;</span><span class="p">,</span> <span class="s1">&#39;ng2qpt&#39;</span><span class="p">)):</span>
-            <span class="c1">#TODO Shouldn&#39;t do that</span>
             <span class="n">floatdecimal</span> <span class="o">=</span> <span class="mi">0</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
@@ -275,12 +229,6 @@
                 <span class="n">line</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">format_list2d</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">floatdecimal</span><span class="p">)</span>
 
             <span class="k">else</span><span class="p">:</span>
-                <span class="c1"># Maximum number of values per line.</span>
-                <span class="c1">#valperline = 3</span>
-                <span class="c1">#if any(inp in var for inp in [&#39;bdgw&#39;]):</span>
-                <span class="c1">#    #TODO Shouldn&#39;t do that</span>
-                <span class="c1">#    valperline = 2</span>
-
                 <span class="n">line</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">format_list</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">floatdecimal</span><span class="p">)</span>
 
         <span class="c1"># scalar values</span>
@@ -304,7 +252,7 @@
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">fval</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
-        <span class="k">except</span><span class="p">:</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">sval</span>
 
         <span class="k">if</span> <span class="n">fval</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">fval</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-3</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">fval</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e4</span><span class="p">):</span>
@@ -335,7 +283,7 @@
                 <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">lvals</span><span class="p">:</span>
                     <span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
                 <span class="n">type_all</span> <span class="o">=</span> <span class="nb">float</span>
-            <span class="k">except</span><span class="p">:</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                 <span class="n">type_all</span> <span class="o">=</span> <span class="nb">str</span>
 
         <span class="c1"># Determine the format</span>
@@ -382,118 +330,6 @@
 
         <span class="k">return</span> <span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span></div></div>
 
-    <span class="c1">#@staticmethod</span>
-    <span class="c1">#def string_to_value(sval):</span>
-    <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    Interpret a string variable and attempt to return a value of the</span>
-    <span class="c1">#    appropriate type.  If all else fails, return the initial string.</span>
-    <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    value = None</span>
-
-    <span class="c1">#    try:</span>
-    <span class="c1">#        for part in sval.split():</span>
-
-    <span class="c1">#            if &#39;*&#39; in part:</span>
-    <span class="c1">#                # cases like istwfk *1</span>
-    <span class="c1">#                if part[0] == &#39;*&#39;:</span>
-    <span class="c1">#                    value = None</span>
-    <span class="c1">#                    break</span>
-
-    <span class="c1">#                # cases like acell 3*3.52</span>
-    <span class="c1">#                else:</span>
-    <span class="c1">#                    n = int(part.split(&#39;*&#39;)[0])</span>
-    <span class="c1">#                    f = convert_number(part.split(&#39;*&#39;)[1])</span>
-    <span class="c1">#                    if value is None:</span>
-    <span class="c1">#                        value = []</span>
-    <span class="c1">#                    value += n * [f]</span>
-    <span class="c1">#                    continue</span>
-
-    <span class="c1">#            # Fractions</span>
-    <span class="c1">#            if &#39;/&#39; in part:</span>
-    <span class="c1">#                (num, den) = (float(part.split(&#39;/&#39;)[i]) for i in range(2))</span>
-    <span class="c1">#                part = num / den</span>
-
-    <span class="c1">#            # Unit</span>
-    <span class="c1">#            if part in _UNITS.keys():</span>
-
-    <span class="c1">#                if value is None:</span>
-    <span class="c1">#                    warnings.warn(&quot;Could not apply the unit token &#39;%s&#39;.&quot; % part)</span>
-    <span class="c1">#                elif isinstance(value, list):</span>
-    <span class="c1">#                    value.append(part)</span>
-    <span class="c1">#                else:</span>
-    <span class="c1">#                    value = [value, part]</span>
-
-    <span class="c1">#                # Convert</span>
-    <span class="c1">#                if False:</span>
-    <span class="c1">#                    if isinstance(value, list):</span>
-    <span class="c1">#                        for i in range(len(value)):</span>
-    <span class="c1">#                            value[i] *= _UNITS[part]</span>
-    <span class="c1">#                    elif isinstance(value, str):</span>
-    <span class="c1">#                        value = None</span>
-    <span class="c1">#                        break</span>
-    <span class="c1">#                    else:</span>
-    <span class="c1">#                        value *= _UNITS[part]</span>
-
-    <span class="c1">#                continue</span>
-
-    <span class="c1">#            # Convert</span>
-    <span class="c1">#            try:</span>
-    <span class="c1">#                val = convert_number(part)</span>
-    <span class="c1">#            except:</span>
-    <span class="c1">#                val = part</span>
-
-    <span class="c1">#            if value is None:</span>
-    <span class="c1">#                value = val</span>
-    <span class="c1">#            elif isinstance(value, list):</span>
-    <span class="c1">#                value.append(val)</span>
-    <span class="c1">#            else:</span>
-    <span class="c1">#                value = [value, val]</span>
-    <span class="c1">#    except:</span>
-    <span class="c1">#        value = None</span>
-
-    <span class="c1">#    if value is None:</span>
-    <span class="c1">#        value = sval</span>
-
-    <span class="c1">#    return value</span>
-
-    <span class="c1">#@classmethod</span>
-    <span class="c1">#def from_str(cls, bigstring):</span>
-    <span class="c1">#    &quot;&quot;&quot;Return an instance from a string declaration.&quot;&quot;&quot;</span>
-    <span class="c1">#    parts = bigstring.split()</span>
-
-    <span class="c1">#    # Perform checks on the string</span>
-    <span class="c1">#    if len(parts) &lt; 2 or (parts[-1] in _UNITS and len(parts) &lt; 3):</span>
-    <span class="c1">#        msg = &#39;\n&#39;.join([&#39;Unable to initialize variable from string:&#39;,</span>
-    <span class="c1">#                         bigstring, &#39;not enough tokens.&#39;])</span>
-    <span class="c1">#        raise ValueError(msg)</span>
-    <span class="c1">#    elif not parts[0].isalpha():</span>
-    <span class="c1">#        msg = &#39;\n&#39;.join([&#39;Unable to initialize variable from string:&#39;,</span>
-    <span class="c1">#                         bigstring, &#39;no valid variable name found.&#39;])</span>
-    <span class="c1">#        raise ValueError(msg)</span>
-
-    <span class="c1">#    # Make the name</span>
-    <span class="c1">#    name = parts.pop(0)</span>
-    <span class="c1">#    #name = cls.declared_to_internal(name)</span>
-
-    <span class="c1">#    # Make the units</span>
-    <span class="c1">#    if parts[-1] in _UNITS:</span>
-    <span class="c1">#        units = parts.pop(-1)</span>
-    <span class="c1">#    else:</span>
-    <span class="c1">#        units = None</span>
-
-    <span class="c1">#    value = cls.string_to_value(&#39; &#39;.join(parts))</span>
-
-    <span class="c1">#    return cls(name, value, units)</span>
-
-
-<span class="c1">#def is_number(s):</span>
-<span class="c1">#    &quot;&quot;&quot;Returns True if the argument can be made a float.&quot;&quot;&quot;</span>
-<span class="c1">#    try:</span>
-<span class="c1">#        float(s)</span>
-<span class="c1">#        return True</span>
-<span class="c1">#    except:</span>
-<span class="c1">#        return False</span>
-
 
 <span class="k">def</span> <span class="nf">is_iter</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Return True if the argument is list-like.&quot;&quot;&quot;</span>
@@ -532,8 +368,8 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Sep 18, 2018.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+      Last updated on Oct 18, 2019.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>
 </footer>

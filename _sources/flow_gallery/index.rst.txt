@@ -1,5 +1,9 @@
 :orphan:
 
+
+
+.. _sphx_glr_flow_gallery:
+
 .. _flow-gallery:
 
 Flow Gallery
@@ -82,27 +86,7 @@ Use ``--help`` for further information on the available options.
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="G0W0 corrections with the HT interface. ">
-
-.. only:: html
-
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_ht_si_g0w0ppm_thumb.png
-
-        :ref:`sphx_glr_flow_gallery_run_ht_si_g0w0ppm.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /flow_gallery/run_ht_si_g0w0ppm
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="Flow to compute the equation of state by fitting E(V) at T = 0. ">
+    <div class="sphx-glr-thumbcontainer" tooltip="Flow to compute the equation of state by fitting E(V) at T = 0.">
 
 .. only:: html
 
@@ -122,7 +106,27 @@ Use ``--help`` for further information on the available options.
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Calculation of the BSE spectrum with the High-throuhput interface (factory functions). ">
+    <div class="sphx-glr-thumbcontainer" tooltip="G0W0 corrections with the HT interface.">
+
+.. only:: html
+
+    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_ht_si_g0w0ppm_thumb.png
+
+        :ref:`sphx_glr_flow_gallery_run_ht_si_g0w0ppm.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_ht_si_g0w0ppm
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Calculation of the BSE spectrum with the High-throuhput interface (factory functions).">
 
 .. only:: html
 
@@ -142,7 +146,7 @@ Use ``--help`` for further information on the available options.
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Flow to compute non-linear optical properties with DFPT (static limit). ">
+    <div class="sphx-glr-thumbcontainer" tooltip="Flow to compute non-linear optical properties with DFPT (static limit).">
 
 .. only:: html
 
@@ -162,7 +166,7 @@ Use ``--help`` for further information on the available options.
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Flow to compute the band structure of silicon. ">
+    <div class="sphx-glr-thumbcontainer" tooltip="Flow to compute the band structure of silicon.">
 
 .. only:: html
 
@@ -202,7 +206,7 @@ Use ``--help`` for further information on the available options.
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="In this example, we employ the relaxation algorithms implemented in Abinit (``ionmov`` and ``op...">
+    <div class="sphx-glr-thumbcontainer" tooltip="In this example, we employ the relaxation algorithms implemented in Abinit (``ionmov`` and optc...">
 
 .. only:: html
 
@@ -222,7 +226,7 @@ Use ``--help`` for further information on the available options.
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute phonons with arbitrary q-points and WFQ files. Symmetries are...">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to use WFQ files to compute phonons on a q-mesh that is not necessarily ...">
 
 .. only:: html
 
@@ -282,13 +286,13 @@ Use ``--help`` for further information on the available options.
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the Born effective charges and the dielectric tensors (e0, ei...">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the phonon band structure of AlAs with AbiPy flows. The final...">
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_becs_and_epsilon_vs_kpts_thumb.png
+    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_gkq_thumb.png
 
-        :ref:`sphx_glr_flow_gallery_run_becs_and_epsilon_vs_kpts.py`
+        :ref:`sphx_glr_flow_gallery_run_gkq.py`
 
 .. raw:: html
 
@@ -298,7 +302,7 @@ Use ``--help`` for further information on the available options.
 .. toctree::
    :hidden:
 
-   /flow_gallery/run_becs_and_epsilon_vs_kpts
+   /flow_gallery/run_gkq
 
 .. raw:: html
 
@@ -322,7 +326,27 @@ Use ``--help`` for further information on the available options.
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Electronic band structure of silicon in a distorted geometry (frozen phonon at q=0) ">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the Born effective charges and the dielectric tensors (e0, ei...">
+
+.. only:: html
+
+    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_becs_and_epsilon_vs_kpts_thumb.png
+
+        :ref:`sphx_glr_flow_gallery_run_becs_and_epsilon_vs_kpts.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_becs_and_epsilon_vs_kpts
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Electronic band structure of silicon in a distorted geometry (frozen phonon at q=0)">
 
 .. only:: html
 
@@ -442,7 +466,7 @@ Use ``--help`` for further information on the available options.
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="G0W0 convergence study wrt ecuteps and the number of bands in W. ">
+    <div class="sphx-glr-thumbcontainer" tooltip="G0W0 convergence study wrt ecuteps and the number of bands in W.">
 
 .. only:: html
 
@@ -522,7 +546,7 @@ Use ``--help`` for further information on the available options.
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="In this example, we employ the relaxation algorithms implemented in Abinit (``ionmov`` and ``op...">
+    <div class="sphx-glr-thumbcontainer" tooltip="In this example, we employ the relaxation algorithms implemented in Abinit (``ionmov`` and optc...">
 
 .. only:: html
 
@@ -606,4 +630,4 @@ Use ``--help`` for further information on the available options.
 
  .. rst-class:: sphx-glr-signature
 
-    `Gallery generated by Sphinx-Gallery <https://sphinx-gallery.readthedocs.io>`_
+    `Gallery generated by Sphinx-Gallery <https://sphinx-gallery.github.io>`_

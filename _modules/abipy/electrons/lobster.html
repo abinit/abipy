@@ -2,39 +2,31 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.electrons.lobster &#8212; abipy 0.7.0.dev documentation</title>
+    <meta charset="utf-8" />
+    <title>abipy.electrons.lobster &#8212; abipy 0.7.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../../',
-        VERSION:     '0.7.0.dev',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js"></script>
-    <script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
-    <script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
 
-  </head>
-  <body>
+  </head><body>
 
   <div id="navbar" class="navbar navbar-default navbar-fixed-top">
     <div class="container">
@@ -47,7 +39,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0.dev</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -127,13 +119,11 @@
 
 <div class="container">
   <div class="row">
-    <div class="col-md-12 content">
+    <div class="body col-md-12 content" role="main">
       
   <h1>Source code for abipy.electrons.lobster</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding: utf-8</span>
 <span class="sd">&quot;&quot;&quot;Tools to analyze the output files produced by Lobster.&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
-
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">glob</span>
@@ -335,8 +325,8 @@
         <span class="c1"># second (down) spin. Here N is the number of interactions.</span>
 
         <span class="n">float_patt</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;-?(?:0|[1-9]\d*)(?:\.\d*)?(?:[eE][+\-]?\d+)?&#39;</span>
-        <span class="n">header_patt</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\s+(\d+)\s+(\d+)\s+(\d+)\s+(&#39;</span><span class="o">+</span><span class="n">float_patt</span><span class="o">+</span>
-                                 <span class="sa">r</span><span class="s1">&#39;)\s+(&#39;</span><span class="o">+</span><span class="n">float_patt</span><span class="o">+</span><span class="sa">r</span><span class="s1">&#39;)\s+(&#39;</span><span class="o">+</span><span class="n">float_patt</span><span class="o">+</span><span class="sa">r</span><span class="s1">&#39;)&#39;</span><span class="p">)</span>
+        <span class="n">header_patt</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\s+(\d+)\s+(\d+)\s+(\d+)\s+(&#39;</span> <span class="o">+</span> <span class="n">float_patt</span> <span class="o">+</span>
+                                 <span class="sa">r</span><span class="s1">&#39;)\s+(&#39;</span> <span class="o">+</span> <span class="n">float_patt</span> <span class="o">+</span> <span class="sa">r</span><span class="s1">&#39;)\s+(&#39;</span> <span class="o">+</span> <span class="n">float_patt</span> <span class="o">+</span> <span class="sa">r</span><span class="s1">&#39;)&#39;</span><span class="p">)</span>
         <span class="n">pair_patt</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;No\.\d+:([a-zA-Z]+)(\d+)(?:\[([a-z0-9_\-^]+)\])?-&gt;([a-zA-Z]+)(\d+)(?:\[([a-z0-9_\-^]+)\])?&#39;</span><span class="p">)</span>
 
         <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
@@ -556,7 +546,7 @@
 
 <div class="viewcode-block" id="CoxpFile.plot_average_pairs"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.lobster.CoxpFile.plot_average_pairs">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot_average_pairs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_site_index</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">&quot;single&quot;</span><span class="p">,</span> <span class="n">exchange_xy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                            <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                           <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot COXP total overlap for all sites containg `with_site_index` and average sum</span>
 <span class="sd">        (multiplied by the number of pairs)</span>
@@ -836,8 +826,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">float_patt</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;-?(?:0|[1-9]\d*)(?:\.\d*)?(?:[eE][+\-]?\d+)?&#39;</span>
         <span class="n">header_patt</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;.*?(over+\s#\s+bonds)?\s+for\s+spin\s+(\d).*&#39;</span><span class="p">)</span>
-        <span class="n">data_patt</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\s+\d+\s+([a-zA-Z]+)(\d+)\s+([a-zA-Z]+)(\d+)\s+(&#39;</span><span class="o">+</span>
-                               <span class="n">float_patt</span><span class="o">+</span><span class="sa">r</span><span class="s1">&#39;)\s+(&#39;</span><span class="o">+</span><span class="n">float_patt</span><span class="o">+</span><span class="sa">r</span><span class="s1">&#39;)(\d+)?&#39;</span><span class="p">)</span>
+        <span class="n">data_patt</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\s+\d+\s+([a-zA-Z]+)(\d+)\s+([a-zA-Z]+)(\d+)\s+(&#39;</span> <span class="o">+</span>
+                               <span class="n">float_patt</span> <span class="o">+</span> <span class="sa">r</span><span class="s1">&#39;)\s+(&#39;</span> <span class="o">+</span> <span class="n">float_patt</span> <span class="o">+</span> <span class="sa">r</span><span class="s1">&#39;)(\d+)?&#39;</span><span class="p">)</span>
 
         <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
         <span class="n">new</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">tree</span><span class="p">()</span>
@@ -1219,7 +1209,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">basis_functions</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">potcar</span><span class="p">:</span>
-            <span class="n">basis_functions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">element</span> <span class="o">+</span><span class="s2">&quot; &quot;</span><span class="o">+</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">vs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">vs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">vs</span> <span class="ow">in</span> <span class="n">p</span><span class="o">.</span><span class="n">electron_configuration</span><span class="p">))</span>
+            <span class="n">basis_functions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">element</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">vs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">vs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">vs</span> <span class="ow">in</span> <span class="n">p</span><span class="o">.</span><span class="n">electron_configuration</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">basis_functions</span>
 
 <div class="viewcode-block" id="LobsterInput.set_basis_functions_from_potcar"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.lobster.LobsterInput.set_basis_functions_from_potcar">[docs]</a>    <span class="k">def</span> <span class="nf">set_basis_functions_from_potcar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">potcar</span><span class="p">):</span>
@@ -1270,7 +1260,7 @@
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;COHPSteps </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">en_steps</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gaussian_smearing</span><span class="p">:</span>
-            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;gaussianSmearingWidth </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gaussing_smearing</span><span class="p">))</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;gaussianSmearingWidth </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gaussian_smearing</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bwdf</span><span class="p">:</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;BWDF </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bwdf</span><span class="p">))</span>
@@ -1342,10 +1332,10 @@
         <span class="n">end_en</span> <span class="o">=</span> <span class="n">en_max</span> <span class="o">-</span> <span class="n">fermie</span>
 
         <span class="c1"># shift the energies so that are divisible by dE and the value for the fermi level (0 eV) is included</span>
-        <span class="n">start_en</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">start_en</span><span class="o">/</span><span class="n">dE</span><span class="p">)</span><span class="o">*</span><span class="n">dE</span>
-        <span class="n">end_en</span><span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">end_en</span><span class="o">/</span><span class="n">dE</span><span class="p">)</span><span class="o">*</span><span class="n">dE</span>
+        <span class="n">start_en</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">start_en</span> <span class="o">/</span> <span class="n">dE</span><span class="p">)</span> <span class="o">*</span> <span class="n">dE</span>
+        <span class="n">end_en</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">end_en</span> <span class="o">/</span> <span class="n">dE</span><span class="p">)</span> <span class="o">*</span> <span class="n">dE</span>
 
-        <span class="n">en_steps</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">end_en</span><span class="o">-</span><span class="n">start_en</span><span class="p">)</span><span class="o">/</span><span class="n">dE</span><span class="p">)</span>
+        <span class="n">en_steps</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">end_en</span> <span class="o">-</span> <span class="n">start_en</span><span class="p">)</span> <span class="o">/</span> <span class="n">dE</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">basis_functions</span><span class="o">=</span><span class="n">basis_functions</span><span class="p">,</span> <span class="n">start_en</span><span class="o">=</span><span class="n">start_en</span><span class="p">,</span> <span class="n">end_en</span><span class="o">=</span><span class="n">end_en</span><span class="p">,</span> <span class="n">en_steps</span><span class="o">=</span><span class="n">en_steps</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
@@ -1584,8 +1574,8 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Sep 18, 2018.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+      Last updated on Oct 18, 2019.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>
 </footer>

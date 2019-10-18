@@ -2,30 +2,19 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Manager Examples &#8212; abipy 0.7.0.dev documentation</title>
+    <meta charset="utf-8" />
+    <title>Manager Examples &#8212; abipy 0.7.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../',
-        VERSION:     '0.7.0.dev',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
-    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
-    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Flow Gallery" href="../flow_gallery/index.html" />
@@ -34,9 +23,12 @@
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
 
-  </head>
-  <body>
+  </head><body>
 
   <div id="navbar" class="navbar navbar-default navbar-fixed-top">
     <div class="container">
@@ -49,7 +41,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0.dev</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -163,412 +155,413 @@
 
 <div class="container">
   <div class="row">
-    <div class="col-md-12 content">
+    <div class="body col-md-12 content" role="main">
       
   <div class="section" id="manager-examples">
 <span id="id1"></span><h1><a class="toc-backref" href="#contents">Manager Examples</a><a class="headerlink" href="#manager-examples" title="Permalink to this headline">¶</a></h1>
 <div class="contents topic" id="contents">
 <p class="topic-title first">Contents</p>
 <ul class="simple">
-<li><a class="reference internal" href="#manager-examples" id="id2">Manager Examples</a><ul>
-<li><a class="reference internal" href="#dragon1" id="id3">Dragon1</a></li>
-<li><a class="reference internal" href="#gmac" id="id4">Gmac</a></li>
-<li><a class="reference internal" href="#hercules" id="id5">Hercules</a></li>
-<li><a class="reference internal" href="#hmem" id="id6">Hmem</a></li>
-<li><a class="reference internal" href="#juqueen" id="id7">Juqueen</a></li>
-<li><a class="reference internal" href="#jureca" id="id8">Jureca</a></li>
-<li><a class="reference internal" href="#lemaitre2" id="id9">Lemaitre2</a></li>
-<li><a class="reference internal" href="#lemaitre3" id="id10">Lemaitre3</a></li>
-<li><a class="reference internal" href="#manneback" id="id11">Manneback</a></li>
-<li><a class="reference internal" href="#nic4" id="id12">Nic4</a></li>
-<li><a class="reference internal" href="#shell" id="id13">Shell</a></li>
-<li><a class="reference internal" href="#shell-nompi" id="id14">Shell_nompi</a></li>
-<li><a class="reference internal" href="#travis" id="id15">Travis</a></li>
-<li><a class="reference internal" href="#ubu" id="id16">Ubu</a></li>
-<li><a class="reference internal" href="#vega" id="id17">Vega</a></li>
-<li><a class="reference internal" href="#viper" id="id18">Viper</a></li>
-<li><a class="reference internal" href="#zenobe" id="id19">Zenobe</a></li>
+<li><p><a class="reference internal" href="#manager-examples" id="id2">Manager Examples</a></p>
+<ul>
+<li><p><a class="reference internal" href="#dragon1" id="id3">Dragon1</a></p></li>
+<li><p><a class="reference internal" href="#gmac" id="id4">Gmac</a></p></li>
+<li><p><a class="reference internal" href="#hercules" id="id5">Hercules</a></p></li>
+<li><p><a class="reference internal" href="#hmem" id="id6">Hmem</a></p></li>
+<li><p><a class="reference internal" href="#juqueen" id="id7">Juqueen</a></p></li>
+<li><p><a class="reference internal" href="#jureca" id="id8">Jureca</a></p></li>
+<li><p><a class="reference internal" href="#lemaitre2" id="id9">Lemaitre2</a></p></li>
+<li><p><a class="reference internal" href="#lemaitre3" id="id10">Lemaitre3</a></p></li>
+<li><p><a class="reference internal" href="#manneback" id="id11">Manneback</a></p></li>
+<li><p><a class="reference internal" href="#nic4" id="id12">Nic4</a></p></li>
+<li><p><a class="reference internal" href="#shell" id="id13">Shell</a></p></li>
+<li><p><a class="reference internal" href="#shell-nompi" id="id14">Shell_nompi</a></p></li>
+<li><p><a class="reference internal" href="#travis" id="id15">Travis</a></p></li>
+<li><p><a class="reference internal" href="#ubu" id="id16">Ubu</a></p></li>
+<li><p><a class="reference internal" href="#vega" id="id17">Vega</a></p></li>
+<li><p><a class="reference internal" href="#viper" id="id18">Viper</a></p></li>
+<li><p><a class="reference internal" href="#zenobe" id="id19">Zenobe</a></p></li>
 </ul>
 </li>
 </ul>
 </div>
 <div class="section" id="dragon1">
 <h2><a class="toc-backref" href="#contents">Dragon1</a><a class="headerlink" href="#dragon1" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="c1"># dragon hardware: http://www.ceci-hpc.be/clusters.html#dragon</span>
-<span class="l l-Scalar l-Scalar-Plain">hardware</span><span class="p p-Indicator">:</span> <span class="nl">&amp;hardware</span>
-   <span class="l l-Scalar l-Scalar-Plain">num_nodes</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">26</span>
-   <span class="l l-Scalar l-Scalar-Plain">sockets_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
-   <span class="l l-Scalar l-Scalar-Plain">cores_per_socket</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">8</span>
-   <span class="l l-Scalar l-Scalar-Plain">mem_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">112Gb</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># dragon hardware: http://www.ceci-hpc.be/clusters.html#dragon</span>
+<span class="nt">hardware</span><span class="p">:</span> <span class="nl">&amp;hardware</span>
+   <span class="nt">num_nodes</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">26</span>
+   <span class="nt">sockets_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
+   <span class="nt">cores_per_socket</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">8</span>
+   <span class="nt">mem_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">112Gb</span>
 
-<span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nl">&amp;job</span>
-    <span class="l l-Scalar l-Scalar-Plain">mpi_runner</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">mpirun</span>
-    <span class="l l-Scalar l-Scalar-Plain">shell_env</span><span class="p p-Indicator">:</span>
-        <span class="l l-Scalar l-Scalar-Plain">PATH</span><span class="p p-Indicator">:</span> <span class="s">&quot;$HOME/git_repos/abinit/_build_dragon1-intel-mpich-mkl.ac/src/98_main:$PATH&quot;</span>
-    <span class="l l-Scalar l-Scalar-Plain">modules</span><span class="p p-Indicator">:</span>
+<span class="nt">job</span><span class="p">:</span> <span class="nl">&amp;job</span>
+    <span class="nt">mpi_runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mpirun</span>
+    <span class="nt">shell_env</span><span class="p">:</span>
+        <span class="nt">PATH</span><span class="p">:</span> <span class="s">&quot;$HOME/git_repos/abinit/_build_dragon1-intel-mpich-mkl.ac/src/98_main:$PATH&quot;</span>
+    <span class="nt">modules</span><span class="p">:</span>
         <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">mpich/3.0.4/intel-13.0.0</span>
-    <span class="l l-Scalar l-Scalar-Plain">pre_run</span><span class="p p-Indicator">:</span> <span class="s">&quot;ulimit</span><span class="nv"> </span><span class="s">-s</span><span class="nv"> </span><span class="s">unlimited&quot;</span>
+    <span class="nt">pre_run</span><span class="p">:</span> <span class="s">&quot;ulimit</span><span class="nv"> </span><span class="s">-s</span><span class="nv"> </span><span class="s">unlimited&quot;</span>
 
 <span class="c1"># queues</span>
-<span class="l l-Scalar l-Scalar-Plain">qadapters</span><span class="p p-Indicator">:</span>
-  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">priority</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-    <span class="l l-Scalar l-Scalar-Plain">queue</span><span class="p p-Indicator">:</span>
-       <span class="l l-Scalar l-Scalar-Plain">qtype</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">slurm</span>
-       <span class="l l-Scalar l-Scalar-Plain">qname</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Def</span>
-    <span class="l l-Scalar l-Scalar-Plain">limits</span><span class="p p-Indicator">:</span>
-       <span class="l l-Scalar l-Scalar-Plain">timelimit</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">0-00:30:00</span>
-       <span class="l l-Scalar l-Scalar-Plain">min_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-       <span class="l l-Scalar l-Scalar-Plain">max_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">12</span>
-       <span class="l l-Scalar l-Scalar-Plain">min_mem_per_proc</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1000</span>
-       <span class="l l-Scalar l-Scalar-Plain">max_mem_per_proc</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2000</span>
-       <span class="l l-Scalar l-Scalar-Plain">max_num_launches</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">10</span>
-    <span class="l l-Scalar l-Scalar-Plain">hardware</span><span class="p p-Indicator">:</span> <span class="nv">*hardware</span>
-    <span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nv">*job</span>
+<span class="nt">qadapters</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">priority</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+    <span class="nt">queue</span><span class="p">:</span>
+       <span class="nt">qtype</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">slurm</span>
+       <span class="nt">qname</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Def</span>
+    <span class="nt">limits</span><span class="p">:</span>
+       <span class="nt">timelimit</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0-00:30:00</span>
+       <span class="nt">min_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+       <span class="nt">max_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">12</span>
+       <span class="nt">min_mem_per_proc</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1000</span>
+       <span class="nt">max_mem_per_proc</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2000</span>
+       <span class="nt">max_num_launches</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">10</span>
+    <span class="nt">hardware</span><span class="p">:</span> <span class="nv">*hardware</span>
+    <span class="nt">job</span><span class="p">:</span> <span class="nv">*job</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="gmac">
 <h2><a class="toc-backref" href="#contents">Gmac</a><a class="headerlink" href="#gmac" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">qadapters</span><span class="p p-Indicator">:</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">qadapters</span><span class="p">:</span>
     <span class="p p-Indicator">-</span> <span class="nl">&amp;batch</span>
-      <span class="l l-Scalar l-Scalar-Plain">priority</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-      <span class="l l-Scalar l-Scalar-Plain">queue</span><span class="p p-Indicator">:</span>
-        <span class="l l-Scalar l-Scalar-Plain">qname</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">gmac</span>
-        <span class="l l-Scalar l-Scalar-Plain">qtype</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">shell</span>
-      <span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span>
-        <span class="l l-Scalar l-Scalar-Plain">mpi_runner</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">mpirun</span>
-        <span class="l l-Scalar l-Scalar-Plain">pre_run</span><span class="p p-Indicator">:</span>
+      <span class="nt">priority</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+      <span class="nt">queue</span><span class="p">:</span>
+        <span class="nt">qname</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">gmac</span>
+        <span class="nt">qtype</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">shell</span>
+      <span class="nt">job</span><span class="p">:</span>
+        <span class="nt">mpi_runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mpirun</span>
+        <span class="nt">pre_run</span><span class="p">:</span>
          <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">source ~/env.sh</span>
-      <span class="l l-Scalar l-Scalar-Plain">limits</span><span class="p p-Indicator">:</span>
-         <span class="l l-Scalar l-Scalar-Plain">min_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-         <span class="l l-Scalar l-Scalar-Plain">max_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-         <span class="l l-Scalar l-Scalar-Plain">timelimit</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">0:10:0</span>
-      <span class="l l-Scalar l-Scalar-Plain">hardware</span><span class="p p-Indicator">:</span>
-         <span class="l l-Scalar l-Scalar-Plain">num_nodes</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-         <span class="l l-Scalar l-Scalar-Plain">sockets_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-         <span class="l l-Scalar l-Scalar-Plain">cores_per_socket</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
-         <span class="l l-Scalar l-Scalar-Plain">mem_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">4 Gb</span>
+      <span class="nt">limits</span><span class="p">:</span>
+         <span class="nt">min_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+         <span class="nt">max_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+         <span class="nt">timelimit</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0:10:0</span>
+      <span class="nt">hardware</span><span class="p">:</span>
+         <span class="nt">num_nodes</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+         <span class="nt">sockets_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+         <span class="nt">cores_per_socket</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
+         <span class="nt">mem_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">4 Gb</span>
          <span class="c1"># Optional</span>
          <span class="c1">#condition: {&quot;$eq&quot;: {omp_threads: 2}}</span>
 
-<span class="l l-Scalar l-Scalar-Plain">batch_adapter</span><span class="p p-Indicator">:</span> <span class="nv">*batch</span>
+<span class="nt">batch_adapter</span><span class="p">:</span> <span class="nv">*batch</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="hercules">
 <h2><a class="toc-backref" href="#contents">Hercules</a><a class="headerlink" href="#hercules" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="c1"># hercules hardware: http://www.ceci-hpc.be/clusters.html#hercules</span>
-<span class="l l-Scalar l-Scalar-Plain">hardware</span><span class="p p-Indicator">:</span> <span class="nl">&amp;hardware</span>
-   <span class="l l-Scalar l-Scalar-Plain">num_nodes</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">65</span>
-   <span class="l l-Scalar l-Scalar-Plain">sockets_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
-   <span class="l l-Scalar l-Scalar-Plain">cores_per_socket</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">8</span>
-   <span class="l l-Scalar l-Scalar-Plain">mem_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">54Gb</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># hercules hardware: http://www.ceci-hpc.be/clusters.html#hercules</span>
+<span class="nt">hardware</span><span class="p">:</span> <span class="nl">&amp;hardware</span>
+   <span class="nt">num_nodes</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">65</span>
+   <span class="nt">sockets_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
+   <span class="nt">cores_per_socket</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">8</span>
+   <span class="nt">mem_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">54Gb</span>
 
-<span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nl">&amp;job</span>
-    <span class="l l-Scalar l-Scalar-Plain">mpi_runner</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">mpirun</span>
-    <span class="l l-Scalar l-Scalar-Plain">shell_env</span><span class="p p-Indicator">:</span>
-        <span class="l l-Scalar l-Scalar-Plain">PATH</span><span class="p p-Indicator">:</span> <span class="s">&quot;$HOME/git_repos/abinit/_build_hercules.ac/src/98_main/:$PATH&quot;</span>
-    <span class="l l-Scalar l-Scalar-Plain">modules</span><span class="p p-Indicator">:</span>
+<span class="nt">job</span><span class="p">:</span> <span class="nl">&amp;job</span>
+    <span class="nt">mpi_runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mpirun</span>
+    <span class="nt">shell_env</span><span class="p">:</span>
+        <span class="nt">PATH</span><span class="p">:</span> <span class="s">&quot;$HOME/git_repos/abinit/_build_hercules.ac/src/98_main/:$PATH&quot;</span>
+    <span class="nt">modules</span><span class="p">:</span>
         <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">impi/5.1.3.181-iccifort-2016.3.210-GCC-5.4.0-2.26</span>
         <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">imkl/11.3.3.210-iimpi-2016b</span>
     <span class="c1"># here pre_run is a string in verbatim mode (note |)</span>
-    <span class="l l-Scalar l-Scalar-Plain">pre_run</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">|</span>
+    <span class="nt">pre_run</span><span class="p">:</span> <span class="p p-Indicator">|</span>
         <span class="no">ulimit -s unlimited</span>
 
 <span class="c1"># queues</span>
-<span class="l l-Scalar l-Scalar-Plain">qadapters</span><span class="p p-Indicator">:</span>
-  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">priority</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-    <span class="l l-Scalar l-Scalar-Plain">queue</span><span class="p p-Indicator">:</span>
-       <span class="l l-Scalar l-Scalar-Plain">qtype</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">slurm</span>
+<span class="nt">qadapters</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">priority</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+    <span class="nt">queue</span><span class="p">:</span>
+       <span class="nt">qtype</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">slurm</span>
        <span class="c1">#qname: defq</span>
-    <span class="l l-Scalar l-Scalar-Plain">limits</span><span class="p p-Indicator">:</span>
-       <span class="l l-Scalar l-Scalar-Plain">timelimit</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">0-00:30:00</span>
-       <span class="l l-Scalar l-Scalar-Plain">min_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-       <span class="l l-Scalar l-Scalar-Plain">max_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">12</span>
-       <span class="l l-Scalar l-Scalar-Plain">min_mem_per_proc</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1000</span>
-       <span class="l l-Scalar l-Scalar-Plain">max_mem_per_proc</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2000</span>
-       <span class="l l-Scalar l-Scalar-Plain">max_num_launches</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">10</span>
-    <span class="l l-Scalar l-Scalar-Plain">hardware</span><span class="p p-Indicator">:</span> <span class="nv">*hardware</span>
-    <span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nv">*job</span>
+    <span class="nt">limits</span><span class="p">:</span>
+       <span class="nt">timelimit</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0-00:30:00</span>
+       <span class="nt">min_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+       <span class="nt">max_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">12</span>
+       <span class="nt">min_mem_per_proc</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1000</span>
+       <span class="nt">max_mem_per_proc</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2000</span>
+       <span class="nt">max_num_launches</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">10</span>
+    <span class="nt">hardware</span><span class="p">:</span> <span class="nv">*hardware</span>
+    <span class="nt">job</span><span class="p">:</span> <span class="nv">*job</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="hmem">
 <h2><a class="toc-backref" href="#contents">Hmem</a><a class="headerlink" href="#hmem" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="c1"># hmem hardware: http://www.ceci-hpc.be/clusters.html#hmem</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># hmem hardware: http://www.ceci-hpc.be/clusters.html#hmem</span>
 <span class="c1"># See also http://www.cism.ucl.ac.be/faq/index.php#hmem_specifics</span>
-<span class="l l-Scalar l-Scalar-Plain">high</span><span class="p p-Indicator">:</span> <span class="nl">&amp;high</span>
-   <span class="l l-Scalar l-Scalar-Plain">num_nodes</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
-   <span class="l l-Scalar l-Scalar-Plain">sockets_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">4</span>
-   <span class="l l-Scalar l-Scalar-Plain">cores_per_socket</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">12</span>
-   <span class="l l-Scalar l-Scalar-Plain">mem_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">512Gb</span>
+<span class="nt">high</span><span class="p">:</span> <span class="nl">&amp;high</span>
+   <span class="nt">num_nodes</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
+   <span class="nt">sockets_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">4</span>
+   <span class="nt">cores_per_socket</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">12</span>
+   <span class="nt">mem_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">512Gb</span>
 
-<span class="l l-Scalar l-Scalar-Plain">middle</span><span class="p p-Indicator">:</span> <span class="nl">&amp;middle</span>
-   <span class="l l-Scalar l-Scalar-Plain">num_nodes</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">7</span>
-   <span class="l l-Scalar l-Scalar-Plain">sockets_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">4</span>
-   <span class="l l-Scalar l-Scalar-Plain">cores_per_socket</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">12</span>
-   <span class="l l-Scalar l-Scalar-Plain">mem_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">256Gb</span>
+<span class="nt">middle</span><span class="p">:</span> <span class="nl">&amp;middle</span>
+   <span class="nt">num_nodes</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">7</span>
+   <span class="nt">sockets_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">4</span>
+   <span class="nt">cores_per_socket</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">12</span>
+   <span class="nt">mem_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">256Gb</span>
 
-<span class="l l-Scalar l-Scalar-Plain">low</span><span class="p p-Indicator">:</span> <span class="nl">&amp;low</span>
-   <span class="l l-Scalar l-Scalar-Plain">num_nodes</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">7</span>
-   <span class="l l-Scalar l-Scalar-Plain">sockets_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">4</span>
-   <span class="l l-Scalar l-Scalar-Plain">cores_per_socket</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">12</span>
-   <span class="l l-Scalar l-Scalar-Plain">mem_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">128Gb</span>
+<span class="nt">low</span><span class="p">:</span> <span class="nl">&amp;low</span>
+   <span class="nt">num_nodes</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">7</span>
+   <span class="nt">sockets_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">4</span>
+   <span class="nt">cores_per_socket</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">12</span>
+   <span class="nt">mem_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">128Gb</span>
 
-<span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nl">&amp;job</span>
-    <span class="l l-Scalar l-Scalar-Plain">mpi_runner</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">mpirun</span>
-    <span class="l l-Scalar l-Scalar-Plain">shell_env</span><span class="p p-Indicator">:</span>
-        <span class="l l-Scalar l-Scalar-Plain">PATH</span><span class="p p-Indicator">:</span> <span class="s">&quot;$HOME/git_repos/abinit/_build_hmem_intel_openmpi-mkl.ac/src/98_main/:$PATH&quot;</span>
-    <span class="l l-Scalar l-Scalar-Plain">modules</span><span class="p p-Indicator">:</span>
+<span class="nt">job</span><span class="p">:</span> <span class="nl">&amp;job</span>
+    <span class="nt">mpi_runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mpirun</span>
+    <span class="nt">shell_env</span><span class="p">:</span>
+        <span class="nt">PATH</span><span class="p">:</span> <span class="s">&quot;$HOME/git_repos/abinit/_build_hmem_intel_openmpi-mkl.ac/src/98_main/:$PATH&quot;</span>
+    <span class="nt">modules</span><span class="p">:</span>
         <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">openmpi/1.5.3/intel-12.0.0.084</span>
-    <span class="l l-Scalar l-Scalar-Plain">pre_run</span><span class="p p-Indicator">:</span> <span class="s">&quot;ulimit</span><span class="nv"> </span><span class="s">-s</span><span class="nv"> </span><span class="s">unlimited&quot;</span>
+    <span class="nt">pre_run</span><span class="p">:</span> <span class="s">&quot;ulimit</span><span class="nv"> </span><span class="s">-s</span><span class="nv"> </span><span class="s">unlimited&quot;</span>
 
 <span class="c1"># queues</span>
-<span class="l l-Scalar l-Scalar-Plain">qadapters</span><span class="p p-Indicator">:</span>
-  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">priority</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="nt">qadapters</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">priority</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">3</span>
     <span class="c1">#max_num_launches: 20</span>
-    <span class="l l-Scalar l-Scalar-Plain">queue</span><span class="p p-Indicator">:</span>
-       <span class="l l-Scalar l-Scalar-Plain">qname</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">High</span>
-       <span class="l l-Scalar l-Scalar-Plain">qtype</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">slurm</span>
-    <span class="l l-Scalar l-Scalar-Plain">limits</span><span class="p p-Indicator">:</span>
-       <span class="l l-Scalar l-Scalar-Plain">timelimit</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">10-0:0:0</span>
-       <span class="l l-Scalar l-Scalar-Plain">min_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-       <span class="l l-Scalar l-Scalar-Plain">max_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">48</span>
-    <span class="l l-Scalar l-Scalar-Plain">hardware</span><span class="p p-Indicator">:</span> <span class="nv">*high</span>
-    <span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nv">*job</span>
+    <span class="nt">queue</span><span class="p">:</span>
+       <span class="nt">qname</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">High</span>
+       <span class="nt">qtype</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">slurm</span>
+    <span class="nt">limits</span><span class="p">:</span>
+       <span class="nt">timelimit</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">10-0:0:0</span>
+       <span class="nt">min_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+       <span class="nt">max_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">48</span>
+    <span class="nt">hardware</span><span class="p">:</span> <span class="nv">*high</span>
+    <span class="nt">job</span><span class="p">:</span> <span class="nv">*job</span>
 
-  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">priority</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
-    <span class="l l-Scalar l-Scalar-Plain">queue</span><span class="p p-Indicator">:</span>
-       <span class="l l-Scalar l-Scalar-Plain">qname</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Middle</span>
-       <span class="l l-Scalar l-Scalar-Plain">qtype</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">slurm</span>
-    <span class="l l-Scalar l-Scalar-Plain">limits</span><span class="p p-Indicator">:</span>
-       <span class="l l-Scalar l-Scalar-Plain">timelimit</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">5-0:0:0</span>
-       <span class="l l-Scalar l-Scalar-Plain">min_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-       <span class="l l-Scalar l-Scalar-Plain">max_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">48</span>
-    <span class="l l-Scalar l-Scalar-Plain">hardware</span><span class="p p-Indicator">:</span> <span class="nv">*middle</span>
-    <span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nv">*job</span>
+  <span class="p p-Indicator">-</span> <span class="nt">priority</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
+    <span class="nt">queue</span><span class="p">:</span>
+       <span class="nt">qname</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Middle</span>
+       <span class="nt">qtype</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">slurm</span>
+    <span class="nt">limits</span><span class="p">:</span>
+       <span class="nt">timelimit</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">5-0:0:0</span>
+       <span class="nt">min_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+       <span class="nt">max_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">48</span>
+    <span class="nt">hardware</span><span class="p">:</span> <span class="nv">*middle</span>
+    <span class="nt">job</span><span class="p">:</span> <span class="nv">*job</span>
 
-  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">priority</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-    <span class="l l-Scalar l-Scalar-Plain">queue</span><span class="p p-Indicator">:</span>
-       <span class="l l-Scalar l-Scalar-Plain">qname</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Low</span>
-       <span class="l l-Scalar l-Scalar-Plain">qtype</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">slurm</span>
-    <span class="l l-Scalar l-Scalar-Plain">limits</span><span class="p p-Indicator">:</span>
-       <span class="l l-Scalar l-Scalar-Plain">timelimit</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">5-0:0:0</span>
-       <span class="l l-Scalar l-Scalar-Plain">min_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-       <span class="l l-Scalar l-Scalar-Plain">max_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">48</span>
-    <span class="l l-Scalar l-Scalar-Plain">hardware</span><span class="p p-Indicator">:</span> <span class="nv">*low</span>
-    <span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nv">*job</span>
+  <span class="p p-Indicator">-</span> <span class="nt">priority</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+    <span class="nt">queue</span><span class="p">:</span>
+       <span class="nt">qname</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Low</span>
+       <span class="nt">qtype</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">slurm</span>
+    <span class="nt">limits</span><span class="p">:</span>
+       <span class="nt">timelimit</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">5-0:0:0</span>
+       <span class="nt">min_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+       <span class="nt">max_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">48</span>
+    <span class="nt">hardware</span><span class="p">:</span> <span class="nv">*low</span>
+    <span class="nt">job</span><span class="p">:</span> <span class="nv">*job</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="juqueen">
 <h2><a class="toc-backref" href="#contents">Juqueen</a><a class="headerlink" href="#juqueen" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">batch</span><span class="p p-Indicator">:</span> <span class="nl">&amp;batch</span>
-   <span class="l l-Scalar l-Scalar-Plain">num_nodes</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">128</span>
-   <span class="l l-Scalar l-Scalar-Plain">sockets_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-   <span class="l l-Scalar l-Scalar-Plain">cores_per_socket</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">16</span>
-   <span class="l l-Scalar l-Scalar-Plain">mem_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">128Gb</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">batch</span><span class="p">:</span> <span class="nl">&amp;batch</span>
+   <span class="nt">num_nodes</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">128</span>
+   <span class="nt">sockets_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+   <span class="nt">cores_per_socket</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">16</span>
+   <span class="nt">mem_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">128Gb</span>
 
-<span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nl">&amp;job</span>
-    <span class="l l-Scalar l-Scalar-Plain">mpi_runner</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">runjob</span>
-    <span class="l l-Scalar l-Scalar-Plain">shell_env</span><span class="p p-Indicator">:</span>
-        <span class="l l-Scalar l-Scalar-Plain">PATH</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">$HOME/abinit/801-private/bgq_xlf_legacy/src/98_main/:$PATH</span>
+<span class="nt">job</span><span class="p">:</span> <span class="nl">&amp;job</span>
+    <span class="nt">mpi_runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">runjob</span>
+    <span class="nt">shell_env</span><span class="p">:</span>
+        <span class="nt">PATH</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">$HOME/abinit/801-private/bgq_xlf_legacy/src/98_main/:$PATH</span>
 
 <span class="c1"># List of qadapters</span>
 <span class="c1"># Note that on the BlueGeneQ we need at least two qadapters</span>
 <span class="c1"># One for submitting jobs to the computing nodes and another</span>
 <span class="c1"># one for executing small sequential ABINIT jobs on the frontend</span>
 <span class="c1"># The two qadapters have different shell environments, module files and binaries.</span>
-<span class="l l-Scalar l-Scalar-Plain">qadapters</span><span class="p p-Indicator">:</span>
+<span class="nt">qadapters</span><span class="p">:</span>
 
   <span class="c1"># adapter for submitting jobs to the BlueGene.</span>
-  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">priority</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-    <span class="l l-Scalar l-Scalar-Plain">queue</span><span class="p p-Indicator">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">priority</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+    <span class="nt">queue</span><span class="p">:</span>
        <span class="c1">#qname: batch</span>
-       <span class="l l-Scalar l-Scalar-Plain">qtype</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">bluegene</span>
-       <span class="l l-Scalar l-Scalar-Plain">qparams</span><span class="p p-Indicator">:</span>
+       <span class="nt">qtype</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">bluegene</span>
+       <span class="nt">qparams</span><span class="p">:</span>
          <span class="c1"># Mandatory on juqueen.</span>
-         <span class="l l-Scalar l-Scalar-Plain">notification</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">error</span>
-         <span class="l l-Scalar l-Scalar-Plain">mail_user</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">john@nowhere.com</span>
-         <span class="l l-Scalar l-Scalar-Plain">environment</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">COPY_ALL</span>
-    <span class="l l-Scalar l-Scalar-Plain">limits</span><span class="p p-Indicator">:</span>
-       <span class="l l-Scalar l-Scalar-Plain">timelimit</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">00:20:00</span>
-       <span class="l l-Scalar l-Scalar-Plain">min_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-       <span class="l l-Scalar l-Scalar-Plain">max_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1024</span>
-    <span class="l l-Scalar l-Scalar-Plain">hardware</span><span class="p p-Indicator">:</span> <span class="nv">*batch</span>
-    <span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nv">*job</span>
+         <span class="nt">notification</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">error</span>
+         <span class="nt">mail_user</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">john@nowhere.com</span>
+         <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">COPY_ALL</span>
+    <span class="nt">limits</span><span class="p">:</span>
+       <span class="nt">timelimit</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">00:20:00</span>
+       <span class="nt">min_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+       <span class="nt">max_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1024</span>
+    <span class="nt">hardware</span><span class="p">:</span> <span class="nv">*batch</span>
+    <span class="nt">job</span><span class="p">:</span> <span class="nv">*job</span>
 
   <span class="c1"># shell adapter for small sequential jobs (e.g. autoparal tasks).</span>
   <span class="c1"># Note that we need an Abinit executable that can be executed on the frontend</span>
   <span class="c1"># TODO check priority</span>
-  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">priority</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">10</span>
-    <span class="l l-Scalar l-Scalar-Plain">queue</span><span class="p p-Indicator">:</span>
-       <span class="l l-Scalar l-Scalar-Plain">qname</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">shell_adapter</span>
-       <span class="l l-Scalar l-Scalar-Plain">qtype</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">shell</span>
-    <span class="l l-Scalar l-Scalar-Plain">limits</span><span class="p p-Indicator">:</span>
-       <span class="l l-Scalar l-Scalar-Plain">timelimit</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">00:10:00</span>
-       <span class="l l-Scalar l-Scalar-Plain">min_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-       <span class="l l-Scalar l-Scalar-Plain">max_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-    <span class="l l-Scalar l-Scalar-Plain">hardware</span><span class="p p-Indicator">:</span>
-       <span class="l l-Scalar l-Scalar-Plain">num_nodes</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-       <span class="l l-Scalar l-Scalar-Plain">sockets_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-       <span class="l l-Scalar l-Scalar-Plain">cores_per_socket</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-       <span class="l l-Scalar l-Scalar-Plain">mem_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">12Gb</span>
-    <span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">priority</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">10</span>
+    <span class="nt">queue</span><span class="p">:</span>
+       <span class="nt">qname</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">shell_adapter</span>
+       <span class="nt">qtype</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">shell</span>
+    <span class="nt">limits</span><span class="p">:</span>
+       <span class="nt">timelimit</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">00:10:00</span>
+       <span class="nt">min_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+       <span class="nt">max_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+    <span class="nt">hardware</span><span class="p">:</span>
+       <span class="nt">num_nodes</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+       <span class="nt">sockets_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+       <span class="nt">cores_per_socket</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+       <span class="nt">mem_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">12Gb</span>
+    <span class="nt">job</span><span class="p">:</span>
         <span class="c1">#mpi_runner: runjob</span>
-        <span class="l l-Scalar l-Scalar-Plain">shell_env</span><span class="p p-Indicator">:</span>
-            <span class="l l-Scalar l-Scalar-Plain">PATH</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">$HOME/abinit/801-private/bgq_frontend/src/98_main/:$PATH</span>
-        <span class="l l-Scalar l-Scalar-Plain">modules</span><span class="p p-Indicator">:</span>
+        <span class="nt">shell_env</span><span class="p">:</span>
+            <span class="nt">PATH</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">$HOME/abinit/801-private/bgq_frontend/src/98_main/:$PATH</span>
+        <span class="nt">modules</span><span class="p">:</span>
             <span class="l l-Scalar l-Scalar-Plain">gcc/4.8.3</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="jureca">
 <h2><a class="toc-backref" href="#contents">Jureca</a><a class="headerlink" href="#jureca" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="c1"># See http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JURECA/Configuration/Configuration_node.html</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># See http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JURECA/Configuration/Configuration_node.html</span>
 <span class="c1"># and</span>
 <span class="c1"># http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JURECA/UserInfo/QuickIntroduction.html?nn=1803700#JURECABatchPart</span>
-<span class="l l-Scalar l-Scalar-Plain">devel</span><span class="p p-Indicator">:</span> <span class="nl">&amp;devel</span>
-   <span class="l l-Scalar l-Scalar-Plain">num_nodes</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">8</span>
-   <span class="l l-Scalar l-Scalar-Plain">sockets_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
-   <span class="l l-Scalar l-Scalar-Plain">cores_per_socket</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">12</span>
-   <span class="l l-Scalar l-Scalar-Plain">mem_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">128Gb</span>
+<span class="nt">devel</span><span class="p">:</span> <span class="nl">&amp;devel</span>
+   <span class="nt">num_nodes</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">8</span>
+   <span class="nt">sockets_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
+   <span class="nt">cores_per_socket</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">12</span>
+   <span class="nt">mem_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">128Gb</span>
 
-<span class="l l-Scalar l-Scalar-Plain">batch</span><span class="p p-Indicator">:</span> <span class="nl">&amp;batch</span>
-   <span class="l l-Scalar l-Scalar-Plain">num_nodes</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">128</span>
-   <span class="l l-Scalar l-Scalar-Plain">sockets_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
-   <span class="l l-Scalar l-Scalar-Plain">cores_per_socket</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">12</span>
-   <span class="l l-Scalar l-Scalar-Plain">mem_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">128Gb</span>
+<span class="nt">batch</span><span class="p">:</span> <span class="nl">&amp;batch</span>
+   <span class="nt">num_nodes</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">128</span>
+   <span class="nt">sockets_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
+   <span class="nt">cores_per_socket</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">12</span>
+   <span class="nt">mem_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">128Gb</span>
 
-<span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nl">&amp;job</span>
+<span class="nt">job</span><span class="p">:</span> <span class="nl">&amp;job</span>
     <span class="c1"># mpirun is not available on jureca.</span>
     <span class="c1"># parallel applications must be executed with srun.</span>
     <span class="c1"># shell_runner is used to run small sequential jobs on the frontend (e.g. autoparal jobs)</span>
     <span class="c1"># None means that we should run the executable without prepending srun.</span>
-    <span class="l l-Scalar l-Scalar-Plain">mpi_runner</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">srun</span>
-    <span class="l l-Scalar l-Scalar-Plain">shell_runner</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">None</span>
-    <span class="l l-Scalar l-Scalar-Plain">shell_env</span><span class="p p-Indicator">:</span>
-        <span class="l l-Scalar l-Scalar-Plain">PATH</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">$HOME/abinit/801-private/jureca_mpi/src/98_main:$PATH</span>
-    <span class="l l-Scalar l-Scalar-Plain">modules</span><span class="p p-Indicator">:</span>
+    <span class="nt">mpi_runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">srun</span>
+    <span class="nt">shell_runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">None</span>
+    <span class="nt">shell_env</span><span class="p">:</span>
+        <span class="nt">PATH</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">$HOME/abinit/801-private/jureca_mpi/src/98_main:$PATH</span>
+    <span class="nt">modules</span><span class="p">:</span>
         <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">intel-para/2015.07</span>
-    <span class="l l-Scalar l-Scalar-Plain">pre_run</span><span class="p p-Indicator">:</span> <span class="s">&quot;ulimit</span><span class="nv"> </span><span class="s">-s</span><span class="nv"> </span><span class="s">unlimited&quot;</span>
+    <span class="nt">pre_run</span><span class="p">:</span> <span class="s">&quot;ulimit</span><span class="nv"> </span><span class="s">-s</span><span class="nv"> </span><span class="s">unlimited&quot;</span>
 
 <span class="c1"># queues</span>
-<span class="l l-Scalar l-Scalar-Plain">qadapters</span><span class="p p-Indicator">:</span>
-  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">priority</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="nt">qadapters</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">priority</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
     <span class="c1">#max_num_launches: 20</span>
-    <span class="l l-Scalar l-Scalar-Plain">queue</span><span class="p p-Indicator">:</span>
-       <span class="l l-Scalar l-Scalar-Plain">qname</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">batch</span>
-       <span class="l l-Scalar l-Scalar-Plain">qtype</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">slurm</span>
-    <span class="l l-Scalar l-Scalar-Plain">limits</span><span class="p p-Indicator">:</span>
-       <span class="l l-Scalar l-Scalar-Plain">timelimit</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">0:10:0</span>
-       <span class="l l-Scalar l-Scalar-Plain">min_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-       <span class="l l-Scalar l-Scalar-Plain">max_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">12</span>
-    <span class="l l-Scalar l-Scalar-Plain">hardware</span><span class="p p-Indicator">:</span> <span class="nv">*batch</span>
-    <span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nv">*job</span>
+    <span class="nt">queue</span><span class="p">:</span>
+       <span class="nt">qname</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">batch</span>
+       <span class="nt">qtype</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">slurm</span>
+    <span class="nt">limits</span><span class="p">:</span>
+       <span class="nt">timelimit</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0:10:0</span>
+       <span class="nt">min_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+       <span class="nt">max_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">12</span>
+    <span class="nt">hardware</span><span class="p">:</span> <span class="nv">*batch</span>
+    <span class="nt">job</span><span class="p">:</span> <span class="nv">*job</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="lemaitre2">
 <h2><a class="toc-backref" href="#contents">Lemaitre2</a><a class="headerlink" href="#lemaitre2" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="c1"># lemaitre2 hardware: http://www.ceci-hpc.be/clusters.html#lemaitre2</span>
-<span class="l l-Scalar l-Scalar-Plain">hardware</span><span class="p p-Indicator">:</span> <span class="nl">&amp;hardware</span>
-   <span class="l l-Scalar l-Scalar-Plain">num_nodes</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">112</span>
-   <span class="l l-Scalar l-Scalar-Plain">sockets_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
-   <span class="l l-Scalar l-Scalar-Plain">cores_per_socket</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">6</span>
-   <span class="l l-Scalar l-Scalar-Plain">mem_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">48Gb</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># lemaitre2 hardware: http://www.ceci-hpc.be/clusters.html#lemaitre2</span>
+<span class="nt">hardware</span><span class="p">:</span> <span class="nl">&amp;hardware</span>
+   <span class="nt">num_nodes</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">112</span>
+   <span class="nt">sockets_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
+   <span class="nt">cores_per_socket</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">6</span>
+   <span class="nt">mem_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">48Gb</span>
 
-<span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nl">&amp;job</span>
-    <span class="l l-Scalar l-Scalar-Plain">mpi_runner</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">mpirun</span>
-    <span class="l l-Scalar l-Scalar-Plain">shell_env</span><span class="p p-Indicator">:</span>  <span class="c1"># Use your abinit exec</span>
-        <span class="l l-Scalar l-Scalar-Plain">PATH</span><span class="p p-Indicator">:</span> <span class="s">&quot;$HOME/git_repos/abinit/_build_lemaitre2-intel-openmpi-mkl.ac/src/98_main/:$PATH&quot;</span>
-    <span class="l l-Scalar l-Scalar-Plain">modules</span><span class="p p-Indicator">:</span> <span class="c1"># Abinit compiled with abiconfig settings</span>
+<span class="nt">job</span><span class="p">:</span> <span class="nl">&amp;job</span>
+    <span class="nt">mpi_runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mpirun</span>
+    <span class="nt">shell_env</span><span class="p">:</span>  <span class="c1"># Use your abinit exec</span>
+        <span class="nt">PATH</span><span class="p">:</span> <span class="s">&quot;$HOME/git_repos/abinit/_build_lemaitre2-intel-openmpi-mkl.ac/src/98_main/:$PATH&quot;</span>
+    <span class="nt">modules</span><span class="p">:</span> <span class="c1"># Abinit compiled with abiconfig settings</span>
         <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">openmpi/1.6.5/intel-13.0.1.117</span>
-    <span class="l l-Scalar l-Scalar-Plain">pre_run</span><span class="p p-Indicator">:</span> <span class="s">&quot;ulimit</span><span class="nv"> </span><span class="s">-s</span><span class="nv"> </span><span class="s">unlimited&quot;</span>
+    <span class="nt">pre_run</span><span class="p">:</span> <span class="s">&quot;ulimit</span><span class="nv"> </span><span class="s">-s</span><span class="nv"> </span><span class="s">unlimited&quot;</span>
 
 <span class="c1"># queues</span>
-<span class="l l-Scalar l-Scalar-Plain">qadapters</span><span class="p p-Indicator">:</span>
-  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">priority</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-    <span class="l l-Scalar l-Scalar-Plain">queue</span><span class="p p-Indicator">:</span>
-       <span class="l l-Scalar l-Scalar-Plain">qtype</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">slurm</span>
-       <span class="l l-Scalar l-Scalar-Plain">qname</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Def</span>
-    <span class="l l-Scalar l-Scalar-Plain">limits</span><span class="p p-Indicator">:</span>
-       <span class="l l-Scalar l-Scalar-Plain">timelimit</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">0-0:30:00</span>
-       <span class="l l-Scalar l-Scalar-Plain">min_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-       <span class="l l-Scalar l-Scalar-Plain">max_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">12</span>
-       <span class="l l-Scalar l-Scalar-Plain">min_mem_per_proc</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1000</span>
-       <span class="l l-Scalar l-Scalar-Plain">max_mem_per_proc</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2000</span>
-       <span class="l l-Scalar l-Scalar-Plain">max_num_launches</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">10</span>
-    <span class="l l-Scalar l-Scalar-Plain">hardware</span><span class="p p-Indicator">:</span> <span class="nv">*hardware</span>
-    <span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nv">*job</span>
+<span class="nt">qadapters</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">priority</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+    <span class="nt">queue</span><span class="p">:</span>
+       <span class="nt">qtype</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">slurm</span>
+       <span class="nt">qname</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Def</span>
+    <span class="nt">limits</span><span class="p">:</span>
+       <span class="nt">timelimit</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0-0:30:00</span>
+       <span class="nt">min_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+       <span class="nt">max_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">12</span>
+       <span class="nt">min_mem_per_proc</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1000</span>
+       <span class="nt">max_mem_per_proc</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2000</span>
+       <span class="nt">max_num_launches</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">10</span>
+    <span class="nt">hardware</span><span class="p">:</span> <span class="nv">*hardware</span>
+    <span class="nt">job</span><span class="p">:</span> <span class="nv">*job</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="lemaitre3">
 <h2><a class="toc-backref" href="#contents">Lemaitre3</a><a class="headerlink" href="#lemaitre3" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="c1"># lemaitre3 hardware: http://www.ceci-hpc.be/clusters.html#lemaitre3</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># lemaitre3 hardware: http://www.ceci-hpc.be/clusters.html#lemaitre3</span>
 <span class="c1"># For the configuration file see:</span>
 <span class="c1">#       https://github.com/abinit/abiconfig/blob/master/abiconfig/clusters/lemaitre3-intel-easybuild.ac</span>
-<span class="l l-Scalar l-Scalar-Plain">hardware</span><span class="p p-Indicator">:</span> <span class="nl">&amp;hardware</span>
-   <span class="l l-Scalar l-Scalar-Plain">num_nodes</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
-   <span class="l l-Scalar l-Scalar-Plain">sockets_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
-   <span class="l l-Scalar l-Scalar-Plain">cores_per_socket</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">12</span>
-   <span class="l l-Scalar l-Scalar-Plain">mem_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">95Gb</span>
+<span class="nt">hardware</span><span class="p">:</span> <span class="nl">&amp;hardware</span>
+   <span class="nt">num_nodes</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
+   <span class="nt">sockets_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
+   <span class="nt">cores_per_socket</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">12</span>
+   <span class="nt">mem_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">95Gb</span>
 
-<span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nl">&amp;job</span>
-    <span class="l l-Scalar l-Scalar-Plain">mpi_runner</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">mpirun</span>
-    <span class="l l-Scalar l-Scalar-Plain">shell_env</span><span class="p p-Indicator">:</span>  <span class="c1"># Use your abinit exec</span>
-        <span class="l l-Scalar l-Scalar-Plain">PATH</span><span class="p p-Indicator">:</span> <span class="s">&quot;$HOME/git_repos/abinit/_build_lemaitre3-intel-easybuild.ac/src/98_main/:$PATH&quot;</span>
-    <span class="l l-Scalar l-Scalar-Plain">modules</span><span class="p p-Indicator">:</span> <span class="c1"># Abinit compiled with abiconfig settings</span>
+<span class="nt">job</span><span class="p">:</span> <span class="nl">&amp;job</span>
+    <span class="nt">mpi_runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mpirun</span>
+    <span class="nt">shell_env</span><span class="p">:</span>  <span class="c1"># Use your abinit exec</span>
+        <span class="nt">PATH</span><span class="p">:</span> <span class="s">&quot;$HOME/git_repos/abinit/_build_lemaitre3-intel-easybuild.ac/src/98_main/:$PATH&quot;</span>
+    <span class="nt">modules</span><span class="p">:</span> <span class="c1"># Abinit compiled with abiconfig settings</span>
         <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">intel/2017b</span>
         <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">netCDF-Fortran/4.4.4-intel-2017b</span>
-    <span class="l l-Scalar l-Scalar-Plain">pre_run</span><span class="p p-Indicator">:</span> <span class="s">&quot;ulimit</span><span class="nv"> </span><span class="s">-s</span><span class="nv"> </span><span class="s">unlimited&quot;</span>
+    <span class="nt">pre_run</span><span class="p">:</span> <span class="s">&quot;ulimit</span><span class="nv"> </span><span class="s">-s</span><span class="nv"> </span><span class="s">unlimited&quot;</span>
 
 <span class="c1"># queues</span>
-<span class="l l-Scalar l-Scalar-Plain">qadapters</span><span class="p p-Indicator">:</span>
-  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">priority</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-    <span class="l l-Scalar l-Scalar-Plain">queue</span><span class="p p-Indicator">:</span>
-       <span class="l l-Scalar l-Scalar-Plain">qtype</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">slurm</span>
+<span class="nt">qadapters</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">priority</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+    <span class="nt">queue</span><span class="p">:</span>
+       <span class="nt">qtype</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">slurm</span>
        <span class="c1">#qname: Def</span>
-    <span class="l l-Scalar l-Scalar-Plain">limits</span><span class="p p-Indicator">:</span>
-       <span class="l l-Scalar l-Scalar-Plain">timelimit</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">0-0:30:00</span>
-       <span class="l l-Scalar l-Scalar-Plain">min_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-       <span class="l l-Scalar l-Scalar-Plain">max_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">12</span>
-       <span class="l l-Scalar l-Scalar-Plain">min_mem_per_proc</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1000</span>
-       <span class="l l-Scalar l-Scalar-Plain">max_mem_per_proc</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2000</span>
-       <span class="l l-Scalar l-Scalar-Plain">max_num_launches</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">10</span>
-    <span class="l l-Scalar l-Scalar-Plain">hardware</span><span class="p p-Indicator">:</span> <span class="nv">*hardware</span>
-    <span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nv">*job</span>
+    <span class="nt">limits</span><span class="p">:</span>
+       <span class="nt">timelimit</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0-0:30:00</span>
+       <span class="nt">min_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+       <span class="nt">max_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">12</span>
+       <span class="nt">min_mem_per_proc</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1000</span>
+       <span class="nt">max_mem_per_proc</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2000</span>
+       <span class="nt">max_num_launches</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">10</span>
+    <span class="nt">hardware</span><span class="p">:</span> <span class="nv">*hardware</span>
+    <span class="nt">job</span><span class="p">:</span> <span class="nv">*job</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="manneback">
 <h2><a class="toc-backref" href="#contents">Manneback</a><a class="headerlink" href="#manneback" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="c1"># Hardware specification.</span>
-<span class="l l-Scalar l-Scalar-Plain">Def</span><span class="p p-Indicator">:</span> <span class="nl">&amp;Def</span>
-   <span class="l l-Scalar l-Scalar-Plain">num_nodes</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">672</span>
-   <span class="l l-Scalar l-Scalar-Plain">sockets_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
-   <span class="l l-Scalar l-Scalar-Plain">cores_per_socket</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">4</span>
-   <span class="l l-Scalar l-Scalar-Plain">mem_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">24 Gb</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># Hardware specification.</span>
+<span class="nt">Def</span><span class="p">:</span> <span class="nl">&amp;Def</span>
+   <span class="nt">num_nodes</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">672</span>
+   <span class="nt">sockets_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
+   <span class="nt">cores_per_socket</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">4</span>
+   <span class="nt">mem_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">24 Gb</span>
 
-<span class="l l-Scalar l-Scalar-Plain">ObanAMD</span><span class="p p-Indicator">:</span> <span class="nl">&amp;ObanAMD</span>
-   <span class="l l-Scalar l-Scalar-Plain">num_nodes</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">6</span>
-   <span class="l l-Scalar l-Scalar-Plain">sockets_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">4</span>
-   <span class="l l-Scalar l-Scalar-Plain">cores_per_socket</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">8</span>
-   <span class="l l-Scalar l-Scalar-Plain">mem_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">128 Gb</span>
+<span class="nt">ObanAMD</span><span class="p">:</span> <span class="nl">&amp;ObanAMD</span>
+   <span class="nt">num_nodes</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">6</span>
+   <span class="nt">sockets_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">4</span>
+   <span class="nt">cores_per_socket</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">8</span>
+   <span class="nt">mem_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">128 Gb</span>
 
-<span class="l l-Scalar l-Scalar-Plain">ObanIntel</span><span class="p p-Indicator">:</span> <span class="nl">&amp;ObanIntel</span>
-   <span class="l l-Scalar l-Scalar-Plain">num_nodes</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">3</span>
-   <span class="l l-Scalar l-Scalar-Plain">sockets_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">4</span>
-   <span class="l l-Scalar l-Scalar-Plain">cores_per_socket</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">8</span>
-   <span class="l l-Scalar l-Scalar-Plain">mem_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">256 Gb</span>
+<span class="nt">ObanIntel</span><span class="p">:</span> <span class="nl">&amp;ObanIntel</span>
+   <span class="nt">num_nodes</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">3</span>
+   <span class="nt">sockets_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">4</span>
+   <span class="nt">cores_per_socket</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">8</span>
+   <span class="nt">mem_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">256 Gb</span>
 
 <span class="c1"># Environment, modules, and parameters used to launch jobs.</span>
-<span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nl">&amp;job</span>
-    <span class="l l-Scalar l-Scalar-Plain">mpi_runner</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">mpirun</span>
-    <span class="l l-Scalar l-Scalar-Plain">shell_env</span><span class="p p-Indicator">:</span>
-         <span class="l l-Scalar l-Scalar-Plain">PATH</span><span class="p p-Indicator">:</span> <span class="s">&quot;$HOME/git_repos/abinit/_build_manneback-gcc-openmpi.ac/src/98_main/:$PATH&quot;</span>
-    <span class="l l-Scalar l-Scalar-Plain">pre_run</span><span class="p p-Indicator">:</span>
+<span class="nt">job</span><span class="p">:</span> <span class="nl">&amp;job</span>
+    <span class="nt">mpi_runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mpirun</span>
+    <span class="nt">shell_env</span><span class="p">:</span>
+         <span class="nt">PATH</span><span class="p">:</span> <span class="s">&quot;$HOME/git_repos/abinit/_build_manneback-gcc-openmpi.ac/src/98_main/:$PATH&quot;</span>
+    <span class="nt">pre_run</span><span class="p">:</span>
         <span class="p p-Indicator">-</span> <span class="s">&quot;ulimit</span><span class="nv"> </span><span class="s">-s</span><span class="nv"> </span><span class="s">unlimited&quot;</span>
         <span class="p p-Indicator">-</span> <span class="s">&quot;export</span><span class="nv"> </span><span class="s">OMP_NUM_THREADS=1&quot;</span>
         <span class="p p-Indicator">-</span> <span class="s">&quot;unset</span><span class="nv"> </span><span class="s">SLURM_CPUS_PER_TASK&quot;</span>
@@ -579,44 +572,44 @@
 <span class="c1">#   frozen_timeout: 0-12:0:0</span>
 
 <span class="c1"># List of qdapters.</span>
-<span class="l l-Scalar l-Scalar-Plain">qadapters</span><span class="p p-Indicator">:</span>
-  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">priority</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-    <span class="l l-Scalar l-Scalar-Plain">queue</span><span class="p p-Indicator">:</span>
-       <span class="l l-Scalar l-Scalar-Plain">qname</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Def</span>
-       <span class="l l-Scalar l-Scalar-Plain">qtype</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">slurm</span>
-       <span class="l l-Scalar l-Scalar-Plain">qparams</span><span class="p p-Indicator">:</span>
+<span class="nt">qadapters</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">priority</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+    <span class="nt">queue</span><span class="p">:</span>
+       <span class="nt">qname</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Def</span>
+       <span class="nt">qtype</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">slurm</span>
+       <span class="nt">qparams</span><span class="p">:</span>
                 <span class="c1"># This nodes must be excluded because they are not compatible with the Abinit build (SIGILL error).</span>
-                <span class="l l-Scalar l-Scalar-Plain">exclude_nodes</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">mb-neh[070,201-212],mb-har[001-014],mb-har[101-116],mb-opt[111-116],mb-har[121-140],mb-sab[004,040,007,101-102],mb-wes[251-252],mb-ivy[205,206,208]</span>
-    <span class="l l-Scalar l-Scalar-Plain">limits</span><span class="p p-Indicator">:</span>
-       <span class="l l-Scalar l-Scalar-Plain">timelimit</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">00:30:00</span>
+                <span class="nt">exclude_nodes</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mb-neh[070,201-212],mb-har[001-014],mb-har[101-116],mb-opt[111-116],mb-har[121-140],mb-sab[004,040,007,101-102],mb-wes[251-252],mb-ivy[205,206,208]</span>
+    <span class="nt">limits</span><span class="p">:</span>
+       <span class="nt">timelimit</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">00:30:00</span>
        <span class="c1">#timelimit_hard: 5-00:00:0</span>
-       <span class="l l-Scalar l-Scalar-Plain">min_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-       <span class="l l-Scalar l-Scalar-Plain">max_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">8</span>
-       <span class="l l-Scalar l-Scalar-Plain">hint_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">4</span>
-       <span class="l l-Scalar l-Scalar-Plain">min_mem_per_proc</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1000</span>
-       <span class="l l-Scalar l-Scalar-Plain">max_mem_per_proc</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2000</span>
-       <span class="l l-Scalar l-Scalar-Plain">max_num_launches</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">5</span>
-    <span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nv">*job</span>
-    <span class="l l-Scalar l-Scalar-Plain">hardware</span><span class="p p-Indicator">:</span> <span class="nv">*Def</span>
+       <span class="nt">min_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+       <span class="nt">max_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">8</span>
+       <span class="nt">hint_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">4</span>
+       <span class="nt">min_mem_per_proc</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1000</span>
+       <span class="nt">max_mem_per_proc</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2000</span>
+       <span class="nt">max_num_launches</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">5</span>
+    <span class="nt">job</span><span class="p">:</span> <span class="nv">*job</span>
+    <span class="nt">hardware</span><span class="p">:</span> <span class="nv">*Def</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="nic4">
 <h2><a class="toc-backref" href="#contents">Nic4</a><a class="headerlink" href="#nic4" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="c1"># nic4 hardware. see http://www.ceci-hpc.be/clusters.html#nic4</span>
-<span class="l l-Scalar l-Scalar-Plain">hardware</span><span class="p p-Indicator">:</span> <span class="nl">&amp;hardware</span>
-   <span class="l l-Scalar l-Scalar-Plain">num_nodes</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">120</span>
-   <span class="l l-Scalar l-Scalar-Plain">sockets_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
-   <span class="l l-Scalar l-Scalar-Plain">cores_per_socket</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">8</span>
-   <span class="l l-Scalar l-Scalar-Plain">mem_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">64Gb</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># nic4 hardware. see http://www.ceci-hpc.be/clusters.html#nic4</span>
+<span class="nt">hardware</span><span class="p">:</span> <span class="nl">&amp;hardware</span>
+   <span class="nt">num_nodes</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">120</span>
+   <span class="nt">sockets_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
+   <span class="nt">cores_per_socket</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">8</span>
+   <span class="nt">mem_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">64Gb</span>
 
-<span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nl">&amp;job</span>
-    <span class="l l-Scalar l-Scalar-Plain">mpi_runner</span><span class="p p-Indicator">:</span> <span class="s">&quot;mpirun&quot;</span>
-    <span class="l l-Scalar l-Scalar-Plain">mpi_runner_options</span><span class="p p-Indicator">:</span> <span class="s">&quot;--bind-to</span><span class="nv"> </span><span class="s">none&quot;</span>
-    <span class="l l-Scalar l-Scalar-Plain">shell_env</span><span class="p p-Indicator">:</span>
-        <span class="l l-Scalar l-Scalar-Plain">PATH</span><span class="p p-Indicator">:</span> <span class="s">&quot;$HOME/git_repos/abinit/_build_nic4-intel-openmpi-mkl-hdf5.ac/src/98_main:$PATH&quot;</span>
-    <span class="l l-Scalar l-Scalar-Plain">pre_run</span><span class="p p-Indicator">:</span> <span class="s">&quot;ulimit</span><span class="nv"> </span><span class="s">-s</span><span class="nv"> </span><span class="s">unlimited&quot;</span>
-    <span class="l l-Scalar l-Scalar-Plain">modules</span><span class="p p-Indicator">:</span>
+<span class="nt">job</span><span class="p">:</span> <span class="nl">&amp;job</span>
+    <span class="nt">mpi_runner</span><span class="p">:</span> <span class="s">&quot;mpirun&quot;</span>
+    <span class="nt">mpi_runner_options</span><span class="p">:</span> <span class="s">&quot;--bind-to</span><span class="nv"> </span><span class="s">none&quot;</span>
+    <span class="nt">shell_env</span><span class="p">:</span>
+        <span class="nt">PATH</span><span class="p">:</span> <span class="s">&quot;$HOME/git_repos/abinit/_build_nic4-intel-openmpi-mkl-hdf5.ac/src/98_main:$PATH&quot;</span>
+    <span class="nt">pre_run</span><span class="p">:</span> <span class="s">&quot;ulimit</span><span class="nv"> </span><span class="s">-s</span><span class="nv"> </span><span class="s">unlimited&quot;</span>
+    <span class="nt">modules</span><span class="p">:</span>
         <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">shared</span>
         <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">openmpi/1.7.5/intel2013_sp1.1.106</span>
         <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">intel/mkl/64/11.1/2013_sp1.1.106</span>
@@ -625,248 +618,248 @@
         <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">slurm/14.03.11</span>
 
 <span class="c1"># queues</span>
-<span class="l l-Scalar l-Scalar-Plain">qadapters</span><span class="p p-Indicator">:</span>
-  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">priority</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-    <span class="l l-Scalar l-Scalar-Plain">queue</span><span class="p p-Indicator">:</span>
-       <span class="l l-Scalar l-Scalar-Plain">qtype</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">slurm</span>
-       <span class="l l-Scalar l-Scalar-Plain">qname</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">defq</span>
-       <span class="l l-Scalar l-Scalar-Plain">qparams</span><span class="p p-Indicator">:</span>
-          <span class="l l-Scalar l-Scalar-Plain">mail_type</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">FAIL</span>
+<span class="nt">qadapters</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">priority</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+    <span class="nt">queue</span><span class="p">:</span>
+       <span class="nt">qtype</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">slurm</span>
+       <span class="nt">qname</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">defq</span>
+       <span class="nt">qparams</span><span class="p">:</span>
+          <span class="nt">mail_type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">FAIL</span>
           <span class="c1">#mail_user: # Othere slurm options ...</span>
-    <span class="l l-Scalar l-Scalar-Plain">limits</span><span class="p p-Indicator">:</span>
-       <span class="l l-Scalar l-Scalar-Plain">timelimit</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">0:30:0</span>
-       <span class="l l-Scalar l-Scalar-Plain">min_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-       <span class="l l-Scalar l-Scalar-Plain">max_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">16</span>
-       <span class="l l-Scalar l-Scalar-Plain">min_mem_per_proc</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1000</span>
-       <span class="l l-Scalar l-Scalar-Plain">max_mem_per_proc</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2000</span>
-       <span class="l l-Scalar l-Scalar-Plain">max_num_launches</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">5</span>
-    <span class="l l-Scalar l-Scalar-Plain">hardware</span><span class="p p-Indicator">:</span> <span class="nv">*hardware</span>
-    <span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nv">*job</span>
+    <span class="nt">limits</span><span class="p">:</span>
+       <span class="nt">timelimit</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0:30:0</span>
+       <span class="nt">min_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+       <span class="nt">max_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">16</span>
+       <span class="nt">min_mem_per_proc</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1000</span>
+       <span class="nt">max_mem_per_proc</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2000</span>
+       <span class="nt">max_num_launches</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">5</span>
+    <span class="nt">hardware</span><span class="p">:</span> <span class="nv">*hardware</span>
+    <span class="nt">job</span><span class="p">:</span> <span class="nv">*job</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="shell">
 <h2><a class="toc-backref" href="#contents">Shell</a><a class="headerlink" href="#shell" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">qadapters</span><span class="p p-Indicator">:</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">qadapters</span><span class="p">:</span>
     <span class="c1"># List of qadapters objects</span>
-    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">priority</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-      <span class="l l-Scalar l-Scalar-Plain">queue</span><span class="p p-Indicator">:</span>
-        <span class="l l-Scalar l-Scalar-Plain">qtype</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">shell</span>
-        <span class="l l-Scalar l-Scalar-Plain">qname</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">localhost</span>
-      <span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span>
-        <span class="l l-Scalar l-Scalar-Plain">mpi_runner</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">mpirun</span>
+    <span class="p p-Indicator">-</span> <span class="nt">priority</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+      <span class="nt">queue</span><span class="p">:</span>
+        <span class="nt">qtype</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">shell</span>
+        <span class="nt">qname</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">localhost</span>
+      <span class="nt">job</span><span class="p">:</span>
+        <span class="nt">mpi_runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mpirun</span>
         <span class="c1"># source a script to setup the environment.</span>
         <span class="c1">#pre_run: &quot;source ~/env.sh&quot;</span>
-      <span class="l l-Scalar l-Scalar-Plain">limits</span><span class="p p-Indicator">:</span>
-        <span class="l l-Scalar l-Scalar-Plain">timelimit</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1:00:00</span>
-        <span class="l l-Scalar l-Scalar-Plain">max_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
-      <span class="l l-Scalar l-Scalar-Plain">hardware</span><span class="p p-Indicator">:</span>
-         <span class="l l-Scalar l-Scalar-Plain">num_nodes</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-         <span class="l l-Scalar l-Scalar-Plain">sockets_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-         <span class="l l-Scalar l-Scalar-Plain">cores_per_socket</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
-         <span class="l l-Scalar l-Scalar-Plain">mem_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">4 Gb</span>
+      <span class="nt">limits</span><span class="p">:</span>
+        <span class="nt">timelimit</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1:00:00</span>
+        <span class="nt">max_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
+      <span class="nt">hardware</span><span class="p">:</span>
+         <span class="nt">num_nodes</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+         <span class="nt">sockets_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+         <span class="nt">cores_per_socket</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
+         <span class="nt">mem_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">4 Gb</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="shell-nompi">
 <h2><a class="toc-backref" href="#contents">Shell_nompi</a><a class="headerlink" href="#shell-nompi" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">qadapters</span><span class="p p-Indicator">:</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">qadapters</span><span class="p">:</span>
     <span class="c1"># List of qadapters objects</span>
-    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">priority</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-      <span class="l l-Scalar l-Scalar-Plain">queue</span><span class="p p-Indicator">:</span>
-        <span class="l l-Scalar l-Scalar-Plain">qtype</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">shell</span>
-        <span class="l l-Scalar l-Scalar-Plain">qname</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">localhost</span>
-      <span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span>
-        <span class="l l-Scalar l-Scalar-Plain">mpi_runner</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">None</span>
+    <span class="p p-Indicator">-</span> <span class="nt">priority</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+      <span class="nt">queue</span><span class="p">:</span>
+        <span class="nt">qtype</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">shell</span>
+        <span class="nt">qname</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">localhost</span>
+      <span class="nt">job</span><span class="p">:</span>
+        <span class="nt">mpi_runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">None</span>
         <span class="c1"># source a script to setup the environment.</span>
         <span class="c1">#pre_run: &quot;source ~/env.sh&quot;</span>
-      <span class="l l-Scalar l-Scalar-Plain">limits</span><span class="p p-Indicator">:</span>
-        <span class="l l-Scalar l-Scalar-Plain">timelimit</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1:00:00</span>
-        <span class="l l-Scalar l-Scalar-Plain">max_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-      <span class="l l-Scalar l-Scalar-Plain">hardware</span><span class="p p-Indicator">:</span>
-         <span class="l l-Scalar l-Scalar-Plain">num_nodes</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-         <span class="l l-Scalar l-Scalar-Plain">sockets_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-         <span class="l l-Scalar l-Scalar-Plain">cores_per_socket</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
-         <span class="l l-Scalar l-Scalar-Plain">mem_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">4 Gb</span>
+      <span class="nt">limits</span><span class="p">:</span>
+        <span class="nt">timelimit</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1:00:00</span>
+        <span class="nt">max_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+      <span class="nt">hardware</span><span class="p">:</span>
+         <span class="nt">num_nodes</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+         <span class="nt">sockets_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+         <span class="nt">cores_per_socket</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
+         <span class="nt">mem_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">4 Gb</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="travis">
 <h2><a class="toc-backref" href="#contents">Travis</a><a class="headerlink" href="#travis" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">qadapters</span><span class="p p-Indicator">:</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">qadapters</span><span class="p">:</span>
     <span class="p p-Indicator">-</span>
-      <span class="l l-Scalar l-Scalar-Plain">priority</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-      <span class="l l-Scalar l-Scalar-Plain">queue</span><span class="p p-Indicator">:</span>
-        <span class="l l-Scalar l-Scalar-Plain">qname</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">travis</span>
-        <span class="l l-Scalar l-Scalar-Plain">qtype</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">shell</span>
-      <span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span>
-        <span class="l l-Scalar l-Scalar-Plain">mpi_runner</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">mpirun</span>
-        <span class="l l-Scalar l-Scalar-Plain">pre_run</span><span class="p p-Indicator">:</span>
+      <span class="nt">priority</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+      <span class="nt">queue</span><span class="p">:</span>
+        <span class="nt">qname</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">travis</span>
+        <span class="nt">qtype</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">shell</span>
+      <span class="nt">job</span><span class="p">:</span>
+        <span class="nt">mpi_runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mpirun</span>
+        <span class="nt">pre_run</span><span class="p">:</span>
             <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">source activate test-environment</span>
             <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">ulimit -s unlimited</span>
-      <span class="l l-Scalar l-Scalar-Plain">limits</span><span class="p p-Indicator">:</span>
-         <span class="l l-Scalar l-Scalar-Plain">min_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-         <span class="l l-Scalar l-Scalar-Plain">max_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
-         <span class="l l-Scalar l-Scalar-Plain">timelimit</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">0:10:0</span>
-      <span class="l l-Scalar l-Scalar-Plain">hardware</span><span class="p p-Indicator">:</span>
-         <span class="l l-Scalar l-Scalar-Plain">num_nodes</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-         <span class="l l-Scalar l-Scalar-Plain">sockets_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-         <span class="l l-Scalar l-Scalar-Plain">cores_per_socket</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
-         <span class="l l-Scalar l-Scalar-Plain">mem_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">4 Gb</span>
+      <span class="nt">limits</span><span class="p">:</span>
+         <span class="nt">min_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+         <span class="nt">max_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
+         <span class="nt">timelimit</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0:10:0</span>
+      <span class="nt">hardware</span><span class="p">:</span>
+         <span class="nt">num_nodes</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+         <span class="nt">sockets_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+         <span class="nt">cores_per_socket</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
+         <span class="nt">mem_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">4 Gb</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="ubu">
 <h2><a class="toc-backref" href="#contents">Ubu</a><a class="headerlink" href="#ubu" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">qadapters</span><span class="p p-Indicator">:</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">qadapters</span><span class="p">:</span>
     <span class="c1"># List of qadapters objects</span>
-    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">priority</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-      <span class="l l-Scalar l-Scalar-Plain">queue</span><span class="p p-Indicator">:</span>
-        <span class="l l-Scalar l-Scalar-Plain">qtype</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">shell</span>
-        <span class="l l-Scalar l-Scalar-Plain">qname</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">ubu</span>
-      <span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span>
-        <span class="l l-Scalar l-Scalar-Plain">modules</span><span class="p p-Indicator">:</span>
+    <span class="p p-Indicator">-</span> <span class="nt">priority</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+      <span class="nt">queue</span><span class="p">:</span>
+        <span class="nt">qtype</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">shell</span>
+        <span class="nt">qname</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ubu</span>
+      <span class="nt">job</span><span class="p">:</span>
+        <span class="nt">modules</span><span class="p">:</span>
            <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">ubu_intel_16.0_mpich</span>
-        <span class="l l-Scalar l-Scalar-Plain">mpi_runner</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">mpiexec</span>
+        <span class="nt">mpi_runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mpiexec</span>
         <span class="c1"># source a script to setup the environment.</span>
-        <span class="l l-Scalar l-Scalar-Plain">pre_run</span><span class="p p-Indicator">:</span> <span class="s">&quot;source</span><span class="nv"> </span><span class="s">~/env.sh&quot;</span>
-      <span class="l l-Scalar l-Scalar-Plain">limits</span><span class="p p-Indicator">:</span>
-        <span class="l l-Scalar l-Scalar-Plain">timelimit</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1:00:00</span>
-        <span class="l l-Scalar l-Scalar-Plain">max_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">24</span>
-      <span class="l l-Scalar l-Scalar-Plain">hardware</span><span class="p p-Indicator">:</span>
-         <span class="l l-Scalar l-Scalar-Plain">num_nodes</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-         <span class="l l-Scalar l-Scalar-Plain">sockets_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-         <span class="l l-Scalar l-Scalar-Plain">cores_per_socket</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">24</span>
-         <span class="l l-Scalar l-Scalar-Plain">mem_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">4 Gb</span>
+        <span class="nt">pre_run</span><span class="p">:</span> <span class="s">&quot;source</span><span class="nv"> </span><span class="s">~/env.sh&quot;</span>
+      <span class="nt">limits</span><span class="p">:</span>
+        <span class="nt">timelimit</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1:00:00</span>
+        <span class="nt">max_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">24</span>
+      <span class="nt">hardware</span><span class="p">:</span>
+         <span class="nt">num_nodes</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+         <span class="nt">sockets_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+         <span class="nt">cores_per_socket</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">24</span>
+         <span class="nt">mem_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">4 Gb</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="vega">
 <h2><a class="toc-backref" href="#contents">Vega</a><a class="headerlink" href="#vega" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="c1"># vega hardware: http://www.ceci-hpc.be/clusters.html#vega</span>
-<span class="l l-Scalar l-Scalar-Plain">hardware</span><span class="p p-Indicator">:</span> <span class="nl">&amp;hardware</span>
-   <span class="l l-Scalar l-Scalar-Plain">num_nodes</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">44</span>
-   <span class="l l-Scalar l-Scalar-Plain">sockets_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">4</span>
-   <span class="l l-Scalar l-Scalar-Plain">cores_per_socket</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">16</span>
-   <span class="l l-Scalar l-Scalar-Plain">mem_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">256Gb</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># vega hardware: http://www.ceci-hpc.be/clusters.html#vega</span>
+<span class="nt">hardware</span><span class="p">:</span> <span class="nl">&amp;hardware</span>
+   <span class="nt">num_nodes</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">44</span>
+   <span class="nt">sockets_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">4</span>
+   <span class="nt">cores_per_socket</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">16</span>
+   <span class="nt">mem_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">256Gb</span>
 
-<span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nl">&amp;job</span>
-    <span class="l l-Scalar l-Scalar-Plain">mpi_runner</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">mpirun</span>
-    <span class="l l-Scalar l-Scalar-Plain">shell_env</span><span class="p p-Indicator">:</span>
-        <span class="l l-Scalar l-Scalar-Plain">PATH</span><span class="p p-Indicator">:</span> <span class="s">&quot;$HOME/git_repos/abinit/_build_vega-intel-impi-mkl.ac/src/98_main/:$PATH&quot;</span>
-    <span class="l l-Scalar l-Scalar-Plain">modules</span><span class="p p-Indicator">:</span>
+<span class="nt">job</span><span class="p">:</span> <span class="nl">&amp;job</span>
+    <span class="nt">mpi_runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mpirun</span>
+    <span class="nt">shell_env</span><span class="p">:</span>
+        <span class="nt">PATH</span><span class="p">:</span> <span class="s">&quot;$HOME/git_repos/abinit/_build_vega-intel-impi-mkl.ac/src/98_main/:$PATH&quot;</span>
+    <span class="nt">modules</span><span class="p">:</span>
         <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">intel/2015a</span>
     <span class="c1">#pre_run: &quot;ulimit -s unlimited&quot;</span>
 
 <span class="c1"># queues</span>
-<span class="l l-Scalar l-Scalar-Plain">qadapters</span><span class="p p-Indicator">:</span>
-  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">priority</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-    <span class="l l-Scalar l-Scalar-Plain">queue</span><span class="p p-Indicator">:</span>
-       <span class="l l-Scalar l-Scalar-Plain">qtype</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">slurm</span>
-       <span class="l l-Scalar l-Scalar-Plain">qname</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">defq</span>
-    <span class="l l-Scalar l-Scalar-Plain">limits</span><span class="p p-Indicator">:</span>
-       <span class="l l-Scalar l-Scalar-Plain">timelimit</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">0-0:30:0</span>
-       <span class="l l-Scalar l-Scalar-Plain">min_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-       <span class="l l-Scalar l-Scalar-Plain">max_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">16</span>
-       <span class="l l-Scalar l-Scalar-Plain">min_mem_per_proc</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1000</span>
-       <span class="l l-Scalar l-Scalar-Plain">max_mem_per_proc</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2000</span>
-       <span class="l l-Scalar l-Scalar-Plain">max_num_launches</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">5</span>
-    <span class="l l-Scalar l-Scalar-Plain">hardware</span><span class="p p-Indicator">:</span> <span class="nv">*hardware</span>
-    <span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nv">*job</span>
+<span class="nt">qadapters</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">priority</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+    <span class="nt">queue</span><span class="p">:</span>
+       <span class="nt">qtype</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">slurm</span>
+       <span class="nt">qname</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">defq</span>
+    <span class="nt">limits</span><span class="p">:</span>
+       <span class="nt">timelimit</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0-0:30:0</span>
+       <span class="nt">min_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+       <span class="nt">max_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">16</span>
+       <span class="nt">min_mem_per_proc</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1000</span>
+       <span class="nt">max_mem_per_proc</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2000</span>
+       <span class="nt">max_num_launches</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">5</span>
+    <span class="nt">hardware</span><span class="p">:</span> <span class="nv">*hardware</span>
+    <span class="nt">job</span><span class="p">:</span> <span class="nv">*job</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="viper">
 <h2><a class="toc-backref" href="#contents">Viper</a><a class="headerlink" href="#viper" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">hardware</span><span class="p p-Indicator">:</span> <span class="nl">&amp;hardware</span>
-   <span class="l l-Scalar l-Scalar-Plain">num_nodes</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-   <span class="l l-Scalar l-Scalar-Plain">sockets_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
-   <span class="l l-Scalar l-Scalar-Plain">cores_per_socket</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">4</span>
-   <span class="l l-Scalar l-Scalar-Plain">mem_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">32Gb</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">hardware</span><span class="p">:</span> <span class="nl">&amp;hardware</span>
+   <span class="nt">num_nodes</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+   <span class="nt">sockets_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
+   <span class="nt">cores_per_socket</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">4</span>
+   <span class="nt">mem_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">32Gb</span>
 
-<span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nl">&amp;job</span>
-    <span class="l l-Scalar l-Scalar-Plain">mpi_runner</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">~/bin/mpirun.openmpi</span>
+<span class="nt">job</span><span class="p">:</span> <span class="nl">&amp;job</span>
+    <span class="nt">mpi_runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">~/bin/mpirun.openmpi</span>
     <span class="c1"># pre_run is a string in verbatim mode (note |)</span>
-    <span class="l l-Scalar l-Scalar-Plain">pre_run</span><span class="p p-Indicator">:</span>
+    <span class="nt">pre_run</span><span class="p">:</span>
         <span class="p p-Indicator">-</span> <span class="s">&quot;ulimit</span><span class="nv"> </span><span class="s">-s</span><span class="nv"> </span><span class="s">unlimited&quot;</span>
         <span class="p p-Indicator">-</span> <span class="s">&quot;source</span><span class="nv"> </span><span class="s">~/.bashrc&quot;</span>
 
 <span class="c1"># queues</span>
-<span class="l l-Scalar l-Scalar-Plain">qadapters</span><span class="p p-Indicator">:</span>
-  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">priority</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-    <span class="l l-Scalar l-Scalar-Plain">queue</span><span class="p p-Indicator">:</span>
-       <span class="l l-Scalar l-Scalar-Plain">qname</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">euspec.q</span>
-       <span class="l l-Scalar l-Scalar-Plain">qtype</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">sge</span>
-       <span class="l l-Scalar l-Scalar-Plain">qparams</span><span class="p p-Indicator">:</span>
-           <span class="l l-Scalar l-Scalar-Plain">parallel_environment</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">slots</span>
-    <span class="l l-Scalar l-Scalar-Plain">limits</span><span class="p p-Indicator">:</span>
-       <span class="l l-Scalar l-Scalar-Plain">timelimit</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">0:10:0</span>
-       <span class="l l-Scalar l-Scalar-Plain">min_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-       <span class="l l-Scalar l-Scalar-Plain">max_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">8</span>
-    <span class="l l-Scalar l-Scalar-Plain">hardware</span><span class="p p-Indicator">:</span> <span class="nv">*hardware</span>
-    <span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nv">*job</span>
+<span class="nt">qadapters</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">priority</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+    <span class="nt">queue</span><span class="p">:</span>
+       <span class="nt">qname</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">euspec.q</span>
+       <span class="nt">qtype</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">sge</span>
+       <span class="nt">qparams</span><span class="p">:</span>
+           <span class="nt">parallel_environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">slots</span>
+    <span class="nt">limits</span><span class="p">:</span>
+       <span class="nt">timelimit</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0:10:0</span>
+       <span class="nt">min_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+       <span class="nt">max_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">8</span>
+    <span class="nt">hardware</span><span class="p">:</span> <span class="nv">*hardware</span>
+    <span class="nt">job</span><span class="p">:</span> <span class="nv">*job</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="zenobe">
 <h2><a class="toc-backref" href="#contents">Zenobe</a><a class="headerlink" href="#zenobe" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="c1"># Hardware specification.</span>
-<span class="l l-Scalar l-Scalar-Plain">westmere</span><span class="p p-Indicator">:</span> <span class="nl">&amp;westmere</span>
-   <span class="l l-Scalar l-Scalar-Plain">num_nodes</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">274</span>
-   <span class="l l-Scalar l-Scalar-Plain">sockets_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
-   <span class="l l-Scalar l-Scalar-Plain">cores_per_socket</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">6</span>
-   <span class="l l-Scalar l-Scalar-Plain">mem_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">24 Gb</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># Hardware specification.</span>
+<span class="nt">westmere</span><span class="p">:</span> <span class="nl">&amp;westmere</span>
+   <span class="nt">num_nodes</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">274</span>
+   <span class="nt">sockets_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
+   <span class="nt">cores_per_socket</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">6</span>
+   <span class="nt">mem_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">24 Gb</span>
 
-<span class="l l-Scalar l-Scalar-Plain">ivybridge</span><span class="p p-Indicator">:</span> <span class="nl">&amp;ivybridge</span>
-   <span class="l l-Scalar l-Scalar-Plain">num_nodes</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">342</span>
-   <span class="l l-Scalar l-Scalar-Plain">sockets_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
-   <span class="l l-Scalar l-Scalar-Plain">cores_per_socket</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">12</span>
-   <span class="l l-Scalar l-Scalar-Plain">mem_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">64 Gb</span>
+<span class="nt">ivybridge</span><span class="p">:</span> <span class="nl">&amp;ivybridge</span>
+   <span class="nt">num_nodes</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">342</span>
+   <span class="nt">sockets_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
+   <span class="nt">cores_per_socket</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">12</span>
+   <span class="nt">mem_per_node</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">64 Gb</span>
 
 <span class="c1"># Environment, modules, and parameters used to launch jobs.</span>
-<span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nl">&amp;job</span>
-    <span class="l l-Scalar l-Scalar-Plain">mpi_runner</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">mpirun</span>
-    <span class="l l-Scalar l-Scalar-Plain">shell_env</span><span class="p p-Indicator">:</span>
-         <span class="l l-Scalar l-Scalar-Plain">PATH</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">$HOME/git_repos/abinit_build_impi/src/98_main:$PATH</span>
-    <span class="l l-Scalar l-Scalar-Plain">modules</span><span class="p p-Indicator">:</span>
+<span class="nt">job</span><span class="p">:</span> <span class="nl">&amp;job</span>
+    <span class="nt">mpi_runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mpirun</span>
+    <span class="nt">shell_env</span><span class="p">:</span>
+         <span class="nt">PATH</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">$HOME/git_repos/abinit_build_impi/src/98_main:$PATH</span>
+    <span class="nt">modules</span><span class="p">:</span>
         <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">compiler/intel/composerxe/2013_sp1.1.106</span>
         <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">intelmpi</span>
         <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">python/2.7</span>
-    <span class="l l-Scalar l-Scalar-Plain">pre_run</span><span class="p p-Indicator">:</span> <span class="s">&quot;ulimit</span><span class="nv"> </span><span class="s">-s</span><span class="nv"> </span><span class="s">unlimited&quot;</span>
+    <span class="nt">pre_run</span><span class="p">:</span> <span class="s">&quot;ulimit</span><span class="nv"> </span><span class="s">-s</span><span class="nv"> </span><span class="s">unlimited&quot;</span>
 
 <span class="c1"># List of qdapters.</span>
-<span class="l l-Scalar l-Scalar-Plain">qadapters</span><span class="p p-Indicator">:</span>
+<span class="nt">qadapters</span><span class="p">:</span>
   <span class="c1"># Westmere default.</span>
-  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">priority</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">99</span>
-    <span class="l l-Scalar l-Scalar-Plain">queue</span><span class="p p-Indicator">:</span>
-       <span class="l l-Scalar l-Scalar-Plain">qname</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">main</span>
-       <span class="l l-Scalar l-Scalar-Plain">qtype</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">pbspro</span>
-       <span class="l l-Scalar l-Scalar-Plain">qparams</span><span class="p p-Indicator">:</span>
-         <span class="l l-Scalar l-Scalar-Plain">group_list</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">napsimu</span>
+  <span class="p p-Indicator">-</span> <span class="nt">priority</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">99</span>
+    <span class="nt">queue</span><span class="p">:</span>
+       <span class="nt">qname</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">main</span>
+       <span class="nt">qtype</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">pbspro</span>
+       <span class="nt">qparams</span><span class="p">:</span>
+         <span class="nt">group_list</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">napsimu</span>
          <span class="c1">#qverbatim: |</span>
          <span class="c1">#  #PBS -r y</span>
-    <span class="l l-Scalar l-Scalar-Plain">limits</span><span class="p p-Indicator">:</span>
-       <span class="l l-Scalar l-Scalar-Plain">timelimit</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">15:0</span>
-       <span class="l l-Scalar l-Scalar-Plain">min_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-       <span class="l l-Scalar l-Scalar-Plain">max_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">24</span>
-    <span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nv">*job</span>
-    <span class="l l-Scalar l-Scalar-Plain">hardware</span><span class="p p-Indicator">:</span> <span class="nv">*westmere</span>
+    <span class="nt">limits</span><span class="p">:</span>
+       <span class="nt">timelimit</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">15:0</span>
+       <span class="nt">min_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+       <span class="nt">max_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">24</span>
+    <span class="nt">job</span><span class="p">:</span> <span class="nv">*job</span>
+    <span class="nt">hardware</span><span class="p">:</span> <span class="nv">*westmere</span>
 
   <span class="c1"># Ivybridge large.</span>
-  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">priority</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-    <span class="l l-Scalar l-Scalar-Plain">queue</span><span class="p p-Indicator">:</span>
-       <span class="l l-Scalar l-Scalar-Plain">qname</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">large</span>
-       <span class="l l-Scalar l-Scalar-Plain">qtype</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">pbspro</span>
-       <span class="l l-Scalar l-Scalar-Plain">qparams</span><span class="p p-Indicator">:</span>
-          <span class="l l-Scalar l-Scalar-Plain">group_list</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">napsimu</span>
+  <span class="p p-Indicator">-</span> <span class="nt">priority</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+    <span class="nt">queue</span><span class="p">:</span>
+       <span class="nt">qname</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">large</span>
+       <span class="nt">qtype</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">pbspro</span>
+       <span class="nt">qparams</span><span class="p">:</span>
+          <span class="nt">group_list</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">napsimu</span>
           <span class="c1">#qverbatim: |</span>
           <span class="c1">#  #PBS -r y</span>
-    <span class="l l-Scalar l-Scalar-Plain">limits</span><span class="p p-Indicator">:</span>
-       <span class="l l-Scalar l-Scalar-Plain">timelimit</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1-0:0:0</span>
-       <span class="l l-Scalar l-Scalar-Plain">min_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">96</span>
-       <span class="l l-Scalar l-Scalar-Plain">max_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">3888</span>
-    <span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nv">*job</span>
-    <span class="l l-Scalar l-Scalar-Plain">hardware</span><span class="p p-Indicator">:</span> <span class="nv">*ivybridge</span>
+    <span class="nt">limits</span><span class="p">:</span>
+       <span class="nt">timelimit</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1-0:0:0</span>
+       <span class="nt">min_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">96</span>
+       <span class="nt">max_cores</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">3888</span>
+    <span class="nt">job</span><span class="p">:</span> <span class="nv">*job</span>
+    <span class="nt">hardware</span><span class="p">:</span> <span class="nv">*ivybridge</span>
 </pre></div>
 </div>
 </div>
@@ -885,8 +878,8 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Sep 18, 2018.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+      Last updated on Oct 18, 2019.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>
 </footer>

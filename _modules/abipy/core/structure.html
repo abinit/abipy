@@ -2,39 +2,31 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.core.structure &#8212; abipy 0.7.0.dev documentation</title>
+    <meta charset="utf-8" />
+    <title>abipy.core.structure &#8212; abipy 0.7.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../../',
-        VERSION:     '0.7.0.dev',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js"></script>
-    <script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
-    <script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
 
-  </head>
-  <body>
+  </head><body>
 
   <div id="navbar" class="navbar navbar-default navbar-fixed-top">
     <div class="container">
@@ -47,7 +39,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0.dev</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -127,15 +119,13 @@
 
 <div class="container">
   <div class="row">
-    <div class="col-md-12 content">
+    <div class="body col-md-12 content" role="main">
       
   <h1>Source code for abipy.core.structure</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding: utf-8</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">This module defines basic objects representing the crystalline structure.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
-
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">collections</span>
@@ -145,7 +135,7 @@
 <span class="kn">import</span> <span class="nn">pymatgen</span>
 <span class="kn">import</span> <span class="nn">pymatgen.core.units</span> <span class="k">as</span> <span class="nn">pmg_units</span>
 
-<span class="kn">from</span> <span class="nn">pprint</span> <span class="k">import</span> <span class="n">pprint</span><span class="p">,</span> <span class="n">pformat</span>
+<span class="kn">from</span> <span class="nn">pprint</span> <span class="k">import</span> <span class="n">pformat</span>
 <span class="kn">from</span> <span class="nn">warnings</span> <span class="k">import</span> <span class="n">warn</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">AttrDict</span><span class="p">,</span> <span class="n">dict2namedtuple</span>
@@ -159,7 +149,7 @@
 <span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">PseudoTable</span>
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">NotebookWriter</span>
 <span class="kn">from</span> <span class="nn">abipy.core.symmetries</span> <span class="k">import</span> <span class="n">AbinitSpaceGroup</span>
-<span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">as_etsfreader</span><span class="p">,</span> <span class="n">Visualizer</span><span class="p">,</span> <span class="n">xsf</span>
+<span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">as_etsfreader</span><span class="p">,</span> <span class="n">Visualizer</span>
 <span class="kn">from</span> <span class="nn">abipy.flowtk.abiobjects</span> <span class="k">import</span> <span class="n">structure_from_abivars</span><span class="p">,</span> <span class="n">structure_to_abivars</span>
 
 
@@ -237,7 +227,7 @@
             <span class="n">data</span> <span class="o">=</span> <span class="n">rest</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">chemsys_formula_id</span><span class="p">,</span> <span class="n">prop</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
                 <span class="n">structures</span> <span class="o">=</span> <span class="p">[</span><span class="n">Structure</span><span class="o">.</span><span class="n">from_str</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;cif&quot;</span><span class="p">],</span> <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;cif&quot;</span><span class="p">,</span> <span class="n">primitive</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-                                <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span>
+                              <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span>
                 <span class="n">mpids</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;material_id&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span>
                 <span class="c1"># Want AbiPy structure.</span>
                 <span class="n">structures</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">Structure</span><span class="o">.</span><span class="n">as_structure</span><span class="p">,</span> <span class="n">structures</span><span class="p">))</span>
@@ -306,14 +296,11 @@
         <span class="k">if</span> <span class="n">is_string</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
-            <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
+            <span class="k">if</span> <span class="s2">&quot;@module&quot;</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_abivars</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
-            <span class="k">except</span><span class="p">:</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
-                <span class="k">except</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to convert dict </span><span class="si">%s</span><span class="s2"> into a structure&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;structure&quot;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
@@ -344,6 +331,9 @@
 
 <span class="sd">        Returns: |Structure| object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#zipped_exts = (&quot;.bz2&quot;, &quot;.gz&quot;, &quot;.z&quot;):</span>
+        <span class="n">root</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">filepath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;_HIST.nc&quot;</span><span class="p">):</span>
             <span class="c1"># Abinit history file. In this case we return the last structure!</span>
             <span class="c1"># Note that HIST does not follow the etsf-io conventions.</span>
@@ -356,7 +346,15 @@
             <span class="n">ncfile</span><span class="p">,</span> <span class="n">closeit</span> <span class="o">=</span> <span class="n">as_etsfreader</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
 
             <span class="n">new</span> <span class="o">=</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">read_structure</span><span class="p">(</span><span class="bp">cls</span><span class="o">=</span><span class="bp">cls</span><span class="p">)</span>
-            <span class="n">new</span><span class="o">.</span><span class="n">set_abi_spacegroup</span><span class="p">(</span><span class="n">AbinitSpaceGroup</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">ncfile</span><span class="p">))</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">set_abi_spacegroup</span><span class="p">(</span><span class="n">AbinitSpaceGroup</span><span class="o">.</span><span class="n">from_ncreader</span><span class="p">(</span><span class="n">ncfile</span><span class="p">))</span>
+
+            <span class="c1"># Try to read indsym from file (added in 8.9.x)</span>
+            <span class="n">indsym</span> <span class="o">=</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;indsym&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">indsym</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Fortran --&gt; C convention</span>
+                <span class="n">indsym</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">1</span>
+                <span class="n">new</span><span class="o">.</span><span class="n">indsym</span> <span class="o">=</span> <span class="n">indsym</span>
+
             <span class="k">if</span> <span class="n">closeit</span><span class="p">:</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
         <span class="k">elif</span> <span class="n">filepath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.abi&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">filepath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.in&quot;</span><span class="p">):</span>
@@ -376,7 +374,7 @@
                 <span class="k">if</span> <span class="n">out</span><span class="o">.</span><span class="n">initial_structures</span><span class="p">:</span> <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">initial_structure</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot find structure in Abinit output file `</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="n">filepath</span><span class="p">)</span>
 
-        <span class="k">elif</span> <span class="n">filepath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;_DDB&quot;</span><span class="p">):</span>
+        <span class="k">elif</span> <span class="n">filepath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;_DDB&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">root</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;_DDB&quot;</span><span class="p">):</span>
             <span class="c1"># DDB file.</span>
             <span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="k">import</span> <span class="n">abiopen</span>
             <span class="k">with</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">abifile</span><span class="p">:</span>
@@ -399,7 +397,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Invoke pymatgen and change class</span>
             <span class="c1"># Note that AbinitSpacegroup is missing here.</span>
-            <span class="n">new</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">Structure</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">primitive</span><span class="o">=</span><span class="n">primitive</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="n">sort</span><span class="p">)</span>
+            <span class="n">new</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">primitive</span><span class="o">=</span><span class="n">primitive</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="n">sort</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">new</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">!=</span> <span class="bp">cls</span><span class="p">:</span> <span class="n">new</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">=</span> <span class="bp">cls</span>
 
         <span class="k">return</span> <span class="n">new</span></div>
@@ -608,26 +606,32 @@
 
 <div class="viewcode-block" id="Structure.ABO3"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.ABO3">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">ABO3</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;ang&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-       <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">       Peroviskite structures.</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Peroviskite structures.</span>
 
-<span class="sd">       Args:</span>
+<span class="sd">        Args:</span>
 <span class="sd">            a: Lattice parameter (Angstrom if units is not given)</span>
 <span class="sd">            species: Chemical species. See __init__ method of :class:`pymatgen.Structure`</span>
 <span class="sd">            units: Units of input lattice parameters e.g. &quot;bohr&quot;, &quot;pm&quot;</span>
 <span class="sd">            kwargs: All keyword arguments accepted by :class:`pymatgen.Structure`</span>
-<span class="sd">       &quot;&quot;&quot;</span>
-       <span class="n">a</span> <span class="o">=</span> <span class="n">pmg_units</span><span class="o">.</span><span class="n">Length</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;ang&quot;</span><span class="p">)</span>
-       <span class="n">lattice</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
-       <span class="n">frac_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">([</span>
-          <span class="mi">0</span><span class="p">,</span>     <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>  <span class="c1"># A (2a)</span>
-          <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span>  <span class="c1"># B (2a)</span>
-          <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span>  <span class="c1"># O (6b)</span>
-          <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span>  <span class="c1"># O (6b)</span>
-          <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span>  <span class="c1"># O (6b)</span>
-         <span class="p">],</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">pmg_units</span><span class="o">.</span><span class="n">Length</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;ang&quot;</span><span class="p">)</span>
+        <span class="n">lattice</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">frac_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">([</span>
+            <span class="mi">0</span><span class="p">,</span>     <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>  <span class="c1"># A (2a)</span>
+            <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span>  <span class="c1"># B (2a)</span>
+            <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span>  <span class="c1"># O (6b)</span>
+            <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span>  <span class="c1"># O (6b)</span>
+            <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span>  <span class="c1"># O (6b)</span>
+        <span class="p">],</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
 
-       <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">lattice</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">frac_coords</span><span class="p">,</span> <span class="n">coords_are_cartesian</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">lattice</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">frac_coords</span><span class="p">,</span> <span class="n">coords_are_cartesian</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Structure.from_abistring"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.from_abistring">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_abistring</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">string</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize Structure from string with Abinit input variables.&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">abipy.abio.abivars</span> <span class="k">import</span> <span class="n">AbinitInputFile</span>
+        <span class="k">return</span> <span class="n">AbinitInputFile</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">string</span><span class="p">)</span><span class="o">.</span><span class="n">structure</span></div>
 
 <div class="viewcode-block" id="Structure.from_abivars"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.from_abivars">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_abivars</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -661,7 +665,7 @@
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
             <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spget_summary</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">app</span><span class="p">(</span><span class="nb">super</span><span class="p">(</span><span class="n">Structure</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__str__</span><span class="p">())</span>
+            <span class="n">app</span><span class="p">(</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__str__</span><span class="p">())</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">abi_spacegroup</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">app</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Abinit Spacegroup: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">abi_spacegroup</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">))</span>
@@ -670,7 +674,7 @@
 
 <div class="viewcode-block" id="Structure.to"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.to">[docs]</a>    <span class="k">def</span> <span class="nf">to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="vm">__doc__</span> <span class="o">=</span> <span class="n">pymatgen</span><span class="o">.</span><span class="n">Structure</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">+</span> \
-        <span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> Accepts also fmt=&#39;abivars&#39; and `.abi` as Abinit input file extension&quot;</span>
+            <span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> Accepts also fmt=&#39;abivars&#39; and `.abi` as Abinit input file extension&quot;</span>
 
         <span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span>
         <span class="n">fmt</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="k">if</span> <span class="n">fmt</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">fmt</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
@@ -683,7 +687,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">abi_string</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Structure</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">fmt</span><span class="o">=</span><span class="n">fmt</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">fmt</span><span class="o">=</span><span class="n">fmt</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scaling_matrix</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -692,7 +696,7 @@
 
 <span class="sd">        Wraps __mul__ operator of pymatgen structure to return abipy structure</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">new</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">Structure</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__mul__</span><span class="p">(</span><span class="n">scaling_matrix</span><span class="p">)</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__mul__</span><span class="p">(</span><span class="n">scaling_matrix</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">new</span><span class="p">)</span>
 
     <span class="fm">__rmul__</span> <span class="o">=</span> <span class="fm">__mul__</span>
@@ -720,14 +724,13 @@
         <span class="k">return</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">))</span>
 
 <div class="viewcode-block" id="Structure.get_conventional_standard_structure"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.get_conventional_standard_structure">[docs]</a>    <span class="k">def</span> <span class="nf">get_conventional_standard_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">international_monoclinic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                                            <span class="n">symprec</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+                                           <span class="n">symprec</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Gives a structure with a conventional cell according to certain</span>
-<span class="sd">	standards. The standards are defined in :cite:`Setyawan2010`</span>
+<span class="sd">        standards. The standards are defined in :cite:`Setyawan2010`</span>
 <span class="sd">        They basically enforce as much as possible norm(a1) &lt; norm(a2) &lt; norm(a3)</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            The structure in a conventional standardized cell</span>
+<span class="sd">        Returns: The structure in a conventional standardized cell</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">spga</span> <span class="o">=</span> <span class="n">SpacegroupAnalyzer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="n">angle_tolerance</span><span class="p">)</span>
         <span class="n">new</span> <span class="o">=</span> <span class="n">spga</span><span class="o">.</span><span class="n">get_conventional_standard_structure</span><span class="p">(</span><span class="n">international_monoclinic</span><span class="o">=</span><span class="n">international_monoclinic</span><span class="p">)</span>
@@ -753,6 +756,18 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">standardized_structure</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="Structure.refine"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.refine">[docs]</a>    <span class="k">def</span> <span class="nf">refine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the refined structure based on detected symmetry. The refined</span>
+<span class="sd">        structure is a *conventional* cell setting with atoms moved to the</span>
+<span class="sd">        expected symmetry positions.</span>
+
+<span class="sd">        Returns: Refined structure.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sym_finder</span> <span class="o">=</span> <span class="n">SpacegroupAnalyzer</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="n">angle_tolerance</span><span class="p">)</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="n">sym_finder</span><span class="o">.</span><span class="n">get_refined_structure</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">new</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="Structure.abi_sanitize"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.abi_sanitize">[docs]</a>    <span class="k">def</span> <span class="nf">abi_sanitize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">primitive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">primitive_standard</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a new structure in which:</span>
@@ -773,8 +788,7 @@
 
         <span class="c1"># Refine structure</span>
         <span class="k">if</span> <span class="n">symprec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">angle_tolerance</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">sym_finder</span> <span class="o">=</span> <span class="n">SpacegroupAnalyzer</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="n">structure</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="n">angle_tolerance</span><span class="p">)</span>
-            <span class="n">structure</span> <span class="o">=</span> <span class="n">sym_finder</span><span class="o">.</span><span class="n">get_refined_structure</span><span class="p">()</span>
+            <span class="n">structure</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">refine</span><span class="p">(</span><span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="n">angle_tolerance</span><span class="p">)</span>
 
         <span class="c1"># Convert to primitive structure.</span>
         <span class="k">if</span> <span class="n">primitive</span><span class="p">:</span>
@@ -882,8 +896,12 @@
 <span class="sd">            ``namedtuple`` (irred_pos, eqmap, spgdata) with the following attributes::</span>
 
 <span class="sd">                * irred_pos: array giving the position of the i-th irred atom in the structure.</span>
-<span class="sd">                    The number of irred atoms is len(irred_pos)</span>
-<span class="sd">                *   eqmap: Mapping irred atom position --&gt; list with positions of symmetrical atoms</span>
+<span class="sd">                    The number of irred atoms is len(irred_pos).</span>
+<span class="sd">                *   eqmap: Mapping irred atom position --&gt; list with positions of symmetrical atoms.</span>
+<span class="sd">                *   wyckoffs: Wyckoff letters.</span>
+<span class="sd">                *   wyck_mult: Array with Wyckoff multiplicity.</span>
+<span class="sd">                *   wyck_labels: List of labels with Wyckoff multiplicity and letter e.g. 3a</span>
+<span class="sd">                *   site_labels: Labels for each site in computed from element symbol and wyckoff positions e.g Si2a</span>
 <span class="sd">                *   spgdata: spglib dataset with additional data reported by spglib_.</span>
 
 <span class="sd">         :Example:</span>
@@ -891,9 +909,15 @@
 <span class="sd">            for irr_pos in irred_pos:</span>
 <span class="sd">                eqmap[irr_pos]   # List of symmetrical positions associated to the irr_pos atom.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">natom</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="n">spgan</span> <span class="o">=</span> <span class="n">SpacegroupAnalyzer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="n">angle_tolerance</span><span class="p">)</span>
         <span class="n">spgdata</span> <span class="o">=</span> <span class="n">spgan</span><span class="o">.</span><span class="n">get_symmetry_dataset</span><span class="p">()</span>
         <span class="n">equivalent_atoms</span> <span class="o">=</span> <span class="n">spgdata</span><span class="p">[</span><span class="s2">&quot;equivalent_atoms&quot;</span><span class="p">]</span>
+        <span class="n">wyckoffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">spgdata</span><span class="p">[</span><span class="s2">&quot;wyckoffs&quot;</span><span class="p">])</span>
+
+        <span class="n">wyck_mult</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">equivalent_atoms</span> <span class="o">==</span> <span class="n">equivalent_atoms</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">natom</span><span class="p">)]</span>
+        <span class="n">wyck_mult</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">wyck_mult</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+
         <span class="n">irred_pos</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">eqmap</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">pos</span><span class="p">,</span> <span class="n">eqpos</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">equivalent_atoms</span><span class="p">):</span>
@@ -907,16 +931,28 @@
             <span class="n">eqmap</span><span class="p">[</span><span class="n">eqpos</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">eqmap</span><span class="p">[</span><span class="n">eqpos</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">printout</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Found </span><span class="si">%d</span><span class="s2"> inequivalent position(s).&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">irred_pos</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Found </span><span class="si">%d</span><span class="s2"> inequivalent position(s):&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">irred_pos</span><span class="p">))</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">irr_pos</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">eqmap</span><span class="o">.</span><span class="n">keys</span><span class="p">())):</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Irred_Site: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">irr_pos</span><span class="p">]))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Wyckoff position: (</span><span class="si">%s%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">wyck_mult</span><span class="p">[</span><span class="n">irr_pos</span><span class="p">],</span> <span class="n">wyckoffs</span><span class="p">[</span><span class="n">irr_pos</span><span class="p">]))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">[</span><span class="si">%d</span><span class="s2">]: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">irr_pos</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">irr_pos</span><span class="p">])))</span>
                 <span class="k">for</span> <span class="n">eqind</span> <span class="ow">in</span> <span class="n">eqmap</span><span class="p">[</span><span class="n">irr_pos</span><span class="p">]:</span>
                     <span class="k">if</span> <span class="n">eqind</span> <span class="o">==</span> <span class="n">irr_pos</span><span class="p">:</span> <span class="k">continue</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">SymEq: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">eqind</span><span class="p">]))</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">[</span><span class="si">%d</span><span class="s2">]: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">eqind</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">eqind</span><span class="p">])))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">irred_pos</span><span class="o">=</span><span class="n">irred_pos</span><span class="p">,</span> <span class="n">eqmap</span><span class="o">=</span><span class="n">eqmap</span><span class="p">,</span> <span class="n">spgdata</span><span class="o">=</span><span class="n">spgdata</span><span class="p">)</span></div>
+        <span class="c1"># Build list of labels from multiplicity and name: e.g. 3a</span>
+        <span class="n">wyck_labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="s2">&quot;</span><span class="si">%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">wmul</span><span class="p">,</span> <span class="n">wsymb</span><span class="p">)</span> <span class="k">for</span> <span class="n">wsymb</span><span class="p">,</span> <span class="n">wmul</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">wyckoffs</span><span class="p">,</span> <span class="n">wyck_mult</span><span class="p">)])</span>
 
-<div class="viewcode-block" id="Structure.spget_summary"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.spget_summary">[docs]</a>    <span class="k">def</span> <span class="nf">spget_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="c1"># Build labels for sites with chemical element.</span>
+        <span class="n">site_labels</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">site</span><span class="p">,</span> <span class="n">wsymb</span><span class="p">,</span> <span class="n">wmul</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wyckoffs</span><span class="p">,</span> <span class="n">wyck_mult</span><span class="p">)):</span>
+            <span class="n">site_labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s%d</span><span class="s2"> (</span><span class="si">%s%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">site</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">wmul</span><span class="p">,</span> <span class="n">wsymb</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">irred_pos</span><span class="o">=</span><span class="n">irred_pos</span><span class="p">,</span> <span class="n">eqmap</span><span class="o">=</span><span class="n">eqmap</span><span class="p">,</span> <span class="n">wyckoffs</span><span class="o">=</span><span class="n">wyckoffs</span><span class="p">,</span>
+                               <span class="n">wyck_mult</span><span class="o">=</span><span class="n">wyck_mult</span><span class="p">,</span> <span class="n">wyck_labels</span><span class="o">=</span><span class="n">wyck_labels</span><span class="p">,</span>
+                               <span class="n">site_labels</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">site_labels</span><span class="p">),</span> <span class="n">spgdata</span><span class="o">=</span><span class="n">spgdata</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Structure.spget_summary"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.spget_summary">[docs]</a>    <span class="k">def</span> <span class="nf">spget_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">site_symmetry</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return string with full information about crystalline structure i.e.</span>
 <span class="sd">        space group, point group, wyckoff positions, equivalent sites.</span>
@@ -924,6 +960,7 @@
 <span class="sd">        Args:</span>
 <span class="sd">            symprec (float): Symmetry precision for distance.</span>
 <span class="sd">            angle_tolerance (float): Tolerance on angles.</span>
+<span class="sd">            site_symmetry: True to show site symmetries i.e. the point group operations that leave the site invariant.</span>
 <span class="sd">            verbose (int): Verbosity level.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">spgan</span> <span class="o">=</span> <span class="n">SpacegroupAnalyzer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="n">angle_tolerance</span><span class="p">)</span>
@@ -941,7 +978,7 @@
         <span class="n">outs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;angles: &quot;</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">to_s</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">rjust</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
                                            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">angles</span><span class="p">]))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Spglib space group info (magnetic symmetries are not taken into account).&quot;</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Spglib space group info (magnetic symmetries not taken into account).&quot;</span><span class="p">)</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Spacegroup: </span><span class="si">%s</span><span class="s2"> (</span><span class="si">%s</span><span class="s2">), Hall: </span><span class="si">%s</span><span class="s2">, Abinit spg_number: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
              <span class="n">spgan</span><span class="o">.</span><span class="n">get_space_group_symbol</span><span class="p">(),</span> <span class="n">spgan</span><span class="o">.</span><span class="n">get_space_group_number</span><span class="p">(),</span> <span class="n">spgan</span><span class="o">.</span><span class="n">get_hall</span><span class="p">(),</span> <span class="nb">str</span><span class="p">(</span><span class="n">abispg_number</span><span class="p">)))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Crystal_system: </span><span class="si">%s</span><span class="s2">, Lattice_type: </span><span class="si">%s</span><span class="s2">, Point_group: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
@@ -949,15 +986,25 @@
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
         <span class="n">wickoffs</span><span class="p">,</span> <span class="n">equivalent_atoms</span> <span class="o">=</span> <span class="n">spgdata</span><span class="p">[</span><span class="s2">&quot;wyckoffs&quot;</span><span class="p">],</span> <span class="n">spgdata</span><span class="p">[</span><span class="s2">&quot;equivalent_atoms&quot;</span><span class="p">]</span>
-        <span class="n">table</span> <span class="o">=</span> <span class="p">[[</span><span class="s2">&quot;Idx&quot;</span><span class="p">,</span> <span class="s2">&quot;Symbol&quot;</span><span class="p">,</span> <span class="s2">&quot;Reduced_Coords&quot;</span><span class="p">,</span> <span class="s2">&quot;Wyck&quot;</span><span class="p">,</span> <span class="s2">&quot;EqIdx&quot;</span><span class="p">]]</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Idx&quot;</span><span class="p">,</span> <span class="s2">&quot;Symbol&quot;</span><span class="p">,</span> <span class="s2">&quot;Reduced_Coords&quot;</span><span class="p">,</span> <span class="s2">&quot;Wyckoff&quot;</span><span class="p">,</span> <span class="s2">&quot;EqIdx&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">site_symmetry</span><span class="p">:</span>
+            <span class="n">header</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;site_symmetry&quot;</span><span class="p">)</span>
+            <span class="n">sitesym_labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spget_site_symmetries</span><span class="p">()</span>
+
+        <span class="n">table</span> <span class="o">=</span> <span class="p">[</span><span class="n">header</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">site</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-            <span class="n">table</span><span class="o">.</span><span class="n">append</span><span class="p">([</span>
+            <span class="n">mult</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">equivalent_atoms</span> <span class="o">==</span> <span class="n">equivalent_atoms</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="p">[</span>
                 <span class="n">i</span><span class="p">,</span>
                 <span class="n">site</span><span class="o">.</span><span class="n">species_string</span><span class="p">,</span>
                 <span class="s2">&quot;</span><span class="si">%+.5f</span><span class="s2"> </span><span class="si">%+.5f</span><span class="s2"> </span><span class="si">%+.5f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">site</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">),</span>
-                <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">wickoffs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                <span class="s2">&quot;(</span><span class="si">%s%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mult</span><span class="p">,</span> <span class="n">wickoffs</span><span class="p">[</span><span class="n">i</span><span class="p">]),</span>
                 <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">equivalent_atoms</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
-            <span class="p">])</span>
+            <span class="p">]</span>
+            <span class="k">if</span> <span class="n">site_symmetry</span><span class="p">:</span> <span class="n">row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sitesym_labels</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+            <span class="n">table</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
 
         <span class="kn">from</span> <span class="nn">tabulate</span> <span class="k">import</span> <span class="n">tabulate</span>
         <span class="n">app</span><span class="p">(</span><span class="n">tabulate</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="s2">&quot;firstrow&quot;</span><span class="p">))</span>
@@ -993,15 +1040,14 @@
 <div class="viewcode-block" id="Structure.spgset_abi_spacegroup"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.spgset_abi_spacegroup">[docs]</a>    <span class="k">def</span> <span class="nf">spgset_abi_spacegroup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">has_timerev</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Call spglib to find the spacegroup of the crystal, create new</span>
-<span class="sd">	:class:`AbinitSpaceGroup` object and store it in ``self.abi_spacegroup``.</span>
+<span class="sd">        :class:`AbinitSpaceGroup` object and store it in ``self.abi_spacegroup``.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            has_timerev (bool): True if time-reversal can be used.</span>
 <span class="sd">            overwrite (bool): By default, the method raises `ValueError` if the object</span>
 <span class="sd">                already has the list of symmetries found by Abinit.</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">	    :class:`AbinitSpaceGroup`</span>
+<span class="sd">        Returns: :class:`AbinitSpaceGroup`</span>
 
 <span class="sd">        .. warning:</span>
 
@@ -1014,27 +1060,78 @@
                               <span class="s2">&quot;Use `overwrite=True` to allow modification.&quot;</span><span class="p">))</span>
 
         <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;Structure object does not have symmetry operations computed from Abinit.</span><span class="se">\n</span><span class="s2">&quot;</span>
-               <span class="s2">&quot;Will call spglib to get symmetry operations.&quot;</span><span class="p">)</span>
+               <span class="s2">&quot;Calling spglib to get symmetry operations.&quot;</span><span class="p">)</span>
         <span class="n">cprint</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="s2">&quot;magenta&quot;</span><span class="p">)</span>
 
         <span class="n">spglib_data</span> <span class="o">=</span> <span class="n">SpacegroupAnalyzer</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_symmetry_dataset</span><span class="p">()</span>
         <span class="n">spgid</span> <span class="o">=</span> <span class="n">spglib_data</span><span class="p">[</span><span class="s2">&quot;number&quot;</span><span class="p">]</span>
         <span class="n">symrel</span><span class="p">,</span> <span class="n">tnons</span> <span class="o">=</span> <span class="n">spglib_data</span><span class="p">[</span><span class="s2">&quot;rotations&quot;</span><span class="p">],</span> <span class="n">spglib_data</span><span class="p">[</span><span class="s2">&quot;translations&quot;</span><span class="p">]</span>
-        <span class="n">symafm</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">symrel</span><span class="p">)</span>  <span class="c1"># TODO: Anti-ferromagnetic symmetries are not supported by spglib</span>
+        <span class="c1"># TODO: Anti-ferromagnetic symmetries are not supported by spglib</span>
+        <span class="n">symafm</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">symrel</span><span class="p">)</span>
 
         <span class="n">abispg</span> <span class="o">=</span> <span class="n">AbinitSpaceGroup</span><span class="p">(</span><span class="n">spgid</span><span class="p">,</span> <span class="n">symrel</span><span class="p">,</span> <span class="n">tnons</span><span class="p">,</span> <span class="n">symafm</span><span class="p">,</span> <span class="n">has_timerev</span><span class="p">,</span> <span class="n">inord</span><span class="o">=</span><span class="s2">&quot;C&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_abi_spacegroup</span><span class="p">(</span><span class="n">abispg</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">abispg</span></div>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">indsym</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute indsym (natom, nsym, 4) array.</span>
+
+<span class="sd">        For each isym,iatom, the fourth element is label of atom into</span>
+<span class="sd">        which iatom is sent by INVERSE of symmetry operation isym;</span>
+<span class="sd">        first three elements are the primitive translations which must be</span>
+<span class="sd">        subtracted after the transformation to get back to the original unit cell (see symatm.F90).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_indsym&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_indsym</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_abi_spacegroup</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spgset_abi_spacegroup</span><span class="p">(</span><span class="n">has_timerev</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="kn">from</span> <span class="nn">abipy.core.symmetries</span> <span class="k">import</span> <span class="n">indsym_from_symrel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_indsym</span> <span class="o">=</span> <span class="n">indsym_from_symrel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">abi_spacegroup</span><span class="o">.</span><span class="n">symrel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">abi_spacegroup</span><span class="o">.</span><span class="n">tnons</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">tolsym</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_indsym</span>
+
+    <span class="nd">@indsym</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">indsym</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indsym</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set indsym array.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_indsym&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;structure.indsym is already set!&quot;</span><span class="p">,</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_indsym</span> <span class="o">=</span> <span class="n">indsym</span>
+
+<div class="viewcode-block" id="Structure.site_symmetries"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.site_symmetries">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">site_symmetries</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">abipy.core.site_symmetries</span> <span class="k">import</span> <span class="n">SiteSymmetries</span>
+        <span class="k">return</span> <span class="n">SiteSymmetries</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+    <span class="c1"># TODO: site_symmetry or spget_site_symmetries?</span>
+<div class="viewcode-block" id="Structure.spget_site_symmetries"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.spget_site_symmetries">[docs]</a>    <span class="k">def</span> <span class="nf">spget_site_symmetries</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">spglib</span>
+        <span class="n">indsym</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indsym</span>
+        <span class="n">symrel</span><span class="p">,</span> <span class="n">symafm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">abi_spacegroup</span><span class="o">.</span><span class="n">symrel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">abi_spacegroup</span><span class="o">.</span><span class="n">symafm</span>
+        <span class="n">nsym</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">symrel</span><span class="p">)</span>
+        <span class="n">sitesym_labels</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">iatom</span><span class="p">,</span> <span class="n">site</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="n">rotations</span> <span class="o">=</span> <span class="p">[</span><span class="n">symrel</span><span class="p">[</span><span class="n">isym</span><span class="p">]</span> <span class="k">for</span> <span class="n">isym</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nsym</span><span class="p">)</span> <span class="k">if</span>
+                         <span class="n">indsym</span><span class="p">[</span><span class="n">iatom</span><span class="p">,</span> <span class="n">isym</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="n">iatom</span> <span class="ow">and</span> <span class="n">symafm</span><span class="p">[</span><span class="n">isym</span><span class="p">]</span> <span class="o">==</span> <span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+            <span class="c1"># Passing a 0-length rotations list to spglib can segfault.</span>
+            <span class="n">herm_symbol</span><span class="p">,</span> <span class="n">ptg_num</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rotations</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">herm_symbol</span><span class="p">,</span> <span class="n">ptg_num</span><span class="p">,</span> <span class="n">trans_mat</span> <span class="o">=</span> <span class="n">spglib</span><span class="o">.</span><span class="n">get_pointgroup</span><span class="p">(</span><span class="n">rotations</span><span class="p">)</span>
+
+            <span class="n">sitesym_labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> (#</span><span class="si">%d</span><span class="s2">,nsym:</span><span class="si">%d</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">herm_symbol</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">ptg_num</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">rotations</span><span class="p">)))</span>
+
+        <span class="k">return</span> <span class="n">sitesym_labels</span></div>
+
 <div class="viewcode-block" id="Structure.abiget_spginfo"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.abiget_spginfo">[docs]</a>    <span class="k">def</span> <span class="nf">abiget_spginfo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tolsym</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pre</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">	Call Abinit to get spacegroup information.</span>
-<span class="sd">	Return dictionary with e.g. {&#39;bravais&#39;: &#39;Bravais cF (face-center cubic)&#39;, &#39;spg_number&#39;: 227, &#39;spg_symbol&#39;: &#39;Fd-3m&#39;}.</span>
+<span class="sd">        Call Abinit to get spacegroup information.</span>
+<span class="sd">        Return dictionary with e.g.</span>
+<span class="sd">        {&#39;bravais&#39;: &#39;Bravais cF (face-center cubic)&#39;, &#39;spg_number&#39;: 227, &#39;spg_symbol&#39;: &#39;Fd-3m&#39;}.</span>
 
-<span class="sd">	Args:</span>
+<span class="sd">        Args:</span>
 <span class="sd">            tolsym: Abinit tolsym input variable. None correspondes to the default value.</span>
-<span class="sd">	    pre: Keywords in dictionary are prepended with this string</span>
+<span class="sd">            pre: Keywords in dictionary are prepended with this string</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">abipy.data.hgh_pseudos</span> <span class="k">import</span> <span class="n">HGH_TABLE</span>
         <span class="kn">from</span> <span class="nn">abipy.abio</span> <span class="k">import</span> <span class="n">factories</span>
@@ -1050,10 +1147,10 @@
 <span class="sd">        Print results.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Finding neighbors for each atom in the unit cell, out to a distance </span><span class="si">%s</span><span class="s2"> [Angstrom]&quot;</span> <span class="o">%</span> <span class="n">radius</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Finding neighbors for each atom in the unit cell, out to a distance </span><span class="si">%s</span><span class="s2"> (Angstrom)&quot;</span> <span class="o">%</span> <span class="n">radius</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
 
-        <span class="n">ns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_all_neighbors</span><span class="p">(</span><span class="n">radius</span><span class="p">,</span> <span class="n">include_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">ns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_all_neighbors_old</span><span class="p">(</span><span class="n">radius</span><span class="p">,</span> <span class="n">include_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">site</span><span class="p">,</span> <span class="n">sited_list</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ns</span><span class="p">)):</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[</span><span class="si">%s</span><span class="s2">] site </span><span class="si">%s</span><span class="s2"> has </span><span class="si">%s</span><span class="s2"> neighbors:&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">site</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">sited_list</span><span class="p">)))</span>
             <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">dist</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">sited_list</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
@@ -1157,7 +1254,7 @@
             <span class="k">if</span> <span class="n">issamek</span><span class="p">(</span><span class="n">kpoint</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span> <span class="n">star</span><span class="o">.</span><span class="n">base_point</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">):</span>
                 <span class="k">return</span> <span class="n">star</span><span class="o">.</span><span class="n">name</span>
 
-	<span class="c1"># Now check if kpoint is in one of the stars.</span>
+        <span class="c1"># Now check if kpoint is in one of the stars.</span>
         <span class="k">for</span> <span class="n">star</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hsym_stars</span><span class="p">:</span>
             <span class="n">i</span> <span class="o">=</span> <span class="n">star</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">kpoint</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
@@ -1291,7 +1388,6 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">pymatgen.electronic_structure.plotter</span> <span class="k">import</span> <span class="n">plot_brillouin_zone</span><span class="p">,</span> <span class="n">plot_brillouin_zone_from_kpath</span>
         <span class="n">labels</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">with_labels</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">hsym_kpath</span><span class="o">.</span><span class="n">kpath</span><span class="p">[</span><span class="s2">&quot;kpoints&quot;</span><span class="p">]</span>
-        <span class="c1">#pprint(labels)</span>
         <span class="k">if</span> <span class="n">pmg_path</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">plot_brillouin_zone_from_kpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hsym_kpath</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1456,7 +1552,7 @@
             <span class="kn">from</span> <span class="nn">abipy.wannier90.win</span> <span class="k">import</span> <span class="n">structure2wannier90</span>
             <span class="k">return</span> <span class="n">structure2wannier90</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Structure</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">fmt</span><span class="o">=</span><span class="n">fmt</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">fmt</span><span class="o">=</span><span class="n">fmt</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
     <span class="c1">#def max_overlap_and_sites(self, pseudos):</span>
     <span class="c1">#    # For each site in self:</span>
@@ -1469,7 +1565,7 @@
     <span class="c1">#        symbol = site.specie.symbol</span>
     <span class="c1">#        pseudo = pseudos[symbol]</span>
     <span class="c1">#        r1 = Length(pseudo.r_cut, &quot;Bohr&quot;).to(&quot;ang&quot;)</span>
-    <span class="c1">#        sitedist_list = self.get_neighbors(site, r1, include_index=False)</span>
+    <span class="c1">#        sitedist_list = self.get_neighbors_old(site, r1, include_index=False)</span>
 
     <span class="c1">#        if sitedist_list:</span>
     <span class="c1">#            # Spheres are overlapping: compute overlap and update the return values</span>
@@ -1486,7 +1582,7 @@
 
     <span class="c1">#    return max_overlap, ovlp_sites</span>
 
-<div class="viewcode-block" id="Structure.displace"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.displace">[docs]</a>    <span class="k">def</span> <span class="nf">displace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">displ</span><span class="p">,</span> <span class="n">eta</span><span class="p">,</span> <span class="n">frac_coords</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="Structure.displace"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.displace">[docs]</a>    <span class="k">def</span> <span class="nf">displace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">displ</span><span class="p">,</span> <span class="n">eta</span><span class="p">,</span> <span class="n">frac_coords</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Displace the sites of the structure along the displacement vector displ.</span>
 
@@ -1512,8 +1608,9 @@
             <span class="n">displ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">get_fractional_coords</span><span class="p">(</span><span class="n">vec</span><span class="p">)</span> <span class="k">for</span> <span class="n">vec</span> <span class="ow">in</span> <span class="n">displ</span><span class="p">],</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
 
         <span class="c1"># Normalize the displacement so that the maximum atomic displacement is 1 Angstrom.</span>
-        <span class="n">dnorm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">displ</span><span class="p">,</span> <span class="n">space</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
-        <span class="n">displ</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">dnorm</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">normalize</span><span class="p">:</span>
+            <span class="n">dnorm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">displ</span><span class="p">,</span> <span class="n">space</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+            <span class="n">displ</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">dnorm</span><span class="p">))</span>
 
         <span class="c1"># Displace the sites.</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)):</span>
@@ -1757,14 +1854,13 @@
         <span class="n">displ_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">at</span><span class="p">,</span><span class="n">site</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tvects</span><span class="p">:</span>
-                <span class="n">new_displ1</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span><span class="n">t</span><span class="p">)))</span><span class="o">*</span><span class="n">displ1</span><span class="p">[</span><span class="n">at</span><span class="p">,:])</span>
+                <span class="n">new_displ1</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span> <span class="n">t</span><span class="p">)))</span> <span class="o">*</span> <span class="n">displ1</span><span class="p">[</span><span class="n">at</span><span class="p">,:])</span>
+                <span class="n">new_displ2</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span> <span class="n">t</span><span class="p">)))</span> <span class="o">*</span> <span class="n">displ2</span><span class="p">[</span><span class="n">at</span><span class="p">,:])</span>
 
-                <span class="n">new_displ2</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span><span class="n">t</span><span class="p">)))</span><span class="o">*</span><span class="n">displ2</span><span class="p">[</span><span class="n">at</span><span class="p">,:])</span>
-
-                <span class="n">displ_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_displ1</span><span class="o">+</span><span class="n">new_displ2</span><span class="p">)</span>
+                <span class="n">displ_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_displ1</span> <span class="o">+</span> <span class="n">new_displ2</span><span class="p">)</span>
                 <span class="n">coords</span> <span class="o">=</span> <span class="n">site</span><span class="o">.</span><span class="n">coords</span> <span class="o">+</span> <span class="n">old_lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">+</span> <span class="n">new_displ1</span> <span class="o">+</span> <span class="n">new_displ2</span>
                 <span class="n">new_site</span> <span class="o">=</span> <span class="n">PeriodicSite</span><span class="p">(</span>
-                    <span class="n">site</span><span class="o">.</span><span class="n">species_and_occu</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">new_lattice</span><span class="p">,</span>
+                    <span class="n">site</span><span class="o">.</span><span class="n">species</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">new_lattice</span><span class="p">,</span>
                     <span class="n">coords_are_cartesian</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="n">site</span><span class="o">.</span><span class="n">properties</span><span class="p">,</span>
                     <span class="n">to_unit_cell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                 <span class="n">new_sites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_site</span><span class="p">)</span>
@@ -1828,7 +1924,7 @@
 
                 <span class="n">coords</span> <span class="o">=</span> <span class="n">site</span><span class="o">.</span><span class="n">coords</span> <span class="o">+</span> <span class="n">old_lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">+</span> <span class="n">new_displ</span>
                 <span class="n">new_site</span> <span class="o">=</span> <span class="n">PeriodicSite</span><span class="p">(</span>
-                    <span class="n">site</span><span class="o">.</span><span class="n">species_and_occu</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">new_lattice</span><span class="p">,</span>
+                    <span class="n">site</span><span class="o">.</span><span class="n">species</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">new_lattice</span><span class="p">,</span>
                     <span class="n">coords_are_cartesian</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="n">site</span><span class="o">.</span><span class="n">properties</span><span class="p">,</span>
                     <span class="n">to_unit_cell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                 <span class="n">new_sites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_site</span><span class="p">)</span>
@@ -1887,32 +1983,6 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to generate string for code: `</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">fmt</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
-
-    <span class="c1">#def ksampling_from_jhudb(self, **kwargs):</span>
-    <span class="c1">#    from pymatgen.ext.jhu import get_kpoints</span>
-    <span class="c1">#    __doc__ = get_kpoints.__doc__</span>
-    <span class="c1">#    kpoints = get_kpoints(self, **kwargs)</span>
-    <span class="c1">#    print(kpoints)</span>
-    <span class="c1">#    print(kpoints.style)</span>
-    <span class="c1">#    print(&quot;num_kpts&quot;, kpoints.num_kpts)</span>
-
-    <span class="c1">#    d = {&quot;kptopt&quot;: 0,</span>
-    <span class="c1">#         &quot;kpt&quot;: kpoints.kpts,</span>
-    <span class="c1">#         &quot;nkpt&quot;: kpoints.num_kpts,</span>
-    <span class="c1">#         #&quot;kptnrm&quot;: kptnrm,</span>
-    <span class="c1">#         &quot;wtk&quot;: kpoints.kpts_weights,</span>
-    <span class="c1">#         &quot;shiftk&quot;: kpoints.kpts_shift,</span>
-    <span class="c1">#         &quot;chksymbreak&quot;: 0,</span>
-    <span class="c1">#    }</span>
-    <span class="c1">#    print(d)</span>
-
-    <span class="c1">#    #from pymatgen.io.abinit.abiobjects import KSampling</span>
-    <span class="c1">#    #return KSampling(mode=KSamplingModes.automatic,</span>
-    <span class="c1">#    #         num_kpts= 0,</span>
-    <span class="c1">#    #         kpts=((1, 1, 1),),</span>
-    <span class="c1">#    #         kpt_shifts=(0.5, 0.5, 0.5),</span>
-    <span class="c1">#    #         kpts_weights=None, use_symmetries=True, use_time_reversal=True, chksymbreak=None,</span>
-    <span class="c1">#    #         comment=None)</span>
 
 <div class="viewcode-block" id="Structure.calc_ksampling"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.calc_ksampling">[docs]</a>    <span class="k">def</span> <span class="nf">calc_ksampling</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nksmall</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1996,12 +2066,12 @@
         <span class="n">lattice_type</span><span class="p">,</span> <span class="n">spg_symbol</span> <span class="o">=</span> <span class="n">sym</span><span class="o">.</span><span class="n">get_lattice_type</span><span class="p">(),</span> <span class="n">sym</span><span class="o">.</span><span class="n">get_space_group_symbol</span><span class="p">()</span>
 
         <span class="c1"># Check if the cell is primitive</span>
-        <span class="n">is_primitve</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sym</span><span class="o">.</span><span class="n">find_primitive</span><span class="p">())</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">is_primitive</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sym</span><span class="o">.</span><span class="n">find_primitive</span><span class="p">())</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
         <span class="c1"># Generate the appropriate set of shifts.</span>
         <span class="n">shiftk</span> <span class="o">=</span> <span class="kc">None</span>
 
-        <span class="k">if</span> <span class="n">is_primitve</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">is_primitive</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">lattice_type</span> <span class="o">==</span> <span class="s2">&quot;cubic&quot;</span><span class="p">:</span>
                 <span class="k">if</span> <span class="s2">&quot;F&quot;</span> <span class="ow">in</span> <span class="n">spg_symbol</span><span class="p">:</span>
                     <span class="c1"># FCC</span>
@@ -2103,7 +2173,7 @@
 
 
 <div class="viewcode-block" id="dataframes_from_structures"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.dataframes_from_structures">[docs]</a><span class="k">def</span> <span class="nf">dataframes_from_structures</span><span class="p">(</span><span class="n">struct_objects</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
-	                       <span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">cart_coords</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+                               <span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">cart_coords</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Build two pandas Dataframes_ with the most important geometrical parameters associated to</span>
 <span class="sd">    a list of structures or a list of objects that can be converted into structures.</span>
@@ -2135,8 +2205,8 @@
     <span class="n">structures</span> <span class="o">=</span> <span class="p">[</span><span class="n">Structure</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">struct_objects</span><span class="p">]</span>
     <span class="c1"># Build Frame with lattice parameters.</span>
     <span class="c1"># Use OrderedDict to have columns ordered nicely.</span>
-    <span class="n">odict_list</span> <span class="o">=</span> <span class="p">[(</span><span class="n">structure</span><span class="o">.</span><span class="n">get_dict4pandas</span><span class="p">(</span><span class="n">with_spglib</span><span class="o">=</span><span class="n">with_spglib</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="n">angle_tolerance</span><span class="p">))</span>
-	          <span class="k">for</span> <span class="n">structure</span> <span class="ow">in</span> <span class="n">structures</span><span class="p">]</span>
+    <span class="n">odict_list</span> <span class="o">=</span> <span class="p">[(</span><span class="n">structure</span><span class="o">.</span><span class="n">get_dict4pandas</span><span class="p">(</span><span class="n">with_spglib</span><span class="o">=</span><span class="n">with_spglib</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span>
+                                             <span class="n">angle_tolerance</span><span class="o">=</span><span class="n">angle_tolerance</span><span class="p">))</span> <span class="k">for</span> <span class="n">structure</span> <span class="ow">in</span> <span class="n">structures</span><span class="p">]</span>
 
     <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
     <span class="n">lattice_frame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">odict_list</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span>
@@ -2244,7 +2314,7 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            List of new structures with displaced atoms.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">etas</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">Iterable</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">etas</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Iterable</span><span class="p">):</span>
             <span class="n">etas</span> <span class="o">=</span> <span class="p">[</span><span class="n">etas</span><span class="p">]</span>
 
         <span class="n">news</span> <span class="o">=</span> <span class="p">[]</span>
@@ -2367,8 +2437,8 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Sep 18, 2018.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+      Last updated on Oct 18, 2019.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>
 </footer>

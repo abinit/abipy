@@ -2,39 +2,31 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.core.fields &#8212; abipy 0.7.0.dev documentation</title>
+    <meta charset="utf-8" />
+    <title>abipy.core.fields &#8212; abipy 0.7.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../../',
-        VERSION:     '0.7.0.dev',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js"></script>
-    <script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
-    <script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
 
-  </head>
-  <body>
+  </head><body>
 
   <div id="navbar" class="navbar navbar-default navbar-fixed-top">
     <div class="container">
@@ -47,7 +39,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0.dev</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -127,13 +119,11 @@
 
 <div class="container">
   <div class="row">
-    <div class="col-md-12 content">
+    <div class="body col-md-12 content" role="main">
       
   <h1>Source code for abipy.core.fields</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding: utf-8</span>
 <span class="sd">&quot;&quot;&quot;This module contains the class describing densities in real space on uniform 3D meshes.&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
-
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">collections</span>
 <span class="kn">import</span> <span class="nn">pymatgen.core.units</span> <span class="k">as</span> <span class="nn">pmgu</span>
@@ -142,7 +132,7 @@
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">AttrDict</span>
 <span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
-<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">is_string</span>
+<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">is_string</span><span class="p">,</span> <span class="n">marquee</span>
 <span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
 <span class="kn">from</span> <span class="nn">monty.inspect</span> <span class="k">import</span> <span class="n">all_subclasses</span>
 <span class="kn">from</span> <span class="nn">pymatgen.io.vasp.inputs</span> <span class="k">import</span> <span class="n">Poscar</span>
@@ -152,7 +142,8 @@
 <span class="kn">from</span> <span class="nn">abipy.core.mesh3d</span> <span class="k">import</span> <span class="n">Mesh3D</span>
 <span class="kn">from</span> <span class="nn">abipy.core.func1d</span> <span class="k">import</span> <span class="n">Function1D</span>
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">Has_Structure</span>
-<span class="kn">from</span> <span class="nn">abipy.tools</span> <span class="k">import</span> <span class="n">transpose_last3dims</span><span class="p">,</span> <span class="n">duck</span>
+<span class="kn">from</span> <span class="nn">abipy.tools</span> <span class="k">import</span> <span class="n">duck</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.numtools</span> <span class="k">import</span> <span class="n">transpose_last3dims</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span><span class="p">,</span> <span class="n">get_axarray_fig_plt</span>
 <span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">Visualizer</span><span class="p">,</span> <span class="n">xsf</span><span class="p">,</span> <span class="n">ETSF_Reader</span><span class="p">,</span> <span class="n">cube</span>
 
@@ -173,7 +164,7 @@
 
     <span class="k">elif</span> <span class="n">nspden</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;myuparrow&quot;</span><span class="p">,</span> <span class="s2">&quot;uparrow&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span>
-            <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$\sigma=\myuparrow$&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$\sigma=\downarrow$&quot;</span><span class="p">}</span><span class="o">.</span><span class="n">items</span><span class="p">()}[</span><span class="n">ispden</span><span class="p">]</span>
+               <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$\sigma=\myuparrow$&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$\sigma=\downarrow$&quot;</span><span class="p">}</span><span class="o">.</span><span class="n">items</span><span class="p">()}[</span><span class="n">ispden</span><span class="p">]</span>
 
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
@@ -241,7 +232,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">_Field</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-            <span class="k">except</span><span class="p">:</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;object of class </span><span class="si">%s</span><span class="s1"> is not an instance of _Field and cannot be converted to float&#39;</span> <span class="o">%</span>
                     <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="vm">__class__</span><span class="p">))</span>
 
@@ -543,7 +534,7 @@
 <span class="sd">        Return: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">site</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">[</span><span class="n">site_index</span><span class="p">]</span>
-        <span class="n">nn_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">get_neighbors</span><span class="p">(</span><span class="n">site</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">include_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">nn_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">get_neighbors_old</span><span class="p">(</span><span class="n">site</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">include_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">nn_list</span><span class="p">:</span>
             <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Zero neighbors found for radius </span><span class="si">%s</span><span class="s2"> Ang. Returning None.&quot;</span> <span class="o">%</span> <span class="n">radius</span><span class="p">,</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span>
@@ -552,7 +543,7 @@
 
         <span class="k">if</span> <span class="n">max_nn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">nn_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max_nn</span><span class="p">:</span>
             <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;For radius </span><span class="si">%s</span><span class="s2">, found </span><span class="si">%s</span><span class="s2"> neighbors but only max_nn </span><span class="si">%s</span><span class="s2"> sites are show.&quot;</span> <span class="o">%</span>
-                    <span class="p">(</span><span class="n">radius</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">nn_list</span><span class="p">),</span> <span class="n">max_nn</span><span class="p">),</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
+                   <span class="p">(</span><span class="n">radius</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">nn_list</span><span class="p">),</span> <span class="n">max_nn</span><span class="p">),</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
             <span class="n">nn_list</span> <span class="o">=</span> <span class="n">nn_list</span><span class="p">[:</span><span class="n">max_nn</span><span class="p">]</span>
 
         <span class="c1"># Get grid of axes.</span>
@@ -564,7 +555,7 @@
         <span class="n">interpolator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_interpolator</span><span class="p">()</span>
 
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">nn</span><span class="p">,</span> <span class="n">ax</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">nn_list</span><span class="p">,</span> <span class="n">ax_list</span><span class="p">)):</span>
-            <span class="n">nn_site</span><span class="p">,</span> <span class="n">nn_dist</span><span class="p">,</span> <span class="n">nn_sc_index</span>  <span class="o">=</span> <span class="n">nn</span>
+            <span class="n">nn_site</span><span class="p">,</span> <span class="n">nn_dist</span><span class="p">,</span> <span class="n">nn_sc_index</span> <span class="o">=</span> <span class="n">nn</span>
             <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, dist=</span><span class="si">%.3f</span><span class="s2"> A&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nn_site</span><span class="o">.</span><span class="n">species_string</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">nn_site</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">),</span> <span class="n">nn_dist</span><span class="p">)</span>
 
             <span class="n">r</span> <span class="o">=</span> <span class="n">interpolator</span><span class="o">.</span><span class="n">eval_line</span><span class="p">(</span><span class="n">site</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span> <span class="n">nn_site</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="n">num</span><span class="p">,</span> <span class="n">kpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
@@ -621,7 +612,7 @@
             <span class="n">symbol</span> <span class="o">=</span> <span class="n">site</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">symbol</span>
             <span class="n">phases</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">2</span><span class="n">j</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">gvecs</span><span class="p">,</span> <span class="n">site</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">))</span>
             <span class="n">fg</span> <span class="o">=</span> <span class="n">datag</span> <span class="o">*</span> <span class="n">phases</span> <span class="o">*</span> <span class="n">splines</span><span class="p">[</span><span class="n">symbol</span><span class="p">](</span><span class="n">gmods</span><span class="p">)</span>
-            <span class="n">res_nspden</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">fg</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="o">*</span> <span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+            <span class="n">res_nspden</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">fg</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
             <span class="c1">#print(&quot;result:&quot;, res_nspden, res_nspden.shape, (datag * fg).shape)</span>
 
             <span class="c1"># Compute densities and magnetization.</span>
@@ -636,7 +627,7 @@
 
             <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
-                <span class="n">ntot</span><span class="p">,</span> <span class="n">mx</span><span class="p">,</span> <span class="n">my</span><span class="p">,</span> <span class="n">mz</span> <span class="o">=</span> <span class="n">scalvec_from_spinmat</span><span class="p">(</span><span class="n">res_nspden</span><span class="p">)</span>
+                <span class="c1">#ntot, mx, my, mz = scalvec_from_spinmat(res_nspden)</span>
                 <span class="n">nup</span><span class="p">,</span> <span class="n">ndown</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">ntot</span> <span class="o">+</span> <span class="n">mz</span><span class="p">),</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">ntot</span> <span class="o">-</span> <span class="n">mz</span><span class="p">)</span>
 
             <span class="c1"># Fill DataFrame row.</span>
@@ -693,6 +684,7 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Exension not supported: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ext</span><span class="p">))</span>
 
+
 <div class="viewcode-block" id="Density"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.fields.Density">[docs]</a><span class="k">class</span> <span class="nc">Density</span><span class="p">(</span><span class="n">_DensityField</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Electronic density.</span>
@@ -743,7 +735,7 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rhoc</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">rhoc</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Number of rhoc files should be equal to the number of sites in the structure&#39;</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rhoc</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rhoc</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
             <span class="n">atoms_symbols</span> <span class="o">=</span> <span class="p">[</span><span class="n">elmt</span><span class="o">.</span><span class="n">symbol</span> <span class="k">for</span> <span class="n">elmt</span> <span class="ow">in</span> <span class="n">structure</span><span class="o">.</span><span class="n">composition</span><span class="p">]</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">([</span><span class="n">atom</span> <span class="ow">in</span> <span class="n">rhoc</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">atoms_symbols</span><span class="p">]):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The rhoc files should be provided for all the atoms in the structure&#39;</span><span class="p">)</span>
@@ -760,8 +752,8 @@
             <span class="n">abs_max</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">maxr</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rhoc</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">))</span>
-                <span class="k">except</span><span class="p">:</span>
+                    <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">))</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                     <span class="n">ind</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
 
                 <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">ind</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">maxr</span><span class="p">:</span>
@@ -841,9 +833,9 @@
             <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
             <span class="n">dist_gridpoints_sites</span> <span class="o">=</span> <span class="n">valence_density</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">dist_gridpoints_in_spheres</span><span class="p">(</span><span class="n">points</span><span class="o">=</span><span class="n">site_coords</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="n">maxr</span><span class="p">)</span>
             <span class="n">nnx</span><span class="p">,</span> <span class="n">nny</span><span class="p">,</span> <span class="n">nnz</span> <span class="o">=</span> <span class="n">small_dist_mesh</span>
-            <span class="n">meshgrid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">nnx</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">+</span><span class="mf">0.5</span><span class="o">/</span><span class="n">nnx</span><span class="p">,</span>
-                                            <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">nny</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">/</span><span class="n">nny</span><span class="p">,</span>
-                                            <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">nnz</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">/</span><span class="n">nnz</span><span class="p">)</span>
+            <span class="n">meshgrid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">nnx</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">/</span> <span class="n">nnx</span><span class="p">,</span>
+                                   <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">nny</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">/</span> <span class="n">nny</span><span class="p">,</span>
+                                   <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">nnz</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">/</span> <span class="n">nnz</span><span class="p">)</span>
             <span class="n">coords_grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">meshgrid</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dvx</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">meshgrid</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">dvy</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">meshgrid</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">dvz</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">isite</span><span class="p">,</span> <span class="n">dist_gridpoints_site</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dist_gridpoints_sites</span><span class="p">):</span>
                 <span class="k">for</span> <span class="n">igp_uc</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="n">igp</span> <span class="ow">in</span> <span class="n">dist_gridpoints_site</span><span class="p">:</span>
@@ -1270,7 +1262,7 @@
 
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid nspinor: </span><span class="si">%s</span><span class="s2">, nspden: </span><span class="si">%s</span><span class="s2"> and nsppol: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
-                    <span class="n">dims</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="n">dims</span><span class="o">.</span><span class="n">nspden</span><span class="p">,</span> <span class="n">dims</span><span class="o">%</span><span class="n">nsppol</span><span class="p">))</span>
+                                  <span class="n">dims</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="n">dims</span><span class="o">.</span><span class="n">nspden</span><span class="p">,</span> <span class="n">dims</span><span class="o">.</span><span class="n">nsppol</span><span class="p">))</span>
                 <span class="c1">#if issubclass(field_cls, _DensityField):</span>
                 <span class="c1">#elif issubclass(field_cls, _PotentialFieldField):</span>
                 <span class="c1">#else:</span>
@@ -1316,8 +1308,8 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Sep 18, 2018.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+      Last updated on Oct 18, 2019.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>
 </footer>

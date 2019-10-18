@@ -2,30 +2,19 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>GW corrections &#8212; abipy 0.7.0.dev documentation</title>
+    <meta charset="utf-8" />
+    <title>GW corrections &#8212; abipy 0.7.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../',
-        VERSION:     '0.7.0.dev',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
-    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
-    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Post-processing How-To" href="../postprocessing_howto.html" />
@@ -34,9 +23,12 @@
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
 
-  </head>
-  <body>
+  </head><body>
 
   <div id="navbar" class="navbar navbar-default navbar-fixed-top">
     <div class="container">
@@ -49,7 +41,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0.dev</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -144,11 +136,11 @@
 
 <div class="container">
   <div class="row">
-    <div class="col-md-12 content">
+    <div class="body col-md-12 content" role="main">
       
   <div class="sphx-glr-download-link-note admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Click <a class="reference internal" href="#sphx-glr-download-gallery-plot-qpbands-with-interpolation-py"><span class="std std-ref">here</span></a> to download the full example code</p>
+<p class="admonition-title">Note</p>
+<p>Click <a class="reference internal" href="#sphx-glr-download-gallery-plot-qpbands-with-interpolation-py"><span class="std std-ref">here</span></a> to download the full example code</p>
 </div>
 <div class="sphx-glr-example-title section" id="gw-corrections">
 <span id="sphx-glr-gallery-plot-qpbands-with-interpolation-py"></span><h1>GW corrections<a class="headerlink" href="#gw-corrections" title="Permalink to this headline">¶</a></h1>
@@ -156,27 +148,45 @@
 values to correct the KS band structure computed on a high symmetry k-path and
 the KS energies of a k-mesh. Finally, the KS and the GW results are plotted with matplotlib.</p>
 <ul class="sphx-glr-horizontal">
-<li><img alt="../_images/sphx_glr_plot_qpbands_with_interpolation_001.png" class="sphx-glr-multi-img first" src="../_images/sphx_glr_plot_qpbands_with_interpolation_001.png" />
+<li><img alt="../_images/sphx_glr_plot_qpbands_with_interpolation_001.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_qpbands_with_interpolation_001.png" />
 </li>
-<li><img alt="../_images/sphx_glr_plot_qpbands_with_interpolation_002.png" class="sphx-glr-multi-img first" src="../_images/sphx_glr_plot_qpbands_with_interpolation_002.png" />
+<li><img alt="../_images/sphx_glr_plot_qpbands_with_interpolation_002.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_qpbands_with_interpolation_002.png" />
 </li>
-<li><img alt="../_images/sphx_glr_plot_qpbands_with_interpolation_003.png" class="sphx-glr-multi-img first" src="../_images/sphx_glr_plot_qpbands_with_interpolation_003.png" />
+<li><img alt="../_images/sphx_glr_plot_qpbands_with_interpolation_003.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_qpbands_with_interpolation_003.png" />
 </li>
-<li><img alt="../_images/sphx_glr_plot_qpbands_with_interpolation_004.png" class="sphx-glr-multi-img first" src="../_images/sphx_glr_plot_qpbands_with_interpolation_004.png" />
+<li><img alt="../_images/sphx_glr_plot_qpbands_with_interpolation_004.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_qpbands_with_interpolation_004.png" />
 </li>
-<li><img alt="../_images/sphx_glr_plot_qpbands_with_interpolation_005.png" class="sphx-glr-multi-img first" src="../_images/sphx_glr_plot_qpbands_with_interpolation_005.png" />
+<li><img alt="../_images/sphx_glr_plot_qpbands_with_interpolation_005.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_qpbands_with_interpolation_005.png" />
 </li>
 </ul>
 <p class="sphx-glr-script-out">Out:</p>
-<div class="sphx-glr-script-out highlight-none"><div class="highlight"><pre><span></span>Using: 30 star-functions. nstars/nk: 5.0
-[32mFIT vs input data: Mean Absolute Error= 1.454e-13 (meV)[0m
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
+  warnings.warn(&quot;The input structure does not match the expected standard primitive! &quot;
+/Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
+  warnings.warn(&quot;The input structure does not match the expected standard primitive! &quot;
+[31msigres.structure and ks_ebands_kpath.structures differ. Check your files![0m
+Using: 30 star-functions. nstars/nk: 5.0
+[32mFIT vs input data: Mean Absolute Error= 1.098e-13 (meV)[0m
+[31msigres.structure and ks_ebands_kpath.structures differ. Check your files![0m
+/Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
+  warnings.warn(&quot;The input structure does not match the expected standard primitive! &quot;
+/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+  plt.show()
+/Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
+  warnings.warn(&quot;The input structure does not match the expected standard primitive! &quot;
+/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+  plt.show()
+/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+  plt.show()
+/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+  plt.show()
 </pre></div>
 </div>
 <div class="line-block">
 <div class="line"><br /></div>
 </div>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">abipy.data</span> <span class="kn">as</span> <span class="nn">abidata</span>
-<span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="kn">import</span> <span class="n">abiopen</span><span class="p">,</span> <span class="n">ElectronBandsPlotter</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
+<span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="k">import</span> <span class="n">abiopen</span><span class="p">,</span> <span class="n">ElectronBandsPlotter</span>
 
 <span class="c1"># Get quasiparticle results from the SIGRES.nc database.</span>
 <span class="n">sigres</span> <span class="o">=</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;si_g0w0ppm_nband30_SIGRES.nc&quot;</span><span class="p">))</span>
@@ -209,7 +219,7 @@ the KS energies of a k-mesh. Finally, the KS and the GW results are plotted with
 <span class="c1"># we can plot the interpolate interpolated QP band structure with the first principles results.</span>
 <span class="c1"># This part is optional</span>
 <span class="n">points</span> <span class="o">=</span> <span class="n">sigres</span><span class="o">.</span><span class="n">get_points_from_ebands</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">qp_ebands_kpath</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">24</span><span class="p">)</span>
-<span class="n">r</span><span class="o">.</span><span class="n">qp_ebands_kpath</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">points</span><span class="o">=</span><span class="n">points</span><span class="p">,</span> <span class="n">with_gaps</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">r</span><span class="o">.</span><span class="n">qp_ebands_kpath</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">points</span><span class="o">=</span><span class="n">points</span><span class="p">,</span> <span class="n">with_gaps</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="c1">#raise ValueError()</span>
 
 <span class="c1"># Shortcut: pass the name of the GSR files directly.</span>
@@ -231,22 +241,24 @@ the KS energies of a k-mesh. Finally, the KS and the GW results are plotted with
 <span class="c1"># Use e=0 if you don&#39;t want to shift the eigenvalus</span>
 <span class="c1"># so that it&#39;s possible to visualize the QP corrections.</span>
 <span class="n">plotter</span><span class="o">.</span><span class="n">combiplot</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Combiplot&quot;</span><span class="p">)</span>
-<span class="n">plotter</span><span class="o">.</span><span class="n">boxplot</span><span class="p">(</span><span class="n">swarm</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Boxplot&quot;</span><span class="p">)</span>
-<span class="n">plotter</span><span class="o">.</span><span class="n">combiboxplot</span><span class="p">(</span><span class="n">swarm</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Combiboxplot&quot;</span><span class="p">)</span>
+<span class="n">plotter</span><span class="o">.</span><span class="n">boxplot</span><span class="p">(</span><span class="n">swarm</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Boxplot&quot;</span><span class="p">)</span>
+<span class="n">plotter</span><span class="o">.</span><span class="n">combiboxplot</span><span class="p">(</span><span class="n">swarm</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Combiboxplot&quot;</span><span class="p">)</span>
 <span class="c1"># sphinx_gallery_thumbnail_number = 4</span>
-<span class="n">plotter</span><span class="o">.</span><span class="n">gridplot</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Gridplot&quot;</span><span class="p">,</span> <span class="n">with_gaps</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">plotter</span><span class="o">.</span><span class="n">gridplot</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Gridplot&quot;</span><span class="p">,</span> <span class="n">with_gaps</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="n">sigres</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </pre></div>
 </div>
-<p><strong>Total running time of the script:</strong> ( 0 minutes  4.909 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  2.293 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-qpbands-with-interpolation-py">
 <div class="sphx-glr-download docutils container">
-<a class="reference download internal" href="../_downloads/plot_qpbands_with_interpolation.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_qpbands_with_interpolation.py</span></code></a></div>
-<div class="sphx-glr-download docutils container">
-<a class="reference download internal" href="../_downloads/plot_qpbands_with_interpolation.ipynb" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_qpbands_with_interpolation.ipynb</span></code></a></div>
+<p><a class="reference download internal" download="" href="../_downloads/69cc73eb523014eb5141154c4b86ffde/plot_qpbands_with_interpolation.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_qpbands_with_interpolation.py</span></code></a></p>
 </div>
-<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.readthedocs.io">Gallery generated by Sphinx-Gallery</a></p>
+<div class="sphx-glr-download docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/912514354f5245999bbd242fc1451340/plot_qpbands_with_interpolation.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_qpbands_with_interpolation.ipynb</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
 </div>
 
 
@@ -262,8 +274,8 @@ the KS energies of a k-mesh. Finally, the KS and the GW results are plotted with
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Sep 18, 2018.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+      Last updated on Oct 18, 2019.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>
 </footer>

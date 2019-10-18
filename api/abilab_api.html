@@ -2,30 +2,19 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abilab &#8212; abipy 0.7.0.dev documentation</title>
+    <meta charset="utf-8" />
+    <title>abilab &#8212; abipy 0.7.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../',
-        VERSION:     '0.7.0.dev',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
-    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
-    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="abio Package" href="abio_api.html" />
@@ -34,9 +23,12 @@
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
 
-  </head>
-  <body>
+  </head><body>
 
   <div id="navbar" class="navbar navbar-default navbar-fixed-top">
     <div class="container">
@@ -49,7 +41,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0.dev</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -99,7 +91,7 @@
       role="menu"
       aria-labelledby="dLabelLocalToc"><ul>
 <li><a class="reference internal" href="#">abilab</a><ul>
-<li><a class="reference internal" href="#module-abipy.abilab"><code class="docutils literal"><span class="pre">abilab</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.abilab"><code class="xref py py-mod docutils literal notranslate"><span class="pre">abilab</span></code> Module</a></li>
 </ul>
 </li>
 </ul>
@@ -147,84 +139,77 @@
 
 <div class="container">
   <div class="row">
-    <div class="col-md-12 content">
+    <div class="body col-md-12 content" role="main">
       
   <div class="section" id="abilab">
 <h1>abilab<a class="headerlink" href="#abilab" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="module-abipy.abilab">
-<span id="abilab-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">abilab</span></code> Module<a class="headerlink" href="#module-abipy.abilab" title="Permalink to this headline">¶</a></h2>
+<span id="abilab-module"></span><h2><code class="xref py py-mod docutils literal notranslate"><span class="pre">abilab</span></code> Module<a class="headerlink" href="#module-abipy.abilab" title="Permalink to this headline">¶</a></h2>
 <p>This module gathers the most important classes and helper functions used for scripting.</p>
 <dl class="function">
 <dt id="abipy.abilab.abiopen_ext2class_table">
-<code class="descclassname">abipy.abilab.</code><code class="descname">abiopen_ext2class_table</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#abiopen_ext2class_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.abiopen_ext2class_table" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">abipy.abilab.</code><code class="sig-name descname">abiopen_ext2class_table</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#abiopen_ext2class_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.abiopen_ext2class_table" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print the association table between file extensions and File classes.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="abipy.abilab.abifile_subclass_from_filename">
-<code class="descclassname">abipy.abilab.</code><code class="descname">abifile_subclass_from_filename</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#abifile_subclass_from_filename"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.abifile_subclass_from_filename" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">abipy.abilab.</code><code class="sig-name descname">abifile_subclass_from_filename</code><span class="sig-paren">(</span><em class="sig-param">filename</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#abifile_subclass_from_filename"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.abifile_subclass_from_filename" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the appropriate class associated to the given filename.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="abipy.abilab.dir2abifiles">
-<code class="descclassname">abipy.abilab.</code><code class="descname">dir2abifiles</code><span class="sig-paren">(</span><em>top</em>, <em>recurse=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#dir2abifiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.dir2abifiles" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">abipy.abilab.</code><code class="sig-name descname">dir2abifiles</code><span class="sig-paren">(</span><em class="sig-param">top</em>, <em class="sig-param">recurse=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#dir2abifiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.dir2abifiles" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analyze the filesystem starting from directory <cite>top</cite> and
 return an ordered dictionary mapping the directory name to the list
-of files supported by <code class="docutils literal"><span class="pre">abiopen</span></code> contained within that directory.
-If not <code class="docutils literal"><span class="pre">recurse</span></code>, children directories are not analyzed.</p>
+of files supported by <code class="docutils literal notranslate"><span class="pre">abiopen</span></code> contained within that directory.
+If not <code class="docutils literal notranslate"><span class="pre">recurse</span></code>, children directories are not analyzed.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="abipy.abilab.isabifile">
-<code class="descclassname">abipy.abilab.</code><code class="descname">isabifile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#isabifile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.isabifile" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return True if <cite>filepath</cite> can be opened with <code class="docutils literal"><span class="pre">abiopen</span></code>.</p>
+<code class="sig-prename descclassname">abipy.abilab.</code><code class="sig-name descname">isabifile</code><span class="sig-paren">(</span><em class="sig-param">filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#isabifile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.isabifile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if <cite>filepath</cite> can be opened with <code class="docutils literal notranslate"><span class="pre">abiopen</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="abipy.abilab.abiopen">
-<code class="descclassname">abipy.abilab.</code><code class="descname">abiopen</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#abiopen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.abiopen" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">abipy.abilab.</code><code class="sig-name descname">abiopen</code><span class="sig-paren">(</span><em class="sig-param">filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#abiopen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.abiopen" title="Permalink to this definition">¶</a></dt>
 <dd><p>Factory function that opens any file supported by abipy.
 File type is detected from the extension</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filepath</strong> – string with the filename.</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filepath</strong> – string with the filename.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="abipy.abilab.display_structure">
-<code class="descclassname">abipy.abilab.</code><code class="descname">display_structure</code><span class="sig-paren">(</span><em>obj</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#display_structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.display_structure" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">abipy.abilab.</code><code class="sig-name descname">display_structure</code><span class="sig-paren">(</span><em class="sig-param">obj</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#display_structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.display_structure" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use Jsmol to display a structure in the jupyter notebook.
 Requires <cite>nbjsmol</cite> notebook extension installed on the local machine.
 Install it with <cite>pip install nbjsmol</cite>. See also <a class="reference external" href="https://github.com/gmatteo/nbjsmol">https://github.com/gmatteo/nbjsmol</a>.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>obj</strong> – Structure object or file with a structure or python object with a <cite>structure</cite> attribute.</li>
-<li><strong>kwargs</strong> – Keyword arguments passed to <cite>nbjsmol_display</cite></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obj</strong> – Structure object or file with a structure or python object with a <cite>structure</cite> attribute.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments passed to <cite>nbjsmol_display</cite></p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="abipy.abilab.software_stack">
-<code class="descclassname">abipy.abilab.</code><code class="descname">software_stack</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#software_stack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.software_stack" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">abipy.abilab.</code><code class="sig-name descname">software_stack</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#software_stack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.software_stack" title="Permalink to this definition">¶</a></dt>
 <dd><p>Import all the hard dependencies. Returns ordered dict: package –&gt; string with version info.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="abipy.abilab.abicheck">
-<code class="descclassname">abipy.abilab.</code><code class="descname">abicheck</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#abicheck"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.abicheck" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">abipy.abilab.</code><code class="sig-name descname">abicheck</code><span class="sig-paren">(</span><em class="sig-param">verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#abicheck"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.abicheck" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function tests if the most important ABINIT executables
 can be found in $PATH and whether the python modules needed
 at run-time can be imported. Return string with error messages, empty if success.</p>
@@ -232,19 +217,19 @@ at run-time can be imported. Return string with error messages, empty if success
 
 <dl class="function">
 <dt id="abipy.abilab.abipy_logo1">
-<code class="descclassname">abipy.abilab.</code><code class="descname">abipy_logo1</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#abipy_logo1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.abipy_logo1" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">abipy.abilab.</code><code class="sig-name descname">abipy_logo1</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#abipy_logo1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.abipy_logo1" title="Permalink to this definition">¶</a></dt>
 <dd><p><a class="reference external" href="http://www.text-image.com/convert/pic2ascii.cgi">http://www.text-image.com/convert/pic2ascii.cgi</a></p>
 </dd></dl>
 
 <dl class="function">
 <dt id="abipy.abilab.abipy_logo2">
-<code class="descclassname">abipy.abilab.</code><code class="descname">abipy_logo2</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#abipy_logo2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.abipy_logo2" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">abipy.abilab.</code><code class="sig-name descname">abipy_logo2</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#abipy_logo2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.abipy_logo2" title="Permalink to this definition">¶</a></dt>
 <dd><p><a class="reference external" href="http://www.text-image.com/convert/pic2ascii.cgi">http://www.text-image.com/convert/pic2ascii.cgi</a></p>
 </dd></dl>
 
 <dl class="function">
 <dt id="abipy.abilab.abipy_logo3">
-<code class="descclassname">abipy.abilab.</code><code class="descname">abipy_logo3</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#abipy_logo3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.abipy_logo3" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">abipy.abilab.</code><code class="sig-name descname">abipy_logo3</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#abipy_logo3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.abipy_logo3" title="Permalink to this definition">¶</a></dt>
 <dd><p><a class="reference external" href="http://www.text-image.com/convert/pic2ascii.cgi">http://www.text-image.com/convert/pic2ascii.cgi</a></p>
 </dd></dl>
 
@@ -264,8 +249,8 @@ at run-time can be imported. Return string with error messages, empty if success
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Sep 18, 2018.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+      Last updated on Oct 18, 2019.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>
 </footer>

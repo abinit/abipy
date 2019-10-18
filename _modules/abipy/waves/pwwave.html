@@ -2,39 +2,31 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.waves.pwwave &#8212; abipy 0.7.0.dev documentation</title>
+    <meta charset="utf-8" />
+    <title>abipy.waves.pwwave &#8212; abipy 0.7.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../../',
-        VERSION:     '0.7.0.dev',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js"></script>
-    <script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
-    <script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
 
-  </head>
-  <body>
+  </head><body>
 
   <div id="navbar" class="navbar navbar-default navbar-fixed-top">
     <div class="container">
@@ -47,7 +39,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0.dev</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -127,22 +119,17 @@
 
 <div class="container">
   <div class="row">
-    <div class="col-md-12 content">
+    <div class="body col-md-12 content" role="main">
       
   <h1>Source code for abipy.waves.pwwave</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding: utf-8</span>
 <span class="sd">&quot;&quot;&quot;This module contains the class describing a planewave wavefunction.&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
-
-<span class="kn">import</span> <span class="nn">tempfile</span>
-<span class="kn">import</span> <span class="nn">copy</span>
-<span class="kn">import</span> <span class="nn">six</span>
-<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="c1">#import copy</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
 <span class="kn">from</span> <span class="nn">abipy.core</span> <span class="k">import</span> <span class="n">Mesh3D</span>
-<span class="kn">from</span> <span class="nn">abipy.core.kpoints</span> <span class="k">import</span> <span class="n">Kpoint</span>
+<span class="c1">#from abipy.core.kpoints import Kpoint</span>
 <span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">Visualizer</span>
 <span class="kn">from</span> <span class="nn">abipy.iotools.xsf</span> <span class="k">import</span> <span class="n">xsf_write_structure</span><span class="p">,</span> <span class="n">xsf_write_data</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span><span class="p">,</span> <span class="n">get_axarray_fig_plt</span>
@@ -152,12 +139,13 @@
     <span class="s2">&quot;PWWaveFunction&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
+
 <span class="k">def</span> <span class="nf">latex_label_ispinor</span><span class="p">(</span><span class="n">ispinor</span><span class="p">,</span> <span class="n">nspinor</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">nspinor</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">return</span> <span class="s2">&quot;&quot;</span>
     <span class="k">elif</span> <span class="n">nspinor</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;myuparrow&quot;</span><span class="p">,</span> <span class="s2">&quot;uparrow&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span>
-            <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$\sigma=\myuparrow$&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$\sigma=\downarrow$&quot;</span><span class="p">}</span><span class="o">.</span><span class="n">items</span><span class="p">()}[</span><span class="n">ispden</span><span class="p">]</span>
+            <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$\sigma=\myuparrow$&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$\sigma=\downarrow$&quot;</span><span class="p">}</span><span class="o">.</span><span class="n">items</span><span class="p">()}[</span><span class="n">ispinor</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wrong value for nspinor: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">nspinor</span><span class="p">)</span>
 
@@ -176,10 +164,7 @@
 
     <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Yields G, ug[0:nspinor, G]&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">itertools</span><span class="o">.</span><span class="n">izip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gvecs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ug</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gvecs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ug</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gvecs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ug</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gvecs</span><span class="p">[</span><span class="nb">slice</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">ug</span><span class="p">[:,</span> <span class="nb">slice</span><span class="p">]</span>
@@ -574,7 +559,7 @@
 <span class="sd">        Return: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">site</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">[</span><span class="n">site_index</span><span class="p">]</span>
-        <span class="n">nn_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">get_neighbors</span><span class="p">(</span><span class="n">site</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">include_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">nn_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">get_neighbors_old</span><span class="p">(</span><span class="n">site</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">include_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">nn_list</span><span class="p">:</span>
             <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Zero neighbors found for radius </span><span class="si">%s</span><span class="s2"> Ang. Returning None.&quot;</span> <span class="o">%</span> <span class="n">radius</span><span class="p">,</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span>
@@ -583,7 +568,7 @@
         <span class="n">nn_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">nn_list</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
         <span class="k">if</span> <span class="n">max_nn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">nn_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max_nn</span><span class="p">:</span>
             <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;For radius </span><span class="si">%s</span><span class="s2">, found </span><span class="si">%s</span><span class="s2"> neighbors but only max_nn </span><span class="si">%s</span><span class="s2"> sites are show.&quot;</span> <span class="o">%</span>
-                    <span class="p">(</span><span class="n">radius</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">nn_list</span><span class="p">),</span> <span class="n">max_nn</span><span class="p">),</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
+                   <span class="p">(</span><span class="n">radius</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">nn_list</span><span class="p">),</span> <span class="n">max_nn</span><span class="p">),</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
             <span class="n">nn_list</span> <span class="o">=</span> <span class="n">nn_list</span><span class="p">[:</span><span class="n">max_nn</span><span class="p">]</span>
 
         <span class="c1"># Get grid of axes (one row for neighbor)</span>
@@ -598,7 +583,7 @@
 
         <span class="c1"># For each neighbor, plot psi along the line connecting site to nn.</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">nn</span><span class="p">,</span> <span class="n">ax</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">nn_list</span><span class="p">,</span> <span class="n">ax_list</span><span class="p">)):</span>
-            <span class="n">nn_site</span><span class="p">,</span> <span class="n">nn_dist</span><span class="p">,</span> <span class="n">nn_sc_index</span>  <span class="o">=</span> <span class="n">nn</span>
+            <span class="n">nn_site</span><span class="p">,</span> <span class="n">nn_dist</span><span class="p">,</span> <span class="n">nn_sc_index</span> <span class="o">=</span> <span class="n">nn</span>
             <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, dist=</span><span class="si">%.3f</span><span class="s2"> A&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nn_site</span><span class="o">.</span><span class="n">species_string</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">nn_site</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">),</span> <span class="n">nn_dist</span><span class="p">)</span>
 
             <span class="n">r</span> <span class="o">=</span> <span class="n">interpolator</span><span class="o">.</span><span class="n">eval_line</span><span class="p">(</span><span class="n">site</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span> <span class="n">nn_site</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="n">num</span><span class="p">,</span> <span class="n">kpoint</span><span class="o">=</span><span class="n">kpoint</span><span class="p">)</span>
@@ -732,8 +717,8 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Sep 18, 2018.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+      Last updated on Oct 18, 2019.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>
 </footer>

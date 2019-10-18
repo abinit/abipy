@@ -1,0 +1,38 @@
+
+:orphan:
+
+.. _sphx_glr_flow_gallery_sg_execution_times:
+
+Computation times
+=================
+**00:26.603** total execution time for **flow_gallery** files:
+
+- **00:04.148**: :ref:`sphx_glr_flow_gallery_run_mgb2_phonons_nkpt_tsmear.py` (``run_mgb2_phonons_nkpt_tsmear.py``)
+- **00:02.636**: :ref:`sphx_glr_flow_gallery_run_gkq.py` (``run_gkq.py``)
+- **00:01.957**: :ref:`sphx_glr_flow_gallery_run_phonons.py` (``run_phonons.py``)
+- **00:01.668**: :ref:`sphx_glr_flow_gallery_run_phonons_wkq.py` (``run_phonons_wkq.py``)
+- **00:01.121**: :ref:`sphx_glr_flow_gallery_run_relax_vs_kpts_tsmear.py` (``run_relax_vs_kpts_tsmear.py``)
+- **00:01.007**: :ref:`sphx_glr_flow_gallery_run_becs_and_epsilon_vs_kpts.py` (``run_becs_and_epsilon_vs_kpts.py``)
+- **00:00.903**: :ref:`sphx_glr_flow_gallery_run_ht_si_ebands.py` (``run_ht_si_ebands.py``)
+- **00:00.867**: :ref:`sphx_glr_flow_gallery_run_nonlinear.py` (``run_nonlinear.py``)
+- **00:00.823**: :ref:`sphx_glr_flow_gallery_run_optic.py` (``run_optic.py``)
+- **00:00.814**: :ref:`sphx_glr_flow_gallery_run_raman_optic.py` (``run_raman_optic.py``)
+- **00:00.788**: :ref:`sphx_glr_flow_gallery_run_elastic.py` (``run_elastic.py``)
+- **00:00.752**: :ref:`sphx_glr_flow_gallery_run_raman_bse.py` (``run_raman_bse.py``)
+- **00:00.738**: :ref:`sphx_glr_flow_gallery_run_gwconv_ecuteps.py` (``run_gwconv_ecuteps.py``)
+- **00:00.706**: :ref:`sphx_glr_flow_gallery_run_phfrozen_ebands.py` (``run_phfrozen_ebands.py``)
+- **00:00.673**: :ref:`sphx_glr_flow_gallery_run_gaas_ebands_soc.py` (``run_gaas_ebands_soc.py``)
+- **00:00.641**: :ref:`sphx_glr_flow_gallery_run_eos.py` (``run_eos.py``)
+- **00:00.610**: :ref:`sphx_glr_flow_gallery_run_fe_ebands.py` (``run_fe_ebands.py``)
+- **00:00.594**: :ref:`sphx_glr_flow_gallery_run_ldaus.py` (``run_ldaus.py``)
+- **00:00.553**: :ref:`sphx_glr_flow_gallery_run_si_g0w0.py` (``run_si_g0w0.py``)
+- **00:00.532**: :ref:`sphx_glr_flow_gallery_run_mgb2_edoses.py` (``run_mgb2_edoses.py``)
+- **00:00.491**: :ref:`sphx_glr_flow_gallery_run_relax_and_ebands.py` (``run_relax_and_ebands.py``)
+- **00:00.483**: :ref:`sphx_glr_flow_gallery_run_ht_si_g0w0ppm.py` (``run_ht_si_g0w0ppm.py``)
+- **00:00.482**: :ref:`sphx_glr_flow_gallery_run_phonopy_si.py` (``run_phonopy_si.py``)
+- **00:00.468**: :ref:`sphx_glr_flow_gallery_run_relax_vs_kpts.py` (``run_relax_vs_kpts.py``)
+- **00:00.459**: :ref:`sphx_glr_flow_gallery_run_relax.py` (``run_relax.py``)
+- **00:00.445**: :ref:`sphx_glr_flow_gallery_run_ht_si_bsemdf.py` (``run_ht_si_bsemdf.py``)
+- **00:00.438**: :ref:`sphx_glr_flow_gallery_run_si_ebands.py` (``run_si_ebands.py``)
+- **00:00.428**: :ref:`sphx_glr_flow_gallery_run_from_files.py` (``run_from_files.py``)
+- **00:00.379**: :ref:`sphx_glr_flow_gallery_run_sic_relax.py` (``run_sic_relax.py``)
