@@ -1,0 +1,43 @@
+name: AbiPy testing
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    strategy:
+      max-parallel: 6
+      matrix:
+        os: [ubuntu-latest]
+        python-version: [3.7]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install binary dependencies (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
+        bash miniconda.sh -b -p ${HOME}/miniconda
+        export PATH="${HOME}/miniconda/bin:${PATH}"
+        hash -r
+        conda config --set always_yes yes --set changeps1 yes
+        conda update -q conda
+        # Useful for debugging any issues with conda
+        conda info -a
+        # Replace dep1 dep2 ... with your dependencies
+        conda create -q -n test-environment python=${{ matrix.python-version }}
+        source activate test-environment
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-optional.txt
+    - name: Test with pytest
+      run: |
+        pip install -e .
+        pytest abipy
