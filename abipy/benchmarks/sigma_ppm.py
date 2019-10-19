@@ -26,7 +26,6 @@ def make_inputs(paw=False):
         timopt=-1,
     )
 
-
     multi.set_kmesh(ngkpt=[4,4,3], shiftk=[0.0, 0.0, 0.0])
 
     gs, nscf, scr, sigma = multi.split_datasets()

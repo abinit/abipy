@@ -61,6 +61,7 @@ global_vars = dict(
     #iomode=3
 )
 
+
 def make_inputs(options):
     structure = abilab.Structure.from_abivars(unit_cell)
 

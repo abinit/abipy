@@ -62,7 +62,7 @@ class TestSkwInterpolator(AbipyTest):
 
         # Test interpolation routines (high-level API).
         edos = skw.get_edos(kmesh, is_shift=None, method="gaussian", step=0.1, width=0.2, wmesh=None)
-        jdos = skw.get_jdos_q0(kmesh, is_shift=None, method="gaussian", step=0.1, width=0.2, wmesh=None)
+        #jdos = skw.get_jdos_q0(kmesh, is_shift=None, method="gaussian", step=0.1, width=0.2, wmesh=None)
         #nest = skw.get_nesting_at_e0(qpoints, kmesh, e0, width=0.2, is_shift=None)
 
         # Test pickle
@@ -76,7 +76,7 @@ class TestSkwInterpolator(AbipyTest):
             widths = [0.2, 0.3]
             is_shift = None
             assert skw.plot_dos_vs_kmeshes(kmeshes, is_shift=is_shift, show=False)
-            assert skw.plot_jdosq0_vs_kmeshes(kmeshes, is_shift=is_shift, show=False)
+            #assert skw.plot_jdosq0_vs_kmeshes(kmeshes, is_shift=is_shift, show=False)
 
             #assert skw.plot_nesting_vs_widths(widths=widths, kmesh=[4, 4, 4], e0=None, qvertices_names=None,
             #                                  line_density=5, is_shift=is_shift, show=False)

@@ -19,7 +19,7 @@ def make_inputs(paw=False):
     # N=9
     # Supercell and atoms
 
-    xcart= np.fromstring("""
+    xcart = np.fromstring("""
 0.0000000000E+00  0.0000000000E+00 -4.2633349730E+00
 3.7794522658E+00  3.7794522658E+00 -3.2803418097E+00
 0.0000000000E+00  3.7794522658E+00 -3.6627278067E+00
@@ -55,7 +55,7 @@ def make_inputs(paw=False):
     structure = abilab.Structure.from_abivars(
         #acell="4.0 4.0 28.0 Angstrom",
         acell=abilab.ArrayWithUnit([4.0, 4.0, 28], "ang").to("bohr"),
-        rprim=np.eye(3), 
+        rprim=np.eye(3),
         typat=[int(i) for i in "3 3 2 3 3 2 1 3 3 3 2 1 3 3 3 2 1 3 3 3 2 1 3 3 3 2 3 3 2".split()],
         znucl=[56, 22, 8],
         xcart=xcart,
@@ -135,7 +135,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return 
+        return
     return build_flow(options)
 
 

@@ -211,7 +211,8 @@ def build_bench_main_parser():
     parser.add_argument("--min-eff", default=None, type=float, help="Minimum parallel efficiency accepted. Default None.")
 
     parser.add_argument('--paw', default=False, action="store_true", help="Run PAW calculation if available")
-    parser.add_argument("-a", '--abivalidate', default=False, action="store_true", help="Call Abinit to validate input files and return")
+    parser.add_argument("-a", '--abivalidate', default=False, action="store_true",
+                        help="Call Abinit to validate input files and return")
 
     parser.add_argument("-i", '--info', default=False, action="store_true", help="Show benchmark info and exit")
     parser.add_argument("-r", "--remove", default=False, action="store_true", help="Remove old flow workdir")

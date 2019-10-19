@@ -19,8 +19,7 @@ def make_input(paw=False):
     Build and return an input file for GS calculations with paral_kgb=1
     """
     pseudos = abidata.pseudos("14si.pspnc", "8o.pspnc")
-              #if not paw else
-              #abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
+              #if not paw else abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
     structure = abidata.structure_from_ucell("SiO2-alpha")
 
     inp = abilab.AbinitInput(structure, pseudos)

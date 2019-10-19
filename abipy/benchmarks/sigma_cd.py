@@ -30,7 +30,6 @@ def make_inputs(paw=False):
         paral_kgb=0,
     )
 
-
     multi.set_kmesh(
         ngkpt=[6,6,6],
         shiftk=[0.0, 0.0, 0.0],

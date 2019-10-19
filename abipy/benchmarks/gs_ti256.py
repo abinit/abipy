@@ -341,7 +341,7 @@ def build_flow(options):
 
     # Processor distribution.
     pconfs = [
-     dict(npkpt=2, npband=8 , npfft=8 ),  # 128
+     dict(npkpt=2, npband=8 , npfft=8),   # 128
      dict(npkpt=2, npband=8 , npfft=16),  # 256
      dict(npkpt=2, npband=16, npfft=16),  # 512
      dict(npkpt=2, npband=16, npfft=32),  # 1024

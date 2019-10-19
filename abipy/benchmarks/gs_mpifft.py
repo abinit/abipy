@@ -1,6 +1,9 @@
 #!/usr/bin/env python
-"""Analyze the parallel efficiency of the MPI-FFT algorithsm in in the GS part.
-Use paral_kgb=1 and fftalg_list = [312, 402, 401]"""
+"""
+Analyze the parallel efficiency of the MPI-FFT algorithsm in in the GS part.
+Use paral_kgb=1 and fftalg_list = [312, 402, 401]
+"""
+
 import sys
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk
@@ -25,7 +28,7 @@ def make_input(paw=False):
     ecut = 24
     inp.set_vars(
         ecut=ecut,
-        pawecutdg=ecut*2 if paw else None,
+        pawecutdg=ecut * 2 if paw else None,
         paral_kgb=1,
         nsppol=1,
         nband=28,

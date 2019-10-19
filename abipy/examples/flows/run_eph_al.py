@@ -17,6 +17,7 @@ import abipy.flowtk as flowtk
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
+        __file__ = os.path.join(os.getcwd(), "run_eph_al.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     # Preparatory run for E-PH calculations.
@@ -43,20 +44,17 @@ def build_flow(options):
     gs_inp = abilab.AbinitInput(structure, pseudos)
 
     gs_inp.set_vars(
-        istwfk="*1",
         ecut=8.0,
         nband=5,
         occopt=7,    # include metallic occupation function with a small smearing
         tsmear=0.04,
         tolvrs=1e-7,
-        #timeopt=-1,
     )
 
     # The kpoint grid is minimalistic to keep the calculation manageable.
     gs_inp.set_kmesh(
         ngkpt=[8, 8, 8],
         shiftk=[0.0, 0.0, 0.0],
-        #kptopt=3,
     )
 
     # Phonon calculation with 4x4x4
@@ -76,10 +74,10 @@ def build_flow(options):
         # Build input file for E-PH run.
         eph_inp = gs_inp.new_with_vars(
             optdriver=7,
-            ddb_ngqpt=ddb_ngqpt,       # q-mesh used to produce the DDB file (must be consistent with DDB data)
-            eph_intmeth=2,             # Tetra method
-            eph_fsewin="0.8 eV",       # Energy window around Ef
-            eph_mustar=0.12,           # mustar parameter
+            ddb_ngqpt=ddb_ngqpt,           # q-mesh used to produce the DDB file (must be consistent with DDB data)
+            eph_intmeth=2,                 # Tetra method
+            eph_fsewin="0.8 eV",           # Energy window around Ef
+            eph_mustar=0.12,               # mustar parameter
             eph_ngqpt_fine=eph_ngqpt_fine, # Interpolate DFPT potentials if != ddb_ngqpt
         )
 
@@ -98,11 +96,12 @@ def build_flow(options):
 
 # This block generates the thumbnails in the Abipy gallery.
 # You can safely REMOVE this part if you are using this script for production runs.
-if os.getenv("GENERATE_SPHINX_GALLERY", False):
+if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-    build_flow(options).plot_networkx(tight_layout=True)
+    build_flow(options).graphviz_imshow()
+    #build_flow(options).plot_networkx(tight_layout=True)
 
 
 @flowtk.flow_main

@@ -111,30 +111,30 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
             print("Trying to access valence band index with occtype:", self.occtype)
         return int(self.nelect // 2 - 1)
 
-    def set_fermie(self, fermie, kmesh, is_shift=None):
-        """
-        Change the Fermi level. Use the IDOS computed on the k-grid specifined by
-        `kmesh` and `is_shift` to recompute the total number of electrons.
+    #def set_fermie(self, fermie, kmesh, is_shift=None):
+    #    """
+    #    Change the Fermi level. Use the IDOS computed on the k-grid specifined by
+    #    `kmesh` and `is_shift` to recompute the total number of electrons.
 
-        Args:
-            fermie: New Fermi level in eV
-            kmesh: Three integers with the number of divisions along the reciprocal primitive axes.
-            is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along
-                the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.
+    #    Args:
+    #        fermie: New Fermi level in eV
+    #        kmesh: Three integers with the number of divisions along the reciprocal primitive axes.
+    #        is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along
+    #            the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.
 
-        Return:
-            New value of `self.nelect`.
-        """
-        # Compute DOS
-        edos = self._get_cached_edos(kmesh, is_shift)
-        #if edos is None:
-        #    edos = self.get_edos(kmesh, is_shift=is_shift, method="gaussian", step=0.1, width=0.2, wmesh=None)
-        #    self._cache_edos(kmesh, is_shift, edos)
+    #    Return:
+    #        New value of `self.nelect`.
+    #    """
+    #    # Compute DOS
+    #    edos = self._get_cached_edos(kmesh, is_shift)
+    #    #if edos is None:
+    #    #    edos = self.get_edos(kmesh, is_shift=is_shift, method="gaussian", step=0.1, width=0.2, wmesh=None)
+    #    #    self._cache_edos(kmesh, is_shift, edos)
 
-        self.fermie = fermie
-        # Find number of electrons from new chemical potential from nelect.
-        self.nelect = idos.spline(fermie)
-        return self.nelect
+    #    self.fermie = fermie
+    #    # Find number of electrons from new chemical potential from nelect.
+    #    self.nelect = idos.spline(fermie)
+    #    return self.nelect
 
     #def set_nelect(self, nelect, kmesh, is_shift=None):
     #    """
@@ -222,67 +222,67 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
         return dict2namedtuple(mesh=wmesh, values=values, integral=integral)
         #return ElectronDos(wmesh, values, integral, is_shift, method, step, width)
 
-    def get_jdos_q0(self, kmesh, is_shift=None, method="gaussian", step=0.1, width=0.2, wmesh=None):
-        r"""
-        Compute the join density of states at q==0
+    #def get_jdos_q0(self, kmesh, is_shift=None, method="gaussian", step=0.1, width=0.2, wmesh=None):
+    #    r"""
+    #    Compute the join density of states at q==0
 
-            :math:`\sum_{kbv} f_{vk} (1 - f_{ck}) \delta(\omega - E_{ck} + E_{vk})`
+    #        :math:`\sum_{kbv} f_{vk} (1 - f_{ck}) \delta(\omega - E_{ck} + E_{vk})`
 
-        Args:
-            kmesh: Three integers with the number of divisions along the reciprocal primitive axes.
-            is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along
-                the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.
-            method: String defining the method.
-            step: Energy step (eV) of the linear mesh.
-            width: Standard deviation (eV) of the gaussian.
-            wmesh: Frequency mesh to use. If None, the mesh is computed automatically from the eigenvalues.
+    #    Args:
+    #        kmesh: Three integers with the number of divisions along the reciprocal primitive axes.
+    #        is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along
+    #            the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.
+    #        method: String defining the method.
+    #        step: Energy step (eV) of the linear mesh.
+    #        width: Standard deviation (eV) of the gaussian.
+    #        wmesh: Frequency mesh to use. If None, the mesh is computed automatically from the eigenvalues.
 
-        Returns:
-        """
-        k = self.get_sampling(kmesh, is_shift)
+    #    Returns:
+    #    """
+    #    k = self.get_sampling(kmesh, is_shift)
 
-        # Interpolate eigenvalues in the IBZ.
-        eigens = self._get_cached_eigens(kmesh, is_shift, "ibz")
-        if eigens is None:
-            eigens = self.interp_kpts(k.ibz).eigens
-            self._cache_eigens(kmesh, is_shift, eigens, "ibz")
+    #    # Interpolate eigenvalues in the IBZ.
+    #    eigens = self._get_cached_eigens(kmesh, is_shift, "ibz")
+    #    if eigens is None:
+    #        eigens = self.interp_kpts(k.ibz).eigens
+    #        self._cache_eigens(kmesh, is_shift, eigens, "ibz")
 
-        wmesh, step = self._get_w2mesh_step(eigens, wmesh, step)
-        nw = len(wmesh)
-        values = np.zeros((self.nsppol, nw))
+    #    wmesh, step = self._get_w2mesh_step(eigens, wmesh, step)
+    #    nw = len(wmesh)
+    #    values = np.zeros((self.nsppol, nw))
 
-        if self.occtype == "insulator":
-            if method == "gaussian":
-                for spin in range(self.nsppol):
-                    for ik, wtk in enumerate(k.weights):
-                        for icb in range(self.val_ib + 1, self.nband):
-                            ec = eigens[spin, ik, icb]
-                            for icv in range(self.val_ib):
-                                ev = eigens[spin, ik, icv]
-                                values[spin] += wtk * gaussian(wmesh, width, center=ec-ev)
-            else:
-                raise ValueError("Method %s is not supported" % method)
+    #    if self.occtype == "insulator":
+    #        if method == "gaussian":
+    #            for spin in range(self.nsppol):
+    #                for ik, wtk in enumerate(k.weights):
+    #                    for icb in range(self.val_ib + 1, self.nband):
+    #                        ec = eigens[spin, ik, icb]
+    #                        for icv in range(self.val_ib):
+    #                            ev = eigens[spin, ik, icv]
+    #                            values[spin] += wtk * gaussian(wmesh, width, center=ec-ev)
+    #        else:
+    #            raise ValueError("Method %s is not supported" % method)
 
-        else:
-            #occfacts = self.
-            if method == "gaussian":
-                for spin in range(self.nsppol):
-                    for ik, wtk in enumerate(k.weights):
-                        for icb in conduction:
-                            ec = eigens[spin, ik, icb]
-                            fc = 1.0 - occfacts[spin, ik, icb]
-                            for icv in valence:
-                                ev = eigens[spin, ik, icv]
-                                fv = occfacts[spin, ik, icv]
-                                fact = wtk * fv * fc
-                                values[spin] += fact * gaussian(wmesh, width, center=ec-ev)
-            else:
-                raise ValueError("Method %s is not supported" % method)
+    #    else:
+    #        raise NotImplementedError("not insulator")
+    #        #if method == "gaussian":
+    #        #    for spin in range(self.nsppol):
+    #        #        for ik, wtk in enumerate(k.weights):
+    #        #            for icb in conduction:
+    #        #                ec = eigens[spin, ik, icb]
+    #        #                fc = 1.0 - occfacts[spin, ik, icb]
+    #        #                for icv in valence:
+    #        #                    ev = eigens[spin, ik, icv]
+    #        #                    fv = occfacts[spin, ik, icv]
+    #        #                    fact = wtk * fv * fc
+    #        #                    values[spin] += fact * gaussian(wmesh, width, center=ec-ev)
+    #        #else:
+    #        #    raise ValueError("Method %s is not supported" % method)
 
-        if self.nsppol == 1: values *= 2.0
-        integral = scipy.integrate.cumtrapz(values, x=wmesh, initial=0.0)
+    #    if self.nsppol == 1: values *= 2.0
+    #    integral = scipy.integrate.cumtrapz(values, x=wmesh, initial=0.0)
 
-        return dict2namedtuple(mesh=wmesh, values=values, integral=integral)
+    #    return dict2namedtuple(mesh=wmesh, values=values, integral=integral)
 
     #def get_jdos_qpts(self, qpoints, kmesh, is_shift=None, method="gaussian", step=0.1, width=0.2, wmesh=None):
     #    qpoints = np.reshape(qpoints, (-1, 3))
@@ -307,44 +307,44 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
     #    jdos_sqw *= 1. / k.nbz
     #    return jdos_sqw
 
-    def get_nesting_at_e0(self, qpoints, kmesh, e0, width=0.2, is_shift=None):
-        """
-        Compute the nesting factor with gaussian broadening for an arbitrary list of q-points.
+    #def get_nesting_at_e0(self, qpoints, kmesh, e0, width=0.2, is_shift=None):
+    #    """
+    #    Compute the nesting factor with gaussian broadening for an arbitrary list of q-points.
 
-        Args:
-            qpoints: List of q-points in reduced coordinates.
-            kmesh: Three integers with the number of divisions along the reciprocal primitive axes.
-            e0: Energy level in eV.
-            width: Standard deviation (eV) of the gaussian.
-            is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along
-                the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.
+    #    Args:
+    #        qpoints: List of q-points in reduced coordinates.
+    #        kmesh: Three integers with the number of divisions along the reciprocal primitive axes.
+    #        e0: Energy level in eV.
+    #        width: Standard deviation (eV) of the gaussian.
+    #        is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along
+    #            the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.
 
-        Returns:
-            numpy array of shape [self.nsppol, len(qpoints)]
-        """
-        qpoints = np.reshape(qpoints, (-1, 3))
-        k = self.get_sampling(kmesh, is_shift)
+    #    Returns:
+    #        numpy array of shape [self.nsppol, len(qpoints)]
+    #    """
+    #    qpoints = np.reshape(qpoints, (-1, 3))
+    #    k = self.get_sampling(kmesh, is_shift)
 
-        # Interpolate eigenvalues in the full BZ.
-        eigens_kbz = self._get_cached_eigens(kmesh, is_shift, "bz")
-        if eigens is None:
-            eigens_kbz = self.interp_kpts(k.bz).eigens
-            self._cache_eigens(kmesh, is_shift, eigens_kbz, "bz")
+    #    # Interpolate eigenvalues in the full BZ.
+    #    eigens_kbz = self._get_cached_eigens(kmesh, is_shift, "bz")
+    #    if eigens_kbz is None:
+    #        eigens_kbz = self.interp_kpts(k.bz).eigens
+    #        self._cache_eigens(kmesh, is_shift, eigens_kbz, "bz")
 
-        eigens_kbz = eigens_kbz - e0
-        g_skb = gaussian(eigens_kbz, width)
+    #    eigens_kbz = eigens_kbz - e0
+    #    g_skb = gaussian(eigens_kbz, width)
 
-        # TODO: One could reduce the sum to IBZ(q) with appropriate weight.
-        nest_sq = np.zeros((self.nsppol, len(qpoints)))
-        for iq, qpt in enumerate(qpoints):
-            kpq_bz = kbz + qpt
-            eigens_kqbz = self.interp_kpts(kpq_bz).eigens - e0
-            g_skqb = gaussian(eigens_kqbz, width)
-            vals = g_skb * g_skqb
-            nest_sq[:, iq] = vals.sum(axis=(1, 2))
+    #    # TODO: One could reduce the sum to IBZ(q) with appropriate weight.
+    #    nest_sq = np.zeros((self.nsppol, len(qpoints)))
+    #    for iq, qpt in enumerate(qpoints):
+    #        kpq_bz = kbz + qpt
+    #        eigens_kqbz = self.interp_kpts(kpq_bz).eigens - e0
+    #        g_skqb = gaussian(eigens_kqbz, width)
+    #        vals = g_skb * g_skqb
+    #        nest_sq[:, iq] = vals.sum(axis=(1, 2))
 
-        nest_sq *= 1. / k.nbz
-        return nest_sq
+    #    nest_sq *= 1. / k.nbz
+    #    return nest_sq
 
     def _get_wmesh_step(self, eigens, wmesh, step):
         if wmesh is not None:
@@ -467,112 +467,112 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
 
         return fig
 
-    @add_fig_kwargs
-    def plot_jdosq0_vs_kmeshes(self, kmeshes, is_shift=None, method="gaussian", step=0.1, width=0.2,
-                               ax=None, fontsize=12, **kwargs):
-        """
-        Plot (interpolated) Joint DOSes at q=0 computed with different meshes.
+    #@add_fig_kwargs
+    #def plot_jdosq0_vs_kmeshes(self, kmeshes, is_shift=None, method="gaussian", step=0.1, width=0.2,
+    #                           ax=None, fontsize=12, **kwargs):
+    #    """
+    #    Plot (interpolated) Joint DOSes at q=0 computed with different meshes.
 
-        Args:
-            kmeshes: List of kmeshes. Each item is given by three integers with the number of
-                divisions along the reciprocal primitive axes.
-            is_shift: three integers (spglib API). If None, the kmesh is shifted along
-                the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.
-            method: String defining the method for the computation of the DOS.
-            step: Energy step (eV) of the linear mesh.
-            width: Standard deviation (eV) of the gaussian.
-            ax: |matplotlib-Axes| or None if a new figure should be created.
-            fontsize: Legend and title fontsize.
+    #    Args:
+    #        kmeshes: List of kmeshes. Each item is given by three integers with the number of
+    #            divisions along the reciprocal primitive axes.
+    #        is_shift: three integers (spglib API). If None, the kmesh is shifted along
+    #            the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.
+    #        method: String defining the method for the computation of the DOS.
+    #        step: Energy step (eV) of the linear mesh.
+    #        width: Standard deviation (eV) of the gaussian.
+    #        ax: |matplotlib-Axes| or None if a new figure should be created.
+    #        fontsize: Legend and title fontsize.
 
-        Returns: |matplotlib-Figure|
-        """
-        ax, fig, plt = get_ax_fig_plt(ax=ax)
-        kmeshes = np.reshape(np.asarray(kmeshes, dtype=np.int), (-1, 3))
-        for kmesh in kmeshes:
-            jdos = self.get_jdos_q0(kmesh, is_shift=is_shift, method=method, step=step, width=width)
-            for spin in range(self.nsppol):
-                spin_sign = +1 if spin == 0 else -1
-                ax.plot(jdos.mesh, jdos.values[spin] * spin_sign, label=str(kmesh) if spin == 0 else None)
+    #    Returns: |matplotlib-Figure|
+    #    """
+    #    ax, fig, plt = get_ax_fig_plt(ax=ax)
+    #    kmeshes = np.reshape(np.asarray(kmeshes, dtype=np.int), (-1, 3))
+    #    for kmesh in kmeshes:
+    #        jdos = self.get_jdos_q0(kmesh, is_shift=is_shift, method=method, step=step, width=width)
+    #        for spin in range(self.nsppol):
+    #            spin_sign = +1 if spin == 0 else -1
+    #            ax.plot(jdos.mesh, jdos.values[spin] * spin_sign, label=str(kmesh) if spin == 0 else None)
 
-        ax.grid(True)
-        ax.set_xlabel("Energy (eV)")
-        ax.set_ylabel('JDOS (states/eV)')
-        ax.legend(loc="best", fontsize=fontsize, shadow=True)
+    #    ax.grid(True)
+    #    ax.set_xlabel("Energy (eV)")
+    #    ax.set_ylabel('JDOS (states/eV)')
+    #    ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
-        return fig
+    #    return fig
 
-    @add_fig_kwargs
-    def plot_nesting_vs_widths(self, widths, kmesh, e0=None, qvertices_names=None,
-                               line_density=20, is_shift=None, ax=None, fontsize=12, **kwargs):
-        """
-        Plot (interpolated) nesting factor computed with different broadening.
+    #@add_fig_kwargs
+    #def plot_nesting_vs_widths(self, widths, kmesh, e0=None, qvertices_names=None,
+    #                           line_density=20, is_shift=None, ax=None, fontsize=12, **kwargs):
+    #    """
+    #    Plot (interpolated) nesting factor computed with different broadening.
 
-        Args:
-            widths: List of standard deviations (eV) of the gaussian.
-            kmeshes: List of kmeshes. Each item is given by three integers with the number of
-                divisions along the reciprocal primitive axes.
-            e0: Energy level in eV.
-            qvertices_names
-            line_density:
-            is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along
-                the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.
-            ax: |matplotlib-Axes| or None if a new figure should be created.
-            fontsize: Legend and title fontsize.
+    #    Args:
+    #        widths: List of standard deviations (eV) of the gaussian.
+    #        kmeshes: List of kmeshes. Each item is given by three integers with the number of
+    #            divisions along the reciprocal primitive axes.
+    #        e0: Energy level in eV.
+    #        qvertices_names
+    #        line_density:
+    #        is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along
+    #            the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.
+    #        ax: |matplotlib-Axes| or None if a new figure should be created.
+    #        fontsize: Legend and title fontsize.
 
-        Returns: |matplotlib-Figure|
-        """
-        ax, fig, plt = get_ax_fig_plt(ax=ax)
-        qpoints = self._get_kpts_kticks_klabels(ax, qvertices_names, line_density)
+    #    Returns: |matplotlib-Figure|
+    #    """
+    #    ax, fig, plt = get_ax_fig_plt(ax=ax)
+    #    qpoints = self._get_kpts_kticks_klabels(ax, qvertices_names, line_density)
 
-        e0 = self.interpolated_fermie if e0 is None else e0
-        for width in np.asarray(widths):
-            nest_sq = self.get_nesting_at_e0(qpoints, kmesh, e0, width=width, is_shift=is_shift)
-            for spin in range(self.nsppol):
-                spin_sign = +1 if spin == 0 else -1
-                ax.plot(nest_sq[spin] * spin_sign, label=str(kmesh) if spin == 0 else None)
+    #    e0 = self.interpolated_fermie if e0 is None else e0
+    #    for width in np.asarray(widths):
+    #        nest_sq = self.get_nesting_at_e0(qpoints, kmesh, e0, width=width, is_shift=is_shift)
+    #        for spin in range(self.nsppol):
+    #            spin_sign = +1 if spin == 0 else -1
+    #            ax.plot(nest_sq[spin] * spin_sign, label=str(kmesh) if spin == 0 else None)
 
-        ax.grid(True)
-        ax.set_ylabel('Nesting factor')
-        ax.legend(loc="best", fontsize=fontsize, shadow=True)
+    #    ax.grid(True)
+    #    ax.set_ylabel('Nesting factor')
+    #    ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
-        return fig
+    #    return fig
 
-    @add_fig_kwargs
-    def plot_nesting_vs_kmeshes(self, width, kmeshes, e0=None, qvertices_names=None, line_density=20,
-                                is_shift=None, ax=None, fontsize=12, **kwargs):
-        """
-        Plot (interpolated) nesting factor computed with different k-meshes.
+    #@add_fig_kwargs
+    #def plot_nesting_vs_kmeshes(self, width, kmeshes, e0=None, qvertices_names=None, line_density=20,
+    #                            is_shift=None, ax=None, fontsize=12, **kwargs):
+    #    """
+    #    Plot (interpolated) nesting factor computed with different k-meshes.
 
-        Args:
-            width: Gaussian broadening (eV).
-            kmeshes: List of kmeshes. Each item is given by three integers with the number of
-                divisions along the reciprocal primitive axes.
-            e0: Energy level in eV.
-            qvertices_names
-            line_density:
-            is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along
-                the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.
-            ax: |matplotlib-Axes| or None if a new figure should be created.
-            fontsize: legend and title fontsize.
+    #    Args:
+    #        width: Gaussian broadening (eV).
+    #        kmeshes: List of kmeshes. Each item is given by three integers with the number of
+    #            divisions along the reciprocal primitive axes.
+    #        e0: Energy level in eV.
+    #        qvertices_names
+    #        line_density:
+    #        is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along
+    #            the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.
+    #        ax: |matplotlib-Axes| or None if a new figure should be created.
+    #        fontsize: legend and title fontsize.
 
-        Returns: |matplotlib-Figure|
-        """
-        ax, fig, plt = get_ax_fig_plt(ax=ax)
-        qpoints = self._get_kpts_kticks_klabels(ax, qvertices_names, line_density)
+    #    Returns: |matplotlib-Figure|
+    #    """
+    #    ax, fig, plt = get_ax_fig_plt(ax=ax)
+    #    qpoints = self._get_kpts_kticks_klabels(ax, qvertices_names, line_density)
 
-        kmeshes = np.reshape(np.asarray(kmeshes, dtype=np.int), (-1, 3))
-        e0 = self.interpolated_fermie if e0 is None else e0
-        for kmesh in kmeshes:
-            nest_sq = self.get_nesting_at_e0(qpoints, kmesh, e0, width=width, is_shift=is_shift)
-            for spin in range(self.nsppol):
-                spin_sign = +1 if spin == 0 else -1
-                ax.plot(nest_sq[spin] * spin_sign, label=str(kmesh) if spin == 0 else None)
+    #    kmeshes = np.reshape(np.asarray(kmeshes, dtype=np.int), (-1, 3))
+    #    e0 = self.interpolated_fermie if e0 is None else e0
+    #    for kmesh in kmeshes:
+    #        nest_sq = self.get_nesting_at_e0(qpoints, kmesh, e0, width=width, is_shift=is_shift)
+    #        for spin in range(self.nsppol):
+    #            spin_sign = +1 if spin == 0 else -1
+    #            ax.plot(nest_sq[spin] * spin_sign, label=str(kmesh) if spin == 0 else None)
 
-        ax.grid(True)
-        ax.set_ylabel('Nesting factor')
-        ax.legend(loc="best", fontsize=fontsize, shadow=True)
+    #    ax.grid(True)
+    #    ax.set_ylabel('Nesting factor')
+    #    ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
-        return fig
+    #    return fig
 
     #@add_fig_kwargs
     #def plot_group_velocites(self, vertices_names=None, line_density=20, ax=None, **kwargs):

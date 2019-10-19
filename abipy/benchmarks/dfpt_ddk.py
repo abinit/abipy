@@ -44,7 +44,6 @@ def make_inputs(paw=False):
                 0.5, 0.5, 0.5]
     )
 
-
     multi[0].set_vars(
       kptopt=1,          # Automatic generation of k points with symmetries.
       tolvrs=1.0e-6,
