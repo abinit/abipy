@@ -5,7 +5,6 @@ Band structure Flow
 
 Flow to compute the band structure of silicon.
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 import sys
 import os
@@ -56,7 +55,7 @@ def make_scf_nscf_inputs(paral_kgb=0, usepaw=0):
 def build_flow(options):
     # Set working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
-        if os.getenv("READTHEDOCS", False): __file__ = os.path.join(os.getcwd(), "run_si_ebands.py")
+        __file__ = os.path.join(os.getcwd(), "run_si_ebands.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     # Get the SCF and the NSCF input.

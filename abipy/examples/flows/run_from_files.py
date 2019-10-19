@@ -6,8 +6,6 @@ Starting a Flow from external files
 This example shows how to build a flow for Nscf calculations
 in which the dependency is given by an external density file.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import sys
 import os
 import abipy.data as abidata
@@ -57,7 +55,7 @@ def make_scf_nscf_inputs(paral_kgb=1):
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
-        if os.getenv("READTHEDOCS", False): __file__ = os.path.join(os.getcwd(), "run_from_files.py")
+        __file__ = os.path.join(os.getcwd(), "run_from_files.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     # Get the SCF and the NSCF input.

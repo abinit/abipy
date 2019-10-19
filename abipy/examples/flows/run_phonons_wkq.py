@@ -11,7 +11,6 @@ for each q-point, only the independent atomic perturbations are computed.
 The final results (out_DDB, out_DVDB) will be produced automatically at the end of the run
 and saved in the ``outdata/`` of the work.
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 import sys
 import os
@@ -55,7 +54,7 @@ def build_flow(options):
     """
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
-        if os.getenv("READTHEDOCS", False): __file__ = os.path.join(os.getcwd(), "run_phonons_wkq.py")
+        __file__ = os.path.join(os.getcwd(), "run_phonons_wkq.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     flow = flowtk.Flow(workdir=options.workdir)

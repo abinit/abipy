@@ -4,7 +4,6 @@ Work for computing Grüneisen parameters with finite differences on DFPT phonons
 
 WARNING: This code must be tested more carefully.
 """
-import os
 import numpy as np
 
 from abipy.core.structure import Structure
@@ -118,7 +117,8 @@ class GruneisenWork(Work):
         # Add DDB files for Gruns
         anaddb_inp["gruns_nddbs"] = len(ddb_paths)
         anaddb_inp["gruns_ddbs"] = "\n" + "\n".join('"%s"' % p for p in ddb_paths)
-        anaddb_inp.write(self.flow.outdir.path_in("anaddb_gruns.in"))
+        in_path = self.flow.outdir.path_in("anaddb_gruns.in")
+        anaddb_inp.write(in_path)
 
         files_file = []
         app = files_file.append
@@ -129,7 +129,7 @@ class GruneisenWork(Work):
             app("FOOBAR")
 
         with open(self.flow.outdir.path_in("anaddb_gruns.files"), "wt") as fh:
-            fh.write("\n".join(lines))
+            fh.write("\n".join(files_file))
 
         #with_ebands = False
         #if with_ebands:

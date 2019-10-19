@@ -6,7 +6,6 @@ Relaxation Flow
 This example shows how to build a very simple Flow for the structural relaxation of SiC.
 One could use a similar logic to perform multiple relaxations with different input parameters...
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 import sys
 import os
@@ -19,7 +18,7 @@ import abipy.flowtk as flowtk
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
-        if os.getenv("READTHEDOCS", False): __file__ = os.path.join(os.getcwd(), "run_sic_relax.py")
+        __file__ = os.path.join(os.getcwd(), "run_sic_relax.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     pseudos = data.pseudos("14si.pspnc", "6c.pspnc")

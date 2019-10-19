@@ -8,7 +8,6 @@ This script shows how to perform a structural relaxation in two steps:
     1) Relaxation of atomic positions with unit cell parameters fixed.
     2) Full relaxation (atoms + cell) with the initial configuration read from step 1)
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 import sys
 import os
@@ -73,7 +72,7 @@ def make_ion_ioncell_inputs(paral_kgb=0):
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
-        if os.getenv("READTHEDOCS", False): __file__ = os.path.join(os.getcwd(), "run_relax.py")
+        __file__ = os.path.join(os.getcwd(), "run_relax.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     # Create the flow

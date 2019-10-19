@@ -6,7 +6,6 @@ Flow for convergence studies of e-DOS wrt ngkpt
 This examples shows how to build a Flow to compute the
 band structure and the electron DOS of MgB2 with different k-point samplings.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 import sys
@@ -54,7 +53,7 @@ def make_scf_nscf_inputs(structure, pseudos, paral_kgb=1):
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
-        if os.getenv("READTHEDOCS", False): __file__ = os.path.join(os.getcwd(), "run_mgb2_edoses.py")
+        __file__ = os.path.join(os.getcwd(), "run_mgb2_edoses.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     structure = abidata.structure_from_ucell("MgB2")

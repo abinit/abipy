@@ -12,8 +12,6 @@ Some of the variables in the input files must be changed depending on the value 
 We use relativistic NC pseudos made of two terms: scalar pseudo + SOC term.
 The SOC term can be deactivated with the input variable `so_psp`.
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import sys
 import os
 import abipy.data as abidata
@@ -24,7 +22,7 @@ import abipy.flowtk as flowtk
 def build_flow(options):
     # Set working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
-        if os.getenv("READTHEDOCS", False): __file__ = os.path.join(os.getcwd(), "run_gaas_ebands_soc.py")
+        __file__ = os.path.join(os.getcwd(), "run_gaas_ebands_soc.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     structure = abidata.structure_from_ucell("GaAs")

@@ -6,8 +6,6 @@ Band structure w/wo magnetization
 Calculation of the band structure of Fe with and without magnetization.
 See also <~abinit/tutorial/Input/tspin_1.in>
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 import sys
 import abipy.data as data
@@ -54,7 +52,7 @@ def make_scf_nscf_inputs(nsppol, paral_kgb=1):
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
-        if os.getenv("READTHEDOCS", False): __file__ = os.path.join(os.getcwd(), "run_fe_ebands.py")
+        __file__ = os.path.join(os.getcwd(), "run_fe_ebands.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     # Create the Flow.

@@ -8,8 +8,6 @@ the dielectric tensors (e0, einf) of AlAs with AbiPy flows.
 We perform multiple calculations by varying the number of k-points
 to analyze the convergence of the results wrt nkpt
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import sys
 import os
 import abipy.abilab as abilab
@@ -59,7 +57,7 @@ def build_flow(options):
     """
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
-        if os.getenv("READTHEDOCS", False): __file__ = os.path.join(os.getcwd(), "run_becs_and_epsilon_vs_kpts.py")
+        __file__ = os.path.join(os.getcwd(), "run_becs_and_epsilon_vs_kpts.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     flow = flowtk.Flow(workdir=options.workdir)

@@ -237,7 +237,9 @@ def input_equality_check(ref_file, input2, rtol=1e-05, atol=1e-08, equal_nan=Fal
 
 
 def get_gsinput_si(usepaw=0, as_task=False):
-    """Build and return a GS input file for silicon."""
+    """
+    Build and return a GS input file for silicon or a Task if `as_task`
+    """
     pseudos = abidata.pseudos("14si.pspnc") if usepaw == 0 else abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
     silicon = abidata.cif_file("si.cif")
 
@@ -256,6 +258,34 @@ def get_gsinput_si(usepaw=0, as_task=False):
 
     # K-point sampling (shifted)
     scf_input.set_autokmesh(nksmall=4)
+
+    if not as_task:
+        return scf_input
+    else:
+        from abipy.flowtk.tasks import ScfTask
+        return ScfTask(scf_input)
+
+
+def get_gsinput_alas_ngkpt(ngkpt, usepaw=0, as_task=False):
+    """
+    Build and return a GS input file for AlAs or a Task if `as_task`
+    """
+    if usepaw != 0: raise NotImplementedError("PAW")
+    pseudos = abidata.pseudos("13al.981214.fhi", "33as.pspnc")
+    structure = abidata.structure_from_ucell("AlAs")
+
+    from abipy.abio.inputs import AbinitInput
+    scf_input = AbinitInput(structure, pseudos=pseudos)
+
+    scf_input.set_vars(
+        nband=5,
+        ecut=8.0,
+        ngkpt=ngkpt,
+        nshiftk=1,
+        shiftk=[0, 0, 0],
+        tolvrs=1.0e-6,
+        diemac=12.0,
+    )
 
     if not as_task:
         return scf_input
@@ -562,6 +592,11 @@ class AbipyTest(PymatgenTest):
     @wraps(get_gsinput_si)
     def get_gsinput_si(*args, **kwargs):
         return get_gsinput_si(*args, **kwargs)
+
+    @staticmethod
+    @wraps(get_gsinput_alas_ngkpt)
+    def get_gsinput_alas_ngkpt(*args, **kwargs):
+        return get_gsinput_alas_ngkpt(*args, **kwargs)
 
 
 def notebook_run(path):

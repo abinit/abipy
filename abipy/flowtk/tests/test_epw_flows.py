@@ -1,33 +1,15 @@
-"""Tests for abiphonopy module"""
-import abipy.data as abidata
-import abipy.flowtk as flowtk
-
+"""Tests for eph_flows module"""
 from abipy.core.testing import AbipyTest
-from abipy.abio.factories import gs_input
 from abipy.flowtk.eph_flows import GkqPathFlow
 
 
 class TestEphFlows(AbipyTest):
     """Unit tests for eph_flows module."""
 
-    def test_gkqpathflows(self):
+    def test_gkqpath_flows(self):
         """Testing GkqPathFlow."""
         ngkpt = [4, 4, 4]
-
-        structure = abidata.structure_from_ucell("AlAs")
-        pseudos = abidata.pseudos("13al.981214.fhi", "33as.pspnc")
-        from abipy.abio.inputs import AbinitInput
-        gs_inp = AbinitInput(structure, pseudos=pseudos)
-
-        gs_inp.set_vars(
-            nband=5,
-            ecut=8.0,
-            ngkpt=ngkpt,
-            nshiftk=1,
-            shiftk=[0, 0, 0],
-            tolvrs=1.0e-6,
-            diemac=12.0,
-        )
+        gs_inp = self.get_gsinput_alas_ngkpt(ngkpt=ngkpt)
 
         ngqpt = (2, 2, 2)
         qbounds = [[0.01, 0, 0], [0.02, 0, 0], [0.04, 0, 0], [0.05, 0, 0]]
@@ -47,6 +29,3 @@ class TestEphFlows(AbipyTest):
         flow.check_status()
         isok, checks = flow.abivalidate_inputs()
         assert isok
-
-        #with self.assertRaises(ValueError):
-        #    GruneisenWork.from_gs_input(gs_inp, voldelta, ngqpt=[3, 3, 3], with_becs=False)

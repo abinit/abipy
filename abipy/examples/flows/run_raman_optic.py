@@ -6,7 +6,6 @@ Raman Flow with independent-particle approximation (optic)
 This script shows how to perform a Raman calculation with excitonic effects
 included with the BSE formalism.
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 import sys
 import os
@@ -38,7 +37,7 @@ def build_flow(options):
 
     # Initialize flow. Each workflow in the flow defines a complete BSE calculation for given eta.
     if not options.workdir:
-        if os.getenv("READTHEDOCS", False): __file__ = os.path.join(os.getcwd(), "run_raman_optic.py")
+        __file__ = os.path.join(os.getcwd(), "run_raman_optic.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     flow = flowtk.Flow(options.workdir, manager=options.manager)

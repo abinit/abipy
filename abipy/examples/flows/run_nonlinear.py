@@ -5,7 +5,6 @@ Flow for Non-linear optic with DFPT
 
 Flow to compute non-linear optical properties with DFPT (static limit).
 """
-from __future__ import division, print_function, unicode_literals
 
 import sys
 import os
@@ -56,7 +55,7 @@ def make_scf_input(ecut=10, ngkpt=(8, 8, 8)):
 
 def build_flow(options):
     if not options.workdir:
-        if os.getenv("READTHEDOCS", False): __file__ = os.path.join(os.getcwd(), "run_nonlinear.py")
+        __file__ = os.path.join(os.getcwd(), "run_nonlinear.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     scf_input = make_scf_input(ecut=10, ngkpt=(6, 6, 6))

@@ -7,7 +7,6 @@ This script shows how to perform a structural relaxation and a band structure ca
 
 WARNING: The API could change!
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 import sys
 import os
@@ -112,7 +111,7 @@ def make_scf_nscf_inputs(paral_kgb=1):
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
-        if os.getenv("READTHEDOCS", False): __file__ = os.path.join(os.getcwd(), "run_relax_and_ebands.py")
+        __file__ = os.path.join(os.getcwd(), "run_relax_and_ebands.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     # Create the flow

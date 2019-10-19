@@ -12,7 +12,6 @@ Note the we are using pseudopotentials generated with the GGA which tends to
 overestimate the lattice parameters and ecut is way too low.
 If you replace GGA with LDA, you will observe that LDA tends to underestimate the parameters.
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 import sys
 import os
@@ -66,7 +65,7 @@ def build_flow(options):
     """
     # Set working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
-        if os.getenv("READTHEDOCS", False): __file__ = os.path.join(os.getcwd(), "run_relax_vs_kpts_tsmear.py")
+        __file__ = os.path.join(os.getcwd(), "run_relax_vs_kpts_tsmear.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     # Let generate multiple inputs for different (tsmear, nksmall)

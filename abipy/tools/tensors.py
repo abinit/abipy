@@ -7,7 +7,7 @@ import pandas as pd
 
 from pymatgen.core.tensors import Tensor, SquareTensor
 from pymatgen.analysis.elasticity.elastic import ElasticTensor  # flake8: noqa
-from pymatgen.analysis.elasticity.stress import Stress as pmg_Stress 
+from pymatgen.analysis.elasticity.stress import Stress as pmg_Stress
 from pymatgen.analysis.piezo import PiezoTensor # flake8: noqa
 from abipy.iotools import ETSF_Reader
 
