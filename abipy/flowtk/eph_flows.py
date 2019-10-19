@@ -30,8 +30,10 @@ class GkqPathFlow(Flow):
             ngqpt: 3 integers defining the q-mesh.
             qbounds: List of boundaries defining the q-path used for the computation of the GKQ files.
                 The q-path is automatically generated using `ndivsm` and the reciprocal-space metric.
-                If `ndivsm` is negative, the code assumes that `qbounds` contains the full list of q-points
+                If `ndivsm` is 0, the code assumes that `qbounds` contains the full list of q-points
                 and no pre-processing is performed.
+            ndivsm: Number of points in the smallest segment of the path defined by `qbounds`.
+                Use 0 to pass list of q-points.
             with_becs: Activate calculation of Electric field and Born effective charges.
             ddk_tolerance: dict {"varname": value} with the tolerance used in the DDK run if `with_becs`.
             test_ft_interpolation: True to add an extra Work in which the GKQ files are computed
@@ -53,15 +55,18 @@ class GkqPathFlow(Flow):
         if ndivsm > 0:
             # Generate list of q-points from qbounds and ndivsm.
             qpath_list = kpath_from_bounds_and_ndivsm(qbounds, ndivsm, scf_input.structure)
-        else:
+        elif ndivsm == 0:
             # Use input list of q-pooints.
             qpath_list = np.reshape(qbounds, (-1, 3))
+        else:
+            raise ValueError("ndivsm cannot be negative. Received ndivsm: %s" % ndivsm)
 
         # Compute WFK/WFQ and phonons for qpt in qpath_list.
         # Don't include BECS because they have been already computed in the previous work.
-        work_qpath = PhononWfkqWork.from_scf_task(scf_task, qpath_list, ph_tolerance=None, tolwfr=1.0e-22, nband=None,
-                      with_becs=False, ddk_tolerance=None, shiftq=(0, 0, 0), is_ngqpt=False, remove_wfkq=False,
-                      prepgkk=prepgkk, manager=manager)
+        work_qpath = PhononWfkqWork.from_scf_task(
+                       scf_task, qpath_list, ph_tolerance=None, tolwfr=1.0e-22, nband=None,
+                       with_becs=False, ddk_tolerance=None, shiftq=(0, 0, 0), is_ngqpt=False, remove_wfkq=False,
+                       prepgkk=prepgkk, manager=manager)
         flow.register_work(work_qpath)
 
         def make_eph_input(scf_inp, ngqpt, qpt):

@@ -225,7 +225,7 @@ def flatten(iterable):
             iterator = stack.pop()
         else:
             if not isinstance(value, str) \
-               and isinstance(value, collections.Iterable):
+               and isinstance(value, collections.abc.Iterable):
                 stack.append(iterator)
                 iterator = iter(value)
             else:

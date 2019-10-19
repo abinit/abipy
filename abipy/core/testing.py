@@ -237,9 +237,8 @@ def input_equality_check(ref_file, input2, rtol=1e-05, atol=1e-08, equal_nan=Fal
 
 
 def get_gsinput_si(usepaw=0, as_task=False):
-    """Build and return GS input file for silicon."""
+    """Build and return a GS input file for silicon."""
     pseudos = abidata.pseudos("14si.pspnc") if usepaw == 0 else abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
-    #silicon = abilab.Structure.zincblende(5.431, ["Si", "Si"], units="ang")
     silicon = abidata.cif_file("si.cif")
 
     from abipy.abio.inputs import AbinitInput
@@ -247,7 +246,6 @@ def get_gsinput_si(usepaw=0, as_task=False):
     ecut = 6
     scf_input.set_vars(
         ecut=ecut,
-        pawecutdg=40,
         nband=6,
         paral_kgb=0,
         iomode=3,
@@ -258,6 +256,7 @@ def get_gsinput_si(usepaw=0, as_task=False):
 
     # K-point sampling (shifted)
     scf_input.set_autokmesh(nksmall=4)
+
     if not as_task:
         return scf_input
     else:

@@ -3,10 +3,15 @@ r"""
 Gruneisen parameters with DFPT phonons and finite difference
 ============================================================
 
-The flow computes the dynamical matrix of AlAs for three different volumens
-around the equilibrium configuration.
-Gruneisen parameters are then computed in anaddb by approximating the derivative
-of the dynamical matrix wrt volume with finite differences.
+This script compute the Grüneisen parameters (derivative of frequencies wrt Volume)
+using finite differences and the phonons obtained with the DFPT part of Abinit.
+The Anaddb input file needed to compute Grüneisen parameters will be generated
+in the outdata directory of the flow.
+
+It is necessary to run three DFPT phonon calculations.
+One is calculated at the equilibrium volume and the remaining two are calculated
+at the slightly larger volume and smaller volume than the equilibrium volume.
+The unitcells at these volumes have to be fully relaxed under the constraint of each volume.
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 
@@ -17,17 +22,15 @@ import abipy.abilab as abilab
 import abipy.data as abidata
 from abipy import flowtk
 
+
 def build_flow(options):
     """
-    Create a `Flow` for phonon calculations:
-
-        1) One workflow for the GS run.
-        2) nqpt works for phonon calculations. Each work contains
-           nirred tasks where nirred is the number of irreducible phonon perturbations
-           for that particular q-point.
+    Create a `Flow` for Grüneisen calculations:
+    Three relaxations at fixed volume followed by phonon calculation on a q-mesh.
     """
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
+        if os.getenv("READTHEDOCS", False): __file__ = os.path.join(os.getcwd(), "run_gruneisen_abinit.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     flow = flowtk.Flow(workdir=options.workdir)
@@ -39,9 +42,6 @@ def build_flow(options):
 
     gs_inp = abilab.AbinitInput(structure, pseudos=pseudos)
 
-    # List of q-points for the phonon calculation.
-    #qpoints = np.reshape(qpoints, (-1, 3))
-
     # Global variables used both for the GS and the DFPT run.
     gs_inp.set_vars(
         nband=4,
@@ -52,24 +52,20 @@ def build_flow(options):
                 0.0, 0.5, 0.0,
                 0.5, 0.0, 0.0,
                 0.5, 0.5, 0.5],
-        #shiftk=[0, 0, 0],
-        paral_kgb=0,
         diemac=12.0,
         iomode=3,
         tolvrs=1.0e-18,
     )
 
-    # Get the qpoints in the IBZ. Note that here we use a q-mesh with ngkpt=(4,4,4) and shiftk=(0,0,0)
-    qpoints = gs_inp.abiget_ibz(ngkpt=(4, 4, 4), shiftk=(0, 0, 0)).points
+    from abipy.flowtk.gruneisen import GruneisenWork
+    voldelta = gs_inp.structure.volume * 0.02
 
-    # Build input for GS calculation and register the first work.
-    #work0 = flow.register_scf_task(scf_input)
-    #ph_work = flowtk.PhononWork.from_scf_task(work0[0], qpoints=qpoints, is_ngqpt=True)
-    #flow.register_work(ph_work)
-
-    ph_inputs = abilab.MultiDataset(structure, pseudos=pseudos, ndtset=len(qpoints))
+    # k-mesh and q-mesh must be commensurate.
+    work = GruneisenWork.from_gs_input(gs_inp, voldelta, ngqpt=[2, 2, 2], with_becs=False)
+    flow.register_work(work)
 
     return flow
+
 
 # This block generates the thumbnails in the Abipy gallery.
 # You can safely REMOVE this part if you are using this script for production runs.

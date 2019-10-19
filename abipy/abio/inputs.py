@@ -3328,7 +3328,7 @@ def product_dict(d):
     values = []
 
     for v in vals:
-        if not isinstance(v, collections.Iterable): v = [v]
+        if not isinstance(v, collections.abc.Iterable): v = [v]
         values.append(v)
 
     # Build list of dictionaries. Use ordered dicts so that
