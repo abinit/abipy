@@ -55,6 +55,14 @@ pytest -n 2 --cov-config=.coveragerc --cov=abipy -v --doctest-modules abipy \
         ctx.run(pytest_cmd, pty=True)
 
 
+#@task
+#def style(ctx):
+#    with cd(ABIPY_ROOTDIR):
+#        ctx.run("pycodestyle abipy, pty=True)
+#        ctx.run("flake8 --count --show-source --statistics abipy", pty=True)
+#        ctx.run("pydocstyle abipy, pty=True)
+
+
 @task
 def plots(ctx):
     with cd(os.path.join(ABIPY_ROOTDIR, "abipy", "examples")):

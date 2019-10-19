@@ -2382,7 +2382,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         self.history.info("Removed files: %s" % paths)
         return paths
 
-    def setup(self):
+    def setup(self):  # flake8: noqa
         """Base class does not provide any hook."""
 
     #@check_spectator

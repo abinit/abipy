@@ -8,6 +8,8 @@ class TestEphFlows(AbipyTest):
 
     def test_gkqpath_flows(self):
         """Testing GkqPathFlow."""
+        self.skip_if_abinit_not_ge("8.11.0")
+
         ngkpt = [4, 4, 4]
         gs_inp = self.get_gsinput_alas_ngkpt(ngkpt=ngkpt)
 

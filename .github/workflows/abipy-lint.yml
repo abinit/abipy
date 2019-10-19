@@ -8,7 +8,7 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        python-version: [3.7]
+        python-version: [3.8]
 
     steps:
     - uses: actions/checkout@v1
@@ -19,10 +19,10 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-      #- name: Lint with pycodestyle
-      #  run: |
-      #    pip install pycodestyle
-      #    pycodestyle abipy
+    - name: Lint with pycodestyle
+      run: |
+        pip install pycodestyle
+        pycodestyle abipy
       #- name: Lint with mypy
       #  run: |
       #    pip install mypy
@@ -33,9 +33,9 @@ jobs:
         # stop the build if there are Python syntax errors or undefined names
         flake8 --count --show-source --statistics abipy
         # exit-zero treats all errors as warnings.
-        flake8 --count --exit-zero --max-complexity=20 --statistics abipy
-    - name: Lint with pylint
-      run: |
-        pip install pylint
-        # stop the build if there are Python syntax errors or undefined names
-        pylint --exit-zero abipy
+        #flake8 --count --exit-zero --max-complexity=20 --statistics abipy
+        #- name: Lint with pylint
+        #  run: |
+        #    pip install pylint
+        #    # stop the build if there are Python syntax errors or undefined names
+        #    pylint --exit-zero abipy
