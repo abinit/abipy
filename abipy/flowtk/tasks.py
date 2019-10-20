@@ -67,20 +67,13 @@ def straceback():
     return traceback.format_exc()
 
 
-def lennone(PropperOrNone):
-    if PropperOrNone is None:
-        return 0
-    else:
-        return len(PropperOrNone)
-
-
 def nmltostring(nml):
     """Convert a dictionary representing a Fortran namelist into a string."""
-    if not isinstance(nml,dict):
+    if not isinstance(nml, dict):
         raise ValueError("nml should be a dict !")
 
     curstr = ""
-    for key,group in nml.items():
+    for key, group in nml.items():
         namelist = ["&" + key]
         for k, v in group.items():
             if isinstance(v, list) or isinstance(v, tuple):
@@ -1985,6 +1978,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         # 7) Analyze the files of the resource manager and abinit and execution err (mvs)
         # MG: This section has been disabled: several portability issues
         # Need more robust logic in error_parser, perhaps logic provided by users via callbacks.
+        """
         if False and (qerr_info or qout_info):
             from abipy.flowtk.scheduler_error_parsers import get_parser
             scheduler_parser = get_parser(self.manager.qadapter.QTYPE, err_file=self.qerr_file.path,
@@ -2019,6 +2013,7 @@ class Task(Node, metaclass=abc.ABCMeta):
                 # The job may be killed or crashed but we don't know what happened
                 # It may also be that an innocent message was written to qerr, so we wait for a while
                 # it is set to QCritical, we will attempt to fix it by running on more resources
+        """
 
         # 8) analyzing the err files and abinit output did not identify a problem
         # but if the files are not empty we do have a problem but no way of solving it:
@@ -4180,9 +4175,6 @@ class OpticTask(Task):
         lines = []
         app = lines.append
 
-        #optic.in     ! Name of input file
-        #optic.out    ! Unused
-        #optic        ! Root name for all files that will be produced
         app(self.input_file.path)                           # Path to the input file
         app(os.path.join(self.workdir, "unused"))           # Path to the output file
         app(os.path.join(self.workdir, self.prefix.odata))  # Prefix for output data
@@ -4650,38 +4642,38 @@ class AnaddbTask(Task):
         return results
 
 
-class BoxcuttedPhononTask(PhononTask):
-    """
-    This task compute phonons with a two-step algorithm.
-    The first DFPT run is done with low-accuracy settings for boxcutmin and ecut
-    The second DFPT run uses boxcutmin 2.0 and normal ecut and restarts from
-    the 1WFK file generated previously.
-    """
-    @classmethod
-    def patch_flow(cls, flow):
-        for task in flow.iflat_tasks():
-            if isinstance(task, PhononTask): task.__class__ = cls
-
-    def setup(self):
-        super(BoxcuttedPhononTask, self).setup()
-        self.final_dfp_done = False if not hasattr(self, "final_dfp_done") else self.final_dfp_done
-        if not self.final_dfp_done:
-            # First run: use boxcutmin 1.5 and low-accuracy hints (assume pseudos with hints).
-            pseudos = self.input.pseudos
-            ecut = max(p.hint_for_accuracy("low").ecut for p in pseudos)
-            pawecutdg = max(p.hint_for_accuracy("low").pawecutdg for p in pseudos) if self.input.ispaw else None
-            self.set_vars(boxcutmin=1.5, ecut=ecut, pawecutdg=pawecutdg, prtwf=1)
-
-    def _on_ok(self):
-        results = super(BoxcuttedPhononTask, self)._on_ok()
-        if not self.final_dfp_done:
-            # Second run: use exact box and normal-accuracy hints (assume pseudos with hints).
-            pseudos = self.input.pseudos
-            ecut = max(p.hint_for_accuracy("normal").ecut for p in pseudos)
-            pawecutdg = max(p.hint_for_accuracy("normal").pawecutdg for p in pseudos) if self.input.ispaw else None
-            self.set_vars(boxcutmin=2.0, ecut=ecut, pawecutdg=pawecutdg, prtwf=-1)
-            self.finalized = True
-            self.final_dfp_done = True
-            self.restart()
-
-        return results
+#class BoxcuttedPhononTask(PhononTask):
+#    """
+#    This task compute phonons with a two-step algorithm.
+#    The first DFPT run is done with low-accuracy settings for boxcutmin and ecut
+#    The second DFPT run uses boxcutmin 2.0 and normal ecut and restarts from
+#    the 1WFK file generated previously.
+#    """
+#    @classmethod
+#    def patch_flow(cls, flow):
+#        for task in flow.iflat_tasks():
+#            if isinstance(task, PhononTask): task.__class__ = cls
+#
+#    def setup(self):
+#        super(BoxcuttedPhononTask, self).setup()
+#        self.final_dfp_done = False if not hasattr(self, "final_dfp_done") else self.final_dfp_done
+#        if not self.final_dfp_done:
+#            # First run: use boxcutmin 1.5 and low-accuracy hints (assume pseudos with hints).
+#            pseudos = self.input.pseudos
+#            ecut = max(p.hint_for_accuracy("low").ecut for p in pseudos)
+#            pawecutdg = max(p.hint_for_accuracy("low").pawecutdg for p in pseudos) if self.input.ispaw else None
+#            self.set_vars(boxcutmin=1.5, ecut=ecut, pawecutdg=pawecutdg, prtwf=1)
+#
+#    def _on_ok(self):
+#        results = super(BoxcuttedPhononTask, self)._on_ok()
+#        if not self.final_dfp_done:
+#            # Second run: use exact box and normal-accuracy hints (assume pseudos with hints).
+#            pseudos = self.input.pseudos
+#            ecut = max(p.hint_for_accuracy("normal").ecut for p in pseudos)
+#            pawecutdg = max(p.hint_for_accuracy("normal").pawecutdg for p in pseudos) if self.input.ispaw else None
+#            self.set_vars(boxcutmin=2.0, ecut=ecut, pawecutdg=pawecutdg, prtwf=-1)
+#            self.finalized = True
+#            self.final_dfp_done = True
+#            self.restart()
+#
+#        return results
