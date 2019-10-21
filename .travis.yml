@@ -39,12 +39,6 @@ install:
       if [ "${ABIPY_INSTALLER}" == "pip" ]; then
         # pip-based installation.
         source dev_scripts/conda_get.sh  # Needed for Abinit
-        conda config --add channels conda-forge
-        echo "Installing abinit from abinit channel ..."
-        conda install -y -c abinit abinit=${ABINIT_VERSION}
-        abinit --version
-        abinit --build
-
         # We are gonna use the github version
         sed -i '/pymatgen/d' requirements.txt
         # https://github.com/pypa/pipenv/issues/2596

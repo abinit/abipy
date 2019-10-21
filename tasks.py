@@ -55,12 +55,12 @@ pytest -n 2 --cov-config=.coveragerc --cov=abipy -v --doctest-modules abipy \
         ctx.run(pytest_cmd, pty=True)
 
 
-#@task
-#def style(ctx):
-#    with cd(ABIPY_ROOTDIR):
-#        ctx.run("pycodestyle abipy, pty=True)
-#        ctx.run("flake8 --count --show-source --statistics abipy", pty=True)
-#        ctx.run("pydocstyle abipy, pty=True)
+@task
+def style(ctx):
+    with cd(ABIPY_ROOTDIR):
+        ctx.run("pycodestyle 2>&1 | tee style.log", pty=True)
+        ctx.run("flake8 --count --show-source --statistics | tee -a style.log", pty=True)
+        ctx.run("pydocstyle abipy | tee -a style.log", pty=True)
 
 
 @task

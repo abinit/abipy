@@ -25,6 +25,13 @@ conda config --set always_yes yes --set changeps1 yes
 conda update -q conda
 # Useful for debugging any issues with conda
 conda info -a
-# Replace dep1 dep2 ... with your dependencies
+conda config --add channels conda-forge
+echo "Installing abinit from abinit channel in abinit-environment..."
+conda create -q -n abinit-environment python=${TRAVIS_PYTHON_VERSION}
+source activate test-environment
+conda install -y -c abinit abinit=${ABINIT_VERSION}
+abinit --version
+abinit --build
+echo "Creating test-environment..."
 conda create -q -n test-environment python=${TRAVIS_PYTHON_VERSION}
 source activate test-environment
