@@ -5,29 +5,22 @@ set -e  # exit on first error
 echo "PMG_MAPI_KEY: 8pkvwRLQSCVbW2Fe" > ${HOME}/.pmgrc.yaml
 
 echo "Running preliminary tests for Abipy with Abinit..."
-abinit --version
-abinit --build
-abicheck.py --with-flow
+#abinit --version
+#abinit --build
+#abicheck.py --with-flow
 
 # Run unit tests with pytest. No doctests if 2.7
-if [[ "${ABIPY_PYTEST}" == "yes" ]]; then 
+if [[ "${ABIPY_PYTEST}" == "yes" ]]; then
     echo "Running tests with pytests..."
-    if [[ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]]; then 
-	pytest -n 2 --cov-config=.coveragerc --cov=abipy -v abipy \
-	    --ignore=abipy/integration_tests --ignore=abipy/data/refs --ignore=abipy/scripts/ \
-	    --ignore=abipy/examples/plot --ignore=abipy/examples/flows --ignore=abipy/gui 
-    else
 	pytest -n 2 --cov-config=.coveragerc --cov=abipy -v --doctest-modules abipy \
 	    --ignore=abipy/integration_tests --ignore=abipy/data/refs --ignore=abipy/scripts/ \
-	    --ignore=abipy/examples/plot --ignore=abipy/examples/flows --ignore=abipy/gui 
-    fi
+	    --ignore=abipy/examples/plot --ignore=abipy/examples/flows --ignore=abipy/gui
 fi
 
-# This is to run the integration tests (append results)
-# integration_tests are excluded in setup.cfg
-if [[ "${ABIPY_COVERALLS}" == "yes" ]]; then 
+# This is to run the integration tests (append results) integration_tests are excluded in setup.cfg
+if [[ "${ABIPY_COVERALLS}" == "yes" ]]; then
     echo "Running integration tests..."
-    pytest -n 2 --cov-config=.coveragerc --cov=abipy --cov-append -v abipy/integration_tests 
+    pytest -n 2 --cov-config=.coveragerc --cov=abipy --cov-append -v abipy/integration_tests
 fi
 
 # Generate documentation
