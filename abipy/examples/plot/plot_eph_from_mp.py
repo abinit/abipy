@@ -31,6 +31,7 @@ for i, mpid in enumerate(mpids):
     phbst, _ = ddb.anaget_phbst_and_phdos_files(nqsmall=0)
     phbands_list.append(phbst.phbands)
     phbst.close()
+    ddb.close()
 
 # The figure has [len(mpids), 2] subplots
 # The i-th row contains electrons and phonons for the i-th mp identifier.

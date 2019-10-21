@@ -2377,7 +2377,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         self.history.info("Removed files: %s" % paths)
         return paths
 
-    def setup(self):  # noqa: E731
+    def setup(self):  # noqa: E731,F811
         """Base class does not provide any hook."""
 
     #@check_spectator
@@ -2400,7 +2400,6 @@ class Task(Node, metaclass=abc.ABCMeta):
 
         Returns:
             1 if task was started, 0 otherwise.
-
         """
         if self.status >= self.S_SUB:
             raise self.Error("Task status: %s" % str(self.status))

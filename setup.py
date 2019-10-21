@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # flake8: noqa
-"""Setup script for abipy."""
-from __future__ import print_function
+"""Setup script for AbiPy."""
 
 import sys
 import os

@@ -22,7 +22,7 @@ class TestFunction1D(AbipyTest):
         sinf, cosf, eix = self.sinf, self.cosf, self.eix
 
         repr(sinf); str(sinf)
-        assert isinstance(sinf, collections.Iterable)
+        assert isinstance(sinf, collections.abc.Iterable)
         assert len(sinf) == len(sinf.mesh)
         assert self.h == sinf.h
 

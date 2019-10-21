@@ -23,7 +23,7 @@ class TestQPList(AbipyTest):
     def test_qplist(self):
         """Test QPList object."""
         qplist = self.qplist
-        assert isinstance(qplist, collections.Iterable)
+        assert isinstance(qplist, collections.abc.Iterable)
         self.serialize_with_pickle(qplist, protocols=[-1])
 
         repr(qplist); str(qplist)

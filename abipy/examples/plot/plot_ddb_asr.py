@@ -21,3 +21,5 @@ plotter.combiplot()
 # Set nqsmall to 0 to disable DOS computation.
 plotter = ddb.anacompare_asr(asr_list=(0, 2), nqsmall=0, ndivsm=10)
 plotter.gridplot()
+
+ddb.close()

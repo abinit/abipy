@@ -348,7 +348,7 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
 
     def _get_wmesh_step(self, eigens, wmesh, step):
         if wmesh is not None:
-            return wesh, wmesh[1] - wmesh[0]
+            return wmesh, wmesh[1] - wmesh[0]
 
         # Compute the linear mesh.
         epad = 1.0
@@ -361,7 +361,7 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
 
     def _get_w2mesh_step(self, eigens, wmesh, step):
         if wmesh is not None:
-            return wesh, wmesh[1] - wmesh[0]
+            return wmesh, wmesh[1] - wmesh[0]
 
         # Compute the linear mesh.
         cmin, cmax = +np.inf, -np.inf

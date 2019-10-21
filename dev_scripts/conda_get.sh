@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e  # exit on first error
+set -e  # exit on first error, -v print each command
 
 # Install conda with travis: https://conda.io/docs/travis.html
 if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then
@@ -10,7 +10,6 @@ fi
 
 bash miniconda.sh -b -p ${HOME}/miniconda
 export PATH="${HOME}/miniconda/bin:${PATH}"
-
 hash -r
 
 conda config --set always_yes yes --set changeps1 yes
@@ -24,6 +23,7 @@ source activate abinit-environment
 conda install -y -c abinit abinit=${ABINIT_VERSION}
 abinit --version
 abinit --build
+
 echo "Creating test-environment for python stack..."
 conda create -q -n test-environment python=${TRAVIS_PYTHON_VERSION}
 source activate test-environment
