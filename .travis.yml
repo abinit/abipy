@@ -29,6 +29,12 @@ matrix:
       sudo: true
       env:
         - ABIPY_INSTALLER=conda ABIPY_SPHINX=yes
+    - os: osx
+      python: 3.7
+      sudo: true
+      env:
+        - ABIPY_INSTALLER=conda
+
 
 install:
   #- set -ev  # exit on first error, print each command
