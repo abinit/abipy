@@ -915,6 +915,18 @@ class KpointList(collections.abc.Sequence):
         except ValueError:
             raise ValueError("Cannot find point: %s in KpointList:\n%s" % (repr(kpoint), repr(self)))
 
+    def get_all_kindexes(self, kpoint):
+        """
+        Return numpy array with indexes of all the k-point
+        Accepts: |Kpoint| instance or integer.
+        """
+        start = self.index(kpoint)
+        k0 = self[start]
+        kinds = []
+        for ik, k in enumerate(self):
+            if k == k0: kinds.append(ik)
+        return np.array(kinds)
+
     def find(self, kpoint):
         """
         Returns: first index of kpoint. -1 if not found
@@ -1642,7 +1654,8 @@ class KpointsReaderMixin(object):
         weights = self.read_kweights()
         ksampling = self.read_ksampling_info()
 
-        if ksampling.kptopt < 0:
+        #if ksampling.kptopt < 0:
+        if ksampling.kptopt < 0 or np.all(weights == 1):
             # We have a path in the BZ.
             kpath = Kpath(structure.reciprocal_lattice, frac_coords, ksampling=ksampling)
             for kpoint in kpath:
@@ -1659,9 +1672,6 @@ class KpointsReaderMixin(object):
         #if np.any(ksampling.kptrlatt_orig != 0):
         # We have a homogeneous sampling of the BZ.
         return IrredZone(structure.reciprocal_lattice, frac_coords, weights=weights, ksampling=ksampling)
-
-        #raise ValueError("Only homogeneous samplings or paths are supported!\n"
-        #                 "ksampling info:\n%s" % str(ksampling))
 
     def read_ksampling_info(self):
         """

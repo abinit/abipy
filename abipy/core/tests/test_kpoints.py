@@ -183,7 +183,6 @@ class TestKpointList(AbipyTest):
 
         frac_coords = [0, 0, 0, 1/2, 1/2, 1/2, 1/3, 1/3, 1/3]
         weights = [0.1, 0.2, 0.7]
-
         klist = KpointList(lattice, frac_coords, weights=weights)
         repr(klist); str(klist)
 
@@ -198,6 +197,7 @@ class TestKpointList(AbipyTest):
         for i, kpoint in enumerate(klist):
             assert kpoint in klist
             assert klist.count(kpoint) == 1
+            assert klist.index(kpoint) == i
             assert klist.find(kpoint) == i
 
         # Changing the weight of the Kpoint object should change the weights of klist.
@@ -236,6 +236,12 @@ class TestKpointList(AbipyTest):
         assert add_klist.count([0,0,0]) == 1
         assert len(add_klist) == 4
         assert add_klist == add_klist.remove_duplicated()
+
+        frac_coords = [1/2, 1/2, 1/2, 1/2, 1/2, 1/2]
+        klist = KpointList(lattice, frac_coords, weights=None)
+        assert np.all(klist.get_all_kindexes([1/2, 1/2, 1/2]) == [0, 1])
+        with self.assertRaises(ValueError):
+            klist.index((0, 0, 0))
 
 
 class TestIrredZone(AbipyTest):

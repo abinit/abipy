@@ -462,7 +462,7 @@ class ElectronBandsTest(AbipyTest):
 
         self.assert_almost_equal(np.array(values), 1.0)
 
-        em = ebands.effmass_line(spin=0, kpoint=(0, 0, 0), band=0)
+        em = ebands.get_effmass_line(spin=0, kpoint=(0, 0, 0), band=0)
         repr(em); str(em)
         #self.assert_almost_equal(np.array(values), 1.0)
 

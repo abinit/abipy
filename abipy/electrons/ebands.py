@@ -2350,54 +2350,52 @@ class ElectronBands(Has_Structure):
         ders2 = self.derivatives(spin, band, order=2, acc=acc) * (units.eV_to_Ha / units.bohr_to_ang**2)
         return 1. / ders2
 
-    def effmass_line(self, spin, kpoint, band, acc=4):
+    def get_effmass_line(self, spin, kpoint, band, acc=4):
         """
-        Compute the effective masses along a line. Requires band energies on a k-path.
+        Compute the effective masses along a k-line. Requires band energies on a k-path.
 
         Args:
             spin: Spin index.
-            kpoint: integer or |Kpoint| object. Note that if kpoint is not an integer,
-                and the path contains duplicated k-points, the first k-point is selected.
+            kpoint: integer, list of fractional coordinates or |Kpoint| object.
             band: Band index.
             acc: accuracy
         """
-        if not self.kpoints.is_path:
-            raise ValueError("effmass_line requires points along a path.")
-
         warnings.warn("This code is still under development. API may change!")
-
-        # Find index associate to the k-point
-        ik = self.kindex(kpoint)
-
-        # We have to understand if the k-point is a vertex or not.
-        # If it's a vertex, indeed, we have to compute the left and right derivative
-        # If kpt is inside the line, left and right derivatives are supposed to be equal
-        for iline, line in enumerate(self.kpoints.lines):
-            if line[-1] >= ik >= line[0]: break
-        else:
-            raise ValueError("Cannot find k-index %s in lines: %s" % (ik, self.kpoints.lines))
-
-        kpos = line.index(ik)
-        is_inside = kpos not in (0, len(line)-1)
-        do_right = (not is_inside) and kpos != 0 and iline != len(self.kpoints.lines) - 1
+        if not self.kpoints.is_path:
+            raise ValueError("get_effmass_line requires k-points along a path. Got:\n %s" % repr(self.kpoints))
 
         from abipy.tools.derivatives import finite_diff
-        evals_on_line, h_left, vers_left = self._eigens_hvers_iline(spin, band, iline)
-        d2line = finite_diff(evals_on_line, h_left, order=2, acc=acc) * (units.eV_to_Ha / units.bohr_to_ang**2)
-        em_left = 1. / d2line[kpos]
-        em_right = em_left
-        h_right, vers_right = h_left, vers_left
 
-        if do_right:
-            kpos_right = self.kpoints.lines[iline+1].index(ik)
-            assert kpos_right == 0
-            evals_on_line, h_right, vers_right = self._eigens_hvers_iline(spin, band, iline+1)
-            d2line = finite_diff(evals_on_line, h_right, order=2, acc=acc) * (units.eV_to_Ha / units.bohr_to_ang**2)
-            em_right = 1. / d2line[kpos_right]
+        for ik in self.kpoints.get_all_kindexes(kpoint):
+            # We have to understand if the k-point is a vertex or not.
+            # If it is a vertex, we have to compute the left and right derivative
+            # If kpt is inside the line, left and right derivatives are supposed to be equal
+            for iline, line in enumerate(self.kpoints.lines):
+                if line[-1] >= ik >= line[0]: break
+            else:
+                raise ValueError("Cannot find k-index `%s` in lines: `%s`" % (ik, self.kpoints.lines))
 
-        return EffectiveMassAlongLine(spin, self.kpoints[ik], band, self.eigens[spin, ik, band],
-                                      acc, self.structure.reciprocal_lattice,
-                                      is_inside, h_left, vers_left, em_left, h_right, vers_right, em_right)
+            kpos = line.index(ik)
+            is_inside = kpos not in (0, len(line) -1)
+            do_right = (not is_inside) and kpos != 0 and iline != len(self.kpoints.lines) - 1
+
+            evals_on_line, h_left, vers_left = self._eigens_hvers_iline(spin, band, iline)
+            d2line = finite_diff(evals_on_line, h_left, order=2, acc=acc) * (units.eV_to_Ha / units.bohr_to_ang ** 2)
+            em_left = 1. / d2line[kpos]
+            em_right = em_left
+            h_right, vers_right = h_left, vers_left
+
+            if do_right:
+                kpos_right = self.kpoints.lines[iline + 1].index(ik)
+                assert kpos_right == 0
+                evals_on_line, h_right, vers_right = self._eigens_hvers_iline(spin, band, iline + 1)
+                d2line = finite_diff(evals_on_line, h_right, order=2, acc=acc) * (units.eV_to_Ha / units.bohr_to_ang ** 2)
+                em_right = 1. / d2line[kpos_right]
+
+            em = EffectiveMassAlongLine(spin, self.kpoints[ik], band, self.eigens[spin, ik, band],
+                                        acc, self.structure.reciprocal_lattice,
+                                        is_inside, h_left, vers_left, em_left, h_right, vers_right, em_right)
+            print(em)
 
     def _eigens_hvers_iline(self, spin, band, iline):
         line = self.kpoints.lines[iline]
@@ -2504,20 +2502,26 @@ class EffectiveMassAlongLine(object):
     """
     def __init__(self, spin, kpoint, band, eig, acc, lattice,
                  is_inside, h_left, vers_left, em_left, h_right, vers_right, em_right):
-        self.spin, self.kpoint, self.eig, self.band, self.acc, self.lattice = spin, kpoint, band, eig, acc, lattice,
+
+        self.spin, self.kpoint, self.eig, self.band, self.acc, self.lattice = spin, kpoint, eig, band, acc, lattice,
         self.is_inside, self.h_left, self.vers_left, self.em_left, self.h_right, self.vers_right, self.em_right = \
             is_inside, h_left, vers_left, em_left, h_right, vers_right, em_right
 
     def __repr__(self):
-        return "em_left: %s, em_right: %s" % (self.em_left, self.em_right)
+        return "emass_left: %s, emass_right: %s" % (self.em_left, self.em_right)
 
     def __str__(self):
         lines = []; app = lines.append
-        app("Effective masses for spin: %s, band: %s, accuracy: %s" % (self.spin, self.band, self.acc))
-        app("K-point: %s, eigenvalue: %s (eV)" % (self.kpoint, self.eig))
-        app("h_left: %s, h_right %s" % (self.h_left, self.h_right))
-        app("is_inside: %s, vers_left: %s, vers_right: %s" % (self.is_inside, self.vers_left, self.vers_right))
-        app("em_left: %s, em_right: %s" % (self.em_left, self.em_right))
+        app("For spin: %s, band: %s, k-point: %s, eig: %.3f [eV], accuracy: %s" % (
+            self.spin, self.band, repr(self.kpoint), self.eig, self.acc))
+        #app("K-point: %s, eigenvalue: %s (eV)" % (repr(self.kpoint), self.eig))
+        #app("h_left: %s, h_right %s" % (self.h_left, self.h_right))
+        #app("is_inside: %s, vers_left: %s, vers_right: %s" % (self.is_inside, self.vers_left, self.vers_right))
+        if self.em_left != self.em_right:
+            app("emass_left: %.3f, emass_right: %.3f" % (self.em_left, self.em_right))
+        else:
+            app("emass: %.3f" % self.em_left)
+
         return "\n".join(lines)
 
 

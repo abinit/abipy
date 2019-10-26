@@ -367,7 +367,6 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
         import hashlib
         sha1 = hashlib.sha1()
 
-        # Py3K
         def tos(s):
             return str(s).encode(encoding="utf-8")
 
@@ -795,10 +794,10 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 If None, we use the default high-symmetry k-path defined in the pymatgen database.
         """
         if kptbounds is None: kptbounds = self.structure.calc_kptbounds()
-        kptbounds = np.reshape(kptbounds, (-1,3))
+        kptbounds = np.reshape(kptbounds, (-1, 3))
         #self.pop_vars(["ngkpt", "shiftk"]) ??
 
-        return self.set_vars(kptbounds=kptbounds, kptopt=-(len(kptbounds)-1), ndivsm=ndivsm, iscf=iscf)
+        return self.set_vars(kptbounds=kptbounds, kptopt=-(len(kptbounds) - 1), ndivsm=ndivsm, iscf=iscf)
 
     def set_qpath(self, ndivsm, qptbounds=None):
         """
@@ -1172,6 +1171,17 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 value = self[t]
 
         return tolvar, value
+
+    def make_nscf_kptopt0(self, kpts, tolwfr=1e-20, iscf=-2):
+        """
+        Build an input for NSCF calculation from a GS-SCF one. Uses explicitly list of k-points.
+        """
+        nscf_input = self.deepcopy()
+        nscf_input.pop_vars(["ngkpt", "shiftk"])
+        nscf_input.pop_tolerances()
+        kpts = np.reshape(kpts, (-1, 3))
+        nscf_input.set_vars(tolwfr=tolwfr, kptopt=0, iscf=-2, nkpt=len(kpts), kpt=kpts)
+        return nscf_input
 
     def make_ph_inputs_qpoint(self, qpt, tolerance=None, prtwf=-1, prepgkk=0, manager=None):
         """

@@ -374,6 +374,10 @@ class TestAbinitInput(AbipyTest):
         with self.assertRaises(ValueError):
             gs_inp.abiget_irred_phperts()
 
+        nscf_inp = gs_inp.make_nscf_kptopt0(kpts=[1,2,3,4,5,6])
+        assert "ngkpt" not in nscf_inp and "shiftk" not in nscf_inp
+        assert nscf_inp["kptopt"] == 0 and nscf_inp["nkpt"] == 2
+
         ################
         # Phonon methods
         ################
