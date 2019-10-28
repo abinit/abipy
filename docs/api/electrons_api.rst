@@ -52,6 +52,14 @@ electrons Package
    :members:
    :undoc-members:
    :show-inheritance:
+   
+:mod:`effmass_analyzer` Module
+------------------------------
+
+.. automodule:: abipy.electrons.effmass_analyzer
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 :mod:`fatbands` Module
 ----------------------

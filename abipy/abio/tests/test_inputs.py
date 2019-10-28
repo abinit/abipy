@@ -370,17 +370,42 @@ class TestAbinitInput(AbipyTest):
             tolvrs=1.0e-10,
         )
 
-        # qpt is not in gs_inp and not passed to method.
-        with self.assertRaises(ValueError):
-            gs_inp.abiget_irred_phperts()
-
-        nscf_inp = gs_inp.make_nscf_kptopt0(kpts=[1,2,3,4,5,6])
+        # Test make_nscf_kptopt0_input
+        nscf_inp = gs_inp.make_nscf_kptopt0_input(kpts=[1,2,3,4,5,6])
         assert "ngkpt" not in nscf_inp and "shiftk" not in nscf_inp
-        assert nscf_inp["kptopt"] == 0 and nscf_inp["nkpt"] == 2
+        assert nscf_inp["kptopt"] == 0 and nscf_inp["nkpt"] == 2 and nscf_inp["iscf"] == -2
+
+        ########################
+        # Test make_bands_input
+        ########################
+        nscf_inp = gs_inp.make_bands_input(ndivsm=3, tolwfr=1e-5)
+        assert "ngkpt" not in nscf_inp and "shiftk" not in nscf_inp
+        assert nscf_inp["iscf"] == -2 and nscf_inp["tolwfr"] == 1e-5
+        assert nscf_inp["nband"] == gs_inp["nband"] + 10
+
+        ########################
+        # Test make_bands_input
+        ########################
+        multi =  gs_inp.make_dfpt_effmass_input(kpts=[0, 0, 0, 0.5, 0, 0], effmass_bands_f90=[1, 4, 5, 5])
+        assert len(multi) == 3
+        assert all(inp["kptopt"] == 0 for inp in multi)
+        assert all(inp["nkpt"] == 2 for inp in multi)
+
+        inp0, inp1, inp2 = multi
+        assert inp0["iscf"] == -2
+        assert inp1["rfelfd"] == 2 and inp1["efmas"] == 1 and inp1["efmas_calc_dirs"] == 1 and inp1["efmas_n_dirs"] == 7
+        assert inp2["eph_frohlichm"] == 1 and inp2["eph_task"] == 6 and inp2["asr"] == 2 and inp2["chneut"] == 1
+
+        # Validate with Abinit
+        self.abivalidate_multi(multi)
 
         ################
         # Phonon methods
         ################
+        # qpt is not in gs_inp and not passed to method.
+        with self.assertRaises(ValueError):
+            gs_inp.abiget_irred_phperts()
+
         with self.assertRaises(gs_inp.Error):
             try:
                 ddk_inputs = gs_inp.make_ddk_inputs(tolerance={"tolfoo": 1e10})

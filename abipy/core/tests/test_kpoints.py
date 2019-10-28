@@ -106,6 +106,9 @@ class TestKpoint(AbipyTest):
         K = Kpoint([1/3, 1/3, 1/3], lattice)
         repr(X); str(X)
         assert X.to_string(verbose=2)
+        assert X.tos(m="fract")
+        assert X.tos(m="cart")
+        assert X.tos(m="fracart")
 
         assert gamma.is_gamma()
         assert not pgamma.is_gamma()

@@ -46,6 +46,7 @@ __all__ = [
     "NscfTask",
     "RelaxTask",
     "DdkTask",
+    "EffMassTask",
     "PhononTask",
     "ElasticTask",
     "SigmaTask",
@@ -3790,6 +3791,11 @@ class BecTask(DfptTask):
     bec_deps.update({scf_task: "WFK"})
     """
     color_rgb = np.array((122, 122, 255)) / 255
+
+
+class EffMassTask(DfptTask):
+    """Task for effective mass calculations with DFPT."""
+    color_rgb = np.array((0, 122, 204)) / 255
 
 
 class PhononTask(DfptTask):

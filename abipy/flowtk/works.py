@@ -18,7 +18,7 @@ from pydispatch import dispatcher
 from pymatgen.core.units import EnergyArray
 from . import wrappers
 from .nodes import Dependency, Node, NodeError, NodeResults, FileNode #, check_spectator
-from .tasks import (Task, AbinitTask, ScfTask, NscfTask, DfptTask, PhononTask, ElasticTask, DdkTask,
+from .tasks import (Task, AbinitTask, ScfTask, NscfTask, DfptTask, PhononTask, ElasticTask, DdkTask, EffMassTask,
                     BseTask, RelaxTask, DdeTask, BecTask, ScrTask, SigmaTask, TaskManager,
                     DteTask, EphTask, CollinearThenNonCollinearScfTask)
 
@@ -233,15 +233,13 @@ class BaseWork(Node, metaclass=abc.ABCMeta):
     #@check_spectator
     def on_all_ok(self):
         """
-        This method is called once the `Work` is completed i.e. when all tasks
-        have reached status S_OK. Subclasses should provide their own implementation
+        This method is called once the `Work` is completed i.e. when all tasks have reached status S_OK.
+        Subclasses should provide their own implementation
 
         Returns:
             Dictionary that must contain at least the following entries:
-                returncode:
-                    0 on success.
-                message:
-                    a string that should provide a human-readable description of what has been performed.
+                returncode: 0 on success.
+                message: a string that should provide a human-readable description of what has been performed.
         """
         return dict(returncode=0, message="Calling on_all_ok of the base class!")
 
@@ -399,8 +397,13 @@ class NodeContainer(metaclass=abc.ABCMeta):
         return self.register_task(*args, **kwargs)
 
     def register_ddk_task(self, *args, **kwargs):
-        """Register a ddk task."""
+        """Register a DDK task."""
         kwargs["task_class"] = DdkTask
+        return self.register_task(*args, **kwargs)
+
+    def register_effmass_task(self, *args, **kwargs):
+        """Register a effective mass task."""
+        kwargs["task_class"] = EffMassTask
         return self.register_task(*args, **kwargs)
 
     def register_scr_task(self, *args, **kwargs):
@@ -877,7 +880,7 @@ class BandStructureWork(Work):
             nscf_input: Input for the NSCF run defining the band structure calculation.
             dos_inputs: Input(s) for the DOS. DOS is computed only if dos_inputs is not None.
             workdir: Working directory.
-            manager: :class:`TaskManager` object.
+            manager: |TaskManager| object.
         """
         super().__init__(workdir=workdir, manager=manager)
 

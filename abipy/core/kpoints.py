@@ -655,6 +655,20 @@ class Kpoint(SlotPickleMixin):
             s += " %s" % self.name
         return s
 
+    def tos(self, m="fract"):
+        """
+        Return string with fractional or cartesian coords depending
+        on mode `m` in ("fract", "cart", "fracart")
+        """
+        if m == "fract":
+            return "[%+.3f, %+.3f, %+.3f]" % tuple(self.frac_coords)
+        elif m == "cart":
+            return "(%+.3f, %+.3f, %+.3f)" % tuple(self.cart_coords)
+        elif m == "fracart":
+            return "%s, %s" % (self.tos(m="fract"), self.tos(m="cart"))
+        else:
+            raise ValueError("Invalid mode: `%s`" % str(m))
+
     def __str__(self):
         return self.to_string()
 
@@ -1281,8 +1295,9 @@ class Kpath(KpointList):
 
         for i, v in enumerate(self.versors[1:]):
             i += 1
-            if v != prev:
-                #print("diff", v.frac_coords - prev.frac_coords)
+            #if v != prev:
+            if ((prev - v).norm > 1e-5):
+                #print("diff", (prev - v).norm, v.frac_coords - prev.frac_coords)
                 prev = v
                 lines[-1].append(i)
                 lines.append([i])

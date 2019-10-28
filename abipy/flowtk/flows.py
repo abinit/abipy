@@ -1740,7 +1740,7 @@ class Flow(Node, NodeContainer, MSONable):
             The registered :class:`Work`.
         """
         if getattr(self, "workdir", None) is not None:
-            # The flow has a directory, build the named of the directory of the work.
+            # The flow has a directory, build the name of the directory of the work.
             work_workdir = None
             if workdir is None:
                 work_workdir = os.path.join(self.workdir, "w" + str(len(self)))

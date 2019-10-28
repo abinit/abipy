@@ -20,7 +20,6 @@ from monty.json import MontyDecoder, MSONable
 from pymatgen.core.units import Energy
 from pymatgen.util.serialization import pmg_serialize
 from pymatgen.symmetry.bandstructure import HighSymmKpath
-from pymatgen.io.abinit.abiobjects import KSampling
 from abipy.tools.numtools import is_diagonal
 from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure
@@ -1172,9 +1171,37 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return tolvar, value
 
-    def make_nscf_kptopt0(self, kpts, tolwfr=1e-20, iscf=-2):
+    def make_bands_input(self, ndivsm=15, tolwfr=1e-20, nscf_nband=None):
         """
-        Build an input for NSCF calculation from a GS-SCF one. Uses explicitly list of k-points.
+        Generate an input file for band structure calculations from a GS-SCF input.
+
+        Args:
+            ndivsm: Number of divisions used to sample the smallest segment of the k-path.
+            tolwfr: Tolerance on residuals.
+            nscf_nband: Number of bands for NSCF calculation. +10 if None.
+        """
+        nscf_input = self.deepcopy()
+        nscf_input.pop_vars(["ngkpt", "shiftk"])
+        nscf_input.pop_tolerances()
+
+        # Define k-path.
+        nscf_ksampling = aobj.KSampling.path_from_structure(ndivsm, self.structure)
+        nscf_nband = self["nband"] + 10 if nscf_nband is None else nscf_nband
+
+        nscf_input.set_vars(nscf_ksampling.to_abivars())
+        nscf_input.set_vars(iscf=-2, nband=nscf_nband, tolwfr=tolwfr)
+        #nscf_input.set_vars(_stopping_criterion("nscf", accuracy))
+
+        return nscf_input
+
+    def make_nscf_kptopt0_input(self, kpts, tolwfr=1e-20, iscf=-2):
+        """
+        Build an input for NSCF calculation from a GS-SCF one.
+        Uses explicit list of k-points and kptopt 0
+
+        Args:
+            kpts: List of k-points in reduced coordinates.
+            tolwfr: Tolerance on residuals.
         """
         nscf_input = self.deepcopy()
         nscf_input.pop_vars(["ngkpt", "shiftk"])
@@ -1182,6 +1209,75 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         kpts = np.reshape(kpts, (-1, 3))
         nscf_input.set_vars(tolwfr=tolwfr, kptopt=0, iscf=-2, nkpt=len(kpts), kpt=kpts)
         return nscf_input
+
+    def make_dfpt_effmass_input(self, kpts, effmass_bands_f90, tolwfr=1e-20, iscf=-2):
+        """
+        Return |MultiDataset| with 2 inputs for the calculation of effective masses with DFPT
+            The first input in a standard NSCF run, the second input computes the effective masses.
+
+        Args:
+            kpts: List of k-points in reduced coordinates where effective masses are wanted.
+            efmas_bands_f90: (nkpt, 2) array with band range for effmas computation.
+                WARNING: Uses Fortran convention so first band has index 0
+            tolwfr: Tolerance on residuals.
+        """
+        multi = MultiDataset.replicate_input(input=self, ndtset=3)
+        multi.pop_vars(["ngkpt", "shiftk", "iscf"])
+        multi.pop_tolerances()
+
+        kpts = np.reshape(kpts, (-1, 3))
+        nkpt = len(kpts)
+        # NSCF calculation (requires DEN)
+        multi[0].set_vars(tolwfr=tolwfr, kptopt=0, iscf=-2, nkpt=nkpt, kpt=kpts, prtwf=1)
+
+        # Response Function calculation: d/dk (requires DEN and GS WFK)
+        multi[1].set_vars(
+            rfelfd=2,      # Activate d/dk perturbation (required for effective mass calc.)
+            efmas=1,       # Activate calculation of effective mass tensors
+            prtefmas=1,    # Print netcdf file (should be default)
+            prtwf=-1,
+            tolwfr=tolwfr, kptopt=0, nkpt=len(kpts), kpt=kpts,
+            efmas_bands=np.reshape(effmass_bands_f90, (nkpt, 2)),
+            # And we request the scalar effective mass along directions in cartesian coordinates
+            efmas_calc_dirs=1,
+            efmas_n_dirs=7,
+            efmas_dirs=np.reshape([1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0], (7, 3)),
+        )
+
+        """
+        efmas_bands=    16 16        # The range of bands for which the effective mass tensors will be computed, for each k-point.
+                        16 16        # NOTE: For SO calculations (with nspinor==2), has to be doubled (like nband).
+        efmas_ntheta=   100          # If a band is degenerate, the number of points with which the angular integrals
+                                     # will be performed to compute the 'transport equivalent mass tensor' and the average effective mass.
+
+        efmas_calc_dirs=  1
+        efmas_n_dirs=     3
+        efmas_dirs=       1 0 0 # x
+                          1 1 1
+        """
+
+        # Input variables for Frohlich model calculation
+        # See https://docs.abinit.org/tests/v8/Input/t57.in
+        multi[2].set_vars(
+            iscf=-2,
+            optdriver=7,
+            #getddb6         3
+            #getwfk6         4
+            #getefmas6       5
+            #efmas_ntheta6   100
+            eph_frohlichm=1,
+            eph_task=6,
+            tolwfr=tolwfr, kptopt=0, nkpt=len(kpts), kpt=kpts,
+            #kptopt=0,  # K-points can be specified in any way one want, they just need to be present in the
+            #nkpt6     2        # ground state calc. too.
+            #kpt6      0.00 0.00 0.00   # Gamma
+            #          0.00 0.50 0.50   # X
+            ddb_ngqpt=[1, 1, 1],
+            asr=2,
+            chneut=1,
+        )
+
+        return multi
 
     def make_ph_inputs_qpoint(self, qpt, tolerance=None, prtwf=-1, prepgkk=0, manager=None):
         """
@@ -2534,7 +2630,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         # Parameters for the DOS
         if qppa:
-            ng2qpt = KSampling.automatic_density(structure, kppa=qppa).kpts[0]
+            ng2qpt = aobj.KSampling.automatic_density(structure, kppa=qppa).kpts[0]
             # Set new variables
             new.set_vars(ng2qpt=ng2qpt, prtdos=prtdos, dossmear=dossmear)
         else:

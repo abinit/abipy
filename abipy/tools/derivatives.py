@@ -2,6 +2,8 @@
 """Tools for computing derivatives by finite differences."""
 import numpy as np
 
+from monty.collections import dict2namedtuple
+
 __all__ = [
     "finite_diff",
 ]
@@ -88,22 +90,23 @@ for ord, v in forward_fdiff_weights.items():
         d[ord][accuracy] = ((-1)**ord) * weights[-1::-1]
 
 
-def finite_diff(arr, h, order=1, acc=4):
+def finite_diff(arr, h, order=1, acc=4, index=None):
     """
     Compute the derivative of order `order` by finite difference.
     For each point in arr, the function tries to use central differences
     and fallbacks to forward/backward approximations for points that are close to the extrema.
-    Note that high accuracy levels can fail and raise `ValueError` if not enough points
-    are available in `arr`.
+    Note that high accuracy levels can fail and raise `ValueError` if not enough points are available in `arr`.
 
     Args:
         arr: Input array with y-values.
         h: Spacing along x
         order: Derivative order
         acc: accuracy level.
+        index: If not None, gives the index of the single element in arr where the derivative is wanted.
+            In this case a namedtuple with the derivative, the number of points used and the mode is returned
 
     Return:
-        numpy array.
+        numpy array or (value, npts, mode) if index is not None .
     """
     arr = np.asarray(arr)
 
@@ -113,10 +116,8 @@ def finite_diff(arr, h, order=1, acc=4):
     # Retrieve weights.
     try:
         centr_ws = central_fdiff_weights[order][acc]
-        forw_ws = forward_fdiff_weights[order][acc]
-        back_ws = backward_fdiff_weights[order][acc]
     except KeyError:
-        raise ValueError("Weights for order %s, accuracy %s are missing!" % (order, acc))
+        raise ValueError("Centeral diff weights for order %s, and accuracy %s are missing!" % (order, acc))
 
     npsum = np.sum
     ders = np.empty(arr.shape)
@@ -124,15 +125,19 @@ def finite_diff(arr, h, order=1, acc=4):
     cpad = len(centr_ws) // 2
 
     for i in range(n):
+        if index is not None and i != index: continue
         start = i - cpad
         stop = i + cpad + 1
 
         if start >= 0 and stop <= n:
             # Can do central difference.
             ders[i] = npsum(centr_ws * arr[start:stop])
+            npts = len(centr_ws)
+            mode = "central"
 
         elif start < 0:
             # Try forward.
+            forw_ws = forward_fdiff_weights[order][acc]
             stop = i + len(forw_ws)
             if stop > n:
                 raise ValueError(
@@ -141,9 +146,12 @@ def finite_diff(arr, h, order=1, acc=4):
                      "Decrease acc or increase the sampling" % (i, n, order, acc, len(forw_ws))
                     ))
             ders[i] = npsum(forw_ws * arr[i:stop])
+            npts = len(forw_ws)
+            mode = "forward"
 
         elif stop > n:
             # Try backward.
+            back_ws = backward_fdiff_weights[order][acc]
             start = i - len(back_ws) + 1
             if start < 0:
                 raise ValueError(
@@ -152,5 +160,10 @@ def finite_diff(arr, h, order=1, acc=4):
                      "Decrease acc or increase the sampling" % (i, n, order, acc, len(back_ws))
                     ))
             ders[i] = npsum(back_ws * arr[start:i+1])
+            npts = len(back_ws)
+            mode = "backward"
 
-    return ders/(h**order)
+    if index is None:
+        return ders / (h ** order)
+    else:
+        return dict2namedtuple(value=ders[index] / (h ** order), npts=npts, mode=mode)
