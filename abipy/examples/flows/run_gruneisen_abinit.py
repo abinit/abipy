@@ -15,7 +15,6 @@ The unitcells at these volumes have to be fully relaxed under the constraint of 
 """
 import sys
 import os
-#import numpy as np
 import abipy.abilab as abilab
 import abipy.data as abidata
 from abipy import flowtk
@@ -65,7 +64,7 @@ def build_flow(options):
     return flow
 
 
-# This block generates the thumbnails in the Abipy gallery.
+# This block generates the thumbnails in the AbiPy gallery.
 # You can safely REMOVE this part if you are using this script for production runs.
 if os.getenv("GENERATE_SPHINX_GALLERY", False):
     __name__ = None

@@ -384,6 +384,14 @@ class ElectronBandsTest(AbipyTest):
         e2 = si_ebands_kpath.lomo_sk(spin=0, kpoint=si_ebands_kpath.kpoints[0])
         assert e1.eig == e2.eig
 
+        # Find k0_list and effmass_bands_f90 (Fortran notation)
+        k0_list, effmass_bands_f90 = si_ebands_kpath.get_kpoints_and_band_range_for_edges()
+
+        self.assert_equal(effmass_bands_f90, [[4, 4], [5, 5]])
+        self.assert_almost_equal(k0_list, np.array(
+                                [[0., 0.        , 0.        ],
+                                 [0., 0.42857143, 0.42857143]]))
+
         # Test abipy-->pymatgen converter
         pmg_bands_kpath = si_ebands_kpath.to_pymatgen()
         assert hasattr(pmg_bands_kpath, "get_branch")  # Should be BandStructureSymmLine

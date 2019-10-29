@@ -6,7 +6,8 @@ import os
 
 from abipy.core.kpoints import Kpoint
 from .nodes import Node
-from .works import Work
+from .works import Work, PhononWork
+from .flows import Flow
 
 
 def _get_red_dirs_from_opts(red_dirs, cart_dirs, reciprocal_lattice):
@@ -76,7 +77,6 @@ class EffMassLineWork(Work):
         scf_task = new.register_scf_task(scf_input) if den_node is None else Node.as_node(den_node)
 
         new.register_nscf_task(nscf_input, deps={scf_task: "DEN"})
-
         return new
 
 
@@ -114,12 +114,14 @@ class EffMassDFPTWork(Work):
 
         new = cls(manager=manager)
 
+        # Important: keep a reference to the Frohlich input that can be used to run EPH calculations if needed.
+        new.frohlich_input = multi[2]
+
         # Need to perform SCF run if DEN file is not available
         scf_task = new.register_scf_task(scf_input) if den_node is None else Node.as_node(den_node)
 
         nscf_task = new.register_nscf_task(nscf_input, deps={scf_task: "DEN"})
         new.register_effmass_task(effmass_input, deps={nscf_task: ["DEN", "WFK"]})
-
         return new
 
 
@@ -166,9 +168,8 @@ class EffMassAutoDFPTWork(Work):
         Here, we read the band structure from GSR to find the position of the band edges and use these values
         to generate a new work for effective masses with DFPT.
         """
-        print("in on all_ok")
+        #print("in on all_ok")
         with self.bands_task.open_gsr() as gsr:
-            #print(gsr.ebands)
             ebands = gsr.ebands
             # Warning: Assuming semiconductor with spin-unpolarized band energies.
             # At present, Abinit input variables do not take into account nsppol.
@@ -177,12 +178,75 @@ class EffMassAutoDFPTWork(Work):
             k0_list, effmass_bands_f90 = ebands.get_kpoints_and_band_range_for_edges()
 
         # Create the work for effective mass computation with DFPT and add it to the flow.
+        # Keep also a reference in generated_effmass_dfpt_work.
         work = EffMassDFPTWork.from_scf_input(self.scf_input, k0_list, effmass_bands_f90,
                                               #red_dirs=[[1, 0, 0], [0, 1, 0], [0, 0, 1]], cart_dirs=None,
                                               den_node=self.scf_task)
+
+        self.generated_effmass_dfpt_work = work
         self.flow.register_work(work)
         self.flow.allocate()
         self.flow.build_and_pickle_dump()
         self.flow.finalized = False
 
         return super().on_all_ok()
+
+
+class FrohlichZPRFlow(Flow):
+    """
+    """
+
+    @classmethod
+    def from_scf_input(cls, scf_input, ddb_node=None, ndivsm=15, tolwfr=1e-20,
+                       workdir=None, manager=None):
+        """
+        Build the Work from an |AbinitInput| representing a GS-SCF calculation.
+
+        Args:
+            scf_input: |AbinitInput| for GS-SCF used as template to generate the other inputs.
+            ddb_node: Path to an external DDB file that is used to avoid the calculation of BECS/eps_inf and phonons.
+                If None, a DFPT calculation is automatically perfored by the flow.
+            ndivsm:
+            tolwfr:
+            workdir:
+            manager: |TaskManager| instance. Use default if None.
+        """
+        new = cls(workdir=workdir, manager=manager)
+
+        # Build work for the automatic computation of effective masses.
+        new.effmass_auto_work = EffMassAutoDFPTWork.from_scf_input(scf_input, ndivsm=ndivsm, tolwfr=tolwfr)
+        new.register_work(new.effmass_auto_work)
+        scf_task = new.effmass_auto_work[0]
+
+        if ddb_node is not None:
+            new.ddb_node = Node.as_node(ddb_node)
+        else:
+            # Compute DDB with BECS and eps_inf.
+            becs_work = PhononWork.from_scf_task(scf_task, qpoints=[0, 0, 0],
+                                                 is_ngqpt=False, tolerance=None, with_becs=True,
+                                                 ddk_tolerance=None)
+            new.register_work(becs_work)
+            new.ddb_node = becs_work
+
+        new.on_all_ok_num_calls = 0
+
+        return new
+
+    def on_all_ok(self):
+        self.on_all_ok_num_calls += 1
+        if self.on_all_ok_num_calls > 1:
+            print("flow Returning True")
+            return True
+
+        work = Work()
+        inp = self.effmass_auto_work.generated_effmass_dfpt_work.frohlich_input
+        wfk_task = self.effmass_auto_work.generated_effmass_dfpt_work[0]
+        effmass_task = self.effmass_auto_work.generated_effmass_dfpt_work[1]
+        t = work.register_eph_task(inp, deps={wfk_task: "WFK", self.ddb_node: "DDB", effmass_task: "EFMAS.nc"})
+
+        self.register_work(work)
+        self.allocate()
+        self.build_and_pickle_dump()
+        self.finalized = False
+        print("flow Returning False")
+        return False

@@ -146,15 +146,12 @@ def raman_work(structure, pseudos, ngkpt, shiftk):
     return work
 
 
-# This block generates the thumbnails in the Abipy gallery.
+# This block generates the thumbnails in the AbiPy gallery.
 # You can safely REMOVE this part if you are using this script for production runs.
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-    #build_flow(options).plot_networkx(with_edge_labels=False, tight_layout=True)
-    #dpi = 96
-    #build_flow(options).graphviz_imshow(figsize=(800/dpi, 800/dpi), dpi=dpi)
     build_flow(options).graphviz_imshow()
 
 

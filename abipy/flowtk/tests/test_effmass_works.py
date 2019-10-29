@@ -46,7 +46,6 @@ class TestEffMassWorks(AbipyTest):
         isok, checks = flow.abivalidate_inputs()
         assert isok
 
-
     def test_effmass_dfpt_work(self):
         """Testing EffMassDFPTWork."""
         si_structure = abidata.structure_from_cif("si.cif")
@@ -80,15 +79,41 @@ class TestEffMassWorks(AbipyTest):
         # Run SCF from scratch.
         work = EffMassAutoDFPTWork.from_scf_input(scf_input)
 
-        #assert len(work) == 3
-        #t0, t1, t2 = work
-        #assert t1.input["iscf"] == -2
-        #assert t2.input["kptopt"] == 0
-        #assert t2.input["efmas"] == 1 and t2.input["rfelfd"] == 2
-        #assert t2.depends_on(t1)
+        assert len(work) == 2
+        assert work[1].depends_on(work[0])
 
         flow.register_work(work)
         flow.allocate()
+        flow.check_status()
+        isok, checks = flow.abivalidate_inputs()
+        assert isok
+
+    def test_frohlich_zpr_flow(self):
+        """Testing FrohlichZPRFlow"""
+        ddb_path = abidata.ref_file("refs/mgo_v8t57/mgo_zpr_t57o_DS3_DDB")
+        # Read structure from DDB file.
+        ddb_path = abidata.ref_file("refs/mgo_v8t57/mgo_zpr_t57o_DS3_DDB")
+        with abilab.abiopen(ddb_path) as ddb:
+            structure = ddb.structure
+
+        pseudos = abidata.pseudos("Ca.psp8", "O.psp8")
+        scf_input = abilab.AbinitInput(structure=structure, pseudos=pseudos)
+        # Set other input variables. These quantities are system-depedent.
+        # Here we use parameters similar to https://docs.abinit.org/tests/v8/Input/t57.in
+        scf_input.set_vars(
+            nband=12,
+            nbdbuf=2,
+            diemac=6,
+            ecut=30,                # Underconverged ecut.
+            #ecut=15,
+            nstep=100,
+            tolvrs=1e-16,
+            kptrlatt=[-2,  2,  2,   # In cartesian coordinates, this grid is simple cubic
+                       2, -2,  2,
+                       2,  2, -2],
+        )
+
+        flow = FrohlichZPRFlow.from_scf_input(scf_input, ddb_node=ddb_path, ndivsm=2, tolwfr=1e-20)
         flow.check_status()
         isok, checks = flow.abivalidate_inputs()
         assert isok

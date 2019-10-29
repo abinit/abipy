@@ -69,7 +69,7 @@ def build_flow(options):
     return flow
 
 
-# This block generates the thumbnails in the Abipy gallery.
+# This block generates the thumbnails in the AbiPy gallery.
 # You can safely REMOVE this part if you are using this script for production runs.
 if os.getenv("READTHEDOCS", False):
     __name__ = None

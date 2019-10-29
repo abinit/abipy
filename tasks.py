@@ -60,7 +60,7 @@ def style(ctx):
     with cd(ABIPY_ROOTDIR):
         ctx.run("pycodestyle 2>&1 | tee style.log", pty=True)
         ctx.run("flake8 --count --show-source --statistics | tee -a style.log", pty=True)
-        ctx.run("pydocstyle abipy | tee -a style.log", pty=True)
+        #ctx.run("pydocstyle abipy | tee -a style.log", pty=True)
 
 
 @task

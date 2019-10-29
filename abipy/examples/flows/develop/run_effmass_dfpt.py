@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 r"""
-Band structure Flow
-===================
+Effective masses with DFPT
+==========================
 
 Flow to compute the band structure of silicon.
 """
@@ -13,29 +13,46 @@ import abipy.abilab as abilab
 import abipy.flowtk as flowtk
 
 
-def make_scf_nscf_inputs(paral_kgb=0, usepaw=0):
+def make_scf_input(usepaw=0):
     """Returns two input files: GS run and NSCF on a high symmetry k-mesh."""
-    pseudos = abidata.pseudos("14si.pspnc") if usepaw == 0 else abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
+    #pseudos = abidata.pseudos("14si.pspnc") if usepaw == 0 else abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
+    pseudos = abidata.pseudos("Si_r.psp8") if usepaw == 0 else abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
 
-    # Get structure from cif file.
-    multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"), pseudos=pseudos, ndtset=2)
+    #structure = abidata.cif_file("si.cif"),
 
-    # Global variables
-    ecut = 6
-    multi.set_vars(
-        ecut=ecut,
-        nband=8,
-        paral_kgb=paral_kgb,
-        iomode=3,
-        timopt=-1,
+    structure = dict(
+         ntypat=1,
+         natom=2,
+         typat=[1, 1],
+         znucl=14,
+         #acell=3 * [10.26310667319252], # https://docs.abinit.org/tests/v7/Input/t82.in
+         acell=3 * [10.2073557], # 5.4015 Ang
+         rprim=[[0.0,  0.5,  0.5],
+                [0.5,  0.0,  0.5],
+                [0.5,  0.5,  0.0]],
+         xred=[ [0.0 , 0.0 , 0.0],
+                [0.25, 0.25, 0.25]],
     )
 
-    if multi.ispaw:
-        multi.set_vars(pawecutdg=2 * ecut)
+    # Get structure from cif file.
+    scf_input = abilab.AbinitInput(structure=structure, pseudos=pseudos)
+
+    # Global variables
+    ecut = 8
+    scf_input.set_vars(
+        ecut=ecut,
+        nband=8,
+        #nband=16,
+        #nspinor=2,
+        nstep=100,
+    )
+
+    if scf_input.ispaw:
+        scf_input.set_vars(pawecutdg=2 * ecut)
 
     # Dataset 1 (GS run)
-    multi[0].set_kmesh(ngkpt=[8, 8, 8], shiftk=[0, 0, 0])
-    multi[0].set_vars(tolvrs=1e-6)
+    scf_input.set_kmesh(ngkpt=[8, 8, 8], shiftk=[0, 0, 0])
+    scf_input.set_vars(tolvrs=1e-8)
 
     # Dataset 2 (NSCF run)
     kptbounds = [
@@ -44,33 +61,45 @@ def make_scf_nscf_inputs(paral_kgb=0, usepaw=0):
         [0.0, 0.5, 0.5],  # X point
     ]
 
-    multi[1].set_kpath(ndivsm=6, kptbounds=kptbounds)
-    multi[1].set_vars(tolwfr=1e-12)
-
-    # Generate two input files for the GS and the NSCF run
-    scf_input, nscf_input = multi.split_datasets()
-    return scf_input, nscf_input
+    return scf_input
 
 
 def build_flow(options):
     # Set working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
-        __file__ = os.path.join(os.getcwd(), "run_si_ebands.py")
+        __file__ = os.path.join(os.getcwd(), "run_effmass_dfpt.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     # Get the SCF and the NSCF input.
-    scf_input, nscf_input = make_scf_nscf_inputs()
+    scf_input = make_scf_input(usepaw=1)
 
     # Build the flow.
-    return flowtk.bandstructure_flow(options.workdir, scf_input, nscf_input, manager=options.manager)
+    from abipy.flowtk.effmass_works import EffMassDFPTWork, EffMassAutoDFPTWork
+
+    flow = flowtk.Flow(workdir=options.workdir, manager=options.manager)
+
+    work = EffMassDFPTWork.from_scf_input(scf_input, k0_list=(0, 0, 0), effmass_bands_f90=[1, 4],
+                                          #red_dirs=[[1, 0, 0], [1, 1, 0]],
+                                          #red_dirs=None,
+                                          #cart_dirs=[[1, 0, 0], [1, 1, 1], [1, 1, 0]],
+                                          #den_node=None
+
+                                          )
+
+    work = EffMassAutoDFPTWork.from_scf_input(scf_input, ndivsm=5, tolwfr=1e-12)
+
+    flow.register_work(work)
+
+    return flow
 
 
-# This block generates the thumbnails in the AbiPy gallery.
+# This block generates the thumbnails in the Abipy gallery.
 # You can safely REMOVE this part if you are using this script for production runs.
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
+    #build_flow(options).plot_networkx(with_edge_labels=True, tight_layout=True)
     build_flow(options).graphviz_imshow()
 
 

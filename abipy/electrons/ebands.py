@@ -1376,19 +1376,21 @@ class ElectronBands(Has_Structure):
             d[k][0] = min(d[k][0], homo.band + 1) # C --> F index
             k = tuple(lumo.kpoint.frac_coords)
             d[k][1] = max(d[k][1], lumo.band + 1)
+
             for k in d:
                 if d[k][0] == np.inf: d[k][0] = d[k][1]
                 if d[k][1] == -np.inf: d[k][1] = d[k][0]
                 if d[k][0] == np.inf or d[k][1] == -np.inf:
                     raise RuntimeError("Cannot find band extrema, dict:\n%s:" % str(d))
+
             for k, v in d.items():
                 k0_list.append(k)
                 effmass_bands_f90.append(v)
 
         k0_list = np.reshape(k0_list, (-1, 3))
         effmass_bands_f90 = np.reshape(effmass_bands_f90, (-1, 2))
-        print("k0_list:\n", k0_list)
-        print("effmass_bands_f90:\n", effmass_bands_f90)
+        #print("k0_list:\n", k0_list)
+        #print("effmass_bands_f90:\n", effmass_bands_f90)
         return k0_list, effmass_bands_f90
 
     def to_string(self, title=None, with_structure=True, with_kpoints=False, verbose=0):
@@ -1440,6 +1442,8 @@ class ElectronBands(Has_Structure):
                     app("")
                 except Exception:
                     pass
+
+            app("TIP: Call ebands.set_fermie_to_vbm() to set the Fermi energy to the VBM if this is a semiconductor")
 
         if with_kpoints:
             app(self.kpoints.to_string(verbose=verbose, title="K-points"))
@@ -2401,7 +2405,7 @@ class ElectronBands(Has_Structure):
                 raise ValueError("Cannot find k-index `%s` in lines: `%s`" % (ik, self.kpoints.lines))
 
             kpos = line.index(ik)
-            is_inside = kpos not in (0, len(line) -1)
+            is_inside = kpos not in (0, len(line) - 1)
             do_right = (not is_inside) and kpos != 0 and iline != len(self.kpoints.lines) - 1
 
             evals_on_line, h_left, vers_left = self._eigens_hvers_iline(spin, band, iline)
@@ -2428,7 +2432,6 @@ class ElectronBands(Has_Structure):
             else:
                 app("emass: %.3f" % em_left)
             print("\n".join(lines))
-
 
     def _eigens_hvers_iline(self, spin, band, iline):
         line = self.kpoints.lines[iline]

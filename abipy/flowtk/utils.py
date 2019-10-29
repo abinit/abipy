@@ -455,10 +455,9 @@ class Directory(object):
 
 # This dictionary maps ABINIT file extensions to the variables that must be used to read the file in input.
 #
-# TODO: It would be nice to pass absolute paths to abinit with getden_path
-# so that I can avoid creating symbolic links before running but
-# the presence of the C-bindings complicates the implementation
-# (gfortran SIGFAULTs if I add strings to dataset_type!
+# TODO: In Abinit9, it's possible to specify absolute paths with e.g., getden_path
+# Now it's possible to avoid creating symbolic links before running but
+# moving to the new approach requires some careful testing besides not all files support the get*_path syntax!
 
 _EXT2VARS = {
     "DEN": {"irdden": 1},
@@ -476,6 +475,7 @@ _EXT2VARS = {
     "DVDB": {},
     "GKK": {},
     "DKK": {},
+    "EFMAS.nc": {"irdefmas": 1},
 }
 
 

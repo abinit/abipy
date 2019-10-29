@@ -470,7 +470,10 @@ class Flow(Node, NodeContainer, MSONable):
     @property
     def all_ok(self):
         """True if all the tasks in works have reached `S_OK`."""
-        return all(work.all_ok for work in self)
+        all_ok = all(work.all_ok for work in self)
+        if all_ok:
+            all_ok = self.on_all_ok()
+        return all_ok
 
     @property
     def num_tasks(self):
@@ -1993,7 +1996,7 @@ class Flow(Node, NodeContainer, MSONable):
         for cbk in self._callbacks:
             #cbk.enable()
             for dep in cbk.deps:
-                logger.info("connecting %s \nwith sender %s, signal %s" % (str(cbk), dep.node, dep.node.S_OK))
+                logger.info("Connecting %s \nwith sender %s, signal %s" % (str(cbk), dep.node, dep.node.S_OK))
                 dispatcher.connect(self.on_dep_ok, signal=dep.node.S_OK, sender=dep.node, weak=False)
 
         # Associate to each signal the callback _on_signal
@@ -2490,6 +2493,7 @@ class Flow(Node, NodeContainer, MSONable):
 
 
 class G0W0WithQptdmFlow(Flow):
+
     def __init__(self, workdir, scf_input, nscf_input, scr_input, sigma_inputs, manager=None):
         """
         Build a :class:`Flow` for one-shot G0W0 calculations.

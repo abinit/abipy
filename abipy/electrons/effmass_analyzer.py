@@ -156,7 +156,7 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
             ax.set_ylabel('Energy (eV)')
             pad = 0
             for iseg, segment in enumerate(self.segments_spin[spin]):
-                color = cmap(float(iseg/ len(self.segments_spin[spin])))
+                color = cmap(float(iseg / len(self.segments_spin[spin])))
                 for ib in range(segment.nb):
                     ax.plot(segment.kpoint_indices + pad, segment.energies_bk[ib],
                             linestyle=":", marker=markers[ib], markersize=4, color=color,

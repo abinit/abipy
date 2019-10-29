@@ -1237,6 +1237,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             prtefmas=1,    # Print netcdf file (should be default)
             prtwf=-1,
             tolwfr=tolwfr, kptopt=0, nkpt=len(kpts), kpt=kpts,
+            # The range of bands for which the effective mass tensors will be computed, for each k-point.
             efmas_bands=np.reshape(effmass_bands_f90, (nkpt, 2)),
             # And we request the scalar effective mass along directions in cartesian coordinates
             efmas_calc_dirs=1,
@@ -1244,37 +1245,18 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             efmas_dirs=np.reshape([1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0], (7, 3)),
         )
 
-        """
-        efmas_bands=    16 16        # The range of bands for which the effective mass tensors will be computed, for each k-point.
-                        16 16        # NOTE: For SO calculations (with nspinor==2), has to be doubled (like nband).
-        efmas_ntheta=   100          # If a band is degenerate, the number of points with which the angular integrals
-                                     # will be performed to compute the 'transport equivalent mass tensor' and the average effective mass.
-
-        efmas_calc_dirs=  1
-        efmas_n_dirs=     3
-        efmas_dirs=       1 0 0 # x
-                          1 1 1
-        """
-
-        # Input variables for Frohlich model calculation
+        # Input variables for Frohlich model calculation (need DDB, WFK and EFMAS file)
         # See https://docs.abinit.org/tests/v8/Input/t57.in
         multi[2].set_vars(
             iscf=-2,
             optdriver=7,
-            #getddb6         3
-            #getwfk6         4
-            #getefmas6       5
-            #efmas_ntheta6   100
             eph_frohlichm=1,
             eph_task=6,
             tolwfr=tolwfr, kptopt=0, nkpt=len(kpts), kpt=kpts,
-            #kptopt=0,  # K-points can be specified in any way one want, they just need to be present in the
-            #nkpt6     2        # ground state calc. too.
-            #kpt6      0.00 0.00 0.00   # Gamma
-            #          0.00 0.50 0.50   # X
             ddb_ngqpt=[1, 1, 1],
             asr=2,
             chneut=1,
+            prtphdos=0,
         )
 
         return multi
