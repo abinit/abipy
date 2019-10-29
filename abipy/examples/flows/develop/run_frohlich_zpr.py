@@ -59,7 +59,7 @@ def build_flow(options):
         __file__ = os.path.join(os.getcwd(), "run_frohlich_zpr.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
-    # Get the SCF input.
+    # Build the SCF input.
     scf_input = make_scf_input()
 
     # Build the flow.

@@ -13,12 +13,15 @@ import abipy.abilab as abilab
 import abipy.flowtk as flowtk
 
 
-def make_scf_input(usepaw=0):
-    """Returns two input files: GS run and NSCF on a high symmetry k-mesh."""
-    #pseudos = abidata.pseudos("14si.pspnc") if usepaw == 0 else abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
-    pseudos = abidata.pseudos("Si_r.psp8") if usepaw == 0 else abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
+def make_scf_input(nspinor=1, usepaw=0):
+    """
+    Returns two input files: GS run and NSCF on a high symmetry k-mesh.
+    """
+    if nspinor == 1:
+        pseudos = abidata.pseudos("14si.pspnc") if usepaw == 0 else abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
+    else:
+        pseudos = abidata.pseudos("Si_r.psp8") if usepaw == 0 else abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
 
-    #structure = abidata.cif_file("si.cif"),
     structure = dict(
          ntypat=1,
          natom=2,
@@ -34,22 +37,20 @@ def make_scf_input(usepaw=0):
     )
 
     # Get structure from cif file.
-    scf_input = abilab.AbinitInput(structure=structure, pseudos=pseudos, ndtset=2)
+    scf_input = abilab.AbinitInput(structure=structure, pseudos=pseudos)
 
     # Global variables
-    ecut = 12
     scf_input.set_vars(
-        ecut=ecut,
-        #nband=8,
-        nband=16,
-        nspinor=2,
+        ecut=12,
+        nband=8 if nspinor == 1 else 16,
+        nspinor=nspinor,
+        tolvrs=1e-8,
     )
 
     if scf_input.ispaw:
-        scf_input.set_vars(pawecutdg=2 * ecut)
+        scf_input.set_vars(pawecutdg=2 * scf_input["ecut"])
 
     scf_input.set_kmesh(ngkpt=[8, 8, 8], shiftk=[0, 0, 0])
-    scf_input.set_vars(tolvrs=1e-8)
 
     return scf_input
 
@@ -60,21 +61,27 @@ def build_flow(options):
         __file__ = os.path.join(os.getcwd(), "run_effmass_finitediff.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
-    # Get the SCF input.
-    scf_input = make_scf_input()
+    # Get the SCF input (default: collinear case with NC pseudos)
+    nspinor = 1
+    scf_input = make_scf_input(nspinor=nspinor, usepaw=0)
 
     # Build the flow with different steps.
     from abipy.flowtk.effmass_works import EffMassLineWork
 
     flow = flowtk.Flow(workdir=options.workdir, manager=options.manager)
+
+    # Multiple calculations with different step for finite difference.
     for i, step in enumerate((0.05, 0.01, 0.002)):
         den_node = None if i == 0 else den_node
         work = EffMassLineWork.from_scf_input(scf_input, k0_list=(0, 0, 0), step=step, npts=15,
-                                                    #red_dirs=[[1, 0, 0], [1, 1, 0]],
-                                                    red_dirs=None,
-                                                    cart_dirs=[[1, 0, 0], [1, 1, 1], [1, 1, 0]],
-                                                    den_node=den_node)
-        if i == 0: den_node = work[0]
+                                              #red_dirs=[[1, 0, 0], [1, 1, 0]],
+                                              red_dirs=None,
+                                              cart_dirs=[[1, 0, 0], [1, 1, 1], [1, 1, 0]],
+                                              den_node=den_node)
+        if i == 0:
+            # Will start from the DEN file produced in the first iteration.
+            den_node = work[0]
+
         flow.register_work(work)
 
     return flow

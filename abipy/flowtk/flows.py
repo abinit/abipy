@@ -234,6 +234,8 @@ class Flow(Node, NodeContainer, MSONable):
         #for task in self.iflat_tasks():
         #    slots[task] = {s: [] for s in work.S_ALL}
 
+        self.on_all_ok_num_calls = 0
+
     @pmg_serialize
     def as_dict(self, **kwargs):
         """
@@ -1903,6 +1905,33 @@ class Flow(Node, NodeContainer, MSONable):
 
         for task in self.iflat_tasks():
             print(draw_tree(task, child_iter, text_str), file=stream)
+
+    def on_all_ok(self):
+        """
+        This method is called when all works in the flow have reached S_OK.
+        This method shall return True if the calculation is completed or
+        False if the execution should continue due to side-effects such as adding a new work to the flow.
+
+        This methods allows subclasses to implement customized logic such as extending the flow by adding new works.
+        The flow has an internal counter: on_all_ok_num_calls
+        that shall be incremented by client code when subclassing this method.
+        This counter can be used to decide if futher actions are needed or not.
+
+        An example of flow that adds a new work (only once) when all_ok is reached for the first time:
+
+        def on_all_ok(self):
+            self.on_all_ok_num_calls += 1
+            if self.on_all_ok_num_calls > 1: return True
+
+            `implement_logic_to_create_new_work`
+
+            self.register_work(work)
+            self.allocate()
+            self.build_and_pickle_dump()
+
+            return False # The scheduler will keep on running the flow.
+        """
+        return True
 
     def on_dep_ok(self, signal, sender):
         # TODO

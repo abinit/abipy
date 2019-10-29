@@ -404,6 +404,8 @@ class NodeContainer(metaclass=abc.ABCMeta):
     def register_effmass_task(self, *args, **kwargs):
         """Register a effective mass task."""
         kwargs["task_class"] = EffMassTask
+        # FIXME: Hack to run it in sequential because effmass task does not support parallelism.
+        kwargs.update({"manager": TaskManager.from_user_config().new_with_fixed_mpi_omp(1, 1)})
         return self.register_task(*args, **kwargs)
 
     def register_scr_task(self, *args, **kwargs):
@@ -439,6 +441,9 @@ class NodeContainer(metaclass=abc.ABCMeta):
     def register_eph_task(self, *args, **kwargs):
         """Register an electron-phonon task."""
         kwargs["task_class"] = EphTask
+        if args[0].get("eph_frohlichm", 0) != 0:
+            # FIXME: Hack to run it in sequential to avoid issues with autoparal, besides Frohlich is not parallelized.
+            kwargs.update({"manager": TaskManager.from_user_config().new_with_fixed_mpi_omp(1, 1)})
         return self.register_task(*args, **kwargs)
 
     def walknset_vars(self, task_class=None, *args, **kwargs):
@@ -479,7 +484,7 @@ class Work(BaseWork, NodeContainer):
         """
         Args:
             workdir: Path to the working directory.
-            manager: :class:`TaskManager` object.
+            manager: |TaskManager| object.
         """
         super().__init__()
 
@@ -492,7 +497,7 @@ class Work(BaseWork, NodeContainer):
             self.set_manager(manager)
 
     def set_manager(self, manager):
-        """Set the :class:`TaskManager` to use to launch the :class:`Task`."""
+        """Set the |TaskManager| to use to launch the :class:`Task`."""
         self.manager = manager.deepcopy()
         for task in self:
             task.set_manager(manager)
@@ -613,7 +618,7 @@ class Work(BaseWork, NodeContainer):
         and defines the working directories of the tasks.
 
         Args:
-            manager: :class:`TaskManager` object or None
+            manager: |TaskManager| object or None
         """
         for i, task in enumerate(self):
 
@@ -650,7 +655,7 @@ class Work(BaseWork, NodeContainer):
                 Use the standard approach based on Works, Tasks and deps
                 if the files will be produced in the future.
             manager:
-                The :class:`TaskManager` responsible for the submission of the task. If manager is None, we use
+                The |TaskManager| responsible for the submission of the task. If manager is None, we use
                 the `TaskManager` specified during the creation of the :class:`Work`.
             task_class: Task subclass to instantiate. Default: :class:`AbinitTask`
 
@@ -975,7 +980,7 @@ class RelaxWork(Work):
             ion_input: Input for the relaxation of the ions (cell is fixed)
             ioncell_input: Input for the relaxation of the ions and the unit cell.
             workdir: Working directory.
-            manager: :class:`TaskManager` object.
+            manager: |TaskManager| object.
         """
         super().__init__(workdir=workdir, manager=manager)
 
@@ -1069,7 +1074,7 @@ class G0W0Work(Work):
                 if scr and sigma are lists of the same length, every sigma gets its own screening.
                 if there is only one screening all sigma inputs are linked to this one
             workdir: Working directory of the calculation.
-            manager: :class:`TaskManager` object.
+            manager: |TaskManager| object.
         """
         super().__init__(workdir=workdir, manager=manager)
 
@@ -1125,7 +1130,7 @@ class SigmaConvWork(Work):
             scr_node: The node who has produced the SCR file or filepath pointing to the SCR file.
             sigma_inputs: List of :class:`AbinitInput` for the self-energy runs.
             workdir: Working directory of the calculation.
-            manager: :class:`TaskManager` object.
+            manager: |TaskManager| object.
         """
         # Cast to node instances.
         wfk_node, scr_node = Node.as_node(wfk_node), Node.as_node(scr_node)
@@ -1153,7 +1158,7 @@ class BseMdfWork(Work):
             nscf_input: Input for the NSCF run.
             bse_inputs: List of Inputs for the BSE run.
             workdir: Working directory of the calculation.
-            manager: :class:`TaskManager`.
+            manager: |TaskManager|
         """
         super().__init__(workdir=workdir, manager=manager)
 
@@ -1434,7 +1439,7 @@ class PhononWork(Work, MergeDdb):
             with_becs: Activate calculation of Electric field and Born effective charges.
             ddk_tolerance: dict {"varname": value} with the tolerance used in the DDK run if with_becs.
                 None to use AbiPy default.
-            manager: :class:`TaskManager` object.
+            manager: |TaskManager| object.
         """
         if not isinstance(scf_task, ScfTask):
             raise TypeError("task `%s` does not inherit from ScfTask" % scf_task)
@@ -1532,7 +1537,7 @@ class PhononWfkqWork(Work, MergeDdb):
                       is an explicit list of q-points
             remove_wfkq: Remove WKQ files when the children are completed.
             prepgkk: 1 to activate computation of all 3*natom perts (debugging option).
-            manager: :class:`TaskManager` object.
+            manager: |TaskManager| object.
 
         .. note:
 
@@ -1829,7 +1834,7 @@ class BecWork(Work, MergeDdb):
             ddk_tolerance: tolerance used in the DDK run if with_becs. None to use AbiPy default.
             ph_tolerance: dict {"varname": value} with the tolerance used in the phonon run.
                 None to use AbiPy default.
-            manager: :class:`TaskManager` object.
+            manager: |TaskManager| object.
         """
         new = cls(manager=manager)
         new.add_becs_from_scf_task(scf_task, ddk_tolerance, ph_tolerance)
@@ -1861,7 +1866,7 @@ class DteWork(Work, MergeDdb):
         Args:
             scf_task: ScfTask object.
             ddk_tolerance: tolerance used in the DDK run if with_becs. None to use AbiPy default.
-            manager: :class:`TaskManager` object.
+            manager: |TaskManager| object.
         """
         if not isinstance(scf_task, ScfTask):
             raise TypeError("task `%s` does not inherit from ScfTask" % scf_task)

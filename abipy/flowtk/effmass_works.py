@@ -87,9 +87,7 @@ class EffMassDFPTWork(Work):
     """
 
     @classmethod
-    def from_scf_input(cls, scf_input, k0_list, effmass_bands_f90,
-                       red_dirs=[[1, 0, 0], [0, 1, 0], [0, 0, 1]], cart_dirs=None,
-                       den_node=None, manager=None):
+    def from_scf_input(cls, scf_input, k0_list, effmass_bands_f90, den_node=None, manager=None):
         """
         Build the Work from an |AbinitInput| representing a GS-SCF calculation.
 
@@ -98,16 +96,11 @@ class EffMassDFPTWork(Work):
             k0_list: List with the reduced coordinates of the k-point where effective masses are wanted.
             effmass_bands_f90: (nkpt, 2) array with band range for effmas computation.
                 WARNING: Uses Fortran convention starting from 1.
-            red_dirs: List of reduced directions used to generate the segments passing through the k-point
-            cart_dirs: List of Cartesian directions used to generate the segments passing through the k-point
             den_node: Path to the DEN file or Task object producing a DEN file.
                 Can be used to avoid the initial SCF calculation if a DEN file is already available.
             manager: |TaskManager| instance. Use default if None.
         """
         reciprocal_lattice = scf_input.structure.lattice.reciprocal_lattice
-
-        # Define list of directions from user input.
-        all_red_dirs = _get_red_dirs_from_opts(red_dirs, cart_dirs, reciprocal_lattice)
 
         multi = scf_input.make_dfpt_effmass_input(k0_list, effmass_bands_f90)
         nscf_input, effmass_input = multi[0], multi[1]
@@ -179,9 +172,7 @@ class EffMassAutoDFPTWork(Work):
 
         # Create the work for effective mass computation with DFPT and add it to the flow.
         # Keep also a reference in generated_effmass_dfpt_work.
-        work = EffMassDFPTWork.from_scf_input(self.scf_input, k0_list, effmass_bands_f90,
-                                              #red_dirs=[[1, 0, 0], [0, 1, 0], [0, 0, 1]], cart_dirs=None,
-                                              den_node=self.scf_task)
+        work = EffMassDFPTWork.from_scf_input(self.scf_input, k0_list, effmass_bands_f90, den_node=self.scf_task)
 
         self.generated_effmass_dfpt_work = work
         self.flow.register_work(work)
@@ -228,15 +219,11 @@ class FrohlichZPRFlow(Flow):
             new.register_work(becs_work)
             new.ddb_node = becs_work
 
-        new.on_all_ok_num_calls = 0
-
         return new
 
     def on_all_ok(self):
         self.on_all_ok_num_calls += 1
-        if self.on_all_ok_num_calls > 1:
-            print("flow Returning True")
-            return True
+        if self.on_all_ok_num_calls > 1: return True
 
         work = Work()
         inp = self.effmass_auto_work.generated_effmass_dfpt_work.frohlich_input
@@ -247,6 +234,6 @@ class FrohlichZPRFlow(Flow):
         self.register_work(work)
         self.allocate()
         self.build_and_pickle_dump()
-        self.finalized = False
-        print("flow Returning False")
+        #self.finalized = False
+        #print("flow Returning False")
         return False

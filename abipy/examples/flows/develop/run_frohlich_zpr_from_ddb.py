@@ -22,7 +22,7 @@ def build_flow(options):
         __file__ = os.path.join(os.getcwd(), "run_frohlich_zpr_from_ddb.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
-    # Read structure from DDB file.
+    # Get structure from DDB file.
     ddb_path = abidata.ref_file("refs/mgo_v8t57/mgo_zpr_t57o_DS3_DDB")
     with abilab.abiopen(ddb_path) as ddb:
         structure = ddb.structure
@@ -47,11 +47,10 @@ def build_flow(options):
     )
 
     # Build the flow to detect band edges, compute effective masses and finally obtain an estimate for the ZPR
-    # BECS/phonons/eps_in are taken from ddb_node.
+    # BECS/phonons/eps_inf are taken from ddb_node.
     from abipy.flowtk.effmass_works import FrohlichZPRFlow
     flow = FrohlichZPRFlow.from_scf_input(scf_input, ddb_node=ddb_path, ndivsm=2, tolwfr=1e-14,
                                           workdir=options.workdir, manager=options.manager)
-
     return flow
 
 

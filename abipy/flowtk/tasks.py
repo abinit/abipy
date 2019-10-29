@@ -3873,9 +3873,6 @@ class ScrTask(ManyBodyTask):
 
     color_rgb = np.array((255, 128, 0)) / 255
 
-    #def inspect(self, **kwargs):
-    #    """Plot graph showing the number of q-points computed and the wall-time used"""
-
     @property
     def scr_path(self):
         """Absolute path of the SCR file. Empty string if file is not present."""
