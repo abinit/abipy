@@ -280,6 +280,26 @@ def display_structure(obj, **kwargs):
     return nbjsmol_display(structure.to(fmt="cif"), ext=".cif", **kwargs)
 
 
+def mjson_load(filepath, **kwargs):
+    """
+    Read JSON file in MSONable format with MontyDecoder. Return dict with python objects.
+    """
+    import json
+    from monty.json import MontyDecoder
+    with open(filepath, "rt") as fh:
+        return json.load(fh, cls=MontyDecoder, **kwargs)
+
+
+def mjson_write(d, filepath, **kwargs):
+    """
+    Write dictionary d to filepath in JSON format using MontyDecoder
+    """
+    import json
+    from monty.json import MontyEncoder
+    with open(filepath, "wt") as fh:
+        json.dump(d, fh, cls=MontyEncoder, **kwargs)
+
+
 def software_stack():
     """
     Import all the hard dependencies. Returns ordered dict: package --> string with version info.

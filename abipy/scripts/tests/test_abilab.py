@@ -29,6 +29,12 @@ class AbilabTest(AbipyTest):
         d = abilab.software_stack()
         assert d
 
+        filepath = self.get_tmpname(text=True, suffix=".json")
+        data = {"foo": "bar"}
+        abilab.mjson_write(data, filepath, indent=4)
+        data = abilab.mjson_load(filepath)
+        assert data["foo"] == "bar"
+
         assert not abilab.abicheck(verbose=1)
 
         abilab.abipy_logo1()

@@ -2,8 +2,8 @@
 """Work subclasses related to effective mass calculations."""
 
 import numpy as np
-import os
 
+from monty.json import jsanitize
 from abipy.core.kpoints import Kpoint
 from .nodes import Node
 from .works import Work, PhononWork
@@ -11,7 +11,7 @@ from .flows import Flow
 
 
 def _get_red_dirs_from_opts(red_dirs, cart_dirs, reciprocal_lattice):
-    """Helper function to compute list of directions from user input. Return numpy array."""
+    """Helper function to compute the list of directions from user input. Return numpy array."""
     all_red_dirs = []
     if red_dirs is not None:
         all_red_dirs.extend(np.reshape(red_dirs, (-1, 3)))
@@ -23,10 +23,42 @@ def _get_red_dirs_from_opts(red_dirs, cart_dirs, reciprocal_lattice):
     return np.reshape(all_red_dirs, (-1, 3))
 
 
+def build_segments(k0_list, npts, step, red_dirs, reciprocal_lattice):
+    """
+
+
+    Args:
+        k0_list:
+        npts:
+        step
+        red_dirs
+        reciprocal_lattice:
+
+    Return: (nk, 3) array with fractional coords
+    """
+
+    kpts = []
+    for kpoint in np.reshape(k0_list, (-1, 3)):
+        kpoint = Kpoint.as_kpoint(kpoint, reciprocal_lattice)
+        # Build segment passing through this kpoint (work in Cartesian coords)
+        for rdir in np.reshape(red_dirs, (-1, 3)):
+            bvers = reciprocal_lattice.matrix.T @ rdir
+            bvers /= np.sqrt(np.dot(bvers, bvers))
+            kstart = kpoint.cart_coords - bvers * (npts // 2) * step
+            for ii in range(npts):
+                kpts.append(kstart + ii * step * bvers)
+
+    # Cart --> Frac
+    return reciprocal_lattice.get_fractional_coords(np.reshape(kpts, (-1, 3)))
+
+
 class EffMassLineWork(Work):
     """
     Work for the computation of effective masses via finite differences along a k-line.
-    Useful for cases such as NC+SOC where DFPT is not coded or for debugging purposes.
+    Useful for cases such as NC+SOC where DFPT is not implemented or for debugging purposes.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: EffMassLineWork
     """
 
     @classmethod
@@ -38,37 +70,25 @@ class EffMassLineWork(Work):
 
         Args:
             scf_input: |AbinitInput| for GS-SCF used as template to generate the other inputs.
-            k0_list: List with the reduced coordinates of the k-point where effective masses are wanted.
-            step: Step in Angstrom^-1
-            npts: Number of points sampled around each kpoint for each direction.
+            k0_list: List with the reduced coordinates of the k-points where effective masses are wanted.
+            step: Step for finite difference in Angstrom^-1
+            npts: Number of points sampled around each k-point for each direction.
             red_dirs: List of reduced directions used to generate the segments passing through the k-point
             cart_dirs: List of Cartesian directions used to generate the segments passing through the k-point
             den_node: Path to the DEN file or Task object producing a DEN file.
                 Can be used to avoid the initial SCF calculation if a DEN file is already available.
+                If None, a GS calculation is performed.
             manager: |TaskManager| instance. Use default if None.
         """
         if npts < 3:
             raise ValueError("Number of points: `%s` should be >= 3 for finite differences" % npts)
 
-        reciprocal_lattice = scf_input.structure.lattice.reciprocal_lattice
-
         # Define list of directions from user input.
+        reciprocal_lattice = scf_input.structure.lattice.reciprocal_lattice
         all_red_dirs = _get_red_dirs_from_opts(red_dirs, cart_dirs, reciprocal_lattice)
+        kpts = build_segments(k0_list, npts, step, all_red_dirs, reciprocal_lattice)
 
-        kpts = []
-        for kpoint in np.reshape(k0_list, (-1, 3)):
-            kpoint = Kpoint.as_kpoint(kpoint, reciprocal_lattice)
-            # Build segment passing through this kpoint (work in Cartesian coords)
-            for rdir in all_red_dirs:
-                bvers = reciprocal_lattice.matrix.T @ rdir
-                bvers /= np.sqrt(np.dot(bvers, bvers))
-                k0 = kpoint.cart_coords - bvers * (npts // 2) * step
-                for ii in range(npts):
-                    kc = k0 + ii * bvers * step
-                    kpts.append(kc)
-
-        # Cart --> Frac then build NSCF input with explicit list of k-points.
-        kpts = reciprocal_lattice.get_fractional_coords(np.reshape(kpts, (-1, 3)))
+        # Now build NSCF input with explicit list of k-points.
         nscf_input = scf_input.make_nscf_kptopt0_input(kpts)
 
         new = cls(manager=manager)
@@ -83,7 +103,10 @@ class EffMassLineWork(Work):
 class EffMassDFPTWork(Work):
     """
     Work for the computation of effective masses with DFPT.
-    Requires explicit list of k-points and band range.
+    Requires explicit list of k-points and range for bands.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: EffMassDFPTWork
     """
 
     @classmethod
@@ -93,15 +116,14 @@ class EffMassDFPTWork(Work):
 
         Args:
             scf_input: |AbinitInput| for GS-SCF used as template to generate the other inputs.
-            k0_list: List with the reduced coordinates of the k-point where effective masses are wanted.
+            k0_list: List with the reduced coordinates of the k-points where effective masses are wanted.
             effmass_bands_f90: (nkpt, 2) array with band range for effmas computation.
-                WARNING: Uses Fortran convention starting from 1.
+                WARNING: Assumes Fortran convention with indices starting from 1.
             den_node: Path to the DEN file or Task object producing a DEN file.
                 Can be used to avoid the initial SCF calculation if a DEN file is already available.
+                If None, a GS calculation is performed.
             manager: |TaskManager| instance. Use default if None.
         """
-        reciprocal_lattice = scf_input.structure.lattice.reciprocal_lattice
-
         multi = scf_input.make_dfpt_effmass_input(k0_list, effmass_bands_f90)
         nscf_input, effmass_input = multi[0], multi[1]
 
@@ -121,22 +143,23 @@ class EffMassDFPTWork(Work):
 class EffMassAutoDFPTWork(Work):
     """
     Work for the automatic computation of effective masses with DFPT.
-    Band extrema are automatically detected by performing a NSCF calculation along a high-symmetry k-path.
-    Require more computation that EffMassWork but input parameters since input variables
-    are automatically defined at runtime.
+    Band extrema are automatically detected by performing a NSCF calculation along a high-symmetry k-path with ndivsm.
+    Requires more computation that EffMassWork but since input variables (kpoints and band range)
+    are computed at runtime.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: EffMassAutoDFPTWork
     """
 
     @classmethod
-    def from_scf_input(cls, scf_input, ndivsm=15, tolwfr=1e-20,
-                       #red_dirs=[[1, 0, 0], [0, 1, 0], [0, 0, 1]], cart_dirs=None,
-                       manager=None):
+    def from_scf_input(cls, scf_input, ndivsm=15, tolwfr=1e-20, manager=None):
         """
         Build the Work from an |AbinitInput| representing a GS-SCF calculation.
 
         Args:
             scf_input: |AbinitInput| for GS-SCF used as template to generate the other inputs.
-            red_dirs: List of reduced directions used to generate the segments passing through the k-point
-            cart_dirs: List of Cartesian directions used to generate the segments passing through the k-point
+            ndivsm: Number of divisions used to sample the smallest segment of the k-path.
+            tolwfr: Tolerance on residuals for NSCF calculation
             manager: |TaskManager| instance. Use default if None.
         """
         if scf_input.get("nsppol", 1) != 1:
@@ -185,35 +208,39 @@ class EffMassAutoDFPTWork(Work):
 
 class FrohlichZPRFlow(Flow):
     """
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: FrohlichZPRFlow
     """
 
     @classmethod
-    def from_scf_input(cls, scf_input, ddb_node=None, ndivsm=15, tolwfr=1e-20,
-                       workdir=None, manager=None):
+    def from_scf_input(cls, workdir, scf_input, ddb_node=None, ndivsm=15, tolwfr=1e-20, manager=None, metadata=None):
         """
         Build the Work from an |AbinitInput| representing a GS-SCF calculation.
+        Final results are stored in the "zprfrohl_results.json" in the outdata of the flow.
 
         Args:
+            workdir: Working directory.
             scf_input: |AbinitInput| for GS-SCF used as template to generate the other inputs.
             ddb_node: Path to an external DDB file that is used to avoid the calculation of BECS/eps_inf and phonons.
-                If None, a DFPT calculation is automatically perfored by the flow.
-            ndivsm:
-            tolwfr:
-            workdir:
+                If None, a DFPT calculation is automatically performed by the flow.
+            ndivsm: Number of divisions used to sample the smallest segment of the k-path.
+            tolwfr: Tolerance on residuals for NSCF calculation
             manager: |TaskManager| instance. Use default if None.
+            metadata: Dictionary with metadata to be be addeded to the JSON dictionary.
         """
         new = cls(workdir=workdir, manager=manager)
+        new.metadata = metadata or jsanitize(metadata)
 
         # Build work for the automatic computation of effective masses.
         new.effmass_auto_work = EffMassAutoDFPTWork.from_scf_input(scf_input, ndivsm=ndivsm, tolwfr=tolwfr)
         new.register_work(new.effmass_auto_work)
-        scf_task = new.effmass_auto_work[0]
+        new.scf_task, new.ebands_kpath_task = new.effmass_auto_work[0], new.effmass_auto_work[1]
 
         if ddb_node is not None:
             new.ddb_node = Node.as_node(ddb_node)
         else:
             # Compute DDB with BECS and eps_inf.
-            becs_work = PhononWork.from_scf_task(scf_task, qpoints=[0, 0, 0],
+            becs_work = PhononWork.from_scf_task(new.scf_task, qpoints=[0, 0, 0],
                                                  is_ngqpt=False, tolerance=None, with_becs=True,
                                                  ddk_tolerance=None)
             new.register_work(becs_work)
@@ -222,18 +249,66 @@ class FrohlichZPRFlow(Flow):
         return new
 
     def on_all_ok(self):
+        """
+        This method is called when all the works in the flow have reached S_OK.
+        This method shall return True if the calculation is completed or
+        False if the execution should continue due to side-effects such as adding a new work to the flow.
+        """
         self.on_all_ok_num_calls += 1
         if self.on_all_ok_num_calls > 1: return True
 
         work = Work()
         inp = self.effmass_auto_work.generated_effmass_dfpt_work.frohlich_input
         wfk_task = self.effmass_auto_work.generated_effmass_dfpt_work[0]
-        effmass_task = self.effmass_auto_work.generated_effmass_dfpt_work[1]
-        t = work.register_eph_task(inp, deps={wfk_task: "WFK", self.ddb_node: "DDB", effmass_task: "EFMAS.nc"})
+        self.effmass_task = self.effmass_auto_work.generated_effmass_dfpt_work[1]
 
+        deps = {wfk_task: "WFK", self.ddb_node: "DDB", self.effmass_task: "EFMAS.nc"}
+        self.frohl_task = work.register_eph_task(inp, deps=deps)
         self.register_work(work)
+
         self.allocate()
         self.build_and_pickle_dump()
-        #self.finalized = False
-        #print("flow Returning False")
         return False
+
+    def finalize(self):
+        """
+        This method is called when the flow is completed. Return 0 if success.
+        """
+        d = {}
+        if self.metadata is not None:
+            d.update({"metadata": self.metadata})
+
+        # Add GS results
+        with self.scf_task.open_gsr() as gsr:
+            d["gsr_scf_path"] = gsr.filepath
+            d["pressure_GPa"] = float(gsr.pressure)
+            d["max_force_eV_Ang"] = float(gsr.max_force)
+            d["structure"] = gsr.structure.as_dict()
+
+        # Add NSCF band structure
+        with self.ebands_kpath_task.open_gsr() as gsr:
+            d["gsr_nscf_kpath"] = gsr.filepath
+            gsr.ebands.set_fermie_to_vbm()
+            d["ebands_kpath"] = gsr.ebands.as_dict()
+            #d["ebands_info"] = gsr.ebands.get_dict4pandas(with_geo=False, with_spglib=False)
+
+        # Extract results from run.abo
+        #effmass_results = self.effmass_task.yaml_parse_results()
+        #frohl_results = self.frohl_task.yaml_parse_results()
+
+        # Add epsinf, e0, becs, alpha and even DDB as string.
+        from abipy import abilab
+        with abilab.abiopen(self.ddb_node.outdir.path_in("out_DDB")) as ddb:
+            #d["ddb_path"] = ddb.filepath
+            d["ddb"] = ddb
+            epsinf, becs = ddb.anaget_epsinf_and_becs(chneut=1)
+            gen = ddb.anaget_dielectric_tensor_generator(asr=2, chneut=1, dipdip=1)
+            eps0 = gen.tensor_at_frequency(w=0.0)
+            #d["becs"] = becs.as_dict()
+            d["epsinf_cart"] = epsinf.as_dict()
+            #d["eps0_cart"] = eps0.as_dict()
+
+        #print(d)
+        abilab.mjson_write(d, self.outdir.path_in("zprfrohl_results.json"), indent=4)
+
+        return super().finalize()

@@ -130,7 +130,7 @@ def optic_flow_from_files():
 
 # This block generates the thumbnails in the Abipy gallery.
 # You can safely REMOVE this part if you are using this script for production runs.
-if os.getenv("GENERATE_SPHINX_GALLERY", False):
+if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])

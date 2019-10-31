@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 r"""
-ZPR of band edges with generalized Frohlich model from scratch
-==============================================================
+Estimate the ZPR at band edges with the generalized Frohlich model
+==================================================================
 
 Flow to estimate the zero-point renormalization at the band edges using the generalized Frohlich model.
-The flow computes the effective masses at the band edges, BECS, eps_inf and phonon frequencies at Gamma with DFPT
+The flow computes the effective masses at the band edges, BECS, eps_inf and phonon frequencies at Gamma with DFPT.
 """
 
 import sys
@@ -20,14 +20,14 @@ def make_scf_input(usepaw=0):
     pseudos = abidata.pseudos("Ca.psp8", "O.psp8")
 
     structure = dict(
-        acell= 3 * [9.136],
+        acell=3 * [9.136],
         xred=[
            0.0000000000, 0.0000000000, 0.0000000000,
            0.5000000000, 0.5000000000, 0.5000000000],
         rprim=[
            0  , 0.5, 0.5,
            0.5, 0  , 0.5,
-           0.5, 0.5, 0 ],
+           0.5, 0.5, 0],
         typat=[1, 2],
         natom=2,
         ntypat=2,
@@ -42,10 +42,9 @@ def make_scf_input(usepaw=0):
         diemac=6,
         ecut=30,               # Underconverged ecut.
         #ecut=15,
-        #ecut=12,
         nstep=100,
         tolvrs=1e-16,
-        kptrlatt=[-2,  2,  2,       # In cartesian coordinates, this grid is simple cubic
+        kptrlatt=[-2,  2,  2,  # In cartesian coordinates, this grid is simple cubic
                    2, -2,  2,
                    2,  2, -2],
     )
@@ -64,8 +63,8 @@ def build_flow(options):
 
     # Build the flow.
     from abipy.flowtk.effmass_works import FrohlichZPRFlow
-    flow = FrohlichZPRFlow.from_scf_input(scf_input, ddb_node=None, ndivsm=4, tolwfr=1e-16,
-                                          workdir=options.workdir, manager=options.manager)
+    flow = FrohlichZPRFlow.from_scf_input(options.workdir, scf_input, ddb_node=None, ndivsm=4, tolwfr=1e-16,
+                                          manager=options.manager)
 
     return flow
 
@@ -91,6 +90,7 @@ def main(options):
 
 if __name__ == "__main__":
     sys.exit(main())
+
 
 ############################################################################
 #

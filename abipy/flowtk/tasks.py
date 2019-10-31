@@ -425,7 +425,7 @@ class ParalHints(collections.abc.Iterable):
 
 class TaskPolicy(object):
     """
-    This object stores the parameters used by the :class:`TaskManager` to
+    This object stores the parameters used by the |TaskManager| to
     create the submission script and/or to modify the ABINIT variables
     governing the parallel execution. A `TaskPolicy` object contains
     a set of variables that specify the launcher, as well as the options
@@ -562,7 +562,7 @@ batch_adapter:
     @classmethod
     def from_user_config(cls):
         """
-        Initialize the :class:`TaskManager` from the YAML file 'manager.yaml'.
+        Initialize the |TaskManager| from the YAML file 'manager.yaml'.
         Search first in the working directory and then in the AbiPy configuration directory.
 
         Raises:
@@ -686,7 +686,7 @@ batch_adapter:
 
     def to_shell_manager(self, mpi_procs=1):
         """
-        Returns a new `TaskManager` with the same parameters as self but replace the :class:`QueueAdapter`
+        Returns a new |TaskManager| with the same parameters as self but replace the :class:`QueueAdapter`
         with a :class:`ShellAdapter` with mpi_procs so that we can submit the job without passing through the queue.
         """
         my_kwargs = copy.deepcopy(self._kwargs)
@@ -940,7 +940,7 @@ batch_adapter:
         Build the input files and submit the task via the :class:`Qadapter`
 
         Args:
-            task: :class:`TaskObject`
+            task: |Task| object.
 
         Returns:
             Process object.
@@ -1182,7 +1182,7 @@ class AbinitBuild(object):
 
 class FakeProcess(object):
     """
-    This object is attached to a :class:`Task` instance if the task has not been submitted
+    This object is attached to a |Task| instance if the task has not been submitted
     This trick allows us to simulate a process that is still running so that
     we can safely poll task.process.
     """
@@ -1286,11 +1286,11 @@ class TaskDateTimes(object):
 
 
 class TaskError(NodeError):
-    """Base Exception for :class:`Task` methods"""
+    """Base Exception for |Task| methods"""
 
 
 class TaskRestartError(TaskError):
-    """Exception raised while trying to restart the :class:`Task`."""
+    """Exception raised while trying to restart the |Task|."""
 
 
 class Task(Node, metaclass=abc.ABCMeta):
@@ -1316,9 +1316,9 @@ class Task(Node, metaclass=abc.ABCMeta):
     def __init__(self, input, workdir=None, manager=None, deps=None):
         """
         Args:
-            input: :class:`AbinitInput` object.
+            input: |AbinitInput| object.
             workdir: Path to the working directory.
-            manager: :class:`TaskManager` object.
+            manager: |TaskManager| object.
             deps: Dictionary specifying the dependency of this node.
                   None means that this Task has no dependency.
         """
@@ -1393,16 +1393,16 @@ class Task(Node, metaclass=abc.ABCMeta):
         self.qout_file = File(os.path.join(self.workdir, "queue.qout"))
 
     def set_manager(self, manager):
-        """Set the :class:`TaskManager` used to launch the Task."""
+        """Set the |TaskManager| used to launch the Task."""
         self.manager = manager.deepcopy()
 
     @property
     def work(self):
-        """The :class:`Work` containing this `Task`."""
+        """The |Work| containing this `Task`."""
         return self._work
 
     def set_work(self, work):
-        """Set the :class:`Work` associated to this `Task`."""
+        """Set the |Work| associated to this |Task|."""
         if not hasattr(self, "_work"):
             self._work = work
         else:
@@ -1411,12 +1411,12 @@ class Task(Node, metaclass=abc.ABCMeta):
 
     @property
     def flow(self):
-        """The :class:`Flow` containing this `Task`."""
+        """The |Flow| containing this |Task|."""
         return self.work.flow
 
     @lazy_property
     def pos(self):
-        """The position of the task in the :class:`Flow`"""
+        """The position of the task in the |Flow|"""
         for i, task in enumerate(self.work):
             if self == task:
                 return self.work.pos, i
@@ -2276,7 +2276,7 @@ class Task(Node, metaclass=abc.ABCMeta):
     #@check_spectator
     def build(self, *args, **kwargs):
         """
-        Creates the working directory and the input files of the :class:`Task`.
+        Creates the working directory and the input files of the |Task|.
         It does not overwrite files if they already exist.
         """
         # Create dirs for input, output and tmp data.
@@ -2588,9 +2588,9 @@ class AbinitTask(Task):
         Create an instance of `AbinitTask` from an ABINIT input.
 
         Args:
-            ainput: `AbinitInput` object.
+            ainput: |AbinitInput| object.
             workdir: Path to the working directory.
-            manager: :class:`TaskManager` object.
+            manager: |TaskManager| object.
         """
         return cls(input, workdir=workdir, manager=manager)
 
@@ -3157,7 +3157,7 @@ class AbinitTask(Task):
 
 class ProduceHist(object):
     """
-    Mixin class for an :class:`AbinitTask` producing a HIST file.
+    Mixin class for a |Task| producing a HIST file.
     Provide the method `open_hist` that reads and return a HIST file.
     """
     @property
@@ -3174,7 +3174,7 @@ class ProduceHist(object):
     def open_hist(self):
         """
         Open the HIST file located in the in self.outdir.
-        Returns :class:`HistFile` object, None if file could not be found or file is not readable.
+        Returns |HistFile| object, None if file could not be found or file is not readable.
         """
         if not self.hist_path:
             if self.status == self.S_OK:
@@ -3209,7 +3209,7 @@ class GsTask(AbinitTask):
     def open_gsr(self):
         """
         Open the GSR file located in the in self.outdir.
-        Returns :class:`GsrFile` object, None if file could not be found or file is not readable.
+        Returns |GsrFile| object, None if file could not be found or file is not readable.
         """
         gsr_path = self.gsr_path
         if not gsr_path:
@@ -3596,7 +3596,7 @@ class DfptTask(AbinitTask):
     def open_ddb(self):
         """
         Open the DDB file located in the in self.outdir.
-        Returns :class:`DdbFile` object, None if file could not be found or file is not readable.
+        Returns a |DdbFile| object, None if file could not be found or file is not readable.
         """
         ddb_path = self.ddb_path
         if not ddb_path:
@@ -3949,7 +3949,7 @@ class SigmaTask(ManyBodyTask):
     def open_sigres(self):
         """
         Open the SIGRES file located in the in self.outdir.
-        Returns :class:`SigresFile` object, None if file could not be found or file is not readable.
+        Returns |SigresFile| object, None if file could not be found or file is not readable.
         """
         sigres_path = self.sigres_path
 
@@ -4128,7 +4128,7 @@ class OpticTask(Task):
             ddk_nodes: List of :class:`DdkTask` nodes that will produce the DDK files or list of DDK filepaths.
                 Order (x, y, z)
             workdir: Path to the working directory.
-            manager: :class:`TaskManager` object.
+            manager: |TaskManager| object.
         """
         # Convert paths to FileNodes
         self.nscf_node = Node.as_node(nscf_node)
@@ -4491,12 +4491,12 @@ class AnaddbTask(Task):
 
         Args:
             anaddb_input: string with the anaddb variables.
-            ddb_node: The node that will produce the DDB file. Accept :class:`Task`, :class:`Work` or filepath.
-            gkk_node: The node that will produce the GKK file (optional). Accept :class:`Task`, :class:`Work` or filepath.
-            md_node: The node that will produce the MD file (optional). Accept `Task`, `Work` or filepath.
-            gkk_node: The node that will produce the GKK file (optional). Accept `Task`, `Work` or filepath.
+            ddb_node: The node that will produce the DDB file. Accept |Task|, |Work| or filepath.
+            gkk_node: The node that will produce the GKK file (optional). Accept |Task|, |Work| or filepath.
+            md_node: The node that will produce the MD file (optional). Accept |Task|, |Work| or filepath.
+            gkk_node: The node that will produce the GKK file (optional). Accept |Task|, |Work| or filepath.
             workdir: Path to the working directory (optional).
-            manager: :class:`TaskManager` object (optional).
+            manager: |TaskManager| object (optional).
         """
         # Keep a reference to the nodes.
         self.ddb_node = Node.as_node(ddb_node)
@@ -4527,7 +4527,7 @@ class AnaddbTask(Task):
         Args:
             mpi_procs: Number of MPI processes to use.
             anaddb_input: string with the anaddb variables.
-            ddb_node: The node that will produce the DDB file. Accept :class:`Task`, :class:`Work` or filepath.
+            ddb_node: The node that will produce the DDB file. Accept |Task|, |Work| or filepath.
 
         See `AnaddbInit` for the meaning of the other arguments.
         """
@@ -4610,7 +4610,7 @@ class AnaddbTask(Task):
         """
 
     def open_phbst(self):
-        """Open PHBST file produced by Anaddb and returns :class:`PhbstFile` object."""
+        """Open PHBST file produced by Anaddb and returns |PhbstFile| object."""
         from abipy.dfpt.phonons import PhbstFile
         phbst_path = os.path.join(self.workdir, "run.abo_PHBST.nc")
         if not phbst_path:
@@ -4625,7 +4625,7 @@ class AnaddbTask(Task):
             return None
 
     def open_phdos(self):
-        """Open PHDOS file produced by Anaddb and returns :class:`PhdosFile` object."""
+        """Open PHDOS file produced by Anaddb and returns |PhdosFile| object."""
         from abipy.dfpt.phonons import PhdosFile
         phdos_path = os.path.join(self.workdir, "run.abo_PHDOS.nc")
         if not phdos_path:

@@ -1425,7 +1425,7 @@ class PhononWork(Work, MergeDdb):
     def from_scf_task(cls, scf_task, qpoints, is_ngqpt=False, tolerance=None, with_becs=False,
                       ddk_tolerance=None, manager=None):
         """
-        Construct a `PhononWork` from a :class:`ScfTask` object.
+        Construct a `PhononWork` from a |ScfTask| object.
         The input file for phonons is automatically generated from the input of the ScfTask.
         Each phonon task depends on the WFK file produced by the `scf_task`.
 
@@ -1493,7 +1493,7 @@ class PhononWork(Work, MergeDdb):
         """
         This method is called when all the q-points have been computed.
         Ir runs `mrgddb` in sequential on the local machine to produce
-        the final DDB file in the outdir of the `Work`.
+        the final DDB file in the outdir of the |Work|.
         """
         # Merge DDB files.
         out_ddb = self.merge_ddb_files()
@@ -1519,7 +1519,7 @@ class PhononWfkqWork(Work, MergeDdb):
                       with_becs=False, ddk_tolerance=None, shiftq=(0, 0, 0), is_ngqpt=True, remove_wfkq=True,
                       prepgkk=0, manager=None):
         """
-        Construct a `PhononWfkqWork` from a :class:`ScfTask` object.
+        Construct a `PhononWfkqWork` from a |ScfTask| object.
         The input files for WFQ and phonons are automatically generated from the input of the ScfTask.
         Each phonon task depends on the WFK file produced by scf_task and the associated WFQ file.
 
@@ -1629,7 +1629,7 @@ class PhononWfkqWork(Work, MergeDdb):
         """
         This method is called when all the q-points have been computed.
         Ir runs `mrgddb` in sequential on the local machine to produce
-        the final DDB file in the outdir of the `Work`.
+        the final DDB file in the outdir of the |Work|.
         """
         # Merge DDB files.
         out_ddb = self.merge_ddb_files()
@@ -1844,7 +1844,7 @@ class BecWork(Work, MergeDdb):
         """
         This method is called when all tasks reach S_OK
         Ir runs `mrgddb` in sequential on the local machine to produce
-        the final DDB file in the outdir of the `Work`.
+        the final DDB file in the outdir of the |Work|.
         """
         # Merge DDB files.
         out_ddb = self.merge_ddb_files()

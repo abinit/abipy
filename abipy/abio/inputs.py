@@ -1177,7 +1177,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         Args:
             ndivsm: Number of divisions used to sample the smallest segment of the k-path.
-            tolwfr: Tolerance on residuals.
+            tolwfr: Tolerance on residuals for NSCF calculation
             nscf_nband: Number of bands for NSCF calculation. +10 if None.
         """
         nscf_input = self.deepcopy()
@@ -1218,7 +1218,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         Args:
             kpts: List of k-points in reduced coordinates where effective masses are wanted.
             efmas_bands_f90: (nkpt, 2) array with band range for effmas computation.
-                WARNING: Uses Fortran convention so first band has index 0
+                WARNING: Assumes Fortran convention with indices starting from 1.
             tolwfr: Tolerance on residuals.
         """
         multi = MultiDataset.replicate_input(input=self, ndtset=3)

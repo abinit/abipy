@@ -137,6 +137,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     @lazy_property
     def max_force(self):
+        """Max cart force in eV / Ang"""
         fmods = np.sqrt([np.dot(force, force) for force in self.cart_forces])
         return fmods.max()
 

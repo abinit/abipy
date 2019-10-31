@@ -19,11 +19,19 @@ class DdbTest(AbipyTest):
     def test_alas_ddb_1qpt_phonons(self):
         """Testing DDB with one q-point"""
         with DdbFile(os.path.join(test_dir, "AlAs_1qpt_DDB")) as ddb:
-            repr(ddb); print(ddb)
+            repr(ddb); str(ddb)
             # Test qpoints.
             assert len(ddb.qpoints) == 1
             assert np.all(ddb.qpoints[0] == [0.25, 0, 0])
             assert ddb.natom == len(ddb.structure)
+
+            import json
+            from monty.json import MSONable, MontyDecoder
+            assert isinstance(ddb, MSONable)
+            same_ddb = json.loads(ddb.to_json(), cls=MontyDecoder)
+            assert len(same_ddb.structure) == ddb.natom
+            assert np.all(same_ddb.qpoints.frac_coords == ddb.qpoints.frac_coords)
+            same_ddb.close()
 
             # Test header
             h = ddb.header
@@ -47,7 +55,7 @@ class DdbTest(AbipyTest):
             assert struct.formula == "Al1 As1"
 
             # Test interface with Anaddb.
-            print(ddb.qpoints[0])
+            str(ddb.qpoints[0])
             assert ddb.qindex(ddb.qpoints[0]) == 0
 
             phbands = ddb.anaget_phmodes_at_qpoint(qpoint=ddb.qpoints[0], verbose=1)
@@ -64,7 +72,7 @@ class DdbTest(AbipyTest):
                     ddb.anaget_phbst_and_phdos_files(ngqpt=(4, 4, 4), verbose=1)
                 except Exception as exc:
                     # This to test AnaddbError.__str__
-                    print(exc)
+                    str(exc)
                     raise
 
             # Cannot compute DOS since we need a mesh.

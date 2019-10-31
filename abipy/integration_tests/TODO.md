@@ -25,7 +25,7 @@ TODO list:
 
 * Automate CHANGELOG creation.
 
-* Fix DFPT with iomode 3 (make_links logic)
+* DONE: Fix DFPT with iomode 3 (make_links logic)
 
 * Refactor S_QCRITICAL logic (logic injected by user, since qcritical errors are cluster-specific)
 
@@ -62,8 +62,6 @@ TODO list:
 * Add memory error to Abinit errors
 
 * Investigate NaN issue in BECS reported by Ahn if tolvrs instead of tolwfr (tolwfr could activate nbdbuf)
-
-* Add input file to NC files (?)
 
 * Add phonon plot with Longitudinal/transverse character and Z q
 
@@ -124,14 +122,13 @@ TODO list:
 
 * fatbands with SOC (waiting for Matthieu's refactoring)
 
-* integrate improvements in skw by Nicholas.
-  Finalize baseclass for ElectronInterpolator
+* Improvements in SKW. Finalize baseclass for ElectronInterpolator
 
 * context manager to change variables (e.g. autoparal)
 
-* Cleanup and refactoring in OpticTask
+* Cleanup and refactoring in OpticTask (Well, optic should be rewritten from scratch)
 
-* Replace SIGRES with new fileformat based on SIGEPH (long-term)
+* Replace SIGRES with new fileformat based on SIGEPH (long-term project)
 
 * Update spack recipe, add support for EasyBuild, revamp homebrew (?)
 

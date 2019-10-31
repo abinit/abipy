@@ -558,7 +558,7 @@ Travis
 	      job:
 	        mpi_runner: mpirun
 	        pre_run:
-	            - source activate test-environment
+	            - source activate abinit-environment
 	            - ulimit -s unlimited
 	      limits:
 	         min_cores: 1

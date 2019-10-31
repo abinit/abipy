@@ -5,7 +5,7 @@ import abipy.data as abidata
 
 from abipy.core.testing import AbipyTest
 from abipy.abio.factories import gs_input
-from abipy.flowtk.effmass_works import EffMassLineWork, EffMassDFPTWork, EffMassAutoDFPTWork
+from abipy.flowtk.effmass_works import EffMassLineWork, EffMassDFPTWork, EffMassAutoDFPTWork, FrohlichZPRFlow
 
 
 class TestEffMassWorks(AbipyTest):
@@ -90,8 +90,8 @@ class TestEffMassWorks(AbipyTest):
 
     def test_frohlich_zpr_flow(self):
         """Testing FrohlichZPRFlow"""
-        ddb_path = abidata.ref_file("refs/mgo_v8t57/mgo_zpr_t57o_DS3_DDB")
         # Read structure from DDB file.
+        from abipy import abilab
         ddb_path = abidata.ref_file("refs/mgo_v8t57/mgo_zpr_t57o_DS3_DDB")
         with abilab.abiopen(ddb_path) as ddb:
             structure = ddb.structure
@@ -113,7 +113,10 @@ class TestEffMassWorks(AbipyTest):
                        2,  2, -2],
         )
 
-        flow = FrohlichZPRFlow.from_scf_input(scf_input, ddb_node=ddb_path, ndivsm=2, tolwfr=1e-20)
+        workdir = self.mkdtemp()
+        flow = FrohlichZPRFlow.from_scf_input(workdir, scf_input, ddb_node=ddb_path, ndivsm=2, tolwfr=1e-20,
+                                              metadata={"mp_id": "mp-149"})
+        flow.allocate()
         flow.check_status()
         isok, checks = flow.abivalidate_inputs()
         assert isok

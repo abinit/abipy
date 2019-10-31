@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-This script opens an output file produced by Abinit (usually in netcdf format but
+This script opens one of the output files produced by Abinit (usually in netcdf format but
 other files are supported as well). By default the script starts an interactive ipython
 session so that one can interact with the file and call its methods.
 Alternatively, it is possible to generate automatically a jupyter notebook to execute code.
@@ -8,7 +8,9 @@ Alternatively, it is possible to generate automatically a jupyter notebook to ex
 import sys
 import os
 import argparse
+import subprocess
 
+from pprint import pprint
 from monty.os.path import which
 from monty.termcolor import cprint
 from monty.functools import prof_main
@@ -21,7 +23,7 @@ def make_and_open_notebook(options):
     Return system exit code.
 
     Raise:
-        RuntimeError if jupyther is not in $PATH
+        RuntimeError if jupyter is not in $PATH
     """
     import os
     import nbformat
@@ -59,7 +61,6 @@ from abipy import abilab\
         cmd = "jupyter notebook %s" % nbpath
         print("Executing:", cmd)
         print("stdout and stderr redirected to %s" % tmpname)
-        import subprocess
         process = subprocess.Popen(cmd.split(), shell=False, stdout=fd, stderr=fd)
         cprint("pid: %s" % str(process.pid), "yellow")
 
@@ -74,10 +75,13 @@ Usage example:
     abiopen.py FILE -e     => Generate matplotlib figures automatically.
                               Use -sns to activate seaborn settings.
 
-`FILE` is any file supported by abipy/pymatgen e.g Netcdf files, Abinit input, POSCAR, xsf ...
+where `FILE` is any file supported by abipy/pymatgen e.g. Netcdf files, Abinit input, POSCAR, xsf.
+File extensions supported (including zipped files with extension in ".bz2", ".gz", ".z"):
+
 Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 
-File extensions supported (including zipped files with extension in ".bz2", ".gz", ".z"):
+JSON file are supported as well. In this case, abiopen.py tries to reconstruct python objects
+assuming JSON document in MSONable format and then invokes ipython with the `data` object.
 """
     return s + abilab.abiopen_ext2class_table()
 
@@ -176,6 +180,9 @@ def main():
     #    IPython.embed(header="The Abinit file is bound to the `nb` variable.\n")
     #    return 0
 
+    if options.filepath.endswith(".json"):
+        return handle_json(options)
+
     if not options.notebook:
         abifile = abilab.abiopen(options.filepath)
 
@@ -232,6 +239,35 @@ Use `print(abifile)` to print the object.
             return make_and_open_notebook(options)
 
     return 0
+
+
+def handle_json(options):
+    """Handle JSON file."""
+
+    data = abilab.mjson_load(options.filepath)
+
+    if not options.notebook:
+        if options.print:
+            # Print object to terminal.
+            pprint(data, indent=4)
+            return 0
+        elif options.expose:
+            cprint("expose option with JSON is not implemented. Use -nb", "yellow")
+            return 0
+
+        # Start ipython shell with namespace
+        # Use embed because I don't know how to show a header with start_ipython.
+        import IPython
+        IPython.embed(header="""
+The object initialized from JSON (MSONable) is associated to the `data` python variable.
+""")
+
+    else:
+        cmd = "jupyter-lab %s" % options.filepath
+        print("Executing:", cmd)
+        process = subprocess.Popen(cmd.split(), shell=False) #, stdout=fd, stderr=fd)
+        cprint("pid: %s" % str(process.pid), "yellow")
+        return 0
 
 
 if __name__ == "__main__":

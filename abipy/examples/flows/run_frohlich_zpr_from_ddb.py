@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 r"""
-ZPR of band edges with generalized Frohlich model from DDB file
-===============================================================
+Estimate the ZPR of band edges with generalized Frohlich mode
+=============================================================
 
 Flow to estimate the zero-point renormalization at the band edges using the generalized Frohlich model.
 The flow computes the effective masses at the band edges with DFPT and uses an external DDB file
@@ -49,8 +49,8 @@ def build_flow(options):
     # Build the flow to detect band edges, compute effective masses and finally obtain an estimate for the ZPR
     # BECS/phonons/eps_inf are taken from ddb_node.
     from abipy.flowtk.effmass_works import FrohlichZPRFlow
-    flow = FrohlichZPRFlow.from_scf_input(scf_input, ddb_node=ddb_path, ndivsm=2, tolwfr=1e-14,
-                                          workdir=options.workdir, manager=options.manager)
+    flow = FrohlichZPRFlow.from_scf_input(options.workdir, scf_input, ddb_node=ddb_path, ndivsm=2, tolwfr=1e-14,
+                                          manager=options.manager)
     return flow
 
 
@@ -75,6 +75,7 @@ def main(options):
 
 if __name__ == "__main__":
     sys.exit(main())
+
 
 ############################################################################
 #

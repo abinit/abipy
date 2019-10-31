@@ -11,11 +11,13 @@ import abipy.core.abinit_units as abu
 from collections import OrderedDict
 from functools import lru_cache
 from monty.string import marquee, list_strings
+from monty.json import MSONable
 from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.termcolor import cprint
 from monty.dev import deprecated
 from pymatgen.core.units import eV_to_Ha, bohr_to_angstrom, Energy
+from pymatgen.util.serialization import pmg_serialize
 from abipy.flowtk import AnaddbTask
 from abipy.core.mixins import TextFile, Has_Structure, NotebookWriter
 from abipy.core.symmetries import AbinitSpaceGroup
@@ -60,7 +62,7 @@ class AnaddbError(DdbError):
         return "\n".join(lines)
 
 
-class DdbFile(TextFile, Has_Structure, NotebookWriter):
+class DdbFile(TextFile, Has_Structure, NotebookWriter, MSONable):
     """
     This object provides an interface to the DDB_ file produced by ABINIT
     as well as methods to compute phonon band structures, phonon DOS, thermodinamical properties ...
@@ -119,6 +121,24 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         Accepts: DdbFile or filepath
         """
         return obj if isinstance(obj, cls) else cls.from_file(obj)
+
+    @classmethod
+    def from_dict(cls, d):
+        """Reconstruct object from dictionary ``d``."""
+        dirpath = tempfile.mkdtemp()
+        tmp_filepath = os.path.join(dirpath, os.path.basename(d["ddb_path"]))
+        with open(tmp_filepath, "wt") as fh:
+            fh.write(d["ddb_string"])
+
+        return cls(tmp_filepath)
+
+    @pmg_serialize
+    def as_dict(self):
+        """Return dictionary with JSON serialization."""
+        with open(self.filepath, "rt") as fh:
+            ddb_string = fh.read()
+
+        return {"ddb_string": ddb_string, "ddb_path": self.filepath}
 
     def __init__(self, filepath):
         super().__init__(filepath)
@@ -1007,7 +1027,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         # Write the file with a subset of q-points
         if filepath is None:
-            import tempfile
             _, filepath = tempfile.mkstemp(suffix="_DDB", text=True)
 
         self.write(filepath, filter_blocks=map_fine_to_coarse)
@@ -1168,10 +1187,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                     q.task_done()
 
             from threading import Thread
-            try:
-                from Queue import Queue # py2k
-            except ImportError:
-                from queue import Queue # py3k
+            from queue import Queue
 
             q = Queue()
             for i in range(num_cpus):
@@ -1246,7 +1262,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     def anaget_epsinf_and_becs(self, chneut=1, mpi_procs=1, workdir=None, manager=None, verbose=0):
         """
         Call anaddb to compute the macroscopic electronic dielectric tensor (e_inf)
-        in Cartesian coordinates and the Born effective charges.
+        and the Born effective charges in Cartesian coordinates.
 
         Args:
             chneut: Anaddb input variable. See official documentation.
@@ -1322,7 +1338,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """
         # Check if gamma is in the DDB.
         try:
-            self.qindex((0,0,0))
+            self.qindex((0, 0, 0))
         except Exception:
             raise ValueError("Gamma point not in %s.\nddb.qpoints:\n%s" % (self.filepath, self.qpoints))
 
@@ -1533,8 +1549,8 @@ phbands, phdos = bstfile.phbands, phdosfile.phdos"""),
             nbv.new_markdown_cell("## Macroscopic dielectric tensor and Born effective charges"),
             nbv.new_code_cell("""\
 if False:
-    einf, becs = ddb.anaget_epsinf_and_becs()
-    print(einf)
+    eps_inf, becs = ddb.anaget_epsinf_and_becs()
+    print(eps_inf)
     print(becs)"""),
 
             nbv.new_markdown_cell("## Call `anaddb` to compute phonons and DOS with/without ASR"),
@@ -1678,6 +1694,7 @@ class Becs(Has_Structure):
         return pd.DataFrame(rows, columns=list(rows[0].keys()) if rows else None)
 
     def check_site_symmetries(self, verbose=0):
+        """Check the site symmetrized of the Born effective charges."""
         from abipy.core.wyckoff import SiteSymmetries
         ss = SiteSymmetries(self.structure)
         return ss.check_site_symmetries(self.values, verbose=verbose)
@@ -1830,7 +1847,7 @@ class DielectricTensorGenerator(Has_Structure):
             w: Frequency in eV
             gamma_ev: Phonon damping factor in eV (full width). Poles are shifted by phfreq * gamma_ev.
                 Accept scalar or [nfreq] array.
-            units: string specifying the units used for ph frequencies.  Possible values in
+            units: string specifying the units used for phonon frequencies. Possible values in
             ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
         """
         w = w / phfactor_ev2units(units)

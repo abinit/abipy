@@ -136,13 +136,13 @@ class Flow(Node, NodeContainer, MSONable):
         Args:
             workdir: String specifying the directory where the works will be produced.
             inputs: List of inputs.
-            manager: :class:`TaskManager` object responsible for the submission of the jobs.
+            manager: |TaskManager| object responsible for the submission of the jobs.
                 If manager is None, the object is initialized from the yaml file
                 located either in the working directory or in the user configuration dir.
             pickle_protocol: Pickle protocol version used for saving the status of the object.
                 -1 denotes the latest version supported by the python interpreter.
-            task_class: The class of the :class:`Task`.
-            work_class: The class of the :class:`Work`.
+            task_class: The class of the |Task|.
+            work_class: The class of the |Work|.
             remove: attempt to remove working directory `workdir` if directory already exists.
         """
         if not isinstance(inputs, (list, tuple)): inputs = [inputs]
@@ -172,7 +172,7 @@ class Flow(Node, NodeContainer, MSONable):
             workdir: String specifying the directory where the works will be produced.
                      if workdir is None, the initialization of the working directory
                      is performed by flow.allocate(workdir).
-            manager: :class:`TaskManager` object responsible for the submission of the jobs.
+            manager: |TaskManager| object responsible for the submission of the jobs.
                      If manager is None, the object is initialized from the yaml file
                      located either in the working directory or in the user configuration dir.
             pickle_protocol: Pickle protocol version used for saving the status of the object.
@@ -390,7 +390,7 @@ class Flow(Node, NodeContainer, MSONable):
 
     def check_pid_file(self):
         """
-        This function checks if we are already running the :class:`Flow` with a :class:`PyFlowScheduler`.
+        This function checks if we are already running the |Flow| with a :class:`PyFlowScheduler`.
         Raises: Flow.Error if the pid file of the scheduler exists.
         """
         if not os.path.exists(self.pid_file):
@@ -466,7 +466,7 @@ class Flow(Node, NodeContainer, MSONable):
 
     @property
     def works(self):
-        """List of :class:`Work` objects contained in self.."""
+        """List of |Work| objects contained in self.."""
         return self._works
 
     @property
@@ -560,7 +560,7 @@ class Flow(Node, NodeContainer, MSONable):
 
     def chroot(self, new_workdir):
         """
-        Change the workir of the :class:`Flow`. Mainly used for
+        Change the workir of the |Flow|. Mainly used for
         allowing the user to open the GUI on the local host
         and access the flow from remote via sshfs.
 
@@ -652,7 +652,7 @@ class Flow(Node, NodeContainer, MSONable):
 
         If status is not None, only the tasks whose status satisfies
         the condition (task.status op status) are selected
-        status can be either one of the flags defined in the :class:`Task` class
+        status can be either one of the flags defined in the |Task| class
         (e.g Task.S_OK) or a string e.g "S_OK"
         nids is an optional list of node identifiers used to filter the tasks.
         """
@@ -660,11 +660,11 @@ class Flow(Node, NodeContainer, MSONable):
 
     def iflat_tasks(self, status=None, op="==", nids=None):
         """
-        Generator to iterate over all the tasks of the :class:`Flow`.
+        Generator to iterate over all the tasks of the |Flow|.
 
         If status is not None, only the tasks whose status satisfies
         the condition (task.status op status) are selected
-        status can be either one of the flags defined in the :class:`Task` class
+        status can be either one of the flags defined in the |Task| class
         (e.g Task.S_OK) or a string e.g "S_OK"
         nids is an optional list of node identifiers used to filter the tasks.
         """
@@ -791,7 +791,7 @@ class Flow(Node, NodeContainer, MSONable):
 
     @property
     def status(self):
-        """The status of the :class:`Flow` i.e. the minimum of the status of its tasks and its works"""
+        """The status of the |Flow| i.e. the minimum of the status of its tasks and its works"""
         return min(work.get_all_status(only_min=True) for work in self)
 
     #def restart_unconverged_tasks(self, max_nlauch, excs):
@@ -1702,16 +1702,16 @@ class Flow(Node, NodeContainer, MSONable):
         Utility function that generates a `Work` made of a single task
 
         Args:
-            input: :class:`AbinitInput`
+            input: |AbinitInput|
             deps: List of :class:`Dependency` objects specifying the dependency of this node.
                   An empy list of deps implies that this node has no dependencies.
-            manager: The :class:`TaskManager` responsible for the submission of the task.
-                     If manager is None, we use the :class:`TaskManager` specified during the creation of the work.
-            task_class: Task subclass to instantiate. Default: :class:`AbinitTask`
+            manager: The |TaskManager| responsible for the submission of the task.
+                     If manager is None, we use the |TaskManager| specified during the creation of the work.
+            task_class: Task subclass to instantiate. Default: |AbinitTask|
             append: If true, the task is added to the last work (a new Work is created if flow is empty)
 
         Returns:
-            The generated :class:`Work` for the task, work[0] is the actual task.
+            The generated |Work| for the task, work[0] is the actual task.
         """
         # append True is much easier to use. In principle should be the default behaviour
         # but this would break the previous API so ...
@@ -1731,18 +1731,18 @@ class Flow(Node, NodeContainer, MSONable):
 
     def register_work(self, work, deps=None, manager=None, workdir=None):
         """
-        Register a new :class:`Work` and add it to the internal list, taking into account possible dependencies.
+        Register a new |Work| and add it to the internal list, taking into account possible dependencies.
 
         Args:
-            work: :class:`Work` object.
+            work: |Work| object.
             deps: List of :class:`Dependency` objects specifying the dependency of this node.
                   An empy list of deps implies that this node has no dependencies.
-            manager: The :class:`TaskManager` responsible for the submission of the task.
+            manager: The |TaskManager| responsible for the submission of the task.
                      If manager is None, we use the `TaskManager` specified during the creation of the work.
-            workdir: The name of the directory used for the :class:`Work`.
+            workdir: The name of the directory used for the |Work|.
 
         Returns:
-            The registered :class:`Work`.
+            The registered |Work|.
         """
         if getattr(self, "workdir", None) is not None:
             # The flow has a directory, build the name of the directory of the work.
@@ -1773,12 +1773,12 @@ class Flow(Node, NodeContainer, MSONable):
             cbk_name: Name of the callback function (must be a bound method of self)
             cbk_data: Additional data passed to the callback function.
             deps: List of :class:`Dependency` objects specifying the dependency of the work.
-            work_class: :class:`Work` class to instantiate.
-            manager: The :class:`TaskManager` responsible for the submission of the task.
-                    If manager is None, we use the `TaskManager` specified during the creation of the :class:`Flow`.
+            work_class: |Work| class to instantiate.
+            manager: The |TaskManager| responsible for the submission of the task.
+                    If manager is None, we use the `TaskManager` specified during the creation of the |Flow|.
 
         Returns:
-            The :class:`Work` that will be finalized by the callback.
+            The |Work| that will be finalized by the callback.
         """
         # TODO: pass a Work factory instead of a class
         # Directory of the Work.
@@ -1813,7 +1813,7 @@ class Flow(Node, NodeContainer, MSONable):
     def allocate(self, workdir=None, use_smartio=False):
         """
         Allocate the `Flow` i.e. assign the `workdir` and (optionally)
-        the :class:`TaskManager` to the different tasks in the Flow.
+        the |TaskManager| to the different tasks in the Flow.
 
         Args:
             workdir: Working directory of the flow. Must be specified here
@@ -1908,7 +1908,7 @@ class Flow(Node, NodeContainer, MSONable):
 
     def on_all_ok(self):
         """
-        This method is called when all works in the flow have reached S_OK.
+        This method is called when all the works in the flow have reached S_OK.
         This method shall return True if the calculation is completed or
         False if the execution should continue due to side-effects such as adding a new work to the flow.
 
@@ -1960,14 +1960,13 @@ class Flow(Node, NodeContainer, MSONable):
     @check_spectator
     def finalize(self):
         """
-        This method is called when the flow is completed.
-        Return 0 if success
+        This method is called when the flow is completed. Return 0 if success
         """
+        self.history.info("Calling flow.finalize.")
         if self.finalized:
-            self.history.warning("Calling finalize on an already finalized flow.")
+            self.history.warning("Calling finalize on an already finalized flow. Returning 1")
             return 1
 
-        self.history.info("Calling flow.finalize.")
         self.finalized = True
 
         if self.has_db:
@@ -1998,7 +1997,7 @@ class Flow(Node, NodeContainer, MSONable):
             policy: Either `flow` or `task`. If policy is set to 'task', we remove the output
                 files as soon as the task reaches S_OK. If 'flow', the files are removed
                 only when the flow is finalized. This option should be used when we are dealing
-                with a dynamic flow with callbacks generating other tasks since a :class:`Task`
+                with a dynamic flow with callbacks generating other tasks since a |Task|
                 might not be aware of its children when it reached S_OK.
         """
         assert policy in ("task", "flow")
@@ -2254,15 +2253,6 @@ class Flow(Node, NodeContainer, MSONable):
 
         os.chdir(back)
         return name
-
-    #def abirobot(self, ext, check_status=True, nids=None):
-    #    """
-    #    Builds and return the :class:`Robot` subclass from the file extension `ext`.
-    #    `nids` is an optional list of node identifiers used to filter the tasks in the flow.
-    #    """
-    #    from abipy.abilab import abirobot
-    #    if check_status: self.check_status()
-    #    return abirobot(flow=self, ext=ext, nids=nids):
 
     def get_graphviz(self, engine="automatic", graph_attr=None, node_attr=None, edge_attr=None):
         """
@@ -2535,8 +2525,7 @@ class G0W0WithQptdmFlow(Flow):
             nscf_input: Input for the NSCF run (band structure run).
             scr_input: Input for the SCR run.
             sigma_inputs: Input(s) for the SIGMA run(s).
-            manager: :class:`TaskManager` object used to submit the jobs
-                     Initialized from manager.yml if manager is None.
+            manager:  |TaskManager| object used to submit the jobs. Initialized from manager.yml if manager is None.
         """
         super().__init__(workdir, manager=manager)
 
@@ -2596,8 +2585,8 @@ class FlowCallbackError(Exception):
 
 class FlowCallback(object):
     """
-    This object implements the callbacks executed by the :class:`flow` when
-    particular conditions are fulfilled. See on_dep_ok method of :class:`Flow`.
+    This object implements the callbacks executed by the |Flow| when
+    particular conditions are fulfilled. See on_dep_ok method of |Flow|.
 
     .. note::
 
@@ -2620,7 +2609,7 @@ class FlowCallback(object):
                             func_name(self, cbk)
 
                        where self is the Flow instance and cbk is the callback
-            flow: Reference to the :class:`Flow`
+            flow: Reference to the |Flow|.
             deps: List of dependencies associated to the callback
                   The callback is executed when all dependencies reach S_OK.
             cbk_data: Dictionary with additional data that will be passed to the callback via self.
@@ -2675,20 +2664,18 @@ class FlowCallback(object):
 # Factory functions.
 def bandstructure_flow(workdir, scf_input, nscf_input, dos_inputs=None, manager=None, flow_class=Flow, allocate=True):
     """
-    Build a :class:`Flow` for band structure calculations.
+    Build a |Flow| for band structure calculations.
 
     Args:
         workdir: Working directory.
         scf_input: Input for the GS SCF run.
         nscf_input: Input for the NSCF run (band structure run).
         dos_inputs: Input(s) for the NSCF run (dos run).
-        manager: :class:`TaskManager` object used to submit the jobs
-                 Initialized from manager.yml if manager is None.
+        manager: |TaskManager| object used to submit the jobs. Initialized from manager.yml if manager is None.
         flow_class: Flow subclass
         allocate: True if the flow should be allocated before returning.
 
-    Returns:
-        :class:`Flow` object
+    Returns: |Flow| object
     """
     flow = flow_class(workdir, manager=manager)
     work = BandStructureWork(scf_input, nscf_input, dos_inputs=dos_inputs)
@@ -2703,7 +2690,7 @@ def bandstructure_flow(workdir, scf_input, nscf_input, dos_inputs=None, manager=
 
 def g0w0_flow(workdir, scf_input, nscf_input, scr_input, sigma_inputs, manager=None, flow_class=Flow, allocate=True):
     """
-    Build a :class:`Flow` for one-shot $G_0W_0$ calculations.
+    Build a |Flow| for one-shot $G_0W_0$ calculations.
 
     Args:
         workdir: Working directory.
@@ -2712,12 +2699,10 @@ def g0w0_flow(workdir, scf_input, nscf_input, scr_input, sigma_inputs, manager=N
         scr_input: Input for the SCR run.
         sigma_inputs: List of inputs for the SIGMA run.
         flow_class: Flow class
-        manager: :class:`TaskManager` object used to submit the jobs.
-                 Initialized from manager.yml if manager is None.
+        manager: |TaskManager| object used to submit the jobs. Initialized from manager.yml if manager is None.
         allocate: True if the flow should be allocated before returning.
 
-    Returns:
-        :class:`Flow` object
+    Returns: |Flow| object
     """
     flow = flow_class(workdir, manager=manager)
     work = G0W0Work(scf_input, nscf_input, scr_input, sigma_inputs)
@@ -2750,12 +2735,12 @@ class PhononFlow(Flow):
 
         Args:
             workdir: Working directory of the flow.
-            scf_input: :class:`AbinitInput` object with the parameters for the GS-SCF run.
+            scf_input: |AbinitInput| object with the parameters for the GS-SCF run.
             ph_ngqpt: q-mesh for phonons. Must be a sub-mesh of the k-mesh used for
                 electrons. e.g if ngkpt = (8, 8, 8). ph_ngqpt = (4, 4, 4) is a valid choice
                 whereas ph_ngqpt = (3, 3, 3) is not!
             with_becs: True if Born effective charges are wanted.
-            manager: :class:`TaskManager` object. Read from `manager.yml` if None.
+            manager: |TaskManager| object. Read from `manager.yml` if None.
             allocate: True if the flow should be allocated before returning.
 
         Return:
@@ -2843,8 +2828,8 @@ class NonLinearCoeffFlow(Flow):
 
         Args:
             workdir: Working directory of the flow.
-            scf_input: :class:`AbinitInput` object with the parameters for the GS-SCF run.
-            manager: :class:`TaskManager` object. Read from `manager.yml` if None.
+            scf_input: |AbinitInput| object with the parameters for the GS-SCF run.
+            manager: |TaskManager| object. Read from `manager.yml` if None.
             allocate: True if the flow should be allocated before returning.
 
         Return:
@@ -2906,19 +2891,20 @@ class NonLinearCoeffFlow(Flow):
 
 def phonon_conv_flow(workdir, scf_input, qpoints, params, manager=None, allocate=True):
     """
-    Create a :class:`Flow` to perform convergence studies for phonon calculations.
+    Create a |Flow| to perform convergence studies for phonon calculations.
+
     Args:
         workdir: Working directory of the flow.
-        scf_input: :class:`AbinitInput` object defining a GS-SCF calculation.
+        scf_input: |AbinitInput| object defining a GS-SCF calculation.
         qpoints: List of list of lists with the reduced coordinates of the q-point(s).
         params:
             To perform a converge study wrt ecut: params=["ecut", [2, 4, 6]]
-        manager: :class:`TaskManager` object responsible for the submission of the jobs.
+        manager: |TaskManager| object responsible for the submission of the jobs.
             If manager is None, the object is initialized from the yaml file
             located either in the working directory or in the user configuration dir.
         allocate: True if the flow should be allocated before returning.
-    Return:
-        :class:`Flow` object.
+
+    Return: |Flow| object.
     """
     qpoints = np.reshape(qpoints, (-1, 3))
 

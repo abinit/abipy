@@ -96,19 +96,20 @@
 .. |ElectronDos| replace:: :class:`abipy.electrons.ebands.ElectronDos`
 .. |ElectronDosPlotter| replace:: :class:`abipy.electrons.ebands.ElectronDosPlotter`
 .. |PhononBands| replace:: :class:`abipy.dfpt.phonons.PhononBands`
-.. |Task| replace:: :class:`pymatgen.io.abinit.tasks.Task`
-.. |ScfTask| replace:: :class:`pymatgen.io.abinit.tasks.ScfTask`
-.. |NscfTask| replace:: :class:`pymatgen.io.abinit.tasks.NscfTask`
-.. |Flow| replace:: :class:`pymatgen.io.abinit.flows.Flow`
-.. |Work| replace:: :class:`pymatgen.io.abinit.works.Work`
-.. |TaskManager| replace:: :class:`pymatgen.io.abinit.tasks.TaskManager`
+.. |Task| replace:: :class:`abipy.flowtk.tasks.Task`
+.. |ScfTask| replace:: :class:`abipy.flowtk.tasks.ScfTask`
+.. |NscfTask| replace:: :class:`abipy.flowtk.tasks.NscfTask`
+.. |Flow| replace:: :class:`abipy.flowtk.flows.Flow`
+.. |Work| replace:: :class:`abipy.flowtk.works.Work`
+.. |TaskManager| replace:: :class:`abipy.flowtk.tasks.TaskManager`
 .. |GsrFile| replace:: :class:`abipy.electrons.gsr.GsrFile`
 .. |GsrRobot| replace:: :class:`abipy.electrons.gsr.GsrRobot`
 .. |DdbFile| replace:: :class:`abipy.dfpt.ddb.DdbFile`
+.. |HistFile| replace:: :class:`abipy.dynamics.hist.HistFile`
 .. |DielectricTensorGenerator| replace:: :class:`abipy.dfpt.ddb.DielectricTensorGenerator`
 .. |DdbRobot| replace:: :class:`abipy.dfpt.ddb.DdbRobot`
 .. |AnaddbNcFile| replace:: :class:`abipy.dfpt.anaddb.AnaddbNcFile`
-.. |pmg-Tensor| replace:: :class:`pymatgen.analysis.elasticity.tensors.Tensor` 
+.. |pmg-Tensor| replace:: :class:`pymatgen.core.tensors.Tensor` 
 .. |Stress| replace:: :class:`abipy.tools.tensors.Stress` 
 .. |DielectricTensor| replace:: :class:`abipy.tools.tensors.DielectricTensor` 
 .. |ElasticData| replace:: :class:`abipy.dfpt.elastic.ElasticData`
@@ -131,7 +132,6 @@
 .. |pandas-DataFrame| replace:: :class:`pandas.DataFrame`
 .. |pandas-DataFrames| replace:: :class:`pandas.DataFrame`
 .. |numpy-array| replace:: :class:`numpy.ndarray`
-
 
 .. Badges
 .. |pypi-version| image:: https://badge.fury.io/py/abipy.svg

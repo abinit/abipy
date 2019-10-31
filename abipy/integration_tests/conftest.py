@@ -6,6 +6,7 @@ import copy
 import abipy.flowtk as flowtk
 
 from monty.collections import AttrDict
+from monty.string import marquee
 
 # Are we running on travis?
 on_travis = os.environ.get("TRAVIS", "False") == "true"
@@ -41,17 +42,14 @@ def fwp(tmpdir, request):
     """
     Parameters used to initialize Flows.
 
-    This fixture allows us to change the |TaskManager|
-    so that we can easily test different configurations.
+    This fixture allows us to change the |TaskManager| so that we can easily test different configurations.
     """
     # Temporary working directory
     fwp.workdir = str(tmpdir)
 
     # Create the TaskManager.
     fwp.manager = flowtk.TaskManager.from_string(request.param)
-
     fwp.scheduler = flowtk.PyFlowScheduler.from_file(os.path.join(USER_CONFIG_DIR, "scheduler.yml"))
-
     fwp.on_travis = on_travis
 
     return fwp
@@ -77,8 +75,7 @@ def tvars(request):
     Abinit variables passed to the test functions.
 
     This fixture allows us change the variables in the input files
-    so that we can easily test different scenarios e.g. runs with or without
-    paral_kgb==1
+    so that we can easily test different scenarios e.g. runs with or without paral_kgb == 1
     """
     return AttrDict({k: v for k, v in request.param})
 
@@ -87,19 +84,18 @@ def pytest_addoption(parser):
     """Add extra command line options."""
     parser.addoption('--loglevel', default="ERROR", type=str,
                      help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
-
     #parser.addoption('--manager', default=None, help="TaskManager file (defaults to the manager.yml found in cwd"
 
 
 def pytest_report_header(config):
     """Write the initial header."""
-    lines = ["\n*** Integration tests for abipy + abinit + pymatgen ***\n"]
+    lines = []
     app = lines.append
-
-    app("Assuming the environment is properly configured:")
-    app("In particular, we assume that the abinit executable is in $PATH and can be executed.")
-    app("Change manager.yml according to your platform.")
-    app("Number of manager configurations: %d" % len(_manager_confs))
+    app("\n" + marquee("Begin integration tests for AbiPy + abinit", mark="="))
+    app("\tAssuming the environment is properly configured:")
+    app("\tIn particular, the abinit executable must be in $PATH.")
+    app("\tChange manager.yml according to your platform.")
+    app("\tNumber of TaskManager configurations: %d" % len(_manager_confs))
 
     if config.option.verbose > 0:
         for i, s in enumerate(_manager_confs):
@@ -107,7 +103,6 @@ def pytest_report_header(config):
             app("TaskManager #%d" % i)
             app(s)
             app(80 * "=")
-
     app("")
 
     # Initialize logging
@@ -120,9 +115,3 @@ def pytest_report_header(config):
     logging.basicConfig(level=numeric_level)
 
     return lines
-
-
-#def pytest_runtest_logreport(report):
-#    """Reporting hook"""
-#    if report.outcome == "failed":
-#        print("noedid", report.nodeid, "failed")

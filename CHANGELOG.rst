@@ -1,8 +1,13 @@
 Release 0.7.0: 2019-10-18
 
+    * Add support for JSON files (including MSONable) in abiopen.py
+    * Improved support for EPH calculations.
+
+Release 0.7.0: 2019-10-18
+
     * Remove support for py2. Now Abipy requires py >= 3.6 (3.8 is not yet supported)
     * AbiPy now requires pymatgen >= 2019.10.16
-    * Move workflow code from pymatgen to abipy.flowk
+    * Move workflow code from pymatgen to abipy.flowtk
     * Improved support for EPH calculations.
 
 Release:0.3.0 2017-12-26

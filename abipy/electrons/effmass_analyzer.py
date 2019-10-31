@@ -98,7 +98,7 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
 
     def _consistency_check(self):
         if not hasattr(self, "segments_spin"):
-            raise ValueError("You must call set_kpoint_band to select the k-point and the bands")
+            raise RuntimeError("You must call set_kpoint_band to select the k-point and the bands")
 
     def summarize(self, acc=4):
         self._consistency_check()
@@ -230,7 +230,7 @@ class Segment:
 
     def to_string(self, verbose=0):
         """String representation."""
-        lines = []; app = lines.append
+        lines = ["foo"]; app = lines.append
         #app("For spin: %s, band: %s, k-point: %s, eig: %.3f [eV], accuracy: %s" % (
         #    self.spin, self.band, repr(self.kpoint), self.eig, self.acc))
         #app("K-point: %s, eigenvalue: %s (eV)" % (repr(self.kpoint), self.eig))

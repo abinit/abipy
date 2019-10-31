@@ -2,7 +2,6 @@ language: python
 #cache: pip
 
 #dist: precise
-sudo: false
 
 env:
   global:
@@ -28,11 +27,6 @@ matrix:
       sudo: true
       env:
         - ABIPY_INSTALLER=conda ABIPY_SPHINX=yes
-      #- os: osx
-      #  python: 3.6
-      #  sudo: true
-      #  env:
-      #    - ABIPY_INSTALLER=conda
 
 
 install:
