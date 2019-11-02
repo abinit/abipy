@@ -1171,9 +1171,9 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return tolvar, value
 
-    def make_bands_input(self, ndivsm=15, tolwfr=1e-20, nscf_nband=None):
+    def make_ebands_input(self, ndivsm=15, tolwfr=1e-20, nscf_nband=None):
         """
-        Generate an input file for band structure calculations from a GS-SCF input.
+        Generate an input file for band structure calculation from a GS-SCF input.
 
         Args:
             ndivsm: Number of divisions used to sample the smallest segment of the k-path.
@@ -1193,6 +1193,24 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         #nscf_input.set_vars(_stopping_criterion("nscf", accuracy))
 
         return nscf_input
+
+    def make_edos_input(self, ngkpt, shiftk=(0, 0, 0), tolwfr=1e-20, nscf_nband=None):
+        """
+        Generate an input file for electron DOS calculation from a GS-SCF input.
+
+        Args:
+            ngkpt: Number of divisions for the k-mesh.
+            shiftk: List of shifts.
+            tolwfr: Tolerance on residuals for NSCF calculation
+            nscf_nband: Number of bands for NSCF calculation. +10 if None.
+        """
+        dos_input = self.deepcopy()
+        dos_input.pop_tolerances()
+        nscf_nband = self["nband"] + 10 if nscf_nband is None else nscf_nband
+        dos_input.set_vars(iscf=-2, nband=nscf_nband, tolwfr=tolwfr)
+        dos_input.set_kmesh(ngkpt, shiftk)
+
+        return dos_input
 
     def make_nscf_kptopt0_input(self, kpts, tolwfr=1e-20, iscf=-2):
         """

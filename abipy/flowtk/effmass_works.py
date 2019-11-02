@@ -4,7 +4,7 @@
 import numpy as np
 
 from monty.json import jsanitize
-from abipy.core.kpoints import Kpoint
+from abipy.core.kpoints import build_segments
 from .nodes import Node
 from .works import Work, PhononWork
 from .flows import Flow
@@ -23,39 +23,11 @@ def _get_red_dirs_from_opts(red_dirs, cart_dirs, reciprocal_lattice):
     return np.reshape(all_red_dirs, (-1, 3))
 
 
-def build_segments(k0_list, npts, step, red_dirs, reciprocal_lattice):
-    """
-
-
-    Args:
-        k0_list:
-        npts:
-        step
-        red_dirs
-        reciprocal_lattice:
-
-    Return: (nk, 3) array with fractional coords
-    """
-
-    kpts = []
-    for kpoint in np.reshape(k0_list, (-1, 3)):
-        kpoint = Kpoint.as_kpoint(kpoint, reciprocal_lattice)
-        # Build segment passing through this kpoint (work in Cartesian coords)
-        for rdir in np.reshape(red_dirs, (-1, 3)):
-            bvers = reciprocal_lattice.matrix.T @ rdir
-            bvers /= np.sqrt(np.dot(bvers, bvers))
-            kstart = kpoint.cart_coords - bvers * (npts // 2) * step
-            for ii in range(npts):
-                kpts.append(kstart + ii * step * bvers)
-
-    # Cart --> Frac
-    return reciprocal_lattice.get_fractional_coords(np.reshape(kpts, (-1, 3)))
-
-
 class EffMassLineWork(Work):
     """
     Work for the computation of effective masses via finite differences along a k-line.
-    Useful for cases such as NC+SOC where DFPT is not implemented or for debugging purposes.
+    Useful for cases such as NC+SOC where DFPT is not implemented or if one is interested
+    in non-parabolic behaviour.
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: EffMassLineWork
@@ -173,7 +145,7 @@ class EffMassAutoDFPTWork(Work):
         new.scf_task = new.register_scf_task(new.scf_input)
 
         # Perform NSCF run along k-path that will be used to find band extrema.
-        bands_input = scf_input.make_bands_input(ndivsm=ndivsm, tolwfr=tolwfr)
+        bands_input = scf_input.make_ebands_input(ndivsm=ndivsm, tolwfr=tolwfr)
         new.bands_task = new.register_nscf_task(bands_input, deps={new.scf_task: "DEN"})
 
         return new
@@ -184,7 +156,6 @@ class EffMassAutoDFPTWork(Work):
         Here, we read the band structure from GSR to find the position of the band edges and use these values
         to generate a new work for effective masses with DFPT.
         """
-        #print("in on all_ok")
         with self.bands_task.open_gsr() as gsr:
             ebands = gsr.ebands
             # Warning: Assuming semiconductor with spin-unpolarized band energies.
@@ -194,7 +165,7 @@ class EffMassAutoDFPTWork(Work):
             k0_list, effmass_bands_f90 = ebands.get_kpoints_and_band_range_for_edges()
 
         # Create the work for effective mass computation with DFPT and add it to the flow.
-        # Keep also a reference in generated_effmass_dfpt_work.
+        # Keep a reference in generated_effmass_dfpt_work.
         work = EffMassDFPTWork.from_scf_input(self.scf_input, k0_list, effmass_bands_f90, den_node=self.scf_task)
 
         self.generated_effmass_dfpt_work = work
@@ -213,10 +184,10 @@ class FrohlichZPRFlow(Flow):
     """
 
     @classmethod
-    def from_scf_input(cls, workdir, scf_input, ddb_node=None, ndivsm=15, tolwfr=1e-20, manager=None, metadata=None):
+    def from_scf_input(cls, workdir, scf_input, ddb_node=None, ndivsm=15, tolwfr=1e-20, metadata=None, manager=None):
         """
         Build the Work from an |AbinitInput| representing a GS-SCF calculation.
-        Final results are stored in the "zprfrohl_results.json" in the outdata of the flow.
+        Final results are stored in the "zprfrohl_results.json" in the outdata directory of the flow.
 
         Args:
             workdir: Working directory.
@@ -226,10 +197,10 @@ class FrohlichZPRFlow(Flow):
             ndivsm: Number of divisions used to sample the smallest segment of the k-path.
             tolwfr: Tolerance on residuals for NSCF calculation
             manager: |TaskManager| instance. Use default if None.
-            metadata: Dictionary with metadata to be be addeded to the JSON dictionary.
+            metadata: Dictionary with metadata to be be addeded to the final JSON file.
         """
         new = cls(workdir=workdir, manager=manager)
-        new.metadata = metadata or jsanitize(metadata)
+        new.metadata = jsanitize(metadata) if metadata is not None else None
 
         # Build work for the automatic computation of effective masses.
         new.effmass_auto_work = EffMassAutoDFPTWork.from_scf_input(scf_input, ndivsm=ndivsm, tolwfr=tolwfr)
@@ -240,11 +211,11 @@ class FrohlichZPRFlow(Flow):
             new.ddb_node = Node.as_node(ddb_node)
         else:
             # Compute DDB with BECS and eps_inf.
-            becs_work = PhononWork.from_scf_task(new.scf_task, qpoints=[0, 0, 0],
+            ph_work = PhononWork.from_scf_task(new.scf_task, qpoints=[0, 0, 0],
                                                  is_ngqpt=False, tolerance=None, with_becs=True,
                                                  ddk_tolerance=None)
-            new.register_work(becs_work)
-            new.ddb_node = becs_work
+            new.register_work(ph_work)
+            new.ddb_node = ph_work
 
         return new
 
@@ -254,8 +225,8 @@ class FrohlichZPRFlow(Flow):
         This method shall return True if the calculation is completed or
         False if the execution should continue due to side-effects such as adding a new work to the flow.
         """
+        if self.on_all_ok_num_calls > 0: return True
         self.on_all_ok_num_calls += 1
-        if self.on_all_ok_num_calls > 1: return True
 
         work = Work()
         inp = self.effmass_auto_work.generated_effmass_dfpt_work.frohlich_input
@@ -272,41 +243,43 @@ class FrohlichZPRFlow(Flow):
 
     def finalize(self):
         """
-        This method is called when the flow is completed. Return 0 if success.
+        This method is called when the flow is completed.
+        Here we write the final results in the "zprfrohl_results.json" in the outdata directory of the flow
         """
         d = {}
-        if self.metadata is not None:
-            d.update({"metadata": self.metadata})
+        if self.metadata is not None: d.update({"metadata": self.metadata})
 
-        # Add GS results
+        # Add GS results.
         with self.scf_task.open_gsr() as gsr:
             d["gsr_scf_path"] = gsr.filepath
             d["pressure_GPa"] = float(gsr.pressure)
             d["max_force_eV_Ang"] = float(gsr.max_force)
-            d["structure"] = gsr.structure.as_dict()
+            d["structure"] = gsr.structure
 
-        # Add NSCF band structure
+        # Add NSCF band structure.
         with self.ebands_kpath_task.open_gsr() as gsr:
             d["gsr_nscf_kpath"] = gsr.filepath
             gsr.ebands.set_fermie_to_vbm()
-            d["ebands_kpath"] = gsr.ebands.as_dict()
+            d["ebands_kpath"] = gsr.ebands
             #d["ebands_info"] = gsr.ebands.get_dict4pandas(with_geo=False, with_spglib=False)
 
+        # TODO
         # Extract results from run.abo
-        #effmass_results = self.effmass_task.yaml_parse_results()
-        #frohl_results = self.frohl_task.yaml_parse_results()
+        #d["effmass_results"] = self.effmass_task.yaml_parse_results()
+        #d["frohl_results"] = self.frohl_task.yaml_parse_results()
 
-        # Add epsinf, e0, becs, alpha and even DDB as string.
+        # Add epsinf, e0, BECS, alpha and DDB as string.
         from abipy import abilab
         with abilab.abiopen(self.ddb_node.outdir.path_in("out_DDB")) as ddb:
-            #d["ddb_path"] = ddb.filepath
-            d["ddb"] = ddb
+            d["ddb_path"] = ddb.filepath
+            d["ddb_string"] = ddb.get_string()
             epsinf, becs = ddb.anaget_epsinf_and_becs(chneut=1)
             gen = ddb.anaget_dielectric_tensor_generator(asr=2, chneut=1, dipdip=1)
             eps0 = gen.tensor_at_frequency(w=0.0)
-            #d["becs"] = becs.as_dict()
-            d["epsinf_cart"] = epsinf.as_dict()
-            #d["eps0_cart"] = eps0.as_dict()
+            d["becs"] = becs
+            d["epsinf_cart"] = epsinf
+            # FIXME Complex is not supported by JSON.
+            d["eps0_cart"] = eps0.real
 
         #print(d)
         abilab.mjson_write(d, self.outdir.path_in("zprfrohl_results.json"), indent=4)

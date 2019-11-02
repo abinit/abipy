@@ -2,8 +2,9 @@
 import numpy as np
 import os
 import abc
-from scipy.interpolate import UnivariateSpline
+import abipy.core.abinit_units as abu
 
+from scipy.interpolate import UnivariateSpline
 from monty.collections import dict2namedtuple
 from monty.functools import lazy_property
 from pymatgen.analysis.eos import EOS
@@ -12,7 +13,6 @@ from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.electrons.gsr import GsrFile
 from abipy.dfpt.phonons import PhononBandsPlotter, PhononDos
 from abipy.dfpt.gruneisen import GrunsNcFile
-import abipy.core.abinit_units as abu
 
 
 class AbstractQHA(metaclass=abc.ABCMeta):
@@ -111,10 +111,12 @@ class AbstractQHA(metaclass=abc.ABCMeta):
 
     @property
     def nvols(self):
+        """Number of volumes"""
         return len(self.volumes)
 
     @property
     def natoms(self):
+        """Number of atoms in the unit cell."""
         return len(self.structures[0])
 
     def set_eos(self, eos_name):
@@ -203,7 +205,6 @@ class AbstractQHA(metaclass=abc.ABCMeta):
         ax.set_ylabel(r'$\alpha$ (K$^{-1}$)')
 
         ax.set_xlim(tstart, tstop)
-
         ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
 
         return fig
@@ -233,7 +234,6 @@ class AbstractQHA(metaclass=abc.ABCMeta):
         ax.plot(f.temp, f.min_vol, **kwargs)
         ax.set_xlabel('T (K)')
         ax.set_ylabel(r'V (${\AA}^3$)')
-
         ax.set_xlim(tstart, tstop)
 
         return fig
@@ -255,7 +255,6 @@ class AbstractQHA(metaclass=abc.ABCMeta):
 
         Returns: |matplotlib-Figure|
         """
-
         if temperatures is None:
             tv = self.get_t_for_vols([b.structure.volume for b in phbands], t_max=t_max)
             temperatures = []
@@ -403,7 +402,6 @@ class AbstractQHA(metaclass=abc.ABCMeta):
         Returns:
             An instance of phonopy.qha.QHA
         """
-
         try:
             from phonopy.qha import QHA as QHA_phonopy
         except ImportError as exc:
@@ -431,7 +429,33 @@ class QHA(AbstractQHA):
     Provides some basic methods and plotting utils, plus a converter to write input files for phonopy-qha or to
     generate an instance of phonopy.qha.QHA. These can be used to obtain other quantities and plots.
     Does not include electronic entropic contributions for metals.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: QHA
     """
+
+    @classmethod
+    def from_files(cls, gsr_files_paths, phdos_files_paths):
+        """
+        Creates an instance of QHA from a list of GSR files and a list of PHDOS.nc files.
+        The list should have the same size and the volumes should match.
+
+        Args:
+            gsr_files_paths: list of paths to GSR files.
+            phdos_files_paths: list of paths to PHDOS.nc files.
+
+        Returns: A new instance of QHA
+        """
+        energies = []
+        structures = []
+        for gp in gsr_files_paths:
+            with GsrFile.from_file(gp) as g:
+                energies.append(g.energy)
+                structures.append(g.structure)
+
+        doses = [PhononDos.as_phdos(dp) for dp in phdos_files_paths]
+
+        return cls(structures, doses, energies)
 
     def __init__(self, structures, doses, energies, eos_name='vinet', pressure=0):
         """
@@ -440,7 +464,7 @@ class QHA(AbstractQHA):
             doses: list of |PhononDos| at volumes corresponding to the structures.
             energies: list of SCF energies for the structures in eV.
             eos_name: string indicating the expression used to fit the energies. See pymatgen.analysis.eos.EOS.
-            pressure: value of the pressure in GPa that will be considered in the p*V contribution to the energy.
+            pressure: value of the pressure in GPa that will be considered in the p * V contribution to the energy.
         """
         super().__init__(structures=structures, energies=energies, eos_name=eos_name, pressure=pressure)
         self.doses = doses
@@ -498,18 +522,32 @@ class QHA(AbstractQHA):
         return dict2namedtuple(tmesh=tmesh, cv=cv, free_energy=free_energy, entropy=entropy,
                                zpe=zpe)
 
+
+class QHA3PF(AbstractQHA):
+    """
+    Object to extract results in the quasi-harmonic approximation from several electronic energies at different
+    volumes and three phonon calculations.
+    Provides some basic methods and plotting utils, plus a converter to write input files for phonopy-qha or to
+    generate an instance of phonopy.qha.QHA. These can be used to obtain other quantities and plots.
+    Does not include electronic entropic contributions for metals.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: QHA3PF
+    """
+
     @classmethod
-    def from_files(cls, gsr_files_paths, phdos_files_paths):
+    def from_files(cls, gsr_files_paths, phdos_files_paths, ind_doses):
         """
-        Creates an instance of QHA from a list of GSR files and a list of PHDOS.nc files.
+        Creates an instance of QHA from a list of GSR files and a list PHDOS.nc files.
         The list should have the same size and the volumes should match.
 
         Args:
             gsr_files_paths: list of paths to GSR files.
-            phdos_files_paths: list of paths to PHDOS.nc files.
+            phdos_files_paths: list of paths to three PHDOS.nc files.
+            ind_doses: list of three values indicating, for each of the three doses, the index of the
+                corresponding gsr_file in "gsr_files_paths".
 
-        Returns:
-            A new instance of QHA
+        Returns: A new instance of QHA
         """
         energies = []
         structures = []
@@ -520,17 +558,7 @@ class QHA(AbstractQHA):
 
         doses = [PhononDos.as_phdos(dp) for dp in phdos_files_paths]
 
-        return cls(structures, doses, energies)
-
-
-class QHA3PF(AbstractQHA):
-    """
-        Object to extract results in the quasi-harmonic approximation from several electronic energies at different
-        volumes and three phonon calculations.
-        Provides some basic methods and plotting utils, plus a converter to write input files for phonopy-qha or to
-        generate an instance of phonopy.qha.QHA. These can be used to obtain other quantities and plots.
-        Does not include electronic entropic contributions for metals.
-        """
+        return cls(structures, doses, energies, ind_doses)
 
     def __init__(self, structures, doses, energies, ind_doses, eos_name='vinet', pressure=0, fit_degree=2):
         """
@@ -633,10 +661,23 @@ class QHA3PF(AbstractQHA):
 
         return self._get_thermodynamic_prop("free_energy", tstart, tstop, num)
 
+
+class QHA3P(AbstractQHA):
+    """
+    Object to extract results in the quasi-harmonic approximation from several electronic energies at different
+    volumes and three phonon calculations.
+    Provides some basic methods and plotting utils, plus a converter to write input files for phonopy-qha or to
+    generate an instance of phonopy.qha.QHA. These can be used to obtain other quantities and plots.
+    Does not include electronic entropic contributions for metals.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: QHA3P
+    """
+
     @classmethod
-    def from_files(cls, gsr_files_paths, phdos_files_paths, ind_doses):
+    def from_files(cls, gsr_files_paths, grun_file_path, ind_doses):
         """
-        Creates an instance of QHA from a list og GSR files and a list PHDOS.nc files.
+        Creates an instance of QHA from a list of GSR files and a list PHDOS.nc files.
         The list should have the same size and the volumes should match.
 
         Args:
@@ -648,7 +689,6 @@ class QHA3PF(AbstractQHA):
         Returns:
             A new instance of QHA
         """
-
         energies = []
         structures = []
         for gp in gsr_files_paths:
@@ -656,19 +696,9 @@ class QHA3PF(AbstractQHA):
                 energies.append(g.energy)
                 structures.append(g.structure)
 
-        doses = [PhononDos.as_phdos(dp) for dp in phdos_files_paths]
+        gruns = GrunsNcFile(grun_file_path)
 
-        return cls(structures, doses, energies, ind_doses)
-
-
-class QHA3P(AbstractQHA):
-    """
-        Object to extract results in the quasi-harmonic approximation from several electronic energies at different
-        volumes and three phonon calculations.
-        Provides some basic methods and plotting utils, plus a converter to write input files for phonopy-qha or to
-        generate an instance of phonopy.qha.QHA. These can be used to obtain other quantities and plots.
-        Does not include electronic entropic contributions for metals.
-        """
+        return cls(structures, gruns, energies, ind_doses)
 
     def __init__(self, structures, gruns, energies, ind_grun, eos_name='vinet', pressure=0):
         """
@@ -706,7 +736,6 @@ class QHA3P(AbstractQHA):
                 entropy: entropy, in eV/K. Shape (nvols, num).
                 zpe: zero point energy in eV. Shape (nvols).
         """
-
         w = self.fitted_frequencies
 
         tmesh = np.linspace(tstart, tstop, num)
@@ -766,7 +795,6 @@ class QHA3P(AbstractQHA):
         Returns:
             A numpy array of `num` values of the vibrational contribution to the free energy
         """
-
         w = self.fitted_frequencies
 
         tmesh = np.linspace(tstart, tstop, num)
@@ -779,33 +807,6 @@ class QHA3P(AbstractQHA):
 
         return f
 
-    @classmethod
-    def from_files(cls, gsr_files_paths, grun_file_path, ind_doses):
-        """
-        Creates an instance of QHA from a list og GSR files and a list PHDOS.nc files.
-        The list should have the same size and the volumes should match.
-
-        Args:
-            gsr_files_paths: list of paths to GSR files.
-            phdos_files_paths: list of paths to three PHDOS.nc files.
-            ind_doses: list of three values indicating, for each of the three doses, the index of the
-                corresponding gsr_file in "gsr_files_paths".
-
-        Returns:
-            A new instance of QHA
-        """
-
-        energies = []
-        structures = []
-        for gp in gsr_files_paths:
-            with GsrFile.from_file(gp) as g:
-                energies.append(g.energy)
-                structures.append(g.structure)
-
-        gruns = GrunsNcFile(grun_file_path)
-
-        return cls(structures, gruns, energies, ind_doses)
-
 
 def get_free_energy(w, weights, t):
     """
@@ -816,7 +817,6 @@ def get_free_energy(w, weights, t):
          weights: the weights of the q-points
          t: the temperature
     """
-
     wdkt = w / (abu.kb_eVK * t)
 
     # if w=0 set fe=0
@@ -835,7 +835,6 @@ def get_cv(w, weights, t):
          weights: the weights of the q-points
          t: the temperature
     """
-
     wdkt = w / (abu.kb_eVK * t)
 
     # if w=0 set cv=0
@@ -853,7 +852,6 @@ def get_zero_point_energy(w, weights):
          w: the phonon frequencies
          weights: the weights of the q-points
     """
-
     zpe = np.choose(w > 0, (0, w / 2))
     ind = np.where(w >= 0)
 
@@ -869,7 +867,6 @@ def get_entropy(w, weights, t):
          weights: the weights of the q-points
          t: the temperature
     """
-
     wd2kt = w / (2 * abu.kb_eVK * t)
     coth = lambda x: 1.0 / np.tanh(x)
 

@@ -1886,3 +1886,35 @@ def find_points_along_path(cart_bounds, cart_coords, dist_tol):
     return dict2namedtuple(ikfound=np.array(ikfound)[isort],
                            dist_list=dist_list,
                            path_ticks=np.array(path_ticks))
+
+
+def build_segments(k0_list, npts, step, red_dirs, reciprocal_lattice):
+    """
+    For each point in k0_list, build a line passing through the point for each
+    reduced direction in red_dir. Each line consists of `npts` points with step `step` in Ang-1
+    and is centered on the k-point. Return: (nk0_list, len(red_dirs) * npts, 3) array with fractional coordinates.
+
+    Args:
+        k0_list: List of k-points in reduced coordinates.
+        npts: Number of points in each segment.
+        step: Step in Ang-1
+        red_dirs: List of reduced directions
+        reciprocal_lattice: Reciprocal lattice (from structure.reciprocal_lattice)
+    """
+    k0_list = np.reshape(k0_list, (-1, 3))
+    red_dirs = np.reshape(red_dirs, (-1, 3))
+    kpts = []
+    for kpoint in k0_list:
+        kpoint = Kpoint.as_kpoint(kpoint, reciprocal_lattice)
+        # Build segments passing through this kpoint (work in Cartesian coords)
+        for rdir in red_dirs:
+            bvers = reciprocal_lattice.matrix.T @ rdir
+            #bvers = reciprocal_lattice.get_cartesian_coords(rdir)
+            bvers /= np.sqrt(np.dot(bvers, bvers))
+            kstart = kpoint.cart_coords - bvers * (npts // 2) * step
+            for ii in range(npts):
+                kpts.append(kstart + ii * step * bvers)
+
+    # Cart --> Frac
+    out = reciprocal_lattice.get_fractional_coords(kpts)
+    return np.reshape(out, (len(k0_list), len(red_dirs) * npts, 3))

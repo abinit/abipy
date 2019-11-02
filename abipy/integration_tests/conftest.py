@@ -95,7 +95,7 @@ def pytest_report_header(config):
     app("\tAssuming the environment is properly configured:")
     app("\tIn particular, the abinit executable must be in $PATH.")
     app("\tChange manager.yml according to your platform.")
-    app("\tNumber of TaskManager configurations: %d" % len(_manager_confs))
+    app("\tNumber of TaskManager configurations used: %d" % len(_manager_confs))
 
     if config.option.verbose > 0:
         for i, s in enumerate(_manager_confs):

@@ -77,11 +77,11 @@ Usage example:
 
 where `FILE` is any file supported by abipy/pymatgen e.g. Netcdf files, Abinit input, POSCAR, xsf.
 File extensions supported (including zipped files with extension in ".bz2", ".gz", ".z"):
-
 Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 
 JSON file are supported as well. In this case, abiopen.py tries to reconstruct python objects
 assuming JSON document in MSONable format and then invokes ipython with the `data` object.
+Use `-e` to print the JSON documenting without reconstructing python objects.
 """
     return s + abilab.abiopen_ext2class_table()
 
@@ -244,17 +244,21 @@ Use `print(abifile)` to print the object.
 def handle_json(options):
     """Handle JSON file."""
 
-    data = abilab.mjson_load(options.filepath)
-
     if not options.notebook:
         if options.print:
             # Print object to terminal.
+            data = abilab.mjson_load(options.filepath)
             pprint(data, indent=4)
             return 0
         elif options.expose:
-            cprint("expose option with JSON is not implemented. Use -nb", "yellow")
+            import json
+            with open(options.filepath, "rt") as fh:
+                data = json.load(fh)
+            pprint(data, indent=4)
+
             return 0
 
+        data = abilab.mjson_load(options.filepath)
         # Start ipython shell with namespace
         # Use embed because I don't know how to show a header with start_ipython.
         import IPython

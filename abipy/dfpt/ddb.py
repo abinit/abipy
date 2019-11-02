@@ -42,7 +42,7 @@ class DdbError(Exception):
 
 class AnaddbError(DdbError):
     """
-    Exceptions raised when we try to execute :class:`AnaddbTask` in the :class:`DdbFile` methods
+    Exceptions raised when we try to execute |AnaddbTask| in the |DdbFile| methods
 
     An `AnaddbError` has a reference to the task and to the :class:`EventsReport` that contains
     the error messages of the run.
@@ -62,7 +62,7 @@ class AnaddbError(DdbError):
         return "\n".join(lines)
 
 
-class DdbFile(TextFile, Has_Structure, NotebookWriter, MSONable):
+class DdbFile(TextFile, Has_Structure, NotebookWriter):
     """
     This object provides an interface to the DDB_ file produced by ABINIT
     as well as methods to compute phonon band structures, phonon DOS, thermodinamical properties ...
@@ -88,6 +88,15 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter, MSONable):
     def from_file(cls, filepath):
         """Needed for the :class:`TextFile` abstract interface."""
         return cls(filepath)
+
+    @classmethod
+    def from_string(cls, string):
+        """Build object from string using temporary file."""
+        fd, tmp_filepath = tempfile.mkstemp(text=True, prefix="_DDB")
+        with open(tmp_filepath, "wt") as fh:
+            fh.write(string)
+
+        return cls(tmp_filepath)
 
     @classmethod
     def from_mpid(cls, material_id, api_key=None, endpoint=None):
@@ -121,24 +130,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter, MSONable):
         Accepts: DdbFile or filepath
         """
         return obj if isinstance(obj, cls) else cls.from_file(obj)
-
-    @classmethod
-    def from_dict(cls, d):
-        """Reconstruct object from dictionary ``d``."""
-        dirpath = tempfile.mkdtemp()
-        tmp_filepath = os.path.join(dirpath, os.path.basename(d["ddb_path"]))
-        with open(tmp_filepath, "wt") as fh:
-            fh.write(d["ddb_string"])
-
-        return cls(tmp_filepath)
-
-    @pmg_serialize
-    def as_dict(self):
-        """Return dictionary with JSON serialization."""
-        with open(self.filepath, "rt") as fh:
-            ddb_string = fh.read()
-
-        return {"ddb_string": ddb_string, "ddb_path": self.filepath}
 
     def __init__(self, filepath):
         super().__init__(filepath)
@@ -216,10 +207,17 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter, MSONable):
         if verbose > 1:
             # Print full header.
             from pprint import pformat
-            app(marquee("DDB Header", mark="="))
+            app(marquee("DDB header", mark="="))
             app(pformat(self.header))
 
         return "\n".join(lines)
+
+    def get_string(self):
+        """Return string with DDB content."""
+        with open(self.filepath, "rt") as fh:
+            return fh.read()
+
+        return {"ddb_string": ddb_string, "ddb_path": self.filepath}
 
     @property
     def structure(self):
@@ -359,7 +357,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter, MSONable):
     @lazy_property
     def computed_dynmat(self):
         """
-        :class:`OrderedDict` mapping q-point object to --> pandas Dataframe.
+        OrderedDict mapping q-point object to --> pandas Dataframe.
         The |pandas-DataFrame| contains the columns: "idir1", "ipert1", "idir2", "ipert2", "cvalue"
         and (idir1, ipert1, idir2, ipert2) as index.
 
@@ -526,7 +524,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter, MSONable):
             q[q == 0] = np.inf
 
         # Compute the minimum of the fractional coordinates along the 3 directions and invert
-        #print(all_qpoints)
         smalls = np.abs(all_qpoints).min(axis=0)
         smalls[smalls == 0] = 1
         ngqpt = np.rint(1 / smalls)
@@ -598,8 +595,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter, MSONable):
     @lazy_property
     def cart_stress_tensor(self):
         """
-        |Stress| tensor in cartesian coordinates (GPa units).
-        None if not available.
+        |Stress| tensor in cartesian coordinates (GPa units). None if not available.
         """
         for block in self.blocks:
             if block["dord"] != 1: continue
@@ -850,13 +846,13 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter, MSONable):
     def view_phononwebsite(self, browser=None, verbose=0, dryrun=False, **kwargs):
         """
         Invoke anaddb to compute phonon bands.
-        Produce JSON_ file that can be parsed from the phononwebsite_ and open it in ``browser``.
+        Produce JSON file that can be parsed from the phononwebsite_ and open it in ``browser``.
 
         Args:
             browser: Open webpage in ``browser``. Use default $BROWSER if None.
             verbose: Verbosity level
             dryrun: Activate dryrun mode for unit testing purposes.
-            kwargs: Passed to anaget_phbst_and_phdos_files
+            kwargs: Passed to ``anaget_phbst_and_phdos_files``.
 
         Return: Exit status
         """
@@ -1061,8 +1057,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter, MSONable):
         Return:
             |PhononBandsPlotter| object.
 
-            Client code can use ``plotter.combiplot()`` or ``plotter.gridplot()``
-            to visualize the results.
+            Client code can use ``plotter.combiplot()`` or ``plotter.gridplot()`` to visualize the results.
         """
         phbands_plotter = PhononBandsPlotter()
 
@@ -1109,8 +1104,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter, MSONable):
         Return:
             |PhononDosPlotter| object.
 
-            Client code can use ``plotter.combiplot()`` or ``plotter.gridplot()``
-            to visualize the results.
+            Client code can use ``plotter.combiplot()`` or ``plotter.gridplot()`` to visualize the results.
         """
         phbands_plotter = PhononBandsPlotter()
 
@@ -1241,8 +1235,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter, MSONable):
         Return:
             |PhononBandsPlotter| object.
 
-            Client code can use ``plotter.combiplot()`` or ``plotter.gridplot()``
-            to visualize the results.
+            Client code can use ``plotter.combiplot()`` or ``plotter.gridplot()`` to visualize the results.
         """
         phbands_plotter = PhononBandsPlotter()
 
@@ -1386,7 +1379,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter, MSONable):
             retpath: True to return path to anaddb.nc file.
 
         Return:
-            |ElasticData| object if `retpath` is None else absolute path to anaddb.nc file.
+            |ElasticData| object if ``retpath`` is None else absolute path to anaddb.nc file.
         """
         if not self.has_strain_terms(): # DOH!
             cprint("Strain perturbations are not available in DDB: %s" % self.filepath, "yellow")
@@ -1433,7 +1426,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter, MSONable):
 
     def _run_anaddb_task(self, anaddb_input, mpi_procs, workdir, manager, verbose):
         """
-        Execute an |AnaddbInput| via the shell. Return AnaddbTask.
+        Execute an |AnaddbInput| via the shell. Return |AnaddbTask|.
         """
         task = AnaddbTask.temp_shell_task(anaddb_input, ddb_node=self.filepath,
                 mpi_procs=mpi_procs, workdir=workdir, manager=manager)
@@ -1593,17 +1586,22 @@ if ifc is not None:
         return self._write_nb_nbpath(nb, nbpath)
 
 
-class Becs(Has_Structure):
+class Becs(Has_Structure, MSONable):
     """
     This object stores the Born effective charges and provides simple tools for data analysis.
     """
+
+    @pmg_serialize
+    def as_dict(self):
+        """Return dictionary with JSON serialization in MSONable format."""
+        return dict(becs_arr=self.values, structure=self.structure, chneut=self.chneut, order="c")
 
     def __init__(self, becs_arr, structure, chneut, order="c"):
         """
         Args:
             becs_arr: [3, 3, natom] array with the Born effective charges in Cartesian coordinates.
             structure: |Structure| object.
-            chneut: Option used for the treatment of the Charge Neutrality requirement
+            chneut: Option used for the treatment of the Charge Neutrality.
                 for the effective charges (anaddb input variable)
             order: "f" if becs_arr is in Fortran order.
         """
@@ -1694,10 +1692,11 @@ class Becs(Has_Structure):
         return pd.DataFrame(rows, columns=list(rows[0].keys()) if rows else None)
 
     def check_site_symmetries(self, verbose=0):
-        """Check the site symmetrized of the Born effective charges."""
-        from abipy.core.wyckoff import SiteSymmetries
-        ss = SiteSymmetries(self.structure)
-        return ss.check_site_symmetries(self.values, verbose=verbose)
+        """
+        Check site symmetries of the Born effective charges. Print output to terminal.
+        Return: max_err
+        """
+        return self.structure.site_symmetries.check_site_symmetries(self.values, verbose=verbose)
 
 
 class DielectricTensorGenerator(Has_Structure):

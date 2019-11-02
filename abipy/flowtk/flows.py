@@ -1920,8 +1920,8 @@ class Flow(Node, NodeContainer, MSONable):
         An example of flow that adds a new work (only once) when all_ok is reached for the first time:
 
         def on_all_ok(self):
+            if self.on_all_ok_num_calls > 0: return True
             self.on_all_ok_num_calls += 1
-            if self.on_all_ok_num_calls > 1: return True
 
             `implement_logic_to_create_new_work`
 

@@ -155,12 +155,12 @@ class Dependency(object):
 
     @property
     def node(self):
-        """The :class:`Node` associated to the dependency."""
+        """The |Node| associated to the dependency."""
         return self._node
 
     @property
     def status(self):
-        """The status of the dependency, i.e. the status of the :class:`Node`."""
+        """The status of the dependency, i.e. the status of the |Node|."""
         return self.node.status
 
     @lazy_property
@@ -198,7 +198,7 @@ class Dependency(object):
     def connecting_vars(self):
         """
         Returns a dictionary with the variables that must be added to the
-        input file in order to connect this :class:`Node` to its dependencies.
+        input file in order to connect this |Node| to its dependencies.
         """
         vars = {}
         for prod in self.products:
@@ -267,7 +267,7 @@ class GridFsFile(AttrDict):
 
 
 class NodeResults(dict, MSONable):
-    """Dictionary used to store the most important results produced by a :class:`Node`."""
+    """Dictionary used to store the most important results produced by a |Node|."""
     JSON_SCHEMA = {
         "type": "object",
         "properties": {
@@ -416,7 +416,7 @@ class NodeResults(dict, MSONable):
 
 def check_spectator(node_method):
     """
-    Decorator for :class:`Node` methods. Raise `SpectatorNodeError`.
+    Decorator for |Node| methods. Raise `SpectatorNodeError`.
     """
     from functools import wraps
     @wraps(node_method)
@@ -433,12 +433,12 @@ def check_spectator(node_method):
 
 
 class NodeError(Exception):
-    """Base Exception raised by :class:`Node` subclasses"""
+    """Base Exception raised by |Node| subclasses"""
 
 
 class SpectatorNodeError(NodeError):
     """
-    Exception raised by :class:`Node` methods when the node is in spectator mode
+    Exception raised by |Node| methods when the node is in spectator mode
     and we are calling a method with side effects.
     """
 
@@ -693,14 +693,14 @@ class Node(metaclass=abc.ABCMeta):
     def deps(self):
         """
         List of :class:`Dependency` objects defining the dependencies
-        of this `Node`. Empty list if this :class:`Node` does not have dependencies.
+        of this `Node`. Empty list if this |Node| does not have dependencies.
         """
         return self._deps
 
     @check_spectator
     def add_deps(self, deps):
         """
-        Add a list of dependencies to the :class:`Node`.
+        Add a list of dependencies to the |Node|.
 
         Args:
             deps: List of :class:`Dependency` objects specifying the dependencies of the node.
@@ -732,7 +732,7 @@ class Node(metaclass=abc.ABCMeta):
     @check_spectator
     def remove_deps(self, deps):
         """
-        Remove a list of dependencies from the :class:`Node`.
+        Remove a list of dependencies from the |Node|.
 
         Args:
             deps: List of :class:`Dependency` objects specifying the  dependencies of the node.
@@ -762,7 +762,7 @@ class Node(metaclass=abc.ABCMeta):
         return other in [d.node for d in self.deps]
 
     def get_parents(self):
-        """Return the list of nodes in the :class:`Flow` required by this :class:`Node`"""
+        """Return the list of nodes in the |Flow| required by this |Node|"""
         return [d.node for d in self.deps]
         #parents = []
         #for work in self.flow:
@@ -773,7 +773,7 @@ class Node(metaclass=abc.ABCMeta):
 
     def get_children(self):
         """
-        Return the list of nodes in the :class:`Flow` that depends on this :class:`Node`
+        Return the list of nodes in the |Flow| that depends on this |Node|
 
         .. note::
 
@@ -955,7 +955,7 @@ class FileNode(Node):
     """
     A Node that consists of a file. May be not yet existing
 
-    Mainly used to connect :class:`Task` objects to external files produced in previous runs.
+    Mainly used to connect |Task| objects to external files produced in previous runs.
     """
     color_rgb = np.array((102, 51, 255)) / 255
 
@@ -1255,7 +1255,7 @@ def init_counter():
 
 def get_newnode_id():
     """
-    Returns a new node identifier used for :class:`Task`, :class:`Work` and :class:`Flow` objects.
+    Returns a new node identifier used for |Task|, |Work| and |Flow| objects.
 
     .. warning:
 

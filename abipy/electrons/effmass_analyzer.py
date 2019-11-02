@@ -4,14 +4,16 @@
 
 import numpy as np
 import pandas as pd
+import pymatgen.core.units as units
 
 from collections import OrderedDict
-import pymatgen.core.units as units
+from monty.string import list_strings #, is_string, marquee
 from abipy.core.mixins import Has_Structure, Has_ElectronBands #, NotebookWriter
 from abipy.tools.derivatives import finite_diff
 from abipy.tools.printing import print_dataframe
 #from abipy.tools import duck
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt #, set_axlims,
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible #, set_axlims,
+from abipy.electrons import ElectronBands
 
 
 #class EffMassAnalyzer(Has_Structure, Has_ElectronBands, NotebookWriter):
@@ -129,7 +131,10 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
 
         for spin in range(self.nsppol):
             for iseg, segment in enumerate(self.segments_spin[spin]):
-                segment.plot_emass(ax=ax_mat[iseg, spin], acc=acc, fontsize=fontsize, colormap=colormap, show=False)
+                ax = ax_mat[iseg, spin]
+                segment.plot_emass(ax=ax, acc=acc, fontsize=fontsize, colormap=colormap, show=False)
+                if (spin, iseg) != (0, 0):
+                    set_visible(ax, False, "ylabel")
 
         return fig
 
@@ -138,7 +143,6 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
         """
 
         Args:
-            ax: |matplotlib-Axes| or None if a new figure should be created.
             colormap: matplotlib colormap
             fontsize: legend and title fontsize.
 
@@ -225,15 +229,13 @@ class Segment:
         self.nb = len(self.energies_bk)
         self.ebands = ebands
 
-    #def __repr__(self):
-    #    return "emass_left: %s, emass_right: %s" % (self.em_left, self.em_right)
+    def __repr__(self):
+        return "k0: %s, kdir: %s, dk: %.3f (Ang-1)" % (repr(self.k0), repr(self.kdir), self.dk)
 
     def to_string(self, verbose=0):
         """String representation."""
-        lines = ["foo"]; app = lines.append
-        #app("For spin: %s, band: %s, k-point: %s, eig: %.3f [eV], accuracy: %s" % (
-        #    self.spin, self.band, repr(self.kpoint), self.eig, self.acc))
-        #app("K-point: %s, eigenvalue: %s (eV)" % (repr(self.kpoint), self.eig))
+        lines = []; app = lines.append
+        app("k-point: %s, nb: %s, spin: %d" % (self.k0.to_string(verbose=verbose), self.nb, self.spin))
         return "\n".join(lines)
 
     def __str__(self):
@@ -298,3 +300,14 @@ class Segment:
         #ax1.set_xlabel('Energy (eV)')
 
         return fig
+
+
+#class MultipleEffMassAnalyzer:
+#
+#    @classmethod
+#    def from_files(cls, filepaths):
+#        """Initialize the object from a list of files providing an |ElectronBands| object."""
+#        return cls([ElectronBands.from_file(f) for f in list_strings(filepaths)])
+#
+#    def __init__(self, eband_list)
+#        self.eband_list = eband_list

@@ -16,7 +16,7 @@ class TestStructure(AbipyTest):
         """Initialize Structure from Netcdf data files"""
 
         for filename in abidata.WFK_NCFILES + abidata.GSR_NCFILES:
-            print("About to read file %s" % filename)
+            #print("About to read file %s" % filename)
             structure = Structure.from_file(filename)
             str(structure)
             structure.to_string(verbose=2)
@@ -203,6 +203,10 @@ xred       0.0000000000    0.0000000000    0.0000000000
         self.assert_equal(s2coords["Mg"], [[0, 0, 0]])
         self.assert_equal(s2coords["B"],  [[1/3, 2/3, 0.5], [2/3, 1/3, 0.5]])
 
+        new_mgb2 = mgb2.scale_lattice(mgb2.volume * 1.1)
+        self.assert_almost_equal(new_mgb2.volume, mgb2.volume * 1.1)
+        assert new_mgb2.lattice.is_hexagonal
+
         # TODO: This part should be tested more carefully
         mgb2.abi_sanitize()
         mgb2.abi_sanitize(primitive_standard=True)
@@ -289,7 +293,7 @@ xred       0.0000000000    0.0000000000    0.0000000000
 
         #print(old_structure.lattice._matrix)
         for site in old_structure:
-            print(structure.lattice.get_cartesian_coords(site.frac_coords))
+            _ = structure.lattice.get_cartesian_coords(site.frac_coords)
 
         # TODO: Check all this stuff more carefully
         #qpoint = [0, 0, 0]

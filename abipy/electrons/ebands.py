@@ -70,7 +70,7 @@ class Electron(namedtuple("Electron", "spin kpoint band eig occ kidx")):
         return not (self == other)
 
     def __str__(self):
-        return "spin=%d, kpt=%s, band=%d, eig=%.3f, occ=%.3f" % (
+        return "spin: %d, kpt: %s, band: %d, eig: %.3f, occ: %.3f" % (
             self.spin, self.kpoint, self.band, self.eig, self.occ)
 
     @property
@@ -187,8 +187,8 @@ class ElectronTransition(object):
         """String representation."""
         lines = []; app = lines.append
         app("Energy: %.3f (eV)" % self.energy)
-        app("Initial state: %s" % str(self.in_state))
-        app("Final state:   %s" % str(self.out_state))
+        app("Initial state %s" % str(self.in_state))
+        app("Final state   %s" % str(self.out_state))
 
         return "\n".join(lines)
 
@@ -333,7 +333,7 @@ class ElectronBands(Has_Structure):
 
     @classmethod
     def from_dict(cls, d):
-        """Reconstruct object from dictionary ``d``."""
+        """Reconstruct object from the dictionary in MSONable format produced by as_dict."""
         d = d.copy()
         kd = d["kpoints"].copy()
         kd.pop("@module")
@@ -352,7 +352,7 @@ class ElectronBands(Has_Structure):
 
     @pmg_serialize
     def as_dict(self):
-        """Return dictionary with JSON_ serialization."""
+        """Return dictionary with JSON serialization."""
         linewidths = None if not self.has_linewidths else self.linewidths.tolist()
         return dict(
             structure=self.structure.as_dict(),
@@ -451,7 +451,7 @@ class ElectronBands(Has_Structure):
 
     def to_json(self):
         """
-        Returns a JSON_ string representation of the MSONable object.
+        Returns a JSON string representation of the MSONable object.
         """
         return json.dumps(self.as_dict(), cls=MontyEncoder)
 
@@ -1367,6 +1367,12 @@ class ElectronBands(Has_Structure):
         return s
 
     def get_kpoints_and_band_range_for_edges(self):
+        """
+        Find the reduced coordinates and the band indice associate to the band edges.
+        Important: Call set_fermie_to_vbm() to set the Fermi level to the VBM before calling this method.
+
+        Return: (k0_list, effmass_bands_f90) (Fortran notation)
+        """
         from collections import defaultdict
         k0_list, effmass_bands_f90 = [], []
         for spin in self.spins:
@@ -1389,8 +1395,8 @@ class ElectronBands(Has_Structure):
 
         k0_list = np.reshape(k0_list, (-1, 3))
         effmass_bands_f90 = np.reshape(effmass_bands_f90, (-1, 2))
-        #print("k0_list:\n", k0_list)
-        #print("effmass_bands_f90:\n", effmass_bands_f90)
+        #print("k0_list:\n", k0_list, "\neffmass_bands_f90:\n", effmass_bands_f90)
+
         return k0_list, effmass_bands_f90
 
     def to_string(self, title=None, with_structure=True, with_kpoints=False, verbose=0):
@@ -1443,7 +1449,7 @@ class ElectronBands(Has_Structure):
                 except Exception:
                     pass
 
-            app("TIP: Call ebands.set_fermie_to_vbm() to set the Fermi energy to the VBM if this is a semiconductor")
+            app("TIP: Call set_fermie_to_vbm() to set the Fermi level to the VBM if this is a non-magnetic semiconductor\n")
 
         if with_kpoints:
             app(self.kpoints.to_string(verbose=verbose, title="K-points"))

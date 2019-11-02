@@ -24,14 +24,10 @@ class DdbTest(AbipyTest):
             assert len(ddb.qpoints) == 1
             assert np.all(ddb.qpoints[0] == [0.25, 0, 0])
             assert ddb.natom == len(ddb.structure)
-
-            import json
-            from monty.json import MSONable, MontyDecoder
-            assert isinstance(ddb, MSONable)
-            same_ddb = json.loads(ddb.to_json(), cls=MontyDecoder)
-            assert len(same_ddb.structure) == ddb.natom
-            assert np.all(same_ddb.qpoints.frac_coords == ddb.qpoints.frac_coords)
-            same_ddb.close()
+            s = ddb.get_string()
+            with DdbFile.from_string(s) as same_ddb:
+                assert same_ddb.qpoints[0] == ddb.qpoints[0]
+                assert same_ddb.structure == ddb.structure
 
             # Test header
             h = ddb.header
@@ -179,6 +175,13 @@ class DdbTest(AbipyTest):
         assert np.all(becs.values == 0)
         repr(becs); str(becs)
         assert becs.to_string(verbose=2)
+
+        same_becs = self.decode_with_MSON(becs)
+        self.assert_almost_equal(same_becs.values, becs.values)
+
+        max_err = becs.check_site_symmetries(verbose=2)
+        #print(max_err)
+        assert max_err == 0
 
         self.assert_almost_equal(phdos.idos.values[-1], 3 * len(ddb.structure), decimal=1)
         phbands_file.close()

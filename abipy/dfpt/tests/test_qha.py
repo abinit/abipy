@@ -13,11 +13,11 @@ class QhaTest(AbipyTest):
     @classmethod
     def setUpClass(cls):
         cls.strains = [-4, -2, 0, 2, 4, 6]
-        path = os.path.join(abidata.dirpath, "refs", "si_qha")
-        cls.gsr_paths = [os.path.join(path, "mp-149_{:+d}_GSR.nc".format(s)) for s in cls.strains]
-        cls.dos_paths = [os.path.join(path, "mp-149_{:+d}_PHDOS.nc".format(s)) for s in cls.strains]
-        cls.phbs = [PhononBands.from_file(os.path.join(path, "mp-149_{:+d}_PHBST.nc".format(s))) for s in
-                    cls.strains[2:4]]
+        dirpath = os.path.join(abidata.dirpath, "refs", "si_qha")
+        cls.gsr_paths = [os.path.join(dirpath, "mp-149_{:+d}_GSR.nc".format(s)) for s in cls.strains]
+        cls.dos_paths = [os.path.join(dirpath, "mp-149_{:+d}_PHDOS.nc".format(s)) for s in cls.strains]
+        cls.phbs_list = [PhononBands.from_file(os.path.join(dirpath, "mp-149_{:+d}_PHBST.nc".format(s))) for s in
+                         cls.strains[2:4]]
 
     def test_qha(self):
         """Base tests for QHA"""
@@ -51,7 +51,7 @@ class QhaTest(AbipyTest):
             assert qha.plot_thermal_expansion_coeff(num=6, show=False)
             assert qha.plot_vol_vs_t(num=6, show=False)
             # fake temperatures to test the plotting function.
-            assert qha.plot_phbs(self.phbs, temperatures=[10, 20], show=False)
+            assert qha.plot_phbs(self.phbs_list, temperatures=[10, 20], show=False)
 
     def test_phonopy_object(self):
         self.skip_if_not_phonopy()
@@ -132,7 +132,6 @@ class Qha3pTest(AbipyTest):
 
     def test_qha(self):
         """Base tests for QHA3PF"""
-
         qha = QHA3P.from_files(self.gsr_paths, self.gruns_path, ind_doses=[1, 2, 3])
 
         self.assertEqual(qha.nvols, len(self.strains))

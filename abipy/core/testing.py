@@ -519,6 +519,14 @@ class AbipyTest(PymatgenTest):
         """Return mock module for testing. Raises ImportError if not found."""
         return get_mock_module()
 
+    def decode_with_MSON(self, obj):
+        """
+        Convert obj into JSON assuming MSONable protocolo. Return new object decoded with MontyDecoder
+        """
+        from monty.json import MSONable, MontyDecoder
+        self.assertIsInstance(obj, MSONable)
+        return json.loads(obj.to_json(), cls=MontyDecoder)
+
     @staticmethod
     def abivalidate_input(abinput, must_fail=False):
         """

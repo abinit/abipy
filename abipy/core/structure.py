@@ -977,6 +977,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
     @lazy_property
     def site_symmetries(self):
+        """Object with SiteSymmetries."""
         from abipy.core.site_symmetries import SiteSymmetries
         return SiteSymmetries(self)
 
@@ -1196,6 +1197,14 @@ class Structure(pymatgen.Structure, NotebookWriter):
             one-dimensional `numpy` array.
         """
         return np.sqrt(self.dot(coords, coords, space=space, frac_coords=frac_coords))
+
+    def scale_lattice(self, new_volume):
+        """
+        Return a new |Structure| with volume new_volume by performing a
+        scaling of the lattice vectors so that length proportions and angles are preserved.
+        """
+        new_lattice = self.lattice.scale(new_volume)
+        return self.__class__(new_lattice, self.species, self.frac_coords)
 
     def get_dict4pandas(self, symprec=1e-2, angle_tolerance=5.0, with_spglib=True):
         """

@@ -14,6 +14,8 @@ from abipy import abilab
 
 script_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
+test_files_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "test_files"))
+
 
 def test_if_all_scripts_are_tested():
     """Testing if all scripts are tested"""
@@ -120,6 +122,10 @@ class TestAbiopen(ScriptTest):
         for f in ["tgw1_9o_DS4_SIGRES.nc", "si_scf_WFK.nc"]:
             path = abidata.ref_file(f)
             r = env.run(self.script, path, "-p", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+
+        # Test abiopen with json file
+        json_path = os.path.join(test_files_dir, "nscf_input.json")
+        r = env.run(self.script, json_path, "-e", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
 
 class TestAbistruct(ScriptTest):
