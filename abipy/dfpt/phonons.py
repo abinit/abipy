@@ -1342,7 +1342,7 @@ class PhononBands(object):
             colormap: Have a look at the colormaps here and decide which one you like:
                 http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
             phdos_file: Used to activate fatbands + PJDOS plot.
-                Accept string with path of PHDOS.nc file or :class:`PhdosFile` object.
+                Accept string with path of PHDOS.nc file or |PhdosFile| object.
             alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
             max_stripe_width_mev: The maximum width of the stripe in meV. Will be rescaled according to ``units``.
             width_ratios: Ratio between the width of the fatbands plots and the DOS plots.
@@ -2182,7 +2182,7 @@ class PhononDos(Function1D):
         elif hasattr(obj, "phdos"):
             return obj.phdos
 
-        raise TypeError("Don't know how to create `PhononDos` from %s" % type(obj))
+        raise TypeError("Don't know how to create PhononDos object from type: `%s`" % type(obj))
 
     @lazy_property
     def iw0(self):

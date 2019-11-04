@@ -929,7 +929,7 @@ class KpointList(collections.abc.Sequence):
         except ValueError:
             raise ValueError("Cannot find point: %s in KpointList:\n%s" % (repr(kpoint), repr(self)))
 
-    def get_all_kindexes(self, kpoint):
+    def get_all_kindices(self, kpoint):
         """
         Return numpy array with indexes of all the k-point
         Accepts: |Kpoint| instance or integer.

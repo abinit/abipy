@@ -91,8 +91,8 @@ class ElectronBandsTest(AbipyTest):
         assert smearing.scheme == "gaussian"
         assert not ni_ebands_kmesh.get_gaps_string()
 
-        #ni_ebands_kmesh.copy()
-        #ni_ebands_kmesh.deepcopy()
+        same = ni_ebands_kmesh.deepcopy()
+        assert same.structure == ni_ebands_kmesh.structure
 
         ni_edos = ni_ebands_kmesh.get_edos()
         repr(ni_edos); str(ni_edos)
@@ -554,7 +554,7 @@ class ElectronBandsPlotterTest(AbipyTest):
         assert len(p2.edoses_list) == 0
         assert hasattr(p2, "combiplot")
 
-        print(plotter.bands_statdiff())
+        assert plotter.bands_statdiff()
         df = plotter.get_ebands_frame()
         assert df is not None
 

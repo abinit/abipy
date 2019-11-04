@@ -1,5 +1,7 @@
-Release 0.7.0: 2019-10-18
+Release 0.8.0: xxxx-xx-xx
 
+    * Add examples and flows for effective mass calculations
+    * Add examples for Quasi-Harmonic calculations and post-processing tools
     * Add support for JSON files (including MSONable) in abiopen.py
     * Improved support for EPH calculations.
 

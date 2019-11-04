@@ -60,9 +60,6 @@ def itest_tolsymerror_handler(fwp):
     assert len(task.corrections) == 1
     assert task.corrections[0]["event"]["@class"] == "TolSymError"
 
-    #assert task.corrections.count("TolSymError") == 1
-    #assert 0
-
 
 def itest_dilatmxerror_handler(fwp):
     """Test the handler of DilatmxError. The test triggers:
@@ -77,8 +74,8 @@ def itest_dilatmxerror_handler(fwp):
 
     in variable cell structural optimizations.
     """
-    if fwp.on_travis:
-        pytest.xfail("dilatmxerror_handler is not portable and it's been disabled on travis builder!")
+    #if fwp.on_travis:
+    pytest.xfail("dilatmxerror_handler is not portable and it's been disabled!")
 
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
     structure.scale_lattice(structure.volume * 0.8)

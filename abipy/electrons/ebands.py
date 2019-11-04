@@ -187,8 +187,8 @@ class ElectronTransition(object):
         """String representation."""
         lines = []; app = lines.append
         app("Energy: %.3f (eV)" % self.energy)
-        app("Initial state %s" % str(self.in_state))
-        app("Final state   %s" % str(self.out_state))
+        app("Initial state: %s" % str(self.in_state))
+        app("Final state:   %s" % str(self.out_state))
 
         return "\n".join(lines)
 
@@ -871,13 +871,9 @@ class ElectronBands(Has_Structure):
                 for band in range(self.nband_sk[spin, ik]):
                     yield spin, ik, band
 
-    #def copy(self):
-    #    """Shallow copy of self."""
-    #    return copy.copy(self)
-
-    #def deepcopy(self):
-    #    """Deep copy of self."""
-    #    return copy.deepcopy(self)
+    def deepcopy(self):
+        """Deep copy of the ElectronBands object."""
+        return copy.deepcopy(self)
 
     def degeneracies(self, spin, kpoint, bands_range, tol_ediff=1.e-3):
         """
@@ -2404,7 +2400,7 @@ class ElectronBands(Has_Structure):
         # If kpt is inside the line, left and right derivatives are supposed to be equal
         from abipy.tools.derivatives import finite_diff
 
-        for ik in self.kpoints.get_all_kindexes(kpoint):
+        for ik in self.kpoints.get_all_kindices(kpoint):
             for iline, line in enumerate(self.kpoints.lines):
                 if line[-1] >= ik >= line[0]: break
             else:

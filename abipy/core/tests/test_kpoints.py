@@ -242,7 +242,7 @@ class TestKpointList(AbipyTest):
 
         frac_coords = [1/2, 1/2, 1/2, 1/2, 1/2, 1/2]
         klist = KpointList(lattice, frac_coords, weights=None)
-        assert np.all(klist.get_all_kindexes([1/2, 1/2, 1/2]) == [0, 1])
+        assert np.all(klist.get_all_kindices([1/2, 1/2, 1/2]) == [0, 1])
         with self.assertRaises(ValueError):
             klist.index((0, 0, 0))
 

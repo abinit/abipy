@@ -89,15 +89,15 @@
 ``run_relax``:
 
     This script shows how to perform a structural relaxation in two steps:
-    
+
         1) Relaxation of atomic positions with unit cell parameters fixed.
-    
+
         2) Full relaxation (atoms + cell) with the initial configuration read from step 1)
 
 ``run_relax_and_ebands``:
 
     This script shows how to perform a structural relaxation and a band structure calculation
-    
+
     WARNING: The API could change!
 
 ``run_si_ebands``:

@@ -1,5 +1,6 @@
 # coding: utf-8
 """
+Objects to compute electronic effective masses via finite differences starting from an |ElectronBands| object.
 """
 
 import numpy as np
@@ -8,7 +9,8 @@ import pymatgen.core.units as units
 
 from collections import OrderedDict
 from monty.string import list_strings #, is_string, marquee
-from abipy.core.mixins import Has_Structure, Has_ElectronBands #, NotebookWriter
+from monty.termcolor import cprint
+from abipy.core.mixins import Has_Structure, Has_ElectronBands
 from abipy.tools.derivatives import finite_diff
 from abipy.tools.printing import print_dataframe
 #from abipy.tools import duck
@@ -16,20 +18,23 @@ from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig
 from abipy.electrons import ElectronBands
 
 
-#class EffMassAnalyzer(Has_Structure, Has_ElectronBands, NotebookWriter):
 class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
     """
+    This objects provides a high-level API to compute electronic effective masses via finite differences
+    starting from an |ElectronBands| object.
+
     Usage example:
 
     .. code-block:: python
 
         emana = EffmassAnalyzer.from_file("out_GSR.nc")
         print(emana)
-        emana.set_kpoint_band(kpoint=[0, 0, 0], band=3)
+        emana.select_vbm()
+        #emana.select_kpoint_band(kpoint=[0, 0, 0], band=3)
         emans.plot_emass()
 
     .. rubric:: Inheritance Diagram
-    .. inheritance-diagram:: EffmassAnalyzer
+    .. inheritance-diagram:: EffMassAnalyzer
     """
 
     @classmethod
@@ -37,56 +42,123 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
         """Initialize the object from a netcdf file with an ebands object."""
         from abipy.abilab import abiopen
         with abiopen(filepath) as ncfile:
-            return cls(ncfile.ebands)
+            return cls(ncfile.ebands, copy=False)
 
-    def __init__(self, ebands):
+    def __init__(self, ebands, copy=True):
         """Initialize the object from an ebands object with k-points along a path."""
-        self._ebands = ebands
         if not ebands.kpoints.is_path:
             raise ValueError("EffmassAnalyzer requires k-points along a path. Got:\n %s" % repr(ebands.kpoints))
 
-        self.efm_kpoint = None
+        # Copy ebands before changing fermie because we don't want side effects!
+        self._ebands = ebands.deepcopy() if copy else ebands
+        self._ebands.set_fermie_to_vbm()
+        self.segments = []
 
-    def set_kpoint_band(self, kpoint, band, degtol_ev=1e-3):
-        all_iks = self.kpoints.get_all_kindexes(kpoint)
-        ik = all_iks[0]
-        self.efm_kpoint = self.kpoints[ik]
-        #self.efm_band = band
-        #self.efm_degtol_ev = degtol_ev
+    def __repr__(self):
+        """Invoked by repr"""
+        return repr(self.ebands)
 
-        # Find indices of degenerate states.
-        band_indices_spin = []
-        for spin in range(self.nsppol):
-            e0 = self.ebands.eigens[spin, ik, band]
-            inds = [enum[0] for enum in enumerate(self.ebands.eigens[spin, ik]) if abs(enum[1] - e0) <= degtol_ev]
-            band_indices_spin.append(np.array(inds))
+    def __str__(self):
+        """Invoked by str"""
+        return self.ebands.to_string()
 
-        self.segments_spin = self.nsppol * [[]]
-        for ik in self.kpoints.get_all_kindexes(kpoint):
+    def to_string(self, verbose):
+        """
+        Human-readable string with useful info such as band gaps, position of HOMO, LOMO...
+
+        Args:
+            verbose: Verbosity level.
+        """
+        return self.ebands.to_string(with_structure=True, with_kpoints=True, verbose=verbose)
+
+    def select_kpoint_band(self, kpoint, band, spin=0, etol_ev=1e-3):
+        """
+        Construct line segments based on the k-point ``kpoint`` and the band index ``band``.
+        This is the most flexible interface and allows one to include extra bands
+        by increasing the value of `etol_ev`.
+
+        Args:
+            kpoint: Fractional coordinates or |Kpoint| object.
+            band: Band index
+            spin: Spin index.
+            etol_ev: Include all bands at this k-point whose energy differ from the one at
+                (kpoint, band) less that ``etol_ev`` in eV.
+        """
+        # Find all k-indices associated to the input kpoint.
+        ik_indices = self.kpoints.get_all_kindices(kpoint)
+        ik = ik_indices[0]
+
+        # Find band indices of "degenerate" states within tolerance etol_ev.
+        e0 = self.ebands.eigens[spin, ik, band]
+        band_inds_k = [be[0] for be in enumerate(self.ebands.eigens[spin, ik]) if abs(be[1] - e0) <= etol_ev]
+        band_inds_k = len(ik_indices) * [band_inds_k]
+        self._build_segments(spin, ik_indices, band_inds_k)
+
+    def select_cbm(self, spin=0, etol_ev=1e-3):
+        """Select conduction band minimum."""
+        ik_indices, band_inds_k = self._select(["cbm"], spin, etol_ev)
+        self._build_segments(spin, ik_indices, band_inds_k)
+
+    def select_vbm(self, spin=0, etol_ev=1e-3):
+        """Select valence band maximum."""
+        ik_indices, band_inds_k = self._select(["vbm"], spin, etol_ev)
+        self._build_segments(spin, ik_indices, band_inds_k)
+
+    def select_band_edges(self, spin=0, etol_ev=1e-3):
+        """Select conduction band minimum and valence band maximum."""
+        ik_indices, band_inds_k = self._select(["cbm", "vbm"], spin, etol_ev)
+        self._build_segments(spin, ik_indices, band_inds_k)
+
+    def _select(self, what_list, spin, etol_ev):
+        ik_indices, band_inds_k = [], []
+
+        if "vbm" in what_list:
+            homo = self.ebands.homos[spin]
+            homo_iks = self.kpoints.get_all_kindices(homo.kpoint)
+            ik = homo_iks[0]
+            e0 = self.ebands.eigens[spin, ik, homo.band]
+            homo_bands = [be[0] for be in enumerate(self.ebands.eigens[spin, ik]) if abs(be[1] - e0) <= etol_ev]
+            ik_indices.extend(homo_iks)
+            for i in range(len(homo_iks)):
+                band_inds_k.append(homo_bands)
+
+        if "cbm" in what_list:
+            lumo = self.ebands.lumos[spin]
+            lumo_iks = self.kpoints.get_all_kindices(lumo.kpoint)
+            ik = lumo_iks[0]
+            e0 = self.ebands.eigens[spin, ik, lumo.band]
+            lumo_bands = [be[0] for be in enumerate(self.ebands.eigens[spin, ik]) if abs(be[1] - e0) <= etol_ev]
+            ik_indices.extend(lumo_iks)
+            for i in range(len(lumo_iks)):
+                band_inds_k.append(lumo_bands)
+
+        return ik_indices, band_inds_k
+
+    def _build_segments(self, spin, ik_indices, band_inds_k):
+        """
+        Build list of segments.
+
+        Args:
+            spin: Spin index.
+            ik_indices: List of k-point indices [nk][kids]
+            band_inds_k: [nk][kids]
+        """
+        #print("in build_segments with:\n\tik_indices:", ik_indices, "\n\tband_inds_k:", band_inds_k)
+        self.spin = spin
+
+        dims = len(ik_indices), len(band_inds_k)
+        if dims[0] != dims[1]:
+            raise RuntimeError("len(ik_indices) %s != len(band_inds_k) %s" % (dims[0], dims[1]))
+
+        self.segments = []
+        for ik, bids in zip(ik_indices, band_inds_k):
             for iline, line in enumerate(self.kpoints.lines):
                 if line[-1] >= ik >= line[0]: break
             else:
                 raise ValueError("Cannot find k-index `%s` in lines: `%s`" % (ik, self.kpoints.lines))
+            #print("line[-1]", line[-1], "ik", ik, "line[0]", line[0])
 
-            for spin in range(self.nsppol):
-                segment = Segment(ik, spin, line, band_indices_spin[spin], self.ebands)
-                self.segments_spin[spin].append(segment)
-
-    def __str__(self):
-        """String representation."""
-        return self.to_string()
-
-    def to_string(self, verbose=0):
-        """String representation."""
-        lines = []; app = lines.append
-
-        app("")
-        app(self.structure.to_string(verbose=verbose, title="Structure"))
-        app("")
-        app(self.ebands.to_string(with_structure=False, verbose=verbose, title="Electronic Bands"))
-        app(self.kpoints.to_string(verbose=verbose, title="List of k-points"))
-
-        return "\n".join(lines)
+            self.segments.append(Segment(ik, spin, line, bids, self.ebands))
 
     @property
     def ebands(self):
@@ -99,23 +171,28 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
         return self.ebands.structure
 
     def _consistency_check(self):
-        if not hasattr(self, "segments_spin"):
-            raise RuntimeError("You must call set_kpoint_band to select the k-point and the bands")
+        if not self.segments:
+            methods = ", ".join(["select_cbm", "select_vbm", "select_band_edges", "select_kpoint_band"])
+            raise RuntimeError("You must call one among: `%s`\nto build segments before analyzing data." % methods)
 
     def summarize(self, acc=4):
         self._consistency_check()
-        for spin in range(self.nsppol):
-            for segment in self.segments_spin[spin]:
-                df = segment.get_dataframe_with_accuracies(acc_list=[acc])
-                title = "k: %s, spin: %s, nbands: %d" % (repr(self.efm_kpoint), spin, segment.nb)
-                #label="direction: %s" % segment.kdir.tos(m="fracart") if ib == 0 else None)
-                print_dataframe(df, title=title)
-                #print("")
+        for segment in self.segments:
+            df = segment.get_dataframe_with_accuracies(acc_list=[acc])
+            title = "k: %s, spin: %s, nbands: %d" % (repr(segment.k0), segment.spin, segment.nb)
+            #label="direction: %s" % segment.kdir.tos(m="fracart") if ib == 0 else None)
+            print_dataframe(df, title=title)
+            #print("")
+
+    #def print_segments(self):
+    #    self._consistency_check()
+    #    for segment in self.segments
 
     @add_fig_kwargs
-    def plot_emass(self, acc=4, fontsize=8, colormap="viridis", **kwargs):
+    def plot_emass(self, acc=4, fontsize=6, colormap="viridis", **kwargs):
         """
-        Plot electronic dispersion and quadratic expression based on effective mass computed along each segment.
+        Plot electronic dispersion and quadratic curve based on the
+        effective masses computed along each segment.
 
         Args:
             acc:
@@ -124,22 +201,29 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
         """
         self._consistency_check()
 
-        # Build grid of plots.
-        nrows, ncols = max(len(segs) for segs in self.segments_spin), self.nsppol
-        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=False, sharey=True, squeeze=False)
+        # Build grid of plots for this spin.
+        num_plots, ncols, nrows = len(self.segments), 1, 1
+        if num_plots > 1:
+            ncols = 2
+            nrows = (num_plots // ncols) + (num_plots % ncols)
 
-        for spin in range(self.nsppol):
-            for iseg, segment in enumerate(self.segments_spin[spin]):
-                ax = ax_mat[iseg, spin]
-                segment.plot_emass(ax=ax, acc=acc, fontsize=fontsize, colormap=colormap, show=False)
-                if (spin, iseg) != (0, 0):
-                    set_visible(ax, False, "ylabel")
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=False, sharey=True, squeeze=False)
+        ax_list = ax_list.ravel()
+
+        for iseg, (segment, ax) in enumerate(zip(self.segments, ax_list)):
+            irow, icol = divmod(iseg, ncols)
+            segment.plot_emass(ax=ax, acc=acc, fontsize=fontsize, colormap=colormap, show=False)
+            if iseg != 0: set_visible(ax, False, "ylabel")
+            if irow != nrows - 1: set_visible(ax, False, "xticklabels")
+
+        # don't show the last ax if numeb is odd.
+        if num_plots % ncols != 0: ax_list[-1].axis("off")
 
         return fig
 
     @add_fig_kwargs
-    def plot_all_segments(self, colormap="viridis", fontsize=8, **kwargs):
+    def plot_all_segments(self, ax=None, colormap="viridis", fontsize=8, **kwargs):
         """
 
         Args:
@@ -150,54 +234,35 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
         """
         self._consistency_check()
 
-        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=1, ncols=self.nsppol,
-                                               sharex=False, sharey=True, squeeze=False)
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
         cmap = plt.get_cmap(colormap)
         markers = ["o", "s", "x", "D", "+", "v", ">", "<"] * 8
 
-        for spin, ax in enumerate(ax_mat.ravel()):
-            ax.grid(True)
-            ax.set_ylabel('Energy (eV)')
-            pad = 0
-            for iseg, segment in enumerate(self.segments_spin[spin]):
-                color = cmap(float(iseg / len(self.segments_spin[spin])))
-                for ib in range(segment.nb):
-                    ax.plot(segment.kpoint_indices + pad, segment.energies_bk[ib],
-                            linestyle=":", marker=markers[ib], markersize=4, color=color,
-                            label="direction: %s" % segment.kdir.tos(m="fracart") if ib == 0 else None)
-                pad += 10
+        ax.grid(True)
+        ax.set_ylabel('Energy (eV)')
+        pad = 0
+        for iseg, segment in enumerate(self.segments):
+            color = cmap(float(iseg / len(self.segments)))
+            for ib in range(segment.nb):
+                ax.plot(segment.kpoint_indices + pad, segment.energies_bk[ib],
+                        linestyle=":", marker=markers[ib], markersize=2, color=color,
+                        label="direction: %s" % segment.kdir.tos(m="fracart") if ib == 0 else None)
+            pad += 10
 
-            ax.legend(loc="best", fontsize=fontsize, shadow=True)
-            title = "k: %s, spin: %s, nband: %d" % (repr(self.efm_kpoint), spin, segment.nb)
-            ax.set_title(title, fontsize=fontsize)
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
+        #title = "k: %s, spin: %s, nband: %d" % (repr(self.efm_kpoint), self.spin, segment.nb)
+        #ax.set_title(title, fontsize=fontsize)
 
         return fig
 
-    #def yield_figs(self, **kwargs):  # pragma: no cover
-    #    """
-    #    This function *generates* a predefined list of matplotlib figures with minimal input from the user.
-    #    """
-    #    #for fig in self.yield_structure_figs(**kwargs): yield fig
-    #    for fig in self.yield_ebands_figs(**kwargs): yield fig
-
-    #def write_notebook(self, nbpath=None):
-    #    """
-    #    Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
-    #    working directory is created. Return path to the notebook.
-    #    """
-    #    nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
-
-    #    nb.cells.extend([
-    #        nbv.new_code_cell("eskw = abilab.abiopen('%s')" % self.filepath),
-    #        nbv.new_code_cell("print(eskw)"),
-    #    ])
-
-    #    return self._write_nb_nbpath(nb, nbpath)
-
 
 class Segment:
+    """
+        .. attribute:: Z
 
-    def __init__(self, ik, spin, line, band_indices, ebands):
+            Atomic number
+    """
+    def __init__(self, ik, spin, line, band_inds, ebands):
         """
         Args:
             kpoint_indices (list(int)): the kpoint indices of the segment
@@ -216,16 +281,16 @@ class Segment:
                              str(ebands.kpoints.ds[line[:-1]]))
 
         self.kpoint_indices = np.asarray(line)
-        self.band_indices = band_indices
-        # The reference point and |k - k0|^2
+        self.band_inds = band_inds
+        # The reference point and |k-k0|^2
         self.k0 = ebands.kpoints[ik]
         self.kmk0_2 = np.array([(k - self.k0).norm ** 2 for k in (ebands.kpoints[l] for l in line)])
 
         self.energies_bk = []
-        for band in band_indices:
+        for band in band_inds:
             self.energies_bk.append(ebands.eigens[spin, line, band])
 
-        self.energies_bk = np.reshape(self.energies_bk, (len(band_indices), len(line)))
+        self.energies_bk = np.reshape(self.energies_bk, (len(band_inds), len(line)))
         self.nb = len(self.energies_bk)
         self.ebands = ebands
 
@@ -235,7 +300,7 @@ class Segment:
     def to_string(self, verbose=0):
         """String representation."""
         lines = []; app = lines.append
-        app("k-point: %s, nb: %s, spin: %d" % (self.k0.to_string(verbose=verbose), self.nb, self.spin))
+        app("k-point: %s, nband: %s, spin: %d" % (self.k0.to_string(verbose=verbose), self.nb, self.spin))
         return "\n".join(lines)
 
     def __str__(self):
@@ -248,7 +313,7 @@ class Segment:
 
     def get_dataframe_with_accuracies(self, acc_list=(2, 4, 6, 8)):
         """
-        Build and return a pandas dataframe with effective masses computed with different accuracies (npts)
+        Build and return a |pandas-Dataframe| with effective masses computed with different accuracies (npts)
         """
         rows = []
         for acc in acc_list:
@@ -258,8 +323,7 @@ class Segment:
                 emass_dict["m%d" % ib] = emass
 
             od = OrderedDict([
-                ("acc", acc),
-                ("npts", d2.npts),
+                ("acc", acc), ("npts", d2.npts),
             ])
             od.update(emass_dict)
             rows.append(od)
@@ -288,16 +352,20 @@ class Segment:
             ax.scatter(xs, enes_kline, marker="o", color=cmap(float(ib) / self.nb))
 
             # Compute effective masses
-            emass, d2 = self.get_fd_emass_d2(enes_kline, acc)
+            try:
+                emass, d2 = self.get_fd_emass_d2(enes_kline, acc)
+            except Exception as exc:
+                cprint("Eception for segment: %s" % str(self), "red")
+                raise exc
+
             ys = ((self.kmk0_2 * units.bohr_to_ang ** 2) / (2 * emass)) * units.Ha_to_eV + self.energies_bk[ib, self.kpos]
             label = r"$m^*$ = %.3f, %d-pts %s finite-diff" % (emass, d2.npts, d2.mode)
             ax.plot(xs, ys, linestyle="--", color=cmap(float(ib) / self.nb), label=label)
 
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
-        title = "$m^*$  at k: %s, along direction: %s" % (repr(self.k0), self.kdir.tos(m="fracart"))
+        title = r"${\bf k}_0$: %s, direction: %s" % (repr(self.k0), self.kdir.tos(m="fracart"))
         ax.set_title(title, fontsize=fontsize)
         ax.set_ylabel('Energy (eV)')
-        #ax1.set_xlabel('Energy (eV)')
 
         return fig
 
@@ -307,7 +375,7 @@ class Segment:
 #    @classmethod
 #    def from_files(cls, filepaths):
 #        """Initialize the object from a list of files providing an |ElectronBands| object."""
-#        return cls([ElectronBands.from_file(f) for f in list_strings(filepaths)])
+#        return cls([ElectronBands.from_file(f, copy=False) for f in list_strings(filepaths)])
 #
 #    def __init__(self, eband_list)
 #        self.eband_list = eband_list

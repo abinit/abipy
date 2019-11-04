@@ -98,6 +98,7 @@
 .. |PhononBands| replace:: :class:`abipy.dfpt.phonons.PhononBands`
 .. |Node| replace:: :class:`abipy.flowtk.nodes.Node`
 .. |Task| replace:: :class:`abipy.flowtk.tasks.Task`
+.. |AbinitTask| replace:: :class:`abipy.flowtk.tasks.AbinitTask`
 .. |ScfTask| replace:: :class:`abipy.flowtk.tasks.ScfTask`
 .. |NscfTask| replace:: :class:`abipy.flowtk.tasks.NscfTask`
 .. |AnaddbTask| replace:: :class:`abipy.flowtk.tasks.AnaddbTask`

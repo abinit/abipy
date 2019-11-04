@@ -134,31 +134,36 @@ class QhaFlow(Flow):
         d = {}
         if self.metadata is not None: d.update({"metadata": self.metadata})
 
-        #def from_files(cls, gsr_files_paths, phdos_files_paths):
+        #QHA.from_files(cls, gsr_paths, phdos_paths)
+        # Build list of strings with path to the relevant output files ordered by V.
+        d["gsr_relax_paths"] = [task.gsr_path for task in self.relax_and_phonon_work.relax_tasks_vol]
+        d["ddb_paths"] = [ph_work.outdir.has_abiext("DDB") for ph_work in self.relax_and_phonon_work.ph_works_vol]
+        d["gsr_edos_path"] = []
+        if self.relax_and_phonon_work.edos_ngkpt is not None:
+            d["gsr_edos_paths"] = [task.gsr_path for task in gsr_edos_self.relax_and_phonon_work.edos_work]
 
-        from abipy import abilab
-        entries = []
-        items = zip(self.relax_and_phonon_work.relax_tasks_vol, self.relax_and_phonon_work.ph_works_vol)
-        for ivol, (relax_task, ph_work) in enumerate(items):
-            ddb_path = ph_work.outdir.has_abiext("DDB")
-            with relax_task.open_gsr() as gsr:
-                entry = dict(
-                    volume=gsr.structure.volume,
-                    energy_eV=gsr.energy,
-                    pressure_GPa=gsr.pressure,
-                    structure=gsr.structure,
-                    gs_gsr_path=gsr.filepath,
-                    edos_gsr_path=None,
-                    ddb_path=ddb_path,
-                )
+        #from abipy import abilab
+        #entries = []
+        #items = zip(self.relax_and_phonon_work.relax_tasks_vol, self.relax_and_phonon_work.ph_works_vol)
+        #for ivol, (relax_task, ph_work) in enumerate(items):
+        #    ddb_path = ph_work.outdir.has_abiext("DDB")
+        #    with relax_task.open_gsr() as gsr:
+        #        entry = dict(
+        #            volume=gsr.structure.volume,
+        #            energy_eV=gsr.energy,
+        #            pressure_GPa=gsr.pressure,
+        #            structure=gsr.structure,
+        #            gsr_edos_path=None,
+        #            ddb_path=ddb_path,
+        #        )
 
-            if self.relax_and_phonon_work.edos_ngkpt is not None:
-                task = self.relax_and_phonon_work.edos_work[ivol]
-                entry["edos_gsr_path"] = task.gsr_path
+        #    if self.relax_and_phonon_work.edos_ngkpt is not None:
+        #        task = self.relax_and_phonon_work.edos_work[ivol]
+        #        entry["gsr_edos_path"] = task.gsr_path
 
-            entries.append(entry)
+        #    entries.append(entry)
+        #d["entries_for_each_volume"] = entries
 
-        d["entries_for_each_volume"] = entries
         abilab.mjson_write(d, self.outdir.path_in("qha.json"), indent=4)
 
         #pyscript = """
@@ -166,7 +171,7 @@ class QhaFlow(Flow):
         #from abipy.qha import Qha
         #data = abilab.mjson_read("qha.json")
         #data
-        #qha = from_files(cls, gsr_files_paths, phdos_files_paths):
+        #qha = from_files(gsr_files_paths, phdos_files_paths):
         #"""
 
         return super().finalize()

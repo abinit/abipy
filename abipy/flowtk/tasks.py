@@ -503,7 +503,7 @@ class ManagerIncreaseError(Exception):
 
 class FixQueueCriticalError(Exception):
     """
-    error raised when an error could not be fixed at the task level
+    Error raised when an error could not be fixed at the task level
     """
 
 
@@ -592,7 +592,7 @@ batch_adapter:
     def from_file(cls, filename):
         """Read the configuration parameters from the Yaml file filename."""
         try:
-            with open(filename, "r") as fh:
+            with open(filename, "rt") as fh:
                 return cls.from_dict(yaml.safe_load(fh))
         except Exception as exc:
             print("Error while reading TaskManager parameters from %s\n" % filename)
@@ -4280,7 +4280,6 @@ class OpticTask(Task):
             1 if task has been fixed else 0.
         """
         from abipy.flowtk.scheduler_error_parsers import NodeFailureError, MemoryCancelError, TimeCancelError
-        #assert isinstance(self.manager, TaskManager)
 
         if not self.queue_errors:
             if self.mem_scales or self.load_scales:

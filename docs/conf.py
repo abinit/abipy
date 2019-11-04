@@ -23,14 +23,7 @@ import imp
 mod_name = os.path.join(ABIPY_ROOT, "abipy", "core", "release.py")
 relmod = imp.load_source(mod_name, mod_name)
 
-on_rtd = os.environ.get('READTHEDOCS') == 'True' and os.environ.get("READTHEDOCS_PROJECT")
-if on_rtd:
-    print("Preparing execution on READTHEDOCS server...")
-    os.makedirs(os.path.expanduser("~/.abinit/abipy"))
-    shutil.copy(os.path.join(ABIPY_ROOT, "data", "managers", "travis_scheduler.yml"),
-                os.path.expanduser("~/.abinit/abipy/scheduler.yml"))
-    shutil.copy(os.path.join(ABIPY_ROOT, "data", "managers", "travis_manager.yml"),
-                os.path.expanduser("~/.abinit/abipy/manager.yml"))
+on_rtd = os.environ.get('READTHEDOCS') == 'True'
 
 # -- General configuration -----------------------------------------------------
 
@@ -68,7 +61,6 @@ import matplotlib
 extensions += [
     'IPython.sphinxext.ipython_directive',
     'IPython.sphinxext.ipython_console_highlighting',
-    #'matplotlib.sphinxext.only_directives',
     'matplotlib.sphinxext.plot_directive',
 ]
 
@@ -117,9 +109,14 @@ mpl.rcParams['figure.dpi'] = 300
 
 
 from sphinx_gallery.sorting import FileNameSortKey, NumberOfCodeLinesSortKey
+
 sphinx_gallery_conf = {
     # path to your examples scripts
-    'examples_dirs': ["../abipy/examples/plot", "../abipy/examples/flows",],
+    'examples_dirs': [
+        "../abipy/examples/plot",
+        "../abipy/examples/flows",
+    ],
+    #'examples_dirs': [],
     # path where to save gallery generated examples
     'gallery_dirs': ["gallery", "flow_gallery",],
     'filename_pattern': "(/plot_*|/run_*)",

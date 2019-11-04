@@ -1,6 +1,7 @@
 """Integration tests for structural relaxations."""
 
 import numpy as np
+import pytest
 import abipy.data as abidata
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk
@@ -186,6 +187,7 @@ def itest_dilatmx_error_handler(fwp, tvars):
     """
     Test cell relaxation with automatic restart in the presence of dilatmx error.
     """
+    pytest.xfail("dilatmxerror_handler is not portable and it's been disabled!")
     # Build the flow
     flow = flowtk.Flow(fwp.workdir, manager=fwp.manager)
 

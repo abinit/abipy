@@ -141,9 +141,9 @@ def finite_diff(arr, h, order=1, acc=4, index=None):
             stop = i + len(forw_ws)
             if stop > n:
                 raise ValueError(
-                        "Don't have enough points for index: %s in array of len: %s\n" +
-                        "to compute forward finite difference with order: %s, and acc: %s (num_weights: %s)\n"
-                        "Decrease acc or increase the sampling." % (i, n, order, acc, len(forw_ws)))
+                        ("\n\tDon't have enough points for index: %s in array of lenght: %s\n" +
+                         "\tto compute forward finite difference with order: %s, and acc: %s (num_weights: %s)\n" +
+                         "\tDecrease acc or increase the number of sampling points.") % (i, n, order, acc, len(forw_ws)))
             ders[i] = npsum(forw_ws * arr[i:stop])
             npts = len(forw_ws)
             mode = "forward"
@@ -154,9 +154,9 @@ def finite_diff(arr, h, order=1, acc=4, index=None):
             start = i - len(back_ws) + 1
             if start < 0:
                 raise ValueError(
-                    "Don't have enough points for index: %s in array of len: %s\n"
-                    "to compute backward finite difference with order: %s, and acc: %s (num_weights: %s)\n"
-                    "Decrease acc or increase the sampling." % (i, n, order, acc, len(back_ws)))
+                    ("\n\tDon't have enough points for index: %s in array of length: %s\n" +
+                    "\tto compute backward finite difference with order: %s, and acc: %s (num_weights: %s)\n" +
+                    "\tDecrease acc or increase the number of sampling points.") % (i, n, order, acc, len(back_ws)))
             ders[i] = npsum(back_ws * arr[start:i+1])
             npts = len(back_ws)
             mode = "backward"

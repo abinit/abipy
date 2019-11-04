@@ -60,18 +60,19 @@ def build_flow(options):
         __file__ = os.path.join(os.getcwd(), "run_effmass_finitediff.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
-    # Get the SCF input (default: collinear case with NC pseudos)
-    scf_input = make_scf_input(nspinor=1, usepaw=0)
+    # Get the SCF input (here NC with SOC)
+    scf_input = make_scf_input(nspinor=2, usepaw=0)
 
     # Build the flow with different steps.
     from abipy.flowtk.effmass_works import EffMassLineWork
     flow = flowtk.Flow(workdir=options.workdir, manager=options.manager)
 
     # Multiple calculations with different step for finite difference.
-    for i, step in enumerate((0.05, 0.01, 0.002)):
+    for i, step in enumerate((0.01, 0.005)):
         if i == 0: den_node = None
-        work = EffMassLineWork.from_scf_input(scf_input, k0_list=(0, 0, 0), step=step, npts=15,
-                                              #red_dirs=[[1, 0, 0], [1, 1, 0]],
+        work = EffMassLineWork.from_scf_input(scf_input, k0_list=(0, 0, 0),
+                                              step=step, npts=10,
+                                              red_dirs=[[1, 0, 0], [1, 1, 0]],
                                               cart_dirs=[[1, 0, 0], [1, 1, 1], [1, 1, 0]],
                                               den_node=den_node)
         # Will start from the DEN file produced in the first iteration.

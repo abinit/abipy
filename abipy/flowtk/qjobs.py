@@ -170,8 +170,9 @@ class QueueJob(object):
 
     def likely_code_error(self):
         """
-        See http://man7.org/linux/man-pages/man7/signal.7.html
+        See <http://man7.org/linux/man-pages/man7/signal.7.html>
 
+        ========= =========  =======  ========================================================================
         SIGHUP        1       Term    Hangup detected on controlling terminal or death of controlling process
         SIGINT        2       Term    Interrupt from keyboard
         SIGQUIT       3       Core    Quit from keyboard
@@ -191,11 +192,12 @@ class QueueJob(object):
         SIGTSTP   18,20,24    Stop    Stop typed at terminal
         SIGTTIN   21,21,26    Stop    Terminal input for background process
         SIGTTOU   22,22,27    Stop    Terminal output for background process
+        ========= =========  =======  ========================================================================
 
         The signals SIGKILL and SIGSTOP cannot be caught, blocked, or ignored.
-
         Next the signals not in the POSIX.1-1990 standard but described in SUSv2 and POSIX.1-2001.
 
+        ==========  ========= ========  ========================================
         Signal       Value     Action   Comment
         SIGBUS      10,7,10     Core    Bus error (bad memory access)
         SIGPOLL                 Term    Pollable event (Sys V).
@@ -207,6 +209,7 @@ class QueueJob(object):
         SIGVTALRM   26,26,28    Term    Virtual alarm clock (4.2BSD)
         SIGXCPU     24,24,30    Core    CPU time limit exceeded (4.2BSD)
         SIGXFSZ     25,25,31    Core    File size limit exceeded (4.2BSD)
+        ==========  ========= ========  ========================================
         """
         for sig_name in ("SIGFPE",):
             if self.received_signal(sig_name): return sig_name
