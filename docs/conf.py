@@ -118,7 +118,10 @@ sphinx_gallery_conf = {
     ],
     #'examples_dirs': [],
     # path where to save gallery generated examples
-    'gallery_dirs': ["gallery", "flow_gallery",],
+    'gallery_dirs': [
+        "gallery",
+        "flow_gallery",
+    ],
     'filename_pattern': "(/plot_*|/run_*)",
     'default_thumb_file': '_static/abipy_logo.png',
     'within_subsection_order': NumberOfCodeLinesSortKey,

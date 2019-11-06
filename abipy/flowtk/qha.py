@@ -140,9 +140,9 @@ class QhaFlow(Flow):
         d["ddb_paths"] = [ph_work.outdir.has_abiext("DDB") for ph_work in self.relax_and_phonon_work.ph_works_vol]
         d["gsr_edos_path"] = []
         if self.relax_and_phonon_work.edos_ngkpt is not None:
-            d["gsr_edos_paths"] = [task.gsr_path for task in gsr_edos_self.relax_and_phonon_work.edos_work]
+            d["gsr_edos_paths"] = [task.gsr_path for task in self.relax_and_phonon_work.edos_work]
 
-        #from abipy import abilab
+        from abipy import abilab
         #entries = []
         #items = zip(self.relax_and_phonon_work.relax_tasks_vol, self.relax_and_phonon_work.ph_works_vol)
         #for ivol, (relax_task, ph_work) in enumerate(items):

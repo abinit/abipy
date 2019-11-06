@@ -945,9 +945,9 @@ class AbstractQmeshAnalyzer(metaclass=abc.ABCMeta):
                                                 sharex=True, sharey=True, squeeze=False)
         ax_list = ax_list.ravel()
 
-        for qha, nqsm, ax in zip(self.qha_list, self.nqsmall_list, ax_list):
+        for qha, ngqpt, ax in zip(self.qha_list, self.ngqpt_list, ax_list):
             qha.plot_energies(ax=ax, show=False, **kwargs)
-            ax.set_title("nqsmall: %d" % nqsm, fontsize=self.fontsize)
+            ax.set_title("ngpqt: %s" % str(ngqpt), fontsize=self.fontsize)
         return fig
 
     @add_fig_kwargs
@@ -959,10 +959,10 @@ class AbstractQmeshAnalyzer(metaclass=abc.ABCMeta):
         self._consistency_check()
         ax, fig, plt = get_ax_fig_plt(None)
         cmap = plt.get_cmap(self.colormap)
-        for iq, (qha, nqsm) in enumerate(zip(self.qha_list, self.nqsmall_list)):
+        for iq, (qha, ngqpt) in enumerate(zip(self.qha_list, self.ngqpt_list)):
             qha.plot_thermal_expansion_coeff(ax=ax,
                                              color=cmap(float(iq) / self.num_qmeshes),
-                                             label="nqsmall: %s" % nqsm, show=False, **kwargs)
+                                             label="ngqpt: %s" % str(ngqpt), show=False, **kwargs)
         ax.legend(loc="best", fontsize=self.fontsize, shadow=True)
         return fig
 
@@ -975,10 +975,10 @@ class AbstractQmeshAnalyzer(metaclass=abc.ABCMeta):
         self._consistency_check()
         ax, fig, plt = get_ax_fig_plt(None)
         cmap = plt.get_cmap(self.colormap)
-        for iq, (qha, nqsm) in enumerate(zip(self.qha_list, self.nqsmall_list)):
+        for iq, (qha, ngqpt) in enumerate(zip(self.qha_list, self.ngqpt_list)):
             qha.plot_vol_vs_t(ax=ax,
                               color=cmap(float(iq) / self.num_qmeshes),
-                              label="nqsmall: %s" % nqsm, show=False, **kwargs)
+                              label="ngqpt: %s" % str(ngqpt), show=False, **kwargs)
         ax.legend(loc="best", fontsize=self.fontsize, shadow=True)
         return fig
 
@@ -1001,30 +1001,35 @@ class QHAQmeshAnalyzer(AbstractQmeshAnalyzer):
         """
         """
         self.qha_list = []
-        self.nqsmall_list = nqsmall_list
+        self.ngqpt_list = []
 
         ddb_list = [DdbFile(p) for p in self.ddb_paths]
         for nqsmall in nqsmall_list:
             phdos_paths = []
-            for ddb in ddb_list:
+
+            for i, ddb in enumerate(ddb_list):
                 phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(
                     nqsmall=nqsmall, qppa=None, ndivsm=1, line_density=None, asr=2, chneut=1, dipdip=1,
                     dos_method="tetra", lo_to_splitting="automatic", ngqpt=None, qptbounds=None,
                     anaddb_kwargs=None, verbose=0, spell_check=True,
                     mpi_procs=1, workdir=None, manager=None)
 
-                #ph_dos = PhononDos.as_phdos(phdos_file)
                 phdos_paths.append(phdos_file.filepath)
-                #qptrlatt = phdos_file.reader.read_value("qptrlatt").T
-                #shiftq = phdos_file.reader.read_value("shiftq")
+                if i == 0:
+                    # These variables added in abinit v8.11. Use nqsmall is not available.
+                    ngqpt = 3 * [nqsmall]
+                    if "qptrlatt" in phdos_file.reader.rootgrp.variables:
+                        ngqpt = np.diagonal(phdos_file.reader.read_value("qptrlatt").T)
+                        #shiftq = phdos_file.reader.read_value("shiftq")
+                    self.ngqpt_list.append(ngqpt)
 
                 phbst_file.close()
                 phdos_file.close()
 
             qha = QHA.from_files(self.gsr_paths, phdos_paths)
             self.qha_list.append(qha)
-            #self.ngqpt_list.append()
 
-        #self.ngppt_list = np.reshape(ngqpt_list, (-1, 3))
-        self.num_qmeshes = len(self.nqsmall_list)
-        for ddb in ddb_list: ddb.close()
+        self.ngqpt_list = np.reshape(self.ngqpt_list, (-1, 3))
+        self.num_qmeshes = len(self.ngqpt_list)
+        for ddb in ddb_list:
+            ddb.close()

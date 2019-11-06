@@ -81,7 +81,12 @@ class QhaTest(AbipyTest):
             assert qhana.plot_energies(title="Energies as a function of V for different T", show=False)
 
         qhana.run_qlist([2,])
+
         qhana.set_eos("birch_murnaghan")
+        assert qhana.ngqpt_list.shape == (1, 3)
+        assert qhana.num_qmeshes == 1
+        assert len(qhana.qha_list) == 1
+
         if self.has_matplotlib():
             assert qhana.plot_energies(title="Energies as a function of V for different T", show=False)
             assert qhana.plot_thermal_expansion_coeff(title="Thermal expansion as a function of T", show=False)

@@ -10,7 +10,6 @@ used to compute the phonon DOS.
 import os
 import abipy.data as abidata
 
-from abipy.dfpt.phonons import PhononBands
 from abipy.dfpt.qha import QHAQmeshAnalyzer
 
 # We use a list of GSR.nc and PHDOS.nc files corresponding to different isotropic strains.

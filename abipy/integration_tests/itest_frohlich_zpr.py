@@ -1,9 +1,9 @@
 """Integration tests for phonon flows."""
 
-import numpy as np
+#import numpy as np
 import abipy.data as abidata
 import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+#import abipy.flowtk as flowtk
 
 from abipy.dfpt.ddb import DdbFile
 

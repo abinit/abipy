@@ -217,8 +217,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         with open(self.filepath, "rt") as fh:
             return fh.read()
 
-        return {"ddb_string": ddb_string, "ddb_path": self.filepath}
-
     @property
     def structure(self):
         """|Structure| object."""
