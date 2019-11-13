@@ -636,7 +636,6 @@ abilab.enable_notebook(with_seaborn=True)
             pickle.dump(self, fh)
             return filepath
 
-    # TODO: Activate this
     @abc.abstractmethod
     def yield_figs(self, **kwargs):  # pragma: no cover
         """

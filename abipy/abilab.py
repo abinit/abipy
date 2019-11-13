@@ -290,6 +290,15 @@ def mjson_load(filepath, **kwargs):
         return json.load(fh, cls=MontyDecoder, **kwargs)
 
 
+def mjson_loads(string, **kwargs):
+    """
+    Read JSON string in MSONable format with MontyDecoder. Return dict with python objects.
+    """
+    import json
+    from monty.json import MontyDecoder
+    return json.loads(string, cls=MontyDecoder, **kwargs)
+
+
 def mjson_write(d, filepath, **kwargs):
     """
     Write dictionary d to filepath in JSON format using MontyDecoder

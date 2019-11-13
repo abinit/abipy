@@ -613,7 +613,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
             for name, value in items:
                 if mnemonics and value is not None:
-                    app("# <" + var_database[name].mnemonics + ">")
+                    app("#### <" + var_database[name].mnemonics + ">")
 
                 # Build variable, convert to string and append it
                 vname = name + post
@@ -625,16 +625,16 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             # Get dict mapping section_name --> list of variable names belonging to the section.
             keys = [k for (k, v) in self.items() if k not in exclude and v is not None]
             sec2names = var_database.group_by_varset(keys)
-            w = 92
+            w = 46
 
             for sec, names in sec2names.items():
                 app(w * "#")
-                app("#" + ("SECTION: %s" % sec).center(w - 1))
+                app("####" + ("SECTION: %s" % sec).center(w - 1))
                 app(w * "#")
                 for name in names:
                     value = self[name]
                     if mnemonics and value is not None:
-                        app(escape("# <" + var_database[name].mnemonics + ">"))
+                        app(escape("#### <" + var_database[name].mnemonics + ">"))
 
                     # Build variable, convert to string and append it
                     vname = name + post
@@ -644,11 +644,11 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
             if with_structure:
                 app(w * "#")
-                app("#" + ("STRUCTURE").center(w - 1))
+                app("####" + ("STRUCTURE").center(w - 1))
                 app(w * "#")
                 for name, value in self.structure.to_abivars().items():
                     if mnemonics and value is not None:
-                        app(escape("# <" + var_database[name].mnemonics + ">"))
+                        app(escape("#### <" + var_database[name].mnemonics + ">"))
                     vname = name + post
                     if mode == "html": vname = var_database[name].html_link(label=vname)
                     app(str(InputVariable(vname, value)))
@@ -668,6 +668,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         s += escape("\n#".join(ppinfo))
         if mode == "html": s = s.replace("\n", "<br>")
+
         return s
 
     def _repr_html_(self):
@@ -2313,7 +2314,7 @@ class MultiDataset(object):
             w = 92
             if global_vars:
                 lines.append(w * "#")
-                lines.append("### Global Variables.")
+                lines.append("#### Global Variables.")
                 lines.append(w * "#")
                 for key in global_vars:
                     vname = key if mode == "text" else var_database[key].html_link(label=key)
@@ -2323,14 +2324,14 @@ class MultiDataset(object):
             if has_same_structures:
                 # Write structure here and disable structure output in input.to_string
                 lines.append(w * "#")
-                lines.append("#" + ("STRUCTURE").center(w - 1))
+                lines.append("####" + ("STRUCTURE").center(w - 1))
                 lines.append(w * "#")
                 for key, value in self[0].structure.to_abivars().items():
                     vname = key if mode == "text" else var_database[key].html_link(label=key)
                     lines.append(str(InputVariable(vname, value)))
 
             for i, inp in enumerate(self):
-                header = "### DATASET %d ###" % (i + 1)
+                header = "##### DATASET %d #####" % (i + 1)
                 is_last = (i == self.ndtset - 1)
                 s = inp.to_string(post=str(i + 1), with_pseudos=is_last and with_pseudos, mode=mode,
                                   with_structure=not has_same_structures, exclude=global_vars)

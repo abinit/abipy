@@ -550,13 +550,13 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
     def to(self, fmt=None, filename=None, **kwargs):
         __doc__ = pymatgen.Structure.to.__doc__ + \
-            "\n Accepts also fmt='abivars' and `.abi` as Abinit input file extension"
+            "\n Accepts also fmt=`abinit` or `abivars` or `.abi` as Abinit input file extension"
 
         filename = filename or ""
         fmt = "" if fmt is None else fmt.lower()
         fname = os.path.basename(filename)
 
-        if fmt in ("abi", "abivars") or fname.endswith(".abi"):
+        if fmt in ("abi", "abivars", "abinit") or fname.endswith(".abi"):
             if filename:
                 with open(filename, "wt") as f:
                     f.write(self.abi_string)
@@ -1833,8 +1833,9 @@ class Structure(pymatgen.Structure, NotebookWriter):
         if fmt in ("abinit", "abivars"):
             app("# Abinit Structure")
             app(self.convert(fmt=fmt))
+            app("\n# tolwfr 1e-20 iscf -2 # NSCF run")
+            app('# To read previous DEN file, use: getden -1 or specify filename via getden_path "out_DEN"')
             app("\n# K-path in reduced coordinates:")
-            app("# tolwfr 1e-20 iscf -2 getden ??")
             app(" ndivsm %d" % line_density)
             app(" kptopt %d" % -(len(self.hsym_kpoints) - 1))
             app(" kptbounds")

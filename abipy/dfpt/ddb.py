@@ -1501,6 +1501,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return False
 
+    #def get_panel(self):
+    #    from abipy.panels import DdbFilePanel
+    #    return DdbFilePanel(self)
+
     def write_notebook(self, nbpath=None):
         """
         Write an jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporay file in the current
@@ -1787,7 +1791,7 @@ class DielectricTensorGenerator(Has_Structure):
         app(self.structure.to_string(verbose=verbose, title="Structure"))
         app("")
         app(marquee("Oscillator strength", mark="="))
-        tol = 1e-8
+        tol = 1e-6
         app("Real part in Cartesian coordinates. a.u. units; 1 a.u. = 253.2638413 m3/s2. Set to zero below %.2e." % tol)
         app(self.get_oscillator_dataframe(reim="re", tol=tol).to_string())
         if verbose:
@@ -1810,7 +1814,7 @@ class DielectricTensorGenerator(Has_Structure):
 
         return "\n".join(lines)
 
-    def get_oscillator_dataframe(self, reim="all", tol=1e-8):
+    def get_oscillator_dataframe(self, reim="all", tol=1e-6):
         """
         Return |pandas-Dataframe| with oscillator matrix elements.
 

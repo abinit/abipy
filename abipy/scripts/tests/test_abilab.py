@@ -1,9 +1,10 @@
 # coding: utf-8
-"""Test manager files."""
+"""Test abilab module."""
 import os
 import abipy.data as abidata
-from abipy import abilab
+import json
 
+from abipy import abilab
 from abipy.core.testing import AbipyTest
 
 
@@ -34,6 +35,10 @@ class AbilabTest(AbipyTest):
         abilab.mjson_write(data, filepath, indent=4)
         data = abilab.mjson_load(filepath)
         assert data["foo"] == "bar"
+
+        same_data = abilab.mjson_loads(json.dumps(data))
+        assert len(same_data) == len(data)
+        assert same_data["foo"] == data["foo"]
 
         assert not abilab.abicheck(verbose=1)
 

@@ -2854,6 +2854,10 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
             nbv.new_code_cell("ncfile.plot_pjdos_type();"),
             nbv.new_code_cell("ncfile.plot_pjdos_cartdirs_type(units='meV', stacked=True);"),
             nbv.new_code_cell("ncfile.plot_pjdos_cartdirs_site(view='inequivalent', units='meV', stacked=True);"),
+            # TODO
+            #msqd_dos = self.msqd_dos
+            #msqd_dos.plot(units=self.units, show=False)
+            #msqd_dos.plot_tensor(show=False)
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
