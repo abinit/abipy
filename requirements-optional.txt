@@ -7,7 +7,10 @@ networkx
 scikit-image
 #graphviz or python-graphviz if conda
 phonopy
-#mayavi
+ase
+param
+panel
+bokeh
 # Unit tests
 python-coveralls
 pytest
@@ -15,4 +18,3 @@ pytest-cov
 pytest-xdist
 pytest-sugar
 scripttest
-ase

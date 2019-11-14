@@ -518,7 +518,7 @@ def as_kpoints(obj, lattice, weights=None, names=None):
         return [obj]
 
     # Iterable with K-points?
-    if isinstance(obj, collections.Iterable):
+    if isinstance(obj, collections.abc.Iterable):
         if isinstance(obj[0], Kpoint):
             assert all(isinstance(o, Kpoint) for o in obj)
             return obj

@@ -378,6 +378,16 @@ class AbipyTest(PymatgenTest):
         mlab.options.backend = "test"
         return True
 
+    def has_panel(self):
+        """False if Panel library is not installed."""
+        try:
+            import param
+            import panel as pn
+            import bokeh
+            return pn
+        except ImportError:
+            return False
+
     @staticmethod
     def get_abistructure_from_abiref(basename):
         """Return an Abipy |Structure| from the basename of one of the reference files."""
@@ -503,6 +513,13 @@ class AbipyTest(PymatgenTest):
         if version is not None and not cmp_version(PROGRAM_VERSION, version, op=op):
             msg = "This test requires bolztrap2 version %s %s" % (op, version)
             raise unittest.SkipTest(msg)
+
+    def skip_if_not_executable(self, executable):
+        """
+        Raise SkipTest if executable is not installed.
+        """
+        if self.which(executable) is None:
+            raise unittest.SkipTest("This test requires `%s` in PATH" % str(executable))
 
     @staticmethod
     def skip_if_not_pseudodojo():

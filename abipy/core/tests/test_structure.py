@@ -140,6 +140,9 @@ class TestStructure(AbipyTest):
             #assert si.vtkview(show=False)  # Disabled due to (core dumped) on travis
             assert si.mayaview(show=False)
 
+        if self.has_panel():
+            assert si.get_panel()
+
         assert si is Structure.as_structure(si)
         assert si == Structure.as_structure(si.to_abivars())
         assert si == Structure.from_abivars(si.to_abivars())

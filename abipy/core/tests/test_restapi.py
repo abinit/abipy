@@ -8,6 +8,7 @@ from abipy.core import restapi
 
 class TestMpRestApi(AbipyTest):
     """Test interfaces with the Materials Project REST API."""
+
     def test_mprester(self):
         """Testing MP Rest API wrappers."""
 
@@ -45,6 +46,9 @@ class TestMpRestApi(AbipyTest):
         if self.has_nbformat():
             mp.write_notebook(nbpath=self.get_tmpname(text=True))
 
+    def test_cod(self):
+        """Testing COD interface."""
+        self.skip_if_not_executable("mysql")
         # Test abilab.cod_search
         cod = abilab.cod_search("MgB2", primitive=True)
         repr(cod); str(cod)

@@ -169,6 +169,9 @@ class DdbTest(AbipyTest):
                 title="Phonon bands and DOS of %s" % phbands.structure.formula)
             assert phbands_file.plot_phbands(show=False)
 
+        if self.has_panel():
+            assert ddb.get_panel()
+
         # Get epsinf and becs
         r = ddb.anaget_epsinf_and_becs(chneut=1, verbose=1)
         epsinf, becs = r.epsinf, r.becs

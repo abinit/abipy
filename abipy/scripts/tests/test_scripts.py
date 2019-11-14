@@ -222,6 +222,7 @@ class TestAbistruct(ScriptTest):
 
     def test_cod_api(self):
         """Testing abistruct COD methods."""
+        self.skip_if_not_executable("mysql")
         env = self.get_env()
         r = env.run(self.script, "cod_id", "1526507", "--primitive",
                     self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
