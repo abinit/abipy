@@ -198,7 +198,7 @@ class CubeFile(BaseFile):
 
 
 class Has_Structure(metaclass=abc.ABCMeta):
-    """Mixin class for :class:`AbinitNcFile` containing crystallographic data."""
+    """Mixin class for |AbinitNcFile| containing crystallographic data."""
 
     @abc.abstractproperty
     def structure(self):
@@ -289,7 +289,7 @@ class Has_Structure(metaclass=abc.ABCMeta):
 
 
 class Has_ElectronBands(metaclass=abc.ABCMeta):
-    """Mixin class for :class:`AbinitNcFile` containing electron data."""
+    """Mixin class for |AbinitNcFile| containing electron data."""
 
     @abc.abstractproperty
     def ebands(self):
@@ -383,7 +383,7 @@ class Has_ElectronBands(metaclass=abc.ABCMeta):
 
 class Has_PhononBands(metaclass=abc.ABCMeta):
     """
-    Mixin class for :class:`AbinitNcFile` containing phonon data.
+    Mixin class for |AbinitNcFile| containing phonon data.
     """
 
     @abc.abstractproperty
@@ -503,7 +503,6 @@ class NotebookWriter(metaclass=abc.ABCMeta):
 
         # Use jupyter-lab instead of classic notebook if possible.
         has_jupyterlab = which("jupyter-lab") is not None
-        #has_jupyterlab = False
         appname = "jupyter-lab" if has_jupyterlab else "jupyter notebook"
 
         if foreground:
@@ -512,8 +511,7 @@ class NotebookWriter(metaclass=abc.ABCMeta):
             fd, tmpname = tempfile.mkstemp(text=True)
             print(tmpname)
             cmd = "%s %s" % (appname, nbpath)
-            print("Executing:", cmd)
-            print("stdout and stderr redirected to %s" % tmpname)
+            print("Executing:", cmd, "\nstdout and stderr redirected to %s" % tmpname)
             import subprocess
             process = subprocess.Popen(cmd.split(), shell=False, stdout=fd, stderr=fd)
             cprint("pid: %s" % str(process.pid), "yellow")

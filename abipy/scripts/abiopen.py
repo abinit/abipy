@@ -53,27 +53,33 @@ from abipy import abilab\
     if which("jupyter") is None:
         raise RuntimeError("Cannot find jupyter in PATH. Install it with `pip install`")
 
+    # Use jupyter-lab instead of classic notebook if possible.
+    has_jupyterlab = which("jupyter-lab") is not None
+    appname = "jupyter-lab" if has_jupyterlab else "jupyter notebook"
+
     if options.foreground:
-        return os.system("jupyter notebook %s" % nbpath)
+        return os.system("%s %s" % (appname, nbpath))
     else:
         fd, tmpname = tempfile.mkstemp(text=True)
         print(tmpname)
-        cmd = "jupyter notebook %s" % nbpath
-        print("Executing:", cmd)
-        print("stdout and stderr redirected to %s" % tmpname)
+        cmd = "%s %s" % (appname, nbpath)
+        print("Executing:", cmd, "\nstdout and stderr redirected to %s" % tmpname)
         process = subprocess.Popen(cmd.split(), shell=False, stdout=fd, stderr=fd)
         cprint("pid: %s" % str(process.pid), "yellow")
+        return 0
 
 
 def get_epilog():
     s = """\
 Usage example:
 
-    abiopen.py FILE        => Open file in ipython shell.
-    abiopen.py FILE -nb    => Generate jupyter notebook.
-    abiopen.py FILE -p     => Print info on object to terminal.
-    abiopen.py FILE -e     => Generate matplotlib figures automatically.
-                              Use -sns to activate seaborn settings.
+    abiopen.py FILE          => Open file in ipython shell.
+    abiopen.py FILE -nb      => Generate jupyter notebook.
+    abiopen.py FILE -p       => Print info on object to terminal.
+    abiopen.py FILE -e       => Generate matplotlib figures automatically.
+                                Use -sns to activate seaborn settings.
+    abiopen.py FILE --panel  => Generate GUI in web browser to interact with FILE
+                                Requires panel package (WARNING: still under development!)
 
 where `FILE` is any file supported by abipy/pymatgen e.g. Netcdf files, Abinit input, POSCAR, xsf.
 File extensions supported (including zipped files with extension in ".bz2", ".gz", ".z"):
@@ -107,6 +113,10 @@ def get_parser(with_epilog=False):
     # print option
     parser.add_argument('-p', '--print', action='store_true', default=False, help="Print python object and return.")
 
+    # panel option
+    parser.add_argument('--panel', action='store_true', default=False,
+                        help="Open GUI in web browser, requires panel package.")
+
     # expose option.
     parser.add_argument('-e', '--expose', action='store_true', default=False,
         help="Open file and generate matplotlib figures automatically by calling expose method.")
@@ -120,8 +130,8 @@ def get_parser(with_epilog=False):
         help=("Set matplotlib interactive backend. "
               "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
               "See also: https://matplotlib.org/faq/usage_faq.html#what-is-a-backend."))
-    parser.add_argument('--pylustrator', action='store_true', default=False,
-        help="Style matplotlib plots with pylustrator. See https://pylustrator.readthedocs.io/en/latest/")
+    #parser.add_argument('--pylustrator', action='store_true', default=False,
+    #    help="Style matplotlib plots with pylustrator. See https://pylustrator.readthedocs.io/en/latest/")
 
     return parser
 
@@ -165,10 +175,10 @@ def main():
         sns.set(context=options.seaborn, style='darkgrid', palette='deep',
                 font='sans-serif', font_scale=1, color_codes=False, rc=None)
 
-    if options.pylustrator:
-        # Start pylustrator to style matplotlib plots
-        import pylustrator
-        pylustrator.start()
+    #if options.pylustrator:
+    #    # Start pylustrator to style matplotlib plots
+    #    import pylustrator
+    #    pylustrator.start()
 
     if not os.path.exists(options.filepath):
         raise RuntimeError("%s: no such file" % options.filepath)
@@ -212,6 +222,21 @@ def main():
                                verbose=options.verbose) as e:
                     e(abifile.yield_figs())
 
+            return 0
+
+        elif options.panel:
+            try:
+                import panel as pn
+            except ImportError as exc:
+                cprint("Use `conda install panel` or `pip install panel` to install the python package.", "red")
+                raise exc
+
+            if not hasattr(abifile, "get_panel"):
+                raise TypeError("Object of type `%s` does not implement get_panel method" % type(abifile))
+
+            import matplotlib
+            matplotlib.use("Agg")
+            abifile.get_panel().show()  #threaded=True)
             return 0
 
         # Start ipython shell with namespace

@@ -13,10 +13,26 @@ panels Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`core` Module
+-----------------
+
+.. automodule:: abipy.panels.core
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`ddb` Module
 -----------------
 
 .. automodule:: abipy.panels.ddb
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`gsr` Module
+-----------------
+
+.. automodule:: abipy.panels.gsr
    :members:
    :undoc-members:
    :show-inheritance:

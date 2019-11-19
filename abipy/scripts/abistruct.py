@@ -22,22 +22,6 @@ from abipy.iotools.xsf import xsf_write_structure
 from abipy.abio import factories
 
 
-#def remove_equivalent_atoms(structure):
-#    from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-#    spgan = SpacegroupAnalyzer(structure) #, symprec=symprec, angle_tolerance=angle_tolerance)
-#    spgdata = spgan.get_symmetry_dataset()
-#    equivalent_atoms = spgdata["equivalent_atoms"]
-#    mask = np.zeros(len(structure), dtype=np.int)
-#    for pos, eqpos in enumerate(equivalent_atoms):
-#        mask[eqpos] += 1
-#
-#    indices = [i for i, m in enumerate(mask) if m == 0]
-#    new = structure.copy()
-#    new.remove_sites(indices)
-#    with open("foo.abi", "wt") as fh:
-#        fh.write(new.abi_string)
-
-
 def save_structure(structure, options):
     """Save structure to file."""
     if not options.savefile: return
@@ -124,6 +108,8 @@ Usage example:
                                               Supports also ovito, xcrysden, vtk, mayavi, matplotlib See --help
   abistruct.py ipython FILE                => Read structure from FILE and open it in the Ipython terminal.
   abistruct.py notebook FILE               => Read structure from FILE and generate jupyter notebook.
+  abistruct.py panel FILE                  => Generate GUI in web browser to interact with the structure
+                                              Requires panel package (WARNING: still under development!)
 
 ###########
 # Databases
@@ -241,6 +227,9 @@ file that does not have enough significant digits.""")
         help="Convert structure to the specified format.")
     add_format_arg(p_convert, default="cif")
 
+    p_print = subparsers.add_parser('print', parents=[copts_parser, path_selector],
+                                    help="Print Structure to terminal.")
+
     # Subparser for supercell command.
     p_supercell = subparsers.add_parser('supercell', parents=[copts_parser, path_selector],
         help="Generate supercell.")
@@ -338,6 +327,10 @@ closest points in this particular structure. This is usually what you want in a 
         help="Read structure from file and generate jupyter notebook.")
     p_notebook.add_argument('--foreground', action='store_true', default=False,
         help="Run jupyter notebook in the foreground.")
+
+    p_panel = subparsers.add_parser('panel', parents=[copts_parser, path_selector],
+        help="Open GUI in web browser, requires panel package.")
+
     # Subparser for kpath.
     p_kpath = subparsers.add_parser('kpath', parents=[copts_parser, path_selector],
         help="Read structure from file, generate k-path for band-structure calculations.")
@@ -547,6 +540,9 @@ def main():
         if fmt == "cif" and options.filepath.endswith(".cif"): fmt = "abivars"
         print(abilab.Structure.from_file(options.filepath).convert(fmt=fmt))
 
+    elif options.command == "print":
+        print(abilab.Structure.from_file(options.filepath).to_string(verbose=options.verbose))
+
     elif options.command == "supercell":
         structure = abilab.Structure.from_file(options.filepath)
 
@@ -733,6 +729,17 @@ def main():
     elif options.command == "notebook":
         structure = abilab.Structure.from_file(options.filepath)
         structure.make_and_open_notebook(nbpath=None, foreground=options.foreground)
+
+    elif options.command == "panel":
+        structure = abilab.Structure.from_file(options.filepath)
+        try:
+            import panel as pn
+        except ImportError as exc:
+            cprint("Use `conda install panel` or `pip install panel` to install the python package.", "red")
+            raise exc
+
+        structure.get_panel().show()  #threaded=True)
+        return 0
 
     elif options.command == "visualize":
         structure = abilab.Structure.from_file(options.filepath)

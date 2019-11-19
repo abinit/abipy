@@ -21,9 +21,6 @@ from abipy.tools.tensors import Stress
 from abipy.abio.robots import Robot
 from abipy.electrons.ebands import ElectronsReader, RobotWithEbands
 
-import logging
-logger = logging.getLogger(__name__)
-
 
 __all__ = [
     "GsrFile",
@@ -233,6 +230,11 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         else:
             return ComputedEntry(self.structure.composition, self.energy,
                                  parameters=parameters, data=data)
+
+    def get_panel(self):
+        """Build panel with widgets to interact with the |GsrFile| either in a notebook or in panel app."""
+        from abipy.panels.gsr import GsrFilePanel
+        return GsrFilePanel(self).get_panel()
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """

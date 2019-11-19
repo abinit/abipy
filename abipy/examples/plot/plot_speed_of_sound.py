@@ -21,7 +21,7 @@ from abipy.dfpt.vsound import SoundVelocity
 ddb_path = os.path.join(abidata.dirpath, "refs", "si_sound_vel", "Si_DDB")
 sv = SoundVelocity.from_ddb(ddb_path)
 
-# Get panda dataframe with results.
+# Get pandas dataframe with results.
 df = sv.get_dataframe()
 abilab.print_dataframe(df)
 

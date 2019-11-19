@@ -38,7 +38,7 @@ ABI_OPERATORS = set(["sqrt", ])
 
 ABI_UNIT_NAMES = {
     s.lower() for s in (
-        "au",
+        "au", "nm",
         "Angstr", "Angstrom", "Angstroms", "Bohr", "Bohrs",
         "eV", "Ha", "Hartree", "Hartrees", "K", "Ry", "Rydberg", "Rydbergs",
         "T", "Tesla",)

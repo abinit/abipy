@@ -159,6 +159,8 @@ class TestAbistruct(ScriptTest):
         r = env.run(self.script, "supercell", cif_file, "-s 2", "-f", "abivars", self.loglevel, self.verbose,
                     expect_stderr=self.expect_stderr)
 
+        r = env.run(self.script, "print", cif_file, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+
     def test_kpath(self):
         """Testing abistruct kpath"""
         env = self.get_env()

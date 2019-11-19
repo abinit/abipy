@@ -1,4 +1,5 @@
 """Tests for core.restapi module"""
+import contextlib
 import abipy.data as abidata
 
 from abipy import abilab
@@ -33,7 +34,9 @@ class TestMpRestApi(AbipyTest):
         new = mp.add_entry(mp.structures[-1], "newid")
         assert len(new.ids) == len(mp.ids) + 1
         assert new.ids == mp.ids + ["newid"]
-        new.print_results(fmt="cif", verbose=2)
+
+        with contextlib.redirect_stdout(None):
+            new.print_results(fmt="cif", verbose=2)
 
         # Test mp_match_structure
         mp = abilab.mp_match_structure(abidata.cif_file("al.cif"))
@@ -56,4 +59,6 @@ class TestMpRestApi(AbipyTest):
         assert 1000026 in cod.ids
         assert cod.data is not None
         assert hasattr(cod.dataframe, "describe")
-        cod.print_results(fmt="POSCAR", verbose=2)
+
+        with contextlib.redirect_stdout(None):
+            cod.print_results(fmt="POSCAR", verbose=2)

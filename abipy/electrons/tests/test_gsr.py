@@ -133,6 +133,9 @@ class GSRFileTestCase(AbipyTest):
             if self.has_nbformat():
                 gsr.write_notebook(nbpath=self.get_tmpname(text=True))
 
+            if self.has_panel():
+                assert hasattr(gsr.get_panel(), "show")
+
 
 class GsrRobotTest(AbipyTest):
 

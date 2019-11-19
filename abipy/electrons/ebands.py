@@ -32,9 +32,6 @@ from abipy.tools.numtools import gaussian
 from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
     get_ax3d_fig_plt, rotate_ticklabels, set_visible, plot_unit_cell, set_ax_xylabels)
 
-import logging
-logger = logging.getLogger(__name__)
-
 
 __all__ = [
     "ElectronBands",

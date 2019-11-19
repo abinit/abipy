@@ -2406,6 +2406,7 @@ class PhononDos(Function1D):
         if num_plots % ncols != 0: ax_mat[-1, -1].axis("off")
 
         for iax, (qname, ax) in enumerate(zip(quantities, ax_mat.flat)):
+            irow, icol = divmod(iax, ncols)
             # Compute thermodynamic quantity associated to qname.
             f1d = getattr(self, "get_" + qname)(tstart=tstart, tstop=tstop, num=num)
             ys = f1d.values
@@ -2413,11 +2414,14 @@ class PhononDos(Function1D):
             if units == "Jmol": ys = ys * abu.e_Cb * abu.Avogadro
             ax.plot(f1d.mesh, ys)
 
-            ax.set_title(qname)
+            ax.set_title(qname, fontsize=fontsize)
             ax.grid(True)
             ax.set_xlabel("Temperature (K)", fontsize=fontsize)
             ax.set_ylabel(_THERMO_YLABELS[qname][units], fontsize=fontsize)
             #ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+            if irow != nrows:
+                set_visible(ax, False, "xlabel")
 
         return fig
 

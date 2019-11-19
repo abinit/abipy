@@ -1502,7 +1502,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return False
 
     def get_panel(self):
-        """Build panel with widgets to interact with the DDB file either in a notebook or in bokeh app"""
+        """Build panel with widgets to interact with the |DdbFile| either in a notebook or in panel app."""
         from abipy.panels.ddb import DdbFilePanel
         return DdbFilePanel(self).get_panel()
 

@@ -32,6 +32,10 @@ TODO list:
 * Refactor wrappers for mrgddb and mrgdvdb (problems with subprocess when
   merging large number of partial files (likely due to Popen with large stderr/stdout)
 
+* Move to new version of APSscheduler
+
+* Write context handler for multiple Files (e.g. anaget_phbst_and_phdos_files)
+
 ## Medium priority
 
 * Add DOS to GSR file (useful if tetra)  Create Dosfile ? Fortran exec?

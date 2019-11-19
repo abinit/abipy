@@ -170,7 +170,7 @@ class DdbTest(AbipyTest):
             assert phbands_file.plot_phbands(show=False)
 
         if self.has_panel():
-            assert ddb.get_panel()
+            assert hasattr(ddb.get_panel(), "show")
 
         # Get epsinf and becs
         r = ddb.anaget_epsinf_and_becs(chneut=1, verbose=1)

@@ -10,7 +10,7 @@ from abipy.core.mixins import Has_Structure, NotebookWriter
 from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.phonons import PhononBands, get_dyn_mat_eigenvec, match_eigenvectors
 from abipy.abio.inputs import AnaddbInput
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_visible
 from pymatgen.core.units import bohr_to_angstrom, eV_to_Ha
 
 
@@ -83,10 +83,8 @@ class SoundVelocity(Has_Structure, NotebookWriter):
             mpi_procs: Number of MPI processes to use.
             workdir: Working directory. If None, a temporary directory is created.
             manager: |TaskManager| object. If None, the object is initialized from the configuration file.
-        long.
 
-        Returns:
-            an instance of SoundVelocity
+        Returns: an instance of SoundVelocity
         """
         with DdbFile(ddb_path) as ddb:
             if ngqpt is None: ngqpt = ddb.guessed_ngqpt
@@ -161,8 +159,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
                 behavior.
             labels (list): list of string with the name of the directions.
 
-        Returns:
-            an instance of SoundVelocity
+        Returns: an instance of SoundVelocity
         """
         phb = PhononBands.from_file(phbst_path)
         structure = phb.structure
@@ -277,7 +274,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
         for i in range(self.n_directions):
             for m in range(3):
                 rows.append([
-                    tuple(np.round(self.directions[i], decimals=5)),
+                    tuple(np.round(self.directions[i], decimals=3)),
                     self.labels[i] if self.labels else "",
                     self.sound_velocities[i][m],
                     self.mode_types[i][m]
@@ -286,7 +283,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
         return pd.DataFrame(rows, columns=columns).set_index(["direction", "label"])
 
     @add_fig_kwargs
-    def plot_fit_freqs_dir(self, idir, ax=None, units="eV", **kwargs):
+    def plot_fit_freqs_dir(self, idir, ax=None, units="eV", fontsize=8, **kwargs):
         """
         Plots the phonon frequencies, if available, along the specified direction.
         The line representing the fitted value will be shown as well.
@@ -295,12 +292,12 @@ class SoundVelocity(Has_Structure, NotebookWriter):
             idir: index of the direction.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            fontsize: fontsize for legends and titles
 
-        Returns:
-            |matplotlib-Figure|
+        Returns: |matplotlib-Figure|
         """
         if self.phfreqs is None or self.qpts is None:
-            raise ValueError("The plot requires the phonon frequencies and the qpoints.")
+            raise ValueError("The plot requires phonon frequencies and qpoints.")
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
@@ -312,7 +309,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
 
         units_factor = abu.phfactor_ev2units(units)
 
-        title = "{:.4f}, {:.4f}, {:.4f}".format(*self.directions[idir])
+        title = "[{:.3f}, {:.3f}, {:.3f}]".format(*self.directions[idir])
         if self.labels:
             title += " - {}".format(self.labels[idir])
 
@@ -320,7 +317,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
             ax.scatter(qpt_cart_coords, freqs[i] * units_factor, color=c, marker="x")
             ax.plot(qpt_cart_coords, slope[i] * qpt_cart_coords * units_factor, color=c, ls="-")
 
-        ax.set_title(title)
+        ax.set_title(title, fontsize=fontsize)
         ax.grid(True)
         ax.set_xlabel("Wave Vector")
         ax.set_ylabel(abu.wlabel_from_units(units))
@@ -328,7 +325,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot(self, units="eV", **kwargs):
+    def plot(self, units="eV", fontsize=8, **kwargs):
         """
         Plots the phonon frequencies, if available, along all the directions.
         The lines representing the fitted values will be shown as well.
@@ -336,9 +333,9 @@ class SoundVelocity(Has_Structure, NotebookWriter):
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            fontsize: fontsize for legends and titles
 
-        Returns:
-            |matplotlib-Figure|
+        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax=None)
         from matplotlib.gridspec import GridSpec
@@ -348,7 +345,11 @@ class SoundVelocity(Has_Structure, NotebookWriter):
 
         for i in range(self.n_directions):
             axi = plt.subplot(gspec[i])
-            self.plot_fit_freqs_dir(i, ax=axi, units=units, show=False)
+            self.plot_fit_freqs_dir(i, ax=axi, units=units, fontsize=fontsize, show=False)
+            if i != self.n_directions - 1:
+                set_visible(axi, False, "xlabel")
+            if i != 0:
+                set_visible(axi, False, "ylabel")
 
         return fig
 
@@ -370,7 +371,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
 
         nb.cells.extend([
             nbv.new_code_cell("sv = abilab.SoundVelocity.pickle_load('{}')".format(tmpfile)),
-            nbv.new_code_cell("frame = sv.get_dataframe()\ndisplay(frame)")
+            nbv.new_code_cell("sv.get_dataframe()")
         ])
         if self.phfreqs is not None and self.qpts is not None:
             for i in range(self.n_directions):

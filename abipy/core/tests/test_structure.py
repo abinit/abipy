@@ -141,7 +141,7 @@ class TestStructure(AbipyTest):
             assert si.mayaview(show=False)
 
         if self.has_panel():
-            assert si.get_panel()
+            assert hasattr(si.get_panel(), "show")
 
         assert si is Structure.as_structure(si)
         assert si == Structure.as_structure(si.to_abivars())

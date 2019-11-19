@@ -10,15 +10,14 @@ class StructurePanel(param.Parameterized):
                                          objects="abinit,cif,xsf,poscar,qe,siesta,wannier90,cssr,json".split(","),
                                          doc="Output format")
 
-    spglib_symprec = param.Number(0.01, bounds=(0.0, None), doc="spglib symprec")
-    spglib_angtol = param.Number(5, bounds=(0.0, None), doc="spglib angtol")
+    spglib_symprec = param.Number(0.01, bounds=(0.0, None))
+    spglib_angtol = param.Number(5, bounds=(0.0, None))
 
     kpath_format = param.ObjectSelector(default="abinit",
                                         objects=["abinit", "siesta", "wannier90"],
                                         doc="Output format")
 
     line_density = pn.widgets.Spinner(name="Line density", value=10, step=5, start=0, end=None)
-                                      #doc="Number of points in the smallest segment.")
 
     def __init__(self, structure,  **params):
         super().__init__(**params)
@@ -35,7 +34,6 @@ class StructurePanel(param.Parameterized):
 
     @param.depends("kpath_format", "line_density.value")
     def get_kpath(self):
-        #if self.kpath_format is None: return None
         s = self.structure.get_kpath_input_string(fmt=self.kpath_format, line_density=self.line_density.value)
         return pn.Row(bw.PreText(text=s, sizing_mode='stretch_width'))
 
