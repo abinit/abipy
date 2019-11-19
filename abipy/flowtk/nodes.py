@@ -934,7 +934,7 @@ class Node(metaclass=abc.ABCMeta):
         possible to not have all receivers called if a raises an error.
         """
         if self.in_spectator_mode: return None
-        logger.debug("Node %s broadcasts signal %s" % (self, signal))
+        self.history.debug("Node %s broadcasts signal %s" % (self, signal))
         dispatcher.send(signal=signal, sender=self)
 
     ##########################
@@ -1033,7 +1033,6 @@ File type does not match the abinit file extension.
 Caller asked for abiext: `%s` whereas filepath: `%s`.
 Continuing anyway assuming that the netcdf file provides the API/dims/vars neeeded by the caller.
 """ % (abiext, self.filepath)
-            logger.warning(msg)
             self.history.warning(msg)
 
         #try to find file in the same path
@@ -1196,6 +1195,10 @@ class NodeHistory(collections.deque):
     def critical(self, msg, *args, **kwargs):
         """Log 'msg % args' with the critical severity level"""
         self._log("CRITICAL", msg, args, kwargs)
+
+    def debug(self, msg, *args, **kwargs):
+        """Log 'msg % args' with the critical severity level"""
+        self._log("DEBUG", msg, args, kwargs)
 
     def _log(self, level, msg, args, exc_info=None, extra=None):
         """Low-level logging routine which creates a :class:`HistoryRecord`."""

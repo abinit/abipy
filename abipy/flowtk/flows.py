@@ -37,9 +37,6 @@ from .utils import File, Directory, Editor
 from .works import NodeContainer, Work, BandStructureWork, PhononWork, BecWork, G0W0Work, QptdmWork, DteWork
 from .events import EventsParser
 
-import logging
-logger = logging.getLogger(__name__)
-
 __author__ = "Matteo Giantomassi"
 __copyright__ = "Copyright 2013, The Materials Project"
 __version__ = "0.1"
@@ -798,14 +795,14 @@ class Flow(Node, NodeContainer, MSONable):
     #    nlaunch = 0
     #    for task in self.unconverged_tasks:
     #        try:
-    #            logger.info("Flow will try restart task %s" % task)
+    #            self.history.info("Flow will try restart task %s" % task)
     #            fired = task.restart()
     #            if fired:
     #                nlaunch += 1
     #                max_nlaunch -= 1
 
     #                if max_nlaunch == 0:
-    #                    logger.info("Restart: too many jobs in the queue, returning")
+    #                    self.history.info("Restart: too many jobs in the queue, returning")
     #                    self.pickle_dump()
     #                    return nlaunch, max_nlaunch
 
@@ -833,12 +830,12 @@ class Flow(Node, NodeContainer, MSONable):
         """
         count = 0
         for task in self.iflat_tasks(status=self.S_QCRITICAL):
-            logger.info("Will try to fix task %s" % str(task))
+            self.history.info("Will try to fix task %s" % str(task))
             try:
                 print(task.fix_queue_critical())
                 count += 1
             except FixQueueCriticalError:
-                logger.info("Not able to fix task %s" % task)
+                self.history.info("Not able to fix task %s" % task)
 
         return count
 
@@ -1938,15 +1935,15 @@ class Flow(Node, NodeContainer, MSONable):
         # Replace this callback with dynamic dispatch
         # on_all_S_OK for work
         # on_S_OK for task
-        logger.info("on_dep_ok with sender %s, signal %s" % (str(sender), signal))
+        self.history.info("on_dep_ok with sender %s, signal %s" % (str(sender), signal))
 
         for i, cbk in enumerate(self._callbacks):
             if not cbk.handle_sender(sender):
-                logger.info("%s does not handle sender %s" % (cbk, sender))
+                self.history.info("%s does not handle sender %s" % (cbk, sender))
                 continue
 
             if not cbk.can_execute():
-                logger.info("Cannot execute %s" % cbk)
+                self.history.info("Cannot execute %s" % cbk)
                 continue
 
             # Execute the callback and disable it
@@ -1975,7 +1972,7 @@ class Flow(Node, NodeContainer, MSONable):
                 self.flow.db_insert()
                 self.finalized = True
             except Exception:
-                logger.critical("MongoDb insertion failed.")
+                self.history.critical("MongoDb insertion failed.")
                 return 2
 
         # Here we remove the big output files if we have the garbage collector
@@ -2024,7 +2021,7 @@ class Flow(Node, NodeContainer, MSONable):
         for cbk in self._callbacks:
             #cbk.enable()
             for dep in cbk.deps:
-                logger.info("Connecting %s \nwith sender %s, signal %s" % (str(cbk), dep.node, dep.node.S_OK))
+                self.history.info("Connecting %s \nwith sender %s, signal %s" % (str(cbk), dep.node, dep.node.S_OK))
                 dispatcher.connect(self.on_dep_ok, signal=dep.node.S_OK, sender=dep.node, weak=False)
 
         # Associate to each signal the callback _on_signal
@@ -2784,14 +2781,14 @@ class PhononFlow(Flow):
         ddb_path = self.outdir.has_abiext("DDB")
         if not ddb_path:
             if self.status == self.S_OK:
-                logger.critical("%s reached S_OK but didn't produce a GSR file in %s" % (self, self.outdir))
+                self.history.critical("%s reached S_OK but didn't produce a GSR file in %s" % (self, self.outdir))
             return None
 
         from abipy.dfpt.ddb import DdbFile
         try:
             return DdbFile(ddb_path)
         except Exception as exc:
-            logger.critical("Exception while reading DDB file at %s:\n%s" % (ddb_path, str(exc)))
+            self.history.critical("Exception while reading DDB file at %s:\n%s" % (ddb_path, str(exc)))
             return None
 
     def finalize(self):
@@ -2858,14 +2855,14 @@ class NonLinearCoeffFlow(Flow):
         ddb_path = self.outdir.has_abiext("DDB")
         if not ddb_path:
             if self.status == self.S_OK:
-                logger.critical("%s reached S_OK but didn't produce a GSR file in %s" % (self, self.outdir))
+                self.history.critical("%s reached S_OK but didn't produce a GSR file in %s" % (self, self.outdir))
             return None
 
         from abipy.dfpt.ddb import DdbFile
         try:
             return DdbFile(ddb_path)
         except Exception as exc:
-            logger.critical("Exception while reading DDB file at %s:\n%s" % (ddb_path, str(exc)))
+            self.history.critical("Exception while reading DDB file at %s:\n%s" % (ddb_path, str(exc)))
             return None
 
     def finalize(self):

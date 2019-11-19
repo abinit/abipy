@@ -965,12 +965,14 @@ class AboRobot(Robot):
         return self._write_nb_nbpath(nb, nbpath)
 
 
+
 class OutNcFile(AbinitNcFile):
     """
     Class representing the _OUT.nc file containing the dataset results
     produced at the end of the run. The netcdf variables can be accessed
     via instance attribute e.g. ``outfile.ecut``. Provides integration with ipython_.
     """
+    # TODO: This object is deprecated
     def __init__(self, filepath):
         super().__init__(filepath)
         self.reader = NetcdfReader(filepath)

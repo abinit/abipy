@@ -540,10 +540,8 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             nbv.new_code_cell("ncfile = abilab.abiopen('%s')" % self.filepath),
             nbv.new_code_cell("print(ncfile)"),
             nbv.new_code_cell("ncfile.structure"),
-
             nbv.new_code_cell("ncfile.plot_doses();"),
             nbv.new_code_cell("ncfile.plot_phbands_with_gruns();"),
-
             #nbv.new_code_cell("phbands_qpath_v0.plot_fatbands(phdos_file=phdosfile);"),
             nbv.new_code_cell("plotter = ncfile.get_plotter()\nprint(plotter)"),
             nbv.new_code_cell("df_phbands = plotter.get_phbands_frame()\ndisplay(df_phbands)"),
@@ -560,9 +558,8 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     @property
     def phdos(self):
         """
-        The |PhononDos| corresponsing to iv0, if present in the file, None otherwise.
+        The |PhononDos| corresponding to iv0, if present in the file, None otherwise.
         """
-
         if not self.doses:
             return None
 
@@ -587,7 +584,6 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         Returns:
             The average Gruneisen parameter
         """
-
         if t is None:
             t = self.acoustic_debye_temp
 
@@ -632,10 +628,8 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
                 Possible values are "debye" (only modes with frequencies lower than the acoustic Debye
                 temperature) and "acoustic" (only the acoustic modes, i.e. the first three modes).
 
-        Returns:
-            The value of the thermal conductivity in W/(m*K)
+        Returns: The value of the thermal conductivity in W/(m*K)
         """
-
         average_mass = np.mean([s.specie.atomic_mass for s in self.structure]) * amu_to_kg
         mean_g = self.average_gruneisen(t=None, squared=squared, limit_frequencies=limit_frequencies)
         theta_d = self.acoustic_debye_temp
@@ -649,7 +643,6 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         Debye temperature in K obtained from the phonon DOS
         """
-
         if not self.phdos:
             raise ValueError('Debye temperature requires the phonon dos!')
 
@@ -661,7 +654,6 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         Acoustic Debye temperature in K, i.e. the Debye temperature divided by nsites**(1/3).
         Obtained from the phonon DOS
         """
-
         if not self.phdos:
             raise ValueError('Debye temperature requires the phonon dos!')
 
@@ -702,10 +694,8 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             workdir: Working directory. If None, a temporary directory is created.
             manager: |TaskManager| object. If None, the object is initialized from the configuration file.
 
-        Returns:
-            A GrunsNcFile object.
+        Returns: A GrunsNcFile object.
         """
-
         if len(ddb_list) % 2 != 1:
             raise ValueError("An odd number of ddb file paths should be provided")
 
@@ -938,7 +928,6 @@ class GrunsReader(ETSF_Reader):
         """
         Resturns a list of structures at the different volumes
         """
-
         lattices = self.read_value("gruns_rprimd") * abu.Bohr_Ang  # , "dp", "three, three, gruns_nvols")
         gruns_xred = self.read_value("gruns_xred")  # , "dp", "three, number_of_atoms, gruns_nvols")
 
@@ -954,8 +943,8 @@ class GrunsReader(ETSF_Reader):
 
 def calculate_gruns_finite_differences(phfreqs, eig, iv0, volume, dv):
     """
-    Calculates the Gruneisen parameters from finite differences on the phonon frequencies. Uses the eigenvectors
-    to match the frequencies at different volumes.
+    Calculates the Gruneisen parameters from finite differences on the phonon frequencies.
+    Uses the eigenvectors to match the frequencies at different volumes.
 
     Args:
         phfreqs: numpy array with the phonon frequencies at different volumes. Shape (nvols, nqpts, 3*natoms)

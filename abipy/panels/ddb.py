@@ -4,14 +4,17 @@ import panel as pn
 import bokeh.models.widgets as bw
 
 from abipy.dfpt.ddb import DdbFile
+from abipy.panels.core import AbipyParameterized
 
 
-class DdbFilePanel(param.Parameterized):
+class DdbFilePanel(ApbipyParameterized):
     """
     A panel to analyze a |DdbFile|.
     Provides widgets to invoke anaddb and visualize the results.
-    """
 
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: DdbFilePanel
+    """
     verbose = param.Integer(0, bounds=(0, None), doc="Verbosity Level")
     mpi_procs = param.Integer(1, bounds=(1, None), doc="Number of MPI processes used in anaddb")
 

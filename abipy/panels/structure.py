@@ -19,6 +19,11 @@ class StructurePanel(param.Parameterized):
 
     line_density = pn.widgets.Spinner(name="Line density", value=10, step=5, start=0, end=None)
 
+    viewer = param.ObjectSelector(default="vesta",
+                                  objects="vesta,xcrysden".split(","),
+                                  doc="Viewer")
+    viewer_btn = pn.widgets.Button(name="View Structure", button_type='primary')
+
     def __init__(self, structure,  **params):
         super().__init__(**params)
         self.structure = structure
@@ -37,6 +42,19 @@ class StructurePanel(param.Parameterized):
         s = self.structure.get_kpath_input_string(fmt=self.kpath_format, line_density=self.line_density.value)
         return pn.Row(bw.PreText(text=s, sizing_mode='stretch_width'))
 
+    @param.depends("viewer_btn.clicks")
+    def view(self):
+        if self.viewer_btn.clicks == 0: return
+        import nglview as nv
+        view = nv.show_pymatgen(self.structure)
+
+        #self.structure.visualize(appname="vesta")
+        #print(view)
+        #print(view._display_image())
+        #return view.display(gui=True)
+        #return pn.interact(view)
+        #return view.render_image()
+
     def get_panel(self):
         """Build panel with widgets to interact with the structure either in a notebook or in a bokeh app"""
         tabs = pn.Tabs()
@@ -45,4 +63,5 @@ class StructurePanel(param.Parameterized):
         w = pn.WidgetBox('# K-path options', self.param.kpath_format, self.line_density)
         tabs.append(("Kpath", pn.Row(w, self.get_kpath)))
         tabs.append(("Convert", pn.Row(pn.Column(self.param.output_format), self.convert)))
+        tabs.append(("View", pn.Row(pn.Column(self.param.viewer, self.viewer_btn), self.view)))
         return tabs

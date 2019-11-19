@@ -658,8 +658,4 @@ class Has_Header(object):
         """|AttrDict| with the Abinit header e.g. hdr.ecut."""
         return self.reader.read_abinit_hdr()
 
-    #def get_hdr_params(self):
-    #    """:class:`OrderedDict` with the convergence parameters."""
-    #    return collections.OrderedDict([
-
     #def compare_hdr(self, other_hdr):

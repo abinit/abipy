@@ -278,13 +278,13 @@ class HistFile(AbinitNcFile, NotebookWriter):
         #else:
         #    hist.mvanimate()
 
-    def plot_ax(self, ax, what, fontsize=12, **kwargs):
+    def plot_ax(self, ax, what, fontsize=8, **kwargs):
         """
         Helper function to plot quantity ``what`` on axis ``ax``.
 
         Args:
-            fontsize: fontsize for legend
-            kwargs are passed to matplotlib plot method
+            fontsize: fontsize for legend.
+            kwargs are passed to matplotlib plot method.
         """
         label = None
         if what == "energy":
@@ -374,23 +374,36 @@ class HistFile(AbinitNcFile, NotebookWriter):
             ax.legend(loc='best', fontsize=fontsize, shadow=True)
 
     @add_fig_kwargs
-    def plot(self, ax_list=None, fontsize=8, **kwargs):
+    def plot(self, what_list=None, ax_list=None, fontsize=8, **kwargs):
         """
         Plot the evolution of structural parameters (lattice lengths, angles and volume)
         as well as pressure, info on forces and total energy.
 
         Args:
+            what_list:
             ax_list: List of |matplotlib-Axes|. If None, a new figure is created.
             fontsize: fontsize for legend
 
         Returns: |matplotlib-Figure|
         """
-        what_list = ["abc", "angles", "volume", "pressure", "forces", "energy"]
-        nrows, ncols = 3, 2
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+        if what_list is None:
+            what_list = ["abc", "angles", "volume", "pressure", "forces", "energy"]
+        else:
+            what_list = list_strings(what_list)
+
+        nplots = len(what_list)
+        nrows, ncols = 1, 1
+        if nplots > 1:
+            ncols = 2
+            nrows = nplots // ncols + nplots % ncols
+
+        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
                                                 sharex=True, sharey=False, squeeze=False)
         ax_list = ax_list.ravel()
         assert len(ax_list) == len(what_list)
+
+        # don't show the last ax if nplots is odd.
+        if nplots % ncols != 0: ax_list[-1].axis("off")
 
         for what, ax in zip(what_list, ax_list):
             self.plot_ax(ax, what, fontsize=fontsize, marker="o")
@@ -398,7 +411,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_energies(self, ax=None, fontsize=12, **kwargs):
+    def plot_energies(self, ax=None, fontsize=8, **kwargs):
         """
         Plot the total energies as function of the iteration step.
 
@@ -501,6 +514,11 @@ class HistFile(AbinitNcFile, NotebookWriter):
                 yield
 
         anim()
+
+    def get_panel(self):
+        """Build panel with widgets to interact with the |HistFile| either in a notebook or in panel app."""
+        from abipy.panels.hist import HistFilePanel
+        return HistFilePanel(self).get_panel()
 
     def write_notebook(self, nbpath=None):
         """

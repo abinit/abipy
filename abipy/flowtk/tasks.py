@@ -228,7 +228,6 @@ class ParalHintsParser(object):
                 sexc = traceback.format_exc()
                 err_msg = "Wrong YAML doc:\n%s\n\nException:\n%s" % (doc.text, sexc)
                 self.add_error(err_msg)
-                logger.critical(err_msg)
                 raise self.Error(err_msg)
 
 
@@ -1535,7 +1534,7 @@ class Task(Node, metaclass=abc.ABCMeta):
 
         exit_status = self.manager.cancel(self.queue_id)
         if exit_status != 0:
-            logger.warning("manager.cancel returned exit_status: %s" % exit_status)
+            self.history.warning("manager.cancel returned exit_status: %s" % exit_status)
             return 0
 
         # Remove output files and reset the status.
@@ -1597,7 +1596,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         is preserved e.g. out_1WF14 --> out_1WF
         """
         filepaths = self.outdir.list_filepaths()
-        #logger.info("in fix_ofiles with filepaths %s" % list(filepaths))
+        #self.history.info("in fix_ofiles with filepaths %s" % list(filepaths))
 
         old2new = FilepathFixer().fix_paths(filepaths)
 
@@ -1644,7 +1643,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         Returns:
             1 if job was restarted, 0 otherwise.
         """
-        logger.debug("Calling the **empty** restart method of the base class")
+        self.history.debug("Calling the **empty** restart method of the base class")
         return 0
 
     def poll(self):
@@ -1949,16 +1948,16 @@ class Task(Node, metaclass=abc.ABCMeta):
             # Calculation still running or errors?
             if report.errors:
                 # Abinit reported problems
-                logger.debug('Found errors in report')
+                self.history.debug('Found errors in report')
                 for error in report.errors:
-                    logger.debug(str(error))
+                    self.history.debug(str(error))
                     try:
                         self.abi_errors.append(error)
                     except AttributeError:
                         self.abi_errors = [error]
 
                 # The job is unfixable due to ABINIT errors
-                logger.debug("%s: Found Errors or Bugs in ABINIT main output!" % self)
+                self.history.debug("%s: Found Errors or Bugs in ABINIT main output!" % self)
                 msg = "\n".join(map(repr, report.errors))
                 return self.set_status(self.S_ABICRITICAL, msg=msg)
 
@@ -1971,7 +1970,7 @@ class Task(Node, metaclass=abc.ABCMeta):
 
         # 6)
         if not self.output_file.exists:
-            logger.debug("output_file does not exists")
+            #self.history.debug("output_file does not exists")
             if not self.stderr_file.exists and not self.qerr_file.exists:
                 # No output at allThe job is still in the queue.
                 return self.status
@@ -2070,7 +2069,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         dest = os.path.join(self.indir.path, in_file)
 
         if os.path.exists(dest) and not os.path.islink(dest):
-            logger.warning("Will overwrite %s with %s" % (dest, out_file))
+            self.history.warning("Will overwrite %s with %s" % (dest, out_file))
 
         os.rename(out_file, dest)
         return dest
@@ -2081,7 +2080,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         directory containing the input files of the task.
         """
         if not os.path.exists(filepath):
-            logger.debug("Creating symbolic link to not existent file %s" % filepath)
+            self.history.debug("Creating symbolic link to not existent file %s" % filepath)
 
         # Extract the Abinit extension and add the prefix for input files.
         root, abiext = abi_splitext(filepath)
@@ -2112,7 +2111,7 @@ class Task(Node, metaclass=abc.ABCMeta):
             filepaths, exts = dep.get_filepaths_and_exts()
 
             for path, ext in zip(filepaths, exts):
-                logger.info("Need path %s with ext %s" % (path, ext))
+                self.history.info("Need path %s with ext %s" % (path, ext))
                 dest = self.ipath_from_ext(ext)
 
                 if not os.path.exists(path):
@@ -2129,7 +2128,7 @@ class Task(Node, metaclass=abc.ABCMeta):
 
                 # Link path to dest if dest link does not exist.
                 # else check that it points to the expected file.
-                logger.debug("Linking path %s --> %s" % (path, dest))
+                self.history.debug("Linking path %s --> %s" % (path, dest))
                 if not os.path.exists(dest):
                     os.symlink(path, dest)
                 else:
@@ -2184,10 +2183,10 @@ class Task(Node, metaclass=abc.ABCMeta):
 
             # Add events found in the ABI_MPIABORTFILE.
             if self.mpiabort_file.exists:
-                logger.critical("Found ABI_MPIABORTFILE!!!!!")
+                self.history.critical("Found ABI_MPIABORTFILE!!!!!")
                 abort_report = parser.parse(self.mpiabort_file.path)
                 if len(abort_report) != 1:
-                    logger.critical("Found more than one event in ABI_MPIABORTFILE")
+                    self.history.critical("Found more than one event in ABI_MPIABORTFILE")
 
                 # Weird case: empty abort file, let's skip the part
                 # below and hope that the log file contains the error message.
@@ -2337,7 +2336,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         """
         paths = []
         if self.status != self.S_OK:
-            logger.warning("Calling task.clean_output_files on a task whose status != S_OK")
+            self.history.warning("Calling task.clean_output_files on a task whose status != S_OK")
 
         # Remove all files in tmpdir.
         self.tmpdir.clean()
@@ -2441,7 +2440,7 @@ class Task(Node, metaclass=abc.ABCMeta):
                 # In this case we call fix_abicritical and then we try to run autoparal again.
                 self.history.critical("First call to autoparal failed with `%s`. Will try fix_abicritical" % exc)
                 msg = "autoparal_fake_run raised:\n%s" % straceback()
-                logger.critical(msg)
+                self.history.critical(msg)
 
                 fixed = self.fix_abicritical()
                 if not fixed:
@@ -2788,7 +2787,7 @@ class AbinitTask(Task):
         policy = self.manager.policy
 
         if policy.autoparal == 0: # or policy.max_ncpus in [None, 1]:
-            logger.info("Nothing to do in autoparal, returning (None, None)")
+            self.history.info("Nothing to do in autoparal, returning (None, None)")
             return 0
 
         if policy.autoparal != 1:
@@ -2834,7 +2833,7 @@ class AbinitTask(Task):
             try:
                 pconfs = parser.parse(self.output_file.path)
             except parser.Error:
-                logger.critical("Error while parsing Autoparal section:\n%s" % straceback())
+                self.history.critical("Error while parsing Autoparal section:\n%s" % straceback())
                 return 2
 
         ######################################################
@@ -2909,7 +2908,7 @@ class AbinitTask(Task):
             try:
                 selected.append(getattr(choices[c], "path"))
             except KeyError:
-                logger.warning("Wrong keyword %s" % c)
+                self.history.warning("Wrong keyword %s" % c)
 
         return selected
 
@@ -2943,7 +2942,7 @@ class AbinitTask(Task):
             try:
                 f.move(os.path.join(reset_dir, f.basename + "_" + str(num_reset)))
             except OSError as exc:
-                logger.warning("Couldn't move file {}. exc: {}".format(f, str(exc)))
+                self.history.warning("Couldn't move file {}. exc: {}".format(f, str(exc)))
 
         for fname in ("output_file", "log_file", "stderr_file", "qout_file", "qerr_file"):
             move_file(getattr(self, fname))
@@ -2985,7 +2984,7 @@ class AbinitTask(Task):
             for i, handler in enumerate(self.event_handlers):
 
                 if handler.can_handle(event) and not done[i]:
-                    logger.info("handler %s will try to fix event %s" % (handler, event))
+                    self.history.info("handler %s will try to fix event %s" % (handler, event))
                     try:
                         d = handler.handle_task_event(self, event)
                         if d:
@@ -2993,7 +2992,7 @@ class AbinitTask(Task):
                             count += 1
 
                     except Exception as exc:
-                        logger.critical(str(exc))
+                        self.history.critical(str(exc))
 
         if count:
             self.reset_from_scratch()
@@ -3024,7 +3023,7 @@ class AbinitTask(Task):
             # paral_kgb = 1 leads to nasty sigegv that are seen as Qcritical errors!
             # Try to fallback to the conjugate gradient.
             #if self.uses_paral_kgb(1):
-            #    logger.critical("QCRITICAL with PARAL_KGB==1. Will try CG!")
+            #    self.history.critical("QCRITICAL with PARAL_KGB==1. Will try CG!")
             #    self.set_vars(paral_kgb=0)
             #    self.reset_from_scratch()
             #    return
@@ -3178,7 +3177,7 @@ class ProduceHist(object):
         """
         if not self.hist_path:
             if self.status == self.S_OK:
-                logger.critical("%s reached S_OK but didn't produce a HIST file in %s" % (self, self.outdir))
+                self.history.critical("%s reached S_OK but didn't produce a HIST file in %s" % (self, self.outdir))
             return None
 
         # Open the HIST file
@@ -3186,7 +3185,7 @@ class ProduceHist(object):
         try:
             return HistFile(self.hist_path)
         except Exception as exc:
-            logger.critical("Exception while reading HIST file at %s:\n%s" % (self.hist_path, str(exc)))
+            self.history.critical("Exception while reading HIST file at %s:\n%s" % (self.hist_path, str(exc)))
             return None
 
 
@@ -3214,7 +3213,7 @@ class GsTask(AbinitTask):
         gsr_path = self.gsr_path
         if not gsr_path:
             if self.status == self.S_OK:
-                logger.critical("%s reached S_OK but didn't produce a GSR file in %s" % (self, self.outdir))
+                self.history.critical("%s reached S_OK but didn't produce a GSR file in %s" % (self, self.outdir))
             return None
 
         # Open the GSR file.
@@ -3222,7 +3221,7 @@ class GsTask(AbinitTask):
         try:
             return GsrFile(gsr_path)
         except Exception as exc:
-            logger.critical("Exception while reading GSR file at %s:\n%s" % (gsr_path, str(exc)))
+            self.history.critical("Exception while reading GSR file at %s:\n%s" % (gsr_path, str(exc)))
             return None
 
 
@@ -3525,7 +3524,7 @@ class RelaxTask(GsTask, ProduceHist):
         # Find the last TIM?_DEN file.
         last_timden = self.outdir.find_last_timden_file()
         if last_timden is None:
-            logger.warning("Cannot find TIM?_DEN files")
+            self.history.warning("Cannot find TIM?_DEN files")
             return
 
         # Rename last TIMDEN with out_DEN.
@@ -3601,7 +3600,7 @@ class DfptTask(AbinitTask):
         ddb_path = self.ddb_path
         if not ddb_path:
             if self.status == self.S_OK:
-                logger.critical("%s reached S_OK but didn't produce a DDB file in %s" % (self, self.outdir))
+                self.history.critical("%s reached S_OK but didn't produce a DDB file in %s" % (self, self.outdir))
             return None
 
         # Open the DDB file.
@@ -3609,7 +3608,7 @@ class DfptTask(AbinitTask):
         try:
             return DdbFile(ddb_path)
         except Exception as exc:
-            logger.critical("Exception while reading DDB file at %s:\n%s" % (ddb_path, str(exc)))
+            self.history.critical("Exception while reading DDB file at %s:\n%s" % (ddb_path, str(exc)))
             return None
 
     def make_links(self):
@@ -3892,7 +3891,7 @@ class ScrTask(ManyBodyTask):
         scr_path = self.scr_path
 
         if not scr_path:
-            logger.critical("%s didn't produce a SCR.nc file in %s" % (self, self.outdir))
+            self.history.critical("%s didn't produce a SCR.nc file in %s" % (self, self.outdir))
             return None
 
         # Open the GSR file and add its data to results.out
@@ -3900,7 +3899,7 @@ class ScrTask(ManyBodyTask):
         try:
             return ScrFile(scr_path)
         except Exception as exc:
-            logger.critical("Exception while reading SCR file at %s:\n%s" % (scr_path, str(exc)))
+            self.history.critical("Exception while reading SCR file at %s:\n%s" % (scr_path, str(exc)))
             return None
 
 
@@ -3954,7 +3953,7 @@ class SigmaTask(ManyBodyTask):
         sigres_path = self.sigres_path
 
         if not sigres_path:
-            logger.critical("%s didn't produce a SIGRES file in %s" % (self, self.outdir))
+            self.history.critical("%s didn't produce a SIGRES file in %s" % (self, self.outdir))
             return None
 
         # Open the SIGRES file and add its data to results.out
@@ -3962,7 +3961,7 @@ class SigmaTask(ManyBodyTask):
         try:
             return SigresFile(sigres_path)
         except Exception as exc:
-            logger.critical("Exception while reading SIGRES file at %s:\n%s" % (sigres_path, str(exc)))
+            self.history.critical("Exception while reading SIGRES file at %s:\n%s" % (sigres_path, str(exc)))
             return None
 
     def get_scissors_builder(self):
@@ -4089,7 +4088,7 @@ class BseTask(ManyBodyTask):
         """
         mdf_path = self.mdf_path
         if not mdf_path:
-            logger.critical("%s didn't produce a MDF file in %s" % (self, self.outdir))
+            self.history.critical("%s didn't produce a MDF file in %s" % (self, self.outdir))
             return None
 
         # Open the DFF file and add its data to results.out
@@ -4097,7 +4096,7 @@ class BseTask(ManyBodyTask):
         try:
             return MdfFile(mdf_path)
         except Exception as exc:
-            logger.critical("Exception while reading MDF file at %s:\n%s" % (mdf_path, str(exc)))
+            self.history.critical("Exception while reading MDF file at %s:\n%s" % (mdf_path, str(exc)))
             return None
 
     def get_results(self, **kwargs):
@@ -4254,7 +4253,7 @@ class OpticTask(Task):
             try:
                 f.move(os.path.join(reset_dir, f.basename + "_" + str(num_reset)))
             except OSError as exc:
-                logger.warning("Couldn't move file {}. exc: {}".format(f, str(exc)))
+                self.history.warning("Couldn't move file {}. exc: {}".format(f, str(exc)))
 
         for fname in ("output_file", "log_file", "stderr_file", "qout_file", "qerr_file", "mpiabort_file"):
             move_file(getattr(self, fname))
@@ -4296,7 +4295,7 @@ class OpticTask(Task):
 
         else:
             for error in self.queue_errors:
-                logger.info('fixing: %s' % str(error))
+                self.history.info('fixing: %s' % str(error))
 
                 if isinstance(error, NodeFailureError):
                     # if the problematic node is known, exclude it
@@ -4322,7 +4321,7 @@ class OpticTask(Task):
                             self.set_status(self.S_READY, msg='increased ncps to solve memory problem')
                             return
                         except ManagerIncreaseError:
-                            logger.warning('increasing ncpus failed')
+                            self.history.warning('increasing ncpus failed')
 
                     # if the max is reached, try to increase the memory per cpu:
                     try:
@@ -4331,7 +4330,7 @@ class OpticTask(Task):
                         self.set_status(self.S_READY, msg='increased mem')
                         return
                     except ManagerIncreaseError:
-                        logger.warning('increasing mem failed')
+                        self.history.warning('increasing mem failed')
 
                     # if this failed ask the task to provide a method to reduce the memory demand
                     try:
@@ -4340,7 +4339,7 @@ class OpticTask(Task):
                         self.set_status(self.S_READY, msg='decreased mem demand')
                         return
                     except DecreaseDemandsError:
-                        logger.warning('decreasing demands failed')
+                        self.history.warning('decreasing demands failed')
 
                     msg = ('Memory error detected but the memory could not be increased neither could the\n'
                            'memory demand be decreased. Unrecoverable error.')
@@ -4355,7 +4354,7 @@ class OpticTask(Task):
                         self.set_status(self.S_READY, msg='increased wall time')
                         return
                     except ManagerIncreaseError:
-                        logger.warning('increasing the walltime failed')
+                        self.history.warning('increasing the walltime failed')
 
                     # if this fails ask the qadapter to increase the number of cpus
                     if self.load_scales:
@@ -4365,7 +4364,7 @@ class OpticTask(Task):
                             self.set_status(self.S_READY, msg='increased number of cpus')
                             return
                         except ManagerIncreaseError:
-                            logger.warning('increase ncpus to speed up the calculation to stay in the walltime failed')
+                            self.history.warning('increase ncpus to speed up the calculation to stay in the walltime failed')
 
                     # if this failed ask the task to provide a method to speed up the task
                     try:
@@ -4374,7 +4373,7 @@ class OpticTask(Task):
                         self.set_status(self.S_READY, msg='task speedup')
                         return
                     except DecreaseDemandsError:
-                        logger.warning('decreasing demands failed')
+                        self.history.warning('decreasing demands failed')
 
                     msg = ('Time cancel error detected but the time could not be increased neither could\n'
                            'the time demand be decreased by speedup of increasing the number of cpus.\n'
@@ -4397,7 +4396,7 @@ class OpticTask(Task):
         policy = self.manager.policy
 
         if policy.autoparal == 0: # or policy.max_ncpus in [None, 1]:
-            logger.info("Nothing to do in autoparal, returning (None, None)")
+            self.history.info("Nothing to do in autoparal, returning (None, None)")
             return 0
 
         if policy.autoparal != 1:
@@ -4443,7 +4442,7 @@ class OpticTask(Task):
             try:
                 pconfs = parser.parse(self.output_file.path)
             except parser.Error:
-                logger.critical("Error while parsing Autoparal section:\n%s" % straceback())
+                self.history.critical("Error while parsing Autoparal section:\n%s" % straceback())
                 return 2
 
         ######################################################
@@ -4614,13 +4613,13 @@ class AnaddbTask(Task):
         phbst_path = os.path.join(self.workdir, "run.abo_PHBST.nc")
         if not phbst_path:
             if self.status == self.S_OK:
-                logger.critical("%s reached S_OK but didn't produce a PHBST file in %s" % (self, self.outdir))
+                self.history.critical("%s reached S_OK but didn't produce a PHBST file in %s" % (self, self.outdir))
             return None
 
         try:
             return PhbstFile(phbst_path)
         except Exception as exc:
-            logger.critical("Exception while reading GSR file at %s:\n%s" % (phbst_path, str(exc)))
+            self.history.critical("Exception while reading GSR file at %s:\n%s" % (phbst_path, str(exc)))
             return None
 
     def open_phdos(self):
@@ -4629,13 +4628,13 @@ class AnaddbTask(Task):
         phdos_path = os.path.join(self.workdir, "run.abo_PHDOS.nc")
         if not phdos_path:
             if self.status == self.S_OK:
-                logger.critical("%s reached S_OK but didn't produce a PHBST file in %s" % (self, self.outdir))
+                self.history.critical("%s reached S_OK but didn't produce a PHBST file in %s" % (self, self.outdir))
             return None
 
         try:
             return PhdosFile(phdos_path)
         except Exception as exc:
-            logger.critical("Exception while reading GSR file at %s:\n%s" % (phdos_path, str(exc)))
+            self.history.critical("Exception while reading GSR file at %s:\n%s" % (phdos_path, str(exc)))
             return None
 
     def get_results(self, **kwargs):

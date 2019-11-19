@@ -29,6 +29,14 @@ panels Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`flows` Module
+-------------------
+
+.. automodule:: abipy.panels.flows
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`gsr` Module
 -----------------
 

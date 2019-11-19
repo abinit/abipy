@@ -26,9 +26,6 @@ from .utils import Directory
 from .netcdf import ETSF_Reader, NetcdfReader
 from .abitimer import AbinitTimerParser
 
-import logging
-logger = logging.getLogger(__name__)
-
 __author__ = "Matteo Giantomassi"
 __copyright__ = "Copyright 2013, The Materials Project"
 __version__ = "0.1"
@@ -164,7 +161,7 @@ class BaseWork(Node, metaclass=abc.ABCMeta):
 
         # No task found, this usually happens when we have dependencies.
         # Beware of possible deadlocks here!
-        logger.warning("Possible deadlock in fetch_task_to_run!")
+        self.history.warning("Possible deadlock in fetch_task_to_run!")
         return None
 
     def fetch_alltasks_to_run(self):
@@ -198,7 +195,7 @@ class BaseWork(Node, metaclass=abc.ABCMeta):
             try:
                 dispatcher.disconnect(self.on_ok, signal=task.S_OK, sender=task)
             except dispatcher.errors.DispatcherKeyError as exc:
-                logger.debug(str(exc))
+                self.history.debug(str(exc))
 
     @property
     def all_ok(self):
@@ -210,7 +207,7 @@ class BaseWork(Node, metaclass=abc.ABCMeta):
         This callback is called when one task reaches status `S_OK`.
         It executes on_all_ok when all tasks in self have reached `S_OK`.
         """
-        logger.debug("in on_ok with sender %s" % sender)
+        self.history.debug("In on_ok with sender %s" % sender)
 
         if self.all_ok:
             if self.finalized:
@@ -1024,7 +1021,7 @@ class RelaxWork(Work):
         If sender == self.ion_task, we update the initial structure
         used by self.ioncell_task and we unlock it so that the job can be submitted.
         """
-        logger.debug("in on_ok with sender %s" % sender)
+        self.history.debug("In on_ok with sender %s" % sender)
 
         if sender == self.ion_task and not self.transfer_done:
             # Get the relaxed structure from ion_task

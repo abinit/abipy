@@ -79,6 +79,9 @@ class HistFileTest(AbipyTest):
             assert hist.mvplot_trajectories(show=False)
             #assert hist.mvanimate(delay=100)
 
+        if self.has_panel():
+            assert hasattr(hist.get_panel(), "show")
+
         hist.close()
 
     def test_hist_robot(self):
