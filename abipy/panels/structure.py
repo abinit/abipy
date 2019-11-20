@@ -45,15 +45,15 @@ class StructurePanel(param.Parameterized):
     @param.depends("viewer_btn.clicks")
     def view(self):
         if self.viewer_btn.clicks == 0: return
-        import nglview as nv
-        view = nv.show_pymatgen(self.structure)
-
-        #self.structure.visualize(appname="vesta")
+        #import nglview as nv
+        #view = nv.show_pymatgen(self.structure)
         #print(view)
         #print(view._display_image())
         #return view.display(gui=True)
         #return pn.interact(view)
         #return view.render_image()
+
+        self.structure.visualize(appname=self.viewer.value)
 
     def get_panel(self):
         """Build panel with widgets to interact with the structure either in a notebook or in a bokeh app"""

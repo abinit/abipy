@@ -344,6 +344,11 @@ class Flow(Node, NodeContainer, MSONable):
         flow = pmg_pickle_load(strio)
         return flow
 
+    def get_panel(self):
+        """Build panel with widgets to interact with the |Flow| either in a notebook or in panel app."""
+        from abipy.panels.flows import FlowPanel
+        return FlowPanel(self).get_panel()
+
     def __len__(self):
         return len(self.works)
 
@@ -893,7 +898,7 @@ class Flow(Node, NodeContainer, MSONable):
 
     def show_status(self, **kwargs):
         """
-        Report the status of the works and the status  of the different tasks on the specified stream.
+        Report the status of the works and the status of the different tasks on the specified stream.
 
         Args:
             stream: File-like object, Default: sys.stdout
@@ -985,30 +990,32 @@ class Flow(Node, NodeContainer, MSONable):
         if self.all_ok:
             cprint("\nall_ok reached\n", "green", file=stream)
 
-    def show_events(self, status=None, nids=None):
+    def show_events(self, status=None, nids=None, stream=sys.stdout):
         """
         Print the Abinit events (ERRORS, WARNIING, COMMENTS) to stdout
 
         Args:
             status: if not None, only the tasks with this status are select
             nids: optional list of node identifiers used to filter the tasks.
+            stream: File-like object, Default: sys.stdout
         """
         nrows, ncols = get_terminal_size()
 
         for task in self.iflat_tasks(status=status, nids=nids):
             report = task.get_event_report()
             if report:
-                print(make_banner(str(task), width=ncols, mark="="))
-                print(report)
+                print(make_banner(str(task), width=ncols, mark="="), file=stream)
+                print(report, file=stream)
                 #report = report.filter_types()
 
-    def show_corrections(self, status=None, nids=None):
+    def show_corrections(self, status=None, nids=None, stream=sys.stdout):
         """
         Show the corrections applied to the flow at run-time.
 
         Args:
             status: if not None, only the tasks with this status are select.
             nids: optional list of node identifiers used to filter the tasks.
+            stream: File-like object, Default: sys.stdout
 
         Return: The number of corrections found.
         """
@@ -1017,22 +1024,23 @@ class Flow(Node, NodeContainer, MSONable):
         for task in self.iflat_tasks(status=status, nids=nids):
             if task.num_corrections == 0: continue
             count += 1
-            print(make_banner(str(task), width=ncols, mark="="))
+            print(make_banner(str(task), width=ncols, mark="="), file=stream)
             for corr in task.corrections:
-                pprint(corr)
+                pprint(corr, stream=stream)
 
-        if not count: print("No correction found.")
+        if not count: print("No correction found.", file=stream)
         return count
 
-    def show_history(self, status=None, nids=None, full_history=False, metadata=False):
+    def show_history(self, status=None, nids=None, full_history=False, metadata=False, stream=sys.stdout):
         """
-        Print the history of the flow to stdout.
+        Print the history of the flow to stream
 
         Args:
             status: if not None, only the tasks with this status are select
             full_history: Print full info set, including nodes with an empty history.
             nids: optional list of node identifiers used to filter the tasks.
             metadata: print history metadata (experimental)
+            stream: File-like object, Default: sys.stdout
         """
         nrows, ncols = get_terminal_size()
 
@@ -1044,32 +1052,28 @@ class Flow(Node, NodeContainer, MSONable):
             if work not in works_done:
                 works_done.append(work)
                 if work.history or full_history:
-                    cprint(make_banner(str(work), width=ncols, mark="="), **work.status.color_opts)
-                    print(work.history.to_string(metadata=metadata))
+                    cprint(make_banner(str(work), width=ncols, mark="="), file=stream, **work.status.color_opts)
+                    print(work.history.to_string(metadata=metadata), file=stream)
 
             if task.history or full_history:
-                cprint(make_banner(str(task), width=ncols, mark="="), **task.status.color_opts)
-                print(task.history.to_string(metadata=metadata))
+                cprint(make_banner(str(task), width=ncols, mark="="), file=stream, **task.status.color_opts)
+                print(task.history.to_string(metadata=metadata), file=stream)
 
         # Print the history of the flow.
         if self.history or full_history:
-            cprint(make_banner(str(self), width=ncols, mark="="), **self.status.color_opts)
-            print(self.history.to_string(metadata=metadata))
+            cprint(make_banner(str(self), width=ncols, mark="="), file=stream, **self.status.color_opts)
+            print(self.history.to_string(metadata=metadata), file=stream)
 
     def show_inputs(self, varnames=None, nids=None, wslice=None, stream=sys.stdout):
         """
         Print the input of the tasks to the given stream.
 
         Args:
-            varnames:
-                List of Abinit variables. If not None, only the variable in varnames
+            varnames: List of Abinit variables. If not None, only the variable in varnames
                 are selected and printed.
-            nids:
-                List of node identifiers. By defaults all nodes are shown
-            wslice:
-                Slice object used to select works.
-            stream:
-                File-like object, Default: sys.stdout
+            nids: List of node identifiers. By defaults all nodes are shown
+            wslice: Slice object used to select works.
+            stream: File-like object, Default: sys.stdout
         """
         if varnames is not None:
             # Build dictionary varname --> [(task1, value1), (task2, value2), ...]
@@ -1197,13 +1201,14 @@ class Flow(Node, NodeContainer, MSONable):
 
         return tasks_cycles
 
-    def show_tricky_tasks(self, verbose=0):
+    def show_tricky_tasks(self, verbose=0, stream=sys.stdout):
         """
         Print list of tricky tasks i.e. tasks that have been restarted or
         launched more than once or tasks with corrections.
 
         Args:
             verbose: Verbosity level. If > 0, task history and corrections (if any) are printed.
+            stream: File-like object. Default: sys.stdout
         """
         nids, tasks = [], []
         for task in self.iflat_tasks():
@@ -1212,20 +1217,20 @@ class Flow(Node, NodeContainer, MSONable):
                 tasks.append(task)
 
         if not nids:
-            cprint("Everything's fine, no tricky tasks found", color="green")
+            cprint("Everything's fine, no tricky tasks found", color="green", file=stream)
         else:
-            self.show_status(nids=nids)
+            self.show_status(nids=nids, stream=stream)
             if not verbose:
-                print("Use --verbose to print task history.")
+                print("Use --verbose to print task history.", file=stream)
                 return
 
             for nid, task in zip(nids, tasks):
-                cprint(repr(task), **task.status.color_opts)
-                self.show_history(nids=[nid], full_history=False, metadata=False)
+                cprint(repr(task), **task.status.color_opts, stream=stream)
+                self.show_history(nids=[nid], full_history=False, metadata=False, stream=stream)
                 #if task.num_restarts:
                 #    self.show_restarts(nids=[nid])
                 if task.num_corrections:
-                    self.show_corrections(nids=[nid])
+                    self.show_corrections(nids=[nid], stream=stream)
 
     def inspect(self, nids=None, wslice=None, **kwargs):
         """
@@ -1463,7 +1468,7 @@ class Flow(Node, NodeContainer, MSONable):
 
         return stream.writelines(lines)
 
-    def debug(self, status=None, nids=None):
+    def debug(self, status=None, nids=None, stream=sys.stdout):
         """
         This method is usually used when the flow didn't completed succesfully
         It analyzes the files produced the tasks to facilitate debugging.
@@ -1472,6 +1477,7 @@ class Flow(Node, NodeContainer, MSONable):
         Args:
             status: If not None, only the tasks with this status are selected
             nids: optional list of node identifiers used to filter the tasks.
+            stream: File-like object. Default: sys.stdout
         """
         nrows, ncols = get_terminal_size()
 
@@ -1479,8 +1485,8 @@ class Flow(Node, NodeContainer, MSONable):
         sched_excfile = os.path.join(self.workdir, "_exceptions")
         if os.path.exists(sched_excfile):
             with open(sched_excfile, "r") as fh:
-                cprint("Found exceptions raised by the scheduler", "red")
-                cprint(fh.read(), color="red")
+                cprint("Found exceptions raised by the scheduler", "red", file=stream)
+                cprint(fh.read(), color="red", file=stream)
                 return
 
         if status is not None:
@@ -1500,7 +1506,7 @@ class Flow(Node, NodeContainer, MSONable):
         #
         ntasks = 0
         for task in tasks:
-            print(make_banner(str(task), width=ncols, mark="="))
+            print(make_banner(str(task), width=ncols, mark="="), file=stream)
             ntasks += 1
 
             #  Start with error files.
@@ -1509,15 +1515,15 @@ class Flow(Node, NodeContainer, MSONable):
                 if err_file.exists:
                     s = err_file.read()
                     if not s: continue
-                    print(make_banner(str(err_file), width=ncols, mark="="))
-                    cprint(s, color="red")
+                    print(make_banner(str(err_file), width=ncols, mark="="), file=stream)
+                    cprint(s, color="red", file=stream)
                     #count += 1
 
             # Check main log file.
             try:
                 report = task.get_event_report()
                 if report and report.num_errors:
-                    print(make_banner(os.path.basename(report.filename), width=ncols, mark="="))
+                    print(make_banner(os.path.basename(report.filename), width=ncols, mark="="), file=stream)
                     s = "\n".join(str(e) for e in report.errors)
                 else:
                     s = None
@@ -1526,31 +1532,33 @@ class Flow(Node, NodeContainer, MSONable):
 
             count = 0 # count > 0 means we found some useful info that could explain the failures.
             if s is not None:
-                cprint(s, color="red")
+                cprint(s, color="red", file=stream)
                 count += 1
 
             if not count:
                 # Inspect all log files produced by the other nodes.
                 log_files = task.tmpdir.list_filepaths(wildcard="*LOG_*")
                 if not log_files:
-                    cprint("No *LOG_* file in tmpdir. This usually happens if you are running with many CPUs", color="magenta")
+                    cprint("No *LOG_* file in tmpdir. This usually happens if you are running with many CPUs",
+                           color="magenta", file=stream)
 
                 for log_file in log_files:
                     try:
                         report = EventsParser().parse(log_file)
                         if report.errors:
-                            print(report)
+                            print(report, file=stream)
                             count += 1
                             break
                     except Exception as exc:
-                        cprint(str(exc), color="red")
+                        cprint(str(exc), color="red", file=stream)
                         count += 1
                         break
 
             if not count:
-                cprint("Houston, we could not find any error message that can explain the problem", color="magenta")
+                cprint("Houston, we could not find any error message that can explain the problem",
+                        color="magenta", file=stream)
 
-        print("Number of tasks analyzed: %d" % ntasks)
+        print("Number of tasks analyzed: %d" % ntasks, file=stream)
 
     def cancel(self, nids=None):
         """
@@ -1893,7 +1901,9 @@ class Flow(Node, NodeContainer, MSONable):
         return self
 
     def show_dependencies(self, stream=sys.stdout):
-        """Writes to the given stream the ASCII representation of the dependency tree."""
+        """
+        Writes to the given stream the ASCII representation of the dependency tree.
+        """
         def child_iter(node):
             return [d.node for d in node.deps]
 

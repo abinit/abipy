@@ -1,8 +1,10 @@
 Release 0.8.0: xxxx-xx-xx
 
+    * Preliminary support for panel dashboards exposed via `abiopen FILE --panel` and `abistruct panel FILE`.
+      Note that not all Abinit files are supported at present.
     * Add examples and flows for effective mass calculations
-    * Add examples for Quasi-Harmonic calculations and post-processing tools
-    * Add support for JSON files (including MSONable) in abiopen.py
+    * Add examples for quasi-harmonic calculations and post-processing tools
+    * Add support for JSON files (including MSONable format) in abiopen.py
     * Improved support for EPH calculations.
 
 Release 0.7.0: 2019-10-18

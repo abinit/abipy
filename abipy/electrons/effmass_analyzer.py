@@ -8,19 +8,18 @@ import pandas as pd
 import pymatgen.core.units as units
 
 from collections import OrderedDict
-#from monty.string import list_strings #, is_string, marquee
+#from monty.string import list_strings
 from monty.termcolor import cprint
 from abipy.core.mixins import Has_Structure, Has_ElectronBands
 from abipy.tools.derivatives import finite_diff
 from abipy.tools.printing import print_dataframe
-#from abipy.tools import duck
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible #, set_axlims,
 
 
 class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
     """
-    This objects provides a high-level API to compute electronic effective masses via finite differences
-    starting from an |ElectronBands| object.
+    This objects provides a high-level API to compute electronic effective masses
+    via finite differences starting from an |ElectronBands| object.
 
     Usage example:
 

@@ -388,6 +388,25 @@ class AbipyTest(PymatgenTest):
         except ImportError:
             return False
 
+    def has_networkx(self):
+        """False if networkx library is not installed."""
+        try:
+            import networkx as nx
+            return nx
+        except ImportError:
+            return False
+
+    def has_graphviz(self):
+        """True if graphviz library is installed and `dot` in $PATH"""
+        try:
+            from graphviz import Digraph
+            import graphviz
+        except ImportError:
+            return False
+
+        if self.which("dot") is None: return False
+        return graphviz
+
     @staticmethod
     def get_abistructure_from_abiref(basename):
         """Return an Abipy |Structure| from the basename of one of the reference files."""

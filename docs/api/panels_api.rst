@@ -45,6 +45,14 @@ panels Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`phonons` Module
+---------------------
+
+.. automodule:: abipy.panels.phonons
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`structure` Module
 -----------------------
 

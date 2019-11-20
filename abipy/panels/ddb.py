@@ -7,7 +7,7 @@ from abipy.dfpt.ddb import DdbFile
 from abipy.panels.core import AbipyParameterized
 
 
-class DdbFilePanel(ApbipyParameterized):
+class DdbFilePanel(AbipyParameterized):
     """
     A panel to analyze a |DdbFile|.
     Provides widgets to invoke anaddb and visualize the results.

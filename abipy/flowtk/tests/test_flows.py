@@ -81,7 +81,7 @@ batch_adapter: *batch
 """
     def setUp(self):
         """Initialization phase."""
-        super(FlowUnitTest, self).setUp()
+        super().setUp()
 
         # Temporary directory for the flow.
         self.workdir = tempfile.mkdtemp()
@@ -114,19 +114,19 @@ class FlowTest(FlowUnitTest):
         atrue(work.color_hex.startswith("#"))
         task0_w0 = work[0]
         atrue(task0_w0.is_task)
-        print(task0_w0.status.colored)
+        str(task0_w0.status.colored)
         atrue(len(flow) == 1)
         aequal(flow.num_tasks, 1)
         atrue(flow.has_db)
 
         #print(task0_w0.input_structure)
-        print(task0_w0.make_input)
+        str(task0_w0.make_input)
 
         # Task history
         assert len(task0_w0.history) == 0
         task0_w0.history.info("Hello %s", "world")
         assert len(task0_w0.history) == 1
-        print(task0_w0.history)
+        str(task0_w0.history)
         record = task0_w0.history.pop()
         print(record, repr(record))
         assert record.get_message(asctime=False) == "Hello world"
@@ -211,6 +211,19 @@ class FlowTest(FlowUnitTest):
         flow.show_tricky_tasks()
         flow.show_event_handlers()
 
+        if self.has_networkx():
+            assert flow.plot_networkx(mode="network", with_edge_labels=False, arrows=False,
+                      node_size="num_cores", node_label="name_class", layout_type="spring", show=False)
+            assert flow.plot_networkx(mode="status", with_edge_labels=True, arrows=True,
+                      node_size="num_cores", node_label="name_class", layout_type="spring", show=False)
+
+        if self.has_graphviz():
+            assert flow.get_graphviz(engine="automatic", graph_attr=None, node_attr=None, edge_attr=None)
+            assert flow.graphviz_imshow(ax=None, figsize=None, dpi=300, fmt="png", show=False)
+
+        if self.has_panel():
+            assert hasattr(flow.get_panel(), "show")
+
     def test_workdir(self):
         """Testing if one can use workdir=None in flow.__init__ and then flow.allocate(workdir)."""
         flow = Flow(workdir=None, manager=self.manager)
@@ -226,9 +239,8 @@ class FlowTest(FlowUnitTest):
         tmpdir = tempfile.mkdtemp()
         flow.allocate(workdir=tmpdir)
 
-        print(flow)
+        str(flow)
         assert len(flow) == 2
-
         flow.build()
 
         for i, work in enumerate(flow):
@@ -315,10 +327,9 @@ class TestBatchLauncher(FlowUnitTest):
 
             return flow
 
-
         tmpdir = tempfile.mkdtemp()
         batch = BatchLauncher(workdir=tmpdir, manager=manager)
-        print(batch)
+        str(batch)
 
         flow0 = build_flow_with_name("flow0")
         flow1 = build_flow_with_name("flow1")

@@ -310,9 +310,9 @@ def abicomp_ebands(options):
 
     else:
         # Print pandas Dataframe.
-        frame = plotter.get_ebands_frame()
-        abilab.print_dataframe(frame)
-        df_to_clipboard(options, frame)
+        df = plotter.get_ebands_frame()
+        abilab.print_dataframe(df)
+        df_to_clipboard(options, df)
 
         # Optionally, print info on gaps and their location
         if not options.verbose:
@@ -388,8 +388,7 @@ def abicomp_phbands(options):
                        verbose=options.verbose)
     else:
         # Print pandas Dataframe.
-        frame = plotter.get_phbands_frame()
-        abilab.print_dataframe(frame)
+        abilab.print_dataframe(plotter.get_phbands_frame())
 
         # Optionally, print info on gaps and their location
         if not options.verbose:
@@ -398,8 +397,11 @@ def abicomp_phbands(options):
             for phbands in plotter.phbands_list:
                 print(phbands)
 
-        # Here I select the plot method to call.
-        if options.plot_mode != "None":
+        # Select the plot method to call.
+        if options.plot_mode == "panel":
+            plotter.get_panel().show()
+
+        elif options.plot_mode != "None":
             plotfunc = getattr(plotter, options.plot_mode, None)
             if plotfunc is None:
                 raise ValueError("Don't know how to handle plot_mode: %s" % options.plot_mode)
@@ -470,7 +472,6 @@ def abicomp_getattr(options):
 
     if options.plot and len(values) == len(options.paths[1:]):
         # Plot values.
-
         ax, fig, plt = get_ax_fig_plt()
         xs = np.arange(len(options.paths[1:]))
         ax.plot(xs, values)
@@ -811,6 +812,7 @@ Usage example:
 #########
 
   abicomp.py phbands *_PHBST.nc -nb             => Compare phonon bands in the jupyter notebook.
+  abicomp.py phbands *_PHBST.nc --panel         => Compare phonon bands in the panel dashboard (GUI)
   abicomp.py phbst *_PHBST.nc -ipy              => Compare phonon bands with robot in ipython terminal.
   abicomp.py phdos *_PHDOS.nc -nb               => Compare phonon DOSes in the jupyter notebook.
   abicomp.py ddb outdir1 outdir2 out_DDB -nb    => Analyze all DDB files in directories outdir1, outdir2 and out_DDB file.
@@ -1038,8 +1040,9 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
     p_phbands = subparsers.add_parser('phbands', parents=[copts_parser, ipy_parser, expose_parser],
         help=abicomp_phbands.__doc__)
     p_phbands.add_argument("-p", "--plot-mode", default="gridplot",
-        choices=["gridplot", "combiplot", "boxplot", "combiboxplot", "animate", "None"],
-        help="Plot mode e.g. `-p combiplot` to plot bands on the same figure. Default is `gridplot`.")
+        choices=["gridplot", "combiplot", "boxplot", "combiboxplot", "animate", "panel", "None"],
+        help="Plot mode e.g. `-p combiplot` to plot bands on the same figure."
+             "Use `panel` for GUI in web browser. Default is `gridplot`.")
 
     # Subparser for phdos command.
     p_phdos = subparsers.add_parser('phdos', parents=[copts_parser, ipy_parser, expose_parser],

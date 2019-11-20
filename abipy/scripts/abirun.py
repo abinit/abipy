@@ -887,6 +887,9 @@ Default: o
     #                   "In this case chroot is the absolute path to the flow on the **localhost** " +
     #                   "Note that it is not possible to change the flow from remote when chroot is used."))
 
+    p_panel = subparsers.add_parser('panel', parents=[copts_parser],
+                                    help="Interact with the flow in the browser (requires panel package).")
+
     # Subparser for new_manager.
     p_new_manager = subparsers.add_parser('new_manager', parents=[copts_parser, flow_selector_parser],
         help="Change the TaskManager.")
@@ -1238,6 +1241,16 @@ def main():
 
         # Update the database.
         return flow.build_and_pickle_dump()
+
+    elif options.command == "panel":
+        try:
+            import panel as pn
+        except ImportError as exc:
+            cprint("Use `conda install panel` or `pip install panel` to install the python package.", "red")
+            raise exc
+
+        flow.get_panel().show()
+        return 0
 
     elif options.command == "events":
         flow.show_events(status=options.task_status, nids=selected_nids(flow, options))
@@ -1606,11 +1619,6 @@ def main():
                 node = flow[w_pos][t_pos]
             else:  # Work
                 node = flow[w_pos]
-
-        #dpi = 300
-        #node.graphviz_imshow(dpi=dpi)
-        #node.graphviz_imshow(figsize=(800/dpi, 800/dpi), dpi=dpi)
-        #return 0
 
         directory = tempfile.mkdtemp()
         print("Producing source files in:", directory)

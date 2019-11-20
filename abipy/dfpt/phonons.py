@@ -3172,7 +3172,7 @@ class PhononBandsPlotter(NotebookWriter):
         i = -1
         nqpt_list = [phbands.nqpt for phbands in self._bands_dict.values()]
         if any(nq != nqpt_list[0] for nq in nqpt_list):
-            cprint("WARNING: Bands have different number of k-points:\n%s" % str(nqpt_list), "yellow")
+            cprint("WARNING combiblot: Bands have different number of k-points:\n%s" % str(nqpt_list), "yellow")
 
         for (label, phbands), lineopt in zip(self._bands_dict.items(), self.iter_lineopt()):
             i += 1
@@ -3443,7 +3443,7 @@ class PhononBandsPlotter(NotebookWriter):
     def plot_phdispl(self, qpoint, **kwargs):
         """
         Plot vertical bars with the contribution of the different atomic types to the phonon displacements
-        at a given q-point. One panel for all phbands stored in the plotter.
+        at a given q-point. One panel for all |PhononBands| stored in the plotter.
 
         Args:
             qpoint: integer, vector of reduced coordinates or |Kpoint| object.
@@ -3476,7 +3476,7 @@ class PhononBandsPlotter(NotebookWriter):
                 Case-insensitive.
             width_ratios: Ratio between the band structure plot and the dos plot.
                 Used when there are DOS stored in the plotter.
-            show: True if the animation should be shown immediately
+            show: True if the animation should be shown immediately.
 
         Returns: Animation object.
 
@@ -3557,6 +3557,11 @@ class PhononBandsPlotter(NotebookWriter):
         """Integration with jupyter_ notebooks."""
         return self.ipw_select_plot()
 
+    def get_panel(self):
+        """Return tabs with widgets to interact with the |PhononBandsPlotter| file."""
+        from abipy.panels.phonons import PhononBandsPlotterPanel
+        return PhononBandsPlotterPanel(self).get_panel()
+
     def write_notebook(self, nbpath=None):
         """
         Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
@@ -3589,7 +3594,7 @@ class PhononDosPlotter(NotebookWriter):
         plotter = PhononDosPlotter()
         plotter.add_phdos("foo dos", "foo.nc")
         plotter.add_phdos("bar dos", "bar.nc")
-        fig = plotter.gridplot()
+        plotter.gridplot()
     """
     def __init__(self, key_phdos=None, phdos_kwargs=None):
         self._phdoses_dict = OrderedDict()
@@ -3836,7 +3841,7 @@ class RobotWithPhbands(object):
         return self.get_phbands_plotter().boxplot(**kwargs)
 
     def combiboxplot_phbands(self, **kwargs):
-        """Wraps combiboxplot method of |ElectronDosPlotter|. kwargs passed to combiboxplot."""
+        """Wraps combiboxplot method of |PhononBandsPlotterr|. kwargs passed to combiboxplot."""
         return self.get_phbands_plotter().combiboxplot(**kwargs)
 
     #def combiplot_phdos(self, **kwargs):
