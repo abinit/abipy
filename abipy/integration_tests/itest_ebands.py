@@ -392,6 +392,8 @@ def itest_metagga_ebands_flow(fwp, tvars):
     """
     Test band structure calculation with meta-GGA
     """
+    if not fwp.abinit_build.has_libxc:
+        pytest.skip("itest_metagga_ebands_flow requires libxc support in Abinit.")
 
     from abipy.data.hgh_pseudos import HGH_TABLE
     multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"),

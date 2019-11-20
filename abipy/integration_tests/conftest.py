@@ -51,6 +51,7 @@ def fwp(tmpdir, request):
     fwp.manager = flowtk.TaskManager.from_string(request.param)
     fwp.scheduler = flowtk.PyFlowScheduler.from_file(os.path.join(USER_CONFIG_DIR, "scheduler.yml"))
     fwp.on_travis = on_travis
+    fwp.abinit_build = flowtk.AbinitBuild()
 
     return fwp
 

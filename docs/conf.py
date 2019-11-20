@@ -451,7 +451,7 @@ intersphinx_mapping = {
     "scipy": ("https://docs.scipy.org/doc/scipy/reference/", None),
     'pandas': ("http://pandas-docs.github.io/pandas-docs-travis/", None),
     'matplotlib': ('https://matplotlib.org/', None),
-    "monty": ("http://pythonhosted.org/monty/", None),
+    "monty": ("https://pythonhosted.org/monty/", None),
     "pymatgen": ("http://pymatgen.org/", None),
     'mayavi': ('http://docs.enthought.com/mayavi/mayavi', None),
 }

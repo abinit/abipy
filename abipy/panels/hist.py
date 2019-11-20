@@ -3,7 +3,6 @@ import param
 import panel as pn
 import bokeh.models.widgets as bw
 
-from abipy.dynamics.hist import HistFile
 from abipy.panels.core import AbipyParameterized
 
 

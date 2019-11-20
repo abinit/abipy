@@ -226,7 +226,7 @@ def main():
 
         elif options.panel:
             try:
-                import panel as pn
+                import panel
             except ImportError as exc:
                 cprint("Use `conda install panel` or `pip install panel` to install the python package.", "red")
                 raise exc

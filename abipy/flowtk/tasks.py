@@ -98,7 +98,7 @@ class TaskResults(NodeResults):
 
     @classmethod
     def from_node(cls, task):
-        """Initialize an instance from an :class:`AbinitTask` instance."""
+        """Initialize an instance from an |AbinitTask| instance."""
         new = super().from_node(task)
 
         new.update(
@@ -1045,6 +1045,9 @@ class AbinitBuild(object):
         .. attribute:: has_netcdf
             True if netcdf is enabled.
 
+        .. attribute:: has_libxc
+            True if libxc is enabled.
+
         .. attribute:: has_omp
             True if OpenMP is enabled.
 
@@ -1144,6 +1147,7 @@ class AbinitBuild(object):
         self.has_netcdf = False
         self.has_omp = False
         self.has_mpi, self.has_mpiio = False, False
+        self.has_libxc = False
 
         def yesno2bool(line):
             ans = line.split()[-1].lower()
@@ -1154,6 +1158,8 @@ class AbinitBuild(object):
             if "Version" in line: self.version = line.split()[-1]
             if "TRIO flavor" in line:
                 self.has_netcdf = "netcdf" in line
+            if "DFT flavor" in line:
+                self.has_libxc = "libxc" in line
             if "openMP support" in line: self.has_omp = yesno2bool(line)
             if "Parallel build" in line: self.has_mpi = yesno2bool(line)
             if "Parallel I/O" in line: self.has_mpiio = yesno2bool(line)
@@ -1782,7 +1788,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         return self._status
 
     def lock(self, source_node):
-        """Lock the task, source is the :class:`Node` that applies the lock."""
+        """Lock the task, source is the |Node| that applies the lock."""
         if self.status != self.S_INIT:
             raise ValueError("Trying to lock a task with status %s" % self.status)
 
@@ -1792,7 +1798,7 @@ class Task(Node, metaclass=abc.ABCMeta):
     def unlock(self, source_node, check_status=True):
         """
         Unlock the task, set its status to `S_READY` so that the scheduler can submit it.
-        source_node is the :class:`Node` that removed the lock
+        source_node is the |Node| that removed the lock
         Call task.check_status if check_status is True.
         """
         if self.status != self.S_LOCKED:
@@ -3886,7 +3892,7 @@ class ScrTask(ManyBodyTask):
     def open_scr(self):
         """
         Open the SIGRES file located in the in self.outdir.
-        Returns :class:`ScrFile` object, None if file could not be found or file is not readable.
+        Returns |ScrFile| object, None if file could not be found or file is not readable.
         """
         scr_path = self.scr_path
 
@@ -4084,7 +4090,7 @@ class BseTask(ManyBodyTask):
     def open_mdf(self):
         """
         Open the MDF file located in the in self.outdir.
-        Returns :class:`MdfFile` object, None if file could not be found or file is not readable.
+        Returns |MdfFile| object, None if file could not be found or file is not readable.
         """
         mdf_path = self.mdf_path
         if not mdf_path:
@@ -4485,7 +4491,7 @@ class AnaddbTask(Task):
     def __init__(self, anaddb_input, ddb_node,
                  gkk_node=None, md_node=None, ddk_node=None, workdir=None, manager=None):
         """
-        Create an instance of :class:`AnaddbTask` from a string containing the input.
+        Create an instance of AnaddbTask from a string containing the input.
 
         Args:
             anaddb_input: string with the anaddb variables.
@@ -4519,7 +4525,7 @@ class AnaddbTask(Task):
     def temp_shell_task(cls, inp, ddb_node, mpi_procs=1,
                         gkk_node=None, md_node=None, ddk_node=None, workdir=None, manager=None):
         """
-        Build a :class:`AnaddbTask` with a temporary workdir. The task is executed via
+        Build a |AnaddbTask| with a temporary workdir. The task is executed via
         the shell with 1 MPI proc. Mainly used for post-processing the DDB files.
 
         Args:
@@ -4541,7 +4547,7 @@ class AnaddbTask(Task):
 
     @property
     def executable(self):
-        """Path to the executable required for running the :class:`AnaddbTask`."""
+        """Path to the executable required for running the |AnaddbTask|."""
         try:
             return self._executable
         except AttributeError:

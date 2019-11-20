@@ -107,6 +107,7 @@
 .. |TaskManager| replace:: :class:`abipy.flowtk.tasks.TaskManager`
 .. |GsrFile| replace:: :class:`abipy.electrons.gsr.GsrFile`
 .. |GsrRobot| replace:: :class:`abipy.electrons.gsr.GsrRobot`
+.. |MdfFile| replace:: :class:`abipy.electrons.bse.MdfFile`
 .. |DdbFile| replace:: :class:`abipy.dfpt.ddb.DdbFile`
 .. |HistFile| replace:: :class:`abipy.dynamics.hist.HistFile`
 .. |DielectricTensorGenerator| replace:: :class:`abipy.dfpt.ddb.DielectricTensorGenerator`

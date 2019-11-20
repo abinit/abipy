@@ -58,7 +58,7 @@ db_connector:
         # Initialize the object from YAML file.
         slurm_manager = TaskManager.from_string(self.MANAGER)
 
-        print(slurm_manager)
+        repr(slurm_manager); str(slurm_manager)
         aequal(slurm_manager.num_cores, 4)
         aequal(slurm_manager.mpi_procs, 4)
         aequal(slurm_manager.omp_threads, 1)
@@ -174,3 +174,20 @@ configurations:
         #aequal(optimal.vars["npfft"],  2)
         #aequal(optimal.vars["npkpt"],  1)
         #assert 0
+
+
+class AbinitBuildTest(AbipyTest):
+
+    def test_abinit_build(self):
+        from abipy.flowtk import AbinitBuild
+        build = AbinitBuild()
+        print(build)
+        assert build.has_netcdf
+        #assert not build.has_omp
+        #assert build.has_mpi
+        #assert build.has_mpiio
+        #assert build.has_libxc
+
+        assert build.version_ge("4.0")
+        assert build.compare_version(build.version, "==")
+        assert build.compare_version(build.version, ">=")
