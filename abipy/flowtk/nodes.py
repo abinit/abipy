@@ -226,7 +226,7 @@ class Product(object):
             path: (asbolute) filepath
         """
         if ext not in abi_extensions():
-            raise ValueError("Extension %s has not been registered in the internal database" % str(ext))
+            raise ValueError("Extension `%s` has not been registered in the internal database" % str(ext))
 
         self.ext = ext
         self.file = File(path)
@@ -761,15 +761,26 @@ class Node(metaclass=abc.ABCMeta):
         """True if this node depends on the other node."""
         return other in [d.node for d in self.deps]
 
+    def find_parent_with_ext(self, ext):
+        """
+        Return the parent (usually a |Task|) that produces the file with extension `ext`.
+        Raises ValueError if multiple parents are found.
+        Return None if no parent is found.
+        """
+        parent, count = None, 0
+        for dep in self.deps:
+            if ext in dep.exts:
+                parent = dep.node
+                count += 1
+
+        if count > 1:
+            raise ValueError("Cannot have multiple parents producing the same file extension!\n%s" % self.str_deps())
+
+        return parent
+
     def get_parents(self):
         """Return the list of nodes in the |Flow| required by this |Node|"""
         return [d.node for d in self.deps]
-        #parents = []
-        #for work in self.flow:
-        #    if self.depends_on(work): parents.append(work)
-        #    for task in work:
-        #        if self.depends_on(task): parents.append(task)
-        #return parents
 
     def get_children(self):
         """

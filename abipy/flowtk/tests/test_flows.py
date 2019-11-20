@@ -101,7 +101,7 @@ class FlowTest(FlowUnitTest):
 
     def test_base(self):
         """Testing Flow..."""
-        aequal, atrue, afalse = self.assertEqual, self.assertTrue, self.assertFalse
+        aequal = self.assertEqual
         flow = Flow(workdir=self.workdir, manager=self.manager)
         assert flow.isinstance(Flow)
         assert not flow.isinstance(None)
@@ -109,15 +109,15 @@ class FlowTest(FlowUnitTest):
 
         # Build a work with a task
         work = flow.register_task(self.fake_input)
-        atrue(work.is_work)
-        atrue(len(work.color_hex) == 7)
-        atrue(work.color_hex.startswith("#"))
+        assert work.is_work
+        assert len(work.color_hex) == 7
+        assert work.color_hex.startswith("#")
         task0_w0 = work[0]
-        atrue(task0_w0.is_task)
+        assert task0_w0.is_task
         str(task0_w0.status.colored)
-        atrue(len(flow) == 1)
-        aequal(flow.num_tasks, 1)
-        atrue(flow.has_db)
+        assert len(flow) == 1
+        assert flow.num_tasks == 1
+        assert flow.has_db
 
         #print(task0_w0.input_structure)
         str(task0_w0.make_input)
@@ -138,38 +138,41 @@ class FlowTest(FlowUnitTest):
 
         # Build a workflow containing two tasks depending on task0_w0
         work = Work()
-        atrue(work.is_work)
+        assert work.is_work
         work.register(self.fake_input)
         work.register(self.fake_input)
-        aequal(len(work), 2)
+        assert len(work) == 2
 
         flow.register_work(work, deps={task0_w0: "WFK"})
-        atrue(flow.is_flow)
-        aequal(len(flow), 2)
+        assert flow.is_flow
+        assert len(flow) == 2
 
         # Add another work without dependencies.
         task0_w2 = flow.register_task(self.fake_input)[0]
-        atrue(len(flow) == 3)
-        afalse(flow.is_work)
+        assert len(flow) == 3
+        assert not flow.is_work
 
         # Allocate internal tables
         flow.allocate()
 
         # Check dependecies.
-        atrue(flow[1].depends_on(task0_w0))
-        atrue(flow[1][0].depends_on(task0_w0))
-        atrue(flow[1][0] in task0_w0.get_children())
-        atrue(task0_w0 in flow[1][0].get_parents())
-        afalse(flow[2][0].depends_on(task0_w0))
-        afalse(flow[2][0] in task0_w0.get_children())
-        afalse(task0_w0 in flow[2][0].get_parents())
-        aequal(flow[1].pos, 1)
-        aequal(flow[1][0].pos, (1, 0))
-        aequal(flow[2][0].pos, (2, 0))
+        #task0_w1 = flow[1][0]
+        assert flow[1].depends_on(task0_w0)
+        assert flow[1][0].depends_on(task0_w0)
+        assert flow[1][0] in task0_w0.get_children()
+        assert task0_w0 in flow[1][0].get_parents()
+        assert flow[1][0].find_parent_with_ext("WFK") == task0_w0
+        assert flow[1][0].find_parent_with_ext("FOOBAR") is None
+        assert not flow[2][0].depends_on(task0_w0)
+        assert not flow[2][0] in task0_w0.get_children()
+        assert not task0_w0 in flow[2][0].get_parents()
+        assert flow[1].pos == 1
+        assert flow[1][0].pos == (1, 0)
+        assert flow[2][0].pos == (2, 0)
 
-        afalse(flow.all_ok)
-        aequal(flow.num_tasks, 4)
-        aequal(flow.ncores_used, 0)
+        assert not flow.all_ok
+        assert flow.num_tasks == 4
+        assert flow.ncores_used == 0
 
         # API for iterations
         aequal(len(list(flow.iflat_tasks(status="Initialized"))), sum(len(work) for work in flow))
@@ -188,7 +191,7 @@ class FlowTest(FlowUnitTest):
 
         # Find the pickle file in workdir and recreate the flow.
         same_flow = Flow.pickle_load(self.workdir)
-        aequal(same_flow, flow)
+        assert same_flow == flow
 
         # to/from string
         # FIXME This does not work with py3k
@@ -204,7 +207,7 @@ class FlowTest(FlowUnitTest):
         flow.show_inputs(varnames="znucl")
 
         df_vars = flow.get_vars_dataframe("ecut", "acell")
-        atrue("ecut" in df_vars)
+        assert "ecut" in df_vars
 
         # Test show_status
         flow.show_status()

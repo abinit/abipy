@@ -380,7 +380,18 @@ class NodeContainer(metaclass=abc.ABCMeta):
     def register_nscf_task(self, *args, **kwargs):
         """Register a nscf task."""
         kwargs["task_class"] = NscfTask
-        return self.register_task(*args, **kwargs)
+        task = self.register_task(*args, **kwargs)
+
+        if task.input.get("usekden", 0) == 1:
+            # MGGA calculation --> make sure KDEN
+            den_parent = task.find_parent_with_ext("DEN")
+            assert den_parent is not None
+            #kden_parent = task.find_parent_with_ext("KDEN")
+            #if kden_parent is None:
+            #    task.add_deps({den_parent: "KDEN"})
+            print("task.deps", task.deps)
+
+        return task
 
     def register_relax_task(self, *args, **kwargs):
         """Register a task for structural optimization."""

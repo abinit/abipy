@@ -1,6 +1,5 @@
-from __future__ import unicode_literals, division, print_function, absolute_import
-
 import os
+from abipy.flowtk import PseudoTable
 
 _root = os.path.dirname(__file__)
 _paths = [f for f in os.listdir(_root) if f.endswith("hgh")]
@@ -15,7 +14,6 @@ _paths = [k + v for k, v in d.items()]
 _paths = [os.path.join(_root, f) for f in _paths]
 del d
 
-from abipy.flowtk import PseudoTable
 HGH_TABLE = PseudoTable(_paths)
 
 # Add fake hints.

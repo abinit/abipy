@@ -375,3 +375,41 @@ def itest_htc_bandstructure(fwp, tvars):
                 assert gsr.ebands.has_bzmesh
                 assert not gsr.ebands.has_bzpath
                 gsr.ebands.get_edos()
+
+
+def itest_metagga_ebands_flow(fwp, tvars):
+    """
+    Test band structure calculation with meta-GGA
+    """
+
+    from abipy.data.hgh_pseudos import HGH_TABLE
+    multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"),
+                                pseudos=HGH_TABLE, ndtset=2)
+
+    # Global variables
+    shiftk = [float(s) for s in "0.5 0.5 0.5 0.5 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.5".split()]
+    multi.set_vars(ecut=20, diemac=12, iomode=3, ixc=-208012, prtkden=1, usekden=1)
+
+    # Dataset 1
+    multi[0].set_vars(tolvrs=1e-7)
+    multi[0].set_kmesh(ngkpt=[2, 2, 2], shiftk=shiftk)
+
+    # Dataset 2
+    multi[1].set_vars(tolwfr=1e-8)
+    multi[1].set_kpath(ndivsm=2)
+
+    scf_input, nscf_input = multi.split_datasets()
+    work = flowtk.works.BandStructureWork(scf_input=scf_input, nscf_input=nscf_input)
+
+    flow = abilab.Flow(workdir=fwp.workdir, manager=fwp.manager)
+    flow.register_work(work)
+    flow.build_and_pickle_dump(abivalidate=True)
+
+    fwp.scheduler.add_flow(flow)
+    assert fwp.scheduler.start() == 0
+    assert not fwp.scheduler.exceptions
+    #assert fwp.scheduler.nlaunch == 3
+
+    flow.show_status()
+    assert flow.all_ok
+    assert all(work.finalized for work in flow)
