@@ -733,7 +733,7 @@ def main():
     elif options.command == "panel":
         structure = abilab.Structure.from_file(options.filepath)
         try:
-            import panel
+            import panel  # flake8: noqa
         except ImportError as exc:
             cprint("Use `conda install panel` or `pip install panel` to install the python package.", "red")
             raise exc

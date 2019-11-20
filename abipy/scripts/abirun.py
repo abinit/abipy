@@ -1244,7 +1244,7 @@ def main():
 
     elif options.command == "panel":
         try:
-            import panel
+            import panel  # flake8: noqa
         except ImportError as exc:
             cprint("Use `conda install panel` or `pip install panel` to install the python package.", "red")
             raise exc

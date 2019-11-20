@@ -110,5 +110,6 @@ class FlowPanel(AbipyParameterized):
         tabs.append(("Corrections", pn.Row(self.corrections_btn, self.on_corrections_btn)))
         tabs.append(("Handlers", pn.Row(self.handlers_btn, self.on_handlers_btn)))
         tabs.append(("Debug", pn.Row(self.debug_btn, self.on_debug_btn)))
-        tabs.append(("Graphviz", pn.Row(pn.Column(self.engine, self.dirtree, self.graphviz_btn), self.on_graphviz_btn)))
+        tabs.append(("Graphviz", pn.Row(pn.Column(self.engine, self.dirtree, self.graphviz_btn),
+                                        self.on_graphviz_btn)))
         return tabs

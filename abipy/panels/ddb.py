@@ -3,7 +3,6 @@ import param
 import panel as pn
 import bokeh.models.widgets as bw
 
-from abipy.dfpt.ddb import DdbFile
 from abipy.panels.core import AbipyParameterized
 
 
