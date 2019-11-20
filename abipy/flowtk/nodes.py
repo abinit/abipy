@@ -716,18 +716,32 @@ class Node(metaclass=abc.ABCMeta):
 
         assert all(isinstance(d, Dependency) for d in deps)
 
-        # Add the dependencies to the node
+        # Add the dependencies to the node and merge possibly duplicated keys.
         self._deps.extend(deps)
+        self.merge_deps()
 
         if self.is_work:
             # The task in the work should inherit the same dependency.
             for task in self:
                 task.add_deps(deps)
+                task.merge_deps()
 
         # If we have a FileNode as dependency, add self to its children
         # Node.get_parents will use this list if node.is_isfile.
         for dep in (d for d in deps if d.node.is_file):
             dep.node.add_filechild(self)
+
+    def merge_deps(self):
+        """
+        Group all extensions associated to the same node in a single list.
+        Useful for cases in which we may end up with the same node appearing more than once
+        in self.deps. See e.g. ``add_deps``.
+        """
+        from collections import defaultdict
+        node2exts = defaultdict(list)
+        for dep in self.deps:
+            node2exts[dep.node].extend(dep.exts)
+        self._deps = [Dependency(node, exts) for node, exts in node2exts.items()]
 
     @check_spectator
     def remove_deps(self, deps):

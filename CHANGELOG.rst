@@ -1,5 +1,6 @@
 Release 0.8.0: xxxx-xx-xx
 
+    * Add support for NSCF calculations with Meta-GGA.
     * Preliminary support for panel dashboards exposed via `abiopen FILE --panel` and `abistruct panel FILE`.
       Note that not all Abinit files are supported at present.
     * Add examples and flows for effective mass calculations

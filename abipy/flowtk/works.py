@@ -382,14 +382,19 @@ class NodeContainer(metaclass=abc.ABCMeta):
         kwargs["task_class"] = NscfTask
         task = self.register_task(*args, **kwargs)
 
+        # Make sure parent producing DEN file is given
+        if task.is_work: task = task[0]
+        den_parent = task.find_parent_with_ext("DEN")
+        if den_parent is None:
+            raise ValueError("NSCF task requires parent producing DEN file!")
+
         if task.input.get("usekden", 0) == 1:
-            # MGGA calculation --> make sure KDEN
-            den_parent = task.find_parent_with_ext("DEN")
-            assert den_parent is not None
-            #kden_parent = task.find_parent_with_ext("KDEN")
-            #if kden_parent is None:
-            #    task.add_deps({den_parent: "KDEN"})
-            print("task.deps", task.deps)
+            # Meta-GGA calculation --> Add KDEN if not explicitly given.
+            # Assuming prtkden already set to 1
+            # TODO: Abinit should automatically set it to 1 if usekden --> I'm not gonna fix the input at this level
+            kden_parent = task.find_parent_with_ext("KDEN")
+            if kden_parent is None:
+                task.add_deps({den_parent: "KDEN"})
 
         return task
 

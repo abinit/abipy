@@ -62,7 +62,7 @@ class FlowPanel(AbipyParameterized):
         """
         if self.graphviz_btn.clicks == 0: return
         node = self.flow
-        if self.dirtree:
+        if self.dirtree.value:
             graph = node.get_graphviz_dirtree(engine=self.engine.value)
         else:
             graph = node.get_graphviz(engine=self.engine.value)
@@ -110,5 +110,5 @@ class FlowPanel(AbipyParameterized):
         tabs.append(("Corrections", pn.Row(self.corrections_btn, self.on_corrections_btn)))
         tabs.append(("Handlers", pn.Row(self.handlers_btn, self.on_handlers_btn)))
         tabs.append(("Debug", pn.Row(self.debug_btn, self.on_debug_btn)))
-        tabs.append(("Graphviz", pn.Row(pn.Column(self.engine, self.graphviz_btn), self.on_graphviz_btn)))
+        tabs.append(("Graphviz", pn.Row(pn.Column(self.engine, self.dirtree, self.graphviz_btn), self.on_graphviz_btn)))
         return tabs
