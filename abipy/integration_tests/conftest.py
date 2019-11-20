@@ -105,6 +105,16 @@ def pytest_report_header(config):
             app(80 * "=")
     app("")
 
+    # Print info on Abinit build
+    abinit_build = flowtk.AbinitBuild()
+    print()
+    print(abinit_build)
+    print()
+    if not config.option.verbose:
+        print("Use --verbose for additional info")
+    else:
+        print(abinit_build.info)
+
     # Initialize logging
     # loglevel is bound to the string value obtained from the command line argument.
     # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug

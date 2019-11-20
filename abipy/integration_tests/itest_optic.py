@@ -114,7 +114,9 @@ def itest_optic_flow(fwp, tvars):
         assert task.status == task.S_DONE
 
     flow.check_status(show=True)
-    assert flow.all_ok
+    if not flow.all_ok:
+        flow.debug()
+        raise RuntimeError()
 
     # Optic does not support MPI with ncores > 1 hence we have to construct a manager with mpi_procs==1
     shell_manager = fwp.manager.to_shell_manager(mpi_procs=1)
@@ -152,7 +154,10 @@ def itest_optic_flow(fwp, tvars):
     assert optic_task2.status == optic_task2.S_DONE
 
     flow.check_status(show=True)
-    assert flow.all_ok
+    if not flow.all_ok:
+        flow.debug()
+        raise RuntimeError()
+
     assert all(work.finalized for work in flow)
 
     #assert flow.validate_json_schema()

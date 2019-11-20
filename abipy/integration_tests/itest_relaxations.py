@@ -84,7 +84,9 @@ def itest_atomic_relaxation(fwp, tvars):
 
     flow.show_status()
     assert all(work.finalized for work in flow)
-    assert flow.all_ok
+    if not flow.all_ok:
+        flow.debug()
+        raise RuntimeError()
 
     # post-processing tools
     if has_matplotlib():
@@ -167,7 +169,9 @@ def itest_relaxation_with_restart_from_den(fwp, tvars):
     flow.show_status()
 
     assert all(work.finalized for work in flow)
-    assert flow.all_ok
+    if not flow.all_ok:
+        flow.debug()
+        raise RuntimeError()
 
     # we should have (0, 1) restarts and no WFK file in outdir.
     for i, task in enumerate(relax_work):
@@ -203,7 +207,9 @@ def itest_dilatmx_error_handler(fwp, tvars):
     flow.show_status()
 
     assert all(work.finalized for work in flow)
-    assert flow.all_ok
+    if not flow.all_ok:
+        flow.debug()
+        raise RuntimeError()
 
     # t0 should have reached S_OK, and we should have DilatmxError in the corrections.
     t0 = work[0]
@@ -229,7 +235,9 @@ def itest_relaxation_with_target_dilatmx(fwp, tvars):
     flow.show_status()
 
     assert all(work.finalized for work in flow)
-    assert flow.all_ok
+    if not flow.all_ok:
+        flow.debug()
+        raise RuntimeError()
     #assert relax_work.last_dilatmx <= target_dilatmx
 
     # we should have (0, 1) restarts

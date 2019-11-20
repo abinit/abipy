@@ -104,7 +104,9 @@ def itest_nscf_from_denfile(fwp, tvars):
     assert scheduler.nlaunch == 1
 
     flow.check_status(show=True)
-    assert flow.all_ok
+    if not flow.all_ok:
+        flow.debug()
+        raise RuntimeError()
     assert all(work.finalized for work in flow)
 
     # The WFK files should have been removed because we called set_garbage_collector

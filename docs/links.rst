@@ -112,6 +112,7 @@
 .. |DielectricTensorGenerator| replace:: :class:`abipy.dfpt.ddb.DielectricTensorGenerator`
 .. |DdbRobot| replace:: :class:`abipy.dfpt.ddb.DdbRobot`
 .. |AnaddbNcFile| replace:: :class:`abipy.dfpt.anaddb.AnaddbNcFile`
+.. |AbinitNcFile| replace:: :class:`abipy.core.mixins.AbinitNcFile`
 .. |pmg-Tensor| replace:: :class:`pymatgen.core.tensors.Tensor` 
 .. |Stress| replace:: :class:`abipy.tools.tensors.Stress` 
 .. |DielectricTensor| replace:: :class:`abipy.tools.tensors.DielectricTensor` 

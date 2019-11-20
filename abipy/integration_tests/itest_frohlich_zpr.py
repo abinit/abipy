@@ -61,7 +61,9 @@ def itest_frohlich_zpr_flow(fwp, tvars):
     assert scheduler.start() == 0
     flow.check_status(show=True)
     assert all(work.finalized for work in flow)
-    assert flow.all_ok
+    if not flow.all_ok:
+        flow.debug()
+        raise RuntimeError()
     assert flow.on_all_ok_num_calls == 1
 
     # Reconstruct python objects from JSON file.

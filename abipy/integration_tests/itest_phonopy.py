@@ -47,7 +47,9 @@ def itest_phonopy_flow(fwp, tvars):
 
     assert not scheduler.exceptions
     flow.show_status()
-    assert flow.all_ok
+    if not flow.all_ok:
+        flow.debug()
+        raise RuntimeError()
     assert all(work.finalized for work in flow)
 
     # The WFK files should have been removed because we called set_garbage_collector
@@ -96,7 +98,9 @@ def itest_phonopy_gruneisen_flow(fwp, tvars):
 
     assert not scheduler.exceptions
     flow.show_status()
-    assert flow.all_ok
+    if not flow.all_ok:
+        flow.debug()
+        raise RuntimeError()
     # Initialial work + 3 phonopy works.
     assert len(flow) == 4
     assert all(work.finalized for work in flow)

@@ -54,7 +54,9 @@ def itest_tolsymerror_handler(fwp):
     assert flow.make_scheduler().start() == 0
 
     flow.show_status()
-    assert flow.all_ok
+    if not flow.all_ok:
+        flow.debug()
+        raise RuntimeError()
 
     task = flow[0][0]
     assert len(task.corrections) == 1
@@ -110,7 +112,9 @@ def itest_dilatmxerror_handler(fwp):
     assert flow.make_scheduler().start() == 0
 
     flow.show_status()
-    assert flow.all_ok
+    if not flow.all_ok:
+        flow.debug()
+        raise RuntimeError()
 
     task = flow[0][0]
     # Don't check the number of corrections as it's not portable.

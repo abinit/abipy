@@ -85,7 +85,9 @@ def itest_phonon_flow(fwp, tvars):
     assert scheduler.start() == 0
     flow.check_status(show=True)
     assert all(work.finalized for work in flow)
-    assert flow.all_ok
+    if not flow.all_ok:
+        flow.debug()
+        raise RuntimeError()
 
     with flow.open_final_ddb() as ddb:
         ddb_path = ddb.filepath
@@ -193,7 +195,9 @@ def itest_phonon_restart(fwp):
 
     flow.check_status(show=True, verbose=1)
     assert all(work.finalized for work in flow)
-    assert flow.all_ok
+    if not flow.all_ok:
+        flow.debug()
+        raise RuntimeError()
 
     assert sum(task.num_restarts for task in flow.iflat_tasks()) > 0
 

@@ -14,7 +14,7 @@ panels Package
    :show-inheritance:
 
 :mod:`core` Module
------------------
+------------------
 
 .. automodule:: abipy.panels.core
    :members:

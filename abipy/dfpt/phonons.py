@@ -3841,7 +3841,7 @@ class RobotWithPhbands(object):
         return self.get_phbands_plotter().boxplot(**kwargs)
 
     def combiboxplot_phbands(self, **kwargs):
-        """Wraps combiboxplot method of |PhononBandsPlotterr|. kwargs passed to combiboxplot."""
+        """Wraps combiboxplot method of |PhononBandsPlotter|. kwargs passed to combiboxplot."""
         return self.get_phbands_plotter().combiboxplot(**kwargs)
 
     #def combiplot_phdos(self, **kwargs):

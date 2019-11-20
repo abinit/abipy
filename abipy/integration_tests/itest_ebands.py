@@ -25,14 +25,14 @@ def make_scf_nscf_inputs(tvars, pp_paths, nstep=50):
     ecut = 4
     global_vars = dict(
         ecut=ecut,
-        nband=int(nval/2),
+        nband=int(nval / 2),
         nstep=nstep,
         paral_kgb=tvars.paral_kgb,
         timopt=-1,
     )
 
     if multi.ispaw:
-        global_vars.update(pawecutdg=2*ecut)
+        global_vars.update(pawecutdg=2 * ecut)
 
     multi.set_vars(global_vars)
 
@@ -119,7 +119,9 @@ def itest_unconverged_scf(fwp, tvars):
     assert t1.status == t1.S_OK
 
     flow.show_status()
-    assert flow.all_ok
+    if not flow.all_ok:
+        flow.debug()
+        raise RuntimeError()
 
     # Test inspect methods
     if has_matplotlib():
@@ -226,7 +228,10 @@ def itest_bandstructure_flow(fwp, tvars):
     #afalse(t1.can_run)
 
     flow.show_status()
-    assert flow.all_ok
+    if not flow.all_ok:
+        flow.debug()
+        raise RuntimeError()
+
     assert all(work.finalized for work in flow)
 
     for task in flow.iflat_tasks():
@@ -296,7 +301,10 @@ def itest_bandstructure_schedflow(fwp, tvars):
     assert fwp.scheduler.nlaunch == 2
 
     flow.show_status()
-    assert flow.all_ok
+    if not flow.all_ok:
+        flow.debug()
+        raise RuntimeError()
+
     assert all(work.finalized for work in flow)
 
     # The WFK files should have been removed because we called set_garbage_collector
@@ -352,7 +360,10 @@ def itest_htc_bandstructure(fwp, tvars):
     assert fwp.scheduler.nlaunch == 3
 
     flow.show_status()
-    assert flow.all_ok
+    if not flow.all_ok:
+        flow.debug()
+        raise RuntimeError()
+
     assert all(work.finalized for work in flow)
 
     # Test if GSR files are produced and are readable.
@@ -411,5 +422,7 @@ def itest_metagga_ebands_flow(fwp, tvars):
     #assert fwp.scheduler.nlaunch == 3
 
     flow.show_status()
-    assert flow.all_ok
+    if not flow.all_ok:
+        flow.debug()
+        raise RuntimeError()
     assert all(work.finalized for work in flow)

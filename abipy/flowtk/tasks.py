@@ -4638,8 +4638,7 @@ class AnaddbTask(Task):
             return None
 
     def get_results(self, **kwargs):
-        results = super(AnaddbTask, self).get_results(**kwargs)
-        return results
+        return super().get_results(**kwargs)
 
 
 #class BoxcuttedPhononTask(PhononTask):
@@ -4655,7 +4654,7 @@ class AnaddbTask(Task):
 #            if isinstance(task, PhononTask): task.__class__ = cls
 #
 #    def setup(self):
-#        super(BoxcuttedPhononTask, self).setup()
+#        super().setup()
 #        self.final_dfp_done = False if not hasattr(self, "final_dfp_done") else self.final_dfp_done
 #        if not self.final_dfp_done:
 #            # First run: use boxcutmin 1.5 and low-accuracy hints (assume pseudos with hints).
@@ -4665,7 +4664,7 @@ class AnaddbTask(Task):
 #            self.set_vars(boxcutmin=1.5, ecut=ecut, pawecutdg=pawecutdg, prtwf=1)
 #
 #    def _on_ok(self):
-#        results = super(BoxcuttedPhononTask, self)._on_ok()
+#        results = super()._on_ok()
 #        if not self.final_dfp_done:
 #            # Second run: use exact box and normal-accuracy hints (assume pseudos with hints).
 #            pseudos = self.input.pseudos

@@ -4,6 +4,7 @@ import panel as pn
 
 from abipy.panels.core import AbipyParameterized
 
+
 def _mp(fig):
     return pn.pane.Matplotlib(fig)
 

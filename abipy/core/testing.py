@@ -208,15 +208,15 @@ def input_equality_check(ref_file, input2, rtol=1e-05, atol=1e-08, equal_nan=Fal
         val_list_t = flatten_var(val_t)
         val_list_r = flatten_var(val_r)
         error = False
-        print(var)
-        print(val_list_r, type(val_list_r[0]))
-        print(val_list_t, type(val_list_t[0]))
+        #print(var)
+        #print(val_list_r, type(val_list_r[0]))
+        #print(val_list_t, type(val_list_t[0]))
         for k, var_item in enumerate(val_list_r):
             try:
                 error = error or check_var(val_list_t[k], val_list_r[k])
             except IndexError:
-                print(val_list_t, type(val_list_t[0]))
-                print(val_list_r, type(val_list_r[0]))
+                #print(val_list_t, type(val_list_t[0]))
+                #print(val_list_r, type(val_list_r[0]))
                 raise RuntimeError('two value lists were not flattened in the same way, try to add the collection'
                                    'type to the tree_types tuple in flatten_var')
 

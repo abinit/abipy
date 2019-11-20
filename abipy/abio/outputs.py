@@ -965,7 +965,6 @@ class AboRobot(Robot):
         return self._write_nb_nbpath(nb, nbpath)
 
 
-
 class OutNcFile(AbinitNcFile):
     """
     Class representing the _OUT.nc file containing the dataset results
