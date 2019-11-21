@@ -11,6 +11,9 @@ from abipy.panels.core import AbipyParameterized
 #def _mp(fig):
 #    return pn.pane.Matplotlib(fig)
 
+def _df(df):
+    return pn.widgets.DataFrame(df, disabled=True)
+
 
 class FlowPanel(AbipyParameterized):
     """
@@ -31,6 +34,11 @@ class FlowPanel(AbipyParameterized):
     events_btn = pn.widgets.Button(name="Events", button_type='primary')
     corrections_btn = pn.widgets.Button(name="Corrections", button_type='primary')
     handlers_btn = pn.widgets.Button(name="Handlers", button_type='primary')
+
+    vars_text = pn.widgets.TextInput(name='Abivars', placeholder='Enter list of variables separated by comma')
+    vars_btn = pn.widgets.Button(name="Show Variables", button_type='primary')
+
+    dims_btn = pn.widgets.Button(name="Show Dimensions", button_type='primary')
 
     #what_list = pn.widgets.CheckBoxGroup(name='Select', value=_what_list, options=_what_list, inline=False)
 
@@ -100,6 +108,22 @@ class FlowPanel(AbipyParameterized):
         self.flow.show_event_handlers(verbose=self.verbose.value, stream=stream)
         return pn.Row(bw.PreText(text=stream.getvalue()))
 
+    @param.depends('vars_btn.clicks')
+    def on_vars_btn(self):
+        if self.vars_btn.clicks == 0: return
+        if not self.vars_text.value: return
+        varnames = [s.strip() for s in self.vars_text.value.split(",")]
+        df = self.flow.compare_abivars(varnames=varnames, # nids=selected_nids(flow, options),
+                                       printout=False, with_colors=False)
+        return pn.Row(_df(df))
+
+    @param.depends('dims_btn.clicks')
+    def on_dims_btn(self):
+        if self.dims_btn.clicks == 0: return
+        df = self.flow.get_dims_dataframe(# nids=selected_nids(flow, options),
+                                printout=True, with_colors=False)
+        return pn.Row(_df(df), sizing_mode="scale_width")
+
     def get_panel(self):
         """Return tabs with widgets to interact with the flow."""
         tabs = pn.Tabs()
@@ -109,6 +133,8 @@ class FlowPanel(AbipyParameterized):
         tabs.append(("Events", pn.Row(self.events_btn, self.on_events_btn)))
         tabs.append(("Corrections", pn.Row(self.corrections_btn, self.on_corrections_btn)))
         tabs.append(("Handlers", pn.Row(self.handlers_btn, self.on_handlers_btn)))
+        tabs.append(("Abivars", pn.Row(pn.Column(self.vars_text, self.vars_btn), self.on_vars_btn)))
+        tabs.append(("Dims", pn.Row(pn.Column(self.dims_btn), self.on_dims_btn)))
         tabs.append(("Debug", pn.Row(self.debug_btn, self.on_debug_btn)))
         tabs.append(("Graphviz", pn.Row(pn.Column(self.engine, self.dirtree, self.graphviz_btn),
                                         self.on_graphviz_btn)))

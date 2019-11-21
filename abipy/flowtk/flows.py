@@ -30,7 +30,9 @@ from pymatgen.util.serialization import pmg_pickle_load, pmg_pickle_dump, pmg_se
 from pymatgen.core.units import Memory
 from pymatgen.util.io_utils import AtomicFile
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
+from abipy.tools.printing import print_dataframe
 from abipy.flowtk import wrappers
+
 from .nodes import Status, Node, NodeError, NodeResults, Dependency, GarbageCollector, check_spectator
 from .tasks import ScfTask, TaskManager, FixQueueCriticalError
 from .utils import File, Directory, Editor
@@ -871,6 +873,84 @@ class Flow(Node, NodeContainer, MSONable):
         app(str(tabulate(data, headers=["Task Class", "Number"])))
 
         stream.write("\n".join(lines))
+
+    def compare_abivars(self, varnames, nids=None, wslice=None, printout=False, with_colors=False):
+        """
+        Print the input of the tasks to the given stream.
+
+        Args:
+            varnames:
+                List of Abinit variables. If not None, only the variable in varnames
+                are selected and printed.
+            nids: List of node identifiers. By defaults all nodes are shown
+            wslice: Slice object used to select works.
+            printout: True to print dataframe.
+            with_colors: True if task status should be colored.
+        """
+        varnames = [s.strip() for s in list_strings(varnames)]
+        index, rows = [], []
+        for task in self.select_tasks(nids=nids, wslice=wslice):
+            index.append(task.pos_str)
+            dstruct = task.input.structure.as_dict(fmt="abivars")
+
+            od = OrderedDict()
+            for vname in varnames:
+                value = task.input.get(vname, None)
+                if value is None: # maybe in structure?
+                    value = dstruct.get(vname, None)
+                od[vname] = value
+
+            od["task_class"] = task.__class__.__name__
+            od["status"] = task.status.colored if with_colors else str(task.status)
+            rows.append(od)
+
+        import pandas as pd
+        df = pd.DataFrame(rows, index=index)
+        if printout:
+            print_dataframe(df, title="Input variables:")
+
+        return df
+
+    def get_dims_dataframe(self, nids=None, printout=False, with_colors=False):
+        """
+        Analyze output files produced by the tasks. Print pandas DataFrame with dimensions.
+
+        Args:
+            nids: List of node identifiers. By defaults all nodes are shown
+            printout: True to print dataframe.
+            with_colors: True if task status should be colored.
+        """
+        abo_paths, index, status, abo_relpaths, task_classes, task_nids = [], [], [], [], [], []
+
+        for task in self.iflat_tasks(nids=nids):
+            if task.status not in (self.S_OK, self.S_RUN): continue
+            if not task.is_abinit_task: continue
+
+            abo_paths.append(task.output_file.path)
+            index.append(task.pos_str)
+            status.append(task.status.colored if with_colors else str(task.status))
+            abo_relpaths.append(os.path.relpath(task.output_file.relpath))
+            task_classes.append(task.__class__.__name__)
+            task_nids.append(task.node_id)
+
+        if not abo_paths: return
+
+        # Get dimensions from output files as well as walltime/cputime
+        from abipy.abio.outputs import AboRobot
+        robot = AboRobot.from_files(abo_paths)
+        df = robot.get_dims_dataframe(with_time=True, index=index)
+
+        # Add columns to the dataframe.
+        status = [str(s) for s in status]
+        df["task_class"] = task_classes
+        df["relpath"] = abo_relpaths
+        df["node_id"] = task_nids
+        df["status"] = status
+
+        if printout:
+            print_dataframe(df, title="Table with Abinit dimensions:\n")
+
+        return df
 
     def show_summary(self, **kwargs):
         """
@@ -2516,6 +2596,83 @@ class Flow(Node, NodeContainer, MSONable):
 
         ax.axis("off")
         return fig
+
+    def write_open_notebook(flow, foreground):
+        """
+        Generate an ipython notebook and open it in the browser.
+        Return system exit code.
+        """
+        import nbformat
+        nbf = nbformat.v4
+        nb = nbf.new_notebook()
+
+        nb.cells.extend([
+            #nbf.new_markdown_cell("This is an auto-generated notebook for %s" % os.path.basename(pseudopath)),
+            nbf.new_code_cell("""\
+    from __future__ import print_function, division, unicode_literals, absolute_import
+
+    import sys, os
+    import numpy as np
+
+    %matplotlib notebook
+    from IPython.display import display
+
+    # This to render pandas DataFrames with https://github.com/quantopian/qgrid
+    #import qgrid
+    #qgrid.nbinstall(overwrite=True)  # copies javascript dependencies to your /nbextensions folder
+
+    from abipy import abilab
+
+    # Tell AbiPy we are inside a notebook and use seaborn settings for plots.
+    # See https://seaborn.pydata.org/generated/seaborn.set.html#seaborn.set
+    abilab.enable_notebook(with_seaborn=True)
+
+    # AbiPy widgets for pandas and seaborn plot APIs
+    #import abipy.display.seabornw import snw
+    #import abipy.display.pandasw import pdw
+    """),
+
+            nbf.new_code_cell("flow = abilab.Flow.pickle_load('%s')" % flow.workdir),
+            nbf.new_code_cell("if flow.num_errored_tasks: flow.debug()"),
+            nbf.new_code_cell("flow.check_status(show=True, verbose=0)"),
+            nbf.new_code_cell("flow.show_dependencies()"),
+            nbf.new_code_cell("flow.plot_networkx();"),
+            nbf.new_code_cell("#flow.get_graphviz();"),
+            nbf.new_code_cell("flow.show_inputs(nids=None, wslice=None)"),
+            nbf.new_code_cell("flow.show_history()"),
+            nbf.new_code_cell("flow.show_corrections()"),
+            nbf.new_code_cell("flow.show_event_handlers()"),
+            nbf.new_code_cell("flow.inspect(nids=None, wslice=None)"),
+            nbf.new_code_cell("flow.show_abierrors()"),
+            nbf.new_code_cell("flow.show_qouts()"),
+        ])
+
+        import tempfile, io
+        _, nbpath = tempfile.mkstemp(suffix='.ipynb', text=True)
+
+        with io.open(nbpath, 'wt', encoding="utf8") as fh:
+            nbformat.write(nb, fh)
+
+        from monty.os.path import which
+        has_jupyterlab = which("jupyter-lab") is not None
+        appname = "jupyter-lab" if has_jupyterlab else "jupyter notebook"
+        if not has_jupyterlab:
+            if which("jupyter") is None:
+                raise RuntimeError("Cannot find jupyter in $PATH. Install it with `pip install`")
+
+        appname = "jupyter-lab" if has_jupyterlab else "jupyter notebook"
+
+        if foreground:
+            return os.system("%s %s" % (appname, nbpath))
+        else:
+            fd, tmpname = tempfile.mkstemp(text=True)
+            print(tmpname)
+            cmd = "%s %s" % (appname, nbpath)
+            print("Executing:", cmd, "\nstdout and stderr redirected to %s" % tmpname)
+            import subprocess
+            process = subprocess.Popen(cmd.split(), shell=False, stdout=fd, stderr=fd)
+            cprint("pid: %s" % str(process.pid), "yellow")
+            return process.returncode
 
 
 class G0W0WithQptdmFlow(Flow):

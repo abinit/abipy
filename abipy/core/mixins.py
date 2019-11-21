@@ -493,8 +493,7 @@ class NotebookWriter(metaclass=abc.ABCMeta):
         Return:
             system exit code.
 
-        Raise:
-            `RuntimeError` if jupyter_ is not in $PATH
+        Raise: `RuntimeError` if jupyter_ is not in $PATH
         """
         nbpath = self.write_notebook(nbpath=nbpath)
 

@@ -273,6 +273,12 @@ def itest_bandstructure_flow(fwp, tvars):
             den = denfile.get_density(workdir=workdir)
             assert den.structure is not None and hasattr(den, "datar")
 
+    df = flow.get_dims_dataframe(printout=False, with_colors=True)
+    assert "ecut" in df
+
+    df =  flow.compare_abivars(["ecut", "natom"], printout=True, with_colors=True)
+    assert np.all(df["natom"].values == 2)
+
 
 def itest_bandstructure_schedflow(fwp, tvars):
     """

@@ -18,7 +18,6 @@ from pprint import pprint
 from collections import defaultdict, OrderedDict
 from socket import gethostname
 from monty import termcolor
-from monty.os.path import which
 from monty.functools import prof_main
 from monty.termcolor import cprint, colored, get_terminal_size
 from monty.string import boxed, list_strings, make_banner
@@ -137,83 +136,12 @@ def cli_abiopen(options, filepath):
 
 
 # TODO: These should become flow methods.
-def flow_write_open_notebook(flow, options):
-    """
-    Generate an ipython notebook and open it in the browser.
-    Return system exit code.
-    """
-    import nbformat
-    nbf = nbformat.v4
-    nb = nbf.new_notebook()
-
-    nb.cells.extend([
-        #nbf.new_markdown_cell("This is an auto-generated notebook for %s" % os.path.basename(pseudopath)),
-        nbf.new_code_cell("""\
-from __future__ import print_function, division, unicode_literals, absolute_import
-
-import sys, os
-import numpy as np
-
-%matplotlib notebook
-from IPython.display import display
-
-# This to render pandas DataFrames with https://github.com/quantopian/qgrid
-#import qgrid
-#qgrid.nbinstall(overwrite=True)  # copies javascript dependencies to your /nbextensions folder
-
-from abipy import abilab
-
-# Tell AbiPy we are inside a notebook and use seaborn settings for plots.
-# See https://seaborn.pydata.org/generated/seaborn.set.html#seaborn.set
-abilab.enable_notebook(with_seaborn=True)
-
-# AbiPy widgets for pandas and seaborn plot APIs
-#import abipy.display.seabornw import snw
-#import abipy.display.pandasw import pdw
-"""),
-
-        nbf.new_code_cell("flow = abilab.Flow.pickle_load('%s')" % flow.workdir),
-        nbf.new_code_cell("if flow.num_errored_tasks: flow.debug()"),
-        nbf.new_code_cell("flow.check_status(show=True, verbose=0)"),
-        nbf.new_code_cell("flow.show_dependencies()"),
-        nbf.new_code_cell("flow.plot_networkx();"),
-        nbf.new_code_cell("#flow.get_graphviz();"),
-        nbf.new_code_cell("flow.show_inputs(nids=None, wslice=None)"),
-        nbf.new_code_cell("flow.show_history()"),
-        nbf.new_code_cell("flow.show_corrections()"),
-        nbf.new_code_cell("flow.show_event_handlers()"),
-        nbf.new_code_cell("flow.inspect(nids=None, wslice=None)"),
-        nbf.new_code_cell("flow.show_abierrors()"),
-        nbf.new_code_cell("flow.show_qouts()"),
-    ])
-
-    import tempfile, io
-    _, nbpath = tempfile.mkstemp(suffix='.ipynb', text=True)
-
-    with io.open(nbpath, 'wt', encoding="utf8") as fh:
-        nbformat.write(nb, fh)
-
-    if which("jupyter") is None:
-        raise RuntimeError("Cannot find jupyter in $PATH. Install it with `pip install`")
-
-    if options.foreground:
-        return os.system("jupyter notebook %s" % nbpath)
-    else:
-        fd, tmpname = tempfile.mkstemp(text=True)
-        print(tmpname)
-        cmd = "jupyter notebook %s" % nbpath
-        print("Executing:", cmd)
-        print("stdout and stderr redirected to %s" % tmpname)
-        import subprocess
-        process = subprocess.Popen(cmd.split(), shell=False, stdout=fd, stderr=fd)
-        cprint("pid: %s" % str(process.pid), "yellow")
-
 
 def flow_compare_structures(flow, nids=None, with_spglib=False, what="io", verbose=0,
                             precision=3, printout=False, with_colors=False):
     """
-    Analyze structures of the tasks (input and output structures if it's a relaxation
-    task. Print pandas DataFrame
+    Analyze structures of the tasks (input and output structures if it's a relaxation task.
+    Print pandas DataFrame
 
     Args:
         nids: List of node identifiers. By defaults all nodes are shown
@@ -224,7 +152,6 @@ def flow_compare_structures(flow, nids=None, with_spglib=False, what="io", verbo
         printout: True to print dataframe.
         with_colors: True if task status should be colored.
     """
-    #flow.check_status()
     structures, index, status, max_forces, pressures, task_classes = [], [], [], [], [], []
 
     def push_data(post, task, structure, cart_forces, pressure):
@@ -404,87 +331,6 @@ def flow_compare_hist(flow, nids=None, with_spglib=False, verbose=0,
                 robot.combiplot()
             else:
                 raise ValueError("Invalid value of plot_mode: %s" % str(plot_mode))
-
-    return df
-
-
-def flow_get_dims_dataframe(flow, nids=None, printout=False, with_colors=False):
-    """
-    Analyze output files produced by Abinit tasks. Print pandas DataFrame with dimensions.
-
-    Args:
-        nids: List of node identifiers. By defaults all nodes are shown
-        printout: True to print dataframe.
-        with_colors: True if task status should be colored.
-    """
-    abo_paths, index, status, abo_relpaths, task_classes, task_nids = [], [], [], [], [], []
-
-    for task in flow.iflat_tasks(nids=nids):
-        if task.status not in (flow.S_OK, flow.S_RUN): continue
-        if not task.is_abinit_task: continue
-
-        abo_paths.append(task.output_file.path)
-        index.append(task.pos_str)
-        status.append(task.status.colored if with_colors else str(task.status))
-        abo_relpaths.append(os.path.relpath(task.output_file.relpath))
-        task_classes.append(task.__class__.__name__)
-        task_nids.append(task.node_id)
-
-    if not abo_paths: return
-
-    # Get dimensions from output files as well as walltime/cputime
-    robot = abilab.AboRobot.from_files(abo_paths)
-    df = robot.get_dims_dataframe(with_time=True, index=index)
-
-    # Add columns to the dataframe.
-    status = [str(s) for s in status]
-    df["task_class"] = task_classes
-    df["relpath"] = abo_relpaths
-    df["node_id"] = task_nids
-    df["status"] = status
-
-    if printout:
-        abilab.print_dataframe(df, title="Table with Abinit dimensions:\n")
-
-    return df
-
-
-def flow_compare_abivars(flow, varnames, nids=None, wslice=None, printout=False, with_colors=False):
-    """
-    Print the input of the tasks to the given stream.
-
-    Args:
-        varnames:
-            List of Abinit variables. If not None, only the variable in varnames
-            are selected and printed.
-        nids:
-            List of node identifiers. By defaults all nodes are shown
-        wslice:
-            Slice object used to select works.
-        printout: True to print dataframe.
-        with_colors: True if task status should be colored.
-    """
-    varnames = [s.strip() for s in list_strings(varnames)]
-    index, rows = [], []
-    for task in flow.select_tasks(nids=nids, wslice=wslice):
-        index.append(task.pos_str)
-        dstruct = task.input.structure.as_dict(fmt="abivars")
-
-        od = OrderedDict()
-        for vname in varnames:
-            value = task.input.get(vname, None)
-            if value is None: # maybe in structure?
-                value = dstruct.get(vname, None)
-            od[vname] = value
-
-        od["task_class"] = task.__class__.__name__
-        od["status"] = task.status.colored if with_colors else str(task.status)
-        rows.append(od)
-
-    import pandas as pd
-    df = pd.DataFrame(rows, index=index)
-    if printout:
-        abilab.print_dataframe(df, title="Input variables:")
 
     return df
 
@@ -1073,12 +919,6 @@ Default: o
         help="List all the output files with the given extension that have been produced by the nodes.")
     p_listext.add_argument('listexts', nargs="*", default=[], help="List of Abinit file extensions. e.g DDB, GSR, WFK etc")
 
-    # Subparser for timer.
-    # TODO
-    #p_timer = subparsers.add_parser('timer', parents=[copts_parser, flow_selector_parser],
-    #    help=("Read the section with timing info from the main ABINIT output file (requires timopt != 0) "
-    #          "Open Ipython terminal to inspect data."))
-
     return parser
 
 
@@ -1494,7 +1334,7 @@ def main():
                            options.plot_mode, plotter.__class__.__name__, str(exc)), "red")
 
     elif options.command == "dims":
-        flow_get_dims_dataframe(flow, nids=selected_nids(flow, options),
+        flow.get_dims_dataframe(nids=selected_nids(flow, options),
                                 printout=True, with_colors=not options.no_colors)
 
     elif options.command == "inspect":
@@ -1515,7 +1355,7 @@ def main():
         flow.show_inputs(varnames=options.varnames, nids=selected_nids(flow, options))
 
     elif options.command == "abivars":
-        flow_compare_abivars(flow, varnames=options.varnames, nids=selected_nids(flow, options),
+        flow.compare_abivars(varnames=options.varnames, nids=selected_nids(flow, options),
                              printout=True, with_colors=not options.no_colors)
 
     elif options.command == "structures":
@@ -1534,7 +1374,7 @@ def main():
                           plot_mode=options.plot_mode)
 
     elif options.command == "notebook":
-        return flow_write_open_notebook(flow, options)
+        return flow.write_open_notebook(options.foreground)
 
     elif options.command == "ipython":
         import IPython
@@ -1640,16 +1480,6 @@ def main():
             print("")
             flow.listext(ext)
             print("")
-
-    #elif options.command == "timer":
-    #    print("Warning this option is still under development")
-    #    timer = flow.parse_timing()
-    #    if timer is None:
-    #        cprint("Cannot parse timer data!", color="magenta", end="", flush=True)
-    #        return 1
-
-    #    import IPython
-    #    IPython.start_ipython(argv=[], user_ns={"timer": timer})
 
     else:
         raise RuntimeError("Don't know what to do with command %s!" % options.command)
