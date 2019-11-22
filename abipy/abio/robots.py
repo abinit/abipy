@@ -832,7 +832,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
             return str(func_or_string)
 
     @add_fig_kwargs
-    def plot_convergence(self, item, sortby=None, hue=None, ax=None, fontsize=12, **kwargs):
+    def plot_convergence(self, item, sortby=None, hue=None, ax=None, fontsize=8, **kwargs):
         """
         Plot the convergence of ``item`` wrt the ``sortby`` parameter.
         Values can optionally be grouped by ``hue``.

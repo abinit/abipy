@@ -232,7 +232,9 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
                                  parameters=parameters, data=data)
 
     def get_panel(self):
-        """Build panel with widgets to interact with the |GsrFile| either in a notebook or in panel app."""
+        """
+        Build panel with widgets to interact with the |GsrFile| either in a notebook or in panel app.
+        """
         from abipy.panels.gsr import GsrFilePanel
         return GsrFilePanel(self).get_panel()
 
@@ -603,6 +605,13 @@ class GsrRobot(Robot, RobotWithEbands):
         yield self.plot_lattice_convergence(show=False)
         yield self.plot_gsr_convergence(show=False)
         for fig in self.get_ebands_plotter().yield_figs(): yield fig
+
+    def get_panel(self):
+        """
+        Build panel with widgets to interact with the |GsrRobot| either in a notebook or in panel app.
+        """
+        from abipy.panels.gsr import GsrRobotPanel
+        return GsrRobotPanel(self).get_panel()
 
     def write_notebook(self, nbpath=None):
         """

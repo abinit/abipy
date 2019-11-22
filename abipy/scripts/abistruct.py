@@ -857,7 +857,7 @@ def main():
     elif options.command == "mp_match":
         mp = abilab.mp_match_structure(options.filepath)
         if not mp.structures:
-            cprint("No structure found in database", "yellow")
+            cprint("No structure found in MP database", "yellow")
             return 1
 
         if options.notebook:

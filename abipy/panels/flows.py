@@ -11,6 +11,7 @@ from abipy.panels.core import AbipyParameterized
 #def _mp(fig):
 #    return pn.pane.Matplotlib(fig)
 
+
 def _df(df):
     return pn.widgets.DataFrame(df, disabled=True)
 
@@ -39,6 +40,8 @@ class FlowPanel(AbipyParameterized):
     vars_btn = pn.widgets.Button(name="Show Variables", button_type='primary')
 
     dims_btn = pn.widgets.Button(name="Show Dimensions", button_type='primary')
+
+    structures_btn = pn.widgets.Button(name="Show Structures", button_type='primary')
 
     #what_list = pn.widgets.CheckBoxGroup(name='Select', value=_what_list, options=_what_list, inline=False)
 
@@ -124,6 +127,16 @@ class FlowPanel(AbipyParameterized):
                                 printout=True, with_colors=False)
         return pn.Row(_df(df), sizing_mode="scale_width")
 
+    @param.depends('structures_btn.clicks')
+    def on_structures_btn(self):
+        if self.structures_btn.clicks == 0: return
+        dfs = self.flow.compare_structures(nids=None, # select_nids(flow, options),
+                                           what="io", # options.what,
+                                           verbose=self.verbose.value, with_spglib=False, printout=False,
+                                           with_colors=False)
+
+        return pn.Row(_df(dfs.lattice), sizing_mode="scale_width")
+
     def get_panel(self):
         """Return tabs with widgets to interact with the flow."""
         tabs = pn.Tabs()
@@ -133,6 +146,7 @@ class FlowPanel(AbipyParameterized):
         tabs.append(("Events", pn.Row(self.events_btn, self.on_events_btn)))
         tabs.append(("Corrections", pn.Row(self.corrections_btn, self.on_corrections_btn)))
         tabs.append(("Handlers", pn.Row(self.handlers_btn, self.on_handlers_btn)))
+        tabs.append(("Structures", pn.Row(pn.Column(self.structures_btn), self.on_structures_btn)))
         tabs.append(("Abivars", pn.Row(pn.Column(self.vars_text, self.vars_btn), self.on_vars_btn)))
         tabs.append(("Dims", pn.Row(pn.Column(self.dims_btn), self.on_dims_btn)))
         tabs.append(("Debug", pn.Row(self.debug_btn, self.on_debug_btn)))

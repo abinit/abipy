@@ -116,7 +116,7 @@ def mp_search(chemsys_formula_id, api_key=None, endpoint=None):
 
 def cod_search(formula, primitive=False):
     """
-    Connect to the COD_ database. Get a list of structures corresponding to a chemical formula
+    Connect to the COD_ database. Get list of structures corresponding to a chemical formula
 
     Args:
         formula (str): Chemical formula (e.g., Fe2O3)

@@ -227,7 +227,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
                     break
 
             if first_positive_freq_ind is None or first_positive_freq_ind - n_points / 2 > 0:
-                raise ValueError("too many negative frequencies along direction {}".format(direction))
+                raise ValueError("Too many negative frequencies along direction {}".format(direction))
 
             sv = []
             mt = []

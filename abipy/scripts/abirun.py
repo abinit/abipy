@@ -78,7 +78,7 @@ def flowdir_wname_tname(dirname):
     raise RuntimeError("Cannot locate flowdir from %s" % dirname)
 
 
-def selected_nids(flow, options):
+def select_nids(flow, options):
     """
     Return the list of node ids selected by the user via the command line interface.
     """
@@ -136,83 +136,6 @@ def cli_abiopen(options, filepath):
 
 
 # TODO: These should become flow methods.
-
-def flow_compare_structures(flow, nids=None, with_spglib=False, what="io", verbose=0,
-                            precision=3, printout=False, with_colors=False):
-    """
-    Analyze structures of the tasks (input and output structures if it's a relaxation task.
-    Print pandas DataFrame
-
-    Args:
-        nids: List of node identifiers. By defaults all nodes are shown
-        with_spglib: If True, spglib is invoked to get the spacegroup symbol and number
-        what (str): "i" for input structures, "o" for output structures.
-        precision: Floating point output precision (number of significant digits).
-            This is only a suggestion
-        printout: True to print dataframe.
-        with_colors: True if task status should be colored.
-    """
-    structures, index, status, max_forces, pressures, task_classes = [], [], [], [], [], []
-
-    def push_data(post, task, structure, cart_forces, pressure):
-        """Helper function to fill lists"""
-        index.append(task.pos_str + post)
-        structures.append(structure)
-        status.append(task.status.colored if with_colors else str(task.status))
-        if cart_forces is not None:
-            fmods = np.sqrt([np.dot(f, f) for f in cart_forces])
-            max_forces.append(fmods.max())
-        else:
-            max_forces.append(None)
-        pressures.append(pressure)
-        task_classes.append(task.__class__.__name__)
-
-    for task in flow.iflat_tasks(nids=nids):
-        if "i" in what:
-            push_data("_in", task, task.input.structure, cart_forces=None, pressure=None)
-
-        if "o" not in what:
-            continue
-
-        # Add final structure, pressure and max force if relaxation task or GS task
-        if task.status in (task.S_RUN, task.S_OK):
-            if hasattr(task, "open_hist"):
-                # Structural relaxations produce HIST.nc and we can get
-                # the final structure or the structure of the last relaxation step.
-                try:
-                    with task.open_hist() as hist:
-                        final_structure = hist.final_structure
-                        stress_cart_tensors, pressures_hist = hist.reader.read_cart_stress_tensors()
-                        forces = hist.reader.read_cart_forces(unit="eV ang^-1")[-1]
-                        push_data("_out", task, final_structure, forces, pressures_hist[-1])
-                except Exception as exc:
-                    cprint("Exception while opening HIST.nc file of task: %s\n%s" % (task, str(exc)), "red")
-
-            elif hasattr(task, "open_gsr") and task.status == task.S_OK and task.input.get("iscf", 7) >= 0:
-                with task.open_gsr() as gsr:
-                    forces = gsr.reader.read_cart_forces(unit="eV ang^-1")
-                    push_data("_out", task, gsr.structure, forces, gsr.pressure)
-
-    dfs = dataframes_from_structures(structures, index=index, with_spglib=with_spglib, cart_coords=False)
-
-    if any(f is not None for f in max_forces):
-        # Add pressure and forces to the dataframe
-        dfs.lattice["P [GPa]"] = pressures
-        dfs.lattice["Max|F| eV/ang"] = max_forces
-
-    # Add columns to the dataframe.
-    status = [str(s) for s in status]
-    dfs.lattice["task_class"] = task_classes
-    dfs.lattice["status"] = dfs.coords["status"] = status
-
-    if printout:
-        abilab.print_dataframe(dfs.lattice, title="Lattice parameters:", precision=precision)
-        if verbose:
-            abilab.print_dataframe(dfs.coords, title="Atomic positions (columns give the site index):")
-        else:
-            print("Use `--verbose` to print atoms.")
-
-    return dfs
 
 
 def flow_compare_ebands(flow, nids=None, with_spglib=False, verbose=0,
@@ -1075,7 +998,7 @@ def main():
 
         # Change the manager of the errored tasks.
         print("Resetting tasks with status: %s" % options.task_status)
-        for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)):
+        for task in flow.iflat_tasks(status=options.task_status, nids=select_nids(flow, options)):
             task.reset()
             task.set_manager(new_manager)
 
@@ -1093,13 +1016,13 @@ def main():
         return 0
 
     elif options.command == "events":
-        flow.show_events(status=options.task_status, nids=selected_nids(flow, options))
+        flow.show_events(status=options.task_status, nids=select_nids(flow, options))
 
     elif options.command == "corrections":
-        flow.show_corrections(status=options.task_status, nids=selected_nids(flow, options))
+        flow.show_corrections(status=options.task_status, nids=select_nids(flow, options))
 
     elif options.command == "history":
-        flow.show_history(status=options.task_status, nids=selected_nids(flow, options),
+        flow.show_history(status=options.task_status, nids=select_nids(flow, options),
                           full_history=options.full_history, metadata=options.metadata)
 
     elif options.command == "handlers":
@@ -1142,9 +1065,9 @@ def main():
 
         if options.delay:
             flow_watch_status(flow, delay=options.delay, verbose=options.verbose,
-                              nids=selected_nids(flow, options), func_name=show_func.__name__)
+                              nids=select_nids(flow, options), func_name=show_func.__name__)
         else:
-            show_func(verbose=options.verbose, nids=selected_nids(flow, options))
+            show_func(verbose=options.verbose, nids=select_nids(flow, options))
             if options.verbose and flow.manager.has_queue:
                 print("Total number of jobs in queue: %s" % flow.manager.get_njobs_in_queue())
 
@@ -1155,7 +1078,7 @@ def main():
         print("Will set all tasks with status: ", options.task_status, " to new_status", new_status)
 
         count = 0
-        for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)):
+        for task in flow.iflat_tasks(status=options.task_status, nids=select_nids(flow, options)):
             task.set_status(new_status, msg="Changed by abirun from %s to %s" % (task.status, new_status))
             count += 1
 
@@ -1165,10 +1088,10 @@ def main():
             flow.pickle_dump()
 
     elif options.command == "open":
-        flow.open_files(what=options.what, status=None, op="==", nids=selected_nids(flow, options))
+        flow.open_files(what=options.what, status=None, op="==", nids=select_nids(flow, options))
 
     elif options.command == "cancel":
-        print("Number of jobs cancelled %d" % flow.cancel(nids=selected_nids(flow, options)))
+        print("Number of jobs cancelled %d" % flow.cancel(nids=select_nids(flow, options)))
         # Remove directory
         if options.rmtree: flow.rmtree()
 
@@ -1178,7 +1101,7 @@ def main():
             options.task_status = Status.as_status("Unconverged")
 
         nlaunch, excs = 0, []
-        for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)):
+        for task in flow.iflat_tasks(status=options.task_status, nids=select_nids(flow, options)):
             #if options.verbose:
             print("Will try to restart %s, with status %s" % (task, task.status))
             try:
@@ -1209,7 +1132,7 @@ def main():
             print("Resetting tasks with node ids: %s" % str(options.nids))
 
         count = 0
-        for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)):
+        for task in flow.iflat_tasks(status=options.task_status, nids=select_nids(flow, options)):
             print("Resetting task %s... " % task, end="")
             failed = task.reset()
             if failed:
@@ -1246,7 +1169,7 @@ def main():
         # Default status for tail is Running
         if options.task_status is None: options.task_status = Status.as_status("Running")
 
-        paths = [get_path(task) for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options))]
+        paths = [get_path(task) for task in flow.iflat_tasks(status=options.task_status, nids=select_nids(flow, options))]
 
         if not paths:
             cprint("No job is running. Exiting!", "magenta")
@@ -1274,7 +1197,7 @@ def main():
 
     elif options.command == "robot":
         print("Building robot for file extension:", options.robot_ext, "with task_class:", options.task_class)
-        robot = abilab.Robot.from_flow(flow, outdirs="all", nids=selected_nids(flow, options),
+        robot = abilab.Robot.from_flow(flow, outdirs="all", nids=select_nids(flow, options),
                                        ext=options.robot_ext)
         if len(robot) == 0:
             cprint("Robot couldn't find files", "yellow")
@@ -1310,7 +1233,7 @@ def main():
         # Print cycles.
         from pymatgen.io.abinit.abiinspect import CyclesPlotter
         cls2plotter = OrderedDict()
-        for task, cycle in flow.get_task_scfcycles(nids=selected_nids(flow, options),
+        for task, cycle in flow.get_task_scfcycles(nids=select_nids(flow, options),
                                                    exclude_ok_tasks=options.exclude_ok_tasks):
             print()
             cprint(repr(task), **task.status.color_opts)
@@ -1334,11 +1257,11 @@ def main():
                            options.plot_mode, plotter.__class__.__name__, str(exc)), "red")
 
     elif options.command == "dims":
-        flow.get_dims_dataframe(nids=selected_nids(flow, options),
+        flow.get_dims_dataframe(nids=select_nids(flow, options),
                                 printout=True, with_colors=not options.no_colors)
 
     elif options.command == "inspect":
-        tasks = flow.select_tasks(nids=selected_nids(flow, options))
+        tasks = flow.select_tasks(nids=select_nids(flow, options))
         def plot_graphs():
             for task in tasks:
                 if hasattr(task, "inspect"):
@@ -1352,24 +1275,25 @@ def main():
         plot_graphs()
 
     elif options.command == "inputs":
-        flow.show_inputs(varnames=options.varnames, nids=selected_nids(flow, options))
+        flow.show_inputs(varnames=options.varnames, nids=select_nids(flow, options))
 
     elif options.command == "abivars":
-        flow.compare_abivars(varnames=options.varnames, nids=selected_nids(flow, options),
+        flow.compare_abivars(varnames=options.varnames, nids=select_nids(flow, options),
                              printout=True, with_colors=not options.no_colors)
 
     elif options.command == "structures":
-        flow_compare_structures(flow, nids=selected_nids(flow, options), what=options.what,
+        flow.compare_structures(nids=select_nids(flow, options),
+                                what=options.what,
                                 verbose=options.verbose, with_spglib=False, printout=True,
                                 with_colors=not options.no_colors)
 
     elif options.command == "ebands":
-        flow_compare_ebands(flow, nids=selected_nids(flow, options), verbose=options.verbose,
+        flow_compare_ebands(flow, nids=select_nids(flow, options), verbose=options.verbose,
                             with_spglib=False, printout=True, with_colors=not options.no_colors,
                             plot_mode=options.plot_mode)
 
     elif options.command == "hist":
-        flow_compare_hist(flow, nids=selected_nids(flow, options), verbose=options.verbose,
+        flow_compare_hist(flow, nids=select_nids(flow, options), verbose=options.verbose,
                           with_spglib=False, printout=True, with_colors=not options.no_colors,
                           plot_mode=options.plot_mode)
 
@@ -1397,21 +1321,21 @@ def main():
         flow.show_tricky_tasks(verbose=options.verbose)
 
     elif options.command == "debug":
-        flow.debug(status=options.task_status, nids=selected_nids(flow, options))
+        flow.debug(status=options.task_status, nids=select_nids(flow, options))
 
     elif options.command == "debug_reset":
-        flow_debug_reset_tasks(flow, nids=selected_nids(flow, options), verbose=options.verbose)
+        flow_debug_reset_tasks(flow, nids=select_nids(flow, options), verbose=options.verbose)
 
     # TODO
     #elif options.command == "debug_restart":
-    #    flow_debug_restart_tasks(flow, nids=selected_nids(flow, options), verbose=options.verbose)
+    #    flow_debug_restart_tasks(flow, nids=select_nids(flow, options), verbose=options.verbose)
 
     #elif options.command == "clone_task":
 
     elif options.command == "group":
         d = defaultdict(list)
         print("\nMapping `%s` ---> List of node identifiers" % options.groupby)
-        for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)):
+        for task in flow.iflat_tasks(status=options.task_status, nids=select_nids(flow, options)):
             if options.groupby == "status":
                 k = task.status
             elif options.groupby == "task_class":
@@ -1428,7 +1352,7 @@ def main():
         if options.nids is None:
             raise ValueError("nids must be specified when using diff command")
 
-        tasks = list(flow.iflat_tasks(nids=selected_nids(flow, options)))
+        tasks = list(flow.iflat_tasks(nids=select_nids(flow, options)))
 
         if len(tasks) not in (2, 3):
             if len(tasks) == 1:

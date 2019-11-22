@@ -3,8 +3,14 @@ import param
 import panel as pn
 import bokeh.models.widgets as bw
 
+from abipy.panels.core import AbipyParameterized
 
-class StructurePanel(param.Parameterized):
+
+def _df(df, disabled=True):
+    return pn.widgets.DataFrame(df, disabled=disabled)
+
+
+class StructurePanel(AbipyParameterized):
 
     output_format = param.ObjectSelector(default="abinit",
                                          objects="abinit,cif,xsf,poscar,qe,siesta,wannier90,cssr,json".split(","),
@@ -23,6 +29,8 @@ class StructurePanel(param.Parameterized):
                                   objects="vesta,xcrysden".split(","),
                                   doc="Viewer")
     viewer_btn = pn.widgets.Button(name="View Structure", button_type='primary')
+
+    mp_match_btn = pn.widgets.Button(name="Connect to Materials Project", button_type='primary')
 
     def __init__(self, structure,  **params):
         super().__init__(**params)
@@ -53,7 +61,17 @@ class StructurePanel(param.Parameterized):
         #return pn.interact(view)
         #return view.render_image()
 
-        self.structure.visualize(appname=self.viewer.value)
+        self.structure.visualize(appname=self.viewer) #.value)
+
+    @param.depends("mp_match_btn.clicks")
+    def on_mp_match_btn(self):
+        if self.mp_match_btn.clicks == 0: return
+        from abipy.core.structure import mp_match_structure
+        mp = mp_match_structure(self.structure, api_key=None, endpoint=None, final=True)
+        if not mp.structures:
+            raise RuntimeError("No structure found in MP database")
+
+        return pn.Column(_df(mp.lattice_dataframe), sizing_mode='stretch_width')
 
     def get_panel(self):
         """Build panel with widgets to interact with the structure either in a notebook or in a bokeh app"""
@@ -64,4 +82,6 @@ class StructurePanel(param.Parameterized):
         tabs.append(("Kpath", pn.Row(w, self.get_kpath)))
         tabs.append(("Convert", pn.Row(pn.Column(self.param.output_format), self.convert)))
         tabs.append(("View", pn.Row(pn.Column(self.param.viewer, self.viewer_btn), self.view)))
+        tabs.append(("MP-match", pn.Row(pn.Column(self.mp_match_btn), self.on_mp_match_btn)))
+
         return tabs

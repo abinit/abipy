@@ -213,8 +213,12 @@ class FlowTest(FlowUnitTest):
         flow.show_status()
         flow.show_tricky_tasks()
         flow.show_event_handlers()
+
         df = flow.compare_abivars(varnames=["ecut", "natom"], printout=True, with_colors=True)
         assert "ecut" in df
+
+        dfs = flow.compare_structures(with_spglib=False, verbose=2, printout=True, with_colors=True)
+        assert "alpha" in dfs.lattice
 
         if self.has_networkx():
             assert flow.plot_networkx(mode="network", with_edge_labels=False, arrows=False,

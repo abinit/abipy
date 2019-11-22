@@ -10,11 +10,14 @@ from monty.functools import lazy_property
 def _mp(fig):
     return pn.pane.Matplotlib(fig)
 
+def _df(df):
+    return pn.widgets.DataFrame(df, disabled=True)
+
 
 class AbipyParameterized(param.Parameterized):
 
     verbose = param.Integer(0, bounds=(0, None), doc="Verbosity Level")
-    mpi_procs = param.Integer(1, bounds=(1, None), doc="Number of MPI processes used in anaddb")
+    mpi_procs = param.Integer(1, bounds=(1, None), doc="Number of MPI processes used when runnin Fortran code")
     #fontsize =
 
     #def get_global_widgets(self):
@@ -28,6 +31,10 @@ class AbipyParameterized(param.Parameterized):
 
 
 #class PanelWithNcFile(AbipyParameterized): #, metaclass=abc.ABCMeta):
+#    """
+#    This frame allows the user to inspect the dimensions and the variables reported in  a netcdf file.
+#    Tab showing information on the netcdf file.
+#    """
 
 
 class PanelWithElectronBands(AbipyParameterized): #, metaclass=abc.ABCMeta):
@@ -56,9 +63,8 @@ class PanelWithElectronBands(AbipyParameterized): #, metaclass=abc.ABCMeta):
 
     def get_plot_ebands_widgets(self):
         """Widgets to plot ebands."""
-        return pn.Column(
-                self.with_gaps,
-                self.plot_ebands_btn)
+        return pn.Column(self.with_gaps,
+                         self.plot_ebands_btn)
 
     @param.depends('plot_ebands_btn.clicks')
     def on_plot_ebands_btn(self):
@@ -69,7 +75,7 @@ class PanelWithElectronBands(AbipyParameterized): #, metaclass=abc.ABCMeta):
 
         fig2 = self.ebands.kpoints.plot(**self.fig_kwargs)
         row = pn.Row(_mp(fig1), _mp(fig2)) #, sizing_mode='scale_width')
-        text = bw.PreText(self.ebands.to_string(verbose=self.verbose))
+        text = bw.PreText(text=self.ebands.to_string(verbose=self.verbose))
         return pn.Column(row, text, sizing_mode='scale_width')
 
     def get_plot_edos_widgets(self):
@@ -84,3 +90,56 @@ class PanelWithElectronBands(AbipyParameterized): #, metaclass=abc.ABCMeta):
         fig = edos.plot(**self.fig_kwargs)
         #print(edos)
         return pn.Row(_mp(fig), sizing_mode='scale_width')
+
+
+class BaseRobotPanel(AbipyParameterized):
+    """pass"""
+
+
+
+class PanelWithEbandsRobot(BaseRobotPanel): #, metaclass=abc.ABCMeta):
+    """
+    Mixin class for panels with a robot that owns a list of of |ElectronBands|
+    """
+
+    # Widgets to plot ebands.
+    ebands_plotter_mode = pn.widgets.Select(name="Plot Mode", value="gridplot",
+        options=["gridplot", "combiplot", "boxplot", "combiboxplot"]) # "animate",
+    ebands_plotter_btn = pn.widgets.Button(name="Plot", button_type='primary')
+
+    # Widgets to plot edos.
+    edos_plotter_mode = pn.widgets.Select(name="Plot Mode", value="gridplot",
+        options=["gridplot", "combiplot"])
+    edos_plotter_btn = pn.widgets.Button(name="Plot", button_type='primary')
+
+    def get_ebands_plotter_widgets(self):
+        return pn.Column(self.ebands_plotter_mode, self.ebands_plotter_btn)
+
+    @param.depends("ebands_plotter_btn.clicks")
+    def on_ebands_plotter_btn(self):
+        if self.ebands_plotter_btn.clicks == 0: return
+        ebands_plotter = self.robot.get_ebands_plotter()
+        plot_mode = self.ebands_plotter_mode.value
+        plotfunc = getattr(ebands_plotter, plot_mode, None)
+        if plotfunc is None:
+            raise ValueError("Don't know how to handle plot_mode: %s" % plot_mode)
+
+        fig = plotfunc(**self.fig_kwargs)
+        df = ebands_plotter.get_ebands_frame(with_spglib=True)
+        return pn.Row(pn.Column(_mp(fig), df),
+                      sizing_mode='scale_width')
+
+    def get_edos_plotter_widgets(self):
+        return pn.Column(self.edos_plotter_mode, self.edos_plotter_btn)
+
+    @param.depends("edos_plotter_btn.clicks")
+    def on_edos_plotter_btn(self):
+        if self.edos_plotter_btn.clicks == 0: return
+        edos_plotter = self.robot.get_edos_plotter()
+        plot_mode = self.edos_plotter_mode.value
+        plotfunc = getattr(edos_plotter, plot_mode, None)
+        if plotfunc is None:
+            raise ValueError("Don't know how to handle plot_mode: %s" % plot_mode)
+
+        fig = plotfunc(**self.fig_kwargs)
+        return pn.Row(pn.Column(_mp(fig)), sizing_mode='scale_width')

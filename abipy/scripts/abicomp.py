@@ -122,10 +122,6 @@ from abipy import abilab"""),
         import IPython
         IPython.embed(header="Type `dfs` in the terminal and use <TAB> to list its methods", dfs=dfs)
     else:
-        #print("File list:")
-        #for i, p in enumerate(paths):
-        #    print("%d: %s" % (i, p))
-        #print()
         print("Spglib options: symprec=", options.symprec, "angle_tolerance=", options.angle_tolerance)
         abilab.print_dataframe(dfs.lattice, title="Lattice parameters:")
         df_to_clipboard(options, dfs.lattice)
@@ -653,6 +649,16 @@ def _invoke_robot(options):
     if options.notebook:
         robot.make_and_open_notebook(foreground=options.foreground)
 
+    elif options.panel:
+        try:
+            import panel  # flake8: noqa
+        except ImportError as exc:
+            cprint("Use `conda install panel` or `pip install panel` to install the python package.", "red")
+            raise exc
+
+        robot.get_panel().show()
+        return 0
+
     elif options.print or options.expose:
         robot.trim_paths()
         # Print dataframe if robot provides get_dataframe method.
@@ -914,8 +920,6 @@ def get_parser(with_epilog=False):
         help='Verbose, can be supplied multiple times to increase verbosity.')
     copts_parser.add_argument('-sns', "--seaborn", const="paper", default=None, action='store', nargs='?', type=str,
         help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster"). Default: paper')
-    copts_parser.add_argument('--pylustrator', action='store_true', default=False,
-        help="Style matplotlib plots with pylustrator. See https://pylustrator.readthedocs.io/en/latest/")
     copts_parser.add_argument('-mpl', "--mpl-backend", default=None,
         help=("Set matplotlib interactive backend. "
               "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
@@ -935,7 +939,7 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
         help="angle_tolerance (float): Angle tolerance for symmetry finding. Default: 5.0")
     #spgopt_parser.add_argument("--no-time-reversal", default=False, action="store_true", help="Don't use time-reversal.")
 
-    # Parent parser for commands that operating on pandas dataframes
+    # Parent parser for commands operating on pandas dataframes
     pandas_parser = argparse.ArgumentParser(add_help=False)
     pandas_parser.add_argument("-c", '--clipboard', default=False, action="store_true",
             help="Copy dataframe to the system clipboard. This can be pasted into Excel, for example")
@@ -1068,6 +1072,8 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
     # Parent parser for *robot* commands
     robot_parser = argparse.ArgumentParser(add_help=False)
     robot_parser.add_argument('--no-walk', default=False, action="store_true", help="Don't enter subdirectories.")
+    robot_parser.add_argument('--panel', default=False, action="store_true",
+                              help="Open GUI in web browser, requires panel package. WARNING: Experimental")
 
     robot_parents = [copts_parser, robot_ipy_parser, robot_parser, expose_parser, pandas_parser]
     p_gsr = subparsers.add_parser('gsr', parents=robot_parents, help=abicomp_gsr.__doc__)
@@ -1144,11 +1150,6 @@ def main():
         import seaborn as sns
         sns.set(context=options.seaborn, style='darkgrid', palette='deep',
                 font='sans-serif', font_scale=1, color_codes=False, rc=None)
-
-    if options.pylustrator:
-        # Start pylustrator to style matplotlib plots
-        import pylustrator
-        pylustrator.start()
 
     if options.verbose > 2:
         print(options)

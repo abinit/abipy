@@ -3578,7 +3578,7 @@ class ElectronDos(object):
 
 class ElectronDosPlotter(NotebookWriter):
     """
-    Class for plotting electronic DOSes.
+    Class for plotting multiple electronic DOSes.
 
     Usage example:
 

@@ -1,8 +1,6 @@
 """
 This module gathers the most important classes and helper functions used for scripting.
 """
-from __future__ import print_function, division, unicode_literals
-
 import os
 import collections
 

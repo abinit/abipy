@@ -952,6 +952,85 @@ class Flow(Node, NodeContainer, MSONable):
 
         return df
 
+    def compare_structures(self, nids=None, with_spglib=False, what="io", verbose=0,
+                           precision=3, printout=False, with_colors=False):
+        """
+        Analyze structures of the tasks (input and output structures if it's a relaxation task.
+        Print pandas DataFrame
+
+        Args:
+            nids: List of node identifiers. By defaults all nodes are shown
+            with_spglib: If True, spglib is invoked to get the spacegroup symbol and number
+            what (str): "i" for input structures, "o" for output structures.
+            precision: Floating point output precision (number of significant digits).
+                This is only a suggestion
+            printout: True to print dataframe.
+            with_colors: True if task status should be colored.
+        """
+        from abipy.core.structure import dataframes_from_structures
+        structures, index, status, max_forces, pressures, task_classes = [], [], [], [], [], []
+
+        def push_data(post, task, structure, cart_forces, pressure):
+            """Helper function to fill lists"""
+            index.append(task.pos_str + post)
+            structures.append(structure)
+            status.append(task.status.colored if with_colors else str(task.status))
+            if cart_forces is not None:
+                fmods = np.sqrt([np.dot(f, f) for f in cart_forces])
+                max_forces.append(fmods.max())
+            else:
+                max_forces.append(None)
+            pressures.append(pressure)
+            task_classes.append(task.__class__.__name__)
+
+        for task in self.iflat_tasks(nids=nids):
+            if "i" in what:
+                push_data("_in", task, task.input.structure, cart_forces=None, pressure=None)
+
+            if "o" not in what:
+                continue
+
+            # Add final structure, pressure and max force if relaxation task or GS task
+            if task.status in (task.S_RUN, task.S_OK):
+                if hasattr(task, "open_hist"):
+                    # Structural relaxations produce HIST.nc and we can get
+                    # the final structure or the structure of the last relaxation step.
+                    try:
+                        with task.open_hist() as hist:
+                            final_structure = hist.final_structure
+                            stress_cart_tensors, pressures_hist = hist.reader.read_cart_stress_tensors()
+                            forces = hist.reader.read_cart_forces(unit="eV ang^-1")[-1]
+                            push_data("_out", task, final_structure, forces, pressures_hist[-1])
+                    except Exception as exc:
+                        cprint("Exception while opening HIST.nc file of task: %s\n%s" % (task, str(exc)), "red")
+
+                elif hasattr(task, "open_gsr") and task.status == task.S_OK and task.input.get("iscf", 7) >= 0:
+                    with task.open_gsr() as gsr:
+                        forces = gsr.reader.read_cart_forces(unit="eV ang^-1")
+                        push_data("_out", task, gsr.structure, forces, gsr.pressure)
+
+        dfs = dataframes_from_structures(structures, index=index, with_spglib=with_spglib, cart_coords=False)
+
+        if any(f is not None for f in max_forces):
+            # Add pressure and forces to the dataframe
+            dfs.lattice["P [GPa]"] = pressures
+            dfs.lattice["Max|F| eV/ang"] = max_forces
+
+        # Add columns to the dataframe.
+        status = [str(s) for s in status]
+        dfs.lattice["task_class"] = task_classes
+        dfs.lattice["status"] = dfs.coords["status"] = status
+
+        if printout:
+            from abipy.tools.printing import print_dataframe
+            print_dataframe(dfs.lattice, title="Lattice parameters:", precision=precision)
+            if verbose:
+                print_dataframe(dfs.coords, title="Atomic positions (columns give the site index):")
+            else:
+                print("Use `--verbose` to print atoms.")
+
+        return dfs
+
     def show_summary(self, **kwargs):
         """
         Print a short summary with the status of the flow and a counter task_status --> number_of_tasks
