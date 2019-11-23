@@ -1,7 +1,7 @@
 """"Panels for HIST files."""
 import param
 import panel as pn
-import bokeh.models.widgets as bw
+import bokeh.models.widgets as bkw
 
 from abipy.panels.core import AbipyParameterized
 
@@ -55,7 +55,7 @@ class HistFilePanel(AbipyParameterized):
     def get_panel(self):
         """Return tabs with widgets to interact with the DDB file."""
         tabs = pn.Tabs()
-        tabs.append(("Summary", pn.Row(bw.PreText(text=self.hist.to_string(verbose=self.verbose),
+        tabs.append(("Summary", pn.Row(bkw.PreText(text=self.hist.to_string(verbose=self.verbose),
                      sizing_mode="scale_both"))))
         tabs.append(("Relax", pn.Row(self.get_plot_relax_widgets(), self.on_plot_relax_btn)))
 

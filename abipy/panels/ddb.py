@@ -1,9 +1,18 @@
 """"Panels for DDB files."""
 import param
 import panel as pn
-import bokeh.models.widgets as bw
+import panel.widgets as pnw
+import bokeh.models.widgets as bkw
 
 from abipy.panels.core import AbipyParameterized
+
+
+#def _mp(fig):
+#    return pn.pane.Matplotlib(fig)
+
+
+#def _df(df):
+#    return pnw.DataFrame(df, disabled=True)
 
 
 class DdbFilePanel(AbipyParameterized):
@@ -26,17 +35,17 @@ class DdbFilePanel(AbipyParameterized):
     units = param.ObjectSelector(default="eV", objects=["eV", "meV", "Ha", "cm-1", "Thz"], doc="Energy units")
 
     dos_method = param.ObjectSelector(default="tetra", objects=["tetra", "gaussian"], doc="Integration method for DOS")
-    temp_range = pn.widgets.RangeSlider(name="T-range", start=0.0, end=1000, value=(0.0, 300.0), step=20)
+    temp_range = pnw.RangeSlider(name="T-range", start=0.0, end=1000, value=(0.0, 300.0), step=20)
 
     gamma_ev = param.Number(1e-4, bounds=(1e-20, None), doc="Phonon linewidth in eV")
-    w_range = pn.widgets.RangeSlider(name="Frequency range (eV)", start=0.0, end=1.0,
-                                     value=(0.0, 0.1), step=0.001)
+    w_range = pnw.RangeSlider(name="Frequency range (eV)", start=0.0, end=1.0,
+                              value=(0.0, 0.1), step=0.001)
 
-    get_epsinf_btn = pn.widgets.Button(name="Compute", button_type='primary')
-    plot_phbands_btn = pn.widgets.Button(name="Plot Bands and DOS", button_type='primary')
-    plot_eps0w_btn = pn.widgets.Button(name="Plot eps0(omega)", button_type='primary')
+    get_epsinf_btn = pnw.Button(name="Compute", button_type='primary')
+    plot_phbands_btn = pnw.Button(name="Plot Bands and DOS", button_type='primary')
+    plot_eps0w_btn = pnw.Button(name="Plot eps0(omega)", button_type='primary')
 
-    plot_vsound_btn = pn.widgets.Button(name="Calculate speed of sound", button_type='primary')
+    plot_vsound_btn = pnw.Button(name="Calculate speed of sound", button_type='primary')
 
     def __init__(self, ddb, **params):
         super().__init__(**params)
@@ -54,7 +63,7 @@ class DdbFilePanel(AbipyParameterized):
                                                           mpi_procs=self.mpi_procs, verbose=self.verbose)
 
         eps0 = gen.tensor_at_frequency(w=0, gamma_ev=self.gamma_ev)
-        #eps0 = pn.widgets.DataFrame(eps0.get_dataframe())
+        #eps0 = pnw.DataFrame(eps0.get_dataframe())
         return pn.Column(epsinf, eps0, becs)
 
     @param.depends('plot_eps0w_btn.clicks')
@@ -67,10 +76,9 @@ class DdbFilePanel(AbipyParameterized):
         w_max = ws[1]
         if w_max == 1.0: w_max = None # Will compute w_max in plot routine from ph freqs.
 
-        fig_kwargs = dict(show=False, fig_close=True)
         def p(component, reim):
             return gen.plot(w_min=ws[0], w_max=w_max, gamma_ev=self.gamma_ev, num=500, component=component,
-                            reim=reim, units=self.units, **fig_kwargs)
+                            reim=reim, units=self.units, **self.fig_kwargs)
 
         # Build grid
         gspec = pn.GridSpec(sizing_mode='scale_width')
@@ -98,15 +106,14 @@ class DdbFilePanel(AbipyParameterized):
         print("Computing phbands completed")
 
         # Build grid
-        fig_kwargs = dict(show=False, fig_close=True)
         gspec = pn.GridSpec(sizing_mode='scale_width')
-        gspec[0, 0] = phbands.plot_with_phdos(phdos, units=self.units, **fig_kwargs)
-        gspec[0, 1] = phdos_file.plot_pjdos_type(units=self.units, exchange_xy=True, **fig_kwargs)
-        gspec[1, 0] = phdos_file.msqd_dos.plot(units=self.units, **fig_kwargs)
+        gspec[0, 0] = phbands.plot_with_phdos(phdos, units=self.units, **self.fig_kwargs)
+        gspec[0, 1] = phdos_file.plot_pjdos_type(units=self.units, exchange_xy=True, **self.fig_kwargs)
+        gspec[1, 0] = phdos_file.msqd_dos.plot(units=self.units, **self.fig_kwargs)
         temps = self.temp_range.value
         gspec[1, 1] = phdos.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1],
-                                                 num=50, units=self.units, **fig_kwargs)
-        #msqd_dos.plot_tensor(**fig_kwargs)
+                                                 num=50, **self.fig_kwargs)
+        #msqd_dos.plot_tensor(**self.fig_kwargs)
 
         phbst_file.close()
         phdos_file.close()
@@ -125,42 +132,40 @@ class DdbFilePanel(AbipyParameterized):
                                     verbose=self.verbose, mpi_procs=self.mpi_procs)
 
         # Insert results in grid.
-        fig_kwargs = dict(show=False, fig_close=True)
         gspec = pn.GridSpec(sizing_mode='scale_width')
         gspec[0, :1] = sv.get_dataframe()
-        gspec[1, :1] = sv.plot(**fig_kwargs)
+        gspec[1, :1] = sv.plot(**self.fig_kwargs)
 
         return gspec
 
     def get_panel(self):
         """Return tabs with widgets to interact with the DDB file."""
-        tabs = pn.Tabs()
-        row = pn.Row(bw.PreText(text=self.ddb.to_string(verbose=self.verbose), sizing_mode="scale_both"))
-        tabs.append(("Summary", row))
-
-        tabs.append(("Ph-bands", pn.Row(pn.WidgetBox("# PH-bands options",
-            pn.Column(*[self.param[k] for k in ("nqsmall", "ndivsm", "asr", "chneut", "dipdip",
-                      "lo_to_splitting")], self.temp_range, self.plot_phbands_btn)),
+        tabs = pn.Tabs(); app = tabs.append
+        row = pn.Row(bkw.PreText(text=self.ddb.to_string(verbose=self.verbose), sizing_mode="scale_both"))
+        app(("Summary", row))
+        app(("Ph-bands", pn.Row(
+            pn.Column("# PH-bands options",
+                      *[self.param[k] for k in ("nqsmall", "ndivsm", "asr", "chneut", "dipdip", "lo_to_splitting")],
+                      self.temp_range, self.plot_phbands_btn),
             self.plot_phbands_and_phdos)
         ))
-
-        tabs.append(("BECs", pn.Row(
-            pn.Column(*[self.param[k] for k in ("asr", "chneut", "dipdip", "gamma_ev")], self.get_epsinf_btn),
+        app(("BECs", pn.Row(
+            pn.Column("# Born effective charges options",
+                     *[self.param[k] for k in ("asr", "chneut", "dipdip", "gamma_ev")], self.get_epsinf_btn),
             self.get_epsinf)
         ))
-
-        tabs.append(("eps0", pn.Row(
-            pn.Column(*[self.param[k] for k in ("asr", "chneut", "dipdip", "gamma_ev")],
+        app(("eps0", pn.Row(
+            pn.Column("# epsilon_0",
+                      *[self.param[k] for k in ("asr", "chneut", "dipdip", "gamma_ev")],
                       self.w_range, self.plot_eps0w_btn),
             self.plot_eps0w)
         ))
-
-        tabs.append(("Speed of Sound", pn.Row(
-            pn.Column(*[self.param[k] for k in ("asr", "chneut", "dipdip")],
+        app(("Speed of Sound", pn.Row(
+            pn.Column("# Speed of sound options",
+                      *[self.param[k] for k in ("asr", "chneut", "dipdip")],
                       self.plot_vsound_btn),
             self.plot_vsound)
         ))
-
-        tabs.append(("Global", pn.Column(*[self.param[k] for k in ("units", "mpi_procs", "verbose")])))
+        app(("Global", pn.Column("# Global parameters", *[self.param[k] for k in ("units", "mpi_procs", "verbose")])))
 
         return tabs

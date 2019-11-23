@@ -107,7 +107,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     @lazy_property
     def wvols_qibz(self):
-        """Phonon frequencies on reagular grid for the different volumes in eV """
+        """Phonon frequencies on regular grid for the different volumes in eV """
         w = self.reader.read_value("gruns_wvols_qibz", default=None)
         if w is None:
             return None
@@ -205,7 +205,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     @add_fig_kwargs
     def plot_doses(self, xlims=None, dos_names="all", with_idos=True, **kwargs):
         r"""
-        Plot the different doses stored in the GRUNS.nc file.
+        Plot the different DOSes stored in the GRUNS.nc file.
 
         Args:
             xlims: Set the data limits for the x-axis in eV. Accept tuple e.g. ``(left, right)``
@@ -455,7 +455,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         and match_bands=True to obtained reasonable paths.
 
         Args:
-            values:  Define the plotted quantity. "gruns" for Grunesein parameters, "gruns_fd" for Grunesein
+            values: Define the plotted quantity. "gruns" for Grunesein parameters, "gruns_fd" for Grunesein
                 parameters calculated with finite differences,  "groupv" for phonon group velocities.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             branch_range: Tuple specifying the minimum and maximum branch index to plot (default: all

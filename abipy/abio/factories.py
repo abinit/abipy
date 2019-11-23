@@ -13,9 +13,6 @@ from pymatgen.util.serialization import pmg_serialize
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput, MultiDataset
 
-import logging
-logger = logging.getLogger(__file__)
-
 
 __all__ = [
     "gs_input",
@@ -615,7 +612,6 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
 
     if nksmall is not None:
         # if nksmall add bandstructure and dos calculations as well
-        logger.info('added band structure calculation')
         bands_ksampling = aobj.KSampling.path_from_structure(ndivsm=nksmall, structure=structure)
         dos_ksampling = aobj.KSampling.automatic_density(structure=structure, kppa=2000)
         nscf_multi[0].set_vars(bands_ksampling.to_abivars())

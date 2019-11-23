@@ -195,7 +195,7 @@ def flow_compare_ebands(flow, nids=None, with_spglib=False, verbose=0,
             raise ValueError("Don't know how to handle plot_mode: %s" % plot_mode)
         plotfunc(tight_layout=True)
 
-    return df
+    return df, plotter
 
 
 def flow_compare_hist(flow, nids=None, with_spglib=False, verbose=0,

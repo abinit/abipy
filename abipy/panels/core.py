@@ -2,7 +2,8 @@
 #import abc
 import param
 import panel as pn
-import bokeh.models.widgets as bw
+import panel.widgets as pnw
+import bokeh.models.widgets as bkw
 
 from monty.functools import lazy_property
 
@@ -10,8 +11,9 @@ from monty.functools import lazy_property
 def _mp(fig):
     return pn.pane.Matplotlib(fig)
 
+
 def _df(df):
-    return pn.widgets.DataFrame(df, disabled=True)
+    return pnw.DataFrame(df, disabled=True)
 
 
 class AbipyParameterized(param.Parameterized):
@@ -40,7 +42,7 @@ class AbipyParameterized(param.Parameterized):
 class PanelWithElectronBands(AbipyParameterized): #, metaclass=abc.ABCMeta):
 
     # Bands plot
-    with_gaps = pn.widgets.Checkbox(name='Show gaps')
+    with_gaps = pnw.Checkbox(name='Show gaps')
     #ebands_ylims
     #ebands_e0
     # e0: Option used to define the zero of energy in the band structure plot. Possible values:
@@ -49,13 +51,13 @@ class PanelWithElectronBands(AbipyParameterized): #, metaclass=abc.ABCMeta):
     #     -  None: Don't shift energies, equivalent to e0=0
 
     #set_fermie_to_vbm
-    plot_ebands_btn = pn.widgets.Button(name="Plot e-bands", button_type='primary')
+    plot_ebands_btn = pnw.Button(name="Plot e-bands", button_type='primary')
 
     # DOS plot.
-    edos_method = pn.widgets.Select(name="e-DOS method", options=["gaussian", "tetra"])
-    edos_step = pn.widgets.Spinner(name='e-DOS step (eV)', value=0.1, step=0.05, start=1e-6, end=None)
-    edos_width = pn.widgets.Spinner(name='e-DOS Gaussian broadening (eV)', value=0.2, step=0.05, start=1e-6, end=None)
-    plot_edos_btn = pn.widgets.Button(name="Plot e-DOS", button_type='primary')
+    edos_method = pnw.Select(name="e-DOS method", options=["gaussian", "tetra"])
+    edos_step = pnw.Spinner(name='e-DOS step (eV)', value=0.1, step=0.05, start=1e-6, end=None)
+    edos_width = pnw.Spinner(name='e-DOS Gaussian broadening (eV)', value=0.2, step=0.05, start=1e-6, end=None)
+    plot_edos_btn = pnw.Button(name="Plot e-DOS", button_type='primary')
 
     #@abc.abstractproperty
     #def ebands(self):
@@ -75,7 +77,7 @@ class PanelWithElectronBands(AbipyParameterized): #, metaclass=abc.ABCMeta):
 
         fig2 = self.ebands.kpoints.plot(**self.fig_kwargs)
         row = pn.Row(_mp(fig1), _mp(fig2)) #, sizing_mode='scale_width')
-        text = bw.PreText(text=self.ebands.to_string(verbose=self.verbose))
+        text = bkw.PreText(text=self.ebands.to_string(verbose=self.verbose))
         return pn.Column(row, text, sizing_mode='scale_width')
 
     def get_plot_edos_widgets(self):
@@ -96,24 +98,24 @@ class BaseRobotPanel(AbipyParameterized):
     """pass"""
 
 
-
 class PanelWithEbandsRobot(BaseRobotPanel): #, metaclass=abc.ABCMeta):
     """
     Mixin class for panels with a robot that owns a list of of |ElectronBands|
     """
 
     # Widgets to plot ebands.
-    ebands_plotter_mode = pn.widgets.Select(name="Plot Mode", value="gridplot",
+    ebands_plotter_mode = pnw.Select(name="Plot Mode", value="gridplot",
         options=["gridplot", "combiplot", "boxplot", "combiboxplot"]) # "animate",
-    ebands_plotter_btn = pn.widgets.Button(name="Plot", button_type='primary')
+    ebands_plotter_btn = pnw.Button(name="Plot", button_type='primary')
+    ebands_df_checkbox = pnw.Checkbox(name='With Ebands DataFrame', value=False)
 
     # Widgets to plot edos.
-    edos_plotter_mode = pn.widgets.Select(name="Plot Mode", value="gridplot",
+    edos_plotter_mode = pnw.Select(name="Plot Mode", value="gridplot",
         options=["gridplot", "combiplot"])
-    edos_plotter_btn = pn.widgets.Button(name="Plot", button_type='primary')
+    edos_plotter_btn = pnw.Button(name="Plot", button_type='primary')
 
     def get_ebands_plotter_widgets(self):
-        return pn.Column(self.ebands_plotter_mode, self.ebands_plotter_btn)
+        return pn.Column(self.ebands_plotter_mode, self.ebands_df_checkbox, self.ebands_plotter_btn)
 
     @param.depends("ebands_plotter_btn.clicks")
     def on_ebands_plotter_btn(self):
@@ -125,9 +127,12 @@ class PanelWithEbandsRobot(BaseRobotPanel): #, metaclass=abc.ABCMeta):
             raise ValueError("Don't know how to handle plot_mode: %s" % plot_mode)
 
         fig = plotfunc(**self.fig_kwargs)
-        df = ebands_plotter.get_ebands_frame(with_spglib=True)
-        return pn.Row(pn.Column(_mp(fig), df),
-                      sizing_mode='scale_width')
+        col = pn.Column(_mp(fig), sizing_mode='scale_width')
+        if self.ebands_df_checkbox.value:
+            df = ebands_plotter.get_ebands_frame(with_spglib=True)
+            col.append(_df(df))
+
+        return pn.Row(col, sizing_mode='scale_width')
 
     def get_edos_plotter_widgets(self):
         return pn.Column(self.edos_plotter_mode, self.edos_plotter_btn)

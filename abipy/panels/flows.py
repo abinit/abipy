@@ -1,7 +1,7 @@
 """"Panels for AbiPy flows."""
 import param
 import panel as pn
-import bokeh.models.widgets as bw
+import bokeh.models.widgets as bkw
 
 from io import StringIO
 from abipy.dynamics.hist import HistFile
@@ -57,7 +57,7 @@ class FlowPanel(AbipyParameterized):
     def on_status_btn(self):
         stream = StringIO()
         self.flow.show_status(stream=stream, verbose=self.verbose.value)
-        return pn.Row(bw.PreText(text=stream.getvalue()))
+        return pn.Row(bkw.PreText(text=stream.getvalue()))
 
     @param.depends('history_btn.clicks')
     def on_history_btn(self):
@@ -65,7 +65,7 @@ class FlowPanel(AbipyParameterized):
         #flow.show_history(status=options.task_status, nids=selected_nids(flow, options),
         #                  full_history=options.full_history, metadata=options.metadata)
         self.flow.show_history(stream=stream)
-        return pn.Row(bw.PreText(text=stream.getvalue()))
+        return pn.Row(bkw.PreText(text=stream.getvalue()))
 
     @param.depends('graphviz_btn.clicks')
     def on_graphviz_btn(self):
@@ -85,21 +85,21 @@ class FlowPanel(AbipyParameterized):
         stream = StringIO()
         #flow.debug(status=options.task_status, nids=selected_nids(flow, options))
         self.flow.debug(stream=stream)
-        return pn.Row(bw.PreText(text=stream.getvalue()))
+        return pn.Row(bkw.PreText(text=stream.getvalue()))
 
     @param.depends('events_btn.clicks')
     def on_events_btn(self):
         stream = StringIO()
         self.flow.show_events(stream=stream)
         #flow.show_events(status=options.task_status, nids=selected_nids(flow, options))
-        return pn.Row(bw.PreText(text=stream.getvalue()))
+        return pn.Row(bkw.PreText(text=stream.getvalue()))
 
     @param.depends('corrections_btn.clicks')
     def on_corrections_btn(self):
         stream = StringIO()
         self.flow.show_corrections(stream=stream)
         #flow.show_corrections(status=options.task_status, nids=selected_nids(flow, options))
-        return pn.Row(bw.PreText(text=stream.getvalue()))
+        return pn.Row(bkw.PreText(text=stream.getvalue()))
 
     @param.depends('handlers_btn.clicks')
     def on_handlers_btn(self):
@@ -109,7 +109,7 @@ class FlowPanel(AbipyParameterized):
         #else:
         #show_events(self, status=None, nids=None, stream=sys.stdout):
         self.flow.show_event_handlers(verbose=self.verbose.value, stream=stream)
-        return pn.Row(bw.PreText(text=stream.getvalue()))
+        return pn.Row(bkw.PreText(text=stream.getvalue()))
 
     @param.depends('vars_btn.clicks')
     def on_vars_btn(self):
@@ -140,7 +140,7 @@ class FlowPanel(AbipyParameterized):
     def get_panel(self):
         """Return tabs with widgets to interact with the flow."""
         tabs = pn.Tabs()
-        #row = pn.Row(bw.PreText(text=self.ddb.to_string(verbose=self.verbose.value), sizing_mode="scale_both"))
+        #row = pn.Row(bkw.PreText(text=self.ddb.to_string(verbose=self.verbose.value), sizing_mode="scale_both"))
         tabs.append(("Status", pn.Row(self.status_btn, self.on_status_btn)))
         tabs.append(("History", pn.Row(self.history_btn, self.on_history_btn)))
         tabs.append(("Events", pn.Row(self.events_btn, self.on_events_btn)))

@@ -1,9 +1,9 @@
 """"Panels for phonon-related objects."""
 import param
 import panel as pn
+import panel.widgets as pnw
 
 from abipy.panels.core import AbipyParameterized
-
 
 def _mp(fig):
     return pn.pane.Matplotlib(fig)
@@ -11,10 +11,10 @@ def _mp(fig):
 
 class PhononBandsPlotterPanel(AbipyParameterized):
 
-    phbands_plotter_mode = pn.widgets.Select(name="Plot Mode", value="gridplot",
+    phbands_plotter_mode = pnw.Select(name="Plot Mode", value="gridplot",
         options=["gridplot", "combiplot", "boxplot", "combiboxplot"]) # "animate",
-    phbands_plotter_units = pn.widgets.Select(name="Units", value="eV", options=["eV", "meV", "Ha", "cm-1", "Thz"])
-    phbands_plotter_btn = pn.widgets.Button(name="Plot", button_type='primary')
+    phbands_plotter_units = pnw.Select(name="Units", value="eV", options=["eV", "meV", "Ha", "cm-1", "Thz"])
+    phbands_plotter_btn = pnw.Button(name="Plot", button_type='primary')
 
     def __init__(self, plotter, **params):
         super().__init__(**params)
@@ -35,7 +35,7 @@ class PhononBandsPlotterPanel(AbipyParameterized):
     def get_panel(self):
         """Return tabs with widgets to interact with the |PhononBandsPlotter|."""
         tabs = pn.Tabs()
-        widgets = pn.Column(self.phbands_plotter_mode, self.phbands_plotter_units, self.phbands_plotter_btn)
-        tabs.append(("PhbandsPlotter", pn.Row(widgets, self.on_phbands_plot_btn, sizing_mode='scale_width')))
+        ws = pn.Column(self.phbands_plotter_mode, self.phbands_plotter_units, self.phbands_plotter_btn)
+        tabs.append(("PhbandsPlotter", pn.Row(ws, self.on_phbands_plot_btn, sizing_mode='scale_width')))
 
         return tabs

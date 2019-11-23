@@ -52,7 +52,12 @@ class AnaddbError(DdbError):
         super().__init__(*args, **kwargs)
 
     def __str__(self):
-        lines = ["\nworkdir = %s" % self.task.workdir]
+        lines = ["""\n
+    An exception has been raised while executing anaddb in workdir: %s
+    Please check the run.err, the run.abo and the job.sh files in the workdir
+    and make sure that manager.yml is properly configured.
+"""
+    % self.task.workdir]
         app = lines.append
 
         if self.report.errors:

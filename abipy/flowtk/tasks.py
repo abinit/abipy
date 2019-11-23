@@ -1657,7 +1657,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         self._returncode = self.process.poll()
 
         if self._returncode is not None:
-            self.set_status(self.S_DONE, "status set to Done")
+            self.set_status(self.S_DONE, "status set to DONE")
 
         return self._returncode
 
@@ -1668,7 +1668,7 @@ class Task(Node, metaclass=abc.ABCMeta):
             self.process.stderr.close()
         except Exception:
             pass
-        self.set_status(self.S_DONE, "status set to Done")
+        self.set_status(self.S_DONE, "status set to DONE")
 
         return self._returncode
 
@@ -1682,14 +1682,14 @@ class Task(Node, metaclass=abc.ABCMeta):
         """
         stdoutdata, stderrdata = self.process.communicate(input=input)
         self._returncode = self.process.returncode
-        self.set_status(self.S_DONE, "status set to Done")
+        self.set_status(self.S_DONE, "status set to DONE")
 
         return stdoutdata, stderrdata
 
     def kill(self):
         """Kill the child."""
         self.process.kill()
-        self.set_status(self.S_ERROR, "status set to Error by task.kill")
+        self.set_status(self.S_ERROR, "status set to ERROR by task.kill")
         self._returncode = self.process.returncode
 
     @property
@@ -1947,9 +1947,9 @@ class Task(Node, metaclass=abc.ABCMeta):
                 # Check if the calculation converged.
                 not_ok = report.filter_types(self.CRITICAL_EVENTS)
                 if not_ok:
-                    return self.set_status(self.S_UNCONVERGED, msg='status set to unconverged based on abiout')
+                    return self.set_status(self.S_UNCONVERGED, msg='status set to UNCONVERGED based on abiout')
                 else:
-                    return self.set_status(self.S_OK, msg="status set to ok based on abiout")
+                    return self.set_status(self.S_OK, msg="status set to OK based on abiout")
 
             # Calculation still running or errors?
             if report.errors:

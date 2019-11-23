@@ -274,9 +274,9 @@ def itest_bandstructure_flow(fwp, tvars):
             assert den.structure is not None and hasattr(den, "datar")
 
     df = flow.get_dims_dataframe(printout=False, with_colors=True)
-    assert "ecut" in df
+    assert "natom" in df
 
-    df =  flow.compare_abivars(["ecut", "natom"], printout=True, with_colors=True)
+    df = flow.compare_abivars(["ecut", "natom"], printout=True, with_colors=True)
     assert np.all(df["natom"].values == 2)
 
 

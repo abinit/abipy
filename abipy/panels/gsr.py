@@ -1,17 +1,17 @@
 """Panels for GSR files."""
 import param
 import panel as pn
-import bokeh.models.widgets as bw
+import panel.widgets as pnw
+import bokeh.models.widgets as bkw
 
 from .core import PanelWithElectronBands, PanelWithEbandsRobot
 
 def _df(df):
-    return pn.widgets.DataFrame(df, disabled=True)
+    return pnw.DataFrame(df, disabled=True)
 
 
 class GsrFilePanel(PanelWithElectronBands):
     """
-
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GsrFilePanel
     """
@@ -26,7 +26,7 @@ class GsrFilePanel(PanelWithElectronBands):
     def get_panel(self):
         """Return tabs with widgets to interact with the DDB file."""
         tabs = pn.Tabs()
-        tabs.append(("Summary", pn.Row(bw.PreText(text=self.gsr.to_string(verbose=self.verbose),
+        tabs.append(("Summary", pn.Row(bkw.PreText(text=self.gsr.to_string(verbose=self.verbose),
                      sizing_mode="scale_both"))))
         tabs.append(("e-Bands", pn.Row(self.get_plot_ebands_widgets(), self.on_plot_ebands_btn)))
         # Add DOS tab only if k-sampling.
@@ -43,7 +43,7 @@ class GsrRobotPanel(PanelWithEbandsRobot):
     .. inheritance-diagram:: GsrRobotPanel
     """
 
-    gsr_dataframe_btn = pn.widgets.Button(name="Compute", button_type='primary')
+    gsr_dataframe_btn = pnw.Button(name="Compute", button_type='primary')
 
     def __init__(self, robot, **params):
         super().__init__(**params)
@@ -58,7 +58,7 @@ class GsrRobotPanel(PanelWithEbandsRobot):
     def get_panel(self):
         """Return tabs with widgets to interact with the |GsrRobot|."""
         tabs = pn.Tabs()
-        tabs.append(("Summary", pn.Row(bw.PreText(text=self.robot.to_string(verbose=self.verbose),
+        tabs.append(("Summary", pn.Row(bkw.PreText(text=self.robot.to_string(verbose=self.verbose),
                      sizing_mode="scale_both"))))
         tabs.append(("e-Bands", pn.Row(self.get_ebands_plotter_widgets(), self.on_ebands_plotter_btn)))
         # Add DOS tab only if all ebands have k-sampling.

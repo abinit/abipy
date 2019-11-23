@@ -32,7 +32,6 @@ from pymatgen.util.io_utils import AtomicFile
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.tools.printing import print_dataframe
 from abipy.flowtk import wrappers
-
 from .nodes import Status, Node, NodeError, NodeResults, Dependency, GarbageCollector, check_spectator
 from .tasks import ScfTask, TaskManager, FixQueueCriticalError
 from .utils import File, Directory, Editor
@@ -2022,8 +2021,7 @@ class Flow(Node, NodeContainer, MSONable):
         is unconverged so that we can restart from it. No output is produced if
         convergence is achieved.
 
-        Return:
-            self
+        Return: self
         """
         if not self.allocated:
             #raise RuntimeError("You must call flow.allocate() before invoking flow.use_smartio()")
@@ -2268,8 +2266,7 @@ class Flow(Node, NodeContainer, MSONable):
             max_loops: Maximum number of loops
             sleep_time: seconds to sleep between rapidfire loop iterations
 
-        Return:
-            Number of tasks submitted.
+        Return: Number of tasks submitted.
         """
         self.check_pid_file()
         self.set_spectator_mode(False)
@@ -2282,8 +2279,7 @@ class Flow(Node, NodeContainer, MSONable):
         Use :class:`PyLauncher` to submits one task.
         kwargs contains the options passed to the launcher.
 
-        Return:
-            number of tasks submitted.
+        Return: Number of tasks submitted.
         """
         self.check_pid_file()
         self.set_spectator_mode(False)
@@ -2353,8 +2349,7 @@ class Flow(Node, NodeContainer, MSONable):
             verbose (int): Verbosity level.
             kwargs: keyword arguments passed to the :class:`TarFile` constructor.
 
-        Returns:
-            The name of the tarfile.
+        Returns: The name of the tarfile.
         """
         def any2bytes(s):
             """Convert string or number to memory in bytes."""
@@ -2529,17 +2524,16 @@ class Flow(Node, NodeContainer, MSONable):
         Generate flow graph in the DOT language and plot it with matplotlib.
 
         Args:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             figsize: matplotlib figure size (None to use default)
             dpi: DPI value.
             fmt: Select format for output image
 
-        Return: matplotlib Figure
+        Return: |matplotlib-Figure|
         """
         graph = self.get_graphviz(**kwargs)
         graph.format = fmt
         graph.attr(dpi=str(dpi))
-        #print(graph)
         _, tmpname = tempfile.mkstemp()
         path = graph.render(tmpname, view=False, cleanup=True)
         ax, fig, _ = get_ax_fig_plt(ax=ax, figsize=figsize, dpi=dpi)
@@ -2559,7 +2553,7 @@ class Flow(Node, NodeContainer, MSONable):
         Args:
             mode: `networkx` to show connections, `status` to group tasks by status.
             with_edge_labels: True to draw edge labels.
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             arrows: if True draw arrowheads.
             node_size: By default, the size of the node is proportional to the number of cores used.
             node_label: By default, the task class is used to label node.
@@ -2600,7 +2594,6 @@ class Flow(Node, NodeContainer, MSONable):
                 g.add_edge(task, work)
                 edge_labels[(task, work)] = "all_ok "
             for child in children:
-                #print(child)
                 g.add_edge(work, child)
                 i = [dep.node for dep in child.deps].index(work)
                 edge_labels[(work, child)] = "+".join(child.deps[i].exts)
@@ -2688,8 +2681,6 @@ class Flow(Node, NodeContainer, MSONable):
         nb.cells.extend([
             #nbf.new_markdown_cell("This is an auto-generated notebook for %s" % os.path.basename(pseudopath)),
             nbf.new_code_cell("""\
-    from __future__ import print_function, division, unicode_literals, absolute_import
-
     import sys, os
     import numpy as np
 
@@ -2705,10 +2696,6 @@ class Flow(Node, NodeContainer, MSONable):
     # Tell AbiPy we are inside a notebook and use seaborn settings for plots.
     # See https://seaborn.pydata.org/generated/seaborn.set.html#seaborn.set
     abilab.enable_notebook(with_seaborn=True)
-
-    # AbiPy widgets for pandas and seaborn plot APIs
-    #import abipy.display.seabornw import snw
-    #import abipy.display.pandasw import pdw
     """),
 
             nbf.new_code_cell("flow = abilab.Flow.pickle_load('%s')" % flow.workdir),
@@ -2768,7 +2755,7 @@ class G0W0WithQptdmFlow(Flow):
             nscf_input: Input for the NSCF run (band structure run).
             scr_input: Input for the SCR run.
             sigma_inputs: Input(s) for the SIGMA run(s).
-            manager:  |TaskManager| object used to submit the jobs. Initialized from manager.yml if manager is None.
+            manager: |TaskManager| object used to submit the jobs. Initialized from manager.yml if manager is None.
         """
         super().__init__(workdir, manager=manager)
 
@@ -3096,7 +3083,7 @@ class NonLinearCoeffFlow(Flow):
         Open the DDB file located in the output directory of the flow.
 
         Return:
-            :class:`DdbFile` object, None if file could not be found or file is not readable.
+            |DdbFile| object, None if file could not be found or file is not readable.
         """
         ddb_path = self.outdir.has_abiext("DDB")
         if not ddb_path:
