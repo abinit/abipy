@@ -1,10 +1,9 @@
 ipython
 sphinx
-#==1.6.5
 sphinxcontrib-napoleon
 sphinxcontrib-programoutput
 sphinx-gallery
 sphinx-argparse
 sphinx_bootstrap_theme
 sphinxcontrib-bibtex
-#releases
+jupyter-sphinx

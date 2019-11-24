@@ -31,6 +31,7 @@ Post-processing
    :maxdepth: 1
 
    scripts/index
+   graphical_interface
    gallery/index
    postprocessing_howto
 

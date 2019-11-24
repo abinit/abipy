@@ -252,6 +252,10 @@ def itest_bandstructure_flow(fwp, tvars):
         assert timer.plot_stacked_hist(show=False)
         assert timer.plot_efficiency(show=False)
 
+    df, ebands_plotter = flow.compare_ebands(
+                            verbose=2,
+                            with_spglib=False, printout=True, with_colors=True)
+
     # Test CUT3D API provided by DensityFortranFile.
     den_path = t0.outdir.has_abiext("DEN")
     assert den_path

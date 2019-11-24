@@ -6,18 +6,11 @@ import bokeh.models.widgets as bkw
 from abipy.panels.core import AbipyParameterized
 
 
-def _mp(fig):
-    return pn.pane.Matplotlib(fig)
-
-
 _what_list = ["pressure", "forces", "energy", "abc", "angles", "volume"]
 
 
 class HistFilePanel(AbipyParameterized):
     """
-
-    .. rubric:: Inheritance Diagram
-    .. inheritance-diagram:: HistFilePanel
     """
 
     plot_relax_btn = pn.widgets.Button(name="Show relaxation", button_type='primary')
@@ -48,7 +41,7 @@ class HistFilePanel(AbipyParameterized):
         box = pn.GridBox(nrows=nrows, ncols=ncols, sizing_mode='scale_width')
         for i, what in enumerate(self.what_list.value):
             irow, icol = divmod(i, ncols)
-            box.append(_mp(self.hist.plot(what, **self.fig_kwargs)))
+            box.append(self._mp(self.hist.plot(what, title=what, **self.fig_kwargs)))
 
         return box
 

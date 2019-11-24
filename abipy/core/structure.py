@@ -64,7 +64,7 @@ def mp_match_structure(obj, api_key=None, endpoint=None, final=True):
             mpids = rest.find_structure(structure)
             if mpids:
                 structures = [Structure.from_mpid(mid, final=final, api_key=api_key, endpoint=endpoint)
-                        for mid in mpids]
+                              for mid in mpids]
 
         except rest.Error as exc:
             cprint(str(exc), "red")
@@ -72,6 +72,8 @@ def mp_match_structure(obj, api_key=None, endpoint=None, final=True):
         finally:
             # Back to abipy structure
             structure = Structure.as_structure(structure)
+            structures.insert(0, structure)
+            mpids.insert(0, "this")
             return restapi.MpStructures(structures=structures, ids=mpids)
 
 
@@ -1386,8 +1388,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             show: True to show structure immediately.
             kwargs: keyword arguments passed to :class:`StructureVis`.
 
-        Return:
-            StructureVis object.
+        Return: StructureVis object.
         """
         from pymatgen.vis.structure_vtk import StructureVis
         vis = StructureVis(**kwargs)
@@ -1400,6 +1401,12 @@ class Structure(pymatgen.Structure, NotebookWriter):
         from abipy.display import mvtk
         return mvtk.plot_structure(self, figure=figure, show=show, **kwargs)
 
+    def nglview(self):
+        import nglview as nv
+        view = nv.show_pymatgen(self)
+        view.add_unitcell()
+        return view
+
     def visualize(self, appname="vesta"):
         """
         Visualize the crystalline structure with visualizer.
@@ -1408,6 +1415,8 @@ class Structure(pymatgen.Structure, NotebookWriter):
         if appname in ("mpl", "matplotlib"): return self.plot()
         if appname == "vtk": return self.vtkview()
         if appname == "mayavi": return self.mayaview()
+        if appname == "nglview": return self.nglview()
+        if appname == "chemview": return self.chemview()
 
         # Get the Visualizer subclass from the string.
         visu = Visualizer.from_name(appname)
@@ -1419,7 +1428,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             try:
                 return self.export(ext, visu=visu)()
             except visu.Error as exc:
-                print(exc)
+                cprint(str(exc), color="red")
                 pass
         else:
             raise visu.Error("Don't know how to export data for %s" % appname)

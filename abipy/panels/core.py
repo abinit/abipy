@@ -8,14 +8,6 @@ import bokeh.models.widgets as bkw
 from monty.functools import lazy_property
 
 
-def _mp(fig):
-    return pn.pane.Matplotlib(fig)
-
-
-def _df(df):
-    return pnw.DataFrame(df, disabled=True)
-
-
 class AbipyParameterized(param.Parameterized):
 
     verbose = param.Integer(0, bounds=(0, None), doc="Verbosity Level")
@@ -31,6 +23,13 @@ class AbipyParameterized(param.Parameterized):
         #TODO requires new pymatgen
         #return dict(show=False, fig_close=True)
 
+    @staticmethod
+    def _mp(fig):
+        return pn.pane.Matplotlib(fig, sizing_mode="scale_width")
+
+    @staticmethod
+    def _df(df):
+        return pn.widgets.DataFrame(df, disabled=True, sizing_mode="scale_width")
 
 #class PanelWithNcFile(AbipyParameterized): #, metaclass=abc.ABCMeta):
 #    """
@@ -76,7 +75,7 @@ class PanelWithElectronBands(AbipyParameterized): #, metaclass=abc.ABCMeta):
             with_gaps=self.with_gaps.value, max_phfreq=None, fontsize=8, **self.fig_kwargs)
 
         fig2 = self.ebands.kpoints.plot(**self.fig_kwargs)
-        row = pn.Row(_mp(fig1), _mp(fig2)) #, sizing_mode='scale_width')
+        row = pn.Row(self._mp(fig1), self._mp(fig2)) #, sizing_mode='scale_width')
         text = bkw.PreText(text=self.ebands.to_string(verbose=self.verbose))
         return pn.Column(row, text, sizing_mode='scale_width')
 
@@ -91,7 +90,7 @@ class PanelWithElectronBands(AbipyParameterized): #, metaclass=abc.ABCMeta):
         edos = self.ebands.get_edos(method=self.edos_method.value, step=self.edos_step.value, width=self.edos_width.value)
         fig = edos.plot(**self.fig_kwargs)
         #print(edos)
-        return pn.Row(_mp(fig), sizing_mode='scale_width')
+        return pn.Row(self._mp(fig), sizing_mode='scale_width')
 
 
 class BaseRobotPanel(AbipyParameterized):
@@ -127,10 +126,10 @@ class PanelWithEbandsRobot(BaseRobotPanel): #, metaclass=abc.ABCMeta):
             raise ValueError("Don't know how to handle plot_mode: %s" % plot_mode)
 
         fig = plotfunc(**self.fig_kwargs)
-        col = pn.Column(_mp(fig), sizing_mode='scale_width')
+        col = pn.Column(self._mp(fig), sizing_mode='scale_width')
         if self.ebands_df_checkbox.value:
             df = ebands_plotter.get_ebands_frame(with_spglib=True)
-            col.append(_df(df))
+            col.append(self._df(df))
 
         return pn.Row(col, sizing_mode='scale_width')
 
@@ -147,4 +146,4 @@ class PanelWithEbandsRobot(BaseRobotPanel): #, metaclass=abc.ABCMeta):
             raise ValueError("Don't know how to handle plot_mode: %s" % plot_mode)
 
         fig = plotfunc(**self.fig_kwargs)
-        return pn.Row(pn.Column(_mp(fig)), sizing_mode='scale_width')
+        return pn.Row(pn.Column(self._mp(fig)), sizing_mode='scale_width')

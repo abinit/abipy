@@ -12,10 +12,6 @@ pn.config.js_files = {
 }
 
 
-def _df(df, disabled=True):
-    return pnw.DataFrame(df, disabled=disabled)
-
-
 class StructurePanel(AbipyParameterized):
 
     # Convert widgets.
@@ -32,13 +28,18 @@ class StructurePanel(AbipyParameterized):
 
     # Viewer widgets.
     viewer_btn = pnw.Button(name="View structure", button_type='primary')
-    viewer = pnw.Select(name="Viewer", value="vesta", options=["vesta", "xcrysden"])
+    viewer = pnw.Select(name="Viewer", value="vesta",
+                        options=["vesta", "xcrysden", "vtk", "matplotlib", "mayavi"])
 
     # Mp-match
     mp_match_btn = pnw.Button(name="Connect to Materials Project", button_type='primary')
 
+    # Mp-search
+    #mp_search_btn = pnw.Button(name="Connect to Materials Project", button_type='primary')
+    #mp_api_key
+
     # GS input generator widgets.
-    gs_input_btn = pnw.Button(name="Generate GS input", button_type='primary')
+    gs_input_btn = pnw.Button(name="Generate input", button_type='primary')
     gs_type = pnw.Select(name="GS type", value="scf", options=["scf", "relax"])
     kppra = pnw.Spinner(name="kppra", value=1000, step=1000, start=0, end=None)
 
@@ -77,7 +78,13 @@ class StructurePanel(AbipyParameterized):
     def view(self):
         if self.viewer_btn.clicks == 0: return
         import nglview as nv
-        view = nv.show_pymatgen(self.structure)
+        #view = nv.show_pymatgen(self.structure)
+        view = nv.demo(gui=False)
+        #imag = view.render_image()
+        #print(imag.__class__)
+        return view
+        #return pn.Row(view)
+        #return view._ipython_display_()
         #print(view)
         #print(view._display_image())
         #return view
@@ -117,20 +124,30 @@ class StructurePanel(AbipyParameterized):
         if not mp.structures:
             raise RuntimeError("No structure found in MP database")
 
-        return pn.Column(_df(mp.lattice_dataframe), sizing_mode='stretch_width')
+        return pn.Column(self._df(mp.lattice_dataframe), sizing_mode='stretch_width')
+
+    #@param.depends("mp_search_btn.clicks")
+    #def on_mp_search_btn(self):
+    #    if self.mp_search_btn.clicks == 0: return
+    #    from abipy.core.structure import mp_search
+    #    chemsys_formula_id = self.stucture.formula
+    #    mp = mp_search(chemsys_formula_id, api_key=None, endpoint=None, final=True)
+    #    if not mp.structures:
+    #        raise RuntimeError("No structure found in MP database")
+
+    #    return pn.Column(self._df(mp.lattice_dataframe), sizing_mode='stretch_width')
 
     def get_panel(self):
         """Build panel with widgets to interact with the structure either in a notebook or in a bokeh app"""
         tabs = pn.Tabs(); app = tabs.append
         ws = pn.Column('# Spglib options', self.spglib_symprec, self.spglib_angtol)
-        #ws.append(pn.pane.HTML("$(document).ready(function () {new ClipboardJS('.btn')})"))
         app(("Spglib", pn.Row(ws, self.spglib_summary)))
         ws = pn.Column('# K-path options', self.kpath_format, self.line_density)
         app(("Kpath", pn.Row(ws, self.get_kpath)))
-        app(("Convert", pn.Row(pn.Column("# Convert Structure", self.output_format), self.convert)))
-        app(("View", pn.Row(pn.Column("# Visualize Structure", self.viewer, self.viewer_btn), self.view)))
-        ws = pn.Column('# Generate GS Input', self.gs_type, self.spin_mode, self.kppra, self.gs_input_btn)
-        app(("GS-Input", pn.Row(ws, self.on_gs_input_btn)))
+        app(("Convert", pn.Row(pn.Column("# Convert structure", self.output_format), self.convert)))
+        app(("View", pn.Row(pn.Column("# Visualize structure", self.viewer, self.viewer_btn), self.view)))
+        ws = pn.Column('# Generate GS input', self.gs_type, self.spin_mode, self.kppra, self.gs_input_btn)
+        app(("GS-input", pn.Row(ws, self.on_gs_input_btn)))
         app(("MP-match", pn.Row(pn.Column(self.mp_match_btn), self.on_mp_match_btn)))
 
         #return tabs

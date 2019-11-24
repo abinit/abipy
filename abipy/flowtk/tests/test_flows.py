@@ -220,6 +220,8 @@ class FlowTest(FlowUnitTest):
         dfs = flow.compare_structures(with_spglib=False, verbose=2, printout=True, with_colors=True)
         assert "alpha" in dfs.lattice
 
+        dfs, ebands_plotter = flow.compare_ebands(verbose=0)
+
         if self.has_networkx():
             assert flow.plot_networkx(mode="network", with_edge_labels=False, arrows=False,
                       node_size="num_cores", node_label="name_class", layout_type="spring", show=False)

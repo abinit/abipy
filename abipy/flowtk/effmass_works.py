@@ -209,8 +209,10 @@ class FrohlichZPRFlow(Flow):
 
         if ddb_node is not None:
             new.ddb_node = Node.as_node(ddb_node)
+            new.ddb_file_path_if_ddb_node = os.path.abspath(ddb_node)
         else:
             # Compute DDB with BECS and eps_inf.
+            new.ddb_file_path_if_ddb_node = None
             ph_work = PhononWork.from_scf_task(new.scf_task, qpoints=[0, 0, 0],
                                                  is_ngqpt=False, tolerance=None, with_becs=True,
                                                  ddk_tolerance=None)
@@ -270,7 +272,12 @@ class FrohlichZPRFlow(Flow):
 
         # Add epsinf, e0, BECS, alpha and DDB as string.
         from abipy import abilab
-        with abilab.abiopen(self.ddb_node.outdir.path_in("out_DDB")) as ddb:
+        if self.ddb_file_path_if_ddb_node is not None:
+            ddb_filepath = self.ddb_file_path_if_ddb_node
+        else:
+            ddb_filepath = self.ddb_node.outdir.path_in("out_DDB")
+
+        with abilab.abiopen(ddb_filepath) as ddb:
             d["ddb_path"] = ddb.filepath
             d["ddb_string"] = ddb.get_string()
             epsinf, becs = ddb.anaget_epsinf_and_becs(chneut=1)

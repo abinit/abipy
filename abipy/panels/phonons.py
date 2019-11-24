@@ -5,9 +5,6 @@ import panel.widgets as pnw
 
 from abipy.panels.core import AbipyParameterized
 
-def _mp(fig):
-    return pn.pane.Matplotlib(fig)
-
 
 class PhononBandsPlotterPanel(AbipyParameterized):
 
@@ -30,7 +27,7 @@ class PhononBandsPlotterPanel(AbipyParameterized):
 
         fig = plotfunc(units=self.phbands_plotter_units.value, **self.fig_kwargs)
         df = self.plotter.get_phbands_frame(with_spglib=True)
-        return pn.Row(pn.Column(_mp(fig), df), sizing_mode='scale_width')
+        return pn.Row(pn.Column(self._mp(fig), self._df(df)), sizing_mode='scale_width')
 
     def get_panel(self):
         """Return tabs with widgets to interact with the |PhononBandsPlotter|."""

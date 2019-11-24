@@ -1018,10 +1018,6 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         return ElectronDos(mesh, spin_dos[1:], nelect, fermie=fermie)
 
-    def get_bolztrap(self, **kwargs):
-        from abipy.boltztrap import AbipyBoltztrap
-        return AbipyBoltztrap.from_sigeph(self, **kwargs)
-
     def sigkpt2index(self, kpoint):
         """
         Returns the index of the self-energy k-point in sigma_kpoints
@@ -1201,7 +1197,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         ntemp = self.ntemp
         tmesh = self.tmesh
 
-        #Compute linear mesh
+        # Compute linear mesh
         nelect = ebands.nelect
         fermie = ebands.get_e0(e0)
         epad = 3.0 * width
@@ -1212,7 +1208,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         nw = int(1 + (e_max - e_min) / step)
         mesh, step = np.linspace(e_min, e_max, num=nw, endpoint=True, retstep=True)
 
-        #get dos
+        # get dos
         if method == "gaussian":
             dos = np.zeros((ntemp,self.nsppol,nw))
             for spin in range(self.nsppol):
@@ -1715,6 +1711,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         # This is a bit slow if several k-points but data is scattered due to symsigma.
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         if "markersize" not in kwargs: kwargs["markersize"] = 2
+
         return self.plot_qps_vs_e0(itemp_list=itemp_list, with_fields="fan0", reim="imag",
                                    function=abs, e0=e0, colormap=colormap, xlims=xlims, ylims=ylims,
                                    exchange_xy=exchange_xy, ax_list=[ax], fontsize=fontsize, show=False,

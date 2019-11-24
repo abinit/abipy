@@ -137,67 +137,6 @@ def cli_abiopen(options, filepath):
 
 # TODO: These should become flow methods.
 
-
-def flow_compare_ebands(flow, nids=None, with_spglib=False, verbose=0,
-                        precision=3, printout=False, with_colors=False, plot_mode=None):
-    """
-    Analyze electron bands produced by the tasks. Print pandas DataFrame
-
-    Args:
-        nids: List of node identifiers. By default, all nodes are shown
-        with_spglib: If True, spglib is invoked to get the spacegroup symbol and number
-        precision: Floating point output precision (number of significant digits).
-            This is only a suggestion
-        printout: True to print dataframe.
-        with_colors: True if task status should be colored.
-        plot_mode: Plot results if not None. Allowed value in ["gridplot", "combiplot"]
-    """
-    #flow.check_status()
-    ebands_list, index, status, ncfiles, task_classes, task_nids = [], [], [], [], [], []
-
-    # Cannot use robots because ElectronBands can be found in different filetypes
-    for task in flow.iflat_tasks(nids=nids, status=flow.S_OK):
-        # Read ebands from GSR or SIGRES files.
-        for ext in ("gsr", "sigres"):
-            task_open_ncfile = getattr(task, "open_%s" % ext, None)
-            if task_open_ncfile is not None: break
-        else:
-            continue
-
-        try:
-            with task_open_ncfile() as ncfile:
-                ebands_list.append(ncfile.ebands)
-                index.append(task.pos_str)
-                status.append(task.status.colored if with_colors else str(task.status))
-                ncfiles.append(os.path.relpath(ncfile.filepath))
-                task_classes.append(task.__class__.__name__)
-                task_nids.append(task.node_id)
-        except Exception as exc:
-            cprint("Exception while opening HIST.nc file of task: %s\n%s" % (task, str(exc)), "red")
-
-    if not ebands_list: return
-    df = abilab.dataframe_from_ebands(ebands_list, index=index, with_spglib=with_spglib)
-
-    # Add columns to the dataframe.
-    status = [str(s) for s in status]
-    df["task_class"] = task_classes
-    df["ncfile"] = ncfiles
-    df["node_id"] = task_nids
-    df["status"] = status
-
-    if printout:
-        abilab.print_dataframe(df, title="KS electronic bands:", precision=precision)
-
-    if plot_mode is not None:
-        plotter = abilab.ElectronBandsPlotter(key_ebands=zip(ncfiles, ebands_list))
-        plotfunc = getattr(plotter, plot_mode, None)
-        if plotfunc is None:
-            raise ValueError("Don't know how to handle plot_mode: %s" % plot_mode)
-        plotfunc(tight_layout=True)
-
-    return df, plotter
-
-
 def flow_compare_hist(flow, nids=None, with_spglib=False, verbose=0,
                       precision=3, printout=False, with_colors=False, plot_mode=None):
     """
@@ -212,7 +151,6 @@ def flow_compare_hist(flow, nids=None, with_spglib=False, verbose=0,
         with_colors: True if task status should be colored.
         plot_mode: Plot results if not None. Allowed value in ["gridplot", "combiplot"]
     """
-    #flow.check_status()
     hist_paths, index, status, ncfiles, task_classes, task_nids = [], [], [], [], [], []
 
     for task in flow.iflat_tasks(nids=nids):
@@ -230,6 +168,7 @@ def flow_compare_hist(flow, nids=None, with_spglib=False, verbose=0,
     if not hist_paths: return
     robot = abilab.HistRobot.from_files(hist_paths, labels=hist_paths)
     df = robot.get_dataframe(index=index, with_spglib=with_spglib)
+    ncfiles = [os.path.relpath(p, self.workdir) for p in ncfiles]
 
     # Add columns to the dataframe.
     status = [str(s) for s in status]
@@ -240,9 +179,9 @@ def flow_compare_hist(flow, nids=None, with_spglib=False, verbose=0,
 
     if printout:
         title = "Table with final structures, pressures in GPa and force stats in eV/Ang:\n"
-        abilab.print_dataframe(df, title=title, precision=precision)
+        from abipy.tools.printing import print_dataframe
+        print_dataframe(df, title=title, precision=precision)
 
-    #print("plot_mode", plot_mode)
     if plot_mode is not None:
         if len(robot) == 1:
             robot.abifiles[0].plot()
@@ -255,7 +194,7 @@ def flow_compare_hist(flow, nids=None, with_spglib=False, verbose=0,
             else:
                 raise ValueError("Invalid value of plot_mode: %s" % str(plot_mode))
 
-    return df
+    return df, robot
 
 
 def flow_debug_reset_tasks(flow, nids=None, verbose=0):
@@ -1288,9 +1227,17 @@ def main():
                                 with_colors=not options.no_colors)
 
     elif options.command == "ebands":
-        flow_compare_ebands(flow, nids=select_nids(flow, options), verbose=options.verbose,
-                            with_spglib=False, printout=True, with_colors=not options.no_colors,
-                            plot_mode=options.plot_mode)
+        df, ebands_plotter = flow.compare_ebands(
+                                flow, nids=select_nids(flow, options), verbose=options.verbose,
+                                with_spglib=False, printout=True, with_colors=not options.no_colors,
+                                plot_mode=options.plot_mode)
+
+        plot_mode = options.plot_mode
+        if plot_mode is not None:
+            plotfunc = getattr(ebands_plotter, plot_mode, None)
+            if plotfunc is None:
+                raise ValueError("Don't know how to handle plot_mode: %s" % plot_mode)
+            plotfunc(tight_layout=True)
 
     elif options.command == "hist":
         flow_compare_hist(flow, nids=select_nids(flow, options), verbose=options.verbose,

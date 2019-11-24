@@ -983,17 +983,47 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose)
 
+        from contextlib import ExitStack
+        class ExitStackWithFiles(ExitStack):
+
+            def __init__(self):
+                self.files = []
+                super().__init__()
+
+            def enter_context(self, myfile):
+                self.files.append(myfile)
+                if myfile is not None:
+                    return super().enter_context(myfile)
+
+            def __iter__(self):
+                return self.files.__iter__()
+
+            def __next__(self):
+                return self.files.__next__()
+
+            def __getitem__(self, slice):
+                return self.files.__getitem__(slice)
+
+        exit_stack = ExitStackWithFiles()
+
         # Open file and add metadata to phbands from DDB
         # TODO: in principle phbands.add_params?
         phbst_file = task.open_phbst()
+        exit_stack.enter_context(phbst_file)
+
         self._add_params(phbst_file.phbands)
         if lo_to_splitting:
             phbst_file.phbands.read_non_anal_from_file(os.path.join(task.workdir, "anaddb.nc"))
 
-        phdos_file = None if inp["prtdos"] == 0 else task.open_phdos()
-        #if phdos_file is not None: self._add_params(phdos_file.phdos)
+        phdos_file = None
+        if inp["prtdos"] != 0:
+            phdos_file = task.open_phdos()
+            #self._add_params(phdos_file.phdos)
 
-        return phbst_file, phdos_file
+        exit_stack.enter_context(phdos_file)
+
+        #return phbst_file, phdos_file
+        return exit_stack
 
     def get_coarse(self, ngqpt_coarse, filepath=None):
         """

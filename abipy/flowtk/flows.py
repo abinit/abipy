@@ -1030,6 +1030,71 @@ class Flow(Node, NodeContainer, MSONable):
 
         return dfs
 
+    def compare_ebands(self, nids=None, with_path=True, with_ibz=True, with_spglib=False, verbose=0,
+                       precision=3, printout=False, with_colors=False, plot_mode=None):
+        """
+        Analyze electron bands produced by the tasks.
+        Return pandas DataFrame and |ElectronBandsPlotter|.
+
+        Args:
+            nids: List of node identifiers. By default, all nodes are shown
+            with_path: Select files with ebands along k-path.
+            with_ibz: Select files with ebands in the IBZ.
+            with_spglib: If True, spglib is invoked to get the spacegroup symbol and number
+            precision: Floating point output precision (number of significant digits).
+                This is only a suggestion
+            printout: True to print dataframe.
+            with_colors: True if task status should be colored.
+            plot_mode: Plot results if not None. Allowed value in ["gridplot", "combiplot"]
+
+        Return: (df, ebands_plotter)
+        """
+        ebands_list, index, status, ncfiles, task_classes, task_nids = [], [], [], [], [], []
+
+        # Cannot use robots because ElectronBands can be found in different filetypes
+        for task in self.iflat_tasks(nids=nids, status=self.S_OK):
+            # Read ebands from GSR or SIGRES files.
+            for ext in ("gsr", "sigres"):
+                task_open_ncfile = getattr(task, "open_%s" % ext, None)
+                if task_open_ncfile is not None: break
+            else:
+                continue
+
+            try:
+                with task_open_ncfile() as ncfile:
+                    if not with_path and ncfile.ebands.kpoints.is_path: continue
+                    if not with_ibz and ncfile.ebands.kpoints.is_ibz: continue
+                    ebands_list.append(ncfile.ebands)
+                    index.append(task.pos_str)
+                    status.append(task.status.colored if with_colors else str(task.status))
+                    ncfiles.append(os.path.relpath(ncfile.filepath))
+                    task_classes.append(task.__class__.__name__)
+                    task_nids.append(task.node_id)
+            except Exception as exc:
+                cprint("Exception while opening nc file of task: %s\n%s" % (task, str(exc)), "red")
+
+        if not ebands_list: return
+
+        from abipy.electrons.ebands import dataframe_from_ebands
+        df = dataframe_from_ebands(ebands_list, index=index, with_spglib=with_spglib)
+        ncfiles = [os.path.relpath(p, self.workdir) for p in ncfiles]
+
+        # Add columns to the dataframe.
+        status = [str(s) for s in status]
+        df["task_class"] = task_classes
+        df["ncfile"] = ncfiles
+        df["node_id"] = task_nids
+        df["status"] = status
+
+        if printout:
+            from abipy.tools.printing import print_dataframe
+            abilab.print_dataframe(df, title="KS electronic bands:", precision=precision)
+
+        from abipy.electrons.ebands import ElectronBandsPlotter
+        ebands_plotter = ElectronBandsPlotter(key_ebands=zip(ncfiles, ebands_list))
+
+        return df, ebands_plotter
+
     def show_summary(self, **kwargs):
         """
         Print a short summary with the status of the flow and a counter task_status --> number_of_tasks

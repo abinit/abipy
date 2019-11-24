@@ -2,15 +2,16 @@
 
 ## Requirements
 
-- abinit >= 8.6
-- abipy, pymatgen and corresponding dependencies
 - pytest (framework for unit tests)
+- abinit
+- abipy with configured manager.yaml 
+
 
 ## How to run the tests
 
 Change the configuration options for the task manager reported in the file `manager.yaml`
 
-Execute pytest in the current directory. 
+Execute pytest in the current directory.
 Results are produced in the directory in `_mytests`
 
 ## How to add a new integration test

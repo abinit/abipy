@@ -7,21 +7,10 @@ import bokeh.models.widgets as bkw
 from abipy.panels.core import AbipyParameterized
 
 
-#def _mp(fig):
-#    return pn.pane.Matplotlib(fig)
-
-
-#def _df(df):
-#    return pnw.DataFrame(df, disabled=True)
-
-
 class DdbFilePanel(AbipyParameterized):
     """
     A panel to analyze a |DdbFile|.
     Provides widgets to invoke anaddb and visualize the results.
-
-    .. rubric:: Inheritance Diagram
-    .. inheritance-diagram:: DdbFilePanel
     """
     verbose = param.Integer(0, bounds=(0, None), doc="Verbosity Level")
     mpi_procs = param.Integer(1, bounds=(1, None), doc="Number of MPI processes used in anaddb")
@@ -50,6 +39,7 @@ class DdbFilePanel(AbipyParameterized):
     def __init__(self, ddb, **params):
         super().__init__(**params)
         self.ddb = ddb
+        #self.plot_phbands_btn.on_click(self.plot_phbands_and_phdos)
 
     @param.depends('get_epsinf_btn.clicks')
     def get_epsinf(self):
@@ -91,18 +81,19 @@ class DdbFilePanel(AbipyParameterized):
         return gspec
 
     @param.depends('plot_phbands_btn.clicks')
-    def plot_phbands_and_phdos(self):
+    def plot_phbands_and_phdos(self, event=None):
         """Compute phonon bands and ph-DOSes and plot the results."""
         if self.plot_phbands_btn.clicks == 0: return
+        #self.plot_phbands_btn.button_type = "warning"
 
         print("Computing phbands")
-        phbst_file, phdos_file = self.ddb.anaget_phbst_and_phdos_files(
+        with self.ddb.anaget_phbst_and_phdos_files(
                 nqsmall=self.nqsmall, qppa=None, ndivsm=self.ndivsm,
                 line_density=None, asr=self.asr, chneut=self.chneut, dipdip=self.dipdip,
                 dos_method=self.dos_method, lo_to_splitting=self.lo_to_splitting,
-                verbose=self.verbose, mpi_procs=self.mpi_procs)
+                verbose=self.verbose, mpi_procs=self.mpi_procs) as g:
 
-        phbands, phdos = phbst_file.phbands, phdos_file.phdos
+            phbands, phdos = g[0].phbands, g[1].phdos
         print("Computing phbands completed")
 
         # Build grid
@@ -111,9 +102,10 @@ class DdbFilePanel(AbipyParameterized):
         gspec[0, 1] = phdos_file.plot_pjdos_type(units=self.units, exchange_xy=True, **self.fig_kwargs)
         gspec[1, 0] = phdos_file.msqd_dos.plot(units=self.units, **self.fig_kwargs)
         temps = self.temp_range.value
-        gspec[1, 1] = phdos.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1],
-                                                 num=50, **self.fig_kwargs)
+        gspec[1, 1] = phdos.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, **self.fig_kwargs)
         #msqd_dos.plot_tensor(**self.fig_kwargs)
+
+        #self.plot_phbands_btn.button_type = "primary"
 
         phbst_file.close()
         phdos_file.close()

@@ -48,10 +48,10 @@ extensions = [
     'sphinx_gallery.gen_gallery',
     "sphinxarg.ext",         # CLI doc
     'sphinxcontrib.bibtex',
-    #"releases",
+    "jupyter_sphinx.execute",
     #'nbsphinx',
+    #"releases",
     #'sphinx.ext.coverage',
-
 ]
 
 # Add any Sphinx extension module names here, as strings. They can
