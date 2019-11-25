@@ -980,7 +980,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 with ddb.anaget_phbst_and_phdos_files(...) as g:
                     phbst_file, phdos_file = g[0], g[0]
 
-            to ensure the netcdf files are closes instead of:
+            to ensure the netcdf files are closed instead of:
 
                 phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(...)
 

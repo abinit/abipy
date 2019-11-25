@@ -12,7 +12,9 @@ from .flows import Flow
 
 
 def _get_red_dirs_from_opts(red_dirs, cart_dirs, reciprocal_lattice):
-    """Helper function to compute the list of directions from user input. Return numpy array."""
+    """
+    Helper function to compute the list of directions from user input. Return numpy array.
+    """
     all_red_dirs = []
     if red_dirs is not None:
         all_red_dirs.extend(np.reshape(red_dirs, (-1, 3)))
@@ -76,7 +78,7 @@ class EffMassLineWork(Work):
 class EffMassDFPTWork(Work):
     """
     Work for the computation of effective masses with DFPT.
-    Requires explicit list of k-points and range for bands.
+    Requires explicit list of k-points and range of bands.
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: EffMassDFPTWork
@@ -109,15 +111,16 @@ class EffMassDFPTWork(Work):
         scf_task = new.register_scf_task(scf_input) if den_node is None else Node.as_node(den_node)
 
         nscf_task = new.register_nscf_task(nscf_input, deps={scf_task: "DEN"})
-        new.register_effmass_task(effmass_input, deps={nscf_task: ["DEN", "WFK"]})
+        new.register_effmass_task(effmass_input, deps={scf_task: "DEN", nscf_task: "WFK"})
         return new
 
 
 class EffMassAutoDFPTWork(Work):
     """
     Work for the automatic computation of effective masses with DFPT.
-    Band extrema are automatically detected by performing a NSCF calculation along a high-symmetry k-path with ndivsm.
-    Requires more computation that EffMassWork but since input variables (kpoints and band range)
+    Band extrema are automatically detected by performing a NSCF calculation
+    along a high-symmetry k-path with ndivsm.
+    Requires more computation that EffMassWork since input variables (kpoints and band range)
     are computed at runtime.
 
     .. rubric:: Inheritance Diagram
@@ -198,7 +201,7 @@ class FrohlichZPRFlow(Flow):
             ndivsm: Number of divisions used to sample the smallest segment of the k-path.
             tolwfr: Tolerance on residuals for NSCF calculation
             manager: |TaskManager| instance. Use default if None.
-            metadata: Dictionary with metadata to be be addeded to the final JSON file.
+            metadata: Dictionary with metadata addeded to the final JSON file.
         """
         new = cls(workdir=workdir, manager=manager)
         new.metadata = jsanitize(metadata) if metadata is not None else None
@@ -215,8 +218,8 @@ class FrohlichZPRFlow(Flow):
             # Compute DDB with BECS and eps_inf.
             new.ddb_file_path_if_ddb_node = None
             ph_work = PhononWork.from_scf_task(new.scf_task, qpoints=[0, 0, 0],
-                                                 is_ngqpt=False, tolerance=None, with_becs=True,
-                                                 ddk_tolerance=None)
+                                               is_ngqpt=False, tolerance=None, with_becs=True,
+                                               ddk_tolerance=None)
             new.register_work(ph_work)
             new.ddb_node = ph_work
 
@@ -247,8 +250,8 @@ class FrohlichZPRFlow(Flow):
     def finalize(self):
         """
         This method is called when the flow is completed.
-        Here we write the final results in the "zprfrohl_results.json"
-        in the outdata directory of the flow
+        Here we write the final results in the "zprfrohl_results.json" file
+        in the `outdata` directory of the flow
         """
         d = {}
         if self.metadata is not None: d.update({"metadata": self.metadata})

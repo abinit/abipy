@@ -93,6 +93,7 @@ class TransportFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, 
         ax.set_ylabel('VVDOS')
         ax.set_yscale('log')
         ax.legend(loc="best", shadow=True, fontsize=fontsize)
+
         return fig
 
     @add_fig_kwargs
@@ -121,7 +122,7 @@ class TransportFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, 
         ax.legend(loc="best", shadow=True, fontsize=fontsize)
         return fig
 
-    def get_mobility_mu(self,eh,itemp,component='xx',ef=None,spin=0):
+    def get_mobility_mu(self, eh, itemp, component='xx', ef=None, spin=0):
         """
         Get the value of the mobility at a chemical potential ef
 
@@ -208,7 +209,7 @@ class TransportReader(ElectronsReader):
         self.tmesh = ktmesh / abu.kb_HaK
         self.nsppol = self.read_dimvalue('nsppol')
 
-    def read_vvdos(self,component='xx',spin=1):
+    def read_vvdos(self, component='xx', spin=1):
         """
         Read the group velocity density of states
         The vvdos_vals array has 3 dimensions (9,nsppolplus1,nw)
@@ -217,12 +218,12 @@ class TransportReader(ElectronsReader):
           3. the number of frequencies
         """
         i,j = abu.s2itup(component)
-        wmesh = self.read_variable("vvdos_mesh")[:]*abu.Ha_eV
+        wmesh = self.read_variable("vvdos_mesh")[:] * abu.Ha_eV
         vals = self.read_variable("vvdos_vals")
         vvdos = vals[i,j,spin,:]
         return wmesh, vvdos
 
-    def read_vvdos_tau(self,itemp,component='xx',spin=1):
+    def read_vvdos_tau(self, itemp, component='xx', spin=1):
         """
         Read the group velocity density of states times lifetime for different temperatures
         The vvdos_tau array has 4 dimensions (ntemp,9,nsppolplus1,nw)
@@ -232,12 +233,12 @@ class TransportReader(ElectronsReader):
           4. the number of frequencies
         """
         i,j = abu.s2itup(component)
-        wmesh = self.read_variable("vvdos_mesh")[:]*abu.Ha_eV
+        wmesh = self.read_variable("vvdos_mesh")[:] * abu.Ha_eV
         vals = self.read_variable("vvdos_tau")
-        vvdos_tau = vals[itemp,i,j,spin,:]/(2*abu.Ha_s)
+        vvdos_tau = vals[itemp,i,j,spin,:] / (2 * abu.Ha_s)
         return wmesh, vvdos_tau
 
-    def read_dos(self,spin=0):
+    def read_dos(self, spin=0):
         """
         Read the density of states
         """
@@ -249,7 +250,7 @@ class TransportReader(ElectronsReader):
         idos = vals[spin,:]
         return wmesh, dos, idos
 
-    def read_onsager(self,itemp):
+    def read_onsager(self, itemp):
         """
         Read the Onsager coefficients computed in the transport driver in Abinit
         """
@@ -258,14 +259,14 @@ class TransportReader(ElectronsReader):
         L2 = np.moveaxis(self.read_variable("L2")[itemp,:], [0,1,2,3], [3,2,0,1])
         return L0,L1,L2
 
-    def read_transport(self,itemp):
+    def read_transport(self, itemp):
         sigma = np.moveaxis(self.read_variable("sigma")[itemp,:],     [0,1,2,3],[3,2,0,1])
         kappa = np.moveaxis(self.read_variable("kappa")[itemp,:],     [0,1,2,3],[3,2,0,1])
         seebeck = np.moveaxis(self.read_variable("seebeck")[itemp,:], [0,1,2,3],[3,2,0,1])
         pi = np.moveaxis(self.read_variable("pi")[itemp,:],           [0,1,2,3],[3,2,0,1])
         return sigma, kappa, seebeck, pi
 
-    def read_mobility(self,eh,itemp,component,spin):
+    def read_mobility(self, eh, itemp, component, spin):
         """
         Read mobility from the TRANSPORT.nc file
         The mobility is computed separately for electrons and holes.

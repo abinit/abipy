@@ -1373,16 +1373,16 @@ class Structure(pymatgen.Structure, NotebookWriter):
         else:
             return visu(filename)
 
-    def chemview(self, **kwargs):
+    def chemview(self, **kwargs): # pragma: no cover
         """
-        Visualize structure in jupyter_ notebook using chemview package.
+        Visualize structure inside jupyter notebook using chemview package.
         """
         from pymatgen.vis.structure_chemview import quick_view
         return quick_view(self, **kwargs)
 
     def vtkview(self, show=True, **kwargs):
         """
-        Visualize structure with VTK. Requires vtk python bindings.
+        Visualize structure with VTK. Requires vVTK python bindings.
 
         Args:
             show: True to show structure immediately.
@@ -1397,12 +1397,17 @@ class Structure(pymatgen.Structure, NotebookWriter):
         return vis
 
     def mayaview(self, figure=None, show=True, **kwargs):
-        """Visualize the crystalline structure with mayaview"""
+        """Visualize structure with mayavi."""
         from abipy.display import mvtk
         return mvtk.plot_structure(self, figure=figure, show=show, **kwargs)
 
-    def nglview(self):
-        import nglview as nv
+    def nglview(self): # pragma: no cover
+        """Visualize structure with nglview inside a jupyter notebook."""
+        try:
+            import nglview as nv
+        except ImportError:
+            cprint("nglview is not installed. See https://github.com/arose/nglview")
+            raise
         view = nv.show_pymatgen(self)
         view.add_unitcell()
         return view
@@ -1415,8 +1420,8 @@ class Structure(pymatgen.Structure, NotebookWriter):
         if appname in ("mpl", "matplotlib"): return self.plot()
         if appname == "vtk": return self.vtkview()
         if appname == "mayavi": return self.mayaview()
-        if appname == "nglview": return self.nglview()
-        if appname == "chemview": return self.chemview()
+        #if appname == "nglview": return self.nglview()
+        #if appname == "chemview": return self.chemview()
 
         # Get the Visualizer subclass from the string.
         visu = Visualizer.from_name(appname)

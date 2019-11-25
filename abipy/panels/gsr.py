@@ -33,9 +33,6 @@ class GsrFilePanel(PanelWithElectronBands):
 
 class GsrRobotPanel(PanelWithEbandsRobot):
     """
-
-    .. rubric:: Inheritance Diagram
-    .. inheritance-diagram:: GsrRobotPanel
     """
 
     gsr_dataframe_btn = pnw.Button(name="Compute", button_type='primary')

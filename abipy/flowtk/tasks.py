@@ -3266,8 +3266,7 @@ class ScfTask(GsTask):
         """
         Plot the SCF cycle results with matplotlib.
 
-        Returns
-            `matplotlib` figure, None if some error occurred.
+        Returns: |matplotlib-Figure| or None if some error occurred.
         """
         try:
             scf_cycle = abiinspect.GroundStateScfCycle.from_file(self.output_file.path)
@@ -3482,8 +3481,7 @@ class RelaxTask(GsTask, ProduceHist):
                 The second option, extracts data from the main output file and
                 plot the evolution of the SCF cycles (etotal, residuals, etc).
 
-        Returns:
-            `matplotlib` figure, None if some error occurred.
+        Returns: |matplotlib-Figure| or None if some error occurred.
         """
         what = kwargs.pop("what", "hist")
 
@@ -3814,8 +3812,7 @@ class PhononTask(DfptTask):
         """
         Plot the Phonon SCF cycle results with matplotlib.
 
-        Returns:
-            `matplotlib` figure, None if some error occurred.
+        Returns: |matplotlib-Figure| or None if some error occurred.
         """
         scf_cycle = abiinspect.PhononScfCycle.from_file(self.output_file.path)
         if scf_cycle is not None:
@@ -4068,8 +4065,7 @@ class BseTask(ManyBodyTask):
     #    """
     #    Plot the Haydock iterations with matplotlib.
     #
-    #    Returns
-    #        `matplotlib` figure, None if some error occurred.
+    #    Returns: |matplotlib-Figure| or None if some error occurred.
     #    """
     #    haydock_cycle = abiinspect.HaydockIterations.from_file(self.output_file.path)
     #    if haydock_cycle is not None:
@@ -4125,7 +4121,7 @@ class OpticTask(Task):
 
     def __init__(self, optic_input, nscf_node, ddk_nodes, use_ddknc=False, workdir=None, manager=None):
         """
-        Create an instance of :class:`OpticTask` from an string containing the input.
+        Create an instance of :class:`OpticTask` from n string containing the input.
 
         Args:
             optic_input: :class:`OpticInput` object with optic variables.

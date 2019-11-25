@@ -77,21 +77,10 @@ class StructurePanel(AbipyParameterized):
     @param.depends("viewer_btn.clicks")
     def view(self):
         if self.viewer_btn.clicks == 0: return
-        import nglview as nv
-        #view = nv.show_pymatgen(self.structure)
-        view = nv.demo(gui=False)
-        #imag = view.render_image()
-        #print(imag.__class__)
-        return view
-        #return pn.Row(view)
-        #return view._ipython_display_()
-        #print(view)
-        #print(view._display_image())
+        return self.structure.nglview()
+        #import nglview as nv
+        #view = nv.demo(gui=False)
         #return view
-        #return view._display_image()
-        #return view.display(gui=True)
-        #return pn.interact(view)
-        #return view.render_image()
         self.structure.visualize(appname=self.viewer.value)
 
     @param.depends("gs_input_btn.clicks")

@@ -117,7 +117,7 @@ def cli_abiopen(options, filepath):
 
         import IPython
         # Use embed because I don't know how to show a header with start_ipython.
-        IPython.embed(header="The Abinit file is bound to the `abifile` variable.\nTry `print(abifile)`")
+        IPython.embed(header="The Abinit file is associated to the `abifile` variable.\nTry `print(abifile)`")
 
     else:
         # Call specialized method if the object is a NotebookWriter
@@ -588,13 +588,6 @@ Default: o
     p_docsched = subparsers.add_parser('doc_scheduler', parents=[copts_parser],
         help="Document the options available in scheduler.yml.")
 
-    # Subparser for gui command.
-    #p_gui = subparsers.add_parser('gui', parents=[copts_parser], help="Open the GUI (requires wxPython).")
-    #p_gui.add_argument("--chroot", default="", type=str, help=("Use chroot as new directory of the flow. " +
-    #                   "Mainly used for opening a flow located on a remote filesystem mounted with sshfs. " +
-    #                   "In this case chroot is the absolute path to the flow on the **localhost** " +
-    #                   "Note that it is not possible to change the flow from remote when chroot is used."))
-
     p_panel = subparsers.add_parser('panel', parents=[copts_parser],
                                     help="Interact with the flow in the browser (requires panel package).")
 
@@ -888,7 +881,6 @@ def main():
 
     # Read the flow from the pickle database.
     flow = flowtk.Flow.pickle_load(options.flowdir, remove_lock=options.remove_lock)
-    #flow.show_info()
 
     # If we have selected a work/task, we have to convert wname/tname into node ids (nids)
     if wname or tname:
@@ -918,14 +910,6 @@ def main():
             options.nids = set([flow[w_pos].node_id] + [task.node_id for task in flow[w_pos]])
 
     retcode = 0
-
-    #if options.command == "gui":
-    #    if options.chroot:
-    #        # Change the workdir of flow.
-    #        print("Will chroot to %s..." % options.chroot)
-    #        flow.chroot(options.chroot)
-    #    from abipy.gui.flowviewer import wxapp_flow_viewer
-    #    wxapp_flow_viewer(flow).MainLoop()
 
     if options.command == "new_manager":
         # Read the new manager from file.
