@@ -36,6 +36,40 @@ from abipy.tools.tensors import DielectricTensor, ZstarTensor, Stress
 from abipy.abio.robots import Robot
 
 
+from contextlib import ExitStack
+class ExitStackWithFiles(ExitStack):
+    """
+    Context manager for dynamic management of a stack of file-like objects.
+    Mainly used in a callee that needs to return files to the caller
+
+    Usage example:
+
+    .. code-block:: python
+
+        exit_stack = ExitStackWithFiles()
+        exit_stack.enter_context(phbst_file)
+        return exit_stack
+    """
+    def __init__(self):
+        self.files = []
+        super().__init__()
+
+    def enter_context(self, myfile):
+        # If my file is None, we add it to files but without registering the callback.
+        self.files.append(myfile)
+        if myfile is not None:
+            return super().enter_context(myfile)
+
+    def __iter__(self):
+        return self.files.__iter__()
+
+    def __next__(self):
+        return self.files.__next__()
+
+    def __getitem__(self, slice):
+        return self.files.__getitem__(slice)
+
+
 class DdbError(Exception):
     """Error class raised by DDB."""
 
@@ -936,7 +970,19 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                                      anaddb_kwargs=None, verbose=0, spell_check=True,
                                      mpi_procs=1, workdir=None, manager=None):
         """
-        Execute anaddb to compute the phonon band structure and the phonon DOS
+        Execute anaddb to compute the phonon band structure and the phonon DOS.
+        Return contex manager that closes the files automatically.
+
+        .. important::
+
+            Use:
+
+                with ddb.anaget_phbst_and_phdos_files(...) as g:
+                    phbst_file, phdos_file = g[0], g[0]
+
+            to ensure the netcdf files are closes instead of:
+
+                phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(...)
 
         Args:
             nqsmall: Defines the homogeneous q-mesh used for the DOS. Gives the number of divisions
@@ -963,7 +1009,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             workdir: Working directory. If None, a temporary directory is created.
             manager: |TaskManager| object. If None, the object is initialized from the configuration file.
 
-        Returns:
+        Returns: Context manager with two files:
             |PhbstFile| with the phonon band structure.
             |PhdosFile| with the the phonon DOS.
         """
@@ -983,27 +1029,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose)
 
-        from contextlib import ExitStack
-        class ExitStackWithFiles(ExitStack):
-
-            def __init__(self):
-                self.files = []
-                super().__init__()
-
-            def enter_context(self, myfile):
-                self.files.append(myfile)
-                if myfile is not None:
-                    return super().enter_context(myfile)
-
-            def __iter__(self):
-                return self.files.__iter__()
-
-            def __next__(self):
-                return self.files.__next__()
-
-            def __getitem__(self, slice):
-                return self.files.__getitem__(slice)
-
+        # Use ExitStackWithFiles so that caller can use with contex manager.
         exit_stack = ExitStackWithFiles()
 
         # Open file and add metadata to phbands from DDB
@@ -1022,7 +1048,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         exit_stack.enter_context(phdos_file)
 
-        #return phbst_file, phdos_file
         return exit_stack
 
     def get_coarse(self, ngqpt_coarse, filepath=None):
@@ -1033,7 +1058,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             ngqpt_coarse: list of ngqpt indexes that must be a sub-mesh of the original ngqpt
             filepath: Filename for coarse DDB. If None, temporary filename is used.
 
-        Return: DdbFile on coarse mesh.
+        Return: |DdbFile| on coarse mesh.
         """
         # Check if ngqpt is a sub-mesh of ngqpt
         ngqpt_fine = self.guessed_ngqpt

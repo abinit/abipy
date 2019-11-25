@@ -1228,7 +1228,7 @@ def main():
 
     elif options.command == "ebands":
         df, ebands_plotter = flow.compare_ebands(
-                                flow, nids=select_nids(flow, options), verbose=options.verbose,
+                                nids=select_nids(flow, options), verbose=options.verbose,
                                 with_spglib=False, printout=True, with_colors=not options.no_colors,
                                 plot_mode=options.plot_mode)
 

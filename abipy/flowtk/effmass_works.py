@@ -2,6 +2,7 @@
 """Work subclasses related to effective mass calculations."""
 
 import numpy as np
+import os
 
 from monty.json import jsanitize
 from abipy.core.kpoints import build_segments
@@ -246,7 +247,8 @@ class FrohlichZPRFlow(Flow):
     def finalize(self):
         """
         This method is called when the flow is completed.
-        Here we write the final results in the "zprfrohl_results.json" in the outdata directory of the flow
+        Here we write the final results in the "zprfrohl_results.json"
+        in the outdata directory of the flow
         """
         d = {}
         if self.metadata is not None: d.update({"metadata": self.metadata})

@@ -348,7 +348,7 @@ class AbipyTest(PymatgenTest):
             return False
 
     @staticmethod
-    def has_python_graphviz(need_dotexec=False):
+    def has_python_graphviz(need_dotexec=True):
         """
         True if python-graphviz package is installed and dot executable in path.
         """
@@ -429,7 +429,7 @@ class AbipyTest(PymatgenTest):
     @staticmethod
     def get_tmpname(**kwargs):
         """Invoke mkstep with kwargs, return the name of a temporary file."""
-        fd, tmpname = tempfile.mkstemp(**kwargs)
+        _, tmpname = tempfile.mkstemp(**kwargs)
         return tmpname
 
     @staticmethod

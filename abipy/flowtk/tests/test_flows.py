@@ -228,7 +228,7 @@ class FlowTest(FlowUnitTest):
             assert flow.plot_networkx(mode="status", with_edge_labels=True, arrows=True,
                       node_size="num_cores", node_label="name_class", layout_type="spring", show=False)
 
-        if self.has_graphviz():
+        if self.has_python_graphviz():
             assert flow.get_graphviz(engine="automatic", graph_attr=None, node_attr=None, edge_attr=None)
             assert flow.graphviz_imshow(ax=None, figsize=None, dpi=300, fmt="png", show=False)
 

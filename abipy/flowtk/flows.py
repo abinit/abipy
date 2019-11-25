@@ -1073,7 +1073,7 @@ class Flow(Node, NodeContainer, MSONable):
             except Exception as exc:
                 cprint("Exception while opening nc file of task: %s\n%s" % (task, str(exc)), "red")
 
-        if not ebands_list: return
+        if not ebands_list: return (None, None)
 
         from abipy.electrons.ebands import dataframe_from_ebands
         df = dataframe_from_ebands(ebands_list, index=index, with_spglib=with_spglib)

@@ -214,12 +214,13 @@ class DdbTest(AbipyTest):
             assert ifc.plot_longitudinal_ifc_ewald(show=False)
 
         # Test get_coarse.
-        coarse_ddb = ddb.get_coarse([2, 2, 2])
-        # Check whether anaddb can read the coarse DDB.
-        coarse_phbands_file, coarse_phdos_file = coarse_ddb.anaget_phbst_and_phdos_files(nqsmall=4, ndivsm=1, verbose=1)
-        coarse_phbands_file.close()
-        coarse_phdos_file.close()
-        coarse_ddb.close()
+        with ddb.get_coarse([2, 2, 2]) as coarse_ddb:
+            # Check whether anaddb can read the coarse DDB.
+
+            with coarse_ddb.anaget_phbst_and_phdos_files(nqsmall=4, ndivsm=1, verbose=1) as g:
+                coarse_phbands_file, coarse_phdos_file = g
+                assert coarse_phbands_file.filepath == g.files[0].filepath
+                assert coarse_phdos_file.filepath == g.files[1].filepath
 
         ddb.close()
 
