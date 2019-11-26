@@ -36,6 +36,7 @@ class DdbFilePanel(AbipyParameterized):
 
     plot_vsound_btn = pnw.Button(name="Calculate speed of sound", button_type='primary')
 
+
     def __init__(self, ddb, **params):
         super().__init__(**params)
         self.ddb = ddb

@@ -1088,7 +1088,7 @@ class Flow(Node, NodeContainer, MSONable):
 
         if printout:
             from abipy.tools.printing import print_dataframe
-            abilab.print_dataframe(df, title="KS electronic bands:", precision=precision)
+            print_dataframe(df, title="KS electronic bands:", precision=precision)
 
         from abipy.electrons.ebands import ElectronBandsPlotter
         ebands_plotter = ElectronBandsPlotter(key_ebands=zip(ncfiles, ebands_list))
