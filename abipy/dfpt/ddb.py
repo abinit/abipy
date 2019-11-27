@@ -32,42 +32,9 @@ from abipy.dfpt.elastic import ElasticData
 from abipy.core.abinit_units import phfactor_ev2units, phunit_tag
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.tools import duck
+from abipy.tools.iotools import ExitStackWithFiles
 from abipy.tools.tensors import DielectricTensor, ZstarTensor, Stress
 from abipy.abio.robots import Robot
-
-
-from contextlib import ExitStack
-class ExitStackWithFiles(ExitStack):
-    """
-    Context manager for dynamic management of a stack of file-like objects.
-    Mainly used in a callee that needs to return files to the caller
-
-    Usage example:
-
-    .. code-block:: python
-
-        exit_stack = ExitStackWithFiles()
-        exit_stack.enter_context(phbst_file)
-        return exit_stack
-    """
-    def __init__(self):
-        self.files = []
-        super().__init__()
-
-    def enter_context(self, myfile):
-        # If my file is None, we add it to files but without registering the callback.
-        self.files.append(myfile)
-        if myfile is not None:
-            return super().enter_context(myfile)
-
-    def __iter__(self):
-        return self.files.__iter__()
-
-    def __next__(self):
-        return self.files.__next__()
-
-    def __getitem__(self, slice):
-        return self.files.__getitem__(slice)
 
 
 class DdbError(Exception):

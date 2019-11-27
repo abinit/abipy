@@ -3,8 +3,10 @@ r"""
 Estimate the ZPR at band edges with the generalized Frohlich model
 ==================================================================
 
-Flow to estimate the zero-point renormalization at the band edges using the generalized Frohlich model.
-The flow computes the effective masses at the band edges, BECS, eps_inf and phonon frequencies at Gamma with DFPT.
+Flow to estimate the zero-point renormalization at the band edges
+using the generalized Frohlich model. The flow uses DFPT to compute
+the effective masses at the band edges (automatically detected by performing a NSCF run with a k-path),
+BECS, eps_inf and phonon frequencies at Gamma
 """
 
 import sys
@@ -63,7 +65,7 @@ def build_flow(options):
 
     # Build the flow.
     from abipy.flowtk.effmass_works import FrohlichZPRFlow
-    flow = FrohlichZPRFlow.from_scf_input(options.workdir, scf_input, ddb_node=None, ndivsm=4, tolwfr=1e-16,
+    flow = FrohlichZPRFlow.from_scf_input(options.workdir, scf_input, ndivsm=4, tolwfr=1e-16,
                                           manager=options.manager)
 
     return flow

@@ -133,7 +133,7 @@ def ref_file(basename):
     else:
         path = os.path.join(dirpath, basename)
         if not os.path.exists(path):
-            raise ValueError("Cannot find reference file %s" % basename)
+            raise ValueError("Cannot find reference file `%s`, at abs_path: `%s`" % (basename, path))
         return path
 
 
