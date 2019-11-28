@@ -817,8 +817,8 @@ Usage example:
 # Phonons
 #########
 
-  abicomp.py phbands *_PHBST.nc -nb             => Compare phonon bands in the jupyter notebook.
-  abicomp.py phbands *_PHBST.nc --panel         => Compare phonon bands in the panel dashboard (GUI)
+  abicomp.py phbands *_PHBST.nc -p gridplot     => Compare phonon bands with matplotlib grid.
+  abicomp.py phbands *_PHBST.nc -p panel        => Compare phonon bands in the panel dashboard (GUI)
   abicomp.py phbst *_PHBST.nc -ipy              => Compare phonon bands with robot in ipython terminal.
   abicomp.py phdos *_PHDOS.nc -nb               => Compare phonon DOSes in the jupyter notebook.
   abicomp.py ddb outdir1 outdir2 out_DDB -nb    => Analyze all DDB files in directories outdir1, outdir2 and out_DDB file.

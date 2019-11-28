@@ -10,7 +10,6 @@ import shlex
 import time
 import platform
 import tempfile
-import numpy as np
 import abipy.flowtk as flowtk
 import abipy.abilab as abilab
 
@@ -20,10 +19,9 @@ from socket import gethostname
 from monty import termcolor
 from monty.functools import prof_main
 from monty.termcolor import cprint, colored, get_terminal_size
-from monty.string import boxed, list_strings, make_banner
+from monty.string import boxed, make_banner
 from abipy.tools import duck
 from abipy.flowtk import Status
-from abipy.core.structure import dataframes_from_structures
 
 
 def straceback():
@@ -168,7 +166,7 @@ def flow_compare_hist(flow, nids=None, with_spglib=False, verbose=0,
     if not hist_paths: return
     robot = abilab.HistRobot.from_files(hist_paths, labels=hist_paths)
     df = robot.get_dataframe(index=index, with_spglib=with_spglib)
-    ncfiles = [os.path.relpath(p, self.workdir) for p in ncfiles]
+    ncfiles = [os.path.relpath(p, flow.workdir) for p in ncfiles]
 
     # Add columns to the dataframe.
     status = [str(s) for s in status]
@@ -930,7 +928,7 @@ def main():
 
     elif options.command == "panel":
         try:
-            import panel  # flake8: noqa
+            import panel  # noqa
         except ImportError as exc:
             cprint("Use `conda install panel` or `pip install panel` to install the python package.", "red")
             raise exc

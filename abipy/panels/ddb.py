@@ -93,22 +93,20 @@ class DdbFilePanel(AbipyParameterized):
                 dos_method=self.dos_method, lo_to_splitting=self.lo_to_splitting,
                 verbose=self.verbose, mpi_procs=self.mpi_procs) as g:
 
-            phbands, phdos = g[0].phbands, g[1].phdos
-        print("Computing phbands completed")
+            phbst_file, phdos_file = g
+            phbands, phdos = phbst_file.phbands, phdos_file.phdos
+            print("Computing phbands completed")
 
-        # Build grid
-        gspec = pn.GridSpec(sizing_mode='scale_width')
-        gspec[0, 0] = phbands.plot_with_phdos(phdos, units=self.units, **self.fig_kwargs)
-        gspec[0, 1] = phdos_file.plot_pjdos_type(units=self.units, exchange_xy=True, **self.fig_kwargs)
-        gspec[1, 0] = phdos_file.msqd_dos.plot(units=self.units, **self.fig_kwargs)
-        temps = self.temp_range.value
-        gspec[1, 1] = phdos.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, **self.fig_kwargs)
-        #msqd_dos.plot_tensor(**self.fig_kwargs)
+            # Build grid
+            gspec = pn.GridSpec(sizing_mode='scale_width')
+            gspec[0, 0] = phbands.plot_with_phdos(phdos, units=self.units, **self.fig_kwargs)
+            gspec[0, 1] = phdos_file.plot_pjdos_type(units=self.units, exchange_xy=True, **self.fig_kwargs)
+            gspec[1, 0] = phdos_file.msqd_dos.plot(units=self.units, **self.fig_kwargs)
+            temps = self.temp_range.value
+            gspec[1, 1] = phdos.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, **self.fig_kwargs)
+            #msqd_dos.plot_tensor(**self.fig_kwargs)
 
-        #self.plot_phbands_btn.button_type = "primary"
-
-        phbst_file.close()
-        phdos_file.close()
+            #self.plot_phbands_btn.button_type = "primary"
         return gspec
 
     @param.depends('plot_vsound_btn.clicks')
