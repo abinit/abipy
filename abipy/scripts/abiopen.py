@@ -88,6 +88,9 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 JSON file are supported as well. In this case, abiopen.py tries to reconstruct python objects
 assuming JSON document in MSONable format and then invokes ipython with the `data` object.
 Use `-e` to print the JSON documenting without reconstructing python objects.
+
+Table mapping file extension to AbiPy object:
+
 """
     return s + abilab.abiopen_ext2class_table()
 

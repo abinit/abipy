@@ -85,7 +85,7 @@ to set the input parameters, invoke ``anaddb`` and visualize the results:
 
 
 Calling ``get_structure`` with an AbiPy structure, creates a set of widgets 
-that facilitate common operations such as exporting to a different format or
+to facilitate common operations such as exporting to a different format or
 generating a Abinit input file for GS calculations:
 
 .. jupyter-execute::
@@ -142,22 +142,3 @@ For instance, one can create a dashboard to interact with a ``DDB`` file with:
     pyplot.plot(x, np.sin(x) / x)
     pyplot.plot(x, np.cos(x))
     pyplot.grid()
-
-LaTeX output:
-
-.. jupyter-execute::
-
-  from IPython.display import Latex
-  Latex('∫_{-∞}^∞ e^{-x²}dx = \sqrt{π}')
-
-or even full-blown javascript widgets:
-
-.. jupyter-execute::
-
-    import ipywidgets as w
-    from IPython.display import display
-
-    a = w.IntSlider()
-    b = w.IntText()
-    w.jslink((a, 'value'), (b, 'value'))
-    display(a, b)
