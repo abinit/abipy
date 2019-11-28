@@ -39,6 +39,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         self.has_zeff = bool(r.read_value("has_zeff"))
         self.has_dielt = bool(r.read_value("has_dielt"))
         self.has_quadrupoles = bool(r.read_value("has_quadrupoles"))
+        #self.has_efield = bool(r.read_value("has_efield"))
         self.dvdb_add_lr = r.read_value("dvdb_add_lr")
         self.symv1 = bool(r.read_value("symv1"))
 
@@ -81,6 +82,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         app("has_dielt: %s" % self.has_dielt)
         app("has_zeff: %s" % self.has_zeff)
         app("has_quadrupoles: %s" % self.has_quadrupoles)
+        #app("has_efield: %s" % self.has_efield)
         app("dvdb_add_lr: %s" % self.dvdb_add_lr)
         app("symv1: %s" % self.symv1)
 
