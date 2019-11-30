@@ -14,16 +14,19 @@ from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
 
 
-def _get_style(reim, what):
-    symb, linestyle, linewidth, alpha = {
-        "v1scf_avg": (r"v1_{\bf q}", "-", 1, 2.0),
-        "v1lr_avg": (r"v1_{\mathrm{lr}}", "--", 1, 2.0),
-        "v1scfmlr_avg": (r"(v1_{\bf q} - v1_{\mathrm{lr}})", "-.", 1, 2.0),
+def _get_style(reim, what, marker=None, markersize=None, alpha=2.0):
+    symbol, linestyle, linewidth = {
+        "v1scf_avg": (r"v1_{\bf q}", "-", 1),
+        "v1scf_abs_avg": (r"|v1_{\bf q}|", "-", 1),
+        "v1lr_avg": (r"v1_{\mathrm{lr}}", "--", 1),
+        "v1lr_abs_avg": (r"|v1_{\mathrm{lr}}|", "--", 1),
+        "v1scfmlr_avg": (r"(v1_{\bf q} - v1_{\mathrm{lr}})", "-.", 1),
     }[what]
 
     return dict(
-        #marker="x", markersize=1,
-        label=r"$\langle \%s %s \rangle$" % ({0: "Re", 1: "Im"}[reim], symb),
+        marker=marker,
+        markersize=markersize,
+        label=r"$\langle \%s %s \rangle$" % ({0: "Re", 1: "Im"}[reim], symbol),
         color={0: "blue", 1: "red"}[reim],
         linestyle=linestyle,
         linewidth=linewidth,
@@ -39,7 +42,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         self.has_zeff = bool(r.read_value("has_zeff"))
         self.has_dielt = bool(r.read_value("has_dielt"))
         self.has_quadrupoles = bool(r.read_value("has_quadrupoles"))
-        #self.has_efield = bool(r.read_value("has_efield"))
+        self.has_efield = bool(r.read_value("has_efield", default=False))
         self.dvdb_add_lr = r.read_value("dvdb_add_lr")
         self.symv1 = bool(r.read_value("symv1"))
 
@@ -79,17 +82,15 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         app(self.structure.to_string(verbose=verbose, title="Structure"))
         app("")
         app(self.qpoints.to_string(verbose=verbose, title="Q-path"))
-        app("has_dielt: %s" % self.has_dielt)
-        app("has_zeff: %s" % self.has_zeff)
-        app("has_quadrupoles: %s" % self.has_quadrupoles)
-        #app("has_efield: %s" % self.has_efield)
-        app("dvdb_add_lr: %s" % self.dvdb_add_lr)
-        app("symv1: %s" % self.symv1)
+        app("")
+        app("has_dielt: %s, has_zeff: %s" % (self.has_dielt, self.has_zeff))
+        app("has_quadrupoles: %s, has_efield: %s" % (self.has_quadrupoles, self.has_efield))
+        app("dvdb_add_lr: %s, symv1: %s" % (self.dvdb_add_lr, self.symv1))
 
         return "\n".join(lines)
 
     def make_ticks_and_labels(self):
-        # Find the k-point names in the pymatgen database.
+        """Find the k-point names in the pymatgen database."""
 
         od = OrderedDict()
         # If the first or the last k-point are not recognized in findname_in_hsym_stars
@@ -110,7 +111,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return list(od.keys()), list(od.values())
 
     @add_fig_kwargs
-    def plot(self, what_list="all", ispden=0, fontsize=8, sharey=False, **kwargs):
+    def plot(self, what_list="all", ispden=0, fontsize=6, sharey=False, **kwargs):
         """
         Plot
 
@@ -161,10 +162,6 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
             s = "%s [%.3f, %.3f, %.3f]" % (site.specie.symbol, site.frac_coords[0], site.frac_coords[1], site.frac_coords[2])
             ax.set_title("idir: %d, iat: %d, %s" % (idir, iat, s), fontsize=fontsize)
 
-        #if kwargs.pop("with_title", True):
-        #    ax.set_title("dvdb_add_lr %d, alpha_gmin: %s, symv1: %d" % (self.dvdb_add_lr, self.alpha_gmin, self.symv1),
-        #                 fontsize=fontsize)
-
         return fig
 
     @add_fig_kwargs
@@ -197,12 +194,13 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_maxw_perts(self, scale="semilogy", fontsize=8, **kwargs):
+    def plot_maxw_perts(self, scale="semilogy", sharey=False, fontsize=8, **kwargs):
         """
         Plot the decay of max_r |W(R,r,idir,ipert)| for the individual atomic perturbations
 
         Args:
             scale: "semilogy", "loglog" or "plot".
+            sharey: True is y-axes should be shared.
             fontsize: fontsize for legends and titles.
 
         Return: |matplotlib-Figure|
@@ -212,7 +210,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         ncols, nrows = (2, natom // 2) if natom % 2 == 0 else (1, natom)
 
         ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=True, sharey=False, squeeze=False)
+                                                sharex=True, sharey=sharey, squeeze=False)
         ax_list = ax_list.ravel()
 
         # nctkarr_t("maxw", "dp", "nrpt, natom3")
@@ -242,13 +240,12 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         This function generates a predefined list of matplotlib figures with minimal input from the user.
         """
-        yield self.plot(what_list="v1scfmlr_avg", title=r"$v1_{\bf q} - v1_{\bf q}^{\mathrm{LR}}$", show=False)
         yield self.plot(title=r"$v1_{\bf q}\,vs\,v1_{\bfq}^{\mathrm{LR}}$", show=False)
+        yield self.plot(what_list="v1scfmlr_avg", title=r"$v1_{\bf q} - v1_{\bf q}^{\mathrm{LR}}$", show=False)
+        yield self.plot(what_list=["v1scf_abs_avg", "v1lr_abs_avg"], title=r"ABS", show=False)
         if self.has_maxw:
             yield self.plot_maxw(show=False)
             yield self.plot_maxw_perts(show=False)
-        #import os
-        #yield self.plot(title=os.path.basename(self.filepath), show=False)
 
     def write_notebook(self, nbpath=None):
         """
@@ -263,8 +260,8 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
             nbv.new_code_cell("ncfile.plot();"),
         ])
         if self.has_maxw:
-            nbv.new_code_cell("ncfile.plot();"),
-            nbv.new_code_cell("ncfile.plot_perts();"),
+            nbv.new_code_cell("ncfile.plot_maxw();"),
+            nbv.new_code_cell("ncfile.plot_maxw_perts();"),
 
         return self._write_nb_nbpath(nb, nbpath)
 

@@ -12,7 +12,7 @@ from .flows import Flow
 class GkqPathFlow(Flow):
     r"""
     This flow computes the gkq e-ph matrix elements <k+q|\Delta V_q|k> for a list of q-points (usually a q-path).
-    The results stored in the GKQ.nc files for the different q-points can be used to analyze the behaviour
+    The results are stored in the GKQ.nc files for the different q-points. These files can be used to analyze the behaviour
     of the e-ph matrix elements as a function of q with the the objects provided by the abipy.eph.gkq module.
     It is also possible to compute the e-ph matrix elements using the interpolated DFPT potentials
     if test_ft_interpolation is set to True.
@@ -67,12 +67,13 @@ class GkqPathFlow(Flow):
                        scf_task, qpath_list, ph_tolerance=None, tolwfr=1.0e-22, nband=None,
                        with_becs=False, ddk_tolerance=None, shiftq=(0, 0, 0), is_ngqpt=False, remove_wfkq=False,
                        prepgkk=prepgkk, manager=manager)
+
         flow.register_work(work_qpath)
 
         def make_eph_input(scf_inp, ngqpt, qpt):
             """
             Build input file to compute GKQ.nc file from GS SCF input.
-            The calculation requires GS wavefunctions WFK, WFQ a DDB and a DVDB file
+            The calculation requires GS wavefunctions WFK, WFQ, a DDB file and a DVDB file
             """
             return scf_inp.new_with_vars(
                 optdriver=7,

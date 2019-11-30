@@ -133,68 +133,6 @@ def cli_abiopen(options, filepath):
             #return make_and_open_notebook(options)
 
 
-# TODO: These should become flow methods.
-
-def flow_compare_hist(flow, nids=None, with_spglib=False, verbose=0,
-                      precision=3, printout=False, with_colors=False, plot_mode=None):
-    """
-    Analyze HIST nc files produced by the tasks. Print pandas DataFrame with final results.
-
-    Args:
-        nids: List of node identifiers. By defaults all nodes are shown
-        with_spglib: If True, spglib is invoked to get the spacegroup symbol and number
-        precision: Floating point output precision (number of significant digits).
-            This is only a suggestion
-        printout: True to print dataframe.
-        with_colors: True if task status should be colored.
-        plot_mode: Plot results if not None. Allowed value in ["gridplot", "combiplot"]
-    """
-    hist_paths, index, status, ncfiles, task_classes, task_nids = [], [], [], [], [], []
-
-    for task in flow.iflat_tasks(nids=nids):
-        if task.status not in (flow.S_OK, flow.S_RUN): continue
-        hist_path = task.outdir.has_abiext("HIST")
-        if not hist_path: continue
-
-        hist_paths.append(hist_path)
-        index.append(task.pos_str)
-        status.append(task.status.colored if with_colors else str(task.status))
-        ncfiles.append(os.path.relpath(hist_path))
-        task_classes.append(task.__class__.__name__)
-        task_nids.append(task.node_id)
-
-    if not hist_paths: return
-    robot = abilab.HistRobot.from_files(hist_paths, labels=hist_paths)
-    df = robot.get_dataframe(index=index, with_spglib=with_spglib)
-    ncfiles = [os.path.relpath(p, flow.workdir) for p in ncfiles]
-
-    # Add columns to the dataframe.
-    status = [str(s) for s in status]
-    df["task_class"] = task_classes
-    df["ncfile"] = ncfiles
-    df["node_id"] = task_nids
-    df["status"] = status
-
-    if printout:
-        title = "Table with final structures, pressures in GPa and force stats in eV/Ang:\n"
-        from abipy.tools.printing import print_dataframe
-        print_dataframe(df, title=title, precision=precision)
-
-    if plot_mode is not None:
-        if len(robot) == 1:
-            robot.abifiles[0].plot()
-        else:
-            if plot_mode == "gridplot":
-                for what in robot.what_list:
-                    robot.gridplot(what=what)
-            elif plot_mode == "combiplot":
-                robot.combiplot()
-            else:
-                raise ValueError("Invalid value of plot_mode: %s" % str(plot_mode))
-
-    return df, robot
-
-
 def flow_debug_reset_tasks(flow, nids=None, verbose=0):
     """
     Analyze error files produced by reset tasks for possible error messages
@@ -1211,8 +1149,7 @@ def main():
     elif options.command == "ebands":
         df, ebands_plotter = flow.compare_ebands(
                                 nids=select_nids(flow, options), verbose=options.verbose,
-                                with_spglib=False, printout=True, with_colors=not options.no_colors,
-                                plot_mode=options.plot_mode)
+                                with_spglib=False, printout=True, with_colors=not options.no_colors)
 
         plot_mode = options.plot_mode
         if plot_mode is not None:
@@ -1222,9 +1159,21 @@ def main():
             plotfunc(tight_layout=True)
 
     elif options.command == "hist":
-        flow_compare_hist(flow, nids=select_nids(flow, options), verbose=options.verbose,
-                          with_spglib=False, printout=True, with_colors=not options.no_colors,
-                          plot_mode=options.plot_mode)
+        df, robot = flow.compare_hist(nids=select_nids(flow, options), verbose=options.verbose,
+                                       with_spglib=False, printout=True, with_colors=not options.no_colors)
+
+        plot_mode = options.plot_mode
+        if plot_mode is not None:
+            if len(robot) == 1:
+                robot.abifiles[0].plot()
+            else:
+                if plot_mode == "gridplot":
+                    for what in robot.what_list:
+                        robot.gridplot(what=what)
+                elif plot_mode == "combiplot":
+                    robot.combiplot()
+                else:
+                    raise ValueError("Invalid value of plot_mode: %s" % str(plot_mode))
 
     elif options.command == "notebook":
         return flow.write_open_notebook(options.foreground)

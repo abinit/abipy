@@ -1031,7 +1031,7 @@ class Flow(Node, NodeContainer, MSONable):
         return dfs
 
     def compare_ebands(self, nids=None, with_path=True, with_ibz=True, with_spglib=False, verbose=0,
-                       precision=3, printout=False, with_colors=False, plot_mode=None):
+                       precision=3, printout=False, with_colors=False):
         """
         Analyze electron bands produced by the tasks.
         Return pandas DataFrame and |ElectronBandsPlotter|.
@@ -1045,7 +1045,6 @@ class Flow(Node, NodeContainer, MSONable):
                 This is only a suggestion
             printout: True to print dataframe.
             with_colors: True if task status should be colored.
-            plot_mode: Plot results if not None. Allowed value in ["gridplot", "combiplot"]
 
         Return: (df, ebands_plotter)
         """
@@ -1094,6 +1093,53 @@ class Flow(Node, NodeContainer, MSONable):
         ebands_plotter = ElectronBandsPlotter(key_ebands=zip(ncfiles, ebands_list))
 
         return df, ebands_plotter
+
+    def compare_hist(self, nids=None, with_spglib=False, verbose=0,
+                     precision=3, printout=False, with_colors=False):
+        """
+        Analyze HIST nc files produced by the tasks. Print pandas DataFrame with final results.
+        Return: (df, hist_plotter)
+
+        Args:
+            nids: List of node identifiers. By defaults all nodes are shown
+            with_spglib: If True, spglib is invoked to get the spacegroup symbol and number
+            precision: Floating point output precision (number of significant digits).
+                This is only a suggestion
+            printout: True to print dataframe.
+            with_colors: True if task status should be colored.
+        """
+        hist_paths, index, status, ncfiles, task_classes, task_nids = [], [], [], [], [], []
+
+        for task in self.iflat_tasks(nids=nids):
+            if task.status not in (self.S_OK, self.S_RUN): continue
+            hist_path = task.outdir.has_abiext("HIST")
+            if not hist_path: continue
+
+            hist_paths.append(hist_path)
+            index.append(task.pos_str)
+            status.append(task.status.colored if with_colors else str(task.status))
+            ncfiles.append(os.path.relpath(hist_path))
+            task_classes.append(task.__class__.__name__)
+            task_nids.append(task.node_id)
+
+        if not hist_paths: return (None, None)
+        robot = abilab.HistRobot.from_files(hist_paths, labels=hist_paths)
+        df = robot.get_dataframe(index=index, with_spglib=with_spglib)
+        ncfiles = [os.path.relpath(p, self.workdir) for p in ncfiles]
+
+        # Add columns to the dataframe.
+        status = [str(s) for s in status]
+        df["task_class"] = task_classes
+        df["ncfile"] = ncfiles
+        df["node_id"] = task_nids
+        df["status"] = status
+
+        if printout:
+            title = "Table with final structures, pressures in GPa and force stats in eV/Ang:\n"
+            from abipy.tools.printing import print_dataframe
+            print_dataframe(df, title=title, precision=precision)
+
+        return df, robot
 
     def show_summary(self, **kwargs):
         """

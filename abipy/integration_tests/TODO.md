@@ -11,11 +11,7 @@ TODO list:
 * introduce new status WAITING_FOR_RESTART
   so that we don't have to restart task in callbacks
 
-* Fix annoying warnings about k-point sampling.
-
 * Check Positive gw_qprange in EPH (Fixed by Henrique)
-
-* Add support for PSML/UPF format
 
 * Add iscf to GSR.nc so that we know if we have SCF|NSCF run.
 
@@ -25,8 +21,6 @@ TODO list:
 
 * Automate CHANGELOG creation.
 
-* DONE: Fix DFPT with iomode 3 (make_links logic)
-
 * Refactor S_QCRITICAL logic (logic injected by user, since qcritical errors are cluster-specific)
 
 * Refactor wrappers for mrgddb and mrgdvdb (problems with subprocess when
@@ -34,17 +28,17 @@ TODO list:
 
 * Move to new version of APSscheduler
 
-* Write context handler for multiple Files (e.g. anaget_phbst_and_phdos_files)
+* BECS: 3x3 Tensor is not symmetric. Remove get_voigt_dataframe
 
 ## Medium priority
+
+* Add support for PSML/UPF format
 
 * Add DOS to GSR file (useful if tetra)  Create Dosfile ? Fortran exec?
 
 * videos in README (atom and hydrogen) or screenshot based on jupyterlab
 
 * Refactor/improve Visualizer
-
-* Read LO-TO data from PHBST.nc instead of anaddb.nc (not easy as directions should be computed by AbiPy)
 
 * add possibility of changing amu in anaddb/abinit and API to "mix" DDB files
   phonon group velocities (requires extension in netcdf files).

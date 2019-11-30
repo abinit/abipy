@@ -221,6 +221,10 @@ class FlowTest(FlowUnitTest):
         assert "alpha" in dfs.lattice
 
         dfs, ebands_plotter = flow.compare_ebands(verbose=0)
+        assert not dfs and not ebands_plotter
+
+        dfs, hist_plotter = flow.compare_hist(with_spglib=False, verbose=2, printout=True, with_colors=True)
+        assert not dfs and not hist_plotter
 
         if self.has_networkx():
             assert flow.plot_networkx(mode="network", with_edge_labels=False, arrows=False,

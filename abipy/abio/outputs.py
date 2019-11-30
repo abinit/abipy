@@ -202,14 +202,14 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             if magic_start in line:
                 break
         else:
-            raise ValueError("Cannot find magic_start line: %s" % magic_start)
+            raise ValueError("Cannot find magic_start line: `%s`\nPerhaps this is not an Abinit output file!" % magic_start)
         lines = lines[i+1:]
 
         for i, line in enumerate(lines):
             if magic_stop in line:
                 break
         else:
-            raise ValueError("Cannot find magic_stop line: %s" % magic_stop)
+            raise ValueError("Cannot find magic_stop line: `%s`\nPerhaps this is not an Abinit output file!" % magic_stop)
         lines = lines[:i]
 
         # Parse data. Assume format:
@@ -226,7 +226,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                     break
                 l.append(c)
             else:
-                raise ValueError("Cannot find dataset index in token: %s" % s)
+                raise ValueError("Cannot find dataset index in token: %s\n" % s)
 
             #print(line, "\n", l)
             dtindex = None
