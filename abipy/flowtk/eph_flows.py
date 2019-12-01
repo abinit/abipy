@@ -11,14 +11,14 @@ from .flows import Flow
 
 class EphPotFlow(Flow):
     r"""
-    This flow computes the e-ph scattering potentials on a q-mesh (ngqpt)
+    This flow computes the e-ph scattering potentials on a q-mesh defined by ngqpt
     and a list of q-points (usually a q-path) specified by the user.
     The DFPT potentials on the q-mesh are merged in the DVDB located in the outdata
     of the second work while the DFPT potentials on the q-path are merged in the DVDB
     located in the outdata of the third work.
     These DVDB files are then passed to the EPH code to compute the average over the unit
-    cell of the periodic part of the scattering potentials that will be stored in the V1QAVG.nc files
-    of the fourth work.
+    cell of the periodic part of the scattering potentials as a function of q.
+    Results are stored in the V1QAVG.nc files of the outdata of the tasks in the fourth work.
     """
 
     @classmethod
@@ -65,7 +65,7 @@ class EphPotFlow(Flow):
         # Don't include BECS because they have been already computed in the previous work.
         work_qpath = PhononWfkqWork.from_scf_task(
                        scf_task, qpath_list, ph_tolerance=None, tolwfr=1.0e-22, nband=None,
-                       with_becs=False, ddk_tolerance=None, shiftq=(0, 0, 0), is_ngqpt=False, remove_wfkq=False,
+                       with_becs=False, ddk_tolerance=None, shiftq=(0, 0, 0), is_ngqpt=False, remove_wfkq=True,
                        prepgkk=prepgkk, manager=manager)
 
         flow.register_work(work_qpath)

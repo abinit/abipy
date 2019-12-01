@@ -53,7 +53,9 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         self.has_quadrupoles = bool(r.read_value("has_quadrupoles"))
         self.has_efield = bool(r.read_value("has_efield", default=False))
         self.dvdb_add_lr = r.read_value("dvdb_add_lr")
-        self.symv1 = bool(r.read_value("symv1"))
+        self.symv1scf = r.read_value("symv1scf")
+        self.interpolated = bool(r.read_value("interpolated"))
+        self.qdamp = r.read_value("qdamp")
 
     @lazy_property
     def structure(self):
@@ -92,9 +94,10 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         app("")
         app(self.qpoints.to_string(verbose=verbose, title="Q-path"))
         app("")
+        #app("interpolated: %s" % (self.has_dielt, self.has_zeff))
         app("has_dielt: %s, has_zeff: %s" % (self.has_dielt, self.has_zeff))
         app("has_quadrupoles: %s, has_efield: %s" % (self.has_quadrupoles, self.has_efield))
-        app("dvdb_add_lr: %s, symv1: %s" % (self.dvdb_add_lr, self.symv1))
+        app("dvdb_add_lr: %s, symv1scf: %s" % (self.dvdb_add_lr, self.symv1scf))
 
         return "\n".join(lines)
 
@@ -185,6 +188,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         Return: |matplotlib-Figure|
         """
+        if not self.has_maxw: return None
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         # nctkarr_t("maxw", "dp", "nrpt, natom3")
@@ -198,7 +202,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         ax.set_xlabel(r"$\|{\bf{R}}\|$ (Bohr)")
 
         #if kwargs.pop("with_title", True):
-        #    ax.set_title("dvdb_add_lr %d, qdamp: %s, symv1: %d" % (self.dvdb_add_lr, self.qdamp, self.symv1),
+        #    ax.set_title("dvdb_add_lr %d, qdamp: %s, symv1scf: %d" % (self.dvdb_add_lr, self.qdamp, self.symv1scf),
         #                 fontsize=fontsize)
         return fig
 
@@ -214,6 +218,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         Return: |matplotlib-Figure|
         """
+        if not self.has_maxw: return None
         # Build grid of plots.
         natom = len(self.structure)
         ncols, nrows = (2, natom // 2) if natom % 2 == 0 else (1, natom)
@@ -241,7 +246,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
             if iatom == len(ax_list) - 1: ax.set_xlabel(r"$\|{\bf{R}}\|$ (Bohr)")
 
-        #fig.suptitle("dvdb_add_lr %d, qdamp: %s, symv1: %d" % (self.dvdb_add_lr, self.qdamp, self.symv1),
+        #fig.suptitle("dvdb_add_lr %d, qdamp: %s, symv1scf: %d" % (self.dvdb_add_lr, self.qdamp, self.symv1scf),
         #             fontsize=fontsize)
         return fig
 
@@ -358,6 +363,7 @@ class V1qAvgRobot(Robot):
 
     @add_fig_kwargs
     def plot_maxw(self, ax=None, **kwargs):
+        if any(not abifile.has_maxw for abifile in self.abifiles): return None
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         for label, abifile in self.items():
             abifile.plot_maxw(ax=ax, label=label, with_title=False, show=False, **kwargs)

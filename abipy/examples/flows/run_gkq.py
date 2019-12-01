@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 r"""
-Flow for computing e-ph matrix elements along a q-path
-======================================================
+Flow to compute e-ph matrix elements along a q-path
+===================================================
 
-This example shows how to compute the phonon band structure of AlAs with AbiPy flows.
-The final results (out_DDB, out_DVDB) will be produced automatically at the end of the run
-and saved in ``flow_phonons/outdata/``.
+This example shows how to compute the e-ph matrix elements in AlAs along a q-path with AbiPy flows.
+The final results are stored in the GKQ.nc file (one file for q-point) in the outdata of each task.
 """
 import sys
 import os
@@ -37,32 +36,27 @@ def make_scf_input(ngkpt):
 
 def build_flow(options):
     """
-    Create a `Flow` for phonon calculations. The flow has two works.
-
-    The first work contains a single GS task that produces the WFK file used in DFPT
-    Then we have multiple Works that are generated automatically
-    in order to compute the dynamical matrix on a [2, 2, 2] mesh.
-    Symmetries are taken into account: only q-points in the IBZ are generated and
-    for each q-point only the independent atomic perturbations are computed.
+    Create a `Flow` for the computation of e-ph matrix elements
     """
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
         __file__ = os.path.join(os.getcwd(), "run_gkq.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
-    # Use 2x2x2 both for k-mesh and q-mesh
+    # Use 2x2x2 both for k-mesh.
     # Build input for GS calculation
     scf_input = make_scf_input(ngkpt=(2, 2, 2))
 
-    # Create flow to compute all the independent atomic perturbations
-    # corresponding to a [4, 4, 4] q-mesh.
-    # Electric field and Born effective charges are also computed.
-    from abipy.flowtk.eph_flows import GkqPathFlow
+    # corresponding to a [2, 2, 2] q-mesh.
     ngqpt = (2, 2, 2)
-    #qpath_list = [[0.01, 0, 0], [0.02, 0, 0], [0.24, 0, 0], [0.45, 0, 0]]
+
+    # Create flow to compute all the independent atomic perturbations
+    # Use ndivsm = 0 to pass an explicit list of q-points.
+    # If ndivsm > 0, qpath_list is interpreted as a list of boundaries for the q-path
     qpath_list = [[0.0, 0.0, 0.0], [0.01, 0, 0], [0.1, 0, 0],
                   [0.24, 0, 0], [0.3, 0, 0], [0.45, 0, 0], [0.5, 0.0, 0.0]]
 
+    from abipy.flowtk.eph_flows import GkqPathFlow
     flow = GkqPathFlow.from_scf_input(options.workdir, scf_input,
                                       ngqpt, qpath_list, ndivsm=0, with_becs=True)
 
@@ -96,35 +90,8 @@ if __name__ == "__main__":
 #
 # Run the script with:
 #
-#     run_phonons.py -s
+#     run_gkq.py -s
 #
 # then use:
 #
 #    abirun.py flow_phonons history
-#
-# to get the list of actions perfomed by AbiPy to complete the flow.
-# Note how the ``PhononWork`` has merged all the partial DDB files produced by the PhononTasks
-#
-# .. code-block:: bash
-#
-#    ===================================================================================================================================
-#    ====================================== <PhononWork, node_id=241274, workdir=flow_phonons/w1> ================================
-#    ===================================================================================================================================
-#    [Thu Dec  7 22:55:02 2017] Finalized set to True
-#    [Thu Dec  7 22:55:02 2017] Will call mrgddb to merge [ .... ]
-#
-# Now open the final DDB file with:
-#
-#    abiopen.py flow_phonons/outdata/out_DDB
-#
-# and invoke anaddb to compute the phonon band structure and the phonon DOS with:
-#
-# .. code-block:: ipython
-#
-#     In [1]: phbst_file, phdos_file = abifile.anaget_phbst_and_phdos_files()
-#     In [2]: %matplotlib
-#     In [3]: phbst_file.plot_phbands()
-#
-# .. image:: https://github.com/abinit/abipy_assets/blob/master/run_phonons.png?raw=true
-#    :alt: Phonon band structure of AlAs.
-#

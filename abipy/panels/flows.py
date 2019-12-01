@@ -13,7 +13,7 @@ class FlowPanel(AbipyParameterized):
     """
     verbose = pn.widgets.IntSlider(start=0, end=10, step=1, value=0)
 
-    engine = pn.widgets.Select(value="dot",
+    engine = pn.widgets.Select(value="fdp",
         options=['dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage'])
     dirtree = pn.widgets.Checkbox(name='Dirtree', value=False)
     graphviz_btn = pn.widgets.Button(name="Show graph", button_type='primary')

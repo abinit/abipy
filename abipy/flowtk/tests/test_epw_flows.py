@@ -11,15 +11,14 @@ class TestEphFlows(AbipyTest):
         """Testing EphPotFlow."""
         self.skip_if_abinit_not_ge("8.11.0")
 
-        ngkpt = [4, 4, 4]
-        gs_inp = self.get_gsinput_alas_ngkpt(ngkpt=ngkpt)
+        gs_inp = self.get_gsinput_alas_ngkpt(ngkpt=[4, 4, 4])
 
         ngqpt = (2, 2, 2)
         qbounds = [[0, 0, 0], [0.5, 0, 0]]
 
         workdir = self.mkdtemp()
         flow = EphPotFlow.from_scf_input(workdir, gs_inp, ngqpt, qbounds, ndivsm=2, with_becs=True, ddk_tolerance=None,
-                                          prepgkk=1)
+                                         prepgkk=1)
 
         #assert len(work.relax_tasks) == 3
         #assert all(t.input["dilatmx"] == 1.05 for t in work)
@@ -34,9 +33,7 @@ class TestEphFlows(AbipyTest):
         """Testing GkqPathFlow."""
         self.skip_if_abinit_not_ge("8.11.0")
 
-        ngkpt = [4, 4, 4]
-        gs_inp = self.get_gsinput_alas_ngkpt(ngkpt=ngkpt)
-
+        gs_inp = self.get_gsinput_alas_ngkpt(ngkpt=[4, 4, 4])
         ngqpt = (2, 2, 2)
         qbounds = [[0, 0, 0], [0.5, 0, 0]]
 

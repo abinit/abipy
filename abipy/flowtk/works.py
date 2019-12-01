@@ -936,7 +936,7 @@ class BandStructureWork(Work):
         """
         Plot the band structure. kwargs are passed to the plot method of |ElectronBands|.
 
-        Returns: `matplotlib` figure
+        Return: |matplotlib-Figure|
         """
         with self.nscf_task.open_gsr() as gsr:
             return gsr.ebands.plot(**kwargs)
@@ -952,8 +952,7 @@ class BandStructureWork(Work):
             width: Standard deviation (eV) of the gaussian.
             kwargs: Keyword arguments passed to `plot_with_edos` method to customize the plot.
 
-        Returns:
-            `matplotlib` figure.
+        Return: |matplotlib-Figure|
         """
         with self.nscf_task.open_gsr() as gsr:
             gs_ebands = gsr.ebands
@@ -976,7 +975,7 @@ class BandStructureWork(Work):
             width: Standard deviation (eV) of the gaussian.
             kwargs: Keyword arguments passed to `plot` method to customize the plot.
 
-        Returns: `matplotlib` figure.
+        Return: |matplotlib-Figure|
         """
         if dos_pos is not None and not isinstance(dos_pos, (list, tuple)): dos_pos = [dos_pos]
 
@@ -1068,7 +1067,7 @@ class RelaxWork(Work):
         Plot the history of the ion-cell relaxation.
         kwargs are passed to the plot method of |HistFile|
 
-        Return `matplotlib` figure or None if hist file is not found.
+        Return: |matplotlib-Figure| or None if hist file is not found.
         """
         with self.ion_task.open_hist() as hist:
             return hist.plot(**kwargs) if hist else None
@@ -1078,7 +1077,7 @@ class RelaxWork(Work):
         Plot the history of the ion-cell relaxation.
         kwargs are passed to the plot method of |HistFile|
 
-        Return `matplotlib` figure or None if hist file is not found.
+        Return: |matplotlib-Figure| or None if hist file is not found.
         """
         with self.ioncell_task.open_hist() as hist:
             return hist.plot(**kwargs) if hist else None

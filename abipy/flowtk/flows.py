@@ -2544,23 +2544,15 @@ class Flow(Node, NodeContainer, MSONable):
         fg = Digraph("flow", #filename="flow_%s.gv" % os.path.basename(self.relworkdir),
             engine="fdp" if engine == "automatic" else engine)
 
-        # Set graph attributes.
-        # https://www.graphviz.org/doc/info/
-        #fg.attr(label="%s@%s" % (self.__class__.__name__, self.relworkdir))
+        # Set graph attributes. https://www.graphviz.org/doc/info/
         fg.attr(label=repr(self))
-        #fg.attr(fontcolor="white", bgcolor='purple:pink')
         fg.attr(rankdir="LR", pagedir="BL")
-        #fg.attr(constraint="false", pack="true", packMode="clust")
         fg.node_attr.update(color='lightblue2', style='filled')
-        #fg.node_attr.update(ranksep='equally')
 
         # Add input attributes.
-        if graph_attr is not None:
-            fg.graph_attr.update(**graph_attr)
-        if node_attr is not None:
-            fg.node_attr.update(**node_attr)
-        if edge_attr is not None:
-            fg.edge_attr.update(**edge_attr)
+        if graph_attr is not None: fg.graph_attr.update(**graph_attr)
+        if node_attr is not None: fg.node_attr.update(**node_attr)
+        if edge_attr is not None: fg.edge_attr.update(**edge_attr)
 
         def node_kwargs(node):
             return dict(
@@ -2580,9 +2572,6 @@ class Flow(Node, NodeContainer, MSONable):
             with fg.subgraph(name=cluster_name) as wg:
                 wg.attr(**cluster_kwargs)
                 wg.attr(label="%s (%s)" % (work.__class__.__name__, work.name))
-                #wg.attr(label=repr(work))
-                #wg.attr(label="%s (%s)\n%s (%s)" % (
-                #    work.__class__.__name__, work.name, work.relworkdir, work.node_id))
                 for task in work:
                     wg.node(task.name, **node_kwargs(task))
                     # Connect children to task.

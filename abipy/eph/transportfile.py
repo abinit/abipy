@@ -21,7 +21,7 @@ class TransportFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, 
 
     @classmethod
     def from_file(cls, filepath):
-        """Initialize the object from a netcdf_ file."""
+        """Initialize the object from a netcdf file."""
         return cls(filepath)
 
     def __init__(self, filepath):
@@ -81,6 +81,8 @@ class TransportFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, 
             ax: |matplotlib-Axes| or None if a new figure should be created.
             colormap: matplotlib colormap.
             fontsize (int): fontsize for titles and legend
+
+        Return: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         cmap = plt.get_cmap(colormap)
@@ -88,6 +90,7 @@ class TransportFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, 
             temp = self.tmesh[itemp]
             wmesh, vvdos = self.reader.read_vvdos_tau(itemp, component=component)
             ax.plot(wmesh, vvdos, c=cmap(itemp / self.ntemp), label='T = %dK' % temp)
+
         ax.grid(True)
         ax.set_xlabel('Fermi level (eV)')
         ax.set_ylabel('VVDOS')
@@ -115,16 +118,18 @@ class TransportFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, 
             temp = self.tmesh[itemp]
             wmesh, mu = self.reader.read_mobility(0, itemp, component,0)
             ax.plot(wmesh, mu, c=cmap(itemp / self.ntemp), label='T = %dK' % temp)
+
         ax.grid(True)
         ax.set_xlabel('Fermi level (eV)')
         ax.set_ylabel(r'mobility $\mu(\epsilon_F)$ [cm$^2$/Vs]')
         ax.set_yscale('log')
         ax.legend(loc="best", shadow=True, fontsize=fontsize)
+
         return fig
 
     def get_mobility_mu(self, eh, itemp, component='xx', ef=None, spin=0):
         """
-        Get the value of the mobility at a chemical potential ef
+        Get the value of the mobility at a chemical potential Ef
 
         Args:
             eh:
@@ -165,6 +170,7 @@ class TransportFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, 
             mobility_mu_e = self.get_mobility_mu(0, itemp)
             mobility_mu_h = self.get_mobility_mu(1, itemp)
             app("%14.1lf %18.6lf %18.6lf" % (temp, mobility_mu_e, mobility_mu_h))
+
         return "\n".join(lines)
 
     def yield_figs(self, **kwargs):  # pragma: no cover
@@ -257,7 +263,7 @@ class TransportReader(ElectronsReader):
         L0 = np.moveaxis(self.read_variable("L0")[itemp,:], [0,1,2,3], [3,2,0,1])
         L1 = np.moveaxis(self.read_variable("L1")[itemp,:], [0,1,2,3], [3,2,0,1])
         L2 = np.moveaxis(self.read_variable("L2")[itemp,:], [0,1,2,3], [3,2,0,1])
-        return L0,L1,L2
+        return L0, L1, L2
 
     def read_transport(self, itemp):
         sigma = np.moveaxis(self.read_variable("sigma")[itemp,:],     [0,1,2,3],[3,2,0,1])
@@ -274,7 +280,7 @@ class TransportReader(ElectronsReader):
         i,j = abu.s2itup(component)
         wvals = self.read_variable("vvdos_mesh")
         mobility = self.read_variable("mobility")[eh,itemp,i,j,spin,:]
-        return wvals,mobility
+        return wvals, mobility
 
     def read_evk_diagonal(self):
         """
