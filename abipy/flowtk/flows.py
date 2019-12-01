@@ -1021,7 +1021,6 @@ class Flow(Node, NodeContainer, MSONable):
         dfs.lattice["status"] = dfs.coords["status"] = status
 
         if printout:
-            from abipy.tools.printing import print_dataframe
             print_dataframe(dfs.lattice, title="Lattice parameters:", precision=precision)
             if verbose:
                 print_dataframe(dfs.coords, title="Atomic positions (columns give the site index):")
@@ -1123,7 +1122,8 @@ class Flow(Node, NodeContainer, MSONable):
             task_nids.append(task.node_id)
 
         if not hist_paths: return (None, None)
-        robot = abilab.HistRobot.from_files(hist_paths, labels=hist_paths)
+        from abipy.dynamics.hist import HistRobot
+        robot = HistRobot.from_files(hist_paths, labels=hist_paths)
         df = robot.get_dataframe(index=index, with_spglib=with_spglib)
         ncfiles = [os.path.relpath(p, self.workdir) for p in ncfiles]
 

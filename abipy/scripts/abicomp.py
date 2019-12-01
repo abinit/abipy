@@ -651,7 +651,7 @@ def _invoke_robot(options):
 
     elif options.panel:
         try:
-            import panel  # flake8: noqa
+            import panel  # noqa: F401
         except ImportError as exc:
             cprint("Use `conda install panel` or `pip install panel` to install the python package.", "red")
             raise exc
