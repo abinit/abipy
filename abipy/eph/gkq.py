@@ -27,7 +27,6 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
     def __init__(self, filepath):
         super().__init__(filepath)
         self.reader = GkqReader(filepath)
-        #self.alpha_gmin = self.reader.read_value("alpha_gmin")
 
     def __str__(self):
         """String representation."""

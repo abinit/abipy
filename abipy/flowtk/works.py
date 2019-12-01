@@ -458,9 +458,12 @@ class NodeContainer(metaclass=abc.ABCMeta):
     def register_eph_task(self, *args, **kwargs):
         """Register an electron-phonon task."""
         kwargs["task_class"] = EphTask
-        if args[0].get("eph_frohlichm", 0) != 0:
-            # FIXME: Hack to run it in sequential to avoid issues with autoparal, besides Frohlich is not parallelized.
-            kwargs.update({"manager": TaskManager.from_user_config().new_with_fixed_mpi_omp(1, 1)})
+        eph_inp = args[0]
+        seq_manager = TaskManager.from_user_config().new_with_fixed_mpi_omp(1, 1)
+        if eph_inp.get("eph_frohlichm", 0) != 0 or abs(eph_inp.get("eph_task", 0)) == 15:
+            # FIXME: Hack to run task in sequential if calculation does not support MPI with nprocs > 1.
+            kwargs.update({"manager": seq_manager})
+
         return self.register_task(*args, **kwargs)
 
     def walknset_vars(self, task_class=None, *args, **kwargs):

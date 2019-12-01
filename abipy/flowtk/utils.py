@@ -234,7 +234,7 @@ class Directory(object):
 
         Args:
             wildcard: String of tokens separated by "|". Each token represents a pattern.
-                If wildcard is not None, we return only those files that match
+                If wildcard is not None, we return only those files whose basename matches
                 the given shell pattern (uses fnmatch).
                 Example:
                   wildcard="*.nc|*.pdf" selects only those files that end with .nc or .pdf
@@ -243,9 +243,11 @@ class Directory(object):
         fnames = [f for f in os.listdir(self.path)]
         filepaths = filter(os.path.isfile, [os.path.join(self.path, f) for f in fnames])
 
-        # Filter using the shell patterns.
         if wildcard is not None:
-            filepaths = WildCard(wildcard).filter(filepaths)
+            # Filter using shell patterns.
+            w = WildCard(wildcard)
+            filepaths = [path for path in filepaths if w.match(os.path.basename(path))]
+            #filepaths = WildCard(wildcard).filter(filepaths)
 
         return filepaths
 
@@ -287,7 +289,7 @@ class Directory(object):
         if len(files) > 1 and single_file:
             # ABINIT users must learn that multiple datasets are bad!
             raise ValueError("Found multiple files with the same extensions:\n %s\n" % files +
-                             "Please avoid using multiple datasets!")
+                             "Please avoid multiple datasets!")
 
         return files[0] if single_file else files
 
@@ -348,7 +350,7 @@ class Directory(object):
         return 0
 
     def copy_abiext(self, inext, outext):
-        """Copy the Abinit file with extension inext to a new file withw extension outext"""
+        """Copy the Abinit file with extension inext to a new file with the extension outext"""
         infile = self.has_abiext(inext)
         if not infile:
             raise RuntimeError('no file with extension %s in %s' % (inext, self))
@@ -515,7 +517,7 @@ def abi_splitext(filename):
 
     # This algorith fails if we have two files
     # e.g. HAYDR_SAVE, ANOTHER_HAYDR_SAVE
-    for i in range(len(filename)-1, -1, -1):
+    for i in range(len(filename) - 1, -1, -1):
         ext = filename[i:]
         if ext in known_extensions:
             break
@@ -524,8 +526,7 @@ def abi_splitext(filename):
         raise ValueError("Cannot find a registered extension in %s" % filename)
 
     root = filename[:i]
-    if is_ncfile:
-        ext += ".nc"
+    if is_ncfile: ext += ".nc"
 
     return root, ext
 
@@ -537,7 +538,7 @@ class FilepathFixer(object):
     Having a one-to-one mapping between file extension and data format
     is indeed fundamental for the correct behaviour of abinit since:
 
-        - We locate the output file by just inspecting the extension
+        - We locate the output file by just inspecting the file extension
 
         - We select the variables that must be added to the input file
           on the basis of the extension specified by the user during
@@ -652,7 +653,7 @@ _BIN_OPS = {
     "$divisible": _bop_divisible,
     "$and": _bop_and,
     "$or":  _bop_or,
-    }
+}
 
 
 _ALL_OPS = list(_UNARY_OPS.keys()) + list(_BIN_OPS.keys())
@@ -724,8 +725,7 @@ def evaluate_rpn(rpn):
     """
     Evaluates the RPN form produced my map2rpn.
 
-    Returns:
-        bool
+    Returns: bool
     """
     vals_stack = []
 
@@ -749,8 +749,6 @@ def evaluate_rpn(rpn):
         else:
             # Push the operand
             vals_stack.append(item)
-
-        #print(vals_stack)
 
     assert len(vals_stack) == 1
     assert isinstance(vals_stack[0], bool)

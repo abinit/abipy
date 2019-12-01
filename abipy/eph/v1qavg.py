@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-
+Tools to analyze the V1QAVG file produced by the E-PH code (eph_task +15 or -15)
 """
 import numpy as np
 
@@ -35,6 +35,15 @@ def _get_style(reim, what, marker=None, markersize=None, alpha=2.0):
 
 
 class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
+    """
+    The V1QAVG.nc file contains the average over the unit cell of the periodic part the DFPT scattering potential.
+    This file is produced by the E-PH code by setting eph_task to +15 or -15.
+    If eph_task is +15, the input DVDB contains a q-mesh and the potentials are interpolated on a list of q-points
+    (usually a q-path) specified by the user. In this case the V1QAVG.nc file also contains an extra array
+    with Max_r |W(R, r)|, useful to study the decay of the scattering potentials in R-space.
+    If eph_task is -15, the netcdf file contains the average for the q-points found in the DVDB file.
+    This option is usually used to visualize the ab-initio potentials and compare then with the model for the LR part.
+    """
 
     def __init__(self, filepath):
         super().__init__(filepath)
@@ -67,7 +76,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     @lazy_property
     def params(self):
-        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+        """Dict with parameters that might be subject to convergence studies."""
         return {}
 
     def __str__(self):
@@ -196,7 +205,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
     @add_fig_kwargs
     def plot_maxw_perts(self, scale="semilogy", sharey=False, fontsize=8, **kwargs):
         """
-        Plot the decay of max_r |W(R,r,idir,ipert)| for the individual atomic perturbations
+        Plot the decay of max_r |W(R,r,idir,ipert)| for the individual atomic perturbations.
 
         Args:
             scale: "semilogy", "loglog" or "plot".
@@ -259,6 +268,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
             nbv.new_code_cell("print(ncfile)"),
             nbv.new_code_cell("ncfile.plot();"),
         ])
+
         if self.has_maxw:
             nbv.new_code_cell("ncfile.plot_maxw();"),
             nbv.new_code_cell("ncfile.plot_maxw_perts();"),
@@ -290,7 +300,7 @@ class V1qAvgRobot(Robot):
         return self.abifiles[0].qpoints
 
     @add_fig_kwargs
-    def plot(self, ispden=0, sharey=False, fontsize=8, **kwargs):
+    def plot(self, ispden=0, vname="v1scf_avg", sharey=False, fontsize=8, **kwargs):
         """
         Plot
 
@@ -301,7 +311,7 @@ class V1qAvgRobot(Robot):
 
         Return: |matplotlib-Figure|
         """
-        # Caveat: No check is done on the consistency among structures
+        # Caveat: No check is done on the consistency among structures.
         ref_file = self.abifiles[0]
         structure = ref_file.structure
 
@@ -313,7 +323,6 @@ class V1qAvgRobot(Robot):
         xs = np.arange(len(self.qpoints))
         ticks, labels = ref_file.make_ticks_and_labels()
 
-        vname = "v1scf_avg"
         data_file = {abilabel: abifile.reader.read_value(vname) for abilabel, abifile in self.items()}
         style = dict(marker=".", markersize=2)
 
@@ -358,9 +367,11 @@ class V1qAvgRobot(Robot):
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         """
-        yield self.plot(show=False)
+        for vname in ["v1scf_avg", "v1scf_abs_avg"]:
+            yield self.plot(vname=vname, title=vname, show=False)
+
         if all(abifile.has_maxw for abifile in self.abifiles):
-            yield self.plot_maxw(self, ax=None, **kwargs)
+            yield self.plot_maxw(self, show=False, **kwargs)
 
     def write_notebook(self, nbpath=None):
         """

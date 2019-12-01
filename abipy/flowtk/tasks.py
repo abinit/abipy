@@ -2127,7 +2127,7 @@ class Task(Node, metaclass=abc.ABCMeta):
                     if os.path.exists(path): dest += ".nc"
 
                 if not os.path.exists(path):
-                    raise self.Error("%s: %s is needed by this task but it does not exist" % (self, path))
+                    raise self.Error("\n%s: path `%s`\n is needed by this task but it does not exist" % (self, path))
 
                 if path.endswith(".nc") and not dest.endswith(".nc"): # NC --> NC file
                     dest += ".nc"
@@ -2142,7 +2142,7 @@ class Task(Node, metaclass=abc.ABCMeta):
                     # in this case, indeed we may have replaced the file pointer with the
                     # previous output file of the present task.
                     if os.path.realpath(dest) != path and self.num_restarts == 0:
-                        raise self.Error("\nDestination:\n %s\ndoes not point to path:\n %s" % (dest, path))
+                        raise self.Error("\nDestination:\n `%s`\ndoes not point to path:\n `%s`" % (dest, path))
 
     @abc.abstractmethod
     def setup(self):
