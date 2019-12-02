@@ -78,10 +78,9 @@ to set the input parameters, invoke ``anaddb`` and visualize the results:
 .. jupyter-execute::
 
     # Open DDB file with abiopen and invoke get_panel method.
-    ddb_path = abidata.ref_file("mp-1009129-9x9x10q_ebecs_DDB")
     #ddb_path = abidata.ref_file("mp-1009129-9x9x10q_ebecs_DDB")
 
-    abilab.abiopen(ddb_path).get_panel()
+    #abilab.abiopen(ddb_path).get_panel()
 
 
 Calling ``get_structure`` with an AbiPy structure, creates a set of widgets 

@@ -58,7 +58,8 @@ def build_flow(options):
 
     from abipy.flowtk.eph_flows import GkqPathFlow
     flow = GkqPathFlow.from_scf_input(options.workdir, scf_input,
-                                      ngqpt, qpath_list, ndivsm=0, with_becs=True)
+                                      ngqpt, qpath_list, ndivsm=0, with_becs=True,
+                                      ddk_tolerance={"tolwfr": 1e-8})
 
     return flow
 
