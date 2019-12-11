@@ -1250,7 +1250,7 @@ class Kpath(KpointList):
             if verbose == 0 and not tag: continue
             table.append([
                 str(i),
-                "%.5f, %.5f, %.5f" % tuple(kpoint.frac_coords),
+                "%.7f, %.7f, %.7f" % tuple(kpoint.frac_coords),
                 kpoint.name,
                 self.ds[i] if i != len(self) - 1 else None,
                 "*" if i in vids else " ",

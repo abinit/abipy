@@ -8,7 +8,7 @@ Graphical interface
    :caption: Contents:
 
 AbiPy provides interactive dashboards that can be used either as a standalone web apps 
-with the bokeh server or inside jupyter notebooks.
+with the `bokeh server <http://docs.bokeh.org/>`_ or inside jupyter notebooks.
 This document explains how to install the required dependencies and how to
 generate dashboards either with the command line interface or inside jupyter notebooks.
 
@@ -32,7 +32,8 @@ or with conda:
 
   conda install panel -c conda-forge
 
-If you want to work with JupyterLab, you will also need to install the optional PyViz JupyterLab extension:
+If you want to work with JupyterLab, you will also need to install 
+the optional PyViz JupyterLab extension:
 
 .. code-block:: bash
 

@@ -16,21 +16,22 @@ import numpy as np
 
 from abipy import flowtk
 
+
 def make_scf_input(ngkpt):
     """
     This function constructs the input file for the GS calculation:
     """
     structure = dict(
-     angdeg= 3*[60.0],
-     acell=3* [ 7.1992351952],
-     natom=2,
-     ntypat=2,
-     typat=[1, 2],
-     znucl=[31, 15],
-     xred=[
-        0.0000000000, 0.0000000000, 0.0000000000,
-        0.2500000000, 0.2500000000, 0.2500000000,
-    ])
+        angdeg=3*[60.0],
+        acell=3* [ 7.1992351952],
+        natom=2,
+        ntypat=2,
+        typat=[1, 2],
+        znucl=[31, 15],
+        xred=[
+            0.0000000000, 0.0000000000, 0.0000000000,
+            0.2500000000, 0.2500000000, 0.2500000000,
+        ])
 
     pseudos = abidata.pseudos("Ga.oncvpsp", "P.psp8")
     gs_inp = abilab.AbinitInput(structure, pseudos=pseudos)

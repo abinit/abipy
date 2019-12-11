@@ -15,12 +15,13 @@ from abipy.iotools import ETSF_Reader
 
 
 def _get_style(reim, what, marker=None, markersize=None, alpha=2.0):
+    lw = 1
     symbol, linestyle, linewidth = {
-        "v1scf_avg": (r"v1_{\bf q}", "-", 1),
-        "v1scf_abs_avg": (r"|v1_{\bf q}|", "-", 1),
-        "v1lr_avg": (r"v1_{\mathrm{lr}}", "--", 1),
-        "v1lr_abs_avg": (r"|v1_{\mathrm{lr}}|", "--", 1),
-        "v1scfmlr_avg": (r"(v1_{\bf q} - v1_{\mathrm{lr}})", "-.", 1),
+        "v1scf_avg": (r"v1_{\bf q}", "-", lw),
+        "v1scf_abs_avg": (r"|v1_{\bf q}|", "-", lw),
+        "v1lr_avg": (r"v1_{\mathrm{lr}}", "--", lw),
+        "v1lr_abs_avg": (r"|v1_{\mathrm{lr}}|", "--", lw),
+        "v1scfmlr_avg": (r"(v1_{\bf q} - v1_{\mathrm{lr}})", "-.", lw),
     }[what]
 
     return dict(
@@ -94,10 +95,10 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         app("")
         app(self.qpoints.to_string(verbose=verbose, title="Q-path"))
         app("")
-        #app("interpolated: %s" % (self.has_dielt, self.has_zeff))
-        app("has_dielt: %s, has_zeff: %s" % (self.has_dielt, self.has_zeff))
-        app("has_quadrupoles: %s, has_efield: %s" % (self.has_quadrupoles, self.has_efield))
-        app("dvdb_add_lr: %s, symv1scf: %s" % (self.dvdb_add_lr, self.symv1scf))
+        app("has_dielt: %s, has_zeff: %s, has_quadrupoles: %s, has_efield: %s" % (
+            self.has_dielt, self.has_zeff, self.has_quadrupoles, self.has_efield))
+        app("dvdb_add_lr: %s, symv1scf: %s, interpolated: %s, qdamp" % (
+            self.dvdb_add_lr, self.symv1scf, self.interpolated, self.qdamp))
 
         return "\n".join(lines)
 
@@ -122,6 +123,9 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         return list(od.keys()), list(od.values())
 
+    #def get_info(self)
+    #    return "dvdb_add_lr %d, qdamp: %s, symv1scf: %d" % (self.dvdb_add_lr, self.qdamp, self.symv1scf)
+
     @add_fig_kwargs
     def plot(self, what_list="all", ispden=0, fontsize=6, sharey=False, **kwargs):
         """
@@ -139,9 +143,10 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         what_list = list_strings(what_list) if what_list != "all" else ["v1scf_avg", "v1lr_avg"]
         data = {}
         for vname in what_list:
-            # nctkarr_t("v1scf_avg", "dp", "two, nspden, three, natom, nqpt")
+            # Fortran array: nctkarr_t("v1scf_avg", "dp", "two, nspden, three, natom, nqpt")
             data[vname] = self.reader.read_value(vname)
 
+        # Build [natom, 3] grid plot.
         natom = len(self.structure)
         nrows, ncols = natom, 3
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
@@ -160,7 +165,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
             ax.grid(True)
             if iat == natom - 1: ax.set_xlabel("Q Wave Vector")
-            if idir == 0: ax.set_ylabel(r"Hartree/Bohr")
+            if idir == 0: ax.set_ylabel(r"(Hartree/Bohr)")
 
             if ticks:
                 ax.set_xticks(ticks, minor=False)
@@ -191,12 +196,13 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         if not self.has_maxw: return None
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
-        # nctkarr_t("maxw", "dp", "nrpt, natom3")
+        # Fortran array: nctkarr_t("maxw", "dp", "nrpt, natom3")
         maxw = self.reader.read_value("maxw")
         rmod = self.reader.read_value("rmod")
         data = np.max(maxw, axis=0)
         f = {"plot": ax.plot, "semilogy": ax.semilogy, "loglog": ax.loglog}[scale]
         f(rmod, data, marker="o", ls=":", lw=0, **kwargs)
+
         ax.grid(True)
         ax.set_ylabel(r"$Max_{({\bf{r}}, idir, ipert)} \| W({\bf{r}}, {\bf{R}}, idir, ipert) \|$")
         ax.set_xlabel(r"$\|{\bf{R}}\|$ (Bohr)")
@@ -227,7 +233,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
                                                 sharex=True, sharey=sharey, squeeze=False)
         ax_list = ax_list.ravel()
 
-        # nctkarr_t("maxw", "dp", "nrpt, natom3")
+        # Fortran array: nctkarr_t("maxw", "dp", "nrpt, natom3")
         nrpt = self.reader.read_dimvalue("nrpt")
         maxw = np.reshape(self.reader.read_value("maxw"), (natom, 3, nrpt))
         rmod = self.reader.read_value("rmod")
@@ -254,16 +260,21 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         This function generates a predefined list of matplotlib figures with minimal input from the user.
         """
-        yield self.plot(title=r"$v1_{\bf q}\,vs\,v1_{\bfq}^{\mathrm{LR}}$", show=False)
-        yield self.plot(what_list="v1scfmlr_avg", title=r"$v1_{\bf q} - v1_{\bf q}^{\mathrm{LR}}$", show=False)
+        title = r"$\langle v1_{\bf q} \rangle \,vs\, \langle v1_{\bfq}^{\mathrm{LR}} \rangle$"
+        yield self.plot(title=title, show=False)
         yield self.plot(what_list=["v1scf_abs_avg", "v1lr_abs_avg"], title=r"ABS", show=False)
+        yield self.plot(what_list="v1scfmlr_avg", title=r"$v1_{\bf q} - v1_{\bf q}^{\mathrm{LR}}$", show=False)
+
         if self.has_maxw:
-            yield self.plot_maxw(show=False)
-            yield self.plot_maxw_perts(show=False)
+            if kwargs.get("verbose", 0) > 0:
+                yield self.plot_maxw(show=False)
+                yield self.plot_maxw_perts(show=False)
+            else:
+                print("Use verbose to print decay of W(r,R)")
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
+        Write a jupyter notebook to ``nbpath``. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -290,17 +301,24 @@ class V1qAvgRobot(Robot):
     """
     EXT = "V1QAVG"
 
+    # Absolute tolerance used to compare q-points.
+    atol = 1e-2
+
+
     @lazy_property
     def qpoints(self):
-        """List of Q-points."""
+        """List of q-points."""
         if len(self) == 1: return self.abifiles[0].qpoints
 
         if (any(len(ncfile.qpoints) != len(self.abifiles[0].qpoints) for ncfile in self.abifiles)):
-            raise RuntimeError("Assuming ncfiles with same number of q-points.")
+            raise RuntimeError("Assuming ncfiles with same number of q-points.\nFound %s" % (
+                str([len(ncfile.qpoints) for ncfile in self.abifiles]))
 
         for abifile in self.abifiles[1:]:
-            if np.any(np.abs(abifile.qpoints.frac_coords - self.abifiles[0].qpoints.frac_coords) > 1e-3):
-                raise RuntimeError("Found different q-points!")
+            if np.any(np.abs(abifile.qpoints.frac_coords - self.abifiles[0].qpoints.frac_coords) > self.atol):
+                for q1, q2 in zip(self.abifiles[0].qpoints, abifile.qpoints):
+                    print("q1:", q1, ", q2:", q2)
+                raise RuntimeError("Found different q-points with tolerance: %s!" % self.atol)
 
         return self.abifiles[0].qpoints
 
@@ -348,7 +366,7 @@ class V1qAvgRobot(Robot):
 
             ax.grid(True)
             if iat == natom - 1: ax.set_xlabel("Q Wave Vector")
-            if idir == 0: ax.set_ylabel(r"Hartree/Bohr")
+            if idir == 0: ax.set_ylabel(r"(Hartree/Bohr)")
 
             site = ref_file.structure[iat]
             s = "%s [%.3f, %.3f, %.3f]" % (site.specie.symbol, site.frac_coords[0], site.frac_coords[1], site.frac_coords[2])
@@ -363,17 +381,27 @@ class V1qAvgRobot(Robot):
 
     @add_fig_kwargs
     def plot_maxw(self, ax=None, **kwargs):
+        """
+        Plot
+
+        Args:
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: fontsize for legends and titles
+
+        Return: |matplotlib-Figure|
+        """
         if any(not abifile.has_maxw for abifile in self.abifiles): return None
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         for label, abifile in self.items():
             abifile.plot_maxw(ax=ax, label=label, with_title=False, show=False, **kwargs)
+
         return fig
 
     def yield_figs(self, **kwargs): # pragma: no cover
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         """
-        for vname in ["v1scf_avg", "v1scf_abs_avg"]:
+        for vname in ("v1scf_avg", "v1scf_abs_avg"):
             yield self.plot(vname=vname, title=vname, show=False)
 
         if all(abifile.has_maxw for abifile in self.abifiles):
@@ -381,7 +409,7 @@ class V1qAvgRobot(Robot):
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter_ notebook to `nbpath`. If nbpath is None, a temporary file in the current
+        Write a jupyter notebook to `nbpath`. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -394,3 +422,24 @@ class V1qAvgRobot(Robot):
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
+
+
+#class V1qAvgPlotter(object):
+#
+#    def __init__(self, v1q_dfpt_path, v1q_frohl_path, v1q_frohl_quad_path, v1q_froh_quad_efield_path):
+#        self.v1q_dfpt = V1qAvgFile.from_file(v1q_dfpt_path)
+#        #v1q_frohl = V1qAvgFile.from_file(v1q_frohl_path) if v1q_frohl_path is not None else None
+#        #v1q_frohl_quad_path =
+#        #v1q_frohl_quad_efield_path =
+#
+#    #def close(self):
+#    #    for k in ("v1q_frohl", "v1q_frohl_quad_path", "v1q_frohl_quad_efield_path"):
+#    #        ncfile = getattr(self, k)
+#    #        if ncfile is not None: ncfile.close()
+#
+#    @add_fig_kwargs
+#    def plot(self, iatom, idir, ax=None, ispden=0, fontsize=6, **kwargs):
+#
+#        ax, fig, plt = get_ax_fig_plt(ax=ax)
+#
+#        return fig

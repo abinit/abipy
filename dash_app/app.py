@@ -126,12 +126,13 @@ modal_help = html.Div([
             [dbc.ModalHeader("How to upload a Structure"),
              dbc.ModalBody(dcc.Markdown("""
 Use this interface to upload a file containing structural information.
-Then select one of the other `actions` in the menu bar to operate on this structure.
+Then select one of the other `actions` in the menu bar to operate on the selected structure.
 
 The file extension (e.g. `.cif`) defines the format used to interpret the data.
 All the formats supported by AbiPy and pymatgen are supported.
 This includes Abinit netcdf files with the `.nc` extension, DDB files with the `_DDB` extension,
 as well as Abinit input files with the `.abi` extension and Abinit output files with the `.abo` extension.
+Use `abiopen.py --help` to get full list of file extensions supported.
 """)),
              dbc.ModalFooter(
                 dbc.Button("Close", id="close", className="ml-auto")

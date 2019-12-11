@@ -1,4 +1,4 @@
-"""Panels for GSR files."""
+"""Panels for interacting with GSR files."""
 import param
 import panel as pn
 import panel.widgets as pnw
@@ -16,6 +16,7 @@ class GsrFilePanel(PanelWithElectronBands):
 
     @property
     def ebands(self):
+        """|ElectronBands|."""
         return self.gsr.ebands
 
     def get_panel(self):
@@ -33,6 +34,7 @@ class GsrFilePanel(PanelWithElectronBands):
 
 class GsrRobotPanel(PanelWithEbandsRobot):
     """
+    A Panel to interoperate with multiple GSR files.
     """
 
     gsr_dataframe_btn = pnw.Button(name="Compute", button_type='primary')

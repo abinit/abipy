@@ -34,6 +34,10 @@ TODO list:
 
 * Add support for PSML/UPF format
 
+* Add support for new Abinit9 interface (getden_path, getwfk_path, pp_dirpath and pseudos)
+  but remember that strings in the input should not be too long. 
+  Use common root for pseudos, what about getwfk_path? Need to refactor treatment of string lengths in Abinit!
+
 * Add DOS to GSR file (useful if tetra)  Create Dosfile ? Fortran exec?
 
 * videos in README (atom and hydrogen) or screenshot based on jupyterlab
