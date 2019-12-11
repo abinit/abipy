@@ -97,7 +97,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         app("")
         app("has_dielt: %s, has_zeff: %s, has_quadrupoles: %s, has_efield: %s" % (
             self.has_dielt, self.has_zeff, self.has_quadrupoles, self.has_efield))
-        app("dvdb_add_lr: %s, symv1scf: %s, interpolated: %s, qdamp" % (
+        app("dvdb_add_lr: %s, symv1scf: %s, interpolated: %s, qdamp: %s" % (
             self.dvdb_add_lr, self.symv1scf, self.interpolated, self.qdamp))
 
         return "\n".join(lines)
@@ -312,7 +312,7 @@ class V1qAvgRobot(Robot):
 
         if (any(len(ncfile.qpoints) != len(self.abifiles[0].qpoints) for ncfile in self.abifiles)):
             raise RuntimeError("Assuming ncfiles with same number of q-points.\nFound %s" % (
-                str([len(ncfile.qpoints) for ncfile in self.abifiles]))
+                str([len(ncfile.qpoints) for ncfile in self.abifiles])))
 
         for abifile in self.abifiles[1:]:
             if np.any(np.abs(abifile.qpoints.frac_coords - self.abifiles[0].qpoints.frac_coords) > self.atol):
