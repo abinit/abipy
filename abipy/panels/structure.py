@@ -13,7 +13,9 @@ pn.config.js_files = {
 
 
 class StructurePanel(AbipyParameterized):
-
+    """
+    Panel with widgets to interact with an AbiPy Structure
+    """
     # Convert widgets.
     output_format = pnw.Select(name="format", value="abinit",
                                options="abinit,cif,xsf,poscar,qe,siesta,wannier90,cssr,json".split(","))

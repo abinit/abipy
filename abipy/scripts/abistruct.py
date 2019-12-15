@@ -54,6 +54,7 @@ Usage example:
 
   abistruct.py spglib FILE                 => Read structure from FILE and analyze it with spglib.
   abistruct.py abispg FILE                 => Read structure from FILE, and compute ABINIT space group.
+  abistruct.py primitive FILE              => Read structure from FILE, use pymatgen and spglib to find primitive structure.
   abistruct.py abisanitize FILE            => Read structure from FILE, call abisanitize, compare structures
                                               and save "abisanitized" structure to file.
   abistruct.py conventional FILE           => Read structure from FILE, generate conventional structure
@@ -109,7 +110,7 @@ Usage example:
   abistruct.py ipython FILE                => Read structure from FILE and open it in the Ipython terminal.
   abistruct.py notebook FILE               => Read structure from FILE and generate jupyter notebook.
   abistruct.py panel FILE                  => Generate GUI in web browser to interact with the structure
-                                              Requires panel package (WARNING: still under development!)
+                                              Requires panel package.
 
 ###########
 # Databases
@@ -251,6 +252,9 @@ Has to be all integers. Several options are possible:
     p_abisanitize = subparsers.add_parser('abisanitize', parents=[copts_parser, path_selector, spgopt_parser, savefile_parser],
         help="Sanitize structure with abi_sanitize, compare structures and save result to file.")
     add_primitive_options(p_abisanitize)
+
+    p_primitive = subparsers.add_parser('primitive', parents=[copts_parser, path_selector, spgopt_parser, savefile_parser],
+        help="Use spglib to find a smaller unit cell than the input")
 
     # Subparser for irefine
     p_irefine = subparsers.add_parser('irefine', parents=[copts_parser, path_selector, spgopt_parser],
@@ -573,7 +577,6 @@ def main():
 
         if not options.verbose:
             print("\nUse -v for more info")
-            #print(sanitized.convert(fmt="cif"))
         else:
             #print("\nDifference between structures:")
             if len(structure) == len(sanitized):
@@ -590,6 +593,18 @@ def main():
 
         # Save file.
         save_structure(sanitized, options)
+
+    elif options.command == "primitive":
+        structure = abilab.Structure.from_file(options.filepath)
+        primitive = structure.get_primitive_structure(tolerance=0.25, use_site_props=False, constrain_latt=None)
+        separator = "\n" + 90 * "="
+        print("\nInitial structure:\n", structure, separator)
+        print("\nPrimitive structure returned by pymatgen:\n", primitive, separator)
+        print("\nAbinit input for primitive structure:\n", primitive.abi_string)
+        if structure != primitive:
+            print("\nInput structure is not primitive (according to pymatgen + spglib)")
+        else:
+            print("\nInput structure seems to be primitive (according to pymatgen + spglib)")
 
     elif options.command == "irefine":
         structure = abilab.Structure.from_file(options.filepath)
@@ -610,7 +625,7 @@ def main():
                 print(sanitized.convert(fmt="cif"))
                 break
 
-            # Increment counter and tols.
+            # Increment counter and tolerances.
             itrial += 1
             symprec += options.symprec_step
             angle_tolerance += options.angle_tolerance_step
@@ -623,7 +638,7 @@ def main():
 
     elif options.command == "conventional":
         print("\nCalling get_conventional_standard_structure to get conventional structure:")
-        print("The standards are defined in Setyawan, W., & Curtarolo, S. (2010). ")
+        print("The standards are defined in Setyawan, W., & Curtarolo, S. (2010).")
         print("High-throughput electronic band structure calculations: Challenges and tools. ")
         print("Computational Materials Science, 49(2), 299-312. doi:10.1016/j.commatsci.2010.05.010\n")
 

@@ -23,7 +23,7 @@ from abipy.flowtk import EventsParser, NetcdfReader, GroundStateScfCycle, D2DESc
 
 class AbinitTextFile(TextFile):
     """
-    Class for the ABINIT main output file and the log file.
+    Base class for the ABINIT main output files and log files.
     """
     @property
     def events(self):

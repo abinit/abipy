@@ -144,6 +144,9 @@ class TestAbistruct(ScriptTest):
         r = env.run(self.script, "abispg", ncfile, "-t 1e-6", self.loglevel, self.verbose,
                     expect_stderr=self.expect_stderr)
 
+        r = env.run(self.script, "primitive", ncfile, self.loglevel, self.verbose,
+                    expect_stderr=self.expect_stderr)
+
     def test_convert(self):
         """Testing abistruct convert"""
         ncfile = abidata.ref_file("tgw1_9o_DS4_SIGRES.nc")

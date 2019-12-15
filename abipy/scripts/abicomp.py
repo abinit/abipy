@@ -17,34 +17,6 @@ from abipy import abilab
 from abipy.tools.plotting import get_ax_fig_plt, GenericDataFilesPlotter
 
 
-# Not used but could be useful to analyze densities.
-def sort_paths(options):
-    """
-    Sort input files whose name is in the form `out_TIM2_DEN`
-    Files are sorted by TIM index.
-    """
-    if options.no_sort: return
-    names = [os.path.basename(p) for p in options.filepath]
-    import re
-    # out_TIM2_DEN
-    tim = re.compile(r".+_TIM(\d+)_.+")
-    l = []
-    for p, n in zip(options.filepath, names):
-        m = tim.match(n)
-        if m:
-            l.append((int(m.group(1)), p))
-    if not l: return
-    if len(l) != len(options.filepath):
-        print("Cannot sort input path!")
-        return
-
-    options.paths = [t[1] for t in sorted(l, key=lambda t: t[0])]
-    print("Input files have been automatically sorted")
-    for i, p in enumerate(options.paths):
-        print("%d: %s" % (i, p))
-    print("Use --no-sort to disable automatic sorting.")
-
-
 def remove_disordered(structures, paths):
     """Remove disordered structures and print warning message."""
     slist = []
@@ -89,7 +61,6 @@ def abicomp_structure(options):
 
         nb.cells.extend([
             nbv.new_code_cell("""\
-from __future__ import print_function, division, unicode_literals, absolute_import
 import sys
 import os
 
@@ -637,8 +608,7 @@ def _build_robot(options, trim_paths=False):
 
 def _invoke_robot(options):
     """
-    Analyze multiple files with a robot. Support list of files and/or
-    list of directories passed on the CLI..
+    Analyze multiple files with a robot. Support list of files and/or list of directories passed on the CLI.
 
     By default, the script with call `robot.to_string(options.verbose)` to print info to terminal.
     For finer control, use --ipy to start an ipython console to interact with the robot directly
