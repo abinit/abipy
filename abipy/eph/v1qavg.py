@@ -304,7 +304,6 @@ class V1qAvgRobot(Robot):
     # Absolute tolerance used to compare q-points.
     atol = 1e-2
 
-
     @lazy_property
     def qpoints(self):
         """List of q-points."""

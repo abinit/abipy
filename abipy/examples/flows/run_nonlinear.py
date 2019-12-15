@@ -55,8 +55,7 @@ def make_scf_input(ecut=10, ngkpt=(8, 8, 8)):
 
 def build_flow(options):
     if not options.workdir:
-        __file__ = os.path.join(os.getcwd(), "run_nonlinear.py")
-        options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
+        options.workdir = os.path.basename(sys.argv[0]).replace(".py", "").replace("run_", "flow_")
 
     scf_input = make_scf_input(ecut=10, ngkpt=(6, 6, 6))
     return flowtk.NonLinearCoeffFlow.from_scf_input(options.workdir, scf_input)

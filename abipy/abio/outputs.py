@@ -582,6 +582,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                 if line.startswith(magic_exit):
                     break
                 if (not line or line.startswith("===") or line.startswith("---")
+                    #or line.startswith("P")
                     or line.startswith("Rough estimation") or line.startswith("PAW method is used")):
                     continue
 

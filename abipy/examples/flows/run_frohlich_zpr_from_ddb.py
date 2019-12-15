@@ -20,8 +20,7 @@ def build_flow(options):
 
     # Set working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
-        __file__ = os.path.join(os.getcwd(), "run_frohlich_zpr_from_ddb.py")
-        options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
+        options.workdir = os.path.basename(sys.argv[0]).replace(".py", "").replace("run_", "flow_")
 
     # Get structure from DDB file.
     ddb_path = abidata.ref_file("refs/mgo_v8t57/mgo_zpr_t57o_DS3_DDB")

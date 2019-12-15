@@ -81,8 +81,7 @@ def make_inputs(paral_kgb=1):
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
-        __file__ = os.path.join(os.getcwd(), "run_gwconv_ecuteps.py")
-        options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
+        options.workdir = os.path.basename(sys.argv[0]).replace(".py", "").replace("run_", "flow_")
 
     # Get our templates
     scf_inp, nscf_inp, scr_inp, sig_inp = make_inputs()

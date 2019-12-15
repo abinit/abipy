@@ -15,8 +15,7 @@ import abipy.flowtk as flowtk
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
-        __file__ = os.path.join(os.getcwd(), "run_eph_al.py")
-        options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
+        options.workdir = os.path.basename(sys.argv[0]).replace(".py", "").replace("run_", "flow_")
 
     # Preparatory run for E-PH calculations.
     # The sequence of datasets makes the ground states and

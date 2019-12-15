@@ -1,8 +1,6 @@
 language: python
 #cache: pip
 
-#dist: precise
-
 env:
   global:
   - ABINIT_VERSION=8.10.1
@@ -27,10 +25,10 @@ matrix:
       sudo: true
       env:
         - ABIPY_INSTALLER=conda ABIPY_SPHINX=yes
-    - os: linux
-      python: 3.8
-      env:
-        - ABIPY_INSTALLER=conda ABIPY_PYTEST=no
+#- os: linux
+#  python: 3.8
+#  env:
+#    - ABIPY_INSTALLER=conda ABIPY_PYTEST=no
 
 install:
   #- set -ev  # exit on first error, print each command
@@ -43,8 +41,6 @@ install:
         source dev_scripts/conda_get.sh  # Needed for Abinit
         # We are gonna use the github version
         sed -i '/pymatgen/d' requirements.txt
-        # https://github.com/pypa/pipenv/issues/2596
-        #pipenv lock --clear
         travis_wait pip install -r requirements.txt
         travis_wait pip install -r requirements-optional.txt
         conda install -y -c conda-forge graphviz python-graphviz
@@ -103,12 +99,3 @@ notifications:
       - gmatteo@gmail.com
     on_success: change
     on_failure: always
-
-# https://docs.travis-ci.com/user/deployment/pages/
-#deploy:
-#  provider: pages
-#  skip_cleanup: true
-#  github_token: $GITHUB_TOKEN # Set in travis-ci.org dashboard
-#  local_dir: ${TRAVIS_BUILD_DIR}/yourfolder
-#  on:
-#    branch: master

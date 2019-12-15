@@ -22,8 +22,7 @@ import abipy.flowtk as flowtk
 def build_flow(options):
     # Set working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
-        __file__ = os.path.join(os.getcwd(), "run_gaas_ebands_soc.py")
-        options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
+        options.workdir = os.path.basename(sys.argv[0]).replace(".py", "").replace("run_", "flow_")
 
     structure = abidata.structure_from_ucell("GaAs")
     pseudos = abidata.pseudos("Ga-low_r.psp8", "As_r.psp8")
