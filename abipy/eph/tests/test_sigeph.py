@@ -139,7 +139,7 @@ class SigEPhFileTest(AbipyTest):
 
         # Test QPList
         qplist = sigeph.reader.read_qplist_sk(spin=0, kpoint=[0, 0, 0], ignore_imag=False)
-        assert isinstance(qplist, collections.Iterable)
+        assert isinstance(qplist, collections.abc.Iterable)
         # TODO
         #self.serialize_with_pickle(qplist, protocols=[-1])
 

@@ -22,6 +22,7 @@ def _get_style(reim, what, marker=None, markersize=None, alpha=2.0):
         "v1lr_avg": (r"v1_{\mathrm{lr}}", "--", lw),
         "v1lr_abs_avg": (r"|v1_{\mathrm{lr}}|", "--", lw),
         "v1scfmlr_avg": (r"(v1_{\bf q} - v1_{\mathrm{lr}})", "-.", lw),
+        "v1scfmlr_abs_avg": (r"(|v1_{\bf q} - v1_{\mathrm{lr}|})", "-.", lw),
     }[what]
 
     return dict(
@@ -49,6 +50,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
     def __init__(self, filepath):
         super().__init__(filepath)
         self.reader = r = ETSF_Reader(filepath)
+        # Read medadata
         self.has_zeff = bool(r.read_value("has_zeff"))
         self.has_dielt = bool(r.read_value("has_dielt"))
         self.has_quadrupoles = bool(r.read_value("has_quadrupoles"))
@@ -123,9 +125,6 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         return list(od.keys()), list(od.values())
 
-    #def get_info(self)
-    #    return "dvdb_add_lr %d, qdamp: %s, symv1scf: %d" % (self.dvdb_add_lr, self.qdamp, self.symv1scf)
-
     @add_fig_kwargs
     def plot(self, what_list="all", ispden=0, fontsize=6, sharey=False, **kwargs):
         """
@@ -139,7 +138,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         Return: |matplotlib-Figure|
         """
-        #all_varnames = ["v1scf_avg", "v1lr_avg", "v1scfmlr_avg", "v1scf_abs_avg"]
+        #all_varnames = ["v1scf_avg", "v1lr_avg", "v1scfmlr_avg", "v1scfmlr_abs_avg", "v1scf_abs_avg"]
         what_list = list_strings(what_list) if what_list != "all" else ["v1scf_avg", "v1lr_avg"]
         data = {}
         for vname in what_list:
@@ -264,13 +263,14 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         yield self.plot(title=title, show=False)
         yield self.plot(what_list=["v1scf_abs_avg", "v1lr_abs_avg"], title=r"ABS", show=False)
         yield self.plot(what_list="v1scfmlr_avg", title=r"$v1_{\bf q} - v1_{\bf q}^{\mathrm{LR}}$", show=False)
+        yield self.plot(what_list="v1scfmlr_abs_avg", title=r"$|v1_{\bf q} - v1_{\bf q}^{\mathrm{LR}|}$", show=False)
 
         if self.has_maxw:
             if kwargs.get("verbose", 0) > 0:
                 yield self.plot_maxw(show=False)
                 yield self.plot_maxw_perts(show=False)
             else:
-                print("Use verbose to print decay of W(r,R)")
+                print("Use verbose to print the decay of W(r,R)")
 
     def write_notebook(self, nbpath=None):
         """

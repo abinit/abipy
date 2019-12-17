@@ -12,7 +12,6 @@ import sys
 import os
 import abipy.abilab as abilab
 import abipy.data as abidata
-import numpy as np
 
 from abipy import flowtk
 
