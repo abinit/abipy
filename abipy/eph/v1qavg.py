@@ -23,6 +23,8 @@ def _get_style(reim, what, marker=None, markersize=None, alpha=2.0):
         "v1lr_abs_avg": (r"|v1_{\mathrm{lr}}|", "--", lw),
         "v1scfmlr_avg": (r"(v1_{\bf q} - v1_{\mathrm{lr}})", "-.", lw),
         "v1scfmlr_abs_avg": (r"(|v1_{\bf q} - v1_{\mathrm{lr}|})", "-.", lw),
+        "v1scf_gsmall": (r"v1_{\bf q}(G)", "-", lw),
+        "v1lr_gsmall": (r"v1lr_{\bf q}(G)", "-", lw),
     }[what]
 
     return dict(
@@ -181,6 +183,70 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return fig
 
     @add_fig_kwargs
+    def plot_gsmall(self, gvec, ispden=0, fontsize=6, sharey=False, **kwargs):
+        """
+        Plot
+
+        Args:
+            gvec
+            ispden: Spin density component to plot.
+            fontsize: fontsize for legends and titles
+            sharey: True to share y-axes.
+
+        Return: |matplotlib-Figure|
+        """
+        gsmall = self.reader.read_value("gsmall")
+        for ig, g in enumerate(gsmall):
+            if np.all(g == gvec): break
+        else:
+            raise RuntimeError("Cannot find gvec %s in gsmall array" % str(gvec))
+
+        # nctkarr_t("v1scf_gsmall", "dp", "two, ngsmall, nspden, three, natom, nqpt"), &
+        # nctkarr_t("v1lr_gsmall", "dp", "two, ngsmall, nspden, three, natom, nqpt"), &
+        what_list = ["v1scf_gsmall", "v1lr_gsmall"]
+        data = {}
+        for vname in what_list:
+            ncvar = self.reader.read_variable(vname)
+            data[vname] = ncvar[..., ig, :]
+
+        # Build [natom, 3] grid plot.
+        natom = len(self.structure)
+        nrows, ncols = natom, 3
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=True, sharey=sharey, squeeze=False)
+
+        xs = np.arange(len(self.qpoints))
+        ticks, labels = self.make_ticks_and_labels()
+
+        for ip, ax in enumerate(ax_mat.ravel()):
+            idir = ip % 3
+            iat = (ip - idir) // 3
+            for reim in (0, 1):
+                for vname in what_list:
+                    ys = data[vname][:, iat, idir, ispden, reim]
+                    ax.plot(xs, ys, **_get_style(reim, vname))
+
+            ax.grid(True)
+            if iat == natom - 1: ax.set_xlabel("Q Wave Vector")
+            if idir == 0: ax.set_ylabel(r"(Hartree/Bohr)")
+
+            if ticks:
+                ax.set_xticks(ticks, minor=False)
+                ax.set_xticklabels(labels, fontdict=None, minor=False, size=kwargs.get("qlabel_size", "large"))
+                ax.set_xlim(ticks[0], ticks[-1])
+
+            if ip == 0:
+                ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+            site = self.structure[iat]
+            s = "%s [%.3f, %.3f, %.3f]" % (site.specie.symbol, site.frac_coords[0], site.frac_coords[1], site.frac_coords[2])
+            ax.set_title("idir: %d, iat: %d, %s" % (idir, iat, s), fontsize=fontsize)
+
+        fig.suptitle("G = %s" % str(gvec))
+
+        return fig
+
+    @add_fig_kwargs
     def plot_maxw(self, scale="semilogy", ax=None, fontsize=8, **kwargs):
         """
         Plot the decay of max_{r,idir,ipert} |W(R,r,idir,ipert)|
@@ -263,7 +329,12 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         yield self.plot(title=title, show=False)
         yield self.plot(what_list=["v1scf_abs_avg", "v1lr_abs_avg"], title=r"ABS", show=False)
         yield self.plot(what_list="v1scfmlr_avg", title=r"$v1_{\bf q} - v1_{\bf q}^{\mathrm{LR}}$", show=False)
-        yield self.plot(what_list="v1scfmlr_abs_avg", title=r"$|v1_{\bf q} - v1_{\bf q}^{\mathrm{LR}|}$", show=False)
+        #yield self.plot(what_list="v1scfmlr_abs_avg", title=r"$|v1_{\bf q} - v1_{\bf q}^{\mathrm{LR}|}$", show=False)
+
+        yield self.plot_gsmall(gvec=[0, 0, 0], show=False)
+        yield self.plot_gsmall(gvec=[1, 0, 0], show=False)
+        yield self.plot_gsmall(gvec=[0, 1, 1], show=False)
+        yield self.plot_gsmall(gvec=[1, 1, 1], show=False)
 
         if self.has_maxw:
             if kwargs.get("verbose", 0) > 0:
