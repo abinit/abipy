@@ -24,7 +24,8 @@ def _get_style(reim, what, marker=None, markersize=None, alpha=2.0):
         "v1scfmlr_avg": (r"(v1_{\bf q} - v1_{\mathrm{lr}})", "-.", lw),
         "v1scfmlr_abs_avg": (r"(|v1_{\bf q} - v1_{\mathrm{lr}|})", "-.", lw),
         "v1scf_gsmall": (r"v1_{\bf q}(G)", "-", lw),
-        "v1lr_gsmall": (r"v1lr_{\bf q}(G)", "-", lw),
+        "v1lr_gsmall": (r"v1lr_{\bf q}(G)", "-.", lw),
+        "v1scfmlr_gsmall": (r"(v1_{\bf q}(G) - v1_{\mathrm{lr}}(G))", "-.", lw),
     }[what]
 
     return dict(
@@ -183,7 +184,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_gsmall(self, gvec, ispden=0, fontsize=6, sharey=False, **kwargs):
+    def plot_gvec(self, gvec, ispden=0, fontsize=6, sharey=False, **kwargs):
         """
         Plot
 
@@ -225,6 +226,11 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
                 for vname in what_list:
                     ys = data[vname][:, iat, idir, ispden, reim]
                     ax.plot(xs, ys, **_get_style(reim, vname))
+
+                 # plot difference.
+                 ys = (data["v1scf_gsmall"][:, iat, idir, ispden, reim]
+                      -data["v1lr_gsmall"][:, iat, idir, ispden, reim]) # * 10
+                       ax.plot(xs, ys, **_get_style(reim, "v1scfmlr_gsmall"))
 
             ax.grid(True)
             if iat == natom - 1: ax.set_xlabel("Q Wave Vector")
@@ -327,14 +333,12 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         title = r"$\langle v1_{\bf q} \rangle \,vs\, \langle v1_{\bfq}^{\mathrm{LR}} \rangle$"
         yield self.plot(title=title, show=False)
-        yield self.plot(what_list=["v1scf_abs_avg", "v1lr_abs_avg"], title=r"ABS", show=False)
         yield self.plot(what_list="v1scfmlr_avg", title=r"$v1_{\bf q} - v1_{\bf q}^{\mathrm{LR}}$", show=False)
+        #yield self.plot(what_list=["v1scf_abs_avg", "v1lr_abs_avg"], title=r"ABS", show=False)
         #yield self.plot(what_list="v1scfmlr_abs_avg", title=r"$|v1_{\bf q} - v1_{\bf q}^{\mathrm{LR}|}$", show=False)
 
-        yield self.plot_gsmall(gvec=[0, 0, 0], show=False)
-        yield self.plot_gsmall(gvec=[1, 0, 0], show=False)
-        yield self.plot_gsmall(gvec=[0, 1, 1], show=False)
-        yield self.plot_gsmall(gvec=[1, 1, 1], show=False)
+        for gvec in [[0, 0, 0], [1, 0, 0], [0, 1, 1], [1, 1, 1], [2, 2, 2]]:
+            yield self.plot_gvec(gvec, show=False)
 
         if self.has_maxw:
             if kwargs.get("verbose", 0) > 0:
