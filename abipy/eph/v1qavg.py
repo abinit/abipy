@@ -227,10 +227,10 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
                     ys = data[vname][:, iat, idir, ispden, reim]
                     ax.plot(xs, ys, **_get_style(reim, vname))
 
-                 # plot difference.
-                 ys = (data["v1scf_gsmall"][:, iat, idir, ispden, reim]
-                      -data["v1lr_gsmall"][:, iat, idir, ispden, reim]) # * 10
-                       ax.plot(xs, ys, **_get_style(reim, "v1scfmlr_gsmall"))
+                # plot difference.
+                ys = (data["v1scf_gsmall"][:, iat, idir, ispden, reim]
+                     -data["v1lr_gsmall"][:, iat, idir, ispden, reim]) # * 10
+                ax.plot(xs, ys, **_get_style(reim, "v1scfmlr_gsmall"))
 
             ax.grid(True)
             if iat == natom - 1: ax.set_xlabel("Q Wave Vector")
