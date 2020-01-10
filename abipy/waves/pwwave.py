@@ -577,5 +577,5 @@ class PAW_WaveFunction(WaveFunction):
     All the methods that are related to the all-electron representation should start with ae.
 
     .. rubric:: Inheritance Diagram
-    .. inheritance-diagram:: PaW_WaveFunction
+    .. inheritance-diagram:: PAW_WaveFunction
     """

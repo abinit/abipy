@@ -18,8 +18,8 @@ __all__ = [
 
 class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
-    This object provides a simple interface to access and analyze
-    the data stored in the WFK file produced by ABINIT.
+    This object provides a simplified interface to access and analyze
+    the data stored in the WFK.nc file produced by ABINIT.
 
     Usage example:
 

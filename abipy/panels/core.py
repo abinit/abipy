@@ -19,9 +19,9 @@ class AbipyParameterized(param.Parameterized):
 
     @lazy_property
     def fig_kwargs(self):
-        return dict(show=False)
+        #return dict(show=False)
         #TODO requires new pymatgen
-        #return dict(show=False, fig_close=True)
+        return dict(show=False, fig_close=True)
 
     @staticmethod
     def _mp(fig):
