@@ -1,13 +1,14 @@
 Release 0.8.0: xxxx-xx-xx
 
-    * Add support for NSCF calculations with Meta-GGA.
+    * Add abicheck.py --create-config option to install predefined yaml configuration files
+    * Add support for NSCF calculations with meta-GGA.
     * Preliminary support for panel dashboards exposed via `abiopen FILE --panel` and `abistruct panel FILE`.
       Note that not all Abinit files are supported at present.
     * Add examples and flows for effective mass calculations
     * Add examples for quasi-harmonic calculations and post-processing tools
-    * Add support for JSON files (including MSONable format) in abiopen.py
+    * Add support for JSON files (including MSONable format) to abiopen.py
     * Improved support for EPH calculations.
-    * Add `primitive` command to `abistruct.py` to get primite structure from spglib
+    * Add `primitive` command to `abistruct.py` to get primitive structure from spglib
 
 Release 0.7.0: 2019-10-18
 

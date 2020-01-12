@@ -389,15 +389,15 @@ def abicheck(verbose=0):
 
 def install_config_files(workdir=None, force_reinstall=False):
     """
-    Install pre-defined configuration files in workdir directory and
+    Install pre-defined configuration files for the TaskManager and the Scheduler
+    in the workdir directory.
 
     Args:
-        workdir: Directory when conf files should be produced. Use ~/abinit/abipy/ if None
-        force_reinstall: Allow overwrite pre-existent conf file. By default, the function
-            raises RuntimeError if conf files are already present.
+        workdir: Directory when configuration files should be produced. Use ~/abinit/abipy/ if None
+        force_reinstall: Allow overwrite pre-existent configuration files. By default, the function
+            raises RuntimeError if configuration files are already present.
     """
-    from os.path import expanduser
-    workdir = os.path.join(expanduser("~") , ".abinit", "abipy") if workdir is None else workdir
+    workdir = os.path.join(os.path.expanduser("~"), ".abinit", "abipy") if workdir is None else workdir
     print("Installing configuration files in directory:", workdir)
     from monty.os import makedirs_p
     makedirs_p(workdir)
