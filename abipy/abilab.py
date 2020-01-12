@@ -387,6 +387,115 @@ def abicheck(verbose=0):
     return "\n".join(err_lines)
 
 
+def install_config_files(workdir=None, force_reinstall=False):
+    """
+    Install pre-defined configuration files in workdir directory and
+
+    Args:
+        workdir: Directory when conf files should be produced. Use ~/abinit/abipy/ if None
+        force_reinstall: Allow overwrite pre-existent conf file. By default, the function
+            raises RuntimeError if conf files are already present.
+    """
+    from os.path import expanduser
+    workdir = os.path.join(expanduser("~") , ".abinit", "abipy") if workdir is None else workdir
+    print("Installing configuration files in directory:", workdir)
+    from monty.os import makedirs_p
+    makedirs_p(workdir)
+
+    scheduler_path = os.path.join(workdir, "scheduler.yaml")
+    scheduler_yaml = """
+# The launcher will stop submitting jobs when the
+# number of jobs in the queue is >= Max number of jobs
+max_njobs_inqueue: 2
+
+# Maximum number of cores that can be used by the scheduler.
+max_ncores_used: 2
+
+# number of hours to wait.
+#hours: 0
+
+# number of minutes to wait.
+#minutes: 0
+
+# number of seconds to wait.
+seconds: 2
+
+# Send mail to the specified address (accepts string or list of strings).
+# PRO TIP: the scheduler WILL try to send and email after a default time of 4 days. If you
+#          comment out the mailto address, this will cause the scheduler to terminate, with
+#          potentially nefarious effects on your running jobs. If you do not wish to receive
+#          emails, a work around is to set the variable `remindme_s` below to something very
+#          large (say, 100 days).
+#mailto: nobody@nowhere.com
+
+# verbosity level (int, default 0)
+#verbose: 0
+
+# The scheduler will shutdown when the number of python exceptions is > max_num_pyexcs
+#max_num_pyexcs: 2
+
+# The scheduler will shutdown when the number of Abinit errors is > max_num_abierrs
+#max_num_abierrs: 0
+
+# The scheduler will shutdow when the total number of tasks launched is > safety_ratio * tot_num_tasks.
+#safety_ratio: 5
+
+# Send an e-mail to mailto every remindme_s seconds.
+#remindme_s: 345600
+"""
+
+    manager_path = os.path.join(workdir, "manager.yaml")
+    manager_yaml = """
+qadapters:
+    -
+      priority: 1
+      queue:
+        qname: abipy
+        qtype: shell
+      job:
+        mpi_runner: mpirun
+        pre_run:
+         - export OMP_NUM_THREADS=1
+         # IMPORTANT: Change the below line so that the abinit executable is in PATH
+         #- export PATH=$HOME/git_repos/abinit/_build/src/98_main:$PATH
+         #- ulimit -s unlimited; ulimit -n 2048
+
+      limits:
+         min_cores: 1
+         max_cores: 2
+         timelimit: 0:10:0
+      hardware:
+         num_nodes: 1
+         sockets_per_node: 1
+         cores_per_socket: 2
+         mem_per_node: 4 Gb
+"""
+
+    # Write configuration files.
+    if not os.path.isfile(scheduler_path) or force_reinstall:
+        with open(scheduler_path, "wt") as fh:
+            fh.write(scheduler_yaml)
+        print("Scheduler configuration file written to:", scheduler_path)
+    else:
+        raise RuntimeError("Configuration file: %s already exists.\nUse force_reinstall option to overwrite it" % scheduler_path)
+
+    if not os.path.isfile(manager_path) or force_reinstall:
+        with open(manager_path, "wt") as fh:
+            fh.write(manager_yaml)
+        print("Manager configuration file written to:", manager_path)
+    else:
+        raise RuntimeError("Configuration file: %s already exists.\nUse force_reinstall option to overwrite it" % manager_path)
+
+    print("""
+Configuration files installed successfully.
+Please edit the configuration options according to your installation.
+In particular, edit the `pre_run` section in manager.yml
+so that the abinit executable is in $PATH.
+""")
+
+    return 0
+
+
 def abipy_logo1():
     """http://www.text-image.com/convert/pic2ascii.cgi"""
     return r"""
@@ -436,3 +545,4 @@ o-  o/   oo`       ss    /y..y/    ss ss +y`   -y::y-    yo          -o/  .o- -o
    `  ..` `:-                            :+              /:         --` `-` `
             `.`                                                   ..`
 """
+

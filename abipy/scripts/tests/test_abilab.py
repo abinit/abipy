@@ -51,3 +51,5 @@ class AbilabTest(AbipyTest):
         assert abilab.in_notebook()
         abilab.disable_notebook()
         assert not abilab.in_notebook()
+
+        assert abilab.install_config_files(workdir=self.mkdtemp()) == 0

@@ -130,7 +130,7 @@ class PyLauncherError(Exception):
 
 
 class PyLauncher(object):
-    """This object handle the submission of the tasks contained in a :class:`Flow`"""
+    """This object handle the submission of the tasks contained in a |Flow|."""
     Error = PyLauncherError
 
     def __init__(self, flow, **kwargs):
@@ -138,7 +138,7 @@ class PyLauncher(object):
         Initialize the object
 
         Args:
-            flow: :class:`Flow` object
+            flow: |Flow| object
             max_njobs_inqueue: The launcher will stop submitting jobs when the
                 number of jobs in the queue is >= Max number of jobs
         """
@@ -248,7 +248,7 @@ class PyFlowSchedulerError(Exception):
 
 class PyFlowScheduler(object):
     """
-    This object schedules the submission of the tasks in a :class:`Flow`.
+    This object schedules the submission of the tasks in a |Flow|.
     There are two types of errors that might occur during the execution of the jobs:
 
         #. Python exceptions
@@ -292,7 +292,7 @@ class PyFlowScheduler(object):
             mailto: The scheduler will send an email to `mailto` every `remindme_s` seconds.
                 (DEFAULT: None i.e. not used).
             verbose: (int) verbosity level. (DEFAULT: 0)
-            use_dynamic_manager: "yes" if the :class:`TaskManager` must be re-initialized from
+            use_dynamic_manager: "yes" if the |TaskManager| must be re-initialized from
                 file before launching the jobs. (DEFAULT: "no")
             max_njobs_inqueue: Limit on the number of jobs that can be present in the queue. (DEFAULT: 200)
             max_ncores_used: Maximum number of cores that can be used by the scheduler.
@@ -455,7 +455,7 @@ class PyFlowScheduler(object):
 
     def add_flow(self, flow):
         """
-        Add an :class:`Flow` flow to the scheduler.
+        Add a flow to the scheduler.
         """
         if hasattr(self, "_flow"):
             raise self.Error("Only one flow can be added to the scheduler.")
@@ -973,7 +973,7 @@ class BatchLauncher(object):
             top: Top level directory or list of directories.
             workdir: Batch workdir.
             name:
-            manager: :class:`TaskManager` object. If None, the manager is read from `manager.yml`
+            manager: |TaskManager| object. If None, the manager is read from `manager.yml`
                 In this case the YAML file must provide the entry `batch_manager` that defined
                 the queue adapter used to submit the batch script.
             max_depth: Search in directory only if it is N or fewer levels below top
@@ -1065,8 +1065,8 @@ class BatchLauncher(object):
         Args:
             workdir: Working directory
             name: Name assigned to the `BatchLauncher`.
-            flows:  List of `Flow` objects.
-            manager: :class:`TaskManager` object responsible for the submission of the jobs.
+            flows:  List of |Flow| objects.
+            manager: |TaskManager| object responsible for the submission of the jobs.
                      If manager is None, the object is initialized from the yaml file
                      located either in the working directory or in the user configuration dir.
             timelimit: Time limit (int with seconds or string with time given with
@@ -1137,7 +1137,7 @@ class BatchLauncher(object):
 
     def add_flow(self, flow):
         """
-        Add a flow. Accept filepath or :class:`Flow` object. Return 1 if flow was added else 0.
+        Add a flow. Accept filepath or |Flow| object. Return 1 if flow was added else 0.
         """
         from .flows import Flow
         flow = Flow.as_flow(flow)
