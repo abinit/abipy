@@ -7,6 +7,7 @@ Release 0.8.0: xxxx-xx-xx
     * Add examples and flows for effective mass calculations
     * Add examples for quasi-harmonic calculations and post-processing tools
     * Add support for JSON files (including MSONable format) to abiopen.py
+      Supports `--notebook`, `--panel` options such as `abiopen.py FILE.json --panel`
     * Improved support for EPH calculations.
     * Add `primitive` command to `abistruct.py` to get primitive structure from spglib
 

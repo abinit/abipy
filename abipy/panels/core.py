@@ -48,8 +48,8 @@ class PanelWithElectronBands(AbipyParameterized): #, metaclass=abc.ABCMeta):
     #     - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
     #     -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
     #     -  None: Don't shift energies, equivalent to e0=0
+    set_fermie_to_vbm = pnw.Checkbox(name="Set Fermie to VBM")
 
-    #set_fermie_to_vbm
     plot_ebands_btn = pnw.Button(name="Plot e-bands", button_type='primary')
 
     # DOS plot.
@@ -58,19 +58,25 @@ class PanelWithElectronBands(AbipyParameterized): #, metaclass=abc.ABCMeta):
     edos_width = pnw.Spinner(name='e-DOS Gaussian broadening (eV)', value=0.2, step=0.05, start=1e-6, end=None)
     plot_edos_btn = pnw.Button(name="Plot e-DOS", button_type='primary')
 
+    # Fermi surface plot.
+    fs_viewer = pnw.Select(name="FS viewer", options=["matplotlib", "xcrysden"])
+    plot_fermi_surface_btn = pnw.Button(name="Plot Fermi surface", button_type='primary')
+
     #@abc.abstractproperty
     #def ebands(self):
     #    """Returns the |ElectronBands| object."""
 
     def get_plot_ebands_widgets(self):
         """Widgets to plot ebands."""
-        return pn.Column(self.with_gaps,
-                         self.plot_ebands_btn)
+        return pn.Column(self.with_gaps, self.set_fermie_to_vbm, self.plot_ebands_btn)
 
     @param.depends('plot_ebands_btn.clicks')
     def on_plot_ebands_btn(self):
         """Button triggering ebands plot."""
         if self.plot_ebands_btn.clicks == 0: return
+        if self.set_fermie_to_vbm.value:
+            self.ebands.set_fermie_to_vbm()
+
         fig1 = self.ebands.plot(e0="fermie", ylims=None,
             with_gaps=self.with_gaps.value, max_phfreq=None, fontsize=8, **self.fig_kwargs)
 
@@ -89,8 +95,36 @@ class PanelWithElectronBands(AbipyParameterized): #, metaclass=abc.ABCMeta):
         if self.plot_edos_btn.clicks == 0: return
         edos = self.ebands.get_edos(method=self.edos_method.value, step=self.edos_step.value, width=self.edos_width.value)
         fig = edos.plot(**self.fig_kwargs)
-        #print(edos)
         return pn.Row(self._mp(fig), sizing_mode='scale_width')
+
+    def get_plot_fermi_surface_widgets(self):
+        """Widgets to compute e-DOS."""
+        return pn.Column(self.fs_viewer, self.plot_fermi_surface_btn)
+
+    @param.depends('plot_fermi_surface_btn.clicks')
+    def on_plot_fermi_surface_btn(self):
+        if self.plot_fermi_surface_btn.clicks == 0: return
+        if hasattr(self, "_eb3d"):
+            eb3d = self._eb3d
+        else:
+            # Build ebands in full BZ.
+            eb3d = self._eb3d = self.ebands.get_ebands3d()
+
+        if self.fs_viewer.value == "matplotlib":
+            # Use matplotlib to plot isosurfaces corresponding to the Fermi level (default)
+            # Warning: requires skimage package, rendering could be slow.
+            fig = eb3d.plot_isosurfaces(e0="fermie", cmap=None, **self.fig_kwargs)
+            return pn.Row(self._mp(fig), sizing_mode='scale_width')
+
+        elif self.fs_viewer.value == "xcrysden":
+            # Alternatively, it's possible to export the data in xcrysden format
+            # and then use `xcrysden --bxsf mgb2.bxsf`
+            #eb3d.to_bxsf("mgb2.bxsf")
+            # If you have mayavi installed, try:
+            #eb3d.mvplot_isosurfaces()
+
+        else:
+            raise ValueError("Invalid choice: %s" % self.fs_viewer.value)
 
 
 class BaseRobotPanel(AbipyParameterized):

@@ -28,8 +28,13 @@ class GsrFilePanel(PanelWithElectronBands):
         app(("e-Bands", pn.Row(self.get_plot_ebands_widgets(), self.on_plot_ebands_btn)))
 
         # Add DOS tab only if k-sampling.
-        if self.gsr.ebands.kpoints.is_ibz:
+        kpoints = self.gsr.ebands.kpoints
+        if kpoints.is_ibz:
             app(("e-DOS", pn.Row(self.get_plot_edos_widgets(), self.on_plot_edos_btn)))
+
+            if self.gsr.ebands.supports_fermi_surface:
+                # Fermi surface requires gamma-centered k-mesh
+                app(("Fermi Surface", pn.Row(self.get_plot_fermi_surface_widgets(), self.on_plot_fermi_surface_btn)))
 
         return tabs
 

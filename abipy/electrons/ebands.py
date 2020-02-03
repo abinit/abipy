@@ -851,6 +851,18 @@ class ElectronBands(Has_Structure):
         """True if time-reversal symmetry is used in the BZ sampling."""
         return has_timrev_from_kptopt(self.kptopt)
 
+    @lazy_property
+    def supports_fermi_surface(self):
+        """
+        True if the kpoints used for the energies can be employed to visualize Fermi surface.
+        Fermi surface viewers require gamma-centered k-mesh.
+        """
+        if self.kpoints.is_mpmesh:
+            mpdivs, shifts = self.kpoints.mpdivs_shifts
+            if shifts is not None and np.all(shifts == 0.0):
+                return True
+        return False
+
     def kindex(self, kpoint):
         """
         The index of the k-point in the internal list of k-points.

@@ -87,7 +87,7 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 
 JSON file are supported as well. In this case, abiopen.py tries to reconstruct python objects
 assuming JSON document in MSONable format and then invokes ipython with the `data` object.
-Use `-e` to print the JSON documenting without reconstructing python objects.
+Use `-e` or `--notebook` or `--panel` to print the JSON dictionary without reconstructing python objects.
 
 Table mapping file extension to AbiPy object:
 
@@ -133,8 +133,6 @@ def get_parser(with_epilog=False):
         help=("Set matplotlib interactive backend. "
               "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
               "See also: https://matplotlib.org/faq/usage_faq.html#what-is-a-backend."))
-    #parser.add_argument('--pylustrator', action='store_true', default=False,
-    #    help="Style matplotlib plots with pylustrator. See https://pylustrator.readthedocs.io/en/latest/")
 
     return parser
 
@@ -177,11 +175,6 @@ def main():
         import seaborn as sns
         sns.set(context=options.seaborn, style='darkgrid', palette='deep',
                 font='sans-serif', font_scale=1, color_codes=False, rc=None)
-
-    #if options.pylustrator:
-    #    # Start pylustrator to style matplotlib plots
-    #    import pylustrator
-    #    pylustrator.start()
 
     if not os.path.exists(options.filepath):
         raise RuntimeError("%s: no such file" % options.filepath)
@@ -272,18 +265,37 @@ Use `print(abifile)` to print the object.
 def handle_json(options):
     """Handle JSON file."""
 
-    if not options.notebook:
+    if options.notebook:
+        # Visualize JSON document in jupyter
+        cmd = "jupyter-lab %s" % options.filepath
+        print("Executing:", cmd)
+        process = subprocess.Popen(cmd.split(), shell=False) #, stdout=fd, stderr=fd)
+        cprint("pid: %s" % str(process.pid), "yellow")
+        return 0
+
+    elif options.panel:
+        # Visualize JSON document in panel dashboard
+        import json
+        import panel as pn
+        with open(options.filepath, "rt") as fh:
+            d = json.load(fh)
+        json_pane = pn.pane.JSON(d, name='JSON', height=300, width=500)
+        app = pn.Row(json_pane.controls(jslink=True), json_pane)
+        app.show()
+        return 0
+
+    else:
         if options.print:
-            # Print object to terminal.
+            # Print python object to terminal.
             data = abilab.mjson_load(options.filepath)
             pprint(data, indent=4)
             return 0
         elif options.expose:
+            # Pretty-print dict to terminal.
             import json
             with open(options.filepath, "rt") as fh:
                 data = json.load(fh)
             pprint(data, indent=4)
-
             return 0
 
         data = abilab.mjson_load(options.filepath)
@@ -293,13 +305,6 @@ def handle_json(options):
         IPython.embed(header="""
 The object initialized from JSON (MSONable) is associated to the `data` python variable.
 """)
-
-    else:
-        cmd = "jupyter-lab %s" % options.filepath
-        print("Executing:", cmd)
-        process = subprocess.Popen(cmd.split(), shell=False) #, stdout=fd, stderr=fd)
-        cprint("pid: %s" % str(process.pid), "yellow")
-        return 0
 
 
 if __name__ == "__main__":

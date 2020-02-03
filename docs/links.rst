@@ -110,6 +110,7 @@
 .. |MdfFile| replace:: :class:`abipy.electrons.bse.MdfFile`
 .. |DdbFile| replace:: :class:`abipy.dfpt.ddb.DdbFile`
 .. |HistFile| replace:: :class:`abipy.dynamics.hist.HistFile`
+.. |FatBandsFile| replace:: :class:`abipy.electrons.fatbands.FatBandsFile`
 .. |DielectricTensorGenerator| replace:: :class:`abipy.dfpt.ddb.DielectricTensorGenerator`
 .. |DdbRobot| replace:: :class:`abipy.dfpt.ddb.DdbRobot`
 .. |AnaddbNcFile| replace:: :class:`abipy.dfpt.anaddb.AnaddbNcFile`
