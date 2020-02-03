@@ -116,15 +116,15 @@ class PanelWithElectronBands(AbipyParameterized): #, metaclass=abc.ABCMeta):
             fig = eb3d.plot_isosurfaces(e0="fermie", cmap=None, **self.fig_kwargs)
             return pn.Row(self._mp(fig), sizing_mode='scale_width')
 
-        elif self.fs_viewer.value == "xcrysden":
+        else:
+            raise ValueError("Invalid choice: %s" % self.fs_viewer.value)
+
+        #elif self.fs_viewer.value == "xcrysden":
             # Alternatively, it's possible to export the data in xcrysden format
             # and then use `xcrysden --bxsf mgb2.bxsf`
             #eb3d.to_bxsf("mgb2.bxsf")
             # If you have mayavi installed, try:
             #eb3d.mvplot_isosurfaces()
-
-        else:
-            raise ValueError("Invalid choice: %s" % self.fs_viewer.value)
 
 
 class BaseRobotPanel(AbipyParameterized):

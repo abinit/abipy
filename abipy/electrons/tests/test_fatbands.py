@@ -39,7 +39,7 @@ class TestElectronFatbands(AbipyTest):
         if self.has_nbformat():
             fbnc_kpath.write_notebook(nbpath=self.get_tmpname(text=True))
 
-         if self.has_panel():
+        if self.has_panel():
             assert hasattr(fbnc_kpath.get_panel(), "show")
 
         fbnc_kmesh = FatBandsFile(abidata.ref_file("mgb2_kmesh181818_FATBANDS.nc"))
