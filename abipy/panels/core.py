@@ -104,6 +104,8 @@ class PanelWithElectronBands(AbipyParameterized): #, metaclass=abc.ABCMeta):
     @param.depends('plot_fermi_surface_btn.clicks')
     def on_plot_fermi_surface_btn(self):
         if self.plot_fermi_surface_btn.clicks == 0: return
+
+        # Cache eb3d
         if hasattr(self, "_eb3d"):
             eb3d = self._eb3d
         else:

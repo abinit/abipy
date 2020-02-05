@@ -32,7 +32,7 @@ class FatBandsFilePanel(PanelWithElectronBands):
             app(("e-DOS", pn.Row(self.get_plot_edos_widgets(), self.on_plot_edos_btn)))
 
             if self.ncfile.ebands.supports_fermi_surface:
-                # Fermi surface requires gamma-centered k-mesh
+                # Fermi surface requires a gamma-centered k-mesh
                 app(("Fermi Surface", pn.Row(self.get_plot_fermi_surface_widgets(), self.on_plot_fermi_surface_btn)))
 
         return tabs
