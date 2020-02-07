@@ -359,7 +359,7 @@ class NodeContainer(metaclass=abc.ABCMeta):
     to register tasks in the container. The helper function call the
     `register` method of the container.
     """
-    # TODO: Abstract protocol for containers
+    # Abstract protocol for containers
 
     @abc.abstractmethod
     def register_task(self, *args, **kwargs):
@@ -368,7 +368,7 @@ class NodeContainer(metaclass=abc.ABCMeta):
         """
         # TODO: shall flow.register_task return a Task or a Work?
 
-    # Helper functions
+    # Helper functions to register Task subclasses.
     def register_scf_task(self, *args, **kwargs):
         """Register a Scf task."""
         kwargs["task_class"] = ScfTask
@@ -385,10 +385,10 @@ class NodeContainer(metaclass=abc.ABCMeta):
         task = self.register_task(*args, **kwargs)
 
         # Make sure parent producing DEN file is given
-        if task.is_work: task = task[0]
+        if task.is_work: task = task[-1]
         den_parent = task.find_parent_with_ext("DEN")
         if den_parent is None:
-            raise ValueError("NSCF task requires parent producing DEN file!")
+            raise ValueError("NSCF task %s\nrequires parent producing DEN file!" % repr(task))
 
         if task.input.get("usekden", 0) == 1:
             # Meta-GGA calculation --> Add KDEN if not explicitly given.
@@ -1762,7 +1762,7 @@ class GKKPWork(Work):
             if is_gamma:
                 # Create a link from WFK to WFQ on_ok
                 wfkq_task = wfk_task
-                deps = {wfk_task: ["WFK","WFQ"], ddb_file: "DDB", dvdb: "DVDB"}
+                deps = {wfk_task: ["WFK", "WFQ"], ddb_file: "DDB", dvdb: "DVDB"}
             else:
                 # Create a WFQ task
                 nscf_inp = nscf_inp.new_with_vars(kptopt=3, qpt=qpt, nqpt=1)
@@ -1772,7 +1772,7 @@ class GKKPWork(Work):
 
             # Create a EPH task
             eph_inp = inp.new_with_vars(optdriver=7, prtphdos=0, eph_task=-2, kptopt=3,
-                                        ddb_ngqpt=[1,1,1], nqpt=1, qpt=qpt)
+                                        ddb_ngqpt=[1, 1, 1], nqpt=1, qpt=qpt)
             t = new.register_eph_task(eph_inp, deps=deps, manager=tm)
             new.wfkq_task_children[wfkq_task].append(t)
 
@@ -1790,7 +1790,7 @@ class GKKPWork(Work):
         for task in phononwfkq_work:
             if isinstance(task,PhononTask):
                 # Store qpoints
-                qpt = task.input.get("qpt", [0,0,0])
+                qpt = task.input.get("qpt", [0, 0, 0])
                 qpoints.append(qpt)
                 # Store dependencies
                 qpoints_deps.append(task.deps)
@@ -1816,7 +1816,7 @@ class GKKPWork(Work):
         for qpt,qpoint_deps in zip(qpoints,qpoints_deps):
             # Create eph task
             eph_input = scf_task.input.new_with_vars(optdriver=7, prtphdos=0, eph_task=-2,
-                                                     ddb_ngqpt=[1,1,1], nqpt=1, qpt=qpt)
+                                                     ddb_ngqpt=[1, 1, 1], nqpt=1, qpt=qpt)
             deps = {ddb_file: "DDB", dvdb_file: "DVDB"}
             for dep in qpoint_deps:
                 deps[dep.node] = dep.exts[0]
@@ -1963,7 +1963,7 @@ class DteWork(Work, MergeDdb):
     def on_all_ok(self):
         """
         This method is called when all tasks reach S_OK
-        Ir runs `mrgddb` in sequential on the local machine to produce
+        It runs `mrgddb` in sequential on the local machine to produce
         the final DDB file in the outdir of the `Work`.
         """
         # Merge DDB files.

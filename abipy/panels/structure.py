@@ -6,6 +6,7 @@ import bokeh.models.widgets as bkw
 
 from abipy.panels.core import AbipyParameterized
 
+
 pn.config.js_files = {
     '$': 'https://code.jquery.com/jquery-3.4.1.slim.min.js',
     "clipboard": "https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js",
@@ -79,7 +80,7 @@ class StructurePanel(AbipyParameterized):
     @param.depends("viewer_btn.clicks")
     def view(self):
         if self.viewer_btn.clicks == 0: return
-        return self.structure.nglview()
+        #return self.structure.nglview()
         #import nglview as nv
         #view = nv.demo(gui=False)
         #return view
@@ -96,12 +97,12 @@ class StructurePanel(AbipyParameterized):
             spin_mode=self.label2mode[self.spin_mode.value],
             smearing=None)
         gs_inp.pop_vars(("charge", "chksymbreak"))
+        gs_inp.set_vars(ecut="?? # depends on pseudos", nband="?? # depends on pseudos")
 
         if self.gs_type.value == "relax":
             gs_inp.set_vars(optcell=2, ionmov=2, ecutsm=0.5, dilatmx=1.05)
 
         gs_inp.set_mnemonics(False)
-        #return gs_inp._repr_html_()
         return """
 <button class="btn btn-primary btn-sm" data-clipboard-target="#foobar"> Copy to clipboard </button>
 <div id="foobar"> %s </div>

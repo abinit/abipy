@@ -11,8 +11,10 @@ from abipy.flowtk.launcher import BatchLauncher
 from abipy.flowtk.flows import *
 from abipy.flowtk.works import *
 from abipy.flowtk.tasks import *
-
 from abipy.core.testing import AbipyTest
+from abipy import abilab
+from abipy import flowtk
+
 
 class FakeAbinitInput(object):
     """Emulate an Abinit input."""
@@ -262,6 +264,49 @@ class FlowTest(FlowUnitTest):
             assert work.workdir == os.path.join(tmpdir, "w%d" % i)
             for t, task in enumerate(work):
                 assert task.workdir == os.path.join(work.workdir, "t%d" % t)
+
+    def test_nscf_flow_with_append(self):
+        """Test creation of NSCF tasks from flow with append = True"""
+
+        def make_scf_nscf_inputs():
+            """Build ands return the input files for the GS-SCF and the GS-NSCF tasks."""
+
+            multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"),
+                                        pseudos=abidata.pseudos("14si.pspnc"), ndtset=2)
+
+            # Set global variables (dataset1 and dataset2)
+            multi.set_vars(ecut=6, nband=8)
+
+            # Dataset 1 (GS-SCF run)
+            multi[0].set_kmesh(ngkpt=[8, 8, 8], shiftk=[0, 0, 0])
+            multi[0].set_vars(tolvrs=1e-6)
+
+            # Dataset 2 (GS-NSCF run on a k-path)
+            kptbounds = [
+                [0.5, 0.0, 0.0], # L point
+                [0.0, 0.0, 0.0], # Gamma point
+                [0.0, 0.5, 0.5], # X point
+            ]
+
+            multi[1].set_kpath(ndivsm=6, kptbounds=kptbounds)
+            multi[1].set_vars(tolwfr=1e-12)
+
+            # Return two input files for the GS and the NSCF run
+            scf_input, nscf_input = multi.split_datasets()
+            return scf_input, nscf_input
+
+        scf_input, nscf_input = make_scf_nscf_inputs()
+        hello_flow = flowtk.Flow(workdir=self.mkdtemp())
+        hello_flow.register_scf_task(scf_input, append=True)
+        hello_flow.register_nscf_task(nscf_input, deps={hello_flow[0][0]: "DEN"}, append=True)
+
+        #flow[0].get_graphviz_dirtree()
+        #abilab.print_doc(flowtk.PhononWork)
+
+        hello_flow = flowtk.Flow(workdir=self.mkdtemp())
+        hello_flow.register_scf_task(scf_input, append=True)
+        hello_flow.register_nscf_task(nscf_input, deps={hello_flow[0][0]: "DEN"}, append=False)
+
 
 
 class TestFlowInSpectatorMode(FlowUnitTest):

@@ -1161,8 +1161,19 @@ class AbinitBuild(object):
             if "DFT flavor" in line:
                 self.has_libxc = "libxc" in line
             if "openMP support" in line: self.has_omp = yesno2bool(line)
-            if "Parallel build" in line: self.has_mpi = yesno2bool(line)
+            if "Parallel build" in line:
+                ans = line.split()[-1].lower()
+                if ans == "@enable_mpi@":
+                    # Temporary hack for abinit v9
+                    self.has_mpi = True
+                else:
+                    self.has_mpi = yesno2bool(line)
             if "Parallel I/O" in line: self.has_mpiio = yesno2bool(line)
+
+        # Temporary hack for abinit v9
+        from abipy.core.testing import cmp_version
+        if cmp_version(self.version, "9.0.0", op=">="):
+            self.has_netcdf = True
 
     def __str__(self):
         lines = []

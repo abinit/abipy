@@ -226,7 +226,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             new = ncfile.read_structure(cls=cls)
             new.set_abi_spacegroup(AbinitSpaceGroup.from_ncreader(ncfile))
 
-            # Try to read indsym from file (added in 8.9.x)
+            # Try to read indsym table from file (added in 8.9.x)
             indsym = ncfile.read_value("indsym", default=None)
             if indsym is not None:
                 # Fortran --> C convention
@@ -2065,7 +2065,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             nbv.new_code_cell("print(structure)"),
             nbv.new_code_cell("print(structure.abi_string)"),
             nbv.new_code_cell("structure"),
-            nbv.new_code_cell("print(structure.spglib_summary())"),
+            nbv.new_code_cell("print(structure.spget_summary())"),
             nbv.new_code_cell("if structure.abi_spacegroup is not None: print(structure.abi_spacegroup)"),
             nbv.new_code_cell("print(structure.hsym_kpoints)"),
             nbv.new_code_cell("structure.plot_bz();"),

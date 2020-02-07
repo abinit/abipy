@@ -479,6 +479,7 @@ class ElectronBandsTest(AbipyTest):
         with abilab.abiopen(abidata.ref_file("mgb2_kmesh181818_FATBANDS.nc")) as fbnc_kmesh:
             ebands = fbnc_kmesh.ebands
             str(ebands)
+            assert ebands.supports_fermi_surface
             ebands.to_bxsf(self.get_tmpname(text=True))
 
             # Test Ebands3d
@@ -525,6 +526,7 @@ class ElectronBandsFromRestApi(AbipyTest):
 
         new_fermie = r.ebands_kpath.set_fermie_to_vbm()
         assert new_fermie == r.ebands_kpath.fermie
+        assert not r.ebands_kpath.supports_fermi_surface
 
         edos = r.ebands_kmesh.get_edos()
         new_fermie = r.ebands_kpath.set_fermie_from_edos(edos)

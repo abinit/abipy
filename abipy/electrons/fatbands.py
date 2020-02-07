@@ -1542,6 +1542,13 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             yield self.plot_pjdos_lview(show=False)
             yield self.plot_pjdos_typeview(show=False)
 
+    def get_panel(self):
+        """
+        Build panel with widgets to interact with the |FatbandsFile| either in a notebook or in panel app.
+        """
+        from abipy.panels.fatbands import FatBandsFilePanel
+        return FatBandsFilePanel(self).get_panel()
+
     def write_notebook(self, nbpath=None):
         """
         Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
@@ -1587,9 +1594,10 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         if self.prtdos == 3 and self.ebands.kpoints.is_path:
             nb.cells.extend([
-                nbv.new_markdown_cell("## L-DOSes with fatbands\n"
-                                     "(require `prtdos=3`, `fbnc` must contain a k-path, "
-                                     "`pjdosfile` is a `FATBANDS.nc` file with a BZ sampling)"),
+                nbv.new_markdown_cell(
+                    "## L-DOSes with fatbands\n"
+                    "(require `prtdos=3`, `fbnc` must contain a k-path, "
+                    "`pjdosfile` is a `FATBANDS.nc` file with a BZ sampling)"),
                 nbv.new_code_cell("fbnc.plot_fatbands_with_pjdos(pjdosfile=None, ylims=ylims, view='type');"),
             ])
 
