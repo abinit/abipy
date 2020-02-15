@@ -29,6 +29,7 @@ __all__ = [
     "scf_for_phonons",
     "dte_from_gsinput",
     "dfpt_from_gsinput",
+    "make_conduc_work_input"
 ]
 
 
@@ -1409,6 +1410,29 @@ def dfpt_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, do_ddk=True, do_dde=T
         multi_dte.add_tags([atags.DTE, atags.DFPT])
         multi.extend(multi_dte)
 
+    return multi
+
+
+def make_conduc_work_input(scf_inp, nscf_inp, tmesh, ddb_ngqpt, eph_ngqpt_fine):
+    # Step 1 : Check Inputs
+    if eph_ngqpt_fine is None:
+            eph_ngqpt_fine=ddb_ngqpt
+    #if not isinstance(scf_input, AbinitInput):
+    #    raise TypeError("Input `%s` is not a dictionnary (list, tuple)" % scf_input)
+    #if not isinstance(nscf_input, AbinitInput):
+    #    raise TypeError("Input `%s` is not a dictionnary (list, tuple)" % nscf_input)
+    
+    # Step 2 : Create array of inputs
+    multi = MultiDataset.from_inputs([scf_inp])
+    extension = MultiDataset.replicate_input(nscf_inp, 3)
+    multi.extend(extension)
+
+    multi[2].pop_vars("iscf")
+    multi[2].set_vars(irdden=0, optdriver=7, ddb_ngqpt=ddb_ngqpt, eph_task=5, eph_ngqpt_fine=eph_ngqpt_fine)
+    
+    multi[3].pop_vars("iscf")
+    multi[3].set_vars(irdden=0, optdriver=7, ddb_ngqpt=ddb_ngqpt, eph_task=-4, tmesh=tmesh, symsigma=1)
+    
     return multi
 
 
