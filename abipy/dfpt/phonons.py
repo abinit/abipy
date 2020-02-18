@@ -1131,7 +1131,7 @@ class PhononBands(object):
             #c=None, marker=None, cmap=None, norm=None, vmin=None, vmax=None, alpha=None,
             #linewidths=None, verts=None, edgecolors=None, *, data=None
         )
-        self.decorate_ax(ax, units=units, qlabels=None)
+        self.decorate_ax(ax, units=units, qlabels=qlabels)
         set_axlims(ax, xlims, "x")
         set_axlims(ax, ylims, "y")
 
@@ -1557,7 +1557,7 @@ class PhononBands(object):
                 summed on a separate group. if None all the atoms will be considered and grouped by type.
             labels_groups: If atoms_index is not None will provide the labels for each of the group in atoms_index.
                 Should have the same length of atoms_index or be None. If None automatic labelling will be used.
-            branches: list of indices for the modes that shoul be represented. If None all the modes will be shown.
+            branches: list of indices for the modes that should be represented. If None all the modes will be shown.
             format_w: string used to format the values of the frequency. Default "%.3f".
 
         Returns: |matplotlib-Figure|
@@ -1610,7 +1610,7 @@ class PhononBands(object):
             hatches = list_strings(hatches) if hatches is not None else []
 
         x = 0
-        for nu in branches:
+        for inu, nu in enumerate(branches):
             # Select frequencies and cartesian displacements/eigenvectors
             if is_non_analytical_direction:
                 w_qnu = self.non_anal_phfreqs[iq, nu] * factor
@@ -1646,7 +1646,7 @@ class PhononBands(object):
 
                     ax.bar(x, height, width, bottom, align="center",
                            color=cmap(float(itype) / max(1, ntypat - 1)),
-                           label=symbol if nu == 0 else None, edgecolor='black',
+                           label=symbol if inu == 0 else None, edgecolor='black',
                            hatch=hatches[itype % len(hatches)] if hatches else None,
                            )
                     bottom += height
@@ -1667,7 +1667,7 @@ class PhononBands(object):
 
                     ax.bar(x, height, width, bottom, align="center",
                            color=cmap(float(igroup) / max(1, len(atoms_index) - 1)),
-                           label=symbol if nu == 0 else None, edgecolor='black',
+                           label=symbol if inu == 0 else None, edgecolor='black',
                            hatch=hatches[igroup % len(hatches)] if hatches else None,
                            )
                     bottom += height

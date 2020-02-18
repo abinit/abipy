@@ -388,6 +388,9 @@ class DdbTest(AbipyTest):
             for qpoint in ddb.qpoints:
                 assert qpoint in ddb.computed_dynmat
 
+            raman = ddb.anaget_raman()
+            self.assertAlmostEqual(raman.susceptibility[5, 0, 1], -0.0114683, places=5)
+
 
 class DielectricTensorGeneratorTest(AbipyTest):
 

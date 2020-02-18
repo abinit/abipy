@@ -29,6 +29,7 @@ from abipy.abio.inputs import AnaddbInput
 from abipy.dfpt.phonons import PhononDosPlotter, PhononBandsPlotter
 from abipy.dfpt.ifc import InteratomicForceConstants
 from abipy.dfpt.elastic import ElasticData
+from abipy.dfpt.raman import Raman
 from abipy.core.abinit_units import phfactor_ev2units, phunit_tag
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.tools import duck
@@ -1449,6 +1450,34 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         path = os.path.join(task.workdir, "anaddb.nc")
         return ElasticData.from_file(path) if not retpath else path
 
+    def anaget_raman(self, asr=2, chneut=1, ramansr=1, alphon=1, workdir=None, mpi_procs=1,
+                     manager=None, verbose=0, directions=None, anaddb_kwargs=None):
+        """
+        Execute anaddb to compute phonon modes at the given q-point (without LO-TO splitting)
+
+        Args:
+            qpoint: Reduced coordinates of the qpoint where phonon modes are computed.
+            asr, chneut, ramansr, alphon: Anaddb input variable. See official documentation.
+            workdir: Working directory. If None, a temporary directory is created.
+            mpi_procs: Number of MPI processes to use.
+            manager: |TaskManager| object. If None, the object is initialized from the configuration file
+            verbose: verbosity level. Set it to a value > 0 to get more information.
+            directions: list of 3D directions along which the non analytical contribution will be calculated.
+                If None the three cartesian direction will be used.
+            anaddb_kwargs: additional kwargs for anaddb.
+
+        Return: |PhononBands| object.
+        """
+
+        inp = AnaddbInput.dfpt(self.structure, dte=True, asr=asr, chneut=chneut, ramansr=ramansr,
+                               alphon=alphon, directions=directions, anaddb_kwargs=anaddb_kwargs)
+
+        task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose)
+
+        # Read data from the netcdf output file produced by anaddb.
+        path = os.path.join(task.workdir, "anaddb.nc")
+        return Raman.from_file(path)
+
     def _run_anaddb_task(self, anaddb_input, mpi_procs, workdir, manager, verbose):
         """
         Execute an |AnaddbInput| via the shell. Return |AnaddbTask|.
@@ -2245,7 +2274,7 @@ class DdbRobot(Robot):
         df_list, elastdata_list = [], []
         for label, ddb in self.items():
             # Invoke anaddb to compute elastic data.
-            edata = ddb.anaget_elastic(verbose=verbose, **kwargs)
+            edata = ddb.anaget_elastic(verbose=verbose, manager=manager, **kwargs)
             elastdata_list.append(edata)
 
             # Build daframe with properties derived from the elastic tensor.

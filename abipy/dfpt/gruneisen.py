@@ -346,7 +346,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
                 ydown, yup = omegas - sizes / 2, omegas + sizes / 2
                 ax_bands.fill_between(xvals, ydown, yup, alpha=alpha, facecolor="red")
 
-        set_axlims(ax_bands, ylims, "x")
+        set_axlims(ax_bands, ylims, "y")
 
         if with_doses is None:
             return fig
@@ -575,8 +575,8 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         Args:
             t: the temperature at which the average Gruneisen will be evaluated. If None the acoustic Debye
-                temparature is used (see acoustic_debye_temp)
-            squared: if True the average is performed on the squared values of the Gruenisen
+                temperature is used (see acoustic_debye_temp).
+            squared: if True the average is performed on the squared values of the Gruenisen.
             limit_frequencies: if None (default) no limit on the frequencies will be applied.
                 Possible values are "debye" (only modes with frequencies lower than the acoustic Debye
                 temperature) and "acoustic" (only the acoustic modes, i.e. the first three modes).
@@ -617,7 +617,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         return g
 
-    def thermal_conductivity_slack(self, squared=True, limit_frequencies=None):
+    def thermal_conductivity_slack(self, squared=True, limit_frequencies=None, theta_d=None, t=None):
         """
         Calculates the thermal conductivity at the acoustic Debye temperature wit the Slack formula,
         using the average Gruneisen.
@@ -627,16 +627,24 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             limit_frequencies: if None (default) no limit on the frequencies will be applied.
                 Possible values are "debye" (only modes with frequencies lower than the acoustic Debye
                 temperature) and "acoustic" (only the acoustic modes, i.e. the first three modes).
+            theta_d: the temperature used to estimate the average of the Gruneisen used in the
+                Slack formula. If None the  the acoustic Debye temperature is used (see
+                acoustic_debye_temp). Will also be considered as the Debye temperature in the
+                Slack formula.
+            t: temperature at which the thermal conductivity is estimated. If None the value at
+                the calculated acoustic Debye temperature is given. The value is obtained as a
+                simple rescaling of the value at the Debye temperature.
 
         Returns: The value of the thermal conductivity in W/(m*K)
         """
         average_mass = np.mean([s.specie.atomic_mass for s in self.structure]) * amu_to_kg
-        mean_g = self.average_gruneisen(t=None, squared=squared, limit_frequencies=limit_frequencies)
-        theta_d = self.acoustic_debye_temp
-        factor1 = 0.849 * 3 * (4) ** (1. / 3.) / (20 * np.pi ** 3 * (1 - 0.514 * mean_g ** -1 + 0.228 * mean_g ** -2))
-        factor2 = (const.k * theta_d / const.hbar) ** 2
-        factor3 = const.k * average_mass * self.structure.volume ** (1. / 3.) * 1e-10 / (const.hbar * mean_g ** 2)
-        return factor1 * factor2 * factor3
+        if theta_d is None:
+            theta_d = self.acoustic_debye_temp
+        mean_g = self.average_gruneisen(t=theta_d, squared=squared, limit_frequencies=limit_frequencies)
+        k = thermal_conductivity_slack(average_mass=average_mass, volume=self.structure.volume,
+                                       mean_g=mean_g, theta_d=theta_d, t=t)
+
+        return k
 
     @property
     def debye_temp(self):
@@ -979,3 +987,32 @@ def calculate_gruns_finite_differences(phfreqs, eig, iv0, volume, dv):
                 g[iq, im] = - finite_diff(phfreqs[:, iq, im], dv, order=1, acc=acc)[iv0] * volume / w
 
     return g
+
+
+def thermal_conductivity_slack(average_mass, volume, mean_g, theta_d, t=None):
+    """
+    Generic function for the calculation of the thermal conductivity at the acoustic Debye
+    temperature with the Slack formula, based on the quantities that can be calculated.
+    Can be used to calculate the thermal conductivity with different definitions of
+    the Gruneisen parameters or of the Debye temperature.
+
+    Args:
+        average_mass: average mass in atomic units of the atoms of the system.
+        volume: volume of the unit cell.
+        mean_g: the mean of the Gruneisen parameters.
+        theta_d: the Debye temperature in the Slack formula.
+        t: temperature at which the thermal conductivity is estimated. If None theta_d is used.
+            The value is obtained as a simple rescaling of the value at the Debye temperature.
+
+    Returns:
+        The value of the thermal conductivity in W/(m*K)
+    """
+
+    factor1 = 0.849 * 3 * (4 ** (1. / 3.)) / (20 * np.pi ** 3 * (1 - 0.514 * mean_g ** -1 + 0.228 * mean_g ** -2))
+    factor2 = (const.k * theta_d / const.hbar) ** 2
+    factor3 = const.k * average_mass * volume ** (1. / 3.) * 1e-10 / (const.hbar * mean_g ** 2)
+    k = factor1 * factor2 * factor3
+    if t is not None:
+        k *= theta_d / t
+
+    return k
