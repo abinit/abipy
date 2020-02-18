@@ -2535,7 +2535,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             spell_check: False to disable spell checking for input variables.
         """
         new = cls(structure, comment="ANADDB input for phonon frequencies at one q-point",
-                  anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
+                  anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs, spell_check=spell_check)
 
         # We need a numpy array.
         qpoint = qpoint.frac_coords if hasattr(qpoint, "frac_coords") else np.array(qpoint)
@@ -2771,7 +2771,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
     @classmethod
     def dfpt(cls, structure, ngqpt=None, relaxed_ion=False, piezo=False, dde=False, strain=False, dte=False,
              stress_correction=False, nqsmall=None, qppa=None, ndivsm=20, line_density=None, q1shft=(0, 0, 0),
-             qptbounds=None, asr=2, chneut=1, dipdip=1, dos_method="tetra", anaddb_args=None, anaddb_kwargs=None, comment=None):
+             qptbounds=None, asr=2, chneut=1, dipdip=1, ramansr=1, alphon=1, dos_method="tetra", directions=None,
+             anaddb_args=None, anaddb_kwargs=None, comment=None):
         """
         Builds an |AnaddbInput| to post-process a generic DFPT calculation.
 
@@ -2798,11 +2799,13 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             ndivsm: Used to generate a normalized path for the phonon bands.
                 If gives the number of divisions for the smallest segment of the path.
             q1shft: Shifts used for the coarse Q-mesh
-            qptbounds Boundaries of the path. If None, the path is generated from an internal database
+            qptbounds: Boundaries of the path. If None, the path is generated from an internal database
                 depending on the input structure.
-            asr, chneut, dipdp: Anaddb input variable. See official documentation.
+            asr, chneut, dipdp, ramansr, alphon: Anaddb input variable. See official documentation.
             dos_method: Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
                 In the later case, the value 0.001 eV is used as gaussian broadening
+            directions: list of 3D directions along which the non analytical contribution will be calculated.
+                If None the three cartesian direction will be used. Used only when dte=True.
             anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
             comment: Optional string with a comment that will be placed at the beginning of the file.
@@ -2848,18 +2851,28 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             anaddb_input["instrflag"] = 1
 
         if dte:
-            ramansr = 0
-            alphon = 0
             prtmbm = 0
 
             # if there are phonons at gamma
-            if ngqpt and (not q1shft or np.allclose(q1shft, [0, 0, 0])):
+            if (ngqpt and not q1shft) or np.allclose(q1shft, [0, 0, 0]):
                 nlflag = 1
-                ramansr = 1
-                alphon = 1
+                ramansr = ramansr
+                alphon = alphon
                 prtmbm = 1
+                if directions is None:
+                    directions = [1, 0, 0, 0, 1, 0, 0, 0, 1]
+                    directions = np.reshape(directions, (-1, 3))
+                    # append 0 to specify that these are directions,
+                    directions = np.c_[directions, np.zeros(len(directions))]
+
+                anaddb_input.set_vars(
+                    nph2l=len(directions),
+                    qph2l=directions
+                )
             else:
                 nlflag = 3
+                ramansr = 0
+                alphon = 0
 
             anaddb_input.set_vars(nlflag=nlflag,
                                   ramansr=ramansr,
