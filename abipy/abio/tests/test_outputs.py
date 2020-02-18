@@ -63,8 +63,11 @@ class AbinitOutputTest(AbipyTest):
             str(abo.events)
             gs_cycle = abo.next_gs_scf_cycle()
             assert gs_cycle is not None
+            assert len(abo.get_all_gs_scf_cycles()) == 1
+
             if self.has_matplotlib():
                 assert gs_cycle.plot(show=False)
+
             abo.seek(0)
             assert abo.next_d2de_scf_cycle() is None
 
@@ -76,6 +79,9 @@ class AbinitOutputTest(AbipyTest):
                 abo.compare_gs_scf_cycles([abo_path], show=False)
                 timer.plot_all(show=False)
                 abo.plot(show=False)
+
+            if self.has_panel():
+                assert hasattr(abo.get_panel(), "show")
 
             if self.has_nbformat():
                 abo.write_notebook(nbpath=self.get_tmpname(text=True))
@@ -101,8 +107,12 @@ class AbinitOutputTest(AbipyTest):
 
             gs_cycle = abo.next_gs_scf_cycle()
             assert gs_cycle is not None
+            assert not self.get_all_gs_scf_cycles()
+
             ph_cycle = abo.next_d2de_scf_cycle()
             assert ph_cycle is not None
+            assert not self.get_all_d2de_scf_cycles()
+
             if self.has_matplotlib():
                 assert ph_cycle.plot(show=False)
                 assert abo.compare_d2de_scf_cycles([abo_path], show=False)

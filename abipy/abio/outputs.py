@@ -485,18 +485,8 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                 app(str(df.coords))
 
         # Print dataframe with dimensions.
-        dims_dataset, spginfo_dataset = self.get_dims_spginfo_dataset(verbose=verbose)
-        rows = []
-        for dtind, dims in dims_dataset.items():
-            d = OrderedDict()
-            d["dataset"] = dtind
-            d.update(dims)
-            d.update(spginfo_dataset[dtind])
-            rows.append(d)
-
+        df = self.get_dims_spginfo_dataframe(verbose=verbose)
         from abipy.tools.printing import print_dataframe
-        df = pd.DataFrame(rows, columns=list(rows[0].keys()) if rows else None)
-        df = df.set_index('dataset')
         strio = StringIO()
         print_dataframe(df, file=strio)
         strio.seek(0)
@@ -506,9 +496,26 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
 
         return "\n".join(lines)
 
+    def get_dims_spginfo_dataframe(self, verbose=0):
+        """
+        Parse the section with the dimensions of the calculation. Return Dataframe.
+        """
+        dims_dataset, spginfo_dataset = self.get_dims_spginfo_dataset(verbose=verbose)
+        rows = []
+        for dtind, dims in dims_dataset.items():
+            d = OrderedDict()
+            d["dataset"] = dtind
+            d.update(dims)
+            d.update(spginfo_dataset[dtind])
+            rows.append(d)
+
+        df = pd.DataFrame(rows, columns=list(rows[0].keys()) if rows else None)
+        df = df.set_index('dataset')
+        return df
+
     def get_dims_spginfo_dataset(self, verbose=0):
         """
-        Parse the section with the dimensions of the calculation.
+        Parse the section with the dimensions of the calculation. Return dictionaries
 
         Args:
             verbose: Verbosity level.
@@ -579,8 +586,8 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                 line = line.strip()
                 if verbose > 1: print("inblock:", inblock, " at line:", line)
 
-                if line.startswith(magic_exit):
-                    break
+                if line.startswith(magic_exit): break
+
                 if (not line or line.startswith("===") or line.startswith("---")
                     #or line.startswith("P")
                     or line.startswith("Rough estimation") or line.startswith("PAW method is used")):
@@ -606,6 +613,8 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
 
                 if inblock == 2:
                     # Lines with data.
+                    if line.startswith("For the susceptibility"): continue
+
                     if line.startswith(memory_pre):
                         dims["mem_per_proc_mb"] = float(line.replace(memory_pre, "").split()[0])
                     elif line.startswith(filesizes_pre):
@@ -631,11 +640,31 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         """
         return GroundStateScfCycle.from_stream(self)
 
+    def get_all_gs_scf_cycles(self):
+        """Return list of :class:`GroundStateScfCycle` objects. Empty list if no entry is found."""
+        cycles = []
+        self.seek(0)
+        while True:
+            cycle = self.next_gs_scf_cycle()
+            if cycle is None: break
+            cycles.append(cycle)
+        return cycles
+
     def next_d2de_scf_cycle(self):
         """
-        Return :class:`GroundStateScfCycle` with information on the GS iterations. None if not found.
+        Return :class:`D2DEScfCycle` with information on the DFPT iterations. None if not found.
         """
         return D2DEScfCycle.from_stream(self)
+
+    def get_all_d2de_scf_cycles(self):
+        """Return list of :class:`D2DEScfCycle` objects. Empty list if no entry is found."""
+        cycles = []
+        self.seek(0)
+        while True:
+            cycle = self.next_d2de_scf_cycle()
+            if cycle is None: break
+            cycles.append(cycle)
+        return cycles
 
     def plot(self, tight_layout=True, with_timer=False, show=True):
         """
@@ -653,24 +682,14 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         """
-        tight_layout = kwargs.pop("tight_layout", True)
+        tight_layout = kwargs.pop("tight_layout", False)
         with_timer = kwargs.pop("with_timer", True)
 
-        self.seek(0)
-        icycle = -1
-        while True:
-            gs_cycle = self.next_gs_scf_cycle()
-            if gs_cycle is None: break
-            icycle += 1
-            yield gs_cycle.plot(title="SCF cycle #%d" % icycle, tight_layout=tight_layout, show=False)
+        for icycle, cycle in enumerate(self.get_all_gs_scf_cycles()):
+            yield cycle.plot(title="SCF cycle #%d" % icycle, tight_layout=tight_layout, show=False)
 
-        self.seek(0)
-        icycle = -1
-        while True:
-            d2de_cycle = self.next_d2de_scf_cycle()
-            if d2de_cycle is None: break
-            icycle += 1
-            yield d2de_cycle.plot(title="DFPT cycle #%d" % icycle, tight_layout=tight_layout, show=False)
+        for icycle, cycle in enumerate(self.get_all_d2de_scf_cycles()):
+            yield cycle.plot(title="DFPT cycle #%d" % icycle, tight_layout=tight_layout, show=False)
 
         if with_timer:
             self.seek(0)
@@ -756,6 +775,13 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             for i in close_files: others[i].close()
 
         return figures
+
+    def get_panel(self):
+        """
+        Build panel with widgets to interact with the Abinit output file either in a notebook or in panel app.
+        """
+        from abipy.panels.outputs import AbinitOutputFilePanel
+        return AbinitOutputFilePanel(self).get_panel()
 
     def write_notebook(self, nbpath=None):
         """

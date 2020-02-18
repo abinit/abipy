@@ -536,8 +536,6 @@ class NotebookWriter(metaclass=abc.ABCMeta):
 
         nb.cells.extend([
             nbv.new_code_cell("""\
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import sys, os
 import numpy as np
 
@@ -561,10 +559,7 @@ from abipy import abilab
 # Tell AbiPy we are inside a notebook and use seaborn settings for plots.
 # See https://seaborn.pydata.org/generated/seaborn.set.html#seaborn.set
 abilab.enable_notebook(with_seaborn=True)
-
-# AbiPy widgets for pandas and seaborn plot APIs
-#import abipy.display.seabornw import snw
-#import abipy.display.pandasw import pdw""")
+""")
         ])
 
         return nbformat, nbv, nb

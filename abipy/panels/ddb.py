@@ -39,7 +39,6 @@ class DdbFilePanel(AbipyParameterized):
     def __init__(self, ddb, **params):
         super().__init__(**params)
         self.ddb = ddb
-        #self.plot_phbands_btn.on_click(self.plot_phbands_and_phdos)
 
     @param.depends('get_epsinf_btn.clicks')
     def get_epsinf(self):
@@ -105,8 +104,8 @@ class DdbFilePanel(AbipyParameterized):
             temps = self.temp_range.value
             gspec[1, 1] = phdos.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, **self.fig_kwargs)
             #msqd_dos.plot_tensor(**self.fig_kwargs)
-
             #self.plot_phbands_btn.button_type = "primary"
+
         return gspec
 
     @param.depends('plot_vsound_btn.clicks')

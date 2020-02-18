@@ -1406,11 +1406,21 @@ class Structure(pymatgen.Structure, NotebookWriter):
         try:
             import nglview as nv
         except ImportError:
-            cprint("nglview is not installed. See https://github.com/arose/nglview")
-            raise
+            raise ImportError("nglview is not installed. See https://github.com/arose/nglview")
         view = nv.show_pymatgen(self)
         view.add_unitcell()
         return view
+
+    def crystaltoolkitview(self): # pragma: no cover
+        """
+        Visualize the structure with crystal_toolkit inside the jupyter notebook.
+        """
+        try:
+            from crystal_toolkit import view
+        except ImportError:
+            raise ImportError("crystal_toolkit is not installed. See https://docs.crystaltoolkit.org/jupyter")
+
+        return view(self)
 
     def visualize(self, appname="vesta"):
         """
@@ -1726,7 +1736,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         if scale_matrix is None:
             if max_supercell is None:
-                raise ValueError("If scale_matrix is not provided, please provide max_supercell !")
+                raise ValueError("scale_matrix is not provided, please provide max_supercell!")
 
             scale_matrix = self.get_smallest_supercell(qpoint, max_supercell=max_supercell)
 

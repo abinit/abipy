@@ -81,10 +81,11 @@ class StructurePanel(AbipyParameterized):
     def view(self):
         if self.viewer_btn.clicks == 0: return
         #return self.structure.nglview()
+        #return self.structure.crystaltoolkitview()
         #import nglview as nv
         #view = nv.demo(gui=False)
         #return view
-        self.structure.visualize(appname=self.viewer.value)
+        return self.structure.visualize(appname=self.viewer.value)
 
     @param.depends("gs_input_btn.clicks")
     def on_gs_input_btn(self):

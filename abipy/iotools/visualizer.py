@@ -1,5 +1,5 @@
 # coding: utf-8
-"""Define a class used to execute a visualizer within the Python interpreter."""
+"""Classes used to execute a visualizer within the Python interpreter."""
 
 import sys
 import os
@@ -175,10 +175,9 @@ class Visualizer(metaclass=abc.ABCMeta):
     def from_name(cls, appname):
         """Return the visualizer class from the name of the application."""
         for visu in cls.__subclasses__():
-            if visu.name == appname:
-                return visu
+            if visu.name == appname: return visu
 
-        raise cls.Error("appname is not among the list of supported visualizers %s " % appname)
+        raise cls.Error("`%s` is not among the list of supported visualizers" % appname)
 
     @classmethod
     def all_visunames(cls):
