@@ -657,26 +657,29 @@ class PhononBands(object):
         Create vibration XYZ file for visualization of phonons.
 
         Args:
-            iqpt: index of qpoint in self
-            filename: name of the XYZ file that will be created
-            pre_factor: Multiplication factor of the displacements
-            do_real: True if we want only real part of the displacement, False means imaginary part
-            scale_matrix: Scaling matrix of the supercell
-            max_supercell: Maximum size of the supercell with respect to primitive cell
+            iqpt: index of qpoint.
+            filename: name of the XYZ file that will be created.
+            pre_factor: Multiplication factor of the displacements.
+            do_real: True if we want only real part of the displacement, False means imaginary part.
+            scale_matrix: Scaling matrix of the supercell.
+            max_supercell: Maximum size of the supercell with respect to primitive cell.
         """
         if scale_matrix is None:
             if max_supercell is None:
-                raise ValueError("If scale_matrix is not provided, please provide max_supercell !")
+                raise ValueError("If scale_matrix is None, max_supercell must be provided!")
 
-            scale_matrix = self.structure.get_smallest_supercell(self.qpoints[iqpt].frac_coords, max_supercell=max_supercell)
+            scale_matrix = self.structure.get_smallest_supercell(self.qpoints[iqpt].frac_coords,
+                                                                 max_supercell=max_supercell)
 
-        natoms = int(np.round(len(self.structure)*np.linalg.det(scale_matrix)))
+        natoms = int(np.round(len(self.structure) * np.linalg.det(scale_matrix)))
+
         with open(filename, "wt") as xyz_file:
             for imode in np.arange(self.num_branches):
                 xyz_file.write(str(natoms) + "\n")
                 xyz_file.write("Mode " + str(imode) + " : " + str(self.phfreqs[iqpt, imode]) + "\n")
                 self.structure.write_vib_file(
-                    xyz_file, self.qpoints[iqpt].frac_coords, pre_factor * np.reshape(self.phdispl_cart[iqpt, imode,:],(-1,3)),
+                    xyz_file, self.qpoints[iqpt].frac_coords,
+                    pre_factor * np.reshape(self.phdispl_cart[iqpt, imode,:],(-1,3)),
                     do_real=True, frac_coords=False, max_supercell=max_supercell, scale_matrix=scale_matrix)
 
     def create_ascii_vib(self, iqpts, filename, pre_factor=1):

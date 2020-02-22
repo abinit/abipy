@@ -107,11 +107,9 @@ class AbinitOutputTest(AbipyTest):
 
             gs_cycle = abo.next_gs_scf_cycle()
             assert gs_cycle is not None
-            assert not self.get_all_gs_scf_cycles()
 
             ph_cycle = abo.next_d2de_scf_cycle()
             assert ph_cycle is not None
-            assert not self.get_all_d2de_scf_cycles()
 
             if self.has_matplotlib():
                 assert ph_cycle.plot(show=False)
@@ -120,6 +118,10 @@ class AbinitOutputTest(AbipyTest):
 
             if self.has_nbformat():
                 abo.write_notebook(nbpath=self.get_tmpname(text=True))
+
+            # Call these functions at end to avoid seek(0).
+            assert len(abo.get_all_gs_scf_cycles()) == 1
+            assert len(abo.get_all_d2de_scf_cycles()) == 3
 
     def test_dryrun_output(self):
         """Testing AbinitOutputFile with file produced in dry-run mode."""

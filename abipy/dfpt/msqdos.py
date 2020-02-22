@@ -15,7 +15,9 @@ from abipy.tools.printing import print_dataframe
 
 
 class _Component(object):
-    """Small object to select/plot the components of the DW tensor."""
+    """
+    Object used to select/plot the components of the DW tensor.
+    """
 
     def __init__(self, name, ij, **plot_kwargs):
         self.name = name
@@ -162,7 +164,7 @@ class MsqDos(Has_Structure):
             "amu_symbol": self.amu_symbol,  # Dict symbol --> Atomic mass in a.u.
             "structure": self.structure,    # Structure object
             "ucif_t": ucif_t,               # U tensors (natom, 3, 3, ntemp)  as a function of T for T in tmesh in CIF format.
-            "ucif_string_t300k": self.get_cif_string(temp=300),  # String with U tensor at T=300 in Cif format.
+            "ucif_string_t300k": self.get_cif_string(temp=300, symprec=None),  # String with U tensor at T=300 in Cif format.
         }
 
         return jdoc
@@ -319,13 +321,15 @@ class MsqDos(Has_Structure):
         import pandas as pd
         return pd.DataFrame(rows, columns=list(rows[0].keys()) if rows else None)
 
-    def write_cif_file(self, filepath, temp=300):
+    def write_cif_file(self, filepath, temp=300, symprec=None):
         """
         Write CIF file with structure and anisotropic U tensor in CIF format.
 
         Args:
             filepath: Name of CIF file. If None, a temporary filepath is created.
             temp: Temperature in Kelvin (used to compute U).
+            symprec (float): If not none, finds the symmetry of the structure
+                and writes the cif with symmetry information. Passes symprec to the SpacegroupAnalyzer
 
         Return: Filepath
         """
@@ -334,9 +338,35 @@ class MsqDos(Has_Structure):
             _, filepath = tempfile.mkstemp(suffix=".cif", text=True)
 
         with open(filepath, "wt") as fh:
-            fh.write(self.get_cif_string(temp=temp))
+            fh.write(self.get_cif_string(temp=temp, symprec=symprec))
 
         return filepath
+
+    #def jsmol(self, temp=300, symprec=None, verbose=0): # pragma: no cover
+    #    """
+    #    Args:
+    #        symprec (float): If not none, finds the symmetry of the structure
+    #            and writes the cif with symmetry information. Passes symprec to the SpacegroupAnalyzer
+    #        verbose: Verbosity level.
+    #    """
+    #    cif_string = self.get_cif_string(temp=temp, symprec=symprec)
+
+    #    try:
+    #      from jupyter_jsmol import JsmolView
+    #    except ImportError:
+    #        raise ImportError("jupyter_jsmol is not installed. See https://github.com/fekad/jupyter-jsmol")
+
+    #    jsmol = JsmolView(color='white')
+    #    from IPython.display import display, HTML
+    #    FIXME TEMPORARY HACK
+    #    display(HTML('<script type="text/javascript" src="/nbextensions/jupyter-jsmol/jsmol/JSmol.min.js"></script>'))
+    #    display(jsmol)
+
+    #    cmd = 'load inline "%s" {1 1 1}; ellipsoid;' % cif_string
+    #    if verbose: print("executing cmd:", cmd)
+    #    jsmol.script(cmd)
+
+    #    return jsmol
 
     def vesta_open(self, temp=300): # pragma: no cover
         """
@@ -350,15 +380,20 @@ class MsqDos(Has_Structure):
 
         return visu(filepath)()
 
-    def get_cif_string(self, temp=300):
+    def get_cif_string(self, temp=300, symprec=None):
         """
         Return string with structure and anisotropic U tensor in CIF format at temperature `temp` in Kelvin
+
+        Args:
+            symprec (float): If not none, finds the symmetry of the structure
+                and writes the cif with symmetry information. Passes symprec
+                to the SpacegroupAnalyzer
         """
         # Get string with structure in CIF format.
         # Don't use symprec because it changes the order of the sites
         # and we must be consistent with site_labels when writing aniso_U terms!
         from pymatgen.io.cif import CifWriter
-        cif = CifWriter(self.structure, symprec=None)
+        cif = CifWriter(self.structure, symprec=symprec)
 
         aniso_u = """loop_
 _atom_site_aniso_label

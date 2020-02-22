@@ -12,7 +12,10 @@ import subprocess
 import json
 import tempfile
 import unittest
-import numpy.testing.utils as nptu
+try:
+    import numpy.testing as nptu
+except ImportError:
+    import numpy.testing.utils as nptu
 import abipy.data as abidata
 
 from functools import wraps

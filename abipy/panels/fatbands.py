@@ -51,7 +51,7 @@ class FatBandsFilePanel(PanelWithElectronBands):
             # Plot the electronic fatbands grouped by L.
             #self.ncfile.plot_fatbands_lview(lmax=lmax, **self.fig_kwargs)
 
-        else
+        else:
             raise ValueError("Neither a IBZ nor k-path!")
 
         return tabs

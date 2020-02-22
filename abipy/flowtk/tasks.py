@@ -1151,7 +1151,11 @@ class AbinitBuild(object):
 
         def yesno2bool(line):
             ans = line.split()[-1].lower()
-            return dict(yes=True, no=False, auto=True)[ans]
+            try:
+                return dict(yes=True, no=False, auto=True)[ans]
+            except KeyError:
+                # Temporary hack for abinit v9
+                return True
 
         # Parse info.
         # flavor options were used in Abinit v8

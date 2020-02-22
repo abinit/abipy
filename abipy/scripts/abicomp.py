@@ -209,7 +209,10 @@ def _compare_with_database(options):
         if r.structures:
             if options.notebook:
                 new = r.add_entry(this_structure, "this")
-                retcode += new.make_and_open_notebook(foreground=options.foreground)
+                retcode += new.make_and_open_notebook(foreground=options.foreground,
+                                                      classic_notebook=options.classic_notebook,
+                                                      no_browser=options.no_browser)
+
             else:
                 print()
                 dfs = abilab.dataframes_from_structures(r.structures + [this_structure], index=r.ids + ["this"])
@@ -273,8 +276,9 @@ def abicomp_ebands(options):
                       plotter=plotter)
 
     elif options.notebook:
-        plotter.make_and_open_notebook(foreground=options.foreground)
-
+        plotter.make_and_open_notebook(foreground=options.foreground,
+                                       classic_notebook=options.classic_notebook,
+                                       no_browser=options.no_browser)
     else:
         # Print pandas Dataframe.
         df = plotter.get_ebands_frame()
@@ -311,7 +315,9 @@ def abicomp_edos(options):
                       plotter=plotter)
 
     elif options.notebook:
-        plotter.make_and_open_notebook(foreground=options.foreground)
+        plotter.make_and_open_notebook(foreground=options.foreground,
+                                       classic_notebook=options.classic_notebook,
+                                       no_browser=options.no_browser)
 
     elif options.expose:
         plotter.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
@@ -348,7 +354,9 @@ def abicomp_phbands(options):
                       plotter=plotter)
 
     elif options.notebook:
-        plotter.make_and_open_notebook(foreground=options.foreground)
+        plotter.make_and_open_notebook(foreground=options.foreground,
+                                       classic_notebook=options.classic_notebook,
+                                       no_browser=options.no_browser)
 
     elif options.expose:
         plotter.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
@@ -394,7 +402,9 @@ def abicomp_phdos(options):
                        verbose=options.verbose)
 
     elif options.notebook:
-        plotter.make_and_open_notebook(foreground=options.foreground)
+        plotter.make_and_open_notebook(foreground=options.foreground,
+                                       classic_notebook=options.classic_notebook,
+                                       no_browser=options.no_browser)
 
     else:
         # Optionally, print info on gaps and their location
@@ -617,7 +627,9 @@ def _invoke_robot(options):
     robot = _build_robot(options)
 
     if options.notebook:
-        robot.make_and_open_notebook(foreground=options.foreground)
+        robot.make_and_open_notebook(foreground=options.foreground,
+                                     classic_notebook=options.classic_notebook,
+                                     no_browser=options.no_browser)
 
     elif options.panel:
         try:
@@ -744,7 +756,9 @@ def abicomp_time(options):
         import IPython
         IPython.start_ipython(argv=[], user_ns={"parser": parser})
     elif options.notebook:
-        parser.make_and_open_notebook(foreground=options.foreground)
+        parser.make_and_open_notebook(foreground=options.foreground,
+                                      classic_notebook=options.classic_notebook,
+                                      no_browser=options.no_browser)
     else:
         parser.plot_all()
 
@@ -917,6 +931,12 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
     # Parent parser for commands supporting (ipython/jupyter)
     ipy_parser = argparse.ArgumentParser(add_help=False)
     ipy_parser.add_argument('-nb', '--notebook', default=False, action="store_true", help='Generate jupyter notebook.')
+    ipy_parser.add_argument('--classic-notebook', action='store_true', default=False,
+                            help="Use classic notebook instead of jupyterlab.")
+    ipy_parser.add_argument('--no-browser', action='store_true', default=False,
+                            help=("Start the jupyter server to serve the notebook "
+                                  "but don't open the notebook in the browser.\n"
+                                  "Use this option to connect remotely from localhost to the machine running the kernel"))
     ipy_parser.add_argument('--foreground', action='store_true', default=False,
         help="Run jupyter notebook in the foreground.")
     ipy_parser.add_argument('-ipy', '--ipython', default=False, action="store_true", help='Invoke ipython terminal.')

@@ -712,24 +712,6 @@ class Structure(pymatgen.Structure, NotebookWriter):
         new = BVAnalyzer(**kwargs).get_oxi_state_decorated_structure(self)
         return self.__class__.as_structure(new)
 
-    def _repr_html_(self):
-        """Integration with jupyter_ notebooks."""
-        try:
-            from nbjsmol import nbjsmol_display
-            return nbjsmol_display(self.to(fmt="cif"), ext=".cif", html=True)
-        except ImportError as exc:
-            # Write warning only once.
-            cls = self.__class__
-            if not hasattr(cls, "_repr_html_num_warns"): cls._repr_html_num_warns = 0
-            if cls._repr_html_num_warns == 0:
-                cls._repr_html_num_warns += 1
-                warn(str(exc) +
-                     "\n_repr_html_ requires nbjsmol package\n."
-                     "Install it with `pip install nbjsmol.`\n"
-                     "See also https://github.com/gmatteo/nbjsmol\n"
-                     "Returning `str(self)` in HTML form.")
-            return str(self).replace("\n", "<br>")
-
     @property
     def reciprocal_lattice(self):
         """
@@ -1375,7 +1357,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
     def chemview(self, **kwargs): # pragma: no cover
         """
-        Visualize structure inside jupyter notebook using chemview package.
+        Visualize structure inside the jupyter notebook using chemview package.
         """
         from pymatgen.vis.structure_chemview import quick_view
         return quick_view(self, **kwargs)
@@ -1401,12 +1383,15 @@ class Structure(pymatgen.Structure, NotebookWriter):
         from abipy.display import mvtk
         return mvtk.plot_structure(self, figure=figure, show=show, **kwargs)
 
-    def nglview(self): # pragma: no cover
-        """Visualize structure with nglview inside a jupyter notebook."""
+    def get_nglview(self): # pragma: no cover
+        """
+        Visualize structure with nglview inside a jupyter notebook.
+        """
         try:
             import nglview as nv
         except ImportError:
             raise ImportError("nglview is not installed. See https://github.com/arose/nglview")
+
         view = nv.show_pymatgen(self)
         view.add_unitcell()
         return view
@@ -1422,6 +1407,37 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         return view(self)
 
+    def get_jsmol(self, symprec=None, verbose=0, **kwargs): # pragma: no cover
+        """
+
+        Args:
+            symprec (float): If not none, finds the symmetry of the structure
+                and writes the CIF with symmetry information.
+                Passes symprec to the SpacegroupAnalyzer
+            verbose: Verbosity level.
+        """
+        try:
+          from jupyter_jsmol import JsmolView
+        except ImportError:
+            raise ImportError("jupyter_jsmol is not installed. See https://github.com/fekad/jupyter-jsmol")
+
+        from pymatgen.io.cif import CifWriter
+        data = str(CifWriter(self, symprec=symprec))
+
+        from IPython.display import display, HTML
+        # FIXME TEMPORARY HACK TO LOAD JSMOL.js
+        # See discussion at
+        #   https://stackoverflow.com/questions/16852885/ipython-adding-javascript-scripts-to-ipython-notebook
+        display(HTML('<script type="text/javascript" src="/nbextensions/jupyter-jsmol/jsmol/JSmol.min.js"></script>'))
+
+        jsmol = JsmolView(color='white')
+        display(jsmol)
+        cmd = 'load inline "%s" {1 1 1}' % data
+        if verbose: print("executing cmd:", cmd)
+        jsmol.script(cmd)
+
+        return jsmol
+
     def visualize(self, appname="vesta"):
         """
         Visualize the crystalline structure with visualizer.
@@ -1430,8 +1446,6 @@ class Structure(pymatgen.Structure, NotebookWriter):
         if appname in ("mpl", "matplotlib"): return self.plot()
         if appname == "vtk": return self.vtkview()
         if appname == "mayavi": return self.mayaview()
-        #if appname == "nglview": return self.nglview()
-        #if appname == "chemview": return self.chemview()
 
         # Get the Visualizer subclass from the string.
         visu = Visualizer.from_name(appname)
@@ -1468,7 +1482,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         else:
             return super().to(fmt=fmt, **kwargs)
 
-    #def max_overlap_and_sites(self, pseudos):
+    #def get_max_overlap_and_sites(self, pseudos):
     #    # For each site in self:
     #    # 1) Get the radius of the pseudopotential sphere
     #    # 2) Get the neighbors of the site (considering the periodic images).
@@ -1641,8 +1655,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         arange = range_vec(0)[:, None] * np.array([1, 0, 0])[None, :]
         brange = range_vec(1)[:, None] * np.array([0, 1, 0])[None, :]
         crange = range_vec(2)[:, None] * np.array([0, 0, 1])[None, :]
-        all_points = arange[:, None, None] + brange[None, :, None] +\
-            crange[None, None, :]
+        all_points = arange[:, None, None] + brange[None, :, None] + crange[None, None, :]
         all_points = all_points.reshape((-1, 3))
 
         # find the translation vectors (in terms of the initial lattice vectors)
@@ -1661,7 +1674,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
     def write_vib_file(self, xyz_file, qpoint, displ, do_real=True, frac_coords=True,
                        scale_matrix=None, max_supercell=None):
         """
-        write into the file descriptor xyz_file the positions and displacements of the atoms
+        Write into the file descriptor xyz_file the positions and displacements of the atoms
 
         Args:
             xyz_file: file_descriptor
@@ -1755,8 +1768,8 @@ class Structure(pymatgen.Structure, NotebookWriter):
         else:
             displ1 = np.array(displ1)
             displ2 = np.array(displ2)
-        # from here displ are in cartesian coordinates
 
+        # from here on displ are in cartesian coordinates
         norm_factor = np.linalg.norm(displ1+displ2, axis=1).max()
 
         displ1 = eta * displ1 / norm_factor

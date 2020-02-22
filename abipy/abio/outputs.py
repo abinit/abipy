@@ -642,12 +642,15 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
 
     def get_all_gs_scf_cycles(self):
         """Return list of :class:`GroundStateScfCycle` objects. Empty list if no entry is found."""
+        # NOTE: get_all should not used with next because of the call to self.seek(0)
+        # The API should be refactored
         cycles = []
         self.seek(0)
         while True:
             cycle = self.next_gs_scf_cycle()
             if cycle is None: break
             cycles.append(cycle)
+        self.seek(0)
         return cycles
 
     def next_d2de_scf_cycle(self):

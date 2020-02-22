@@ -148,6 +148,12 @@ def get_parser(with_epilog=False):
     # Parent parser for commands supporting (jupyter notebooks)
     nb_parser = argparse.ArgumentParser(add_help=False)
     nb_parser.add_argument('-nb', '--notebook', default=False, action="store_true", help='Generate jupyter notebook.')
+    nb_parser.add_argument('--classic-notebook', action='store_true', default=False,
+                           help="Use classic notebook instead of jupyterlab.")
+    nb_parser.add_argument('--no-browser', action='store_true', default=False,
+                           help=("Start the jupyter server to serve the notebook "
+                                 "but don't open the notebook in the browser.\n"
+                                 "Use this option to connect remotely from localhost to the machine running the kernel"))
     nb_parser.add_argument('--foreground', action='store_true', default=False,
         help="Run jupyter notebook in the foreground.")
 
@@ -329,6 +335,12 @@ closest points in this particular structure. This is usually what you want in a 
     # Subparser for notebook.
     p_notebook = subparsers.add_parser('notebook', parents=[copts_parser, path_selector],
         help="Read structure from file and generate jupyter notebook.")
+    p_notebook.add_argument('--classic-notebook', action='store_true', default=False,
+                            help="Use classic notebook instead of jupyterlab.")
+    p_notebook.add_argument('--no-browser', action='store_true', default=False,
+                            help=("Start the jupyter server to serve the notebook "
+                                  "but don't open the notebook in the browser.\n"
+                                  "Use this option to connect remotely from localhost to the machine running the kernel"))
     p_notebook.add_argument('--foreground', action='store_true', default=False,
         help="Run jupyter notebook in the foreground.")
 
@@ -743,7 +755,9 @@ def main():
 
     elif options.command == "notebook":
         structure = abilab.Structure.from_file(options.filepath)
-        structure.make_and_open_notebook(nbpath=None, foreground=options.foreground)
+        structure.make_and_open_notebook(nbpath=None, foreground=options.foreground,
+                                         classic_notebook=options.classic_notebook,
+                                         no_browser=options.no_browser)
 
     elif options.command == "panel":
         structure = abilab.Structure.from_file(options.filepath)
@@ -876,7 +890,9 @@ def main():
             return 1
 
         if options.notebook:
-            return mp.make_and_open_notebook(foreground=options.foreground)
+            return mp.make_and_open_notebook(foreground=options.foreground,
+                                             classic_notebook=options.classic_notebook,
+                                             no_browser=options.no_browser)
         else:
             mp.print_results(fmt=options.format, verbose=options.verbose)
 
@@ -891,7 +907,9 @@ def main():
         if options.select_spgnum: mp = mp.filter_by_spgnum(options.select_spgnum)
 
         if options.notebook:
-            return mp.make_and_open_notebook(foreground=options.foreground)
+            return mp.make_and_open_notebook(foreground=options.foreground,
+                                             classic_notebook=options.classic_notebook,
+                                             no_browser=options.no_browser)
         else:
             mp.print_results(fmt=options.format, verbose=options.verbose)
 
@@ -947,7 +965,9 @@ def main():
         if options.select_spgnum: cod = cod.filter_by_spgnum(options.select_spgnum)
 
         if options.notebook:
-            return cod.make_and_open_notebook(foreground=options.foreground)
+            return cod.make_and_open_notebook(foreground=options.foreground,
+                                              classic_notebook=options.classic_notebook,
+                                              no_browser=options.no_browser)
         else:
             cod.print_results(fmt=options.format, verbose=options.verbose)
 
