@@ -21,7 +21,7 @@ from monty.termcolor import cprint
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.lattice import Lattice
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.flowtk import PseudoTable
 from abipy.core.mixins import NotebookWriter
 from abipy.core.symmetries import AbinitSpaceGroup
@@ -1383,9 +1383,51 @@ class Structure(pymatgen.Structure, NotebookWriter):
         from abipy.display import mvtk
         return mvtk.plot_structure(self, figure=figure, show=show, **kwargs)
 
-    def get_nglview(self): # pragma: no cover
+    @add_fig_kwargs
+    def plot_atoms(self, rotations="default", **kwargs):
         """
-        Visualize structure with nglview inside a jupyter notebook.
+        Plot 2d representation with matplotlib using ASE `plot_atoms` function.
+
+        Args:
+            rotations: String or List of strings.
+                Each string defines a rotation (in degrees) in the form '10x,20y,30z'
+                Note that the order of rotation matters, i.e. '50x,40z' is different from '40z,50x'.
+            kwargs: extra kwargs passed to plot_atoms ASE function.
+
+        Returns: |matplotlib-Figure|
+        """
+        atoms = self.to_ase_atoms()
+        if rotations == "default":
+            rotations = [
+                "", "90x", "90y",
+                "45x,45y", "45y,45z", "45x,45z",
+            ]
+        else:
+            rotations = list_strings(rotations)
+
+        nrows, ncols, num_plots = 1, 1, len(rotations)
+        if num_plots > 1:
+            ncols = 3
+            nrows = num_plots // ncols + num_plots % ncols
+
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=False, sharey=True, squeeze=False)
+
+        # don't show the last ax if num_plots is odd.
+        if num_plots % ncols != 0: ax_mat[-1, -1].axis("off")
+
+        from ase.visualize.plot import plot_atoms
+        for rotation, ax in zip(rotations, ax_list.flat):
+            plot_atoms(atoms, ax=ax, rotation=rotation, **kwargs)
+            ax.set_axis_off()
+            if rotation:
+                ax.set_title("rotation: %s" % str(rotation), fontsize=6)
+
+        return fig
+
+    def get_ngl_view(self): # pragma: no cover
+        """
+        Visualize the structure with nglview inside the jupyter notebook.
         """
         try:
             import nglview as nv
@@ -1396,7 +1438,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         view.add_unitcell()
         return view
 
-    def crystaltoolkitview(self): # pragma: no cover
+    def get_crystaltk_view(self): # pragma: no cover
         """
         Visualize the structure with crystal_toolkit inside the jupyter notebook.
         """
@@ -1407,13 +1449,14 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         return view(self)
 
-    def get_jsmol(self, symprec=None, verbose=0, **kwargs): # pragma: no cover
+    def get_jsmol_view(self, symprec=None, verbose=0, **kwargs): # pragma: no cover
         """
+        Visualize the structure with nglview inside the jupyter notebook.
 
         Args:
             symprec (float): If not none, finds the symmetry of the structure
                 and writes the CIF with symmetry information.
-                Passes symprec to the SpacegroupAnalyzer
+                Passes symprec to the spglib SpacegroupAnalyzer.
             verbose: Verbosity level.
         """
         try:
@@ -2092,9 +2135,13 @@ class Structure(pymatgen.Structure, NotebookWriter):
             nbv.new_code_cell("if structure.abi_spacegroup is not None: print(structure.abi_spacegroup)"),
             nbv.new_code_cell("print(structure.hsym_kpoints)"),
             nbv.new_code_cell("structure.plot_bz();"),
-            nbv.new_code_cell("structure.plot_xrd();"),
+            nbv.new_code_cell("# structure.plot_xrd();"),
             nbv.new_code_cell("# sanitized = structure.abi_sanitize(); print(sanitized)"),
             nbv.new_code_cell("# ase_atoms = structure.to_ase_atoms()"),
+            nbv.new_code_cell("# structure.plot_atoms();"),
+            nbv.new_code_cell("# jsmol_view = structure.get_jsmol_view()\njsmol_view"),
+            nbv.new_code_cell("# ngl_view = structure.get_ngl_view()\nngl_view"),
+            nbv.new_code_cell("# ctk_view = structure.get_crystaltk_view()\nctk_view"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)

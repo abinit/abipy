@@ -123,6 +123,7 @@ TODO list:
 * fatbands with SOC (waiting for Matthieu's refactoring)
 
 * Improvements in SKW. Finalize baseclass for ElectronInterpolator
+  Average degenerate states.
 
 * context manager to change variables (e.g. autoparal)
 

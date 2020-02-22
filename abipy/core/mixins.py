@@ -522,6 +522,7 @@ or:
 
 See also https://jupyter.readthedocs.io/en/latest/install.html
 """)
+            app_path = app_path  + " notebook "
 
         if not no_browser:
 
