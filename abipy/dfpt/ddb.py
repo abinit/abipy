@@ -1,5 +1,7 @@
 # coding: utf-8
-"""DDB File."""
+"""
+Python API for the DDB file containing the derivatives of the total Energy wrt different perturbations.
+"""
 import sys
 import os
 import tempfile

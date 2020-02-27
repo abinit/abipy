@@ -1216,7 +1216,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
     def make_nscf_kptopt0_input(self, kpts, tolwfr=1e-20, iscf=-2):
         """
         Build an input for NSCF calculation from a GS-SCF one.
-        Uses explicit list of k-points and kptopt 0
+        Uses explicit list of k-points and kptopt 0.
 
         Args:
             kpts: List of k-points in reduced coordinates.

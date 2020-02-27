@@ -1217,10 +1217,12 @@ class Structure(pymatgen.Structure, NotebookWriter):
         spglib_symbol, spglib_number, spglib_lattice_type = None, None, None
         if with_spglib:
             try:
-                spglib_symbol, spglib_number = self.get_space_group_info(symprec=symprec, angle_tolerance=angle_tolerance)
+                spglib_symbol, spglib_number = self.get_space_group_info(symprec=symprec,
+                                                                         angle_tolerance=angle_tolerance)
                 spglib_lattice_type = self.spget_lattice_type(symprec=symprec, angle_tolerance=angle_tolerance)
             except Exception as exc:
-                cprint("Spglib couldn't find space group symbol and number for composition %s" % str(self.composition), "red")
+                cprint("Spglib couldn't find space group symbol and number for composition: `%s`" %
+                        str(self.composition), "red")
                 print("Exception:\n", exc)
 
         # Get spacegroup number computed by Abinit if available.
@@ -1242,7 +1244,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
     @add_fig_kwargs
     def plot(self, **kwargs):
         """
-        Plot structure with matplotlib. Return matplotlib Figure
+        Plot structure in 3D with matplotlib. Return matplotlib Figure
         See plot_structure for kwargs
         """
         from abipy.tools.plotting import plot_structure
@@ -1251,7 +1253,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
     @add_fig_kwargs
     def plot_bz(self, ax=None, pmg_path=True, with_labels=True, **kwargs):
         """
-        Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone.
+        Use matplotlib to plot the symmetry line path in the Brillouin Zone.
 
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
@@ -1355,14 +1357,14 @@ class Structure(pymatgen.Structure, NotebookWriter):
         else:
             return visu(filename)
 
-    def chemview(self, **kwargs): # pragma: no cover
+    def get_chemview(self, **kwargs): # pragma: no cover
         """
         Visualize structure inside the jupyter notebook using chemview package.
         """
         from pymatgen.vis.structure_chemview import quick_view
         return quick_view(self, **kwargs)
 
-    def vtkview(self, show=True, **kwargs):
+    def plot_vtk(self, show=True, **kwargs):
         """
         Visualize structure with VTK. Requires vVTK python bindings.
 
@@ -1378,7 +1380,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         if show: vis.show()
         return vis
 
-    def mayaview(self, figure=None, show=True, **kwargs):
+    def plot_mayaview(self, figure=None, show=True, **kwargs):
         """Visualize structure with mayavi."""
         from abipy.display import mvtk
         return mvtk.plot_structure(self, figure=figure, show=show, **kwargs)
@@ -1487,8 +1489,8 @@ class Structure(pymatgen.Structure, NotebookWriter):
         See |Visualizer| for the list of applications and formats supported.
         """
         if appname in ("mpl", "matplotlib"): return self.plot()
-        if appname == "vtk": return self.vtkview()
-        if appname == "mayavi": return self.mayaview()
+        if appname == "vtk": return self.plot_vtk()
+        if appname == "mayavi": return self.plot_mayaview()
 
         # Get the Visualizer subclass from the string.
         visu = Visualizer.from_name(appname)
@@ -1522,6 +1524,11 @@ class Structure(pymatgen.Structure, NotebookWriter):
         elif fmt in ("wannier90", "w90"):
             from abipy.wannier90.win import structure2wannier90
             return structure2wannier90(self)
+        elif fmt.lower() == "poscar":
+            # Don't call super for poscar because we need more significant_figures to
+            # avoid problems with abinit space group routines where the default numerical tolerance is tight.
+            from pymatgen.io.vasp import Poscar
+            return Poscar(self).get_string(significant_figures=12)
         else:
             return super().to(fmt=fmt, **kwargs)
 

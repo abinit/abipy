@@ -139,8 +139,8 @@ class TestStructure(AbipyTest):
                 assert si.plot_xrd(show=False)
 
         if self.has_mayavi():
-            #assert si.vtkview(show=False)  # Disabled due to (core dumped) on travis
-            assert si.mayaview(show=False)
+            #assert si.plot_vtk(show=False)  # Disabled due to (core dumped) on travis
+            assert si.plot_mayaview(show=False)
 
         if self.has_panel():
             assert hasattr(si.get_panel(), "show")
@@ -218,7 +218,6 @@ xred       0.0000000000    0.0000000000    0.0000000000
         mgb2.get_conventional_standard_structure()
         assert len(mgb2.abi_string)
         assert len(mgb2.spget_summary(site_symmetry=True, verbose=10))
-        #print(structure._repr_html_())
 
         self.serialize_with_pickle(mgb2)
 
