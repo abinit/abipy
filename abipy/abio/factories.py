@@ -1437,7 +1437,7 @@ def make_conduc_work_input(scf_inp, nscf_inp, tmesh, ddb_ngqpt, eph_ngqpt_fine=N
     multi[2].set_vars(irdden=0, optdriver=7, ddb_ngqpt=ddb_ngqpt, eph_task=5, eph_ngqpt_fine=eph_ngqpt_fine)
     
     multi[3].pop_vars("iscf")
-    multi[3].set_vars(irdden=0, optdriver=7, ddb_ngqpt=eph_ngqpt_fine, eph_task=-4, tmesh=tmesh, symsigma=1)
+    multi[3].set_vars(irdden=0, optdriver=7, ddb_ngqpt=ddb_ngqpt, eph_ngqpt_fine=eph_ngqpt_fine, eph_task=-4, tmesh=tmesh, symsigma=1)
     
     return multi
 
