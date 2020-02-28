@@ -1984,18 +1984,18 @@ class ConducWork(Work):
         Args:
             phwork: a |PhononWork| object calculating the DDB and DVDB files.
 
-            multi: a |MultiDataset| object containing a list of 4 inputs respectively : 
-                   SCF GS, NSCF GS, DVDB Interpolation and Conductivity. 
+            multi: a |MultiDataset| object containing a list of 4 inputs respectively :
+                   SCF GS, NSCF GS, DVDB Interpolation and Conductivity.
                    See abipy/abio/factories.py -> conduc_from_scf_nscf_inputs for details about multi.
 
-            nbr_procs: Number of processors that will be used during the calculations. This is a required parameters since autoparal isn't yet implemented with optdriver=7 
+            nbr_procs: Number of processors used for t2 and t3. Required since autoparal isn't yet implemented with optdriver=7
 
-            flow: The flow calling the work. It is necessary since with_fixed_mpi_omp need reference from task to work and from work to flow.
+            flow: The flow calling the work. Used for  with_fixed_mpi_omp.
 
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
         """
         if not isinstance(phwork, PhononWork):
-            raise TypeError("Work `%s` does not inherit from PhononWork" % phonon_work)
+            raise TypeError("Work `%s` does not inherit from PhononWork" % phwork)
 
         new = cls(manager=manager)
         new.set_flow(flow)

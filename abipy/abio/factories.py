@@ -1427,7 +1427,7 @@ def conduc_from_scf_nscf_inputs(scf_inp, nscf_inp, tmesh, ddb_ngqpt, eph_ngqpt_f
         eph_ngqpt_fine: the fine grid of qpoints that will be interpolated.
     """
     if eph_ngqpt_fine is None:
-            eph_ngqpt_fine = ddb_ngqpt
+        eph_ngqpt_fine = ddb_ngqpt
 
     multi = MultiDataset.from_inputs([scf_inp])
     extension = MultiDataset.replicate_input(nscf_inp, 3)
@@ -1446,7 +1446,7 @@ def conduc_from_scf_nscf_inputs(scf_inp, nscf_inp, tmesh, ddb_ngqpt, eph_ngqpt_f
                       eph_task=-4,
                       tmesh=tmesh,
                       symsigma=1)
- 
+
     return multi
 
 

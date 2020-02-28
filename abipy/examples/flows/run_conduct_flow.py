@@ -5,9 +5,7 @@ import os
 import sys
 import abipy.data as abidata
 import abipy.abilab as abilab
-import copy
 from abipy import flowtk
-import pymatgen.io.abinit as pmgFlow
 
 
 def make_scf_input(structure, pseudos, ngkpt=(2,2,2), shiftk=(0,0,0),
@@ -25,6 +23,7 @@ def make_scf_input(structure, pseudos, ngkpt=(2,2,2), shiftk=(0,0,0),
 
     return scf_inp
 
+
 def make_nscf_input(structure, pseudos, ngkpt=(2,2,2), shiftk=(0,0,0),
                     **variables):
     """Build and return NSCF input given the structure and pseudopotentials"""
@@ -39,8 +38,6 @@ def make_nscf_input(structure, pseudos, ngkpt=(2,2,2), shiftk=(0,0,0),
     scf_inp.set_vars(iscf=-2)
 
     return scf_inp
-
-
 
 
 def build_flow(options):
@@ -98,7 +95,7 @@ def build_flow(options):
     gs_work = flowtk.Work()
     gs_work.register_scf_task(scf_input)
 
-    # Work 1 : Calcul DDB et DVDB 
+    # Work 1 : Calcul DDB et DVDB
     ph_work = flowtk.PhononWork.from_scf_task(gs_work[0],
                                               qpoints=ngqpt, is_ngqpt=True,
                                               tolerance={"tolvrs": 1e-8})
@@ -111,7 +108,7 @@ def build_flow(options):
     flow.register_work(gs_work)
     flow.register_work(ph_work)
     flow.register_work(conduc_work)
- 
+
     return flow.allocate(use_smartio=True)
 
 
