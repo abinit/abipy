@@ -1972,64 +1972,40 @@ class DteWork(Work, MergeDdb):
 
 class ConducWork(Work):
     """
-    This work consists of 2 tasks. 
-    Task 1 : The ddb are interpolated to a fine q-point grid
-             deps={PhononWork: ["DDB", "DVDB"]}
-    Task 2 : Compute the conductivity at different temperature 
-             deps={nscfTask: ["WFK"], PhononWork: ["DDB"], ConducWork[0]: ["DVDB"]}
-"""
-
-# Notes : Tolerance is not used in third or fourth part,
-# 
-# TODO: 1. Test
+    Work for the computation of electrical conductivity.
+    This work consists of 4 tasks : SCF GS, NSCF, DVDB Interpolation and Electrical Conductivity Calculation.
+    """
  
     @classmethod
     def from_phwork_and_scf_nscf_inp(cls, phwork, multi, nbr_procs, flow, manager=None):
         """ 
-        Construct a 'ConducWork' from a |PhononWork| object and a |NscfTask| object.
+        Construct a |ConducWork| from a |PhononWork| and |MultiDataset|. 
     
         Args:
-            phonon_work: |PhononWork| object
+            phwork: a |PhononWork| object calculating the DDB and DVDB files.
 
-            nscf_task: |NscfTask| object. The input in this task are used as the input for both conduc task.
+            multi: a |MultiDataset| object containing a list of 4 inputs respectively for : SCF GS, NSCF GS, DVDB Interpolation and Conductivity. Look at abipy/abio/factories.py -> make                _conduc_work_input for more details about the creation of the variable.
 
-            nbr_procs: Number of processors that will be used during the calculations. This is a required parameters since autoparal isn't yet implemented with optdriver=7
+            nbr_procs: Number of processors that will be used during the calculations. This is a required parameters since autoparal isn't yet implemented with optdriver=7 
             
             flow: The flow calling the work. It is necessary since with_fixed_mpi_omp need reference from task to work and from work to flow.
+            
+            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
         """
-
-        # Step 1 : Verify Input
         if not isinstance(phwork, PhononWork):
             raise TypeError("Work `%s` does not inherit from PhononWork" % phonon_work)
-        #if not isinstance(scf_input, (list, tuple)):
-            #raise TypeError("Input `%s` is not a dictionnary (list, tuple)" % scf_input)
-        #if not isinstance(nscf_input, (list, tuple)):
-            #raise TypeError("Input `%s` is not a dictionnary (list, tuple)" % nscf_input)
-        # Step 3 : Create the Work 
+        
         new = cls(manager=manager)
         new.set_flow(flow)
        
-        # Step 4 : Create and call Task
-        " Redefinis les variables non voulues et definis les nouvelles variables "
-        # Task 1: Calcul SCF
         new.register_task(multi[0])
-        # Task 2: Calcul NSCF
         new.register_task(multi[1], deps={new[0]: "DEN"})
-        # Task 3: Interpolation DVDB
-        #conduc_input_dt3 = nscf_input.new_with_vars(irdden=0, optdriver=7, ddb_ngqpt=ddb_ngqpt)
-        #conduc_input_dt3.pop_vars("iscf")
-        #conduc_input_dt3.set_vars(eph_task=5, eph_ngqpt_fine=eph_ngqpt_fine)
         new.register_task(multi[2], deps={phwork: ["DDB","DVDB"]})
-        # Task 4: Calcul conductivite
-        #conduc_input_dt4 = nscf_input.new_with_vars(irdden=0, optdriver=7, ddb_ngqpt=ddb_ngqpt)
-        #conduc_input_dt4.pop_vars("iscf")
-        #conduc_input_dt4.set_vars(eph_task=-4, tmesh=tmesh, symsigma=1) 
         new.register_task(multi[3], deps={new[1]: "WFK", phwork: "DDB", new[2]: "DVDB"})     
-        # Step 5 : Create reference from Task to Work
+        
         for task in new:
             task.set_work(new)   
-        # Step 6 : Fix number of procs for task 3 and 4
+        
         for task in new[2:]:
             task.with_fixed_mpi_omp(nbr_procs, 1)
-         
         return new

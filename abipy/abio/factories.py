@@ -1413,16 +1413,22 @@ def dfpt_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, do_ddk=True, do_dde=T
     return multi
 
 
-def make_conduc_work_input(scf_inp, nscf_inp, tmesh, ddb_ngqpt, eph_ngqpt_fine):
-    # Step 1 : Check Inputs
+def make_conduc_work_input(scf_inp, nscf_inp, tmesh, ddb_ngqpt, eph_ngqpt_fine=None):
+    """
+    Returns a list of inputs in the form of a MultiDataset to perform a set of calculations to determine conductivity. 
+    This part require a ground state |AbinitInput| and a non self-consistent |AbinitInput|. You will also need
+    a work to get DDB and DVDB since |ConducWork| needs these files.
+
+    Args:
+        scf_inp: an |AbinitInput| representing a ground state calculation, the SCF performed to get the WFK.
+        nscf_inp: an |AbinitInput| representing a nscf ground state calculation, the NSCF performed to get the WFK.
+            most parameters for the 2 subsequent taks will be taken from this inputs.
+        ddb_ngqpt: the coarse grid of qpoints used to get the DDB and DVDB files in the previously made phonon_work.
+        eph_ngqpt_fine: the fine grid of qpoints that will be interpolated.
+    """
     if eph_ngqpt_fine is None:
             eph_ngqpt_fine=ddb_ngqpt
-    #if not isinstance(scf_input, AbinitInput):
-    #    raise TypeError("Input `%s` is not a dictionnary (list, tuple)" % scf_input)
-    #if not isinstance(nscf_input, AbinitInput):
-    #    raise TypeError("Input `%s` is not a dictionnary (list, tuple)" % nscf_input)
     
-    # Step 2 : Create array of inputs
     multi = MultiDataset.from_inputs([scf_inp])
     extension = MultiDataset.replicate_input(nscf_inp, 3)
     multi.extend(extension)
@@ -1431,7 +1437,7 @@ def make_conduc_work_input(scf_inp, nscf_inp, tmesh, ddb_ngqpt, eph_ngqpt_fine):
     multi[2].set_vars(irdden=0, optdriver=7, ddb_ngqpt=ddb_ngqpt, eph_task=5, eph_ngqpt_fine=eph_ngqpt_fine)
     
     multi[3].pop_vars("iscf")
-    multi[3].set_vars(irdden=0, optdriver=7, ddb_ngqpt=ddb_ngqpt, eph_task=-4, tmesh=tmesh, symsigma=1)
+    multi[3].set_vars(irdden=0, optdriver=7, ddb_ngqpt=eph_ngqpt_fine, eph_task=-4, tmesh=tmesh, symsigma=1)
     
     return multi
 
