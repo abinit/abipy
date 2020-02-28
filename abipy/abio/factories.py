@@ -29,7 +29,7 @@ __all__ = [
     "scf_for_phonons",
     "dte_from_gsinput",
     "dfpt_from_gsinput",
-    "make_conduc_work_input"
+    "conduc_from_scf_nscf_inputs"
 ]
 
 
@@ -1413,7 +1413,7 @@ def dfpt_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, do_ddk=True, do_dde=T
     return multi
 
 
-def make_conduc_work_input(scf_inp, nscf_inp, tmesh, ddb_ngqpt, eph_ngqpt_fine=None):
+def conduc_from_scf_nscf_inputs(scf_inp, nscf_inp, tmesh, ddb_ngqpt, eph_ngqpt_fine=None):
     """
     Returns a list of inputs in the form of a MultiDataset to perform a set of calculations to determine conductivity. 
     This part require a ground state |AbinitInput| and a non self-consistent |AbinitInput|. You will also need

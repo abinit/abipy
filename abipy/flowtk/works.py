@@ -121,7 +121,6 @@ class BaseWork(Node, metaclass=abc.ABCMeta):
     def ncores_reserved(self):
         """
         Returns the number of cores reserved in this moment.
-        Returns the number of cores reserved in this moment.
         A core is reserved if it's still not running but
         we have submitted the task to the queue manager.
         """
@@ -1967,6 +1966,7 @@ class DteWork(Work, MergeDdb):
         the final DDB file in the outdir of the `Work`.
         """
         # Merge DDB files.
+        out_ddb = self.merge_ddb_files()
         return self.Results(node=self, returncode=0, message="DDB merge done")
 
 

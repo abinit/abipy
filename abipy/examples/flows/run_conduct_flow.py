@@ -91,7 +91,7 @@ def build_flow(options):
                                  **variables)
 
     # Create multi which contains inputs for the 4 tasks: SCF, NSCF, Interpolation DVDB, Conductivity
-    multi = abilab.make_conduc_work_input(
+    multi = abilab.conduc_from_scf_nscf_inputs(
         scf_input, nscf_input,
         tmesh=tmesh,
         ddb_ngqpt=ngqpt,
