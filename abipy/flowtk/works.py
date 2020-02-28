@@ -1975,37 +1975,39 @@ class ConducWork(Work):
     Work for the computation of electrical conductivity.
     This work consists of 4 tasks : SCF GS, NSCF, DVDB Interpolation and Electrical Conductivity Calculation.
     """
- 
+
     @classmethod
     def from_phwork_and_scf_nscf_inp(cls, phwork, multi, nbr_procs, flow, manager=None):
-        """ 
-        Construct a |ConducWork| from a |PhononWork| and |MultiDataset|. 
-    
+        """
+        Construct a |ConducWork| from a |PhononWork| and |MultiDataset|.
+
         Args:
             phwork: a |PhononWork| object calculating the DDB and DVDB files.
 
-            multi: a |MultiDataset| object containing a list of 4 inputs respectively for : SCF GS, NSCF GS, DVDB Interpolation and Conductivity. Look at abipy/abio/factories.py -> make                _conduc_work_input for more details about the creation of the variable.
+            multi: a |MultiDataset| object containing a list of 4 inputs respectively : 
+                   SCF GS, NSCF GS, DVDB Interpolation and Conductivity. 
+                   See abipy/abio/factories.py -> conduc_from_scf_nscf_inputs for details about multi.
 
             nbr_procs: Number of processors that will be used during the calculations. This is a required parameters since autoparal isn't yet implemented with optdriver=7 
-            
+
             flow: The flow calling the work. It is necessary since with_fixed_mpi_omp need reference from task to work and from work to flow.
-            
+
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
         """
         if not isinstance(phwork, PhononWork):
             raise TypeError("Work `%s` does not inherit from PhononWork" % phonon_work)
-        
+
         new = cls(manager=manager)
         new.set_flow(flow)
-       
+
         new.register_task(multi[0])
         new.register_task(multi[1], deps={new[0]: "DEN"})
         new.register_task(multi[2], deps={phwork: ["DDB","DVDB"]})
-        new.register_task(multi[3], deps={new[1]: "WFK", phwork: "DDB", new[2]: "DVDB"})     
-        
+        new.register_task(multi[3], deps={new[1]: "WFK", phwork: "DDB", new[2]: "DVDB"})
+
         for task in new:
-            task.set_work(new)   
-        
+            task.set_work(new)
+
         for task in new[2:]:
             task.with_fixed_mpi_omp(nbr_procs, 1)
         return new

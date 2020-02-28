@@ -1415,7 +1415,7 @@ def dfpt_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, do_ddk=True, do_dde=T
 
 def conduc_from_scf_nscf_inputs(scf_inp, nscf_inp, tmesh, ddb_ngqpt, eph_ngqpt_fine=None):
     """
-    Returns a list of inputs in the form of a MultiDataset to perform a set of calculations to determine conductivity. 
+    Returns a list of inputs in the form of a MultiDataset to perform a set of calculations to determine conductivity.
     This part require a ground state |AbinitInput| and a non self-consistent |AbinitInput|. You will also need
     a work to get DDB and DVDB since |ConducWork| needs these files.
 
@@ -1427,18 +1427,26 @@ def conduc_from_scf_nscf_inputs(scf_inp, nscf_inp, tmesh, ddb_ngqpt, eph_ngqpt_f
         eph_ngqpt_fine: the fine grid of qpoints that will be interpolated.
     """
     if eph_ngqpt_fine is None:
-            eph_ngqpt_fine=ddb_ngqpt
-    
+            eph_ngqpt_fine = ddb_ngqpt
+
     multi = MultiDataset.from_inputs([scf_inp])
     extension = MultiDataset.replicate_input(nscf_inp, 3)
     multi.extend(extension)
 
     multi[2].pop_vars("iscf")
-    multi[2].set_vars(irdden=0, optdriver=7, ddb_ngqpt=ddb_ngqpt, eph_task=5, eph_ngqpt_fine=eph_ngqpt_fine)
-    
+    multi[2].set_vars(irdden=0, optdriver=7,
+                      ddb_ngqpt=ddb_ngqpt,
+                      eph_task=5,
+                      eph_ngqpt_fine=eph_ngqpt_fine)
+
     multi[3].pop_vars("iscf")
-    multi[3].set_vars(irdden=0, optdriver=7, ddb_ngqpt=ddb_ngqpt, eph_ngqpt_fine=eph_ngqpt_fine, eph_task=-4, tmesh=tmesh, symsigma=1)
-    
+    multi[3].set_vars(irdden=0, optdriver=7,
+                      ddb_ngqpt=ddb_ngqpt,
+                      eph_ngqpt_fine=eph_ngqpt_fine,
+                      eph_task=-4,
+                      tmesh=tmesh,
+                      symsigma=1)
+ 
     return multi
 
 

@@ -47,36 +47,32 @@ def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
-    
+
     # Get structure and pseudos from the abipy database
     structure = abidata.structure_from_ucell("Al")
-    pseudos = abidata.pseudos("13al.pspnc")                                                                                                   
+    pseudos = abidata.pseudos("13al.pspnc")
 
-    
     variables = dict(
-            ecut = 20,
-            tsmear = 0.05,
-            nband = 12,
-            nbdbuf = 2,
-            occopt = 3,
-            iomode = 1,
-            nstep = 20,
-            paral_kgb=1,
-        )
+            ecut=20,
+            tsmear=0.05,
+            nband=12,
+            nbdbuf=2,
+            occopt=3,
+            iomode=1,
+            nstep=20,
+            paral_kgb=1)
 
     ngkpt = [4, 4, 4]
-    ngkpt_fine = [12,12,12]
+    ngkpt_fine = [12, 12, 12]
     shiftk = [0.0, 0.0, 0.0]
 
-    ngqpt = [2,2,2]
-    ngqpt_fine = [4,4,4]
-    tmesh=[0, 30, 11]
-    
+    ngqpt = [2, 2, 2]
+    ngqpt_fine = [4, 4, 4]
+    tmesh = [0, 30, 11]
+
     # Nom de mon flow
     flow = flowtk.Flow(workdir=options.workdir)
 
-    #flow.show_inputs()
-    
     # Create inputs Object
     scf_input = make_scf_input(structure, pseudos,
                                tolvrs=1e-12,
@@ -96,10 +92,8 @@ def build_flow(options):
         tmesh=tmesh,
         ddb_ngqpt=ngqpt,
         eph_ngqpt_fine=ngqpt_fine)
-    
 
     # Create Work Object
-
     # Work 0 : Calcul SCF
     gs_work = flowtk.Work()
     gs_work.register_scf_task(scf_input)
@@ -107,12 +101,12 @@ def build_flow(options):
     # Work 1 : Calcul DDB et DVDB 
     ph_work = flowtk.PhononWork.from_scf_task(gs_work[0],
                                               qpoints=ngqpt, is_ngqpt=True,
-                                              tolerance = {"tolvrs": 1e-8})
+                                              tolerance={"tolvrs": 1e-8})
 
     # Work 2 : Conduc Work
     conduc_work = flowtk.ConducWork.from_phwork_and_scf_nscf_inp(
-        phwork=ph_work, multi=multi, nbr_procs=4, flow = flow)
-   
+        phwork=ph_work, multi=multi, nbr_procs=4, flow=flow)
+
     # Register Work
     flow.register_work(gs_work)
     flow.register_work(ph_work)
