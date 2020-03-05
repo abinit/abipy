@@ -2011,3 +2011,42 @@ class ConducWork(Work):
         for task in new[2:]:
             task.with_fixed_mpi_omp(nbr_procs, 1)
         return new
+
+    @classmethod
+    def from_multi_and_DDB_DVDB(cls, multi, ddb_file, dvdb_file, nbr_procs, flow, manager=None):
+        """
+        Construct a |ConducWork| from previously calculated |PhononWork| and |MultiDataset|.
+
+        Args:
+            multi: a |MultiDataset| object containing a list of 4 inputs respectively :
+                       SCF GS, NSCF GS, DVDB Interpolation and Conductivity.
+                       See abipy/abio/factories.py -> conduc_from_scf_nscf_inputs for details about multi.
+            ddb_file: a string containing the path to the DDB file
+
+            dvdb_file: a string containing the path to the DVDB file
+
+            nbr_procs: Number of processors used for t2 and t3. Required since autoparal isn't yet implemented with optdriver=7
+
+            flow: The flow calling the work. Used for  with_fixed_mpi_omp.
+
+            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
+        """
+
+        new = cls(manager=manager)
+        new.set_flow(flow)
+
+        new.register_task(multi[0])
+        new.register_task(multi[1], deps={new[0]: "DEN"})
+        new.register_task(multi[2], deps=[Dependency(ddb_file, "DDB"),
+                                          Dependency(dvdb_file, "DVDB")])
+
+        new.register_task(multi[3], deps=[Dependency(new[1], "WFK"),
+                                          Dependency(ddb_file, "DDB"),
+                                          Dependency(new[2], "DVDB")])
+        for task in new:
+            task.set_work(new)
+
+        for task in new[2:]:
+            task.with_fixed_mpi_omp(nbr_procs, 1)
+
+        return new
