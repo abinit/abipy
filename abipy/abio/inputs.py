@@ -2770,9 +2770,9 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
     @classmethod
     def dfpt(cls, structure, ngqpt=None, relaxed_ion=False, piezo=False, dde=False, strain=False, dte=False,
-             stress_correction=False, nqsmall=None, qppa=None, ndivsm=20, line_density=None, q1shft=(0, 0, 0),
-             qptbounds=None, asr=2, chneut=1, dipdip=1, ramansr=1, alphon=1, dos_method="tetra", directions=None,
-             anaddb_args=None, anaddb_kwargs=None, comment=None):
+             raman=False, stress_correction=False, nqsmall=None, qppa=None, ndivsm=20, line_density=None,
+             q1shft=(0, 0, 0), qptbounds=None, asr=2, chneut=1, dipdip=1, ramansr=1, alphon=1, dos_method="tetra",
+             directions=None, anaddb_args=None, anaddb_kwargs=None, comment=None):
         """
         Builds an |AnaddbInput| to post-process a generic DFPT calculation.
 
@@ -2790,6 +2790,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             strain: if True the elastic tensors will be calculated (requires the strain perturbations)
             dte: if True properties related to the nonlinear tensors will be calculated
                 (requires third orders perturbations)
+            raman: if True the Raman tensor will be calculated (sets dte to True).
             nqsmall: Used to generate the (dense) mesh for the DOS.
                 It defines the number of q-points used to sample the smallest lattice vector.
             qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per reciproval atom.
@@ -2850,11 +2851,13 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         if elaflag > 1:
             anaddb_input["instrflag"] = 1
 
+        if raman:
+            dte = True
+
         if dte:
             prtmbm = 0
 
-            # if there are phonons at gamma
-            if (ngqpt and not q1shft) or np.allclose(q1shft, [0, 0, 0]):
+            if raman:
                 nlflag = 1
                 ramansr = ramansr
                 alphon = alphon
