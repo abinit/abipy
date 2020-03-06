@@ -1455,7 +1455,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     def anaget_raman(self, asr=2, chneut=1, ramansr=1, alphon=1, workdir=None, mpi_procs=1,
                      manager=None, verbose=0, directions=None, anaddb_kwargs=None):
         """
-        Execute anaddb to compute phonon modes at the given q-point (without LO-TO splitting)
+        Execute anaddb to compute the Raman spectrum
 
         Args:
             qpoint: Reduced coordinates of the qpoint where phonon modes are computed.
@@ -1468,10 +1468,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 If None the three cartesian direction will be used.
             anaddb_kwargs: additional kwargs for anaddb.
 
-        Return: |PhononBands| object.
+        Return: |Raman| object.
         """
 
-        inp = AnaddbInput.dfpt(self.structure, dte=True, asr=asr, chneut=chneut, ramansr=ramansr,
+        inp = AnaddbInput.dfpt(self.structure, raman=True, asr=asr, chneut=chneut, ramansr=ramansr,
                                alphon=alphon, directions=directions, anaddb_kwargs=anaddb_kwargs)
 
         task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose)
