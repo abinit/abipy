@@ -1977,7 +1977,7 @@ class ConducWork(Work):
     """
 
     @classmethod
-    def from_phwork_and_scf_nscf_inp(cls, phwork, multi, nbr_procs, flow, manager=None):
+    def from_phwork_and_scf_nscf_inp(cls, phwork, multi, nbr_procs, flow, skipInter=True, manager=None):
         """
         Construct a |ConducWork| from a |PhononWork| and |MultiDataset|.
 
@@ -1992,6 +1992,8 @@ class ConducWork(Work):
 
             flow: The flow calling the work. Used for  with_fixed_mpi_omp.
 
+            skipInter: Used to skip the interpolation task and compute the fine DVDB during the conductivity task.
+
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
         """
         if not isinstance(phwork, PhononWork):
@@ -2002,8 +2004,13 @@ class ConducWork(Work):
 
         new.register_task(multi[0])
         new.register_task(multi[1], deps={new[0]: "DEN"})
-        new.register_task(multi[2], deps={phwork: ["DDB","DVDB"]})
-        new.register_task(multi[3], deps={new[1]: "WFK", phwork: "DDB", new[2]: "DVDB"})
+
+        if(skipInter):
+            new.register_task(multi[3], deps={new[1]: "WFK", phwork: ["DDB","DVDB"]})
+
+        else:
+            new.register_task(multi[2], deps={phwork: ["DDB","DVDB"]})
+            new.register_task(multi[3], deps={new[1]: "WFK", phwork: "DDB", new[2]: "DVDB"})
 
         for task in new:
             task.set_work(new)
@@ -2013,7 +2020,7 @@ class ConducWork(Work):
         return new
 
     @classmethod
-    def from_multi_and_DDB_DVDB(cls, multi, ddb_file, dvdb_file, nbr_procs, flow, manager=None):
+    def from_multi_and_DDB_DVDB(cls, multi, ddb_file, dvdb_file, nbr_procs, flow, skipInter=True, manager=None):
         """
         Construct a |ConducWork| from previously calculated |PhononWork| and |MultiDataset|.
 
@@ -2029,6 +2036,8 @@ class ConducWork(Work):
 
             flow: The flow calling the work. Used for  with_fixed_mpi_omp.
 
+            skipInter: Used to skip the interpolation task and compute the fine DVDB during the conductivity task.
+
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
         """
 
@@ -2037,10 +2046,16 @@ class ConducWork(Work):
 
         new.register_task(multi[0])
         new.register_task(multi[1], deps={new[0]: "DEN"})
-        new.register_task(multi[2], deps=[Dependency(ddb_file, "DDB"),
+
+        if(skipInter):
+            new.register_task(multi[3], deps=[Dependency(new[1], "WFK"),
+                                          Dependency(ddb_file, "DDB"),
                                           Dependency(dvdb_file, "DVDB")])
 
-        new.register_task(multi[3], deps=[Dependency(new[1], "WFK"),
+        else:
+            new.register_task(multi[2], deps=[Dependency(ddb_file, "DDB"),
+                                          Dependency(dvdb_file, "DVDB")])
+            new.register_task(multi[3], deps=[Dependency(new[1], "WFK"),
                                           Dependency(ddb_file, "DDB"),
                                           Dependency(new[2], "DVDB")])
         for task in new:
