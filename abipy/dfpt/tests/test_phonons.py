@@ -1,6 +1,4 @@
 """Tests for phonons"""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import unittest
 import sys
 import os
@@ -10,7 +8,7 @@ import abipy.data as abidata
 import abipy.core.abinit_units as abu
 
 from abipy import abilab
-from abipy.dfpt.phonons import (PhononBands, PhononDos, PhdosFile, InteratomicForceConstants, phbands_gridplot,
+from abipy.dfpt.phonons import (PhononBands, PhononDos, PhdosFile, phbands_gridplot,
         PhononBandsPlotter, PhononDosPlotter, dataframe_from_phbands)
 from abipy.dfpt.ddb import DdbFile
 from abipy.core.testing import AbipyTest
@@ -43,6 +41,7 @@ class PhononBandsTest(AbipyTest):
             assert phbands.phdispl_cart.shape == (phbands.nqpt, phbands.num_branches, phbands.num_branches)
             # a + b gives plotter
             assert hasattr(same_phbands_nc + phbands, "combiplot")
+            assert phbands.epsinf is None and phbands.zcart is None
 
         self.serialize_with_pickle(phbands, protocols=[-1], test_eq=False)
 
@@ -95,7 +94,7 @@ class PhononBandsTest(AbipyTest):
         for iq in range(len(eig)):
             #print("About to test iq", iq, np.dot(eig[iq], eig[iq].T))
             #assert np.allclose(np.dot(eig[iq], eig[iq].T), cidentity , atol=1e-5, rtol=1e-3)
-            assert np.allclose(np.dot(eig[iq].conjugate().T, eig[iq]), cidentity , atol=1e-5, rtol=1e-3)
+            assert np.allclose(np.dot(eig[iq].conjugate().T, eig[iq]), cidentity, atol=1e-5, rtol=1e-3)
             #self.assert_almost_equal(np.dot(eig[iq].conjugate().T, eig[iq]), cidentity)
 
         # Mapping reduced coordinates -> labels
@@ -109,7 +108,7 @@ class PhononBandsTest(AbipyTest):
         }
 
         if self.has_matplotlib():
-            assert phbands.plot(units="Thz", show=False)
+            assert phbands.plot(units="Thz", show=False, temp=300)
             assert phbands.plot_fatbands(units="ha", qlabels=qlabels, show=False)
             assert phbands.plot_fatbands(phdos_file=abidata.ref_file("trf2_5.out_PHDOS.nc"), units="thz", show=False)
             assert phbands.plot_colored_matched(units="cm^-1", show=False)
@@ -379,6 +378,8 @@ class PhononDosTest(AbipyTest):
         if self.has_matplotlib():
             assert ncfile.plot_pjdos_type(show=False)
             assert ncfile.plot_pjdos_type(units="cm-1", stacked=False, colormap="viridis", show=False)
+            assert ncfile.plot_pjdos_type(units="eV", stacked=True, colormap="jet",
+                exchange_xy=True, fontsize=8, show=False)
             assert ncfile.plot_pjdos_cartdirs_type(units="Thz", stacked=True, show=False)
             assert ncfile.plot_pjdos_cartdirs_type(units="meV", stacked=False, alpha=0.5, show=False)
             assert ncfile.plot_pjdos_cartdirs_site(units="meV", stacked=False, alpha=0.5, show=False)

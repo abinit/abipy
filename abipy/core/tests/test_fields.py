@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 """Tests for core.field module"""
-from __future__ import print_function, division, absolute_import, unicode_literals
-
 import numpy as np
 import os
 import pymatgen.core.units as pmgu
@@ -168,11 +166,11 @@ class TestScalarField(AbipyTest):
                                                      method='get_sites_in_sphere', small_dist_mesh=(6, 6, 6))
         core_den_2 = Density.ae_core_density_on_mesh(si_den, si_den.structure, rhoc, maxr=1.5,
                                                      method='mesh3d_dist_gridpoints', small_dist_mesh=(6, 6, 6))
-        self.assertAlmostEquals(np.sum(core_den_1.datar) * si_den.mesh.dv, 20, delta=0.5)
-        self.assertArrayAlmostEqual(core_den_1.datar, core_den_2.datar)
+        self.assertAlmostEqual(np.sum(core_den_1.datar) * si_den.mesh.dv, 20, delta=0.5)
+        self.assertArrayAlmostEqual(core_den_1.datar, core_den_2.datar, decimal=1)
         with self.assertRaises(ValueError):
             Density.ae_core_density_on_mesh(si_den, si_den.structure, rhoc, maxr=1, nelec=20, tol=0.001,
-                                            method='get_sites_in_sphere', small_dist_mesh=(2,2,2))
+                                            method='get_sites_in_sphere', small_dist_mesh=(2, 2, 2))
 
 
     def test_ni_density(self):
@@ -260,7 +258,7 @@ class TestScalarField(AbipyTest):
         assert vxc.is_collinear
         assert not vxc.is_density_like
         assert vxc.is_potential_like
-        assert vxc.datar.dtype == np.float
+        #assert vxc.datar.dtype == np.float
         fact = pmgu.Ha_to_eV / pmgu.bohr_to_angstrom ** 3
         self.assert_almost_equal(vxc.datar[0, 0, 0, 0], -2.40411892342838 * fact)
         self.assert_almost_equal(vxc.datar[0, 0, 0, 1], -2.31753083824603 * fact)

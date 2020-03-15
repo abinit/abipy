@@ -1,20 +1,21 @@
 # coding: utf-8
+# flake8: noqa
 """
 Common test support for all AbiPy test scripts.
 
 This single module should provide all the common functionality for abipy tests
 in a single location, so that test scripts can just import it and work right away.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 import numpy
 import subprocess
 import json
 import tempfile
-import shutil
 import unittest
-import numpy.testing.utils as nptu
+try:
+    import numpy.testing as nptu
+except ImportError:
+    import numpy.testing.utils as nptu
 import abipy.data as abidata
 
 from functools import wraps
@@ -43,32 +44,21 @@ def cmp_version(this, other, op=">="):
     return op(parse_version(this), parse_version(other))
 
 
-#TODO: Replace with abinit build and manager
-def has_abinit(version=None, op=">="):
+def has_abinit(version=None, op=">=", manager=None):
     """
-    True if abinit is in $PATH.
-    If version is not None, abinit version op version is evaluated and the result is returned.
-    False if condition is not fulfilled or the execution of ``abinit -v`` raised CalledProcessError
+    True if abinit is available via TaskManager configuration options.
+    If version is not None, `abinit_version op version` is evaluated and the result is returned.
     """
-    abinit = which("abinit")
-    if abinit is None: return False
-    if version is None: return abinit is not None
+    from abipy.flowtk import TaskManager, AbinitBuild
+    manager = TaskManager.from_user_config() if manager is None else manager
+    build = AbinitBuild(manager=manager)
+    if version is None:
+        return build.version != "0.0.0"
+    else:
+        return cmp_version(build.version, version, op=op)
 
-    try:
-        abinit_version = str(subprocess.check_output(["abinit", "-v"]))
 
-    except subprocess.CalledProcessError:
-        # Some MPI implementations require the mpirunner.
-        try:
-            abinit_version = subprocess.check_output(["mpirun", "-n", "1", "abinit", "-v"])
-        except subprocess.CalledProcessError:
-            try:
-                abinit_version = subprocess.check_output(["mpiexec", "-n", "1", "abinit", "-v"])
-            except subprocess.CalledProcessError as exc:
-                logger.warning(exc.output)
-                return False
-
-    return cmp_version(abinit_version, version, op=op)
+_HAS_MATPLOTLIB_CALLS = 0
 
 
 def has_matplotlib(version=None, op=">="):
@@ -83,8 +73,13 @@ def has_matplotlib(version=None, op=">="):
         print("Skipping matplotlib test")
         return False
 
-    matplotlib.use("Agg")
-    #matplotlib.use("Agg", force=True)  # Use non-graphical display backend during test.
+    global _HAS_MATPLOTLIB_CALLS
+    _HAS_MATPLOTLIB_CALLS += 1
+
+    if _HAS_MATPLOTLIB_CALLS == 1:
+        matplotlib.use("Agg")
+        #matplotlib.use("Agg", force=True)  # Use non-graphical display backend during test.
+
     import matplotlib.pyplot as plt
     # http://stackoverflow.com/questions/21884271/warning-about-too-many-open-figures
     plt.close("all")
@@ -216,15 +211,15 @@ def input_equality_check(ref_file, input2, rtol=1e-05, atol=1e-08, equal_nan=Fal
         val_list_t = flatten_var(val_t)
         val_list_r = flatten_var(val_r)
         error = False
-        print(var)
-        print(val_list_r, type(val_list_r[0]))
-        print(val_list_t, type(val_list_t[0]))
+        #print(var)
+        #print(val_list_r, type(val_list_r[0]))
+        #print(val_list_t, type(val_list_t[0]))
         for k, var_item in enumerate(val_list_r):
             try:
                 error = error or check_var(val_list_t[k], val_list_r[k])
             except IndexError:
-                print(val_list_t, type(val_list_t[0]))
-                print(val_list_r, type(val_list_r[0]))
+                #print(val_list_t, type(val_list_t[0]))
+                #print(val_list_r, type(val_list_r[0]))
                 raise RuntimeError('two value lists were not flattened in the same way, try to add the collection'
                                    'type to the tree_types tuple in flatten_var')
 
@@ -245,9 +240,10 @@ def input_equality_check(ref_file, input2, rtol=1e-05, atol=1e-08, equal_nan=Fal
 
 
 def get_gsinput_si(usepaw=0, as_task=False):
-    # Build GS input file.
-    pseudos = abidata.pseudos("14si.pspnc") if usepaw == 0 else data.pseudos("Si.GGA_PBE-JTH-paw.xml")
-    #silicon = abilab.Structure.zincblende(5.431, ["Si", "Si"], units="ang")
+    """
+    Build and return a GS input file for silicon or a Task if `as_task`
+    """
+    pseudos = abidata.pseudos("14si.pspnc") if usepaw == 0 else abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
     silicon = abidata.cif_file("si.cif")
 
     from abipy.abio.inputs import AbinitInput
@@ -255,7 +251,6 @@ def get_gsinput_si(usepaw=0, as_task=False):
     ecut = 6
     scf_input.set_vars(
         ecut=ecut,
-        pawecutdg=40,
         nband=6,
         paral_kgb=0,
         iomode=3,
@@ -266,6 +261,35 @@ def get_gsinput_si(usepaw=0, as_task=False):
 
     # K-point sampling (shifted)
     scf_input.set_autokmesh(nksmall=4)
+
+    if not as_task:
+        return scf_input
+    else:
+        from abipy.flowtk.tasks import ScfTask
+        return ScfTask(scf_input)
+
+
+def get_gsinput_alas_ngkpt(ngkpt, usepaw=0, as_task=False):
+    """
+    Build and return a GS input file for AlAs or a Task if `as_task`
+    """
+    if usepaw != 0: raise NotImplementedError("PAW")
+    pseudos = abidata.pseudos("13al.981214.fhi", "33as.pspnc")
+    structure = abidata.structure_from_ucell("AlAs")
+
+    from abipy.abio.inputs import AbinitInput
+    scf_input = AbinitInput(structure, pseudos=pseudos)
+
+    scf_input.set_vars(
+        nband=5,
+        ecut=8.0,
+        ngkpt=ngkpt,
+        nshiftk=1,
+        shiftk=[0, 0, 0],
+        tolvrs=1.0e-6,
+        diemac=12.0,
+    )
+
     if not as_task:
         return scf_input
     else:
@@ -291,6 +315,12 @@ class AbipyTest(PymatgenTest):
     def has_abinit(version=None, op=">="):
         """Return True if abinit is in $PATH and version is op min_version."""
         return has_abinit(version=version, op=op)
+
+    def skip_if_abinit_not_ge(self, version):
+        """Skip test if Abinit version is not >= `version`"""
+        op = ">="
+        if not self.has_abinit(version, op=op):
+            raise unittest.SkipTest("This test requires Abinit version %s %s" % (op, version))
 
     @staticmethod
     def has_matplotlib(version=None, op=">="):
@@ -321,7 +351,7 @@ class AbipyTest(PymatgenTest):
             return False
 
     @staticmethod
-    def has_python_graphviz(need_dotexec=False):
+    def has_python_graphviz(need_dotexec=True):
         """
         True if python-graphviz package is installed and dot executable in path.
         """
@@ -351,6 +381,35 @@ class AbipyTest(PymatgenTest):
         mlab.options.backend = "test"
         return True
 
+    def has_panel(self):
+        """False if Panel library is not installed."""
+        try:
+            import param
+            import panel as pn
+            import bokeh
+            return pn
+        except ImportError:
+            return False
+
+    def has_networkx(self):
+        """False if networkx library is not installed."""
+        try:
+            import networkx as nx
+            return nx
+        except ImportError:
+            return False
+
+    def has_graphviz(self):
+        """True if graphviz library is installed and `dot` in $PATH"""
+        try:
+            from graphviz import Digraph
+            import graphviz
+        except ImportError:
+            return False
+
+        if self.which("dot") is None: return False
+        return graphviz
+
     @staticmethod
     def get_abistructure_from_abiref(basename):
         """Return an Abipy |Structure| from the basename of one of the reference files."""
@@ -373,7 +432,7 @@ class AbipyTest(PymatgenTest):
     @staticmethod
     def get_tmpname(**kwargs):
         """Invoke mkstep with kwargs, return the name of a temporary file."""
-        fd, tmpname = tempfile.mkstemp(**kwargs)
+        _, tmpname = tempfile.mkstemp(**kwargs)
         return tmpname
 
     @staticmethod
@@ -384,6 +443,11 @@ class AbipyTest(PymatgenTest):
             return True
         except ImportError:
             return False
+
+    def run_nbpath(self, nbpath):
+        """Test that the notebook in question runs all cells correctly."""
+        nb, errors = notebook_run(nbpath)
+        return nb, errors
 
     @staticmethod
     def has_ipywidgets():
@@ -457,6 +521,29 @@ class AbipyTest(PymatgenTest):
             raise unittest.SkipTest(msg)
 
     @staticmethod
+    def skip_if_not_bolztrap2(version=None, op=">="):
+        """
+        Raise SkipTest if bolztrap2 is not installed.
+        Use ``version`` and ``op`` to ask for a specific version
+        """
+        try:
+            import BoltzTraP2 as bzt
+        except ImportError:
+            raise unittest.SkipTest("This test requires bolztrap2")
+
+        from BoltzTraP2.version import PROGRAM_VERSION
+        if version is not None and not cmp_version(PROGRAM_VERSION, version, op=op):
+            msg = "This test requires bolztrap2 version %s %s" % (op, version)
+            raise unittest.SkipTest(msg)
+
+    def skip_if_not_executable(self, executable):
+        """
+        Raise SkipTest if executable is not installed.
+        """
+        if self.which(executable) is None:
+            raise unittest.SkipTest("This test requires `%s` in PATH" % str(executable))
+
+    @staticmethod
     def skip_if_not_pseudodojo():
         """
         Raise SkipTest if pseudodojo package is not installed.
@@ -470,6 +557,14 @@ class AbipyTest(PymatgenTest):
     def get_mock_module():
         """Return mock module for testing. Raises ImportError if not found."""
         return get_mock_module()
+
+    def decode_with_MSON(self, obj):
+        """
+        Convert obj into JSON assuming MSONable protocolo. Return new object decoded with MontyDecoder
+        """
+        from monty.json import MSONable, MontyDecoder
+        self.assertIsInstance(obj, MSONable)
+        return json.loads(obj.to_json(), cls=MontyDecoder)
 
     @staticmethod
     def abivalidate_input(abinput, must_fail=False):
@@ -515,6 +610,14 @@ class AbipyTest(PymatgenTest):
 
         assert not errors
 
+    def abivalidate_work(self, work):
+        """Invoke Abinit to test validity of the inputs of a |Work|"""
+        from abipy.flowtk import Flow
+        tmpdir = tempfile.mkdtemp()
+        flow = Flow(workdir=tmpdir)
+        flow.register_work(work)
+        return self.abivalidate_flow(flow)
+
     @staticmethod
     def abivalidate_flow(flow):
         """
@@ -536,3 +639,40 @@ class AbipyTest(PymatgenTest):
     @wraps(get_gsinput_si)
     def get_gsinput_si(*args, **kwargs):
         return get_gsinput_si(*args, **kwargs)
+
+    @staticmethod
+    @wraps(get_gsinput_alas_ngkpt)
+    def get_gsinput_alas_ngkpt(*args, **kwargs):
+        return get_gsinput_alas_ngkpt(*args, **kwargs)
+
+
+def notebook_run(path):
+    """
+    Execute a notebook via nbconvert and collect output.
+
+    Taken from
+    https://blog.thedataincubator.com/2016/06/testing-jupyter-notebooks/
+
+    Args:
+        path (str): file path for the notebook object
+
+    Returns: (parsed nb object, execution errors)
+
+    """
+    import nbformat
+    dirname, __ = os.path.split(path)
+    os.chdir(dirname)
+    with tempfile.NamedTemporaryFile(suffix=".ipynb") as fout:
+        args = ["jupyter", "nbconvert", "--to", "notebook", "--execute",
+                "--ExecutePreprocessor.timeout=300",
+                "--ExecutePreprocessor.allow_errors=True",
+                "--output", fout.name, path]
+        subprocess.check_call(args)
+
+        fout.seek(0)
+        nb = nbformat.read(fout, nbformat.current_nbformat)
+
+    errors = [output for cell in nb.cells if "outputs" in cell
+              for output in cell["outputs"] if output.output_type == "error"]
+
+    return nb, errors

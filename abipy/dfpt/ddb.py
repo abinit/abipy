@@ -1,44 +1,42 @@
 # coding: utf-8
 """DDB File."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import sys
 import os
 import tempfile
 import itertools
 import numpy as np
 import pandas as pd
+import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
-from six.moves import map, zip, StringIO
+from functools import lru_cache
 from monty.string import marquee, list_strings
-from monty.collections import AttrDict, dict2namedtuple, tree
+from monty.json import MSONable
+from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.termcolor import cprint
-from abipy.flowtk import NetcdfReader, AnaddbTask
+from monty.dev import deprecated
+from pymatgen.core.units import eV_to_Ha, bohr_to_angstrom, Energy
+from pymatgen.util.serialization import pmg_serialize
+from abipy.flowtk import AnaddbTask
 from abipy.core.mixins import TextFile, Has_Structure, NotebookWriter
 from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.core.structure import Structure
 from abipy.core.kpoints import KpointList, Kpoint
-from abipy.core.tensor import Tensor
 from abipy.iotools import ETSF_Reader
+from abipy.tools.numtools import data_from_cplx_mode
 from abipy.abio.inputs import AnaddbInput
-from abipy.dfpt.phonons import PhononDosPlotter, PhononBandsPlotter, InteratomicForceConstants
-from abipy.dfpt.tensors import DielectricTensor
-from abipy.core.abinit_units import phfactor_ev2units, phunit_tag #Ha_cmm1,
-from pymatgen.analysis.elasticity.elastic import ElasticTensor
-from pymatgen.core.units import eV_to_Ha, bohr_to_angstrom
-from abipy.tools.plotting import Marker, add_fig_kwargs, get_ax_fig_plt, set_axlims
+from abipy.dfpt.phonons import PhononDosPlotter, PhononBandsPlotter
+from abipy.dfpt.ifc import InteratomicForceConstants
+from abipy.dfpt.elastic import ElasticData
+from abipy.dfpt.raman import Raman
+from abipy.core.abinit_units import phfactor_ev2units, phunit_tag
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.tools import duck
+from abipy.tools.iotools import ExitStackWithFiles
+from abipy.tools.tensors import DielectricTensor, ZstarTensor, Stress
 from abipy.abio.robots import Robot
 
-import logging
-logger = logging.getLogger(__name__)
-
-try:
-    from functools import lru_cache
-except ImportError:  # py2k
-    from abipy.tools.functools_lru_cache import lru_cache
 
 class DdbError(Exception):
     """Error class raised by DDB."""
@@ -46,17 +44,22 @@ class DdbError(Exception):
 
 class AnaddbError(DdbError):
     """
-    Exceptions raised when we try to execute :class:`AnaddbTask` in the :class:`DdbFile` methods
+    Exceptions raised when we try to execute |AnaddbTask| in the |DdbFile| methods
 
     An `AnaddbError` has a reference to the task and to the :class:`EventsReport` that contains
     the error messages of the run.
     """
     def __init__(self, *args, **kwargs):
         self.task, self.report = kwargs.pop("task"), kwargs.pop("report")
-        super(AnaddbError, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def __str__(self):
-        lines = ["\nworkdir = %s" % self.task.workdir]
+        lines = ["""\n
+    An exception has been raised while executing anaddb in workdir: %s
+    Please check the run.err, the run.abo and the job.sh files in the workdir
+    and make sure that manager.yml is properly configured.
+"""
+    % self.task.workdir]
         app = lines.append
 
         if self.report.errors:
@@ -73,14 +76,14 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     About the indices (idir, ipert) used by Abinit (Fortran notation):
 
-    * idir in [1, 2, 3] gives the direction (usually reduced direction)
+    * idir in [1, 2, 3] gives the direction (usually reduced direction, cart for strain)
     * ipert in [1, 2, ..., mpert] where mpert = natom + 6
 
-        * ipert in [1, ..., natom] corresponds to atomic perturbations
-        * ipert = natom + 1 gives d/dk
+        * ipert in [1, ..., natom] corresponds to atomic perturbations  (reduced dirs)
+        * ipert = natom + 1 gives d/dk  (reduced dirs)
         * ipert = natom + 2 gives the electric field
-        * ipert = natom + 3 gives the uniaxial stress
-        * ipert = natom + 4 gives the shear stree.
+        * ipert = natom + 3 gives the uniaxial stress (cartesian dirs)
+        * ipert = natom + 4 gives the shear strees.   (cartesian dirs)
 
     .. rubric:: Inheritance
     .. inheritance-diagram:: DdbFile
@@ -92,6 +95,15 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     def from_file(cls, filepath):
         """Needed for the :class:`TextFile` abstract interface."""
         return cls(filepath)
+
+    @classmethod
+    def from_string(cls, string):
+        """Build object from string using temporary file."""
+        fd, tmp_filepath = tempfile.mkstemp(text=True, prefix="_DDB")
+        with open(tmp_filepath, "wt") as fh:
+            fh.write(string)
+
+        return cls(tmp_filepath)
 
     @classmethod
     def from_mpid(cls, material_id, api_key=None, endpoint=None):
@@ -118,8 +130,16 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return cls(tmpfile)
 
+    @classmethod
+    def as_ddb(cls, obj):
+        """
+        Return an instance of |DdbFile| from a generic object `obj`.
+        Accepts: DdbFile or filepath
+        """
+        return obj if isinstance(obj, cls) else cls.from_file(obj)
+
     def __init__(self, filepath):
-        super(DdbFile, self).__init__(filepath)
+        super().__init__(filepath)
 
         self._header = self._parse_header()
 
@@ -128,6 +148,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         # FIXME: kptopt is not reported in the header --> has_timerev is always set to True
         spgid, has_timerev, h = 0, True, self.header
         self._structure.set_abi_spacegroup(AbinitSpaceGroup(spgid, h.symrel, h.tnons, h.symafm, has_timerev))
+
+        # Add forces to structure.
+        if self.cart_forces is not None:
+            self._structure.add_site_property("cartesian_forces", self.cart_forces)
 
         frac_coords = self._read_qpoints()
         self._qpoints = KpointList(self.structure.lattice.reciprocal_lattice, frac_coords, weights=None, names=None)
@@ -150,18 +174,55 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         app("")
         app("Number of q-points in DDB: %d" % len(self.qpoints))
         app("guessed_ngqpt: %s (guess for the q-mesh divisions made by AbiPy)" % self.guessed_ngqpt)
-        app("Has electric-field perturbation: %s" % self.has_emacro_terms())
-        app("Has Born effective charges: %s" % self.has_bec_terms())
+        #if verbose:
+        h = self.header
+        #app("Important parameters extracted from the header:")
+        app("ecut = %f, ecutsm = %f, nkpt = %d, nsym = %d, usepaw = %d" % (h.ecut, h.ecutsm, h.nkpt, h.nsym, h.usepaw))
+        app("nsppol %d, nspinor %d, nspden %d, ixc = %d, occopt = %d, tsmear = %f" % (
+            h.nsppol, h.nspinor, h.nspden, h.ixc, h.occopt, h.tsmear))
+        app("")
+
+        app("Has total energy: %s, Has forces: %s" % (
+            self.total_energy is not None, self.cart_forces is not None))
+        if self.total_energy is not None:
+            app("Total energy: %s [eV]" % self.total_energy)
+        #app("Has forces: %s" % (
+        #if self.cart_forces is not None:
+        #    app("Cartesian forces (eV/Ang):\n%s" % (self.cart_forces))
+        #    app("")
+        if self.cart_stress_tensor is not None:
+            app("")
+            app("Cartesian stress tensor in GPa with pressure %.3e (GPa):\n%s" % (
+                - self.cart_stress_tensor.trace() / 3, self.cart_stress_tensor))
+        else:
+            app("Has stress tensor: %s" % (self.cart_stress_tensor is not None))
+        app("")
+        app("Has (at least one) atomic pertubation: %s" % self.has_at_least_one_atomic_perturbation())
+        #app("Has (at least one) electric-field perturbation: %s" % self.has_epsinf_terms(select="at_least_one"))
+        #app("Has (all) electric-field perturbation: %s" % self.has_epsinf_terms(select="all"))
+        app("Has (at least one diagonal) electric-field perturbation: %s" %
+            self.has_epsinf_terms(select="at_least_one_diagoterm"))
+        app("Has (at least one) Born effective charge: %s" % self.has_bec_terms(select="at_least_one"))
+        app("Has (all) strain terms: %s" % self.has_strain_terms(select="all"))
+        app("Has (all) internal strain terms: %s" % self.has_internalstrain_terms(select="all"))
+        app("Has (all) piezoelectric terms: %s" % self.has_piezoelectric_terms(select="all"))
 
         if verbose:
+            # Print q-points
             app(self.qpoints.to_string(verbose=verbose, title="Q-points in DDB"))
 
         if verbose > 1:
+            # Print full header.
             from pprint import pformat
-            app(marquee("DDB Header", mark="="))
+            app(marquee("DDB header", mark="="))
             app(pformat(self.header))
 
         return "\n".join(lines)
+
+    def get_string(self):
+        """Return string with DDB content."""
+        with open(self.filepath, "rt") as fh:
+            return fh.read()
 
     @property
     def structure(self):
@@ -170,7 +231,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     @property
     def natom(self):
-        """Number of atoms in structure"""
+        """Number of atoms in structure."""
         return len(self.structure)
 
     @property
@@ -226,7 +287,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                         keyvals.append((key, list(map(parse, tokens))))
                 except Exception as exc:
                     raise RuntimeError("Exception:\n%s\nwhile parsing ddb header line:\n%s" %
-                                        (str(exc), line))
+                                       (str(exc), line))
 
         # add the potential information
         for line in self:
@@ -240,7 +301,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             h[key] = value
 
         # Convert to array. Note that znucl is converted into integer
-        # to avoid problems with pymatgen routines that expect integral Z
+        # to avoid problems with pymatgen routines that expect integer Z
         # This of course will break any code for alchemical mixing.
         arrays = {
             "acell": dict(shape=(3, ), dtype=np.double),
@@ -269,7 +330,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 print("While Trying to reshape", k)
                 raise exc
 
-        # Transpose symrel because Abinit write matrices by colums.
+        # Transpose symrel because Abinit write matrices by columns.
         h.symrel = np.array([s.T for s in h.symrel])
 
         return h
@@ -296,12 +357,12 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             qpoints.append(nums[:3])
             weights.append(nums[3])
 
-        return np.reshape(qpoints, (-1,3))
+        return np.reshape(qpoints, (-1, 3))
 
     @lazy_property
     def computed_dynmat(self):
         """
-        :class:`OrderedDict` mapping q-point object to --> pandas Dataframe.
+        OrderedDict mapping q-point object to --> pandas Dataframe.
         The |pandas-DataFrame| contains the columns: "idir1", "ipert1", "idir2", "ipert2", "cvalue"
         and (idir1, ipert1, idir2, ipert2) as index.
 
@@ -314,6 +375,11 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         dynmat = OrderedDict()
         for block in self.blocks:
+            # skip the blocks that are not related to second order derivatives
+            first_line = block["data"][0].strip()
+            if not first_line.startswith("2nd derivatives"):
+                continue
+
             # Build q-point object.
             qpt = Kpoint(frac_coords=block["qpt"], lattice=self.structure.reciprocal_lattice, weight=None, name=None)
 
@@ -333,7 +399,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                     toks[5] = toks[5].replace("D", "E")
                     cvalue = float(toks[4]) + 1j*float(toks[5])
                 except Exception as exc:
-                    print("exception while parsing line:", line)
+                    cprint("exception while parsing line: %s" % line, "red")
                     raise exc
 
                 df_index.append(p1 + p2)
@@ -361,6 +427,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         blocks = []
         block_lines = []
         qpt = None
+        dord = None
 
         for line in self:
             # skip empty lines
@@ -369,20 +436,40 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
             if "List of bloks and their characteristics" in line:
                 # add last block when we reach the last part of the file.
-                blocks.append({"data": block_lines, "qpt": qpt})
+                # This line is present only if DDB has been produced by mrgddb
+                if block_lines:
+                    blocks.append({"data": block_lines, "qpt": qpt, "dord": dord})
+                    block_lines = []
+                    qpt = None
                 break
 
+            # Don't use lstring because we may reuse block_lines to write new DDB.
             line = line.rstrip()
-            # new block
+
+            # new block --> detect order
             if "# elements" in line:
                 if block_lines:
-                    blocks.append({"data": block_lines, "qpt": qpt})
+                    blocks.append({"data": block_lines, "qpt": qpt, "dord": dord})
+
+                tokens = line.split()
+                num_elements = int(tokens[-1])
+                s = " ".join(tokens[:2])
+                dord = {"Total energy": 0,
+                        "1st derivatives": 1,
+                        "2nd derivatives": 2,
+                        "3rd derivatives": 3}.get(s, None)
+                if dord is None:
+                    raise RuntimeError("Cannot detect derivative order from string: `%s`" % s)
+
                 block_lines = []
                 qpt = None
 
             block_lines.append(line)
             if "qpt" in line:
                 qpt = list(map(float, line.split()[1:4]))
+
+        if block_lines:
+            blocks.append({"data": block_lines, "qpt": qpt, "dord": dord})
 
         return blocks
 
@@ -442,7 +529,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             q[q == 0] = np.inf
 
         # Compute the minimum of the fractional coordinates along the 3 directions and invert
-        #print(all_qpoints)
         smalls = np.abs(all_qpoints).min(axis=0)
         smalls[smalls == 0] = 1
         ngqpt = np.rint(1 / smalls)
@@ -465,21 +551,119 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             raise TypeError("object %s does not have `params` attribute" % type(obj))
         obj.params.update(self.params)
 
+    @lazy_property
+    def total_energy(self):
+        """
+        Total energy in eV. None if not available.
+        """
+        for block in self.blocks:
+            if block["dord"] == 0:
+                ene_ha = float(block["data"][1].split()[0].replace("D", "E"))
+                return Energy(ene_ha, "Ha").to("eV")
+        return None
+
+    @lazy_property
+    def cart_forces(self):
+        """
+        Cartesian forces in eV / Ang
+        None if not available i.e. if the GS DDB has not been merged.
+        """
+        for block in self.blocks:
+            if block["dord"] != 1: continue
+            natom = len(self.structure)
+            fred = np.empty((natom, 3))
+            for line in block["data"][1:]:
+                idir, ipert, fval = line.split()[:3]
+                # F --> C
+                idir, ipert = int(idir) - 1, int(ipert) - 1
+                if ipert < natom:
+                    fred[ipert, idir] = float(fval.replace("D", "E"))
+
+            # Fred stores d(etotal)/d(xred)
+            # this array has *not* been corrected by enforcing
+            # the translational symmetry, namely that the sum of force
+            # on all atoms is not necessarly zero.
+            # Compute fcart using same code as in fred2fcart.
+            # Note conversion to cartesian coordinates (bohr) AND
+            # negation to make a force out of a gradient.
+            gprimd = self.structure.reciprocal_lattice.matrix / (2 * np.pi) * abu.Bohr_Ang
+            #fcart = - np.matmul(fred, gprimd)
+            fcart = - np.matmul(fred, gprimd.T)
+            # Subtract off average force from each force component
+            favg = fcart.sum(axis=0) / len(self.structure)
+            fcart -= favg
+
+            return fcart * abu.Ha_eV / abu.Bohr_Ang
+
+        return None
+
+    @lazy_property
+    def cart_stress_tensor(self):
+        """
+        |Stress| tensor in cartesian coordinates (GPa units). None if not available.
+        """
+        for block in self.blocks:
+            if block["dord"] != 1: continue
+            svoigt = np.empty(6)
+            # Abinit stress is in cart coords and Ha/Bohr**3
+            # Map (idir, ipert) --> voigt
+            uniax, shear = len(self.structure) + 3, len(self.structure) + 4
+            dirper2voigt = {
+                (1, uniax): 0,
+                (2, uniax): 1,
+                (3, uniax): 2,
+                (1, shear): 3,
+                (2, shear): 4,
+                (3, shear): 5}
+
+            for line in block["data"][1:]:
+                idir, ipert, fval = line.split()[:3]
+                idp = int(idir), int(ipert)
+                if idp in dirper2voigt:
+                    svoigt[dirper2voigt[idp]] = float(fval.replace("D", "E"))
+
+            # Convert from Ha/Bohr^3 to GPa
+            return Stress.from_voigt(svoigt * abu.HaBohr3_GPa)
+
+        return None
+
     def has_lo_to_data(self, select="at_least_one"):
         """
         True if the DDB file contains the data required to compute the LO-TO splitting.
         """
-        return self.has_emacro_terms(select=select) and self.has_bec_terms(select=select)
+        return self.has_epsinf_terms(select=select) and self.has_bec_terms(select=select)
 
     @lru_cache(typed=True)
-    def has_emacro_terms(self, select="at_least_one"):
+    def has_at_least_one_atomic_perturbation(self, qpt=None):
+        """
+        True if the DDB file contains info on (at least one) atomic perturbation.
+        If the coordinates of a q point are provided only the specified qpt will be considered.
+        """
+        natom = len(self.structure)
+        ap_list = list(itertools.product(range(1, 4), range(1, natom + 1)))
+
+        for qpt_dm, df in self.computed_dynmat.items():
+            if qpt is not None and qpt_dm != qpt: continue
+
+            index_set = set(df.index)
+            for p1 in ap_list:
+                for p2 in ap_list:
+                    p12 = p1 + p2
+                    if p12 in index_set: return True
+
+        return False
+
+    @lru_cache(typed=True)
+    def has_epsinf_terms(self, select="at_least_one"):
         """
         True if the DDB file contains info on the electric-field perturbation.
 
         Args:
-            select: Possible values in ["at_least_one", "all"]
-                If select == "at_least_one", we check if there's at least one entry associated to the electric field.
-                and we assume that anaddb will be able to reconstruct the full tensor by symmetry.
+            select: Possible values in ["at_least_one", "at_least_one_diagoterm", "all"]
+                If select == "at_least_one", we check if there's at least one entry
+                associated to the electric field and we assume that anaddb will be able
+                to reconstruct the full tensor by symmetry.
+                "at_least_one_diagoterm" is similar but it only checks for the presence of one diagonal term.
                 If select == "all", all tensor components must be present in the DDB file.
         """
         gamma = Kpoint.gamma(self.structure.reciprocal_lattice)
@@ -493,14 +677,23 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         for p1 in ep_list:
             for p2 in ep_list:
                 p12 = p1 + p2
+                p21 = p2 + p1
                 if select == "at_least_one":
                     if p12 in index_set: return True
+                elif select == "at_least_one_diagoterm":
+                    if p12 == p21 and p12 in index_set:
+                        return True
                 elif select == "all":
-                    if p12 not in index_set: return False
+                    if p12 not in index_set and p21 not in index_set:
+                        return False
                 else:
                     raise ValueError("Wrong select %s" % str(select))
 
-        return False
+        return False if select in ("at_least_one", "at_least_one_diagoterm") else True
+
+    @deprecated(message="has_emacro_terms is deprecated and will be removed in abipy 0.8, use has_epsinf_terms")
+    def has_emacro_terms(self, **kwargs):
+        return self.has_epsinf_terms(**kwargs)
 
     @lru_cache(typed=True)
     def has_bec_terms(self, select="at_least_one"):
@@ -524,25 +717,147 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         for ap1 in ap_list:
             for ep2 in ep_list:
                 p12 = ap1 + ep2
+                p21 = ep2 + ap1
                 if select == "at_least_one":
                     if p12 in index_set: return True
                 elif select == "all":
-                    if p12 not in index_set: return False
+                    if p12 not in index_set and p21 not in index_set:
+                        return False
                 else:
                     raise ValueError("Wrong select %s" % str(select))
 
-        return False
+        return False if select == "at_least_one" else True
+
+    @lru_cache(typed=True)
+    def has_strain_terms(self, select="all"):
+        """
+        True if the DDB file contains info on the (clamped-ion) strain perturbation
+        (i.e. 2nd order derivatives wrt strain)
+
+        Args:
+            select: Possible values in ["at_least_one", "all"]
+                If select == "at_least_one", we check if there's at least one entry associated to the strain.
+                and we assume that anaddb will be able to reconstruct the full tensor by symmetry.
+                If select == "all", all tensor components must be present in the DDB file.
+
+        .. note::
+
+            As anaddb is not yet able to reconstruct the strain terms by symmetry,
+            the default value for select is "all"
+        """
+        gamma = Kpoint.gamma(self.structure.reciprocal_lattice)
+        if gamma not in self.computed_dynmat:
+            return False
+
+        index_set = set(self.computed_dynmat[gamma].index)
+
+        natom = len(self.structure)
+        sp_list = list(itertools.product(range(1, 4), [natom + 3, natom + 4]))
+        for p1 in sp_list:
+            for p2 in sp_list:
+                p12 = p1 + p2
+                p21 = p2 + p1
+                if select == "at_least_one":
+                    if p12 in index_set: return True
+                elif select == "all":
+                    if p12 not in index_set and p21 not in index_set:
+                        #print("p12", p12, "not in index_set")
+                        return False
+                else:
+                    raise ValueError("Wrong select %s" % str(select))
+
+        return False if select == "at_least_one" else True
+
+    @lru_cache(typed=True)
+    def has_internalstrain_terms(self, select="all"):
+        """
+        True if the DDB file contains internal strain terms
+        i.e "off-diagonal" 2nd order derivatives wrt (strain, atomic displacement)
+
+        Args:
+            select: Possible values in ["at_least_one", "all"]
+                If select == "at_least_one", we check if there's at least one entry associated to the strain.
+                and we assume that anaddb will be able to reconstruct the full tensor by symmetry.
+                If select == "all", all tensor components must be present in the DDB file.
+
+        .. note::
+
+            As anaddb is not yet able to reconstruct the strain terms by symmetry,
+            the default value for select is "all"
+        """
+        gamma = Kpoint.gamma(self.structure.reciprocal_lattice)
+        if gamma not in self.computed_dynmat:
+            return False
+
+        index_set = set(self.computed_dynmat[gamma].index)
+
+        natom = len(self.structure)
+        sp_list = list(itertools.product(range(1, 4), [natom + 3, natom + 4]))
+        ap_list = list(itertools.product(range(1, 4), range(1, natom + 1)))
+        for p1 in sp_list:
+            for p2 in ap_list:
+                p12 = p1 + p2
+                p21 = p2 + p1
+                if select == "at_least_one":
+                    if p12 in index_set: return True
+                elif select == "all":
+                    if p12 not in index_set and p21 not in index_set:
+                        #print("p12", p12, "non in index")
+                        return False
+                else:
+                    raise ValueError("Wrong select %s" % str(select))
+
+        return False if select == "at_least_one" else True
+
+    @lru_cache(typed=True)
+    def has_piezoelectric_terms(self, select="all"):
+        """
+        True if the DDB file contains piezoelectric terms
+        i.e "off-diagonal" 2nd order derivatives wrt (electric_field, strain)
+
+        Args:
+            select: Possible values in ["at_least_one", "all"]
+                If select == "at_least_one", we check if there's at least one entry associated to the strain.
+                and we assume that anaddb will be able to reconstruct the full tensor by symmetry.
+                If select == "all", all tensor components must be present in the DDB file.
+
+        .. note::
+
+            As anaddb is not yet able to reconstruct the (strain, electric) terms by symmetry,
+            the default value for select is "all"
+        """
+        gamma = Kpoint.gamma(self.structure.reciprocal_lattice)
+        if gamma not in self.computed_dynmat:
+            return False
+
+        index_set = set(self.computed_dynmat[gamma].index)
+
+        natom = len(self.structure)
+        sp_list = list(itertools.product(range(1, 4), [natom + 3, natom + 4]))
+        ep_list = list(itertools.product(range(1, 4), [natom + 2]))
+        for p1 in sp_list:
+            for p2 in ep_list:
+                p12 = p1 + p2
+                p21 = p2 + p1
+                if select == "at_least_one":
+                    if p12 in index_set: return True
+                elif select == "all":
+                    if p12 not in index_set and p21 not in index_set: return False
+                else:
+                    raise ValueError("Wrong select %s" % str(select))
+
+        return False if select == "at_least_one" else True
 
     def view_phononwebsite(self, browser=None, verbose=0, dryrun=False, **kwargs):
         """
         Invoke anaddb to compute phonon bands.
-        Produce JSON_ file that can be parsed from the phononwebsite_ and open it in ``browser``.
+        Produce JSON file that can be parsed from the phononwebsite_ and open it in ``browser``.
 
         Args:
             browser: Open webpage in ``browser``. Use default $BROWSER if None.
             verbose: Verbosity level
             dryrun: Activate dryrun mode for unit testing purposes.
-            kwargs: Passed to anaget_phbst_and_phdos_files
+            kwargs: Passed to ``anaget_phbst_and_phdos_files``.
 
         Return: Exit status
         """
@@ -594,7 +909,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         # Check if qpoint is in the DDB.
         try:
             iq = self.qindex(qpoint)
-        except:
+        except Exception:
             raise ValueError("input qpoint %s not in %s.\nddb.qpoints:\n%s" % (
                 qpoint, self.filepath, self.qpoints))
 
@@ -604,23 +919,13 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             lo_to_splitting = self.has_lo_to_data() and qpoint.is_gamma() and dipdip != 0
 
         if lo_to_splitting and qpoint.is_gamma() and not self.has_lo_to_data():
-            cprint("lo_to_splitting set to True but Emacro and Becs are not available in DDB %s:" % self.filepath)
+            cprint("lo_to_splitting set to True but Eps_inf and Becs are not available in DDB %s:" % self.filepath)
 
         inp = AnaddbInput.modes_at_qpoint(self.structure, qpoint, asr=asr, chneut=chneut, dipdip=dipdip,
                                           lo_to_splitting=lo_to_splitting, directions=directions,
                                           anaddb_kwargs=anaddb_kwargs, spell_check=spell_check)
 
-        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir,
-                                          manager=manager, mpi_procs=mpi_procs)
-        if verbose:
-            print("ANADDB INPUT:\n", inp)
-            print("workdir:", task.workdir)
-
-        # Run the task here
-        task.start_and_wait(autoparal=False)
-        report = task.get_event_report()
-        if not report.run_completed:
-            raise self.AnaddbError(task=task, report=report)
+        task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose)
 
         with task.open_phbst() as ncfile:
             if lo_to_splitting and qpoint.is_gamma():
@@ -628,12 +933,24 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
             return ncfile.phbands
 
-    def anaget_phbst_and_phdos_files(self, nqsmall=10, qppa=None, ndivsm=20, line_density=None, asr=2, chneut=1, dipdip=1, 
-                                     dos_method="tetra", lo_to_splitting="automatic", ngqpt=None, qptbounds=None, 
+    def anaget_phbst_and_phdos_files(self, nqsmall=10, qppa=None, ndivsm=20, line_density=None, asr=2, chneut=1, dipdip=1,
+                                     dos_method="tetra", lo_to_splitting="automatic", ngqpt=None, qptbounds=None,
                                      anaddb_kwargs=None, verbose=0, spell_check=True,
                                      mpi_procs=1, workdir=None, manager=None):
         """
-        Execute anaddb to compute the phonon band structure and the phonon DOS
+        Execute anaddb to compute the phonon band structure and the phonon DOS.
+        Return contex manager that closes the files automatically.
+
+        .. important::
+
+            Use:
+
+                with ddb.anaget_phbst_and_phdos_files(...) as g:
+                    phbst_file, phdos_file = g[0], g[0]
+
+            to ensure the netcdf files are closed instead of:
+
+                phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(...)
 
         Args:
             nqsmall: Defines the homogeneous q-mesh used for the DOS. Gives the number of divisions
@@ -660,7 +977,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             workdir: Working directory. If None, a temporary directory is created.
             manager: |TaskManager| object. If None, the object is initialized from the configuration file.
 
-        Returns:
+        Returns: Context manager with two files:
             |PhbstFile| with the phonon band structure.
             |PhdosFile| with the the phonon DOS.
         """
@@ -670,7 +987,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             lo_to_splitting = self.has_lo_to_data() and dipdip != 0
 
         if lo_to_splitting and not self.has_lo_to_data():
-            cprint("lo_to_splitting is True but Emacro and Becs are not available in DDB: %s" % self.filepath, "yellow")
+            cprint("lo_to_splitting is True but Eps_inf and Becs are not available in DDB: %s" % self.filepath, "yellow")
 
         inp = AnaddbInput.phbands_and_dos(
             self.structure, ngqpt=ngqpt, ndivsm=ndivsm, line_density=line_density,
@@ -678,48 +995,48 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, lo_to_splitting=lo_to_splitting,
             anaddb_kwargs=anaddb_kwargs, spell_check=spell_check)
 
-        #work as usual
-        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager, mpi_procs=mpi_procs)
+        task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose)
 
-        if verbose:
-            print("ANADDB INPUT:\n", inp)
-            print("workdir:", task.workdir)
-
-        # Run the task here.
-        task.start_and_wait(autoparal=False)
-
-        report = task.get_event_report()
-        if not report.run_completed:
-            raise self.AnaddbError(task=task, report=report)
+        # Use ExitStackWithFiles so that caller can use with contex manager.
+        exit_stack = ExitStackWithFiles()
 
         # Open file and add metadata to phbands from DDB
         # TODO: in principle phbands.add_params?
         phbst_file = task.open_phbst()
+        exit_stack.enter_context(phbst_file)
+
         self._add_params(phbst_file.phbands)
         if lo_to_splitting:
             phbst_file.phbands.read_non_anal_from_file(os.path.join(task.workdir, "anaddb.nc"))
 
-        phdos_file = None if inp["prtdos"] == 0 else task.open_phdos()
-        #if phdos_file is not None: self._add_params(phdos_file.phdos)
+        phdos_file = None
+        if inp["prtdos"] != 0:
+            phdos_file = task.open_phdos()
+            #self._add_params(phdos_file.phdos)
 
-        return phbst_file, phdos_file
+        exit_stack.enter_context(phdos_file)
 
-    def get_coarse(self, filepath, ngqpt_coarse):
+        return exit_stack
+
+    def get_coarse(self, ngqpt_coarse, filepath=None):
         """
         Get a version of this file on a coarse mesh
 
         Args:
-            ngqpt: list of ngqpt indexes that must be a sub-mesh of the original ngqpt
+            ngqpt_coarse: list of ngqpt indexes that must be a sub-mesh of the original ngqpt
+            filepath: Filename for coarse DDB. If None, temporary filename is used.
+
+        Return: |DdbFile| on coarse mesh.
         """
-        #check if ngqpt is a sub-mesh of ngqpt
+        # Check if ngqpt is a sub-mesh of ngqpt
         ngqpt_fine = self.guessed_ngqpt
-        if any([a%b for a,b in zip(ngqpt_fine,ngqpt_coarse)]):
+        if any([a % b for a, b in zip(ngqpt_fine, ngqpt_coarse)]):
             raise ValueError('Coarse q-mesh is not a sub-mesh of the current q-mesh')
 
-        #get the points in the fine mesh
+        # Get the points in the fine mesh
         fine_qpoints = [q.frac_coords for q in self.qpoints]
 
-        #generate the points of the coarse mesh
+        # Generate the points of the coarse mesh
         map_fine_to_coarse = []
         nx,ny,nz = ngqpt_coarse
         for i,j,k in itertools.product(range(-int(nx/2), int(nx/2) + 1),
@@ -727,12 +1044,15 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                                        range(-int(nz/2), int(nz/2) + 1)):
             coarse_qpt = np.array([i, j, k]) / np.array(ngqpt_coarse)
             for n,fine_qpt in enumerate(fine_qpoints):
-                if np.allclose(coarse_qpt,fine_qpt):
+                if np.allclose(coarse_qpt, fine_qpt):
                     map_fine_to_coarse.append(n)
 
-        #write the file with a subset of q-points
-        self.write(filepath,map_fine_to_coarse)
-        return DdbFile(filepath)
+        # Write the file with a subset of q-points
+        if filepath is None:
+            _, filepath = tempfile.mkstemp(suffix="_DDB", text=True)
+
+        self.write(filepath, filter_blocks=map_fine_to_coarse)
+        return self.__class__(filepath)
 
     def anacompare_asr(self, asr_list=(0, 2), chneut_list=(1,), dipdip=1, lo_to_splitting="automatic",
                        nqsmall=10, ndivsm=20, dos_method="tetra", ngqpt=None,
@@ -763,8 +1083,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         Return:
             |PhononBandsPlotter| object.
 
-            Client code can use ``plotter.combiplot()`` or ``plotter.gridplot()``
-            to visualize the results.
+            Client code can use ``plotter.combiplot()`` or ``plotter.gridplot()`` to visualize the results.
         """
         phbands_plotter = PhononBandsPlotter()
 
@@ -811,8 +1130,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         Return:
             |PhononDosPlotter| object.
 
-            Client code can use ``plotter.combiplot()`` or ``plotter.gridplot()``
-            to visualize the results.
+            Client code can use ``plotter.combiplot()`` or ``plotter.gridplot()`` to visualize the results.
         """
         phbands_plotter = PhononBandsPlotter()
 
@@ -839,7 +1157,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """
         Invoke Anaddb to compute Phonon DOS with different q-meshes. The ab-initio dynamical matrix
         reported in the DDB_ file will be Fourier-interpolated on the list of q-meshes specified
-        by ``nqsmalls``. Useful to perform covergence studies.
+        by ``nqsmalls``. Useful to perform convergence studies.
 
         Args:
             nqsmalls: List of integers defining the q-mesh for the DOS. Each integer gives
@@ -859,7 +1177,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                     plotter: |PhononDosPlotter| object.
                         Client code can use ``plotter.gridplot()`` to visualize the results.
         """
-        num_cpus = get_ncpus() // 2 if num_cpus is None else num_cpus
+        #num_cpus = get_ncpus() // 2 if num_cpus is None else num_cpus
         if num_cpus <= 0: num_cpus = 1
         num_cpus = min(num_cpus, len(nqsmalls))
 
@@ -878,7 +1196,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         else:
             # Threads
             if verbose:
-                print("Computing %d phonon DOS with %d threads" % (len(nqsmalls), num_cpus) )
+                print("Computing %d phonon DOS with %d threads" % (len(nqsmalls), num_cpus))
             phdoses = [None] * len(nqsmalls)
 
             def worker():
@@ -889,10 +1207,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                     q.task_done()
 
             from threading import Thread
-            try:
-                from Queue import Queue # py2k
-            except ImportError:
-                from queue import Queue # py3k
+            from queue import Queue
 
             q = Queue()
             for i in range(num_cpus):
@@ -923,9 +1238,50 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return dict2namedtuple(phdoses=phdoses, plotter=plotter)
 
-    def anaget_emacro_and_becs(self, chneut=1, mpi_procs=1, workdir=None, manager=None, verbose=0):
+    def anacompare_rifcsph(self, rifcsph_list, asr=2, chneut=1, dipdip=1, lo_to_splitting="automatic",
+                           ndivsm=20, ngqpt=None, verbose=0, mpi_procs=1):
         """
-        Call anaddb to compute the macroscopic dielectric tensor and the Born effective charges.
+        Invoke anaddb to compute the phonon band structure and the phonon DOS with different
+        values of the ``asr`` input variable (acoustic sum rule treatment).
+        Build and return |PhononBandsPlotter| object.
+
+        Args:
+            rifcsph_list: List of rifcsph to analyze.
+            asr, chneut, dipdip: Anaddb input variable. See official documentation.
+            dipdip: 1 to activate treatment of dipole-dipole interaction (requires BECS and dielectric tensor).
+            lo_to_splitting: Allowed values are [True, False, "automatic"]. Defaults to "automatic"
+                If True the LO-TO splitting will be calculated if qpoint == Gamma and the non_anal_directions
+                non_anal_phfreqs attributes will be addeded to the phonon band structure.
+                "automatic" activates LO-TO if the DDB file contains the dielectric tensor and Born effective charges.
+            ndivsm: Number of division used for the smallest segment of the q-path
+            ngqpt: Number of divisions for the ab-initio q-mesh in the DDB file. Auto-detected if None (default)
+            verbose: Verbosity level.
+            mpi_procs: Number of MPI processes used by anaddb.
+
+        Return:
+            |PhononBandsPlotter| object.
+
+            Client code can use ``plotter.combiplot()`` or ``plotter.gridplot()`` to visualize the results.
+        """
+        phbands_plotter = PhononBandsPlotter()
+
+        for rifcsph in rifcsph_list:
+            phbst_file, _ = self.anaget_phbst_and_phdos_files(
+                nqsmall=0, ndivsm=ndivsm, asr=asr, chneut=chneut, dipdip=dipdip, dos_method="tetra",
+                lo_to_splitting=lo_to_splitting, ngqpt=ngqpt, qptbounds=None,
+                anaddb_kwargs={"rifcsph": rifcsph},
+                verbose=verbose, mpi_procs=mpi_procs, workdir=None, manager=None)
+
+            label = "rifcsph: %f" % rifcsph
+            phbands_plotter.add_phbands(label, phbst_file.phbands)
+            phbst_file.close()
+
+        return phbands_plotter
+
+    def anaget_epsinf_and_becs(self, chneut=1, mpi_procs=1, workdir=None, manager=None, verbose=0):
+        """
+        Call anaddb to compute the macroscopic electronic dielectric tensor (e_inf)
+        and the Born effective charges in Cartesian coordinates.
 
         Args:
             chneut: Anaddb input variable. See official documentation.
@@ -933,34 +1289,28 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             mpi_procs: Number of MPI processes to use.
             verbose: verbosity level. Set it to a value > 0 to get more information
 
-        Return:
-            (emacro, becs)
+        Return: ``namedtuple`` with the following attributes::
+            epsinf: |DielectricTensor| object.
+            becs: Becs objects.
         """
         if not self.has_lo_to_data():
             cprint("Dielectric tensor and Becs are not available in DDB: %s" % self.filepath, "yellow")
 
         inp = AnaddbInput(self.structure, anaddb_kwargs={"chneut": chneut})
-        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, mpi_procs=mpi_procs, workdir=workdir, manager=manager)
 
-        if verbose:
-            print("ANADDB INPUT:\n", inp)
-            print("workdir:", task.workdir)
-
-        # Run the task here.
-        task.start_and_wait(autoparal=False)
-
-        report = task.get_event_report()
-        if not report.run_completed:
-            raise self.AnaddbError(task=task, report=report)
+        task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose)
 
         # Read data from the netcdf output file produced by anaddb.
         with ETSF_Reader(os.path.join(task.workdir, "anaddb.nc")) as r:
+            epsinf = DielectricTensor(r.read_value("emacro_cart").T.copy())
             structure = r.read_structure()
-            # TODO Replace with pymatgen tensors
-            emacro = Tensor.from_cartesian_tensor(r.read_value("emacro_cart"), structure.lattice, space="r"),
             becs = Becs(r.read_value("becs_cart"), structure, chneut=inp["chneut"], order="f")
+            return dict2namedtuple(epsinf=epsinf, becs=becs)
 
-            return emacro, becs
+    @deprecated(message="anaget_emacro_and_becs is deprecated and will be removed in abipy 0.8, use anaget_epsinf_and_becs")
+    def anaget_emacro_and_becs(self, **kwargs):
+        r = self.anaget_epsinf_and_becs(**kwargs)
+        return r.epsinf, r.becs
 
     def anaget_ifc(self, ifcout=None, asr=2, chneut=1, dipdip=1, ngqpt=None,
                    mpi_procs=1, workdir=None, manager=None, verbose=0, anaddb_kwargs=None):
@@ -985,18 +1335,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         inp = AnaddbInput.ifc(self.structure, ngqpt=ngqpt, ifcout=ifcout, q1shft=(0, 0, 0), asr=asr, chneut=chneut,
                               dipdip=dipdip, anaddb_kwargs=anaddb_kwargs)
 
-        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, mpi_procs=mpi_procs, workdir=workdir, manager=manager)
-
-        if verbose:
-            print("ANADDB INPUT:\n", inp)
-            print("workdir:", task.workdir)
-
-        # Run the task here.
-        task.start_and_wait(autoparal=False)
-
-        report = task.get_event_report()
-        if not report.run_completed:
-            raise self.AnaddbError(task=task, report=report)
+        task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose)
 
         return InteratomicForceConstants.from_file(os.path.join(task.workdir, 'anaddb.nc'))
 
@@ -1018,8 +1357,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """
         # Check if gamma is in the DDB.
         try:
-            self.qindex((0,0,0))
-        except:
+            self.qindex((0, 0, 0))
+        except Exception:
             raise ValueError("Gamma point not in %s.\nddb.qpoints:\n%s" % (self.filepath, self.qpoints))
 
         inp = AnaddbInput.modes_at_qpoint(self.structure, (0, 0, 0), asr=asr, chneut=chneut, dipdip=dipdip,
@@ -1028,20 +1367,136 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         if anaddb_kwargs is None or 'dieflag' not in anaddb_kwargs:
             inp['dieflag'] = 1
 
-        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager, mpi_procs=mpi_procs)
+        task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose)
+
+        return DielectricTensorGenerator.from_files(os.path.join(task.workdir, "run.abo_PHBST.nc"),
+                                                    os.path.join(task.workdir, "anaddb.nc"))
+
+    def anaget_elastic(self, relaxed_ion="automatic", piezo="automatic",
+                       dde=False, stress_correction=False, asr=2, chneut=1,
+                       mpi_procs=1, workdir=None, manager=None, verbose=0, retpath=False):
+        """
+        Call anaddb to compute elastic and piezoelectric tensors. Require DDB with strain terms.
+
+        By default, this method sets the anaddb input variables automatically
+        by looking at the 2nd-order derivatives available in the DDB file.
+        This behaviour can be changed by setting explicitly the value of:
+        `relaxed_ion` and `piezo`.
+
+        Args:
+            relaxed_ion: Activate computation of relaxed-ion tensors.
+                Allowed values are [True, False, "automatic"]. Defaults to "automatic".
+                In "automatic" mode, relaxed-ion tensors are automatically computed if
+                internal strain terms and phonons at Gamma are present in the DDB.
+            piezo: Activate computation of piezoelectric tensors.
+                Allowed values are [True, False, "automatic"]. Defaults to "automatic".
+                In "automatic" mode, piezoelectric tensors are automatically computed if
+                piezoelectric terms are present in the DDB.
+                NB: relaxed-ion piezoelectric requires the activation of `relaxed_ion`.
+            dde: if True, dielectric tensors will be calculated.
+            stress_correction: Calculate the relaxed ion elastic tensors, considering
+                the stress left inside cell. The DDB must contain the stress tensor.
+            asr: Anaddb input variable. See official documentation.
+            chneut: Anaddb input variable. See official documentation.
+            mpi_procs: Number of MPI processes to use.
+            workdir: Working directory. If None, a temporary directory is created.
+            manager: |TaskManager| object. If None, the object is initialized from the configuration file
+            verbose: verbosity level. Set it to a value > 0 to get more information
+            retpath: True to return path to anaddb.nc file.
+
+        Return:
+            |ElasticData| object if ``retpath`` is None else absolute path to anaddb.nc file.
+        """
+        if not self.has_strain_terms(): # DOH!
+            cprint("Strain perturbations are not available in DDB: %s" % self.filepath, "yellow")
+
+        if relaxed_ion == "automatic":
+            relaxed_ion = self.has_internalstrain_terms() and self.has_at_least_one_atomic_perturbation(qpt=(0, 0, 0))
+
+        if relaxed_ion:
+            if not self.has_at_least_one_atomic_perturbation(qpt=(0, 0, 0)):
+                cprint("Requiring `relaxed_ion` but no atomic term available in DDB: %s" % self.filepath, "yellow")
+            if not self.has_internalstrain_terms():
+                cprint("Requiring `internal_strain` but no internal strain term in DDB: %s" % self.filepath, "yellow")
+
+        if piezo == "automatic":
+            piezo = self.has_piezoelectric_terms()
+
+        if piezo and not self.has_piezoelectric_terms():
+            cprint("Requiring `piezo` but no piezoelectric term available in DDB: %s" % self.filepath, "yellow")
+
+        # FIXME This is problematic so don't use automatic as default
+        #select = "all"
+        select = "at_least_one_diagoterm"
+        if dde == "automatic":
+            dde = self.has_epsinf_terms(select=select)
+
+        if dde and not self.has_epsinf_terms(select=select):
+            cprint("Requiring `dde` but dielectric tensor not available in DDB: %s" % self.filepath, "yellow")
+
+        if stress_correction == "automatic":
+            stress_correction = self.cart_stress_tensor is not None
+
+        if stress_correction and self.cart_stress_tensor is None:
+            cprint("Requiring `stress_correction` but stress not available in DDB: %s" % self.filepath, "yellow")
+
+        inp = AnaddbInput.dfpt(self.structure, strain=True, relaxed_ion=relaxed_ion,
+                               dde=dde, piezo=piezo, stress_correction=stress_correction, dte=False,
+                               asr=asr, chneut=chneut)
+
+        task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose)
+
+        # Read data from the netcdf output file produced by anaddb.
+        path = os.path.join(task.workdir, "anaddb.nc")
+        return ElasticData.from_file(path) if not retpath else path
+
+    def anaget_raman(self, asr=2, chneut=1, ramansr=1, alphon=1, workdir=None, mpi_procs=1,
+                     manager=None, verbose=0, directions=None, anaddb_kwargs=None):
+        """
+        Execute anaddb to compute the Raman spectrum
+
+        Args:
+            qpoint: Reduced coordinates of the qpoint where phonon modes are computed.
+            asr, chneut, ramansr, alphon: Anaddb input variable. See official documentation.
+            workdir: Working directory. If None, a temporary directory is created.
+            mpi_procs: Number of MPI processes to use.
+            manager: |TaskManager| object. If None, the object is initialized from the configuration file
+            verbose: verbosity level. Set it to a value > 0 to get more information.
+            directions: list of 3D directions along which the non analytical contribution will be calculated.
+                If None the three cartesian direction will be used.
+            anaddb_kwargs: additional kwargs for anaddb.
+
+        Return: |Raman| object.
+        """
+
+        inp = AnaddbInput.dfpt(self.structure, raman=True, asr=asr, chneut=chneut, ramansr=ramansr,
+                               alphon=alphon, directions=directions, anaddb_kwargs=anaddb_kwargs)
+
+        task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose)
+
+        # Read data from the netcdf output file produced by anaddb.
+        path = os.path.join(task.workdir, "anaddb.nc")
+        return Raman.from_file(path)
+
+    def _run_anaddb_task(self, anaddb_input, mpi_procs, workdir, manager, verbose):
+        """
+        Execute an |AnaddbInput| via the shell. Return |AnaddbTask|.
+        """
+        task = AnaddbTask.temp_shell_task(anaddb_input, ddb_node=self.filepath,
+                mpi_procs=mpi_procs, workdir=workdir, manager=manager)
 
         if verbose:
-            print("ANADDB INPUT:\n", inp)
+            print("ANADDB INPUT:\n", anaddb_input)
             print("workdir:", task.workdir)
 
-        # Run the task here
+        # Run the task here.
         task.start_and_wait(autoparal=False)
+
         report = task.get_event_report()
         if not report.run_completed:
             raise self.AnaddbError(task=task, report=report)
 
-        return DielectricTensorGenerator.from_files(os.path.join(task.workdir, "run.abo_PHBST.nc"),
-                                                    os.path.join(task.workdir, "anaddb.nc"))
+        return task
 
     def write(self, filepath, filter_blocks=None):
         """
@@ -1102,6 +1557,11 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return False
 
+    def get_panel(self):
+        """Build panel with widgets to interact with the |DdbFile| either in a notebook or in panel app."""
+        from abipy.panels.ddb import DdbFilePanel
+        return DdbFilePanel(self).get_panel()
+
     def write_notebook(self, nbpath=None):
         """
         Write an jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporay file in the current
@@ -1141,8 +1601,8 @@ phbands, phdos = bstfile.phbands, phdosfile.phdos"""),
             nbv.new_markdown_cell("## Macroscopic dielectric tensor and Born effective charges"),
             nbv.new_code_cell("""\
 if False:
-    emacro, becs = ddb.anaget_emacro_and_becs()
-    print(emacro)
+    eps_inf, becs = ddb.anaget_epsinf_and_becs()
+    print(eps_inf)
     print(becs)"""),
 
             nbv.new_markdown_cell("## Call `anaddb` to compute phonons and DOS with/without ASR"),
@@ -1185,17 +1645,22 @@ if ifc is not None:
         return self._write_nb_nbpath(nb, nbpath)
 
 
-class Becs(Has_Structure):
+class Becs(Has_Structure, MSONable):
     """
     This object stores the Born effective charges and provides simple tools for data analysis.
     """
 
+    @pmg_serialize
+    def as_dict(self):
+        """Return dictionary with JSON serialization in MSONable format."""
+        return dict(becs_arr=self.values, structure=self.structure, chneut=self.chneut, order="c")
+
     def __init__(self, becs_arr, structure, chneut, order="c"):
         """
         Args:
-            becs_arr: (3, 3, natom) array with the Born effective charges in Cartesian coordinates.
+            becs_arr: [3, 3, natom] array with the Born effective charges in Cartesian coordinates.
             structure: |Structure| object.
-            chneut: Option used for the treatment of the Charge Neutrality requirement
+            chneut: Option used for the treatment of the Charge Neutrality.
                 for the effective charges (anaddb input variable)
             order: "f" if becs_arr is in Fortran order.
         """
@@ -1203,11 +1668,14 @@ class Becs(Has_Structure):
         self._structure = structure
         self.chneut = chneut
 
+        # Values is a numpy array while zstars is a list of Tensor objects.
         self.values = np.empty((len(structure), 3, 3))
         for i, bec in enumerate(becs_arr):
             mat = becs_arr[i]
-            if order.lower() == "f": mat = mat.T
+            if order.lower() == "f": mat = mat.T.copy()
             self.values[i] = mat
+
+        self.zstars = [ZstarTensor(mat) for mat in self.values]
 
     @property
     def structure(self):
@@ -1219,117 +1687,75 @@ class Becs(Has_Structure):
 
     def to_string(self, verbose=0):
         """String representation."""
-        lines = []
-        app = lines.append
-        app("Born effective charges computed with chneut: %d\n" % self.chneut)
-        for site, bec in zip(self.structure, self.values):
-            app("Z* at site: %s" % repr(site))
-            app(str(bec))
-            app("")
+        lines = []; app = lines.append
+        app("Born effective charges in Cartesian coordinates (Voigt notation)")
+        app(self.get_voigt_dataframe().to_string())
+        app("")
+
+        if verbose:
+            app("Born effective charges (full tensor)")
+            for site, bec in zip(self.structure, self.values):
+                app("Z* at site: %s" % repr(site))
+                app(str(bec))
+                app("")
 
         # Add info on the bec sum rule.
-        stream = StringIO()
-        self.check_sumrule(stream=stream)
-        app(stream.getvalue())
+        app("Born effective charge neutrality sum-rule with chneut: %d\n" % self.chneut)
+        app(str(self.sumrule))
 
         return "\n".join(lines)
 
     @property
     def sumrule(self):
+        """[3, 3] matrix with Born effective charge neutrality sum-rule."""
         return self.values.sum(axis=0)
 
-    def check_sumrule(self, stream=sys.stdout):
-        stream.write("Born effective charge neutrality sum-rule with chneut: %d\n" % self.chneut)
-        stream.write(str(self.sumrule))
+    def _repr_html_(self):
+        """Integration with jupyter notebooks."""
+        return self.get_voigt_dataframe()._repr_html_()
 
-
-class ElasticComplianceTensor(Has_Structure):
-    """This object is used to store the elastic and compliance tensors."""
-
-    def __init__(self, elastic_tensor, compliance_tensor, structure, additional_info=None):
+    def get_voigt_dataframe(self, view="inequivalent", tol=1e-3, select_symbols=None, decimals=5, verbose=0):
         """
+        Return |pandas-DataFrame| with Voigt indices as columns and natom rows.
 
         Args:
-            elastic_tensor: (6, 6) array with the elastic tensor in Cartesian coordinates
-            compliance_tensor: (6, 6) array with the compliance tensor in Cartesian coordinates
-            structure: |Structure| object.
+            view: "inequivalent" to show only inequivalent atoms. "all" for all sites.
+            tol: Entries are set to zero below this value
+            select_symbols: String or list of strings with chemical symbols.
+                Used to select only atoms of this type.
+            decimals: Number of decimal places to round to.
+                If decimals is negative, it specifies the number of positions to the left of the decimal point.
+            verbose: Verbosity level.
         """
-        self._structure = structure
-        self.elastic_tensor = elastic_tensor
-        self.compliance_tensor = compliance_tensor
-        self.additional_info = additional_info
+        aview = self._get_atomview(view, select_symbols=select_symbols, verbose=verbose)
 
-    @property
-    def structure(self):
-        """|Structure| object."""
-        return self._structure
+        columns = ["xx", "yy", "zz", "yz", "xz", "xy"]
+        rows = []
+        for (iatom, wlabel) in zip(aview.iatom_list, aview.wyck_labels):
+            site = self.structure[iatom]
+            zstar = self.zstars[iatom]
+            d = OrderedDict()
+            d["element"] = site.specie.symbol
+            d["site_index"] = iatom
+            d["frac_coords"] = np.round(site.frac_coords, decimals=decimals)
+            d["cart_coords"] = np.round(site.coords, decimals=decimals)
+            d["wyckoff"] = wlabel
+            zstar = zstar.zeroed(tol=tol)
+            for k, v in zip(columns, zstar.voigt):
+                d[k] = v
+            if verbose:
+                d["determinant"] = np.linalg.det(zstar)
+                d["iso"] = zstar.trace() / 3
+            rows.append(d)
 
-    def __repr__(self):
-        return self.to_string()
+        return pd.DataFrame(rows, columns=list(rows[0].keys()) if rows else None)
 
-    @classmethod
-    def from_ec_nc_file(cls, ec_nc_file, tensor_type='relaxed_ion'):
-        with NetcdfReader(ec_nc_file) as nc_reader:
-            if tensor_type == 'relaxed_ion':
-                ec = np.array(nc_reader.read_variable('elastic_constants_relaxed_ion'))
-                compl = np.array(nc_reader.read_variable('compliance_constants_relaxed_ion'))
-            elif tensor_type == 'clamped_ion':
-                ec = np.array(nc_reader.read_variable('elastic_constants_clamped_ion'))
-                compl = np.array(nc_reader.read_variable('compliance_constants_clamped_ion'))
-            elif tensor_type == 'relaxed_ion_stress_corrected':
-                ec = np.array(nc_reader.read_variable('elastic_constants_relaxed_ion_stress_corrected'))
-                compl = np.array(nc_reader.read_variable('compliance_constants_relaxed_ion_stress_corrected'))
-            else:
-                raise ValueError('tensor_type "{0}" not allowed'.format(tensor_type))
-        #TODO: add the structure object!
-        return cls(elastic_tensor=ec, compliance_tensor=compl, structure=None,
-                   additional_info={'tensor_type': tensor_type})
-
-    def as_dict(self):
-        return {'elastic_tensor': self.elastic_tensor, 'compliance_tensor': self.compliance_tensor,
-                'structure': self.structure.as_dict() if self.structure is not None else None,
-                'additional_info': self.additional_info}
-
-    def extended_dict(self):
-        dd = self.as_dict()
-        K_Voigt = (self.elastic_tensor[0, 0] + self.elastic_tensor[1, 1] + self.elastic_tensor[2, 2] +
-                   2.0*self.elastic_tensor[0, 1] + 2.0*self.elastic_tensor[1, 2] + 2.0*self.elastic_tensor[2, 0]) / 9.0
-        K_Reuss = 1.0 / (self.compliance_tensor[0, 0] + self.compliance_tensor[1, 1] + self.compliance_tensor[2, 2] +
-                         2.0*self.compliance_tensor[0, 1] + 2.0*self.compliance_tensor[1, 2] +
-                         2.0*self.compliance_tensor[2, 0])
-        G_Voigt = (self.elastic_tensor[0, 0] + self.elastic_tensor[1, 1] + self.elastic_tensor[2, 2] -
-                   self.elastic_tensor[0, 1] - self.elastic_tensor[1, 2] - self.elastic_tensor[2, 0] +
-                   3.0*self.elastic_tensor[3, 3] + 3.0*self.elastic_tensor[4, 4] + 3.0*self.elastic_tensor[5, 5]) / 15.0
-        G_Reuss = 15.0 / (4.0*self.compliance_tensor[0, 0] + 4.0*self.compliance_tensor[1, 1] +
-                          4.0*self.compliance_tensor[2, 2] - 4.0*self.compliance_tensor[0, 1] -
-                          4.0*self.compliance_tensor[1, 2] - 4.0*self.compliance_tensor[2, 0] +
-                          3.0*self.compliance_tensor[3, 3] + 3.0*self.compliance_tensor[4, 4] +
-                          3.0*self.compliance_tensor[5, 5])
-        K_VRH = (K_Voigt + K_Reuss) / 2.0
-        G_VRH = (G_Voigt + G_Reuss) / 2.0
-        universal_elastic_anisotropy = 5.0*G_Voigt/G_Reuss + K_Voigt/K_Reuss - 6.0
-        isotropic_poisson_ratio = (3.0*K_VRH - 2.0*G_VRH) / (6.0*K_VRH + 2.0*G_VRH)
-        dd['K_Voigt'] = K_Voigt
-        dd['G_Voigt'] = G_Voigt
-        dd['K_Reuss'] = K_Reuss
-        dd['G_Reuss'] = G_Reuss
-        dd['K_VRH'] = K_VRH
-        dd['G_VRH'] = G_VRH
-        dd['universal_elastic_anistropy'] = universal_elastic_anisotropy
-        dd['isotropic_poisson_ratio'] = isotropic_poisson_ratio
-        return dd
-
-    @classmethod
-    def from_dict(cls, dd):
-        return cls(elastic_tensor=dd['elastic_tensor'], compliance_tensor=dd['compliance_tensor'],
-                   structure=dd['structure'] if dd['structure'] is not None else None,
-                   additional_info=dd['additional_info'])
-
-    def get_pmg_elastic_tensor(self):
+    def check_site_symmetries(self, verbose=0):
         """
-        Converts to a pymatgen :class:`ElasticTensor` object.
+        Check site symmetries of the Born effective charges. Print output to terminal.
+        Return: max_err
         """
-        return ElasticTensor.from_voigt(self.elastic_tensor)
+        return self.structure.site_symmetries.check_site_symmetries(self.values, verbose=verbose)
 
 
 class DielectricTensorGenerator(Has_Structure):
@@ -1343,47 +1769,29 @@ class DielectricTensorGenerator(Has_Structure):
     See the definitions Eq.(53-54) in :cite:`Gonze1997` PRB55, 10355 (1997).
     """
 
-    def __init__(self, phfreqs, oscillator_strength, emacro, structure):
-        """
-        Args:
-             phfreqs: a numpy array containing the 3 * num_atoms phonon frequencies at gamma
-             oscillator_strength: a complex numpy array with shape (number of phonon modes, 3, 3) in atomic units
-             emacro: a numpy array containing the dielectric tensor without frequency dependence
-                (at infinite frequency)
-             structure: |Structure| object.
-        """
-        self.phfreqs = phfreqs
-        self.oscillator_strength = oscillator_strength
-        self.emacro = emacro
-        self._structure = structure
-
-    @property
-    def structure(self):
-        """|Structure| object."""
-        return self._structure
-
     @classmethod
     def from_files(cls, phbst_filepath, anaddbnc_filepath):
         """
         Generates the object from the files that contain the phonon frequencies, oscillator strength and
         static dielectric tensor, i.e. the PHBST.nc and anaddb.nc netcdf files, respectively.
         """
-        with ETSF_Reader(phbst_filepath) as reader_phbst:
-            qpts = reader_phbst.read_value("qpoints")
-            full_phfreqs = reader_phbst.read_value("phfreqs")
+        with ETSF_Reader(phbst_filepath) as reader:
+            qpts = reader.read_value("qpoints")
+            full_phfreqs = reader.read_value("phfreqs")
 
         for i, q in enumerate(qpts):
             if np.array_equal(q, [0, 0, 0]):
+                phfreqs = full_phfreqs[i].copy()
                 break
         else:
-            raise ValueError('The PHBST does not containg the frequencies at gamma')
+            raise ValueError('The PHBST does not contain frequencies at gamma')
 
-        phfreqs = full_phfreqs[i]
-
-        with ETSF_Reader(anaddbnc_filepath) as reader_anaddbnc:
-            emacro = reader_anaddbnc.read_value("emacro_cart")
+        with ETSF_Reader(anaddbnc_filepath) as reader:
+            epsinf = DielectricTensor(reader.read_value("emacro_cart").T.copy())
+            eps0 = DielectricTensor(reader.read_value("emacro_cart_rlx").T.copy())
             try:
-                oscillator_strength = reader_anaddbnc.read_value("oscillator_strength", cmode="c")
+                oscillator_strength = reader.read_value("oscillator_strength", cmode="c")
+                oscillator_strength = oscillator_strength.transpose((0, 2, 1)).copy()
             except Exception as exc:
                 import traceback
                 msg = traceback.format_exc()
@@ -1391,9 +1799,9 @@ class DielectricTensorGenerator(Has_Structure):
                         "Verify that dieflag == 1, 3 or 4 in anaddb\n")
                 raise ValueError(msg)
 
-            structure = reader_anaddbnc.read_structure()
+            structure = reader.read_structure()
 
-        return cls(phfreqs, oscillator_strength, emacro, structure)
+        return cls(phfreqs, oscillator_strength, eps0, epsinf, structure)
 
     @classmethod
     def from_objects(cls, phbands, anaddbnc):
@@ -1404,65 +1812,161 @@ class DielectricTensorGenerator(Has_Structure):
 
         phfreqs = phbands.phfreqs[gamma_index]
 
-        emacro = anaddbnc.emacro.cartesian_tensor
+        epsinf = anaddbnc.epsinf
+        eps0 = anaddbnc.eps0
         oscillator_strength = anaddbnc.oscillator_strength
 
-        return cls(phfreqs, oscillator_strength, emacro, anaddbnc.structure)
+        return cls(phfreqs, oscillator_strength, eps0, epsinf, anaddbnc.structure)
 
-    def tensor_at_frequency(self, w, units='eV'):
+    def __init__(self, phfreqs, oscillator_strength, eps0, epsinf, structure):
         """
-        Returns a :class:`DielectricTensor` object representing
-        the dielectric tensor in atomic units at the specified frequency w.
-        Eq.(53-54) in PRB55, 10355 (1997).
+        Args:
+             phfreqs: numpy array containing the 3 * num_atoms phonon frequencies at gamma
+             oscillator_strength: complex numpy array with shape [number of phonon modes, 3, 3] in atomic units
+             eps0: numpy array containing the e0 dielectric tensor without frequency dependence
+             epsinf: numpy array with the electronic dielectric tensor (einf) without frequency dependence
+             structure: |Structure| object.
+        """
+        self.phfreqs = phfreqs
+        self.oscillator_strength = oscillator_strength
+        self.eps0 = eps0
+        self.epsinf = epsinf
+        self._structure = structure
+
+    @property
+    def structure(self):
+        """|Structure| object."""
+        return self._structure
+
+    def __str__(self):
+        return self.to_string()
+
+    def to_string(self, verbose=0):
+        """String representation with verbosity level `verbose`."""
+        lines = []
+        app = lines.append
+        app(self.structure.to_string(verbose=verbose, title="Structure"))
+        app("")
+        app(marquee("Oscillator strength", mark="="))
+        tol = 1e-6
+        app("Real part in Cartesian coordinates. a.u. units; 1 a.u. = 253.2638413 m3/s2. Set to zero below %.2e." % tol)
+        app(self.get_oscillator_dataframe(reim="re", tol=tol).to_string())
+        if verbose:
+            app("")
+            app("Imaginary part in a.u.; 1 a.u. = 253.2638413 m3/s2. Set to zero below %.2e." % tol)
+            app(self.get_oscillator_dataframe(reim="im", tol=tol).to_string())
+            app("")
+            app("Trace of oscillator strength, for each phonon mode:")
+            traces = [o.trace() for o in self.oscillator_strength]
+            app(str(traces))
+        app("")
+
+        tol = 1e-3
+        app(marquee("Dielectric Tensors", mark="="))
+        app("Electronic dielectric tensor (eps_inf) in Cartesian coordinates. Set to zero below %.2e." % tol)
+        app(self.epsinf.get_dataframe(tol=tol).to_string())
+        app("")
+        app("Zero-frequency dielectric tensor (eps_zero) in Cartesian coordinates. Set to zero below %.2e." % tol)
+        app(self.eps0.get_dataframe(tol=tol).to_string())
+
+        return "\n".join(lines)
+
+    def get_oscillator_dataframe(self, reim="all", tol=1e-6):
+        """
+        Return |pandas-Dataframe| with oscillator matrix elements.
 
         Args:
-            w: frequency
-            units: string specifying the units used for ph frequencies.  Possible values in
+            reim: "re" for real part, "im" for imaginary part, "all" for both.
+            tol: Entries are set to zero below this value
+        """
+        dmap = dict(xx=(0, 0), yy=(1, 1), zz=(2, 2), yz=(1, 2), xz=(0, 2), xy=(0, 1))
+        #decimals = int(abs(np.rint(np.log10(tol))))
+        # 1 a.u. = 253.2638413 m3/s2.
+        # TODO: Use SI?
+        #fact = 253.2638413
+
+        rows, index = [], []
+        for nu in range(3 * len(self.structure)):
+            d = {k: data_from_cplx_mode(reim, self.oscillator_strength[nu][t], tol=tol) for k, t in dmap.items()}
+            #d = {k: np.around(v * fact, decimals=decimals) for k, v in d.items()}
+            rows.append(d)
+            index.append(nu)
+
+        df = pd.DataFrame(rows, index=index, columns=list(rows[0].keys()))
+        df.index.name = "mode"
+        return df
+
+    def tensor_at_frequency(self, w, gamma_ev=1e-4, units='eV'):
+        """
+        Returns a |DielectricTensor| object representing the dielectric tensor
+        in atomic units at the specified frequency w. Eq.(53-54) in PRB55, 10355 (1997).
+
+        Args:
+            w: Frequency in eV
+            gamma_ev: Phonon damping factor in eV (full width). Poles are shifted by phfreq * gamma_ev.
+                Accept scalar or [nfreq] array.
+            units: string specifying the units used for phonon frequencies. Possible values in
             ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
         """
-        w =  w / phfactor_ev2units(units)
+        w = w / phfactor_ev2units(units)
 
-        t = np.zeros((3,3))
+        # Note that the acoustic modes are not included: their oscillator strength should be exactly zero
+        # Also, only the real part of the oscillators is taken into account:
+        # the possible imaginary parts of degenerate modes will cancel.
+        if duck.is_listlike(gamma_ev):
+            gammas = np.asarray(gamma_ev)
+            assert len(gammas) == len(self.phfreqs)
+        else:
+            gammas = np.ones(len(self.phfreqs)) * float(gamma_ev)
+
+        t = np.zeros((3, 3),dtype=complex)
         for i in range(3, len(self.phfreqs)):
-            t += self.oscillator_strength[i].real/(self.phfreqs[i]**2 - w**2)
+            g = gammas[i] * self.phfreqs[i]
+            t += self.oscillator_strength[i].real / (self.phfreqs[i]**2 - w**2 - 1j*g)
 
         vol = self.structure.volume / bohr_to_angstrom ** 3
-        t = 4*np.pi*t/vol/eV_to_Ha**2
-
-        t += self.emacro
+        t = 4 * np.pi * t / vol / eV_to_Ha ** 2
+        t += self.epsinf
 
         return DielectricTensor(t)
 
     @add_fig_kwargs
-    def plot_vs_w(self, w_min=0, w_max=None, num=100, component='diag', units='eV', ax=None, fontsize=12, **kwargs):
+    def plot(self, w_min=0, w_max=None, gamma_ev=1e-4, num=500, component='diag', reim="reim", units='eV',
+             with_phfreqs=True, ax=None, fontsize=12, **kwargs):
         """
-        Plots the selected components of the dielectric tensor as a function of the frequency.
+        Plots the selected components of the dielectric tensor as a function of frequency.
 
         Args:
-            w_min: minimum frequency.
-            w_max: maximum frequency. If None it will be set to the value of the maximum frequecy, increased by 10%.
+            w_min: minimum frequency in units `units`.
+            w_max: maximum frequency. If None it will be set to the value of the maximum frequency + 5*gamma_ev.
+            gamma_ev: Phonon damping factor in eV (full width). Poles are shifted by phfreq * gamma_ev.
+                Accept scalar or [nfreq] array.
             num: number of values of the frequencies between w_min and w_max.
             component: determine which components of the tensor will be displayed. Can be a list/tuple of two
                 elements, indicating the indices [i, j] of the desired component or a string among:
 
-                * 'diag' to plot the elements on diagonal
-                * 'all' to plot all the components
                 * 'diag_av' to plot the average of the components on the diagonal
+                * 'diag' to plot the elements on diagonal
+                * 'all' to plot all the components in the upper triangle.
+                * 'offdiag' to plot the off-diagonal components in the upper triangle.
 
-            units: string specifying the units used for ph frequencies. Possible values in
+            reim: a string with "re" will plot the real part, with "im" selects the imaginary part.
+            units: string specifying the units used for phonon frequencies. Possible values in
                 ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            with_phfreqs: True to show phonon frequencies with dots.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: Legend and label fontsize.
 
         Return: |matplotlib-Figure|
         """
         if w_max is None:
-            w_max = np.max(self.phfreqs) * 1.1 * phfactor_ev2units(units)
+            w_max = (np.max(self.phfreqs) + gamma_ev * 10) * phfactor_ev2units(units)
 
-        w_range = np.linspace(w_min, w_max, num, endpoint=True)
+        wmesh = np.linspace(w_min, w_max, num, endpoint=True)
+        t = np.zeros((num, 3, 3), dtype=complex)
 
-        t = np.zeros((num,3,3))
-        for i, w in enumerate(w_range):
-            t[i] = self.tensor_at_frequency(w, units=units)
+        for i, w in enumerate(wmesh):
+            t[i] = self.tensor_at_frequency(w, units=units, gamma_ev=gamma_ev)
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
@@ -1470,24 +1974,63 @@ class DielectricTensorGenerator(Has_Structure):
             kwargs['linewidth'] = 2
 
         ax.set_xlabel('Frequency {}'.format(phunit_tag(units)))
-        ax.set_ylabel(r'$\varepsilon$')
+        ax.set_ylabel(r'$\epsilon(\omega)$')
+        ax.grid(True)
 
-        if isinstance(component, (list, tuple)):
-            ax.plot(w_range, t[:,component[0], component[1]], label='[{},{}]'.format(*component), **kwargs)
-        elif component == 'diag':
-            for i in range(3):
-                ax.plot(w_range, t[:, i, i], label='[{},{}]'.format(i,i), **kwargs)
-        elif component == 'all':
-            for i in range(3):
-                for j in range(3):
-                    ax.plot(w_range, t[:, i, j], label='[{},{}]'.format(i, j), **kwargs)
-        elif component == 'diag_av':
-            for i in range(3):
-                ax.plot(w_range, np.trace(t, axis1=1, axis2=2)/3, label='[{},{}]'.format(i, i), **kwargs)
-        else:
-            raise ValueError('Unkwnown component {}'.format(component))
+        reimfs = []
+        if 're' in reim: reimfs.append((np.real, "Re{%s}"))
+        if 'im' in reim: reimfs.append((np.imag, "Im{%s}"))
+
+        for reimf, reims in reimfs:
+            if isinstance(component, (list, tuple)):
+                label = reims % r'$\epsilon_{%d%d}$' % tuple(component)
+                ax.plot(wmesh, reimf(t[:,component[0], component[1]]), label=label, **kwargs)
+            elif component == 'diag':
+                for i in range(3):
+                    label = reims % r'$\epsilon_{%d%d}$' % (i, i)
+                    ax.plot(wmesh, reimf(t[:, i, i]), label=label, **kwargs)
+            elif component in ('all', "offdiag"):
+                for i in range(3):
+                    for j in range(3):
+                        if component == "all" and i > j: continue
+                        if component == "offdiag" and i >= j: continue
+                        label = reims % r'$\epsilon_{%d%d}$' % (i, j)
+                        ax.plot(wmesh, reimf(t[:, i, j]), label=label, **kwargs)
+            elif component == 'diag_av':
+                label = r'$Average\, %s\epsilon_{ii}$' % reims
+                ax.plot(wmesh, np.trace(reimf(t), axis1=1, axis2=2)/3, label=label, **kwargs)
+            else:
+                raise ValueError('Unkwnown component {}'.format(component))
+
+        # Add points showing phonon energies.
+        if with_phfreqs:
+            wvals = self.phfreqs[3:] * phfactor_ev2units(units)
+            ax.scatter(wvals, np.zeros_like(wvals), s=30, marker="o", c="blue")
 
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        return fig
+
+    # To maintain backward compatibility.
+    plot_vs_w = plot
+
+    @add_fig_kwargs
+    def plot_all(self, **kwargs):
+        """
+        Plot diagonal and off-diagonal elements of the dielectric tensor as a function of frequency.
+        Both real and imag part are show. Accepts all arguments of `plot` method with the exception of:
+        `component` and `reim`.
+
+        Returns: |matplotlib-Figure|
+        """
+        axmat, fig, plt = get_axarray_fig_plt(None, nrows=2, ncols=2,
+                                              sharex=True, sharey=False, squeeze=False)
+        fontsize = kwargs.pop("fontsize", 8)
+        for irow in range(2):
+            component = {0: "diag", 1: "offdiag"}[irow]
+            for icol in range(2):
+                reim = {0: "re", 1: "im"}[icol]
+                self.plot(component=component, reim=reim, ax=axmat[irow, icol], fontsize=fontsize, show=False, **kwargs)
 
         return fig
 
@@ -1553,11 +2096,76 @@ class DdbRobot(Robot):
     #
     #    return np.array(qpoints)
 
-    def get_dataframe_at_qpoint(self, qpoint=None, units="eV", asr=2, chneut=1, dipdip=1, with_geo=True,
-            abspath=False, funcs=None):
+    # DEBUGGING CODE (do not remove)
+    #def find_duplicated_entries(self, std_tol=1e-5, verbose=1):
+    #    """
+    #    Check for duplicated entries in the list of ddb files
+
+    #    Args:
+    #        std_tol: Tolerance on standard deviation
+    #        verbose: Verbosity level.
+
+    #    Return: (retcode, results) where results maps qpt --> DataFrame with perts as index.
+    #    """
+    #    from pprint import pprint
+
+    #    # Build q --> group of dataframes.
+    #    from collections import defaultdict
+    #    q2dfgroup = defaultdict(list)
+    #    for ddb in self.abifiles:
+    #        for qpt, df in ddb.computed_dynmat.items():
+    #            q2dfgroup[qpt].append(df)
+
+    #    retcode, results = 0, {}
+    #    for qpt, dfgroup in q2dfgroup.items():
+    #        all_indset = [set(df.index) for df in dfgroup]
+    #        # Build union of all dynmat indices with this q
+    #        allps = set(all_indset[0]).union(*all_indset)
+    #        #allps = set(all_indset[0]).intersection(*all_indset)
+
+    #        index, d_list = [], []
+    #        for p in allps:
+    #            # Find dataframes with this p
+    #            found = [p in index for index in all_indset]
+    #            count = found.count(True)
+    #            if count == 1: continue
+    #            if verbose:
+    #                print("Found %s duplicated entries for p: %s" % (count, str(p)))
+
+    #            # Compute stats for this p (complex numbers)
+    #            cvalues = []
+    #            for f, df in zip(found, dfgroup):
+    #                if not f: continue
+    #                c = df["cvalue"].loc[[p]]
+    #                cvalues.append(c)
+
+    #            cvalues = np.array(cvalues)
+    #            norms = np.abs(cvalues)
+    #            d = dict(mean=cvalues.mean(), std=cvalues.std(),
+    #                     min_norm=norms.min(), max_norm=norms.max(), count=count)
+
+    #            # Print warning if large deviation
+    #            #if d["max_norm"]  - d["min_norm"] > 1e-5:
+    #            if d["std"] > std_tol:
+    #                retcode += 1
+    #                cprint("Found std > %s" % std_tol, "red")
+    #                pprint(cvalues)
+    #            if verbose:
+    #                pprint(d)
+    #                print(2 * "")
+
+    #            d_list.append(d)
+    #            index.append(p)
+
+    #        results[qpt] = pd.DataFrame(d_list, index=index)
+
+    #    return retcode, results
+
+    def get_dataframe_at_qpoint(self, qpoint=None, units="eV", asr=2, chneut=1, dipdip=1,
+                                with_geo=True, with_spglib=True, abspath=False, funcs=None):
         """
-	Call anaddb to compute the phonon frequencies at a single q-point using the DDB files treated
-	by the robot and the given anaddb input arguments. LO-TO splitting is not included.
+        Call anaddb to compute the phonon frequencies at a single q-point using the DDB files treated
+        by the robot and the given anaddb input arguments. LO-TO splitting is not included.
         Build and return a |pandas-Dataframe| with results
 
         Args:
@@ -1566,13 +2174,13 @@ class DdbRobot(Robot):
                 ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             asr, chneut, dipdip: Anaddb input variable. See official documentation.
             with_geo: True if structure info should be added to the dataframe
+            with_spglib: True to compute spglib space group and add it to the DataFrame.
             abspath: True if paths in index should be absolute. Default: Relative to getcwd().
             funcs: Function or list of functions to execute to add more data to the DataFrame.
                 Each function receives a |DdbFile| object and returns a tuple (key, value)
                 where key is a string with the name of column and value is the value to be inserted.
 
-        Return:
-            |pandas-DataFrame|
+        Return: |pandas-DataFrame|
         """
         # If qpoint is None, all the DDB must contain have the same q-point .
         if qpoint is None:
@@ -1603,7 +2211,7 @@ class DdbRobot(Robot):
 
             # Add info on structure.
             if with_geo:
-                d.update(phbands.structure.get_dict4pandas(with_spglib=True))
+                d.update(phbands.structure.get_dict4pandas(with_spglib=with_spglib))
 
             # Execute functions.
             if funcs is not None: d.update(self._exec_funcs(funcs, ddb))
@@ -1620,7 +2228,7 @@ class DdbRobot(Robot):
             phbands_plotter: |PhononBandsPlotter| object.
             phdos_plotter: |PhononDosPlotter| object.
         """
-	# TODO: Multiprocessing?
+        # TODO: Multiprocessing?
         if "workdir" in kwargs:
             raise ValueError("Cannot specify `workdir` when multiple DDB file are executed.")
 
@@ -1645,23 +2253,195 @@ class DdbRobot(Robot):
 
         return dict2namedtuple(phbands_plotter=phbands_plotter, phdos_plotter=phdos_plotter)
 
+    def anacompare_elastic(self, ddb_header_keys=None, with_structure=True, with_spglib=True,
+                           with_path=False, manager=None, verbose=0, **kwargs):
+        """
+        Compute elastic and piezoelectric properties for all DDBs in the robot and build DataFrame.
+
+        Args:
+            ddb_header_keys: List of keywords in the header of the DDB file
+                whose value will be added to the Dataframe.
+            with_structure: True to add structure parameters to the DataFrame.
+            with_spglib: True to compute spglib space group and add it to the DataFrame.
+            with_path: True to add DDB path to dataframe
+            manager: |TaskManager| object. If None, the object is initialized from the configuration file
+            verbose: verbosity level. Set it to a value > 0 to get more information
+            kwargs: Keyword arguments passed to `ddb.anaget_elastic`.
+
+        Return: DataFrame and list of ElastData objects.
+        """
+        ddb_header_keys = [] if ddb_header_keys is None else list_strings(ddb_header_keys)
+        df_list, elastdata_list = [], []
+        for label, ddb in self.items():
+            # Invoke anaddb to compute elastic data.
+            edata = ddb.anaget_elastic(verbose=verbose, manager=manager, **kwargs)
+            elastdata_list.append(edata)
+
+            # Build daframe with properties derived from the elastic tensor.
+            df = edata.get_elastic_properties_dataframe()
+
+            # Add metadata to the dataframe.
+            df["formula"] = ddb.structure.formula
+            for k in ddb_header_keys:
+                df[k] = ddb.header[k]
+
+            # Add structural parameters to the dataframe.
+            if with_structure:
+                for skey, svalue in ddb.structure.get_dict4pandas(with_spglib=with_spglib).items():
+                    df[skey] = svalue
+
+            # Add path to the DDB file.
+            if with_path: df["ddb_path"] = ddb.filepath
+
+            df_list.append(df)
+
+        # Concatenate dataframes.
+        return dict2namedtuple(df=pd.concat(df_list, ignore_index=True),
+                               elastdata_list=elastdata_list)
+
+    def anacompare_becs(self, ddb_header_keys=None, chneut=1, tol=1e-3, with_path=False, verbose=0):
+        """
+        Compute Born effective charges for all DDBs in the robot and build DataFrame.
+        with Voigt indices as columns + metadata. Useful for convergence studies.
+
+        Args:
+            ddb_header_keys: List of keywords in the header of the DDB file
+                whose value will be added to the Dataframe.
+            chneut: Anaddb input variable. See official documentation.
+            tol: Elements below this value are set to zero.
+            with_path: True to add DDB path to dataframe
+            verbose: verbosity level. Set it to a value > 0 to get more information
+
+        Return: ``namedtuple`` with the following attributes::
+
+            df: DataFrame with Voigt as columns.
+            becs_list: list of Becs objects.
+        """
+        ddb_header_keys = [] if ddb_header_keys is None else list_strings(ddb_header_keys)
+        df_list, becs_list = [], []
+        for label, ddb in self.items():
+            # Invoke anaddb to compute Becs
+            _, becs = ddb.anaget_epsinf_and_becs(chneut=chneut, verbose=verbose)
+            becs_list.append(becs)
+            df = becs.get_voigt_dataframe(tol=tol)
+
+            # Add metadata to the dataframe.
+            df["formula"] = ddb.structure.formula
+            df["chneut"] = chneut
+            for k in ddb_header_keys:
+                df[k] = ddb.header[k]
+
+            # Add path to the DDB file.
+            if with_path: df["ddb_path"] = ddb.filepath
+
+            df_list.append(df)
+
+        # Concatenate dataframes.
+        return dict2namedtuple(df=pd.concat(df_list, ignore_index=True).sort_values(by="site_index"),
+                               becs_list=becs_list)
+
+    def anacompare_epsinf(self, ddb_header_keys=None, chneut=1, tol=1e-3, with_path=False, verbose=0):
+        r"""
+        Compute (eps^\inf) electronic dielectric tensor for all DDBs in the robot and build DataFrame.
+        with Voigt indices as columns + metadata. Useful for convergence studies.
+
+        Args:
+            ddb_header_keys: List of keywords in the header of the DDB file
+                whose value will be added to the Dataframe.
+            chneut: Anaddb input variable. See official documentation.
+            tol: Elements below this value are set to zero.
+            with_path: True to add DDB path to dataframe
+            verbose: verbosity level. Set it to a value > 0 to get more information
+
+        Return: ``namedtuple`` with the following attributes::
+
+            df: DataFrame with Voigt indices as columns.
+            epsinf_list: List of |DielectricTensor| objects with eps^{inf}
+        """
+        ddb_header_keys = [] if ddb_header_keys is None else list_strings(ddb_header_keys)
+        df_list, epsinf_list = [], []
+        for label, ddb in self.items():
+            # Invoke anaddb to compute e_inf
+            einf, _ = ddb.anaget_epsinf_and_becs(chneut=chneut, verbose=verbose)
+            epsinf_list.append(einf)
+            df = einf.get_voigt_dataframe(tol=tol)
+
+            # Add metadata to the dataframe.
+            df["formula"] = ddb.structure.formula
+            df["chneut"] = chneut
+            for k in ddb_header_keys:
+                df[k] = ddb.header[k]
+
+            # Add path to the DDB file.
+            if with_path: df["ddb_path"] = ddb.filepath
+            df_list.append(df)
+
+        # Concatenate dataframes.
+        return dict2namedtuple(df=pd.concat(df_list, ignore_index=True), epsinf_list=epsinf_list)
+
+    def anacompare_eps0(self, ddb_header_keys=None, asr=2, chneut=1, tol=1e-3, with_path=False, verbose=0):
+        """
+        Compute (eps^0) dielectric tensor for all DDBs in the robot and build DataFrame.
+        with Voigt indices as columns + metadata. Useful for convergence studies.
+
+        Args:
+            ddb_header_keys: List of keywords in the header of the DDB file
+                whose value will be added to the Dataframe.
+            asr, chneut, dipdip: Anaddb input variable. See official documentation.
+            tol: Elements below this value are set to zero.
+            with_path: True to add DDB path to dataframe
+            verbose: verbosity level. Set it to a value > 0 to get more information
+
+        Return: ``namedtuple`` with the following attributes::
+
+            df: DataFrame with Voigt as columns.
+            eps0_list: List of |DielectricTensor| objects with eps^0.
+            dgen_list: List of DielectricTensorGenerator.
+        """
+        ddb_header_keys = [] if ddb_header_keys is None else list_strings(ddb_header_keys)
+        df_list, eps0_list, dgen_list = [], [], []
+        for label, ddb in self.items():
+            # Invoke anaddb to compute e_0
+            gen = ddb.anaget_dielectric_tensor_generator(asr=asr, chneut=chneut, dipdip=1, verbose=verbose)
+            dgen_list.append(gen)
+            eps0_list.append(gen.eps0)
+            df = gen.eps0.get_voigt_dataframe(tol=tol)
+
+            # Add metadata to the dataframe.
+            df["formula"] = ddb.structure.formula
+            df["asr"] = asr
+            df["chneut"] = chneut
+            #df["dipdip"] = dipdip
+            for k in ddb_header_keys:
+                df[k] = ddb.header[k]
+
+            # Add path to the DDB file.
+            if with_path: df["ddb_path"] = ddb.filepath
+
+            df_list.append(df)
+
+        # Concatenate dataframes.
+        return dict2namedtuple(df=pd.concat(df_list, ignore_index=True),
+                               eps0_list=eps0_list, dgen_list=dgen_list)
+
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         """
-        print("Invoking anaddb through anaget_phonon_plotters...")
-        r = self.anaget_phonon_plotters()
-        for fig in r.phbands_plotter.yield_figs(): yield fig
-        for fig in r.phdos_plotter.yield_figs(): yield fig
+        if all(ddb.has_at_least_one_atomic_perturbation() for ddb in self.abifiles):
+            print("Invoking anaddb through anaget_phonon_plotters...")
+            r = self.anaget_phonon_plotters()
+            for fig in r.phbands_plotter.yield_figs(): yield fig
+            for fig in r.phdos_plotter.yield_figs(): yield fig
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporay file in the current
+        Write a jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-        anaget_phonon_plotters_kwargs = ( "\n"
+        anaget_phonon_plotters_kwargs = ("\n"
             '\tnqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, dos_method="tetra",\n'
             '\tlo_to_splitting=False, ngqpt=None, qptbounds=None,\n'
             '\tanaddb_kwargs=None, verbose=0')

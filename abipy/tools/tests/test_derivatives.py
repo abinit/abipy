@@ -1,7 +1,5 @@
 # coding: utf-8
 """Tests for derivatives module."""
-from __future__ import division, print_function, absolute_import, unicode_literals
-
 import numpy as np
 
 from abipy.tools.derivatives import finite_diff
@@ -41,14 +39,14 @@ class FiniteDiffTest(AbipyTest):
         for order in orders:
             for acc in accuracies:
                 if order == 4 and acc == 6: continue
-                print("order %s, acc %s" % (order, acc))
+                #print("order %s, acc %s" % (order, acc))
                 yder = finite_diff(f, h, order=order, acc=acc)
-                print(np.max(np.abs(yder - dpolys[order])))
+                #print(np.max(np.abs(yder - dpolys[order])))
                 self.assert_almost_equal(yder, dpolys[order], decimal=decs[order])
 
     def test_exp(self):
         """Test derivatives of exp(x)."""
-        x, h = np.linspace(0, 2,  800, retstep=True)
+        x, h = np.linspace(0, 2, 800, retstep=True)
         orders = [1,2,3,4]
         accuracies = [2,4,6]
         exp = np.exp(x)
@@ -63,7 +61,10 @@ class FiniteDiffTest(AbipyTest):
         for order in orders:
             for acc in accuracies:
                 if order == 4 and acc == 6: continue
-                print("order %s, acc %s" % (order, acc))
+                #print("order %s, acc %s" % (order, acc))
                 yder = finite_diff(exp, h, order=order, acc=acc)
-                print(np.max(np.abs(yder - exp)))
+                #print(np.max(np.abs(yder - exp)))
                 self.assert_almost_equal(yder, exp, decs[order])
+
+                d = finite_diff(exp, h, order=order, acc=acc, index=100)
+                assert yder[100] == d.value

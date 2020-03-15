@@ -3,8 +3,6 @@
 Gold with 107 atoms. Gamma-point.
 GS calculations with paralkgb==1 and wfoptalg in [default, 1]
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import sys
 import operator
 import numpy as np
@@ -196,7 +194,7 @@ def build_flow(options):
     pconfs = [
       dict(npkpt=1, npband=13, npfft=10), # 130
       dict(npkpt=1, npband=26, npfft=10), # 260
-      dict(npkpt=1, npband=65, npfft=8 ), # 520
+      dict(npkpt=1, npband=65, npfft=8),  # 520
       dict(npkpt=1, npband=65, npfft=16), # 1040
     ]
 

@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 """GS+NSCF calculation for FeBiO3"""
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import sys
 import numpy as np
 import abipy.abilab as abilab
@@ -62,6 +60,7 @@ global_vars = dict(
     nsym=1,
     #iomode=3
 )
+
 
 def make_inputs(options):
     structure = abilab.Structure.from_abivars(unit_cell)

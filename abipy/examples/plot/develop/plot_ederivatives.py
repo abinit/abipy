@@ -34,8 +34,8 @@ print("xys\n", xys)
 
 #ebands.plot()
 
-#emasses = ebands.effective_masses(spin=0, band=0, acc=2)
-#print("emasses", emasses)
+emasses = ebands.effective_masses(spin=0, band=0, acc=2)
+print("emasses", emasses)
 
 #emasses = ebands.effmass(spin=0, kpoint=[0,0,0], bands=0, acc=2)
 #print("emasses", emasses)

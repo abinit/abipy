@@ -5,7 +5,6 @@ Band structure Flow
 
 Flow to compute the band structure of silicon.
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 import sys
 import os
@@ -16,7 +15,7 @@ import abipy.flowtk as flowtk
 
 def make_scf_nscf_inputs(paral_kgb=0, usepaw=0):
     """Returns two input files: GS run and NSCF on a high symmetry k-mesh."""
-    pseudos = abidata.pseudos("14si.pspnc") if usepaw == 0 else data.pseudos("Si.GGA_PBE-JTH-paw.xml")
+    pseudos = abidata.pseudos("14si.pspnc") if usepaw == 0 else abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
 
     # Get structure from cif file.
     multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"), pseudos=pseudos, ndtset=2)
@@ -56,7 +55,7 @@ def make_scf_nscf_inputs(paral_kgb=0, usepaw=0):
 def build_flow(options):
     # Set working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
-        options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
+        options.workdir = os.path.basename(sys.argv[0]).replace(".py", "").replace("run_", "flow_")
 
     # Get the SCF and the NSCF input.
     scf_input, nscf_input = make_scf_nscf_inputs()
@@ -65,13 +64,13 @@ def build_flow(options):
     return flowtk.bandstructure_flow(options.workdir, scf_input, nscf_input, manager=options.manager)
 
 
-# This block generates the thumbnails in the Abipy gallery.
+# This block generates the thumbnails in the AbiPy gallery.
 # You can safely REMOVE this part if you are using this script for production runs.
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-    build_flow(options).plot_networkx(with_edge_labels=True, tight_layout=True)
+    build_flow(options).graphviz_imshow()
 
 
 @flowtk.flow_main

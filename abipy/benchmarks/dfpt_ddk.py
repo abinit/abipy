@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 """Benchmark for DDK calculations."""
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import sys
 import abipy.abilab as abilab
 import abipy.data as abidata
@@ -45,7 +43,6 @@ def make_inputs(paw=False):
                 0.5, 0.0, 0.0,
                 0.5, 0.5, 0.5]
     )
-
 
     multi[0].set_vars(
       kptopt=1,          # Automatic generation of k points with symmetries.

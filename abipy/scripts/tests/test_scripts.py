@@ -1,7 +1,5 @@
 # coding: utf-8
 """Test AbiPy command line scripts."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import sys
 import os
 import abipy.data as abidata
@@ -9,12 +7,14 @@ import abipy.flowtk as flowtk
 
 from scripttest import TestFileEnvironment
 from monty.inspect import all_subclasses
-from pymatgen.io.abinit.qadapters import QueueAdapter
+from abipy.flowtk.qadapters import QueueAdapter
 from abipy.core.testing import AbipyTest
 from abipy import abilab
 
 
 script_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+test_files_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "test_files"))
 
 
 def test_if_all_scripts_are_tested():
@@ -46,9 +46,9 @@ class ScriptTest(AbipyTest):
         env = TestFileEnvironment()
 
         # Use Agg backend for plots.
-        #env.writefile("matplotlibrc", "backend: Agg")
-        #with open(os.path.join(env.base_path, "matplotlibrc"), "wt") as fh:
-        #    fh.write("backend: Agg\n")
+        #if not os.path.exists(env.base_path): os.makedirs(env.base_path)
+        with open(os.path.join(env.base_path, "matplotlibrc"), "wt") as fh:
+            fh.write("backend: Agg\n")
 
         if check_help_version:
             # Start with --help. If this does not work...
@@ -123,6 +123,10 @@ class TestAbiopen(ScriptTest):
             path = abidata.ref_file(f)
             r = env.run(self.script, path, "-p", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
+        # Test abiopen with json file
+        json_path = os.path.join(test_files_dir, "nscf_input.json")
+        r = env.run(self.script, json_path, "-e", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+
 
 class TestAbistruct(ScriptTest):
     script = os.path.join(script_dir, "abistruct.py")
@@ -140,11 +144,14 @@ class TestAbistruct(ScriptTest):
         r = env.run(self.script, "abispg", ncfile, "-t 1e-6", self.loglevel, self.verbose,
                     expect_stderr=self.expect_stderr)
 
+        r = env.run(self.script, "primitive", ncfile, self.loglevel, self.verbose,
+                    expect_stderr=self.expect_stderr)
+
     def test_convert(self):
         """Testing abistruct convert"""
         ncfile = abidata.ref_file("tgw1_9o_DS4_SIGRES.nc")
         env = self.get_env()
-        for fmt in ["cif", "cssr", "POSCAR", "json", "mson", "abivars"]:
+        for fmt in ["cif", "cssr", "POSCAR", "json", "abivars"]:
             r = env.run(self.script, "convert", ncfile, "-f", fmt, self.loglevel, self.verbose,
                         expect_stderr=self.expect_stderr)
 
@@ -152,8 +159,10 @@ class TestAbistruct(ScriptTest):
         """Testing abistruct supercell"""
         cif_file = abidata.cif_file("gan2.cif")
         env = self.get_env()
-        r = env.run(self.script, "supercell", cif_file, "-s 2" , "-f", "abivars", self.loglevel, self.verbose,
+        r = env.run(self.script, "supercell", cif_file, "-s 2", "-f", "abivars", self.loglevel, self.verbose,
                     expect_stderr=self.expect_stderr)
+
+        r = env.run(self.script, "print", cif_file, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
     def test_kpath(self):
         """Testing abistruct kpath"""
@@ -218,6 +227,7 @@ class TestAbistruct(ScriptTest):
 
     def test_cod_api(self):
         """Testing abistruct COD methods."""
+        self.skip_if_not_executable("mysql")
         env = self.get_env()
         r = env.run(self.script, "cod_id", "1526507", "--primitive",
                     self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
@@ -249,6 +259,9 @@ class TestAbicomp(ScriptTest):
                     expect_stderr=self.expect_stderr)
         r = env.run(self.script, "structure", cif_paths[0], cif_paths[1], cif_paths[2], self.loglevel, self.verbose,
                     "--group", expect_stderr=self.expect_stderr)
+
+        r = env.run(self.script, "spg", cif_paths[0], cif_paths[1], cif_paths[2], self.loglevel, self.verbose,
+                    expect_stderr=self.expect_stderr)
 
         r = env.run(self.script, "mp_structure", cif_paths[0], cif_paths[1], self.loglevel, self.verbose,
                     expect_stderr=self.expect_stderr)
@@ -418,42 +431,55 @@ class TestAbiView(ScriptTest):
         """Testing abiview.py script"""
         env = self.get_env()
 
-        runabo = abidata.ref_file("refs/gs_dfpt.abo")
-        r = env.run(self.script, "abo", runabo, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        #runabo = abidata.ref_file("refs/gs_dfpt.abo")
+        #r = env.run(self.script, "abo", runabo, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
-        logpath = abidata.ref_file("refs/abinit.log")
-        r = env.run(self.script, "log", logpath, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        #logpath = abidata.ref_file("refs/abinit.log")
+        #r = env.run(self.script, "log", logpath, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
         ncpath = abidata.ref_file("refs/sic_relax_HIST.nc")
+        out_file = ncpath + ".XDATCAR"
+        if os.path.exists(out_file): os.remove(out_file)
         r = env.run(self.script, "hist", ncpath, "--xdatcar", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        if os.path.exists(out_file): os.remove(out_file)
 
         ncpath = abidata.ref_file("si_nscf_GSR.nc")
         r = env.run(self.script, "ebands", ncpath, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+
+        out_file = ncpath + ".agr"
+        if os.path.exists(out_file): os.remove(out_file)
         r = env.run(self.script, "ebands", ncpath, "--xmgrace", self.loglevel, self.verbose,
                     expect_stderr=self.expect_stderr)
+        if os.path.exists(out_file): os.remove(out_file)
 
         ncpath = abidata.ref_file("si_scf_GSR.nc")
+        out_file = ncpath + ".bxsf"
+        if os.path.exists(out_file): os.remove(out_file)
         r = env.run(self.script, "ebands", ncpath, "--bxsf", self.loglevel, self.verbose,
                     expect_stderr=self.expect_stderr)
+        if os.path.exists(out_file): os.remove(out_file)
 
-        ncpath = abidata.ref_file("mgb2_kpath_FATBANDS.nc")
-        r = env.run(self.script, "fatbands", ncpath, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        #ncpath = abidata.ref_file("mgb2_kpath_FATBANDS.nc")
+        #r = env.run(self.script, "fatbands", ncpath, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
         ddbpath = abidata.ref_file("refs/znse_phonons/ZnSe_hex_qpt_DDB")
         r = env.run(self.script, "ddb", ddbpath, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
         ncpath = abidata.ref_file("ZnSe_hex_886.out_PHBST.nc")
         r = env.run(self.script, "phbands", ncpath, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        out_file = ncpath + ".agr"
+        if os.path.exists(out_file): os.remove(out_file)
         r = env.run(self.script, "phbands", ncpath, "--xmgrace", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        if os.path.exists(out_file): os.remove(out_file)
 
-        ncpath = abidata.ref_file("ZnSe_hex_886.out_PHDOS.nc")
-        r = env.run(self.script, "phdos", ncpath, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        #ncpath = abidata.ref_file("ZnSe_hex_886.out_PHDOS.nc")
+        #r = env.run(self.script, "phdos", ncpath, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
-        ncpath = abidata.ref_file("mg2si_GRUNS.nc")
-        r = env.run(self.script, "gruns", ncpath, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        #ncpath = abidata.ref_file("mg2si_GRUNS.nc")
+        #r = env.run(self.script, "gruns", ncpath, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
-        ncpath = abidata.ref_file("si_666_MDF.nc")
-        r = env.run(self.script, "mdf", ncpath, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        #ncpath = abidata.ref_file("si_666_MDF.nc")
+        #r = env.run(self.script, "mdf", ncpath, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
         #ncpath = abidata.ref_file("si_nscf_GSR.nc")
         #r = env.run(self.script, "denpot", ncpath, "chgcar", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)

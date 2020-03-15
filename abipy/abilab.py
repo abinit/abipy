@@ -1,9 +1,6 @@
 """
 This module gathers the most important classes and helper functions used for scripting.
 """
-from __future__ import print_function, division, unicode_literals
-
-import sys
 import os
 import collections
 
@@ -11,6 +8,7 @@ import collections
 ### Monty import ###
 ####################
 from monty.os.path import which
+from monty.termcolor import cprint
 
 #######################
 ### Pymatgen import ###
@@ -23,7 +21,7 @@ ArrayWithUnit = units.ArrayWithUnit
 ####################
 ### Abipy import ###
 ####################
-from abipy.flowtk import Pseudo, PseudoTable, Mrgscr, Mrgddb, Mrggkk, Flow, Work, TaskManager, AbinitBuild, flow_main
+from abipy.flowtk import Pseudo, PseudoTable, Mrgscr, Mrgddb, Flow, Work, TaskManager, AbinitBuild, flow_main
 from abipy.core.release import __version__, min_abinit_version
 from abipy.core.globals import enable_notebook, in_notebook, disable_notebook
 from abipy.core import restapi
@@ -35,16 +33,16 @@ from abipy.core.kpoints import set_atol_kdiff
 from abipy.abio.robots import Robot
 from abipy.abio.inputs import AbinitInput, MultiDataset, AnaddbInput, OpticInput
 from abipy.abio.abivars import AbinitInputFile
-from abipy.abio.outputs import AbinitLogFile, AbinitOutputFile, OutNcFile, AboRobot #, CubeFile
+from abipy.abio.outputs import AbinitLogFile, AbinitOutputFile, OutNcFile, AboRobot
 from abipy.tools.printing import print_dataframe
-from abipy.tools.notebooks import print_source
-from abipy.tools.plotting import get_ax_fig_plt, get_axarray_fig_plt, get_ax3d_fig_plt #, plot_array, ArrayPlotter
+from abipy.tools.notebooks import print_source, print_doc
+from abipy.tools.plotting import get_ax_fig_plt, get_axarray_fig_plt, get_ax3d_fig_plt
 from abipy.abio.factories import *
 from abipy.electrons.ebands import (ElectronBands, ElectronBandsPlotter, ElectronDos, ElectronDosPlotter,
     dataframe_from_ebands)
 from abipy.electrons.gsr import GsrFile, GsrRobot
+from abipy.electrons.eskw import EskwFile
 from abipy.electrons.psps import PspsFile
-from abipy.electrons.ddk import DdkFile
 from abipy.electrons.gw import SigresFile, SigresRobot
 from abipy.electrons.bse import MdfFile, MdfRobot
 from abipy.electrons.scissors import ScissorsBuilder
@@ -57,12 +55,18 @@ from abipy.electrons.fold2bloch import Fold2BlochNcfile
 from abipy.dfpt.phonons import (PhbstFile, PhbstRobot, PhononBands, PhononBandsPlotter, PhdosFile, PhononDosPlotter,
     PhdosReader, phbands_gridplot)
 from abipy.dfpt.ddb import DdbFile, DdbRobot
-from abipy.dfpt.anaddbnc import AnaddbNcFile
+from abipy.dfpt.anaddbnc import AnaddbNcFile, AnaddbNcRobot
 from abipy.dfpt.gruneisen import GrunsNcFile
 from abipy.dynamics.hist import HistFile, HistRobot
 from abipy.waves import WfkFile
 from abipy.eph.a2f import A2fFile, A2fRobot
 from abipy.eph.sigeph import SigEPhFile, SigEPhRobot
+from abipy.eph.eph_plotter import EphPlotter
+from abipy.eph.v1sym import V1symFile
+from abipy.eph.gkq import GkqFile, GkqRobot
+from abipy.eph.v1qnu import V1qnuFile
+from abipy.eph.v1qavg import V1qAvgFile
+from abipy.eph.transportfile import TransportFile
 from abipy.wannier90 import WoutFile, AbiwanFile, AbiwanRobot
 from abipy.electrons.lobster import CoxpFile, ICoxpFile, LobsterDoscarFile, LobsterInput, LobsterAnalyzer
 
@@ -74,6 +78,7 @@ def _straceback():
     """Returns a string with the traceback."""
     import traceback
     return traceback.format_exc()
+
 
 # Abinit text files. Use OrderedDict for nice output in show_abiopen_exc2class.
 ext2file = collections.OrderedDict([
@@ -103,9 +108,9 @@ ext2file = collections.OrderedDict([
 # Abinit files require a special treatment.
 abiext2ncfile = collections.OrderedDict([
     ("GSR.nc", GsrFile),
+    ("ESKW.nc", EskwFile),
     ("DEN.nc", DensityNcFile),
     ("OUT.nc", OutNcFile),
-    ("DDK.nc", DdkFile),
     ("VHA.nc", VhartreeNcFile),
     ("VXC.nc", VxcNcFile),
     ("VHXC.nc", VhxcNcFile),
@@ -126,6 +131,11 @@ abiext2ncfile = collections.OrderedDict([
     ("OPTIC.nc", OpticNcFile),
     ("A2F.nc", A2fFile),
     ("SIGEPH.nc", SigEPhFile),
+    ("TRANSPORT.nc",TransportFile),
+    ("V1SYM.nc", V1symFile),
+    ("GKQ.nc", GkqFile),
+    ("V1QNU.nc", V1qnuFile),
+    ("V1QAVG.nc", V1qAvgFile),
     ("ABIWAN.nc", AbiwanFile),
 ])
 
@@ -212,6 +222,21 @@ def abiopen(filepath):
     Args:
         filepath: string with the filename.
     """
+    # Handle ~ in filepath.
+    filepath = os.path.expanduser(filepath)
+
+    # Handle zipped files by creating temporary file with correct extension.
+    root, ext = os.path.splitext(filepath)
+    if ext in (".bz2", ".gz", ".z"):
+        from monty.io import zopen
+        with zopen(filepath, "rt") as f:
+            import tempfile
+            _, tmp_path = tempfile.mkstemp(suffix=os.path.basename(root), text=True)
+            cprint("Creating temporary file: %s" % tmp_path, "yellow")
+            with open(tmp_path, "wt") as t:
+                t.write(f.read())
+            filepath = tmp_path
+
     if os.path.basename(filepath) == "__AbinitFlow__.pickle":
         return Flow.pickle_load(filepath)
 
@@ -253,6 +278,35 @@ def display_structure(obj, **kwargs):
     return nbjsmol_display(structure.to(fmt="cif"), ext=".cif", **kwargs)
 
 
+def mjson_load(filepath, **kwargs):
+    """
+    Read JSON file in MSONable format with MontyDecoder. Return dict with python objects.
+    """
+    import json
+    from monty.json import MontyDecoder
+    with open(filepath, "rt") as fh:
+        return json.load(fh, cls=MontyDecoder, **kwargs)
+
+
+def mjson_loads(string, **kwargs):
+    """
+    Read JSON string in MSONable format with MontyDecoder. Return dict with python objects.
+    """
+    import json
+    from monty.json import MontyDecoder
+    return json.loads(string, cls=MontyDecoder, **kwargs)
+
+
+def mjson_write(d, filepath, **kwargs):
+    """
+    Write dictionary d to filepath in JSON format using MontyDecoder
+    """
+    import json
+    from monty.json import MontyEncoder
+    with open(filepath, "wt") as fh:
+        json.dump(d, fh, cls=MontyEncoder, **kwargs)
+
+
 def software_stack():
     """
     Import all the hard dependencies. Returns ordered dict: package --> string with version info.
@@ -290,7 +344,7 @@ def abicheck(verbose=0):
     can be found in $PATH and whether the python modules needed
     at run-time can be imported. Return string with error messages, empty if success.
     """
-    from monty.termcolor import cprint
+
     err_lines = []
     app = err_lines.append
 
@@ -331,6 +385,115 @@ def abicheck(verbose=0):
         app(_straceback())
 
     return "\n".join(err_lines)
+
+
+def install_config_files(workdir=None, force_reinstall=False):
+    """
+    Install pre-defined configuration files for the TaskManager and the Scheduler
+    in the workdir directory.
+
+    Args:
+        workdir: Directory when configuration files should be produced. Use ~/abinit/abipy/ if None
+        force_reinstall: Allow overwrite pre-existent configuration files. By default, the function
+            raises RuntimeError if configuration files are already present.
+    """
+    workdir = os.path.join(os.path.expanduser("~"), ".abinit", "abipy") if workdir is None else workdir
+    print("Installing configuration files in directory:", workdir)
+    from monty.os import makedirs_p
+    makedirs_p(workdir)
+
+    scheduler_path = os.path.join(workdir, "scheduler.yaml")
+    scheduler_yaml = """
+# The launcher will stop submitting jobs when the
+# number of jobs in the queue is >= Max number of jobs
+max_njobs_inqueue: 2
+
+# Maximum number of cores that can be used by the scheduler.
+max_ncores_used: 2
+
+# number of hours to wait.
+#hours: 0
+
+# number of minutes to wait.
+#minutes: 0
+
+# number of seconds to wait.
+seconds: 2
+
+# Send mail to the specified address (accepts string or list of strings).
+# PRO TIP: the scheduler WILL try to send and email after a default time of 4 days. If you
+#          comment out the mailto address, this will cause the scheduler to terminate, with
+#          potentially nefarious effects on your running jobs. If you do not wish to receive
+#          emails, a work around is to set the variable `remindme_s` below to something very
+#          large (say, 100 days).
+#mailto: nobody@nowhere.com
+
+# verbosity level (int, default 0)
+#verbose: 0
+
+# The scheduler will shutdown when the number of python exceptions is > max_num_pyexcs
+#max_num_pyexcs: 2
+
+# The scheduler will shutdown when the number of Abinit errors is > max_num_abierrs
+#max_num_abierrs: 0
+
+# The scheduler will shutdow when the total number of tasks launched is > safety_ratio * tot_num_tasks.
+#safety_ratio: 5
+
+# Send an e-mail to mailto every remindme_s seconds.
+#remindme_s: 345600
+"""
+
+    manager_path = os.path.join(workdir, "manager.yaml")
+    manager_yaml = """
+qadapters:
+    -
+      priority: 1
+      queue:
+        qname: abipy
+        qtype: shell
+      job:
+        mpi_runner: mpirun
+        pre_run:
+         - export OMP_NUM_THREADS=1
+         # IMPORTANT: Change the below line so that the abinit executable is in PATH
+         #- export PATH=$HOME/git_repos/abinit/_build/src/98_main:$PATH
+         #- ulimit -s unlimited; ulimit -n 2048
+
+      limits:
+         min_cores: 1
+         max_cores: 2
+         timelimit: 0:10:0
+      hardware:
+         num_nodes: 1
+         sockets_per_node: 1
+         cores_per_socket: 2
+         mem_per_node: 4 Gb
+"""
+
+    # Write configuration files.
+    if not os.path.isfile(scheduler_path) or force_reinstall:
+        with open(scheduler_path, "wt") as fh:
+            fh.write(scheduler_yaml)
+        print("Scheduler configuration file written to:", scheduler_path)
+    else:
+        raise RuntimeError("Configuration file: %s already exists.\nUse force_reinstall option to overwrite it" % scheduler_path)
+
+    if not os.path.isfile(manager_path) or force_reinstall:
+        with open(manager_path, "wt") as fh:
+            fh.write(manager_yaml)
+        print("Manager configuration file written to:", manager_path)
+    else:
+        raise RuntimeError("Configuration file: %s already exists.\nUse force_reinstall option to overwrite it" % manager_path)
+
+    print("""
+Configuration files installed successfully.
+Please edit the configuration options according to your installation.
+In particular, edit the `pre_run` section in manager.yml
+so that the abinit executable is in $PATH.
+""")
+
+    return 0
 
 
 def abipy_logo1():
@@ -382,3 +545,4 @@ o-  o/   oo`       ss    /y..y/    ss ss +y`   -y::y-    yo          -o/  .o- -o
    `  ..` `:-                            :+              /:         --` `-` `
             `.`                                                   ..`
 """
+

@@ -1,25 +1,20 @@
 #!/usr/bin/env python
-"""Setup script for abipy."""
-from __future__ import print_function
+# flake8: noqa
+"""Setup script for AbiPy."""
 
 import sys
 import os
 import shutil
 
 from glob import glob
-from setuptools import find_packages, setup, Extension
-
-# This check is also made in abipy/__init__, don't forget to update both when
-# changing Python version requirements.
-if sys.version[0:3] < '2.7':
-    sys.stderr.write("abipy requires Python version 2.7 or above. Exiting.")
-    sys.exit(1)
+from setuptools import find_packages, setup
 
 ext_modules = []
 
 #-------------------------------------------------------------------------------
 # Useful globals and utility functions
 #-------------------------------------------------------------------------------
+
 
 # A little utility we'll need below, since glob() does NOT allow you to do exclusion on multiple endings!
 def file_doesnt_end_with(test, endings):
@@ -34,26 +29,17 @@ def file_doesnt_end_with(test, endings):
             return False
     return True
 
+
 #---------------------------------------------------------------------------
 # Basic project information
 #---------------------------------------------------------------------------
 
 # release.py contains version, authors, license, url, keywords, etc.
-release_file = os.path.join('abipy','core','release.py')
+release_file = os.path.join('abipy', 'core', 'release.py')
 
 with open(release_file) as f:
     code = compile(f.read(), release_file, 'exec')
     exec(code)
-
-#---------------------------------------------------------------------------
-# Find packages
-#---------------------------------------------------------------------------
-#
-#def find_packages():
-#    """
-#    Find all of abipy's packages.
-#    """
-#    return find_packages(exclude=())
 
 
 #---------------------------------------------------------------------------
@@ -82,7 +68,7 @@ def find_package_data():
             "refs/*.log",
             "refs/*.abo",
         ],
-        'abipy.data.refs' : [
+        'abipy.data.refs': [
             "al_eph/*",
             "al_g0w0_spfunc/*",
             "alas_nl_dfpt/*",
@@ -98,7 +84,7 @@ def find_package_data():
             "sio2_screening/*",
             "znse_phonons/*",
         ],
-        'abipy.gui.awx' : ['images/*'],
+        'abipy.gui.awx': ['images/*'],
     }
 
     return package_data
@@ -127,7 +113,6 @@ def find_scripts():
 def get_long_desc():
     with open("README.rst") as f:
         return f.read()
-        return long_desc
 
 
 #-----------------------------------------------------------------------------
@@ -143,8 +128,9 @@ def cleanup():
         except (IOError, OSError):
             try:
                 os.unlink('abipy.egg-info')
-            except:
+            except Exception:
                 pass
+
 
 # List of external packages we rely on.
 # Note setup install will download them from Pypi if they are not available.
@@ -152,21 +138,21 @@ def cleanup():
 #    install_requires = [s.strip() for s in fh]
 
 install_requires = [
-"six",
-"tabulate",
-"apscheduler==2.1.0",
-"pydispatcher>=2.0.5",
-"tqdm",
-"html2text",
-"pyyaml>=3.11",
-"pandas",
-"numpy",
-"scipy",
-"spglib",
-"pymatgen>=2018.7.15",
-"netCDF4",
-"matplotlib",
-"seaborn",
+    "monty",
+    "tabulate",
+    "apscheduler==2.1.0",
+    "pydispatcher>=2.0.5",
+    "tqdm",
+    "pyyaml>=3.11",
+    "pandas",
+    "numpy",
+    "scipy",
+    "spglib",
+    #"pymatgen>=2019.10.16",
+    "pymatgen>=2019.12.22",
+    "netCDF4",
+    "matplotlib",
+    "seaborn",
 ]
 
 with_wxpython = False
@@ -226,5 +212,4 @@ TIP: Use abicheck.py to validate the final configuration.
 
 Have fun!
 """)
-
     cleanup()

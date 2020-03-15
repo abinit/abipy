@@ -93,6 +93,14 @@ tools Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`tensors` Module
+---------------------
+
+.. automodule:: abipy.tools.tensors
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`text` Module
 ------------------
 

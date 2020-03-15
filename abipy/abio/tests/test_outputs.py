@@ -1,7 +1,5 @@
 # coding: utf-8
 """Test for output files"""
-from __future__ import unicode_literals, division, print_function
-
 import os
 import abipy.data as abidata
 
@@ -65,8 +63,11 @@ class AbinitOutputTest(AbipyTest):
             str(abo.events)
             gs_cycle = abo.next_gs_scf_cycle()
             assert gs_cycle is not None
+            assert len(abo.get_all_gs_scf_cycles()) == 1
+
             if self.has_matplotlib():
                 assert gs_cycle.plot(show=False)
+
             abo.seek(0)
             assert abo.next_d2de_scf_cycle() is None
 
@@ -79,6 +80,9 @@ class AbinitOutputTest(AbipyTest):
                 timer.plot_all(show=False)
                 abo.plot(show=False)
 
+            if self.has_panel():
+                assert hasattr(abo.get_panel(), "show")
+
             if self.has_nbformat():
                 abo.write_notebook(nbpath=self.get_tmpname(text=True))
                 timer.write_notebook(nbpath=self.get_tmpname(text=True))
@@ -87,31 +91,37 @@ class AbinitOutputTest(AbipyTest):
         """Testing AbinitOutputFile with phonon calculations."""
         abo_path = abidata.ref_file("refs/gs_dfpt.abo")
         with AbinitOutputFile(abo_path) as abo:
-             repr(abo); str(abo)
-             assert abo.to_string(verbose=2)
+            repr(abo); str(abo)
+            assert abo.to_string(verbose=2)
 
-             assert abo.version == "8.3.2"
-             assert abo.run_completed
-             assert not abo.dryrun_mode
-             assert abo.ndtset == 3
-             assert abo.has_same_initial_structures
-             assert abo.has_same_final_structures
-             assert len(abo.initial_structures) == 3
-             assert abo.initial_structure is not None
-             assert abo.initial_structure.abi_spacegroup is not None
-             assert abo.initial_structure == abo.final_structure
+            assert abo.version == "8.3.2"
+            assert abo.run_completed
+            assert not abo.dryrun_mode
+            assert abo.ndtset == 3
+            assert abo.has_same_initial_structures
+            assert abo.has_same_final_structures
+            assert len(abo.initial_structures) == 3
+            assert abo.initial_structure is not None
+            assert abo.initial_structure.abi_spacegroup is not None
+            assert abo.initial_structure == abo.final_structure
 
-             gs_cycle = abo.next_gs_scf_cycle()
-             assert gs_cycle is not None
-             ph_cycle = abo.next_d2de_scf_cycle()
-             assert ph_cycle is not None
-             if self.has_matplotlib():
+            gs_cycle = abo.next_gs_scf_cycle()
+            assert gs_cycle is not None
+
+            ph_cycle = abo.next_d2de_scf_cycle()
+            assert ph_cycle is not None
+
+            if self.has_matplotlib():
                 assert ph_cycle.plot(show=False)
                 assert abo.compare_d2de_scf_cycles([abo_path], show=False)
                 abo.plot(show=False)
 
-             if self.has_nbformat():
+            if self.has_nbformat():
                 abo.write_notebook(nbpath=self.get_tmpname(text=True))
+
+            # Call these functions at end to avoid seek(0).
+            assert len(abo.get_all_gs_scf_cycles()) == 1
+            assert len(abo.get_all_d2de_scf_cycles()) == 3
 
     def test_dryrun_output(self):
         """Testing AbinitOutputFile with file produced in dry-run mode."""

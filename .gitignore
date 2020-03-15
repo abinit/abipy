@@ -4,9 +4,9 @@ Profile.prof
 abipy/examples/flows/flow_*
 abipy/examples/flows/develop/flow_*
 _debug
-__abinb_workdir__
-abinb_*.ipynb
-*.pickle
+#__abinb_workdir__
+#abinb_*.ipynb
+$*.pickle
 
 # cython generated code
 abipy/extensions/*.c
@@ -79,3 +79,4 @@ Untitled.ipynb
 .pydevproject
 gallery/
 modules/
+style.log

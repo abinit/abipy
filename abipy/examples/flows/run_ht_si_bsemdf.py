@@ -5,8 +5,6 @@ Bethe-Salpeter Flow with factory functions
 
 Calculation of the BSE spectrum with the High-throuhput interface (factory functions).
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import sys
 import os
 import abipy.data as abidata
@@ -18,7 +16,7 @@ from abipy import abilab
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
-        options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
+        options.workdir = os.path.basename(sys.argv[0]).replace(".py", "").replace("run_", "flow_")
 
     # Initialize pseudos and Structure.
     pseudos = abidata.pseudos("14si.pspnc")
@@ -53,13 +51,13 @@ def build_flow(options):
     return flow
 
 
-# This block generates the thumbnails in the Abipy gallery.
+# This block generates the thumbnails in the AbiPy gallery.
 # You can safely REMOVE this part if you are using this script for production runs.
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-    build_flow(options).plot_networkx(with_edge_labels=True, tight_layout=True)
+    build_flow(options).graphviz_imshow()
 
 
 @flowtk.flow_main

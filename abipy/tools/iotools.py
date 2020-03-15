@@ -1,13 +1,44 @@
 # coding: utf-8
 """IO related utilities."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
-import tempfile
 
+from contextlib import ExitStack
 from subprocess import call
 from monty.termcolor import cprint
 from monty.string import list_strings
+
+
+class ExitStackWithFiles(ExitStack):
+    """
+    Context manager for dynamic management of a stack of file-like objects.
+    Mainly used in a callee that needs to return files to the caller
+
+    Usage example:
+
+    .. code-block:: python
+
+        exit_stack = ExitStackWithFiles()
+        exit_stack.enter_context(phbst_file)
+        return exit_stack
+    """
+    def __init__(self):
+        self.files = []
+        super().__init__()
+
+    def enter_context(self, myfile):
+        # If my file is None, we add it to files but without registering the callback.
+        self.files.append(myfile)
+        if myfile is not None:
+            return super().enter_context(myfile)
+
+    def __iter__(self):
+        return self.files.__iter__()
+
+    def __next__(self):
+        return self.files.__next__()
+
+    def __getitem__(self, slice):
+        return self.files.__getitem__(slice)
 
 
 def ask_yes_no(prompt, default=None):  # pragma: no cover
@@ -82,7 +113,7 @@ class Editor(object):  # pragma: no cover
     def edit_file(self, fname):
         retcode = call([self.editor, fname])
         if retcode != 0:
-            cprint("Retcode %s while editing file: %s" % (retcode, fname) ,"red")
+            cprint("Retcode %s while editing file: %s" % (retcode, fname), "red")
         return retcode
 
     def edit_files(self, fnames, ask_for_exit=True):

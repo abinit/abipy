@@ -8,7 +8,6 @@ More specifically, we build a flow to analyze the convergence of the QP correcti
 wrt to the number of bands in the self-energy. More complicated convergence studies
 can be implemented on the basis of this example.
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 import os
 import sys
@@ -117,7 +116,7 @@ def make_inputs(ngkpt, paral_kgb=1):
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
-        options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_")
+        options.workdir = os.path.basename(sys.argv[0]).replace(".py", "").replace("run_","flow_")
 
     # Change the value of ngkpt below to perform a GW calculation with a different k-mesh.
     scf, nscf, scr, sig1, sig2, sig3 = make_inputs(ngkpt=[2, 2, 2])
@@ -125,13 +124,13 @@ def build_flow(options):
     return flowtk.g0w0_flow(options.workdir, scf, nscf, scr, [sig1, sig2, sig3], manager=options.manager)
 
 
-# This block generates the thumbnails in the Abipy gallery.
+# This block generates the thumbnails in the AbiPy gallery.
 # You can safely REMOVE this part if you are using this script for production runs.
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-    build_flow(options).plot_networkx(with_edge_labels=True, tight_layout=True)
+    build_flow(options).graphviz_imshow()
 
 
 @flowtk.flow_main

@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 """Analyze the parallel efficiency of the RPA code (hilbert transform, 60 frequencies and gwpara==2)"""
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import sys
 import abipy.abilab as abilab
 import abipy.data as abidata
@@ -35,7 +33,7 @@ def make_inputs(paw=False):
     gs, nscf, scr, sigma = multi.split_datasets()
 
     # This grid is the most economical, but does not contain the Gamma point.
-    ngkpt=[5, 5, 5]
+    ngkpt = [5, 5, 5]
     gs_kmesh = dict(
         ngkpt=ngkpt,
         shiftk=[0.5, 0.5, 0.5,

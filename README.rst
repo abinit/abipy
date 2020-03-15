@@ -10,7 +10,7 @@
     * - Continuous Integration
       - |travis-status| |coverage-status| 
     * - Documentation
-      - |docs-stable| |docs-devel| |launch-nbviewer| |launch-binder| 
+      - |docs-github| |launch-nbviewer| |launch-binder| 
 
 About
 =====
@@ -23,8 +23,7 @@ ab-initio calculations and typical convergence studies.
 AbiPy is interfaced with pymatgen_ and this allows users to
 benefit from the different tools and python objects available in the pymatgen ecosystem.
 
-The official documentation of the stable version is available at the `abipy docpage`_,
-while the documentation of the **developmental** version is hosted on `github pages <http://abinit.github.io/abipy>`_.
+The official documentation is hosted on `github pages <http://abinit.github.io/abipy>`_.
 
 AbiPy can be used in conjunction with matplotlib_, pandas_, scipy_, seaborn_, ipython_ and jupyter_ notebooks
 thus providing a powerful and user-friendly environment for data analysis and visualization.
@@ -44,8 +43,23 @@ Please report any bugs and issues at AbiPy's `Github page <https://github.com/ab
 
     Note that the majority of the post-processing tools available in AbiPy require output files in
     netcdf_ format so we **strongly** suggest to compile Abinit with netcdf support
-    (use ``--with_trio_flavor="netcdf-fallback"`` at configure time to activate the internal netcdf library,
+    (use ``--with-trio-flavor="netcdf"`` at configure time to activate the internal netcdf library,
     to link Abinit against an external netcdf library please consult the configuration examples provided by abiconfig_).
+
+
+Links to talks
+==============
+
+This section collects links to some of the talks given by the AbiPy developers.
+
+
+* `Automating ABINIT calculations with AbiPy. Boston MA, 3 March 2019 <https://gmatteo.github.io/abipy_slides_aps_boston_2019/>`_ (Introduction to AbiPy for newcomers).
+
+* `New features of AbiPy v0.7. Louvain-la-Neuve, Belgium, 20 May 2019 <https://gmatteo.github.io/abipy_intro_abidev2019/>`_ (How to use the AbiPy command line interface in the terminal)
+
+* `Automatize a DFT code: high-throughput workflows for Abinit 
+  <https://object.cscs.ch/v1/AUTH_b1d80408b3d340db9f03d373bbde5c1e/learn-public/materials/2019_05_aiida_tutorial/day4_abipy_Petretto.pdf>`_
+
 
 Getting AbiPy
 =============
@@ -78,14 +92,13 @@ Create a new conda_ environment (let's call it ``abienv``) based on python3.6 wi
 
 and activate it with::
 
-    source activate abipy3.6
+    source activate abienv
 
 You should see the name of the conda environment in the shell prompt.
 
-Now add ``conda-forge``, ``matsci`` and ``abinit`` to your conda channels with::
+Now add ``conda-forge``, and ``abinit`` to your conda channels with::
 
     conda config --add channels conda-forge
-    conda config --add channels matsci
     conda config --add channels abinit
 
 These are the channels from which we will download pymatgen, abipy and abinit.
@@ -113,15 +126,15 @@ For pip, use::
     pip install -r requirements.txt
     pip install -r requirements-optional.txt
 
-If you are using conda_ (see `Installing conda`_ to install conda itself),  create a new environment (``abienv``) based on python3.6 with::
+If you are using conda_ (see `Installing conda`_ to install conda itself),  create a new environment (``abienv``) 
+based on python3.6 with::
 
     conda create -n abienv python=3.6
-    source activate abipy3.6
+    source activate abienv
 
-Add ``conda-forge``, ``matsci`` and ``abinit`` to your channels with::
+Add ``conda-forge``, and ``abinit`` to your channels with::
 
     conda config --add channels conda-forge
-    conda config --add channels matsci
     conda config --add channels abinit
 
 and install the AbiPy dependencies with::
@@ -244,6 +257,11 @@ to check that the python installation is OK::
     from abipy import abilab
 
 then quit the interpreter.
+
+For general information about how to troubleshoot problems that may occur at this level,
+see the :ref:`troubleshooting` section.
+
+.. _anaconda_howto:
 
 The Abinit executables are placed inside the anaconda directory associated to the ``abienv`` environment::
 
@@ -428,6 +446,75 @@ Source your ``.bashrc`` file to activate the changes done by ``miniconda`` to yo
 
     source ~/.bashrc
 
+.. _troubleshooting:
+
+Troubleshooting
+===============
+
+GLIBC error
+-----------
+
+The python interpreter may raise the following exception when importing one of the pymatgen modules::
+
+    from pymatgen.util.coord import pbc_shortest_vectors
+    File "/python3.6/site-packages/pymatgen/util/coord.py", line 11, in <module>
+    from . import coord_cython as cuc
+    ImportError: /lib64/libc.so.6: version `GLIBC_2.14' not found (required by /python3.6/site-packages/pymatgen/util/coord_cython.cpython-36m-x86_64-linux-gnu.so)`
+
+This means that the pre-compiled version of pymatgen is not compatible with the GLIBC version available on your machine.
+To solve the problem, we suggest to build and install pymatgen from source using the local version of GLIBC and the gcc compiler.
+In the example below, we use a conda environment to install most of the dependencies with the exception of pymatgen and abipy.
+
+Let's start by creating a conda environment with::
+
+    conda create -n glibc_env python=3.6
+    source activate glibc_env
+    conda config --add channels conda-forge
+
+Use pip to install spglib::
+
+    pip install spglib
+
+and try to ``import spglib`` inside the python terminal.
+
+Download the pymatgen repository from github with::
+
+    git clone https://github.com/materialsproject/pymatgen.git
+    cd pymatgen
+
+If git is not installed, use ``conda install git``
+
+Now use conda to install the pymatgen requirements listed in ``requirements.txt``
+but before that make sure that ``gcc`` is in ``$PATH``.
+If you are working on a cluster, you may want to issue::
+
+    module purge
+
+to avoid compiling C code with the intel compiler (it's possible to use ``icc`` but ``gcc`` is less problematic).
+
+Remove the line::
+
+    enum34==1.1.6; python_version < '3.4'
+
+from ``requirements.txt`` as this syntax is not supported by conda then issue::
+
+    conda install -y --file requirements.txt
+
+At this point, we can build pymatgen and the C extensions::
+
+        python setup.py install
+
+then ``cd`` to another directory (important) and test the build inside the python terminal with::
+
+    import spglib
+    import pymatgen
+
+Finally, we can install Abipy from source with::
+
+	git clone https://github.com/abinit/abipy.git
+	cd abipy && conda install -y --file ./requirements.txt
+
+
 License
 =======
 
@@ -436,8 +523,7 @@ AbiPy is released under the GNU GPL license. For more details see the LICENSE fi
 .. _Python: http://www.python.org/
 .. _Abinit: https://www.abinit.org
 .. _abinit-channel: https://anaconda.org/abinit
-.. _pymatgen: http://www.pymatgen.org
-.. _`abipy docpage` : http://pythonhosted.org/abipy
+.. _pymatgen: http://pymatgen.org
 .. _matplotlib: http://matplotlib.org
 .. _pandas: http://pandas.pydata.org
 .. _scipy: https://www.scipy.org/
@@ -485,10 +571,6 @@ AbiPy is released under the GNU GPL license. For more details see the LICENSE fi
      :target: https://requires.io/github/abinit/abipy/requirements/?branch=develop
      :alt: Requirements Status
 
-.. |docs-stable| image:: https://img.shields.io/badge/docs-stable_version-blue.svg
-     :alt: Documentation stable version
-     :target: http://pythonhosted.org/abipy/
-
-.. |docs-devel| image:: https://img.shields.io/badge/docs-devel_version-ff69b4.svg
-     :alt: Documentation development version
+.. |docs-github| image:: https://img.shields.io/badge/docs-ff69b4.svg
+     :alt: AbiPy Documentation
      :target: http://abinit.github.io/abipy

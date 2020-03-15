@@ -1,11 +1,9 @@
 # coding: utf-8
-"""Define a class used to execute a visualizer within the Python interpreter."""
-from __future__ import print_function, division, unicode_literals, absolute_import
+"""Classes used to execute a visualizer within the Python interpreter."""
 
 import sys
 import os
 import abc
-import six
 
 from monty.os.path import which
 from monty.termcolor import cprint
@@ -72,8 +70,7 @@ class VisualizerError(Exception):
     """Base class for Visualizer errors"""
 
 
-@six.add_metaclass(abc.ABCMeta)
-class Visualizer(object):
+class Visualizer(metaclass=abc.ABCMeta):
     """
     Handle the visualization of data.
     """
@@ -178,10 +175,9 @@ class Visualizer(object):
     def from_name(cls, appname):
         """Return the visualizer class from the name of the application."""
         for visu in cls.__subclasses__():
-            if visu.name == appname:
-                return visu
+            if visu.name == appname: return visu
 
-        raise cls.Error("appname is not among the list of supported visualizers %s " % appname)
+        raise cls.Error("`%s` is not among the list of supported visualizers" % appname)
 
     @classmethod
     def all_visunames(cls):

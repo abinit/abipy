@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 """Analyze the parallel efficiency of the SIGMA code (one shot G0W0 with plasmon-pole model and gwpara==2)"""
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import sys
 import abipy.abilab as abilab
 import abipy.data as abidata
@@ -27,7 +25,6 @@ def make_inputs(paw=False):
         istwfk="*1",
         timopt=-1,
     )
-
 
     multi.set_kmesh(ngkpt=[4,4,3], shiftk=[0.0, 0.0, 0.0])
 

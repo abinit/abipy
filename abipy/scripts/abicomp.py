@@ -4,7 +4,6 @@ Script to analyze/compare results stored in multiple netcdf/output files.
 By default the script displays the results/plots in the shell.
 Use --ipython to start an ipython terminal or -nb to generate an ipython notebook.
 """
-from __future__ import unicode_literals, division, print_function, absolute_import
 
 import sys
 import os
@@ -18,32 +17,23 @@ from abipy import abilab
 from abipy.tools.plotting import get_ax_fig_plt, GenericDataFilesPlotter
 
 
-# Not used but could be useful to analyze densities.
-def sort_paths(options):
-    """
-    Sort input files whose name is in the form `out_TIM2_DEN`
-    Files are sorted by TIM index.
-    """
-    if options.no_sort: return
-    names = [os.path.basename(p) for p in options.filepath]
-    import re
-    # out_TIM2_DEN
-    tim = re.compile(r".+_TIM(\d+)_.+")
-    l = []
-    for p, n in zip(options.filepath, names):
-        m = tim.match(n)
-        if m:
-            l.append((int(m.group(1)), p))
-    if not l: return
-    if len(l) != len(options.filepath):
-        print("Cannot sort input path!")
-        return
+def remove_disordered(structures, paths):
+    """Remove disordered structures and print warning message."""
+    slist = []
+    for s, p in zip(structures, paths):
+        if not s.is_ordered:
+            cprint("Removing disordered structure: %s found in %s" % (s.formula, p), "magenta")
+        else:
+            slist.append(s)
+    return slist
 
-    options.paths = [t[1] for t in sorted(l, key=lambda t: t[0])]
-    print("Input files have been automatically sorted")
-    for i, p in enumerate(options.paths):
-        print("%d: %s" % (i, p))
-    print("Use --no-sort to disable automatic sorting.")
+
+def df_to_clipboard(options, df):
+    """Copy dataframe to clipboard if options.clipboard."""
+    if getattr(options, "clipboard", False):
+        cprint("Copying dataframe to the system clipboard.", "green")
+        cprint("This can be pasted into Excel, for example", "green")
+        df.to_clipboard()
 
 
 def abiview_fields(options):
@@ -71,7 +61,6 @@ def abicomp_structure(options):
 
         nb.cells.extend([
             nbv.new_code_cell("""\
-from __future__ import print_function, division, unicode_literals, absolute_import
 import sys
 import os
 
@@ -97,17 +86,17 @@ from abipy import abilab"""),
         cmd = "jupyter notebook %s" % nbpath
         return os.system(cmd)
 
-    dfs = abilab.dataframes_from_structures(paths, index=index)
+    dfs = abilab.dataframes_from_structures(paths, index=index,
+            symprec=options.symprec, angle_tolerance=options.angle_tolerance)
 
     if options.ipython:
         import IPython
         IPython.embed(header="Type `dfs` in the terminal and use <TAB> to list its methods", dfs=dfs)
     else:
-        print("File list:")
-        for i, p in enumerate(paths):
-            print("%d %s" % (i, p))
-        print()
+        print("Spglib options: symprec=", options.symprec, "angle_tolerance=", options.angle_tolerance)
         abilab.print_dataframe(dfs.lattice, title="Lattice parameters:")
+        df_to_clipboard(options, dfs.lattice)
+
         if options.verbose:
             abilab.print_dataframe(dfs.coords, title="Atomic positions (columns give the site index):")
 
@@ -121,7 +110,6 @@ def compare_structures(options):
         print("You need more than one structure to compare!")
         return 1
 
-    structures = []
     try:
         structures = [abilab.Structure.from_file(p) for p in paths]
     except Exception as ex:
@@ -144,6 +132,45 @@ def compare_structures(options):
 
     if options.verbose:
         pprint(m.as_dict())
+
+
+def abicomp_spg(options):
+    """
+    Compare the space group found by Abinit with the spglib results
+    for a set of crystalline structure(s) read from FILE(s).
+    """
+    try:
+        structures = [abilab.Structure.from_file(p) for p in options.paths]
+    except Exception as ex:
+        print("Error reading structures from files. Are they in the right format?")
+        print(str(ex))
+        return 1
+
+    # Remove disordered structures.
+    structures = remove_disordered(structures, options.paths)
+
+    rows, index = [], []
+    symprec, angle_tolerance = options.symprec, options.angle_tolerance
+    for structure in structures:
+        index.append(structure.formula)
+        # Call Abinit
+        row = structure.abiget_spginfo(tolsym=options.tolsym, pre="abi_")
+        # Call spglib.
+        spglib_symbol, spglib_number = structure.get_space_group_info(symprec=symprec, angle_tolerance=angle_tolerance)
+        spglib_lattice_type = structure.spget_lattice_type(symprec=symprec, angle_tolerance=angle_tolerance)
+        row.update(spglib_symbol=spglib_symbol, spglib_number=spglib_number, spglib_lattice=spglib_lattice_type)
+        rows.append(row)
+
+    import pandas as pd
+    df = pd.DataFrame(rows, index=index, columns=list(rows[0].keys()) if rows else None)
+
+    print("Spglib options: symprec=", options.symprec, "angle_tolerance=", options.angle_tolerance)
+    print("Abinit options: tolsym=", options.tolsym)
+    print("")
+    abilab.print_dataframe(df, title="Spacegroup found by Abinit and Spglib:")
+    df_to_clipboard(options, df)
+
+    return 0
 
 
 def abicomp_mp_structure(options):
@@ -182,7 +209,10 @@ def _compare_with_database(options):
         if r.structures:
             if options.notebook:
                 new = r.add_entry(this_structure, "this")
-                retcode += new.make_and_open_notebook(foreground=options.foreground)
+                retcode += new.make_and_open_notebook(foreground=options.foreground,
+                                                      classic_notebook=options.classic_notebook,
+                                                      no_browser=options.no_browser)
+
             else:
                 print()
                 dfs = abilab.dataframes_from_structures(r.structures + [this_structure], index=r.ids + ["this"])
@@ -222,6 +252,7 @@ def abicomp_xrd(options):
                         annotate_peaks=not options.no_annotate_peaks, tight_layout=True)
     return 0
 
+
 def abicomp_data(options):
     """
     Compare results stored in multiple files with data in tabular format.
@@ -245,12 +276,14 @@ def abicomp_ebands(options):
                       plotter=plotter)
 
     elif options.notebook:
-        plotter.make_and_open_notebook(foreground=options.foreground)
-
+        plotter.make_and_open_notebook(foreground=options.foreground,
+                                       classic_notebook=options.classic_notebook,
+                                       no_browser=options.no_browser)
     else:
         # Print pandas Dataframe.
-        frame = plotter.get_ebands_frame()
-        abilab.print_dataframe(frame)
+        df = plotter.get_ebands_frame()
+        abilab.print_dataframe(df)
+        df_to_clipboard(options, df)
 
         # Optionally, print info on gaps and their location
         if not options.verbose:
@@ -282,7 +315,9 @@ def abicomp_edos(options):
                       plotter=plotter)
 
     elif options.notebook:
-        plotter.make_and_open_notebook(foreground=options.foreground)
+        plotter.make_and_open_notebook(foreground=options.foreground,
+                                       classic_notebook=options.classic_notebook,
+                                       no_browser=options.no_browser)
 
     elif options.expose:
         plotter.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
@@ -319,15 +354,16 @@ def abicomp_phbands(options):
                       plotter=plotter)
 
     elif options.notebook:
-        plotter.make_and_open_notebook(foreground=options.foreground)
+        plotter.make_and_open_notebook(foreground=options.foreground,
+                                       classic_notebook=options.classic_notebook,
+                                       no_browser=options.no_browser)
 
     elif options.expose:
         plotter.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
                        verbose=options.verbose)
     else:
         # Print pandas Dataframe.
-        frame = plotter.get_phbands_frame()
-        abilab.print_dataframe(frame)
+        abilab.print_dataframe(plotter.get_phbands_frame())
 
         # Optionally, print info on gaps and their location
         if not options.verbose:
@@ -336,8 +372,11 @@ def abicomp_phbands(options):
             for phbands in plotter.phbands_list:
                 print(phbands)
 
-        # Here I select the plot method to call.
-        if options.plot_mode != "None":
+        # Select the plot method to call.
+        if options.plot_mode == "panel":
+            plotter.get_panel().show()
+
+        elif options.plot_mode != "None":
             plotfunc = getattr(plotter, options.plot_mode, None)
             if plotfunc is None:
                 raise ValueError("Don't know how to handle plot_mode: %s" % options.plot_mode)
@@ -363,7 +402,9 @@ def abicomp_phdos(options):
                        verbose=options.verbose)
 
     elif options.notebook:
-        plotter.make_and_open_notebook(foreground=options.foreground)
+        plotter.make_and_open_notebook(foreground=options.foreground,
+                                       classic_notebook=options.classic_notebook,
+                                       no_browser=options.no_browser)
 
     else:
         # Optionally, print info on gaps and their location
@@ -408,7 +449,6 @@ def abicomp_getattr(options):
 
     if options.plot and len(values) == len(options.paths[1:]):
         # Plot values.
-
         ax, fig, plt = get_ax_fig_plt()
         xs = np.arange(len(options.paths[1:]))
         ax.plot(xs, values)
@@ -449,6 +489,13 @@ def abicomp_ddb(options):
     return _invoke_robot(options)
 
 
+def abicomp_anaddb(options):
+    """
+    Compare multiple anaddb.nc files.
+    """
+    return _invoke_robot(options)
+
+
 def abicomp_phbst(options):
     """
     Compare multiple PHBST.nc files.
@@ -484,9 +531,35 @@ def abicomp_a2f(options):
     return _invoke_robot(options)
 
 
+def abicomp_gkq(options):
+    """
+    Compare multiple GKQ files with EPH matrix elements for a given q-point.
+    """
+    if options.diff:
+        robot = _build_robot(options, trim_paths=True)
+
+        robot.plot_gkq2_diff()
+    else:
+        return _invoke_robot(options)
+
+
+def abicomp_wrmax(options):
+    """
+    Compare multiple WRmax files with first order potential in real-space.
+    """
+    return _invoke_robot(options)
+
+
+def abicomp_v1qavg(options):
+    """
+    Compare multiple V1QAVG files with the average of the DFPT V1 potentials as function of q-point.
+    """
+    return _invoke_robot(options)
+
+
 def abicomp_sigeph(options):
     """
-    Compare multiple SIGEPH files.
+    Compare multiple SIGEPH files storing the e-ph self-energy.
     """
     return _invoke_robot(options)
 
@@ -498,62 +571,26 @@ def abicomp_abiwan(options):
     return _invoke_robot(options)
 
 
-def dataframe_from_pseudos(pseudos, index=None):
-    """
-    Build pandas dataframe with the most important info associated to
-    a list of pseudos or a list of objects that can be converted into pseudos.
-
-    Args:
-        pseudos: List of objects that can be converted to pseudos.
-        index: Index of the dataframe.
-
-    Return:
-        pandas Dataframe.
-    """
-    from abipy.flowtk import PseudoTable
-    pseudos = PseudoTable.as_table(pseudos)
-
-    import pandas as pd
-    from collections import OrderedDict
-    attname = ["Z_val", "l_max", "l_local", "nlcc_radius", "xc", "supports_soc", "type"]
-    rows = []
-    for p in pseudos:
-        row = OrderedDict([(k, getattr(p, k, None)) for k in attname])
-        row["ecut_normal"], row["pawecutdg_normal"] = None, None
-        if p.has_hints:
-            hint = p.hint_for_accuracy(accuracy="normal")
-            row["ecut_normal"] = hint.ecut
-            if hint.pawecutdg: row["pawecutdg_normal"] = hint.pawecutdg
-        rows.append(row)
-
-    return pd.DataFrame(rows, index=index, columns=list(rows[0].keys()) if rows else None)
-
-
 def abicomp_pseudos(options):
     """"Compare multiple pseudos Print table to terminal."""
     # Make sure entries in index are unique.
     index = [os.path.basename(p) for p in options.paths]
     if len(index) != len(set(index)): index = [os.path.relpath(p) for p in options.paths]
+    from abipy.electrons.psps import dataframe_from_pseudos
     df = dataframe_from_pseudos(options.paths, index=index)
     abilab.print_dataframe(df, sortby="Z_val")
     return 0
 
 
-def _invoke_robot(options):
-    """
-    Analyze multiple files with a robot. Support list of files and/or
-    list of directories passed on the CLI..
-
-    By default, the script with call `robot.to_string(options.verbose)` to print info to terminal.
-    For finer control, use --ipy to start an ipython console to interact with the robot directly
-    or --nb to generate a jupyter notebook.
-    """
+def _build_robot(options, trim_paths=False):
+    """Build robot instance from CLI options."""
     robot_cls = abilab.Robot.class_for_ext(options.command.upper())
 
     # To define an Help action
     # http://stackoverflow.com/questions/20094215/argparse-subparser-monolithic-help-output?rq=1
     paths = options.paths
-    #print(paths)
+    if options.verbose > 1:
+        print("In _invoke_robot with paths", paths)
 
     if os.path.isdir(paths[0]):
         # Assume directory.
@@ -573,22 +610,46 @@ def _invoke_robot(options):
                 cprint("Ignoring %s. Neither file or directory." % str(p), "red")
 
     if len(robot) == 0:
-        cprint("Warning: robot is empty. No file found", "red")
-        return 1
+        raise RuntimeError("Empty robot --> No file associated to this robot has been found")
+
+    if trim_paths: robot.trim_paths()
+    return robot
+
+
+def _invoke_robot(options):
+    """
+    Analyze multiple files with a robot. Support list of files and/or list of directories passed on the CLI.
+
+    By default, the script with call `robot.to_string(options.verbose)` to print info to terminal.
+    For finer control, use --ipy to start an ipython console to interact with the robot directly
+    or --nb to generate a jupyter notebook.
+    """
+    robot = _build_robot(options)
 
     if options.notebook:
-        robot.make_and_open_notebook(foreground=options.foreground)
+        robot.make_and_open_notebook(foreground=options.foreground,
+                                     classic_notebook=options.classic_notebook,
+                                     no_browser=options.no_browser)
+
+    elif options.panel:
+        try:
+            import panel  # noqa: F401
+        except ImportError as exc:
+            cprint("Use `conda install panel` or `pip install panel` to install the python package.", "red")
+            raise exc
+
+        robot.get_panel().show()
+        return 0
 
     elif options.print or options.expose:
         robot.trim_paths()
-        #df = robot.get_params_dataframe()
-        #abilab.print_dataframe(df, title="Output of robot.get_params_dataframe():")
-
         # Print dataframe if robot provides get_dataframe method.
         if hasattr(robot, "get_dataframe"):
             try:
                 df = robot.get_dataframe()
                 abilab.print_dataframe(df, title="Output of robot.get_dataframe():")
+                df_to_clipboard(options, df)
+
             except Exception as exc:
                 cprint("Exception:\n%s\n\nwhile invoking get_dataframe. Falling back to to_string" % str(exc), "red")
                 print(robot.to_string(verbose=options.verbose))
@@ -695,7 +756,9 @@ def abicomp_time(options):
         import IPython
         IPython.start_ipython(argv=[], user_ns={"parser": parser})
     elif options.notebook:
-        parser.make_and_open_notebook(foreground=options.foreground)
+        parser.make_and_open_notebook(foreground=options.foreground,
+                                      classic_notebook=options.classic_notebook,
+                                      no_browser=options.no_browser)
     else:
         parser.plot_all()
 
@@ -712,6 +775,7 @@ Usage example:
 
   abicomp.py structure */*/outdata/out_GSR.nc   => Compare structures in multiple files.
                                                    Use `--group` to compare for similarity.
+  abicomp.py spg si.cif out_GSR.nc              => Compare spacegroup(s) found by Abinit and spglib.
   abicomp.py hist FILE(s)                       => Compare final structures read from HIST.nc files.
   abicomp.py mp_structure FILE(s)               => Compare structure(s) read from FILE(s) with the one(s)
                                                    given in the materials project database.
@@ -726,6 +790,9 @@ Usage example:
   abicomp.py ebands out1_GSR.nc out2_WFK.nc     => Plot electron bands on a grid (Use `-p` to change plot mode)
   abicomp.py ebands *_GSR.nc -ipy               => Build plotter object and start ipython console.
   abicomp.py ebands *_GSR.nc -nb                => Interact with the plotter in the jupyter notebook.
+  abicomp.py ebands `find . -name "*_GSR.nc"` -c = Find all GSR.nc files startign from current working directory
+                                                   Copy dataframe to the system clipboard.
+                                                   This can be pasted into Excel, for example
   abicomp.py edos *_WFK.nc -nb                  => Compare electron DOS in the jupyter notebook.
   abicomp.py optic DIR -nb                      => Compare optic results in the jupyter notebook.
   abicomp.py abiwan *_ABIWAN.nc --expose        => Compare ABIWAN results, produce matplotlib figures.
@@ -734,10 +801,17 @@ Usage example:
 # Phonons
 #########
 
-  abicomp.py phbands *_PHBST.nc -nb             => Compare phonon bands in the jupyter notebook.
+  abicomp.py phbands *_PHBST.nc -p gridplot     => Compare phonon bands with matplotlib grid.
+  abicomp.py phbands *_PHBST.nc -p panel        => Compare phonon bands in the panel dashboard (GUI)
   abicomp.py phbst *_PHBST.nc -ipy              => Compare phonon bands with robot in ipython terminal.
   abicomp.py phdos *_PHDOS.nc -nb               => Compare phonon DOSes in the jupyter notebook.
   abicomp.py ddb outdir1 outdir2 out_DDB -nb    => Analyze all DDB files in directories outdir1, outdir2 and out_DDB file.
+
+###############
+# Anaddb netcdf
+###############
+
+  abicomp anaddb tutorespfn_telast_2-telast_3/anaddb.nc
 
 #########
 # E-PH
@@ -745,6 +819,8 @@ Usage example:
 
   abicomp.py a2f *_A2F.nc -nb                   => Compare A2f results in the jupyter notebook.
   abicomp.py sigeph *_SIGEPH.nc -nb             => Compare Fan-Migdal self-energy in the jupyter notebook.
+  abicomp.py gkq out1_GKQ.nc out1_GKQ.nc -d     => Plot difference between matrix elements (supports 2+ files).
+  abicomp.py v1qavg out_V1QAVG.nc               => Compare V1QAVG files.
 
 ########
 # GW/BSE
@@ -835,9 +911,32 @@ def get_parser(with_epilog=False):
     copts_parser.add_argument('--loglevel', default="ERROR", type=str,
         help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.")
 
+    # Parent parser for commands calling spglib.
+    spgopt_parser = argparse.ArgumentParser(add_help=False)
+    spgopt_parser.add_argument('--symprec', default=1e-3, type=float,
+        help="""\
+symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
+which is fairly strict and works well for properly refined structures with atoms in the proper symmetry coordinates.
+For structures with slight deviations from their proper atomic positions (e.g., structures relaxed with electronic structure
+codes), a looser tolerance of 0.1 (the value used in Materials Project) is often needed.""")
+    spgopt_parser.add_argument('--angle-tolerance', default=5.0, type=float,
+        help="angle_tolerance (float): Angle tolerance for symmetry finding. Default: 5.0")
+    #spgopt_parser.add_argument("--no-time-reversal", default=False, action="store_true", help="Don't use time-reversal.")
+
+    # Parent parser for commands operating on pandas dataframes
+    pandas_parser = argparse.ArgumentParser(add_help=False)
+    pandas_parser.add_argument("-c", '--clipboard', default=False, action="store_true",
+            help="Copy dataframe to the system clipboard. This can be pasted into Excel, for example")
+
     # Parent parser for commands supporting (ipython/jupyter)
     ipy_parser = argparse.ArgumentParser(add_help=False)
     ipy_parser.add_argument('-nb', '--notebook', default=False, action="store_true", help='Generate jupyter notebook.')
+    ipy_parser.add_argument('--classic-notebook', action='store_true', default=False,
+                            help="Use classic notebook instead of jupyterlab.")
+    ipy_parser.add_argument('--no-browser', action='store_true', default=False,
+                            help=("Start the jupyter server to serve the notebook "
+                                  "but don't open the notebook in the browser.\n"
+                                  "Use this option to connect remotely from localhost to the machine running the kernel"))
     ipy_parser.add_argument('--foreground', action='store_true', default=False,
         help="Run jupyter notebook in the foreground.")
     ipy_parser.add_argument('-ipy', '--ipython', default=False, action="store_true", help='Invoke ipython terminal.')
@@ -847,10 +946,6 @@ def get_parser(with_epilog=False):
     nb_parser.add_argument('-nb', '--notebook', default=False, action="store_true", help='Generate jupyter notebook.')
     nb_parser.add_argument('--foreground', action='store_true', default=False,
         help="Run jupyter notebook in the foreground.")
-
-    # Parent parser for *robot* commands
-    robot_parser = argparse.ArgumentParser(add_help=False)
-    robot_parser.add_argument('--no-walk', default=False, action="store_true", help="Don't enter subdirectories.")
 
     # Parent parser for commands supporting expose
     expose_parser = argparse.ArgumentParser(add_help=False)
@@ -870,11 +965,21 @@ def get_parser(with_epilog=False):
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
     # Subparser for structure command.
-    p_struct = subparsers.add_parser('structure', parents=[copts_parser, ipy_parser], help=abicomp_structure.__doc__)
+    p_struct = subparsers.add_parser('structure', parents=[copts_parser, ipy_parser, spgopt_parser, pandas_parser],
+            help=abicomp_structure.__doc__)
     p_struct.add_argument("-g", "--group", default=False, action="store_true",
         help="Compare a set of structures for similarity.")
     p_struct.add_argument("-a", "--anonymous", default=False, action="store_true",
         help="Whether to use anonymous mode in StructureMatcher. Default False")
+
+    # Subparser for spg command.
+    p_spg = subparsers.add_parser('spg', parents=[copts_parser, spgopt_parser, pandas_parser],
+            help=abicomp_spg.__doc__)
+    p_spg.add_argument("-t", "--tolsym", type=float, default=None, help="""\
+Gives the tolerance on the atomic positions (reduced coordinates), primitive vectors, or magnetization,
+to be considered equivalent, thanks to symmetry operations. This is used in the recognition of the set
+of symmetries of the system, or the application of the symmetry operations to generate from a reduced set of atoms,
+the full set of atoms. Note that a value larger than 0.01 is considered to be unacceptable.""")
 
     # Subparser for mp_structure command.
     p_mpstruct = subparsers.add_parser('mp_structure', parents=[copts_parser, nb_parser],
@@ -908,9 +1013,10 @@ def get_parser(with_epilog=False):
         help="Use the row index as x-value in the plot. By default the plotter uses the first column as x-values")
 
     # Subparser for ebands command.
-    p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, ipy_parser], help=abicomp_ebands.__doc__)
+    p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, ipy_parser, pandas_parser],
+            help=abicomp_ebands.__doc__)
     p_ebands.add_argument("-p", "--plot-mode", default="gridplot",
-        choices=["gridplot", "combiplot", "boxplot", "combiboxplot", "animate", "None"],
+        choices=["gridplot", "combiplot", "boxplot", "combiboxplot", "plot_band_edges", "animate", "None"],
         help="Plot mode e.g. `-p combiplot` to plot bands on the same figure. Default is `gridplot`.")
     p_ebands.add_argument("-e0", default="fermie", choices=["fermie", "None"],
         help="Option used to define the zero of energy in the band structure plot. Default is `fermie`.")
@@ -928,8 +1034,9 @@ def get_parser(with_epilog=False):
     p_phbands = subparsers.add_parser('phbands', parents=[copts_parser, ipy_parser, expose_parser],
         help=abicomp_phbands.__doc__)
     p_phbands.add_argument("-p", "--plot-mode", default="gridplot",
-        choices=["gridplot", "combiplot", "boxplot", "combiboxplot", "animate", "None"],
-        help="Plot mode e.g. `-p combiplot` to plot bands on the same figure. Default is `gridplot`.")
+        choices=["gridplot", "combiplot", "boxplot", "combiboxplot", "animate", "panel", "None"],
+        help="Plot mode e.g. `-p combiplot` to plot bands on the same figure."
+             "Use `panel` for GUI in web browser. Default is `gridplot`.")
 
     # Subparser for phdos command.
     p_phdos = subparsers.add_parser('phdos', parents=[copts_parser, ipy_parser, expose_parser],
@@ -952,16 +1059,27 @@ def get_parser(with_epilog=False):
     #robot_ipy_parser.add_argument('-ipy', '--ipython', default=True, action="store_true", help='Invoke ipython terminal.')
     robot_ipy_parser.add_argument('-p', '--print', default=False, action="store_true", help='Print robot and return.')
 
-    robot_parents = [copts_parser, robot_ipy_parser, robot_parser, expose_parser]
+    # Parent parser for *robot* commands
+    robot_parser = argparse.ArgumentParser(add_help=False)
+    robot_parser.add_argument('--no-walk', default=False, action="store_true", help="Don't enter subdirectories.")
+    robot_parser.add_argument('--panel', default=False, action="store_true",
+                              help="Open GUI in web browser, requires panel package. WARNING: Experimental")
+
+    robot_parents = [copts_parser, robot_ipy_parser, robot_parser, expose_parser, pandas_parser]
     p_gsr = subparsers.add_parser('gsr', parents=robot_parents, help=abicomp_gsr.__doc__)
     p_hist = subparsers.add_parser('hist', parents=robot_parents, help=abicomp_hist.__doc__)
     p_ddb = subparsers.add_parser('ddb', parents=robot_parents, help=abicomp_ddb.__doc__)
+    p_anaddb = subparsers.add_parser('anaddb', parents=robot_parents, help=abicomp_anaddb.__doc__)
     p_phbst = subparsers.add_parser('phbst', parents=robot_parents, help=abicomp_phbst.__doc__)
     p_sigres = subparsers.add_parser('sigres', parents=robot_parents, help=abicomp_sigres.__doc__)
     p_mdf = subparsers.add_parser('mdf', parents=robot_parents, help=abicomp_mdf.__doc__)
     p_optic = subparsers.add_parser('optic', parents=robot_parents, help=abicomp_optic.__doc__)
     p_a2f = subparsers.add_parser('a2f', parents=robot_parents, help=abicomp_a2f.__doc__)
     p_sigeph = subparsers.add_parser('sigeph', parents=robot_parents, help=abicomp_sigeph.__doc__)
+    p_gkq = subparsers.add_parser('gkq', parents=robot_parents, help=abicomp_gkq.__doc__)
+    p_gkq.add_argument('-d', '--diff', default=False, action="store_true", help='Plot difference between eph matrix elements.')
+    p_v1qavg = subparsers.add_parser('v1qavg', parents=robot_parents, help=abicomp_v1qavg.__doc__)
+    p_wrmax = subparsers.add_parser('wrmax', parents=robot_parents, help=abicomp_wrmax.__doc__)
     p_abiwan = subparsers.add_parser('abiwan', parents=robot_parents, help=abicomp_abiwan.__doc__)
 
     # Subparser for pseudos command.

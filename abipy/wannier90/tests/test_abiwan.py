@@ -1,6 +1,4 @@
 """Tests for wannier90 module"""
-from __future__ import print_function, division, absolute_import, unicode_literals
-
 import os
 import abipy.data as abidata
 
@@ -120,6 +118,6 @@ class TestAbiwanFile(AbipyTest):
             assert plotter.gridplot(show=False)
 
         if self.has_nbformat():
-            robot.write_notebook(nbpath=self.get_tmpname(text=True))
+            assert robot.write_notebook(nbpath=self.get_tmpname(text=True))
 
         robot.close()

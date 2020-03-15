@@ -1,7 +1,5 @@
 # coding: utf-8
 """This module defines objects describing the sampling of the Brillouin Zone."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import collections
 import json
 import sys
@@ -10,23 +8,16 @@ import numpy as np
 
 from itertools import product
 from tabulate import tabulate
-from monty.json import MSONable, MontyEncoder
+from monty.json import MontyEncoder
 from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
-from monty.termcolor import cprint
 from monty.string import marquee
 from pymatgen.core.lattice import Lattice
-try:
-    from pymatgen.util.serialization import pmg_serialize
-except ImportError:
-    from pymatgen.serializers.json_coders import pmg_serialize
-try:
-    from pymatgen.util.serialization import SlotPickleMixin
-except ImportError:
-    from pymatgen.serializers.pickle_coders import SlotPickleMixin
+from pymatgen.util.serialization import pmg_serialize
+from pymatgen.util.serialization import SlotPickleMixin
 from abipy.iotools import ETSF_Reader
 from abipy.tools.derivatives import finite_diff
-from abipy.tools.numtools import add_periodic_replicas
+from abipy.tools.numtools import add_periodic_replicas, is_diagonal
 
 import logging
 logger = logging.getLogger(__name__)
@@ -356,7 +347,7 @@ def map_kpoints(other_kpoints, other_lattice, ref_lattice, ref_kpoints, ref_symr
         found = False
         for ik_ref, kref in enumerate(ref_kpoints):
             if found: break
-            for tsign in tsign:
+            for tsign in tsigns:
                 for isym, symrec in enumerate(ref_symrecs):
                     krot = tsign * np.matmul(symrec, kref)
                     if issamek(okpt_red, krot):
@@ -469,6 +460,44 @@ def find_irred_kpoints_generic(structure, kfrac_coords, verbose=1):
     return dict2namedtuple(irred_map=np.array(irred_map, dtype=np.int))
 
 
+def kpath_from_bounds_and_ndivsm(bounds, ndivsm, structure):
+    """
+    Generate a normalized path given the extrema and the number of divisions for the smallest segment
+
+    Args:
+        bounds: (N, 3) array with the boundaries of the path in reduced coordinates.
+        ndivsm: Number of divisions used for the smallest segment.
+
+    Return:
+        Array (M, 3) with fractional coordinates.
+    """
+    bounds = np.reshape(bounds, (-1, 3))
+    nbounds = len(bounds)
+    if nbounds == 1:
+        raise ValueError("Need at least two points to define the k-path!")
+
+    lens = []
+    for i in range(nbounds - 1):
+        v = bounds[i + 1] - bounds[i]
+        lens.append(float(structure.reciprocal_lattice.norm(v)))
+
+    # Avoid division by zero if any bounds[i+1] == bounds[i]
+    minlen = np.min(lens)
+    if minlen < 1e-6:
+        raise ValueError("Found two equivalent consecutive points in bounds!")
+
+    minlen = minlen / ndivsm
+    ndivs = np.rint(lens / minlen).astype(np.int)
+    path = []
+    for i in range(nbounds - 1):
+        for j in range(ndivs[i]):
+            p = bounds[i] + j * (bounds[i + 1] - bounds[i]) / ndivs[i]
+            path.append(p)
+    path.append(bounds[-1])
+
+    return np.array(path)
+
+
 class KpointsError(Exception):
     """Base error class for KpointList exceptions."""
 
@@ -489,9 +518,9 @@ def as_kpoints(obj, lattice, weights=None, names=None):
         return [obj]
 
     # Iterable with K-points?
-    if isinstance(obj, collections.Iterable):
+    if isinstance(obj, collections.abc.Iterable):
         if isinstance(obj[0], Kpoint):
-            assert all( isinstance(o, Kpoint) for o in obj)
+            assert all(isinstance(o, Kpoint) for o in obj)
             return obj
 
     # Assume array-like
@@ -514,6 +543,12 @@ def as_kpoints(obj, lattice, weights=None, names=None):
 class Kpoint(SlotPickleMixin):
     """
     Class defining one k-point. This object is immutable and can be used as key in dictionaries
+
+    Note that we usually construct the object by passing pymatgen.reciprocal_lattice
+    that is the standard reciprocal lattice used for solid state physics
+    with a factor of 2 * pi i.e. a_i . b_j = 2pi delta_ij.
+    Abinit, on the contrary, uses the crystallographic reciprocal lattice i.e. no 2pi factor.
+    so pay attention when converting Abinit routines to AbiPy.
     """
 
     __slots__ = [
@@ -620,12 +655,26 @@ class Kpoint(SlotPickleMixin):
             s += " %s" % self.name
         return s
 
+    def tos(self, m="fract"):
+        """
+        Return string with fractional or cartesian coords depending
+        on mode `m` in ("fract", "cart", "fracart")
+        """
+        if m == "fract":
+            return "[%+.3f, %+.3f, %+.3f]" % tuple(self.frac_coords)
+        elif m == "cart":
+            return "(%+.3f, %+.3f, %+.3f)" % tuple(self.cart_coords)
+        elif m == "fracart":
+            return "%s, %s" % (self.tos(m="fract"), self.tos(m="cart"))
+        else:
+            raise ValueError("Invalid mode: `%s`" % str(m))
+
     def __str__(self):
         return self.to_string()
 
     def to_string(self, verbose=0):
         """String representation."""
-        s =  "[%+.3f, %+.3f, %+.3f]" % tuple(self.frac_coords)
+        s = "[%+.3f, %+.3f, %+.3f]" % tuple(self.frac_coords)
         if self.name is not None:
             s += ", name: %s" % self.name
         if self._weight is not None: s += ", weight: %.3f" % self.weight
@@ -729,7 +778,7 @@ class Kpoint(SlotPickleMixin):
         return KpointStar(self.lattice, frac_coords, weights=None, names=len(frac_coords) * [self.name])
 
 
-class KpointList(collections.Sequence):
+class KpointList(collections.abc.Sequence):
     """
     Base class defining a sequence of |Kpoint| objects. Essentially consists
     of base methods implementing the sequence protocol and helper functions.
@@ -879,6 +928,18 @@ class KpointList(collections.Sequence):
             return self._points.index(kpoint)
         except ValueError:
             raise ValueError("Cannot find point: %s in KpointList:\n%s" % (repr(kpoint), repr(self)))
+
+    def get_all_kindices(self, kpoint):
+        """
+        Return numpy array with indexes of all the k-point
+        Accepts: |Kpoint| instance or integer.
+        """
+        start = self.index(kpoint)
+        k0 = self[start]
+        kinds = []
+        for ik, k in enumerate(self):
+            if k == k0: kinds.append(ik)
+        return np.array(kinds)
 
     def find(self, kpoint):
         """
@@ -1189,7 +1250,7 @@ class Kpath(KpointList):
             if verbose == 0 and not tag: continue
             table.append([
                 str(i),
-                "%.5f, %.5f, %.5f" % tuple(kpoint.frac_coords),
+                "%.7f, %.7f, %.7f" % tuple(kpoint.frac_coords),
                 kpoint.name,
                 self.ds[i] if i != len(self) - 1 else None,
                 "*" if i in vids else " ",
@@ -1234,8 +1295,9 @@ class Kpath(KpointList):
 
         for i, v in enumerate(self.versors[1:]):
             i += 1
-            if v != prev:
-                #print("diff", v.frac_coords - prev.frac_coords)
+            #if v != prev:
+            if ((prev - v).norm > 1e-5):
+                #print("diff", (prev - v).norm, v.frac_coords - prev.frac_coords)
                 prev = v
                 lines[-1].append(i)
                 lines.append([i])
@@ -1371,8 +1433,8 @@ class IrredZone(KpointList):
             names: List with the name of the k-points.
             ksampling: Info on the k-point sampling
         """
-        super(IrredZone, self).__init__(reciprocal_lattice, frac_coords,
-                                        weights=weights, names=names, ksampling=ksampling)
+        super().__init__(reciprocal_lattice, frac_coords,
+                         weights=weights, names=names, ksampling=ksampling)
 
         # Weights must be normalized to one.
         wsum = self.sum_weights()
@@ -1446,19 +1508,6 @@ class IrredZone(KpointList):
     #            plane[x, y] = values_ibz[ibz_idx]
     #    kx, ky = np.meshgrid(kx, ky)
     #    return kx, ky, plane
-
-
-def is_diagonal(matrix, atol=1e-12):
-    """
-    Return True if matrix is diagonal.
-    """
-    m = matrix.copy()
-    np.fill_diagonal(m, 0)
-
-    if issubclass(matrix.dtype.type, np.integer):
-        return np.all(m == 0)
-    else:
-        return np.all(np.abs(m) <= atol)
 
 
 class KSamplingInfo(AttrDict):
@@ -1536,10 +1585,10 @@ class KSamplingInfo(AttrDict):
                    kptrlatt=kptrlatt, kptrlatt_orig=kptrlatt_orig, kptopt=kptopt)
 
     def __init__(self, *args, **kwargs):
-        super(KSamplingInfo, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         for k in self:
-           if k not in self.KNOWN_KEYS:
-               raise ValueError("Unknow key %s" % k)
+            if k not in self.KNOWN_KEYS:
+                raise ValueError("Unknow key %s" % k)
 
         # FIXME: monkhorst_pack_folding is not written in e.g. DEN.nc files
         # so we get crazy results because of netCDF4._default_fillvals
@@ -1557,7 +1606,6 @@ class KSamplingInfo(AttrDict):
 #Received {mpdivs}
 #Setting mpdivs to None, this may create problems in post-processing tools.
 #If needed, use python netcdf to change the value of `monkhorst_pack_folding`""".format(mpdivs=self["mpdivs"]))
-
 
     def __str__(self):
         return self.to_string()
@@ -1621,7 +1669,8 @@ class KpointsReaderMixin(object):
         weights = self.read_kweights()
         ksampling = self.read_ksampling_info()
 
-        if ksampling.kptopt < 0:
+        #if ksampling.kptopt < 0:
+        if ksampling.kptopt < 0 or np.all(weights == 1):
             # We have a path in the BZ.
             kpath = Kpath(structure.reciprocal_lattice, frac_coords, ksampling=ksampling)
             for kpoint in kpath:
@@ -1638,9 +1687,6 @@ class KpointsReaderMixin(object):
         #if np.any(ksampling.kptrlatt_orig != 0):
         # We have a homogeneous sampling of the BZ.
         return IrredZone(structure.reciprocal_lattice, frac_coords, weights=weights, ksampling=ksampling)
-
-        #raise ValueError("Only homogeneous samplings or paths are supported!\n"
-        #                 "ksampling info:\n%s" % str(ksampling))
 
     def read_ksampling_info(self):
         """
@@ -1840,3 +1886,35 @@ def find_points_along_path(cart_bounds, cart_coords, dist_tol):
     return dict2namedtuple(ikfound=np.array(ikfound)[isort],
                            dist_list=dist_list,
                            path_ticks=np.array(path_ticks))
+
+
+def build_segments(k0_list, npts, step, red_dirs, reciprocal_lattice):
+    """
+    For each point in k0_list, build a line passing through the point for each
+    reduced direction in red_dir. Each line consists of `npts` points with step `step` in Ang-1
+    and is centered on the k-point. Return: (nk0_list, len(red_dirs) * npts, 3) array with fractional coordinates.
+
+    Args:
+        k0_list: List of k-points in reduced coordinates.
+        npts: Number of points in each segment.
+        step: Step in Ang-1
+        red_dirs: List of reduced directions
+        reciprocal_lattice: Reciprocal lattice (from structure.reciprocal_lattice)
+    """
+    k0_list = np.reshape(k0_list, (-1, 3))
+    red_dirs = np.reshape(red_dirs, (-1, 3))
+    kpts = []
+    for kpoint in k0_list:
+        kpoint = Kpoint.as_kpoint(kpoint, reciprocal_lattice)
+        # Build segments passing through this kpoint (work in Cartesian coords)
+        for rdir in red_dirs:
+            bvers = reciprocal_lattice.matrix.T @ rdir
+            #bvers = reciprocal_lattice.get_cartesian_coords(rdir)
+            bvers /= np.sqrt(np.dot(bvers, bvers))
+            kstart = kpoint.cart_coords - bvers * (npts // 2) * step
+            for ii in range(npts):
+                kpts.append(kstart + ii * step * bvers)
+
+    # Cart --> Frac
+    out = reciprocal_lattice.get_fractional_coords(kpts)
+    return np.reshape(out, (len(k0_list), len(red_dirs) * npts, 3))

@@ -1,7 +1,5 @@
 # coding: utf-8
 """History file with structural relaxation results."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 import numpy as np
 import pymatgen.core.units as units
@@ -17,6 +15,7 @@ from abipy.core.structure import Structure
 from abipy.core.mixins import AbinitNcFile, NotebookWriter
 from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
+import abipy.core.abinit_units as abu
 
 
 class HistFile(AbinitNcFile, NotebookWriter):
@@ -40,7 +39,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         return cls(filepath)
 
     def __init__(self, filepath):
-        super(HistFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = HistReader(filepath)
 
     def close(self):
@@ -65,7 +64,6 @@ class HistFile(AbinitNcFile, NotebookWriter):
     #def nspden(self):
     #    """Number of independent spin densities."""
     #    return self.reader.read_dimvalue("nspden")
-
 
     #@lazy_property
     #def nspinor(self):
@@ -126,7 +124,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         app("")
 
         cart_stress_tensors, pressures = self.reader.read_cart_stress_tensors()
-        app("Stress tensor (Cartesian coordinates in Ha/Bohr**3):\n%s" % cart_stress_tensors[-1])
+        app("Stress tensor (Cartesian coordinates in GPa):\n%s" % cart_stress_tensors[-1])
         app("Pressure: %.3f [GPa]" % pressures[-1])
 
         return "\n".join(lines)
@@ -167,18 +165,20 @@ class HistFile(AbinitNcFile, NotebookWriter):
         """
         return RelaxationAnalyzer(self.initial_structure, self.final_structure)
 
-    def to_xdatcar(self, filepath=None, groupby_type=True, **kwargs):
+    def to_xdatcar(self, filepath=None, groupby_type=True, to_unit_cell=False, **kwargs):
         """
         Return Xdatcar pymatgen object. See write_xdatcar for the meaning of arguments.
 
         Args:
+            to_unit_cell (bool): Whether to translate sites into the unit cell.
             kwargs: keywords arguments passed to Xdatcar constructor.
         """
-        filepath = self.write_xdatcar(filepath=filepath, groupby_type=groupby_type, overwrite=True)
+        filepath = self.write_xdatcar(filepath=filepath, groupby_type=groupby_type,
+                                      to_unit_cell=to_unit_cell, overwrite=True)
         from pymatgen.io.vasp.outputs import Xdatcar
         return Xdatcar(filepath, **kwargs)
 
-    def write_xdatcar(self, filepath="XDATCAR", groupby_type=True, overwrite=False):
+    def write_xdatcar(self, filepath="XDATCAR", groupby_type=True, overwrite=False, to_unit_cell=False):
         """
         Write Xdatcar file with unit cell and atomic positions to file ``filepath``.
 
@@ -189,6 +189,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
                 there are post-processing tools (e.g. ovito) that do not work as expected
                 if the atoms in the structure are not grouped by type.
             overwrite: raise RuntimeError, if False and filepath exists.
+            to_unit_cell (bool): Whether to translate sites into the unit cell.
 
         Return:
             path to Xdatcar file.
@@ -242,6 +243,9 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
             # Write atomic positions in reduced coordinates.
             xred_list = self.reader.read_value("xred")
+            if to_unit_cell:
+                xred_list = xred_list % 1
+
             for step in range(self.num_steps):
                 fh.write("Direct configuration= %d\n" % (step + 1))
                 frac_coords = xred_list[step, group_ids]
@@ -250,10 +254,13 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
         return filepath
 
-    def visualize(self, appname="ovito"):  # pragma: no cover
+    def visualize(self, appname="ovito", to_unit_cell=False):  # pragma: no cover
         """
         Visualize the crystalline structure with visualizer.
         See :class:`Visualizer` for the list of applications and formats supported.
+
+        Args:
+            to_unit_cell (bool): Whether to translate sites into the unit cell.
         """
         if appname == "mayavi": return self.mayaview()
 
@@ -263,7 +270,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         if visu.name != "ovito":
             raise NotImplementedError("visualizer: %s" % visu.name)
 
-        filepath = self.write_xdatcar(filepath=None, groupby_type=True)
+        filepath = self.write_xdatcar(filepath=None, groupby_type=True, to_unit_cell=to_unit_cell)
 
         return visu(filepath)()
         #if options.trajectories:
@@ -271,13 +278,13 @@ class HistFile(AbinitNcFile, NotebookWriter):
         #else:
         #    hist.mvanimate()
 
-    def plot_ax(self, ax, what, fontsize=12, **kwargs):
+    def plot_ax(self, ax, what, fontsize=8, **kwargs):
         """
         Helper function to plot quantity ``what`` on axis ``ax``.
 
         Args:
-            fontsize: fontsize for legend
-            kwargs are passed to matplotlib plot method
+            fontsize: fontsize for legend.
+            kwargs are passed to matplotlib plot method.
         """
         label = None
         if what == "energy":
@@ -297,7 +304,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
             ax.set_ylabel("abc (A)")
 
         elif what in ("a", "b", "c"):
-            i =  ("a", "b", "c").index(what)
+            i = ("a", "b", "c").index(what)
             marker = kwargs.pop("marker", None)
             if marker is None:
                 marker = {"a": "o", "b": "^", "c": "v"}[what]
@@ -316,7 +323,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
             ax.set_ylabel(r"$\alpha\beta\gamma$ (degree)")
 
         elif what in ("alpha", "beta", "gamma"):
-            i =  ("alpha", "beta", "gamma").index(what)
+            i = ("alpha", "beta", "gamma").index(what)
             marker = kwargs.pop("marker", None)
             if marker is None:
                 marker = {"alpha": "o", "beta": "^", "gamma": "v"}[what]
@@ -366,25 +373,37 @@ class HistFile(AbinitNcFile, NotebookWriter):
         if label is not None:
             ax.legend(loc='best', fontsize=fontsize, shadow=True)
 
-
     @add_fig_kwargs
-    def plot(self, ax_list=None, fontsize=8, **kwargs):
+    def plot(self, what_list=None, ax_list=None, fontsize=8, **kwargs):
         """
         Plot the evolution of structural parameters (lattice lengths, angles and volume)
         as well as pressure, info on forces and total energy.
 
         Args:
+            what_list:
             ax_list: List of |matplotlib-Axes|. If None, a new figure is created.
             fontsize: fontsize for legend
 
         Returns: |matplotlib-Figure|
         """
-        what_list = ["abc", "angles", "volume", "pressure", "forces", "energy"]
-        nrows, ncols = 3, 2
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+        if what_list is None:
+            what_list = ["abc", "angles", "volume", "pressure", "forces", "energy"]
+        else:
+            what_list = list_strings(what_list)
+
+        nplots = len(what_list)
+        nrows, ncols = 1, 1
+        if nplots > 1:
+            ncols = 2
+            nrows = nplots // ncols + nplots % ncols
+
+        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
                                                 sharex=True, sharey=False, squeeze=False)
         ax_list = ax_list.ravel()
         assert len(ax_list) == len(what_list)
+
+        # don't show the last ax if nplots is odd.
+        if nplots % ncols != 0: ax_list[-1].axis("off")
 
         for what, ax in zip(what_list, ax_list):
             self.plot_ax(ax, what, fontsize=fontsize, marker="o")
@@ -392,7 +411,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_energies(self, ax=None, fontsize=12, **kwargs):
+    def plot_energies(self, ax=None, fontsize=8, **kwargs):
         """
         Plot the total energies as function of the iteration step.
 
@@ -483,8 +502,8 @@ class HistFile(AbinitNcFile, NotebookWriter):
         @mlab.animate(delay=delay, ui=True)
         def anim():
             """Animate."""
-            for it, structure in enumerate(self.structures):
             #for it in range(self.num_steps):
+            for it, structure in enumerate(self.structures):
                 print('Updating scene for iteration:', it)
                 #mlab.clf(figure=figure)
                 mvtk.plot_structure(structure, style=style, figure=figure)
@@ -495,6 +514,11 @@ class HistFile(AbinitNcFile, NotebookWriter):
                 yield
 
         anim()
+
+    def get_panel(self):
+        """Build panel with widgets to interact with the |HistFile| either in a notebook or in panel app."""
+        from abipy.panels.hist import HistFilePanel
+        return HistFilePanel(self).get_panel()
 
     def write_notebook(self, nbpath=None):
         """
@@ -527,7 +551,7 @@ class HistRobot(Robot):
         """String representation with verbosity level ``verbose``."""
         s = ""
         if verbose:
-            s = super(HistRobot, self).to_string(verbose=0)
+            s = super().to_string(verbose=0)
         df = self.get_dataframe()
         s_df = "Table with final structures, pressures in GPa and force stats in eV/Ang:\n\n%s" % str(df)
         if s:
@@ -662,7 +686,7 @@ class HistRobot(Robot):
 
         for i, (ax, what) in enumerate(zip(ax_list, what_list)):
             for ih, hist in enumerate(self.abifiles):
-                label= None if i != 0 else hist.relpath
+                label = None if i != 0 else hist.relpath
                 hist.plot_ax(ax, what, color=cmap(ih / len(self)), label=label, fontsize=fontsize)
 
             if label is not None:
@@ -780,7 +804,7 @@ class HistReader(ETSF_Reader):
 
     def read_cart_stress_tensors(self):
         """
-        Return the stress tensors (nstep x 3 x 3) in cartesian coordinates (Hartree/Bohr^3)
+        Return the stress tensors (nstep x 3 x 3) in cartesian coordinates (GPa)
         and the list of pressures in GPa unit.
         """
         # Abinit stores 6 unique components of this symmetric 3x3 tensor:
@@ -794,9 +818,9 @@ class HistReader(ETSF_Reader):
                 tensors[step, i,j] = c[step, 3+p]
                 tensors[step, j,i] = c[step, 3+p]
 
-        HaBohr3_GPa = 29421.033 # 1 Ha/Bohr^3, in GPa
+        tensors *= abu.HaBohr3_GPa
         pressures = np.empty(self.num_steps)
         for step, tensor in enumerate(tensors):
-            pressures[step] = - (HaBohr3_GPa/3) * tensor.trace()
+            pressures[step] = - tensor.trace() / 3
 
         return tensors, pressures

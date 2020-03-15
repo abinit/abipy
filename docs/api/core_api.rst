@@ -116,14 +116,6 @@ core Package
    :undoc-members:
    :show-inheritance:
 
-:mod:`tensor` Module
---------------------
-
-.. automodule:: abipy.core.tensor
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 :mod:`testing` Module
 ---------------------
 
@@ -132,10 +124,10 @@ core Package
    :undoc-members:
    :show-inheritance:
 
-:mod:`wyckoff` Module
----------------------
+:mod:`site_symmetries` Module
+-----------------------------
 
-.. automodule:: abipy.core.wyckoff
+.. automodule:: abipy.core.site_symmetries
    :members:
    :undoc-members:
    :show-inheritance:

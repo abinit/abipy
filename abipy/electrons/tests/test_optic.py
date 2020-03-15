@@ -1,7 +1,5 @@
 # coding: utf-8
 """Tests for optic module."""
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import abipy.data as abidata
 
 from abipy.core.testing import AbipyTest
@@ -35,7 +33,6 @@ class OpticTest(AbipyTest):
             assert optic.has_leo
             assert optic.reader.computed_components["leo"] == ["xyz"]
             #assert not optic.reader.computed_components["leo2"]
-
 
             # Test plot methods
             if self.has_matplotlib():

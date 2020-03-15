@@ -3,7 +3,6 @@
 This script checks that the options in ``manager.yml``, ``scheduler.yml``,
 and the environment on the local machine are properly configured.
 """
-from __future__ import unicode_literals, division, print_function, absolute_import
 
 import sys
 import os
@@ -18,7 +17,9 @@ from abipy import abilab
 
 
 def show_managers(options):
-    """Print table with manager files provided by AbiPy."""
+    """
+    Print table with manager files provided by AbiPy.
+    """
     from tabulate import tabulate
     table = []
     root = os.path.join(abidata.dirpath, "managers")
@@ -32,12 +33,16 @@ def show_managers(options):
     print(tabulate(table, headers=["hostname", "queue-type", "filepath"], tablefmt="rst"))
     return 0
 
+
 def get_epilog():
     return """\
 Usage example:
     abicheck.py                ==> Test abipy installation and requirements.
-    abicheck.py --with-flow    ==> Consistency check + execution of AbiPy flow.
+    abicheck.py -m             ==> Print table with manager files provided by AbiPy.
+    abicheck.py -c             ==> Install Yaml configuration files for manager and scheduler in ~/.abinit/abipy dir.
+    abicheck.py --with-flow    ==> Consistency check followed by execution of AbiPy flow.
 """
+
 
 def get_parser(with_epilog=False):
 
@@ -45,14 +50,19 @@ def get_parser(with_epilog=False):
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument('--loglevel', default="ERROR", type=str,
-                         help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+                        help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
     parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
     parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-                         help='verbose, can be supplied multiple times to increase verbosity.')
+                        help='verbose, can be supplied multiple times to increase verbosity.')
     parser.add_argument('--no-colors', default=False, action="store_true", help='Disable ASCII colors.')
     parser.add_argument('--with-flow', default=False, action="store_true", help='Build and run small abipy flow for testing.')
     parser.add_argument("-m", '--show-managers', default=False, action="store_true",
                         help="Print table with manager files provided by AbiPy.")
+
+    parser.add_argument("-c", '--create-config', default=False, action="store_true",
+                        help="Create yaml configuration files in ~/abinit/.abipy with predefined settings.")
+    parser.add_argument("-f", '--force-reinstall', default=False, action="store_true",
+                        help="Overwrite yaml configuration files if --create-config and files already exist.")
     return parser
 
 
@@ -87,28 +97,29 @@ def main():
         termcolor.enable(False)
 
     if options.show_managers:
+        # Show table with manager configuration files.
         return show_managers(options)
+
+    if options.create_config:
+        # Install Yaml configuration files for manager and scheduler.
+        abilab.install_config_files(workdir=None, force_reinstall=options.force_reinstall)
 
     errmsg = abilab.abicheck(verbose=options.verbose)
     if errmsg:
         cprint(errmsg, "red")
         cprint("TIP: Use `--show-managers` to print the manager files provided by AbiPy.\n" +
                "If abicheck.py is failing because it cannot find the manager.yml configuration file",
-                "yellow")
+               "yellow")
         return 2
     else:
-        print()
-        cprint("Abipy requirements are properly configured", "green")
-        print()
+        cprint("\nAbipy requirements are properly configured\n", "green")
 
     if not options.with_flow:
         return 0
 
     retcode = run_flow(options)
     if retcode == 0:
-        print()
-        cprint("Test flow completed successfully", "green")
-        print()
+        cprint("\nTest flow completed successfully\n", "green")
 
     return retcode
 
@@ -180,6 +191,7 @@ def run_flow(options):
         retcode = 1
 
     return retcode
+
 
 if __name__ == "__main__":
     sys.exit(main())

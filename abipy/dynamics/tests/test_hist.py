@@ -1,10 +1,9 @@
 """"Tests for HIST.nc files."""
-from __future__ import division, print_function, unicode_literals
-
 import abipy.data as abidata
 from abipy import abilab
 from abipy.core.testing import AbipyTest
 from abipy.dynamics.hist import HistFile, HistRobot
+import abipy.core.abinit_units as abu
 
 
 class HistFileTest(AbipyTest):
@@ -52,7 +51,7 @@ class HistFileTest(AbipyTest):
         self.assert_almost_equal(pressures[-1], -1.4745E-03)
         self.assert_almost_equal(cart_stress_tensors[-1, 1, 0], 0.0)
         for i in range(3):
-            self.assert_almost_equal(cart_stress_tensors[-1, i, i], 5.01170783E-08)
+            self.assert_almost_equal(cart_stress_tensors[-1, i, i], 5.01170783E-08 * abu.HaBohr3_GPa)
 
         same_structure = abilab.Structure.from_file(abidata.ref_file("sic_relax_HIST.nc"))
         self.assert_almost_equal(same_structure.frac_coords, hist.final_structure.frac_coords)
@@ -64,8 +63,8 @@ class HistFileTest(AbipyTest):
         self.assert_almost_equal(xdatcar.structures[-1].frac_coords, hist.structures[-1].frac_coords)
 
         xdatcar_nogroup = hist.to_xdatcar(filepath=None, groupby_type=False)
-        assert xdatcar.structures[0] ==  xdatcar_nogroup.structures[0]
-        assert xdatcar.structures[-1] ==  xdatcar_nogroup.structures[-1]
+        assert xdatcar.structures[0] == xdatcar_nogroup.structures[0]
+        assert xdatcar.structures[-1] == xdatcar_nogroup.structures[-1]
 
         # Test matplotlib plots.
         if self.has_matplotlib():
@@ -79,6 +78,9 @@ class HistFileTest(AbipyTest):
         if self.has_mayavi():
             assert hist.mvplot_trajectories(show=False)
             #assert hist.mvanimate(delay=100)
+
+        if self.has_panel():
+            assert hasattr(hist.get_panel(), "show")
 
         hist.close()
 

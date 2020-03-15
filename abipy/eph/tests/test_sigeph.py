@@ -1,6 +1,4 @@
 """Tests for sigeph module."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 import collections
 import numpy as np
@@ -14,7 +12,6 @@ class SigEPhFileTest(AbipyTest):
 
     def test_sigeph_file(self):
         """Tests for SigEPhFile."""
-        #raise self.SkipTest("Disabled")
         sigeph = abilab.abiopen(abidata.ref_file("diamond_444q_SIGEPH.nc"))
         repr(sigeph); str(sigeph)
         assert sigeph.to_string(verbose=2)
@@ -25,14 +22,16 @@ class SigEPhFileTest(AbipyTest):
 
         assert sigeph.nkcalc == 2
         self.assert_equal(sigeph.ngqpt.flatten(), [4, 4, 4])
+        assert not sigeph.imag_only
         assert sigeph.symsigma == 0
-        assert sigeph.ntemp ==  6
+        assert sigeph.ntemp == 6
         assert sigeph.nband == 54
         assert sigeph.nqbz == sigeph.ngqpt.prod()
         assert sigeph.nqibz == 8
         # FIXME
         #self.assert_almost_equal(sigeph.zcut, 0.001)
         assert sigeph.has_spectral_function and sigeph.reader.nwr == 101
+        assert not sigeph.has_eliashberg_function
         assert len(sigeph.mu_e) == sigeph.ntemp
         assert "nbsum" in sigeph.params
         assert "eph_fsewin" in sigeph.params
@@ -76,10 +75,10 @@ class SigEPhFileTest(AbipyTest):
         assert ksamp.to_string(title="Ksampling")
 
         # Test Dataframe construction.
-        data_sk = sigeph.get_dataframe_sk(spin=0, kpoint=[0.5, 0.0, 0.0])
+        data_sk = sigeph.get_dataframe_sk(spin=0, kpoint=[0.5, 0.0, 0.0], with_spin=True)
         assert "qpeme0" in data_sk
         assert np.all(data_sk["spin"] == 0)
-        self.assert_almost_equal(data_sk["kpoint"].values[0].frac_coords, [0.5, 0.0, 0.0])
+        #self.assert_almost_equal(data_sk["kpoint"].values[0].frac_coords, [0.5, 0.0, 0.0])
 
         itemp = 0
         data_sk = sigeph.get_dataframe_sk(spin=0, kpoint=[0.5, 0.0, 0.0], itemp=itemp)
@@ -125,7 +124,7 @@ class SigEPhFileTest(AbipyTest):
         assert qp.spin == 0 and qp.kpoint == [0, 0, 0] and qp.band == 3
         assert qp.skb == (0, [0, 0, 0], 3)
         #assert len(qp.qpeme0) == qpt.ntemp
-        self.assert_equal(qp.qpeme0, qp.qpe - qp.e0)
+        self.assert_equal(qp.qpeme0, (qp.qpe - qp.e0).real)
         self.assert_equal(qp.re_qpe + 1j * qp.imag_qpe, qp.qpe)
         self.assert_equal(qp.re_fan0 + 1j * qp.imag_fan0, qp.fan0)
         fields = qp.get_fields()
@@ -140,7 +139,7 @@ class SigEPhFileTest(AbipyTest):
 
         # Test QPList
         qplist = sigeph.reader.read_qplist_sk(spin=0, kpoint=[0, 0, 0], ignore_imag=False)
-        assert isinstance(qplist, collections.Iterable)
+        assert isinstance(qplist, collections.abc.Iterable)
         # TODO
         #self.serialize_with_pickle(qplist, protocols=[-1])
 
@@ -188,73 +187,77 @@ class SigEPhFileTest(AbipyTest):
         sigeph.close()
 
     # TODO: Need new files with IBZ.
-    #def test_sigeph_interpolation(self):
-    #    """Test interpolation and TdepElectronBands"""
-    #    sigeph = abilab.abiopen(abidata.ref_file("diamond_444q_SIGEPH.nc"))
+    def test_sigeph_interpolation(self):
+        """Test interpolation and TdepElectronBands"""
+        sigeph = abilab.abiopen(abidata.ref_file("diamond_444q_full_SIGEPH.nc"))
 
-    #    # Test interpolation without KS bands.
-    #    tdep_nopath = sigeph.interpolate(itemp_list=0)
-    #    repr(tdep_nopath); str(tdep_nopath)
-    #    assert tdep_nopath.to_string(verbose=2)
-    #    assert tdep_nopath.ntemp == 1
-    #    assert not tdep_nopath.has_kpath
-    #    assert not tdep_nopath.ks_ebands_kpath is None
-    #    assert not tdep_nopath.has_kmesh
-    #    assert not tdep_nopath.ks_ebands_kmesh is None
-    #    same_tdep_nopath = tdep_nopath.__class__.pickle_load(tdep_nopath.pickle_dump())
+        # Test interpolation without KS bands.
+        tdep_nopath = sigeph.interpolate(itemp_list=0)
+        repr(tdep_nopath); str(tdep_nopath)
+        assert tdep_nopath.to_string(verbose=2)
+        assert tdep_nopath.ntemp == 1
+        #assert not tdep_nopath.has_kpath
+        #assert not tdep_nopath.ks_ebands_kpath is None
+        #assert not tdep_nopath.has_kmesh
+        #assert not tdep_nopath.ks_ebands_kmesh is None
+        same_tdep_nopath = tdep_nopath.__class__.pickle_load(tdep_nopath.pickle_dump())
 
-    #    if self.has_matplotlib():
-    #        assert tdep_nopath.plot_itemp(itemp=0, fontsize=8, show=False)
-    #        assert tdep_nopath.plot(show=False)
-    #        assert tdep_nopath.plot_lws_vs_e0(itemp_list=[0, -1], show=False)
-    #        assert tdep_nopath.get_ebands_plotter()
-    #        assert tdep_nopath.get_edos_plotter() is None
+        if self.has_matplotlib():
+            assert tdep_nopath.plot_itemp(itemp=0, fontsize=8, show=False)
+            assert tdep_nopath.plot_itemp_with_lws_vs_e0(itemp=0, fontsize=8, with_ratios=(3, 1), show=False)
+            assert tdep_nopath.plot(show=False)
+            assert tdep_nopath.plot_lws_vs_e0(itemp_list=[0, -1], show=False)
+            assert tdep_nopath.get_ebands_plotter()
+            #assert tdep_nopath.get_edos_plotter() is None
 
-    #    # Test interpolation with KS bands.
-    #    #tdep = sigeph.interpolate(self, itemp_list=None, lpratio=5, ks_ebands_kpath=None, ks_ebands_kmesh=None, ks_degatol=1e-4,
-    #    #            vertices_names=None, line_density=20, filter_params=None, only_corrections=False, verbose=0)
-    #    #repr(tdep); str(tdep)
-    #    #assert tdep.to_string(verbose=2)
-    #    #assert tdep_nopath.ntemp == 1
-    #    #assert not tdep_nopath.ks_ebands_kpath is None
-    #    #assert tdep.has_kpath
-    #    #assert not tdep_nopath.has_kmesh
-    #    #assert not tdep_nopath.ks_ebands_kmesh is None
+        # Test interpolation with KS bands.
+        tdep = sigeph.interpolate(itemp_list=None, lpratio=5, ks_ebands_kpath=None, ks_ebands_kmesh=None, ks_degatol=1e-4,
+                    vertices_names=None, line_density=20, filter_params=None, only_corrections=False, verbose=0)
+        repr(tdep); str(tdep)
+        assert tdep.to_string(verbose=2)
+        assert tdep_nopath.ntemp == 1
+        #assert not tdep_nopath.ks_ebands_kpath is None
+        #assert tdep.has_kpath
+        #assert not tdep_nopath.has_kmesh
+        #assert not tdep_nopath.ks_ebands_kmesh is None
 
-    #    #if self.has_matplotlib():
-    #    #    assert tdep_nopath.plot_itemp(itemp=0, fontsize=8, show=False)
-    #    #    assert tdep_nopath.plot(show=False)
-    #    #    assert tdep_nopath.plot_lws_vs_e0(itemp_list=[0, -1], show=False)
-    #    #    assert tdep.get_ebands_plotter()
-    #    #    assert tdep.get_edos_plotter() is None
+        if self.has_matplotlib():
+            assert tdep_nopath.plot_itemp(itemp=0, fontsize=8, show=False)
+            assert tdep_nopath.plot_itemp_with_lws_vs_e0(itemp=0, fontsize=8, show=False)
+            assert tdep_nopath.plot(show=False)
+            assert tdep_nopath.plot_lws_vs_e0(itemp_list=[0, -1], show=False)
+            assert tdep.get_ebands_plotter()
+            #assert tdep.get_edos_plotter() is None
 
-    #    sigeph.close()
+        sigeph.close()
+
+    # TODO: Need new files with IBZ.
+    def test_sigeph_boltztrap(self):
+        """Test boltztrap interpolation"""
+        sigeph = abilab.abiopen(abidata.ref_file("diamond_444q_full_SIGEPH.nc"))
+        sigeph.get_lifetimes_boltztrap("diamond", workdir=self.mkdtemp())
+        sigeph.close()
 
     def test_sigeph_robot(self):
         """Tests for SigEPhRobot."""
-        #raise self.SkipTest("Disabled")
         filepaths = [
             abidata.ref_file("diamond_444q_SIGEPH.nc"),
         ]
         with abilab.SigEPhRobot.from_files(filepaths) as robot:
             robot.add_file("same_file", filepaths[0])
             repr(robot); str(robot)
-            robot.to_string(verbose=2)
+            assert robot.to_string(verbose=2)
             assert len(robot) == 2
 
             data = robot.get_dataframe()
-            assert "qpe" in data
+            assert "re_qpe" in data
 
             # Test plot methods
             if self.has_matplotlib():
                 assert robot.plot_selfenergy_conv(spin=0, kpoint=0, band=0, show=False)
                 assert robot.plot_selfenergy_conv(spin=0, kpoint=0, band=0, sortby="nbsum", hue="nqibz", show=False)
-                #try:
                 assert robot.plot_qpgaps_t(show=False)
                 assert robot.plot_qpgaps_t(plot_qpmks=True, show=False)
-                #except ValueError:
-                # workaround for matplotlib bug
-                #pass
 
                 assert robot.plot_qpgaps_convergence(itemp=0, sortby="nbsum", show=False)
                 assert robot.plot_qpgaps_convergence(itemp=0, sortby="nbsum", hue="nqibz", show=False)

@@ -2,8 +2,6 @@
 This module provides objects for extracting timing data from the ABINIT output files
 It also provides tools to analyze and to visualize the parallel efficiency.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 from abipy.core.mixins import NotebookWriter
 from abipy.flowtk import AbinitTimerParser as _Parser
 

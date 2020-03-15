@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 """Benchmark for Optic calculations."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import sys
 import os
 import abipy.data as data

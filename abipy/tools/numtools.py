@@ -1,9 +1,6 @@
 # coding: utf-8
 """Numeric tools."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import numpy as np
-import bisect as bs
 
 from monty.collections import dict2namedtuple
 from abipy.tools import duck
@@ -61,6 +58,51 @@ def add_periodic_replicas(arr):
         oarr[..., x + 1, :, :] = oarr[..., 0, :, :]
 
     return oarr
+
+
+def data_from_cplx_mode(cplx_mode, arr, tol=None):
+    """
+    Extract the data from the numpy array ``arr`` depending on the values of ``cplx_mode``.
+
+    Args:
+        cplx_mode: Possible values in ("re", "im", "abs", "angle")
+            "re" for the real part,
+            "im" for the imaginary part.
+            "all" for both re and im.
+            "abs" means that the absolute value of the complex number is shown.
+            "angle" will display the phase of the complex number in radians.
+        tol: If not None, values below tol are set to zero. Cannot be used with "angle"
+    """
+    if cplx_mode == "re":
+        val = arr.real
+    elif cplx_mode == "im":
+        val = arr.imag
+    elif cplx_mode == "all":
+        val = arr
+    elif cplx_mode == "abs":
+        val = np.abs(arr)
+    elif cplx_mode == "angle":
+        val = np.angle(arr, deg=False)
+        if tol is not None:
+            raise ValueError("Tol cannot be used with cplx_mode = angle")
+    else:
+        raise ValueError("Unsupported mode `%s`" % str(cplx_mode))
+
+    return val if tol is None else np.where(np.abs(val) > tol, val, 0)
+
+
+def is_diagonal(matrix, atol=1e-12):
+    """
+    Return True if matrix is diagonal.
+    """
+    m = matrix.copy()
+    np.fill_diagonal(m, 0)
+
+    if issubclass(matrix.dtype.type, np.integer):
+        return np.all(m == 0)
+    else:
+        return np.all(np.abs(m) <= atol)
+
 
 #########################################################################################
 # Tools to facilitate iterations
@@ -152,6 +194,7 @@ def prune_ord(alist):
 # Special functions
 #########################################################################################
 
+
 def gaussian(x, width, center=0.0, height=None):
     """
     Returns the values of gaussian(x) where x is array-like.
@@ -186,6 +229,7 @@ def lorentzian(x, width, center=0.0, height=None):
 #=====================================
 # === Data Interpolation/Smoothing ===
 #=====================================
+
 
 def smooth(x, window_len=11, window='hanning'):
     """
@@ -392,7 +436,7 @@ class BlochRegularGridInterpolator(object):
         frac_coords = np.reshape(frac_coords, (-1, 3))
         if cartesian:
             red_from_cart = self.structure.lattice.inv_matrix.T
-            frac_coords = [np.dot(red_from, v) for v in frac_coords]
+            frac_coords = [np.dot(red_from_cart, v) for v in frac_coords]
 
         uc_coords = np.reshape(frac_coords, (-1, 3)) % 1
 
@@ -409,3 +453,36 @@ class BlochRegularGridInterpolator(object):
             values *= np.exp(2j * np.pi * np.dot(frac_coords, kpoint))
 
         return values
+
+
+def find_degs_sk(enesb, atol):
+    """
+    Return list of lists with the indices of the degenerated bands.
+
+    Args:
+        enesb: Iterable with energies for the different bands.
+            Energies are assumed to be ordered.
+        atol: Absolute tolerance. Two states are degenerated if they differ by less than `atol`.
+
+    Return:
+        List of lists. The i-th item contains the indices of the degenerates states
+            for the i-th degenerated set.
+
+    :Examples:
+
+    >>> find_degs_sk([1, 1, 2, 3.4, 3.401], atol=0.01)
+    [[0, 1], [2], [3, 4]]
+    """
+    ndeg = 0
+    degs = [[0]]
+    e0 = enesb[0]
+    for ib, ee in enumerate(enesb[1:]):
+        ib += 1
+        if abs(ee - e0) > atol:
+            e0 = ee
+            ndeg += 1
+            degs.append([ib])
+        else:
+            degs[ndeg].append(ib)
+
+    return degs

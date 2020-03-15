@@ -40,5 +40,6 @@ r.phbands_plotter.gridplot_with_hue("tsmear")
 
 r.phbands_plotter.gridplot_with_hue("tsmear", with_dos=True)
 
-
 #r.phbands_plotter.gridplot_with_hue("nkpt")
+
+robot.close()

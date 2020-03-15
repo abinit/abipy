@@ -1,7 +1,4 @@
-#!/usr/bin/env python
 """Tests for xsf module"""
-from __future__ import print_function, division
-
 import tempfile
 import numpy as np
 import abipy.data as abidata

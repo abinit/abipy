@@ -2,8 +2,6 @@
 """
 Benckmark for Molecular dynamics (based on tutoparal/Input/tmoldyn5.in)
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import sys
 import numpy as np
 import abipy.abilab as abilab

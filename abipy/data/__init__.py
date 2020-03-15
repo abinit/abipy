@@ -2,10 +2,8 @@
 Functions providing access to file data for unit tests and tutorials.
 Preferred way to import the module is via the import syntax:
 
-    import abipy.abidata as abidata
+    import abipy.data as abidata
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 
 from abipy.core.structure import Structure
@@ -31,7 +29,6 @@ _PSEUDOS_DIRPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "pseu
 _VARIABLES_DIRPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "variables"))
 
 _MPDATA_DIRPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "mpdata"))
-
 
 _SCRIPTS_DIRPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "examples"))
 _SCRIPTS = None
@@ -114,7 +111,7 @@ def find_ncfiles(top, verbose=0):
             if basename.endswith(".nc"):
 
                 if basename in ncfiles:
-                    err_msg =  "Found duplicated basename %s\n" % basename
+                    err_msg = "Found duplicated basename %s\n" % basename
                     err_msg += "Stored: %s, new %s\n" % (ncfiles[basename], apath)
                     if not verbose:
                         import warnings
@@ -124,6 +121,7 @@ def find_ncfiles(top, verbose=0):
                     ncfiles[basename] = apath
 
     return ncfiles
+
 
 _DATA_NCFILES = find_ncfiles(top=os.path.join(os.path.dirname(__file__), "refs"))
 
@@ -135,7 +133,7 @@ def ref_file(basename):
     else:
         path = os.path.join(dirpath, basename)
         if not os.path.exists(path):
-            raise ValueError("Cannot find reference file %s" % basename)
+            raise ValueError("Cannot find reference file `%s`, at abs_path: `%s`" % (basename, path))
         return path
 
 
@@ -154,14 +152,16 @@ def ncfiles_with_ext(ext):
 
     return ncfiles
 
+
 _MP_STRUCT_DICT = None
+
 
 def get_mp_structures_dict():
     """
     Returns a dictionary containing the structures stored in mpdata/mp_structures.
     """
     global _MP_STRUCT_DICT
-    if  _MP_STRUCT_DICT is not None:
+    if _MP_STRUCT_DICT is not None:
         return _MP_STRUCT_DICT
 
     import json
@@ -277,7 +277,7 @@ class AbinitFilesGenerator(FilesGenerator):
     executable = "abinit"
 
     def __init__(self, **kwargs):
-        super(AbinitFilesGenerator, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         # Add Absolute paths for the pseudopotentials.
         #self.pseudos = [p.filepath for p in pseudos(*self.pseudos)]
@@ -314,7 +314,7 @@ class AnaddbFilesGenerator(FilesGenerator):
     executable = "anaddb"
 
     def __init__(self, **kwargs):
-        super(AnaddbFilesGenerator, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         if self.in_ddb is None:
             raise ValueError("in_ddb must be specified")

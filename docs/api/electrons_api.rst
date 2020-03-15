@@ -13,6 +13,14 @@ electrons Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`eskw` Package
+-------------------
+
+.. automodule:: abipy.electrons.eskw
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`bse` Module
 -----------------
 
@@ -29,14 +37,6 @@ electrons Package
    :undoc-members:
    :show-inheritance:
 
-:mod:`ddk` Module
------------------
-
-.. automodule:: abipy.electrons.ddk
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 :mod:`denpot` Module
 --------------------
 
@@ -49,6 +49,14 @@ electrons Package
 --------------------
 
 .. automodule:: abipy.electrons.ebands
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   
+:mod:`effmass_analyzer` Module
+------------------------------
+
+.. automodule:: abipy.electrons.effmass_analyzer
    :members:
    :undoc-members:
    :show-inheritance:

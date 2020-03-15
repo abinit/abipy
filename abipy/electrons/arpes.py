@@ -2,16 +2,10 @@
 """
 Arpese Plotter (still under development)
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import numpy as np
 
-#from collections import OrderedDict
 from scipy.interpolate import UnivariateSpline
-#from monty.string import marquee # is_string, list_strings
-#from monty.functools import lazy_property
 from monty.collections import dict2namedtuple
-#from monty.termcolor import cprint
 from abipy.core.mixins import Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.electrons import ElectronBands
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_ax3d_fig_plt, get_axarray_fig_plt #set_axlims,
@@ -19,7 +13,6 @@ from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_ax3d_fig_pl
 
 class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
     """
-
     Usage example:
 
     .. code-block:: python
@@ -35,7 +28,7 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
         ebands = ElectronBands.as_ebands(ebands)
 
         ntemp = len(tmesh)
-        nwr =  1000
+        nwr = 1000
         wr_step = 0.01
 
         aw = np.empty((ebands.nsppol, ebands.nkpt, ebands.mband, ntemp, nwr))
@@ -126,31 +119,31 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
             dist_tol: A point is considered to be on the path if its distance from the line
                 is less than dist_tol.
         """
-        r = self.ebands.with_points_along_path(frac_bounds=frac_coords, knames=knames, dist_tol=dist_tol)
+        r = self.ebands.with_points_along_path(frac_bounds=frac_bounds, knames=knames, dist_tol=dist_tol)
         # Transfer data using r.ik_new2prev table.
         return self.__class__(r.ebands,
                               aw=self.aw[:, :, :, r.ik_new2prev, :].copy(),
                               aw_meshes=self.aw_meshes[:, r.ik_new2prev, :].copy(),
                               tmesh=self.tmesh)
 
-    def interpolate(self):
-        new_ebands = self.ebands.interpolate(lpratio=5, vertices_names=None, line_density=20,
-                            kmesh=None, is_shift=None, filter_params=None, verbose=0)
+    #def interpolate(self):
+    #    new_ebands = self.ebands.interpolate(lpratio=5, vertices_names=None, line_density=20,
+    #                        kmesh=None, is_shift=None, filter_params=None, verbose=0)
 
-        # Build interpolator.
-        #from abipy.core.skw import SkwInterpolator
-        #my_kcoords = [k.frac_coords for k in self.kpoints]
-        #cell = (self.structure.lattice.matrix, self.structure.frac_coords,
-        #        self.structure.atomic_numbers)
+    #    # Build interpolator.
+    #    #from abipy.core.skw import SkwInterpolator
+    #    #my_kcoords = [k.frac_coords for k in self.kpoints]
+    #    #cell = (self.structure.lattice.matrix, self.structure.frac_coords,
+    #    #        self.structure.atomic_numbers)
 
-        #skw = SkwInterpolator(lpratio, my_kcoords, self.eigens, self.fermie, self.nelect,
-        #                      cell, fm_symrel, self.has_timrev,
-        #                      filter_params=filter_params, verbose=verbose)
+    #    #skw = SkwInterpolator(lpratio, my_kcoords, self.eigens, self.fermie, self.nelect,
+    #    #                      cell, fm_symrel, self.has_timrev,
+    #    #                      filter_params=filter_params, verbose=verbose)
 
-        # Interpolate energies.
-        #eigens_kpath = skw.interp_kpts(kfrac_coords).eigens
+    #    # Interpolate energies.
+    #    #eigens_kpath = skw.interp_kpts(kfrac_coords).eigens
 
-        return self.__class__(new_ebands, new_aw, aw_meshes, self.tmesh)
+    #    return self.__class__(new_ebands, new_aw, aw_meshes, self.tmesh)
 
     def get_emesh_eminmax(self, estep):
         """Compute linear mesh covering entire energy range."""
@@ -325,7 +318,7 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
                 for it, itemp in enumerate(temp_inds):
                     ys = spin_sign * atw[it] + (it * apad)
                     ax.plot(xs, ys, lw=2, alpha=0.8, color=cmap(float(it) / ntemp),
-                            label = "T = %.1f K" % self.tmesh[itemp] if (ik, isp) == (0, 0) else None)
+                            label="T = %.1f K" % self.tmesh[itemp] if (ik, isp) == (0, 0) else None)
 
                 if spin == 0:
                     kpt = self.ebands.kpoints[ikpt]

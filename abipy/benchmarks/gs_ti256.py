@@ -3,8 +3,6 @@
 Titanium with 256 atoms and k-point sampling.
 GS calculations with paralkgb==1 and wfoptalg in [default, 1]
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import sys
 import operator
 import numpy as np
@@ -343,7 +341,7 @@ def build_flow(options):
 
     # Processor distribution.
     pconfs = [
-     dict(npkpt=2, npband=8 , npfft=8 ),  # 128
+     dict(npkpt=2, npband=8 , npfft=8),   # 128
      dict(npkpt=2, npband=8 , npfft=16),  # 256
      dict(npkpt=2, npband=16, npfft=16),  # 512
      dict(npkpt=2, npband=16, npfft=32),  # 1024

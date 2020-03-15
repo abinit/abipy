@@ -3,11 +3,8 @@
 This module defines the Robot BaseClass. Robots operates on multiple files and provide helper
 functions to plot the data e.g. convergence studies and to build pandas dataframes from the output files.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import sys
 import os
-import six
 import inspect
 import itertools
 import numpy as np
@@ -16,9 +13,9 @@ from collections import OrderedDict, deque
 from functools import wraps
 from monty.string import is_string, list_strings
 from monty.termcolor import cprint
-#from monty.functools import lazy_property
 from abipy.core.mixins import NotebookWriter
-from abipy.tools import sort_and_groupby, getattrd, hasattrd #, duck
+from abipy.tools.numtools import sort_and_groupby
+from abipy.tools import duck
 from abipy.tools.plotting import (plot_xy_with_hue, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
     rotate_ticklabels, set_visible)
 
@@ -70,6 +67,11 @@ class Robot(NotebookWriter):
             if subcls.EXT in (ext, ext.upper()):
                 return subcls
 
+        # anaddb.nc does not follow the extension rule...
+        if ext.lower() == "anaddb":
+            from abipy.dfpt.anaddbnc import AnaddbNcRobot as subcls
+            return subcls
+
         raise ValueError("Cannot find Robot subclass associated to extension %s\n" % ext +
                          "The list of supported extensions (case insensitive) is:\n%s" %
                          str(cls.get_supported_extensions()))
@@ -84,7 +86,7 @@ class Robot(NotebookWriter):
 
         Args:
             top (str): Root directory
-	    walk: if True, directories inside `top` are included as well.
+            walk: if True, directories inside `top` are included as well.
             abspath: True if paths in index should be absolute. Default: Relative to `top`.
         """
         new = cls(*cls._open_files_in_dir(top, walk))
@@ -97,7 +99,7 @@ class Robot(NotebookWriter):
         Similar to `from_dir` but accepts a list of directories instead of a single directory.
 
         Args:
-	    walk: if True, directories inside `top` are included as well.
+            walk: if True, directories inside `top` are included as well.
             abspath: True if paths in index should be absolute. Default: Relative to `top`.
         """
         items = []
@@ -118,7 +120,7 @@ class Robot(NotebookWriter):
 
         Args:
             pattern: Pattern string
-	    walk: if True, directories inside `top` are included as well.
+            walk: if True, directories inside `top` are included as well.
             abspath: True if paths in index should be absolute. Default: Relative to getcwd().
         """
         import glob
@@ -153,6 +155,10 @@ class Robot(NotebookWriter):
     @classmethod
     def class_handles_filename(cls, filename):
         """True if robot class handles filename."""
+        # Special treatment of AnaddbNcRobot
+        if cls.EXT == "anaddb" and os.path.basename(filename).lower() == "anaddb.nc":
+            return True
+
         return (filename.endswith("_" + cls.EXT + ".nc") or
                 filename.endswith("." + cls.EXT))  # This for .abo
 
@@ -172,7 +178,9 @@ class Robot(NotebookWriter):
         for i, f in enumerate(filenames):
             try:
                 abifile = abiopen(f)
-            except Exception:
+            except Exception as exc:
+                cprint("Exception while opening file: `%s`" % str(f), "red")
+                cprint(exc, "red")
                 abifile = None
 
             if abifile is not None:
@@ -288,7 +296,7 @@ class Robot(NotebookWriter):
 
         Return:
             Number of files found.
-	"""
+        """
         count = 0
         for filepath, abifile in self.__class__._open_files_in_dir(top, walk):
             count += 1
@@ -500,7 +508,7 @@ class Robot(NotebookWriter):
 
     def _repr_html_(self):
         """Integration with jupyter_ notebooks."""
-        return "<ol>\n{}\n</ol>".format("\n".join("<li>%s</li>" % label for label, abifile in self.items()))
+        return '<ol start="0">\n{}\n</ol>'.format("\n".join("<li>%s</li>" % label for label, abifile in self.items()))
 
     @property
     def abifiles(self):
@@ -543,7 +551,7 @@ class Robot(NotebookWriter):
     #    if callable(func_or_string):
     #        return [func_or_string(abifile, *args, *kwargs) for abifile in self.abifiles]
     #    else:
-    #        return [getattrd(abifile, func_or_string)(*args, **kwargs) for abifile in self.abifiles]
+    #        return [duck.getattrd(abifile, func_or_string)(*args, **kwargs) for abifile in self.abifiles]
 
     def is_sortable(self, aname, raise_exc=False):
         """
@@ -554,7 +562,7 @@ class Robot(NotebookWriter):
             obj = None
             try:
                 # abiifile.foo.bar?
-                obj = getattrd(self.abifiles[0], aname)
+                obj = duck.getattrd(self.abifiles[0], aname)
             except AttributeError:
                 # abifile.params[aname] ?
                 if hasattr(self.abifiles[0], "params") and aname in self.abifiles[0].params:
@@ -604,8 +612,8 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
             # Assume string and attribute with the same name.
             # try in abifile.params if not hasattrd(abifile, func_or_string)
             self.is_sortable(func_or_string, raise_exc=True)
-            if hasattrd(self.abifiles[0], func_or_string):
-                items = [(label, abifile, getattrd(abifile, func_or_string)) for (label, abifile) in labelfile_list]
+            if duck.hasattrd(self.abifiles[0], func_or_string):
+                items = [(label, abifile, duck.getattrd(abifile, func_or_string)) for (label, abifile) in labelfile_list]
             else:
                 items = [(label, abifile, abifile.params[func_or_string]) for (label, abifile) in labelfile_list]
 
@@ -658,8 +666,8 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
             key = lambda t: hue(t[1])
         else:
             # Assume string.
-            if hasattrd(self.abifiles[0], hue):
-                key = lambda t: getattrd(t[1], hue)
+            if duck.hasattrd(self.abifiles[0], hue):
+                key = lambda t: duck.getattrd(t[1], hue)
             else:
                 # Try in abifile.params
                 if hasattr(self.abifiles[0], "params") and hue in self.abifiles[0].params:
@@ -685,7 +693,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
             if self._do_close.pop(abifile.filepath, False):
                 try:
                     abifile.close()
-                except:
+                except Exception as exc:
                     print("Exception while closing: ", abifile.filepath)
                     print(exc)
 
@@ -824,7 +832,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
             return str(func_or_string)
 
     @add_fig_kwargs
-    def plot_convergence(self, item, sortby=None, hue=None, ax=None, fontsize=12, **kwargs):
+    def plot_convergence(self, item, sortby=None, hue=None, ax=None, fontsize=8, **kwargs):
         """
         Plot the convergence of ``item`` wrt the ``sortby`` parameter.
         Values can optionally be grouped by ``hue``.
@@ -934,7 +942,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
                 if callable(item):
                     yvals = [float(item(gsr)) for gsr in self.abifiles]
                 else:
-                    yvals = [getattrd(gsr, item) for gsr in self.abifiles]
+                    yvals = [duck.getattrd(gsr, item) for gsr in self.abifiles]
 
                 if not is_string(params[0]):
                     ax.plot(params, yvals, marker=marker, **kwargs)
@@ -950,7 +958,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
                     if callable(item):
                         yvals = [float(item(gsr)) for gsr in g.abifiles]
                     else:
-                        yvals = [getattrd(gsr, item) for gsr in g.abifiles]
+                        yvals = [duck.getattrd(gsr, item) for gsr in g.abifiles]
                     label = "%s: %s" % (self._get_label(hue), g.hvalue)
                     ax.plot(g.xvalues, yvals, label=label, marker=marker, **kwargs)
 
@@ -1097,7 +1105,7 @@ class HueGroup(object):
 
     def __iter__(self):
         """Iterate over (label, abifile, xvalue)."""
-        return six.moves.zip(self.labels, self.abifiles, self.xvalues)
+        return zip(self.labels, self.abifiles, self.xvalues)
 
     #@lazy_property
     #def pretty_hvalue(self):

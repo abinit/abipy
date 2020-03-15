@@ -1,6 +1,4 @@
 """Tests for symmetries module"""
-from __future__ import print_function, division, absolute_import, unicode_literals
-
 import numpy as np
 import abipy.data as abidata
 
@@ -77,6 +75,7 @@ class TestSymmetries(AbipyTest):
 
         for idx, symmop in enumerate(spgrp):
             repr(symmop); str(symmop)
+            symmop.to_string(verbose=2)
             assert symmop in spgrp
             assert spgrp.count(symmop) == 1
             assert spgrp.find(symmop) == idx
@@ -107,6 +106,15 @@ class TestSymmetries(AbipyTest):
                     err_msg += "Cannot find symmetrical image of %s\n" % str(rot_coords)
 
                 assert not err_msg
+
+        k1, k2 = [0.5, 0, 0], [0, 0.5, 0]
+        ktab = spgrp.symeq(k1, k2, atol=None)
+        assert ktab.isym != -1
+        self.assert_equal(spgrp[ktab.isym].rotate_k(k1) - np.array(k2), ktab.g0)
+
+        k1, k2 = [0.0, 0, 0], [0, 0.5, 0]
+        ktab = spgrp.symeq(k1, k2, atol=None)
+        assert ktab.isym == -1
 
         # Test little group with Gamma point.
         lg_gamma = spgrp.find_little_group(kpoint=[0, 0, 0])
@@ -171,7 +179,7 @@ class BilbaoPointGroupTest(AbipyTest):
         """Testing BilbaoPointGroup database."""
         from abipy.core.symmetries import bilbao_ptgroup, sch_symbols
         for sch_symbol in sch_symbols:
-            #print(sch_symbol)
+            print(sch_symbol)
             ptg = bilbao_ptgroup(sch_symbol)
             repr(ptg); str(ptg)
             assert len(ptg.to_string())

@@ -1,6 +1,4 @@
 """Tests for electrons.bse module"""
-from __future__ import print_function, division, absolute_import, unicode_literals
-
 import itertools
 import abipy.data as abidata
 
@@ -40,6 +38,9 @@ class TestElectronFatbands(AbipyTest):
 
         if self.has_nbformat():
             fbnc_kpath.write_notebook(nbpath=self.get_tmpname(text=True))
+
+        if self.has_panel():
+            assert hasattr(fbnc_kpath.get_panel(), "show")
 
         fbnc_kmesh = FatBandsFile(abidata.ref_file("mgb2_kmesh181818_FATBANDS.nc"))
         repr(fbnc_kmesh); str(fbnc_kmesh)

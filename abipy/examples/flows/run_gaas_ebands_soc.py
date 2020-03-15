@@ -12,8 +12,6 @@ Some of the variables in the input files must be changed depending on the value 
 We use relativistic NC pseudos made of two terms: scalar pseudo + SOC term.
 The SOC term can be deactivated with the input variable `so_psp`.
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import sys
 import os
 import abipy.data as abidata
@@ -24,7 +22,7 @@ import abipy.flowtk as flowtk
 def build_flow(options):
     # Set working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
-        options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
+        options.workdir = os.path.basename(sys.argv[0]).replace(".py", "").replace("run_", "flow_")
 
     structure = abidata.structure_from_ucell("GaAs")
     pseudos = abidata.pseudos("Ga-low_r.psp8", "As_r.psp8")
@@ -33,7 +31,7 @@ def build_flow(options):
 
     # Usa same shifts in all tasks.
     ngkpt = [4, 4, 4]
-    shiftk= [
+    shiftk = [
         [0.5, 0.5, 0.5],
         [0.5, 0.0, 0.0],
         [0.0, 0.5, 0.0],
@@ -81,13 +79,13 @@ def build_flow(options):
     return flow
 
 
-# This block generates the thumbnails in the Abipy gallery.
+# This block generates the thumbnails in the AbiPy gallery.
 # You can safely REMOVE this part if you are using this script for production runs.
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-    build_flow(options).plot_networkx(with_edge_labels=True, tight_layout=True)
+    build_flow(options).graphviz_imshow()
 
 
 @flowtk.flow_main

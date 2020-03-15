@@ -2,76 +2,59 @@ TODO list:
 
 ## High priority
 
-* Remove all the abiview commands that are now implemented in abiopen. 
-
-* Add ebands.method to fix the fermi level in semiconductors
-  Remember that ebands is immutable
-
-* Use angdeg instead of rprimd in structure_to_abivars if hex or rhomboedral lattice 
+* Use angdeg instead of rprimd in structure_to_abivars if hex or rhomboedral lattice
   (tricky because input settings should be preserved)
 
 * introduce new status for tasks that are removed at runtime e.g. S_CANCELLED
   and handle new case in flow machinery. Be careful with pickle, status comparison and ordering though.
 
-* DONE Check PJDOS in abinit@gitlab
-
-* DONE Add mpirun_args see e.g nic4 and mpirun --bind-to None
-
-* DONE Re-implement max_njobs in the queue using a counter local to the Launcher.
-
-* Fix annoying warnings about k-point sampling.
-
-* Reorganize modules in flowtk to prepare future migration. Modules with gs_works, dfpt_works ...
-  qadapter package ... (postponed to v0.4)
-
-* DONE Reintegrate AbiPy with new abivars
-
-* Almost DONE: Add support for https://mybinder.readthedocs.io/en/latest/sample_repos.html#conda-environment-with-environment-yml
-
-* DONE Add https://github.com/mcmtroffaes/sphinxcontrib-bibtex
-
-* DONE Add support for DVDV, DDB in plot_networkx (but graphviz is much better)
+* introduce new status WAITING_FOR_RESTART
+  so that we don't have to restart task in callbacks
 
 * Check Positive gw_qprange in EPH (Fixed by Henrique)
 
-* DONE Fix problem with get_edos if we don't have enough bands 
+* Add iscf to GSR.nc so that we know if we have SCF|NSCF run.
 
-* abicomp should accept tolsym args
+* Improve exception handling in NetcdfReader
 
-* Add support for PSML/UPF format
+* Read forces in read_structure ? Fix problem  MSONable and ArrayWithUnit
+
+* Automate CHANGELOG creation.
+
+* Refactor S_QCRITICAL logic (logic injected by user, since qcritical errors are cluster-specific)
+
+* Refactor wrappers for mrgddb and mrgdvdb (problems with subprocess when
+  merging large number of partial files (likely due to Popen with large stderr/stdout)
+
+* Move to new version of APSscheduler
+
+* BECS: 3x3 Tensor is not symmetric. Remove get_voigt_dataframe
 
 ## Medium priority
 
-* remove phononflow
+* Add support for PSML/UPF format
 
-* Add with_becs to PhononWork
+* Add support for new Abinit9 interface (getden_path, getwfk_path, pp_dirpath and pseudos)
+  but remember that strings in the input should not be too long. 
+  Use common root for pseudos, what about getwfk_path? Need to refactor treatment of string lengths in Abinit!
 
-* video with atom and hydrogen
+* Add DOS to GSR file (useful if tetra)  Create Dosfile ? Fortran exec?
 
-* ALMOST DONE: Fix travis warnings.
-
-* DONE: Fix sphinx warnings.
+* videos in README (atom and hydrogen) or screenshot based on jupyterlab
 
 * Refactor/improve Visualizer
-
-* Read LO-TO data from PHBST.nc instead of anaddb.nc (not easy as directions should be computed by AbiPy)
 
 * add possibility of changing amu in anaddb/abinit and API to "mix" DDB files
   phonon group velocities (requires extension in netcdf files).
 
-* DONE: Autodetect presence of data for lo_to_splitting in DDB.
-
-* DONE Solve problem with visualize in jupyter notebooks (files should be produced in workdir)
-
-* DONE Change shifts default value in g0w0_with_ppmodel_inputs
-
 * Scheduler should report info on exceptions (especially if at the end when on_all_ok is invoked)
-
-* Replace core.tensor with pymatgen tensor (postponed to v0.4)
 
 * Add nsppol, nspinor, nspden to HIST file (and other stuff?)
 
-* Fix bug with SCGW and SKW interpolation reported by Ahn.
+* Fix bug with SCGW and SKW interpolation reported by Ahn. Sort energies
+
+* Optimize SKW (slow if dense IBZ). Add possibility of initializing SKW
+  from nc file produced by Fortran version.
 
 * Add integration test for dilatmx error handler
 
@@ -82,19 +65,11 @@ TODO list:
 
 * Investigate NaN issue in BECS reported by Ahn if tolvrs instead of tolwfr (tolwfr could activate nbdbuf)
 
-* DONE: Fix possible error reported by Henrique (NscfTask from file that tries to change ngfft)
-
-* Add iscf to GSR.nc so that we know if we have SCF|NSCF run.
-
-* Add input file to NC files (?)
-
-* Had to increase fermie again to get correct gap in diamond treated if FD smearing
+* Add phonon plot with Longitudinal/transverse character and Z q
 
 ## Low priority
 
-* Use parser subclass to avoid boiler plate code.
-
-* Rationalze wrappers for mrgdddb .... (raise exception in python if clear error, retcode 
+* Rationalze wrappers for mrgdddb .... (raise exception in python if clear error, retcode
   is the returncode of the script not necessarily the retcode of the exe, need to
   parse log file and make sure that all scripts write log files in "abinit" format
   that can be read with EventsParser.
@@ -104,33 +79,22 @@ TODO list:
 * Add python API to support discontinuous paths (Abinit is not able to handle that
   but python code should be agnostic
 
-* Finalize DDK.nc  (EVK.nc)
-
-* Remove abipy.core.mixis.AbinitOutNcFile (deprecated, will be removed in 0.4)
+* Finalize DDK.nc (EVK.nc)
 
 * Fix issue with DOJO_REPORT and PAW XML files.
-
-* DONE plot_networkx does not work with flows containing callbacks e.g. run_qptdm_flow
-  FIXED with graphviz
 
 * Check xsf_write_data and visualization of potentials.
 
 * Add phbands.to_bxsf and histogram for phonon modes at a given q-point.
+  overlap matrix for displacements?
 
-* Add treatment of out-of-boundary conditions in scissors operator.
-
-* Add possibility of specifying the max number of CPUs that can be used  
+* Add possibility of specifying the max number of CPUs that can be used
   for a flow at the level of the scheduler.
 
 * Fix problem with AbiniEvent format, src_file and scr_line (see src/67_common/scprqt.F90)
   Introduce an integer flag (msg_level) to be passed to msg_hndl
 
-* Try to generalize the (very nice) approach used by Guido to handle target_dilatmx
-  WorkWithCondition(...) could be used to simulate a convergence study. The main 
-  problem is how to include input_generators (__next__) while preserving data persistence
-  with pickle! I've already done something related to this problem in FlowCallback...
-
-* ABINIT abort file should not be produced if the exit is expected otherwise we 
+* ABINIT abort file should not be produced if the exit is expected otherwise we
   can have IO race conditions and ABI_CRITICAL events!!!!!!!
 
 * Add option max_num_launchers in scheduler.yml
@@ -138,11 +102,9 @@ TODO list:
 * Add extra metadata to netcdf files (try to propagate info on space group from parser to crystal_t
   as well as Abinit input as string)
 
-* Initialize job.sh with max number of MPI procs?
-
 * Improvement in the dilatmx error handler:
 
-        [30/03/15 15:15:58] guido petretto: cmq ci sarebbe un'altra cosa che non so se avevi già considerato. 
+        [30/03/15 15:15:58] guido petretto: cmq ci sarebbe un'altra cosa che non so se avevi già considerato.
          Questo non porta a errori, ma non so se è il
         modo più corretto di gestire la cosa, anche perché non sono sicuro di cosa faaccia abinit esattamente
         [30/03/15 15:16:10] guido petretto: esempio:
@@ -152,35 +114,26 @@ TODO list:
         [30/03/15 15:19:48] guido petretto: a questo punto il job viene riavviato, ma in in c'è ancora la vecchia density e nell'input c'è irdden=1, ma la
         struttura è diversa
 
-* DONE Add the fermi level to the DEN file (netcdf and fortran version) so that the NSCF run can read 
-  it and can report this value in the final band structure.
-
-* DONE ecut is not reported in the GSR file. Similar problem for the k-sampling (see SIGRES.nc)
-
 * FFTProf (use file extension and interface it with abiopen)
 
 * Create new github package for benchmarks/Abinit tests + template for new python projects.
 
-* _repr_html_ for structure and other basic objects (pymatgen/and abipy)
-   matplotlib plot for structure?
+* Remove GUI code.
 
 * nbjsmol (build system, refactor API?)
 
 * fatbands with SOC (waiting for Matthieu's refactoring)
 
-* integrate improvements in skw by Nicholas.
-  Finalize baseclass for ElectronInterpolator
-
-* ALMOST DONE lobster interface from Guido
-
-* DONE Remove Prettytable
+* Improvements in SKW. Finalize baseclass for ElectronInterpolator
 
 * context manager to change variables (e.g. autoparal)
 
-* Cleanup and refactoring in OpticTask
+* Cleanup and refactoring in OpticTask (Well, optic should be rewritten from scratch)
 
-* Replace SIGRES with new fileformat based on SIGEPH (long-term)
-
-* DONE [eV] --> (ev) in title
+* Replace SIGRES with new fileformat based on SIGEPH (long-term project)
 
 * Update spack recipe, add support for EasyBuild, revamp homebrew (?)
+
+* Classification of phonons/electrons
+
+* Error handler for tolwfr to increase nband / nbdduf and resubmit

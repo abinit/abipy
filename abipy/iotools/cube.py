@@ -3,7 +3,6 @@
 Tools for writing cube files.
 See http://paulbourke.net/dataformats/cube/ and http://www.gaussian.com/g_tech/g_ur/u_cubegen.htm
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
 
@@ -72,7 +71,7 @@ def cube_read_structure_mesh_data(file):
         ii = 0
         for line in fh:
             for val in line.split():
-                data[ii//(ny*nz), (ii//nz)%ny, ii%nz] = float(val)
+                data[ii // (ny * nz), (ii // nz) % ny, ii % nz] = float(val)
                 ii += 1
         data = data / (bohr_to_angstrom ** 3)
         if ii != nx*ny*nz:

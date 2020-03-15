@@ -5,7 +5,6 @@ G0W0 Flow with factory functions
 
 G0W0 corrections with the HT interface.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
 import os
@@ -21,7 +20,7 @@ def build_flow(options):
 
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
-        options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
+        options.workdir = os.path.basename(sys.argv[0]).replace(".py", "").replace("run_", "flow_")
 
     # Initialize the flow.
     flow = flowtk.Flow(options.workdir, manager=options.manager)
@@ -54,7 +53,7 @@ if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-    build_flow(options).plot_networkx(with_edge_labels=True, tight_layout=True)
+    build_flow(options).graphviz_imshow()
 
 
 @flowtk.flow_main

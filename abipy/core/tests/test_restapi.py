@@ -1,6 +1,5 @@
 """Tests for core.restapi module"""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
+import contextlib
 import abipy.data as abidata
 
 from abipy import abilab
@@ -10,6 +9,7 @@ from abipy.core import restapi
 
 class TestMpRestApi(AbipyTest):
     """Test interfaces with the Materials Project REST API."""
+
     def test_mprester(self):
         """Testing MP Rest API wrappers."""
 
@@ -34,7 +34,9 @@ class TestMpRestApi(AbipyTest):
         new = mp.add_entry(mp.structures[-1], "newid")
         assert len(new.ids) == len(mp.ids) + 1
         assert new.ids == mp.ids + ["newid"]
-        new.print_results(fmt="cif", verbose=2)
+
+        with contextlib.redirect_stdout(None):
+            new.print_results(fmt="cif", verbose=2)
 
         # Test mp_match_structure
         mp = abilab.mp_match_structure(abidata.cif_file("al.cif"))
@@ -47,6 +49,9 @@ class TestMpRestApi(AbipyTest):
         if self.has_nbformat():
             mp.write_notebook(nbpath=self.get_tmpname(text=True))
 
+    def test_cod(self):
+        """Testing COD interface."""
+        self.skip_if_not_executable("mysql")
         # Test abilab.cod_search
         cod = abilab.cod_search("MgB2", primitive=True)
         repr(cod); str(cod)
@@ -54,4 +59,6 @@ class TestMpRestApi(AbipyTest):
         assert 1000026 in cod.ids
         assert cod.data is not None
         assert hasattr(cod.dataframe, "describe")
-        cod.print_results(fmt="POSCAR", verbose=2)
+
+        with contextlib.redirect_stdout(None):
+            cod.print_results(fmt="POSCAR", verbose=2)

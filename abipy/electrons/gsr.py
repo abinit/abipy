@@ -1,26 +1,25 @@
 # coding: utf-8
-"""GSR.nc_ file."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
+"""
+Interface to the GSR.nc_ file storing the Ground-state results and the electron band structure.
+"""
 import numpy as np
 import pandas as pd
 import pymatgen.core.units as units
+import abipy.core.abinit_units as abu
 
-from collections import OrderedDict, Iterable, defaultdict
+from collections import OrderedDict
 from tabulate import tabulate
-from monty.string import is_string, list_strings, marquee
+from monty.string import list_strings, marquee
 from monty.termcolor import cprint
 from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
-from pymatgen.core.units import EnergyArray, ArrayWithUnit
+from pymatgen.core.units import ArrayWithUnit
 from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt
+from abipy.tools.tensors import Stress
 from abipy.abio.robots import Robot
 from abipy.electrons.ebands import ElectronsReader, RobotWithEbands
-
-import logging
-logger = logging.getLogger(__name__)
 
 
 __all__ = [
@@ -51,8 +50,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         return cls(filepath)
 
     def __init__(self, filepath):
-        super(GsrFile, self).__init__(filepath)
-
+        super().__init__(filepath)
         self.reader = r = GsrReader(filepath)
 
         # Initialize the electron bands from file
@@ -76,7 +74,10 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         app(self.structure.to_string(verbose=verbose, title="Structure"))
         if self.is_scf_run:
             app("")
-            app("Stress tensor (Cartesian coordinates in Ha/Bohr**3):\n%s" % self.cart_stress_tensor)
+            app("Stress tensor (Cartesian coordinates in GPa):\n%s" % self.cart_stress_tensor)
+            #if verbose:
+            #    app("Stress tensor (Cartesian coordinates in Ha/Bohr**3):\n%s" % self.cart_stress_tensor / abu.HaBohr3_GPa)
+            app("")
             app("Pressure: %.3f (GPa)" % self.pressure)
             app("Energy: %.8f (eV)" % self.energy)
         app("")
@@ -133,6 +134,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     @lazy_property
     def max_force(self):
+        """Max cart force in eV / Ang"""
         fmods = np.sqrt([np.dot(force, force) for force in self.cart_forces])
         return fmods.max()
 
@@ -159,14 +161,13 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     @lazy_property
     def cart_stress_tensor(self):
-        """Stress tensor in Ha/Bohr**3"""
+        """Stress tensor in GPa."""
         return self.reader.read_cart_stress_tensor()
 
     @lazy_property
     def pressure(self):
-        """Pressure in Gpa"""
-        HaBohr3_GPa = 29421.033 # 1 Ha/Bohr^3, in GPa
-        pressure = - (HaBohr3_GPa/3) * self.cart_stress_tensor.trace()
+        """Pressure in GPa."""
+        pressure = - self.cart_stress_tensor.trace() / 3
         return units.FloatWithUnit(pressure, unit="GPa", unit_type="pressure")
 
     @lazy_property
@@ -199,6 +200,10 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
     def close(self):
         self.reader.close()
 
+    # FIXME: This is deprecated. Must keep it to avoid breaking ScfTask.get_results
+    def as_dict(self):
+        return {}
+
     def get_computed_entry(self, inc_structure=True, parameters=None, data=None):
         """
         Returns a pymatgen :class:`ComputedStructureEntry` from the GSR file.
@@ -226,32 +231,12 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
             return ComputedEntry(self.structure.composition, self.energy,
                                  parameters=parameters, data=data)
 
-    def as_dict(self, **kwargs):
-        # TODO: Add info depending on the run_type e.g. max_resid is NSCF
-        return dict(
-            structure=self.structure.as_dict(),
-            final_energy=self.energy,
-            final_energy_per_atom=self.energy_per_atom,
-            max_force=self.max_force,
-            cart_stress_tensor=self.cart_stress_tensor,
-            pressure=self.pressure,
-            number_of_electrons=self.nelect,
-        )
-            # FIXME: this call raises
-            #>       if kpointcbm.label is not None:
-            #E       AttributeError: 'NoneType' object has no attribute 'label'
-            #ebands=self.ebands.to_pymatgen().as_dict(),
-            #max_residual=
-            #magnetization=self.magnetization,
-            #band_gap=
-            #optical_gap=
-            #is_direct=
-            #cbm=
-            #vbm=
-            #efermi=
-            #band_gap:
-            #optical_gap:
-            #efermi:
+    def get_panel(self):
+        """
+        Build panel with widgets to interact with the |GsrFile| either in a notebook or in panel app.
+        """
+        from abipy.panels.gsr import GsrFilePanel
+        return GsrFilePanel(self).get_panel()
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
@@ -371,8 +356,8 @@ class GsrReader(ElectronsReader):
 
     def read_cart_stress_tensor(self):
         """
-        Return the stress tensor (3x3 matrix) in cartesian coordinates (Hartree/Bohr^3)
-        If MaskedArray (i.e. tensor was not computed  e.g. Nscf run) set it to
+        Return the stress tensor (3x3 matrix) in cartesian coordinates in GPa.
+        If MaskedArray (i.e. tensor was not computed  e.g. Nscf run) set it to _INVALID_STRESS_TENSOR
         """
         # Abinit stores 6 unique components of this symmetric 3x3 tensor:
         # Given in order (1,1), (2,2), (3,3), (3,2), (3,1), (2,1).
@@ -387,15 +372,23 @@ class GsrReader(ElectronsReader):
             for p, (i, j) in enumerate(((2, 1), (2, 0), (1, 0))):
                 tensor[i, j] = c[3 + p]
                 tensor[j, i] = c[3 + p]
+            tensor *= abu.HaBohr3_GPa
 
-        return tensor
+        return Stress(tensor)
 
     def read_energy_terms(self, unit="eV"):
         """
         Return a dictionary with the different contributions to the total electronic energy.
         """
         convert = lambda e: units.Energy(e, unit="Ha").to(unit)
-        d = {k: convert(self.read_value(k)) for k in EnergyTerms.ALL_KEYS}
+        d = OrderedDict()
+        for k in EnergyTerms.ALL_KEYS:
+            if k == "e_nonlocalpsp" and k not in self.rootgrp.variables:
+                # Renamed in 8.9
+                d[k] = convert(self.read_value("e_nlpsp_vfock"))
+            else:
+                d[k] = convert(self.read_value(k))
+
         return EnergyTerms(**d)
 
 
@@ -612,6 +605,13 @@ class GsrRobot(Robot, RobotWithEbands):
         yield self.plot_lattice_convergence(show=False)
         yield self.plot_gsr_convergence(show=False)
         for fig in self.get_ebands_plotter().yield_figs(): yield fig
+
+    def get_panel(self):
+        """
+        Build panel with widgets to interact with the |GsrRobot| either in a notebook or in panel app.
+        """
+        from abipy.panels.gsr import GsrRobotPanel
+        return GsrRobotPanel(self).get_panel()
 
     def write_notebook(self, nbpath=None):
         """

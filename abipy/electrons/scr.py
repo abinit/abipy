@@ -1,25 +1,21 @@
 # coding: utf-8
 """Objects to analyze the screening files produced by the GW code (optdriver 3)."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import numpy as np
-import six
-import abc
 import pymatgen.core.units as pmgu
 
-from monty.string import marquee # is_string, list_strings,
+from monty.string import marquee
 from monty.inspect import all_subclasses
 from monty.termcolor import cprint
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from monty.bisect import index as bs_index
 from abipy.core.func1d import Function1D
-from abipy.core.kpoints import Kpoint, KpointList
+from abipy.core.kpoints import KpointList
 from abipy.core.gsphere import GSphere
-from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
+from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, NotebookWriter
 from abipy.electrons.ebands import ElectronBands
 from abipy.iotools import ETSF_Reader
-from abipy.tools.plotting import ArrayPlotter, plot_array, data_from_cplx_mode, add_fig_kwargs, get_ax_fig_plt, set_axlims
+from abipy.tools.plotting import ArrayPlotter, data_from_cplx_mode, add_fig_kwargs, get_ax_fig_plt, set_axlims
 from abipy.tools import duck
 
 import logging
@@ -59,7 +55,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
         return cls(filepath)
 
     def __init__(self, filepath):
-        super(ScrFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = ScrReader(filepath)
 
     def close(self):
@@ -270,7 +266,7 @@ class ScrReader(ETSF_Reader):
     .. inheritance-diagram:: ScrReader
     """
     def __init__(self, filepath):
-        super(ScrReader, self).__init__(filepath)
+        super().__init__(filepath)
 
         # Read and store important quantities.
         self.structure = self.read_structure()
@@ -321,7 +317,8 @@ class ScrReader(ETSF_Reader):
 
         def convert(arr):
             """Convert to scalar if size == 1"""
-            return np.asscalar(arr) if arr.size == 1 else arr
+            #return np.asscalar(arr) if arr.size == 1 else arr
+            return np.asarray(arr).item() if arr.size == 1 else arr
 
         return AttrDict({k: convert(self.read_value(k)) for k in keys})
 
@@ -369,7 +366,7 @@ class ScrReader(ETSF_Reader):
         # eelf = -Im(1 / eM)
         emacro_lf = self.read_emacro_lf(kpoint=kpoint)
         #emacro_lf = self.read_emacro_nlf(kpoint=kpoint)
-        values  = (-1 / emacro_lf.values).imag
+        values = (-1 / emacro_lf.values).imag
 
         return Function1D(emacro_lf.mesh.copy(), values)
 
@@ -746,7 +743,7 @@ class InverseDielectricFunction(_AwggMatrix):
     #    return fig
 
 
-#class PPModel(six.with_metaclass(abc.ABCMeta, object)):
+#class PPModel(metaclas=abc.ABCMeta):
 #    """
 #    Abstract base class for Plasmonpole models.
 #    """

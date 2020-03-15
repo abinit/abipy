@@ -1,7 +1,5 @@
 # coding: utf-8
 """Tools to analyze the output files produced by Lobster."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 import re
 import glob
@@ -203,8 +201,8 @@ class CoxpFile(_LobsterFile):
         # second (down) spin. Here N is the number of interactions.
 
         float_patt = r'-?(?:0|[1-9]\d*)(?:\.\d*)?(?:[eE][+\-]?\d+)?'
-        header_patt = re.compile(r'\s+(\d+)\s+(\d+)\s+(\d+)\s+('+float_patt+
-                                 r')\s+('+float_patt+r')\s+('+float_patt+r')')
+        header_patt = re.compile(r'\s+(\d+)\s+(\d+)\s+(\d+)\s+(' + float_patt +
+                                 r')\s+(' + float_patt + r')\s+(' + float_patt + r')')
         pair_patt = re.compile(r'No\.\d+:([a-zA-Z]+)(\d+)(?:\[([a-z0-9_\-^]+)\])?->([a-zA-Z]+)(\d+)(?:\[([a-z0-9_\-^]+)\])?')
 
         new = cls(filepath)
@@ -424,7 +422,7 @@ class CoxpFile(_LobsterFile):
 
     @add_fig_kwargs
     def plot_average_pairs(self, with_site_index, what="single", exchange_xy=False,
-                            fontsize=8, **kwargs):
+                           fontsize=8, **kwargs):
         """
         Plot COXP total overlap for all sites containg `with_site_index` and average sum
         (multiplied by the number of pairs)
@@ -704,8 +702,8 @@ class ICoxpFile(_LobsterFile):
         """
         float_patt = r'-?(?:0|[1-9]\d*)(?:\.\d*)?(?:[eE][+\-]?\d+)?'
         header_patt = re.compile(r'.*?(over+\s#\s+bonds)?\s+for\s+spin\s+(\d).*')
-        data_patt = re.compile(r'\s+\d+\s+([a-zA-Z]+)(\d+)\s+([a-zA-Z]+)(\d+)\s+('+
-                               float_patt+r')\s+('+float_patt+r')(\d+)?')
+        data_patt = re.compile(r'\s+\d+\s+([a-zA-Z]+)(\d+)\s+([a-zA-Z]+)(\d+)\s+(' +
+                               float_patt + r')\s+(' + float_patt + r')(\d+)?')
 
         new = cls(filepath)
         new.values = tree()
@@ -1087,7 +1085,7 @@ class LobsterInput(object):
         """
         basis_functions = []
         for p in potcar:
-            basis_functions.append(p.element +" "+ " ".join(str(vs[0]) + vs[1] for vs in p.electron_configuration))
+            basis_functions.append(p.element + " " + " ".join(str(vs[0]) + vs[1] for vs in p.electron_configuration))
         return basis_functions
 
     def set_basis_functions_from_potcar(self, potcar):
@@ -1138,7 +1136,7 @@ class LobsterInput(object):
             lines.append("COHPSteps {}".format(self.en_steps))
 
         if self.gaussian_smearing:
-            lines.append("gaussianSmearingWidth {}".format(self.gaussing_smearing))
+            lines.append("gaussianSmearingWidth {}".format(self.gaussian_smearing))
 
         if self.bwdf:
             lines.append("BWDF {}".format(self.bwdf))
@@ -1210,10 +1208,10 @@ class LobsterInput(object):
         end_en = en_max - fermie
 
         # shift the energies so that are divisible by dE and the value for the fermi level (0 eV) is included
-        start_en = np.floor(start_en/dE)*dE
-        end_en= np.ceil(end_en/dE)*dE
+        start_en = np.floor(start_en / dE) * dE
+        end_en = np.ceil(end_en / dE) * dE
 
-        en_steps = int((end_en-start_en)/dE)
+        en_steps = int((end_en - start_en) / dE)
 
         return cls(basis_functions=basis_functions, start_en=start_en, end_en=end_en, en_steps=en_steps, **kwargs)
 

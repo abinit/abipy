@@ -1,10 +1,7 @@
 """
 Integration tests for flows/works/tasks that rely on external files e.g. DEN --> NscfTask.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
-#import pytest
 import abipy.data as abidata
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk
@@ -107,7 +104,9 @@ def itest_nscf_from_denfile(fwp, tvars):
     assert scheduler.nlaunch == 1
 
     flow.check_status(show=True)
-    assert flow.all_ok
+    if not flow.all_ok:
+        flow.debug()
+        raise RuntimeError()
     assert all(work.finalized for work in flow)
 
     # The WFK files should have been removed because we called set_garbage_collector

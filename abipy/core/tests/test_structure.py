@@ -1,6 +1,4 @@
 """Tests for structure module"""
-from __future__ import print_function, division, absolute_import, unicode_literals
-
 import numpy as np
 import sys
 import abipy.data as abidata
@@ -18,7 +16,7 @@ class TestStructure(AbipyTest):
         """Initialize Structure from Netcdf data files"""
 
         for filename in abidata.WFK_NCFILES + abidata.GSR_NCFILES:
-            print("About to read file %s" % filename)
+            #print("About to read file %s" % filename)
             structure = Structure.from_file(filename)
             str(structure)
             structure.to_string(verbose=2)
@@ -58,11 +56,6 @@ class TestStructure(AbipyTest):
         self.assert_equal(kfrac_coords,
             ([[0. , 0. , 0. ], [0.5, 0. , 0.5], [0.5, 0.5, 0.5], [0. , 0. , 0. ]]))
 
-        with self.assertRaises(TypeError):
-            Structure.as_structure({})
-        with self.assertRaises(TypeError):
-            Structure.as_structure([])
-
         si_wfk = Structure.as_structure(abidata.ref_file("si_scf_WFK.nc"))
         assert si_wfk.formula == "Si2"
         si_wfk.print_neighbors(radius=2.5)
@@ -71,6 +64,10 @@ class TestStructure(AbipyTest):
         # Cannot change spacegroup
         with self.assertRaises(ValueError):
             si_wfk.spgset_abi_spacegroup(has_timerev=True)
+
+        # K and U are equivalent. [5/8, 1/4, 5/8] should return U
+        assert si_wfk.findname_in_hsym_stars([3/8, 3/8, 3/4]) == "K"
+        assert si_wfk.findname_in_hsym_stars([5/8, 1/4, 5/8]) == "U"
 
         # TODO: Fix order of atoms in supercells.
         # Test __mul__, __rmul__ (should return Abipy structures)
@@ -143,6 +140,9 @@ class TestStructure(AbipyTest):
             #assert si.vtkview(show=False)  # Disabled due to (core dumped) on travis
             assert si.mayaview(show=False)
 
+        if self.has_panel():
+            assert hasattr(si.get_panel(), "show")
+
         assert si is Structure.as_structure(si)
         assert si == Structure.as_structure(si.to_abivars())
         assert si == Structure.from_abivars(si.to_abivars())
@@ -158,8 +158,35 @@ class TestStructure(AbipyTest):
         self.assert_equal(ksamp.ngkpt, [10, 10, 10])
         self.assert_equal(ksamp.shiftk, shiftk)
 
+        lif = Structure.from_abistring("""
+acell      7.7030079150    7.7030079150    7.7030079150 Angstrom
+rprim      0.0000000000    0.5000000000    0.5000000000
+           0.5000000000    0.0000000000    0.5000000000
+           0.5000000000    0.5000000000    0.0000000000
+natom      2
+ntypat     2
+typat      1 2
+znucl      3 9
+xred       0.0000000000    0.0000000000    0.0000000000
+           0.5000000000    0.5000000000    0.5000000000
+""")
+        assert lif.formula == "Li1 F1"
+        same = Structure.rocksalt(7.7030079150, ["Li", "F"], units="ang")
+        self.assert_almost_equal(lif.lattice.a,  same.lattice.a)
+
         si = Structure.from_mpid("mp-149")
         assert si.formula == "Si2"
+
+        # Test abiget_spginfo
+        d = si.abiget_spginfo(tolsym=None, pre="abi_")
+        assert d["abi_spg_symbol"] == "Fd-3m"
+        assert d["abi_spg_number"] == 227
+        assert d["abi_bravais"] == "Bravais cF (face-center cubic)"
+
+        llzo = Structure.from_file(abidata.cif_file("LLZO_oxi.cif"))
+        assert llzo.is_ordered
+        d = llzo.abiget_spginfo(tolsym=0.001)
+        assert d["spg_number"] == 142
 
         mgb2_cod = Structure.from_cod_id(1526507, primitive=True)
         assert mgb2_cod.formula == "Mg1 B2"
@@ -179,12 +206,16 @@ class TestStructure(AbipyTest):
         self.assert_equal(s2coords["Mg"], [[0, 0, 0]])
         self.assert_equal(s2coords["B"],  [[1/3, 2/3, 0.5], [2/3, 1/3, 0.5]])
 
+        new_mgb2 = mgb2.scale_lattice(mgb2.volume * 1.1)
+        self.assert_almost_equal(new_mgb2.volume, mgb2.volume * 1.1)
+        assert new_mgb2.lattice.is_hexagonal
+
         # TODO: This part should be tested more carefully
         mgb2.abi_sanitize()
         mgb2.abi_sanitize(primitive_standard=True)
         mgb2.get_conventional_standard_structure()
         assert len(mgb2.abi_string)
-        assert len(mgb2.spget_summary(verbose=10))
+        assert len(mgb2.spget_summary(site_symmetry=True, verbose=10))
         #print(structure._repr_html_())
 
         self.serialize_with_pickle(mgb2)
@@ -238,7 +269,7 @@ class TestStructure(AbipyTest):
 
         # Test notebook generation.
         if self.has_nbformat():
-            mgb2.write_notebook(nbpath=self.get_tmpname(text=True))
+            assert mgb2.write_notebook(nbpath=self.get_tmpname(text=True))
 
     def test_dataframes_from_structures(self):
         """Testing dataframes from structures."""
@@ -265,7 +296,7 @@ class TestStructure(AbipyTest):
 
         #print(old_structure.lattice._matrix)
         for site in old_structure:
-            print(structure.lattice.get_cartesian_coords(site.frac_coords))
+            _ = structure.lattice.get_cartesian_coords(site.frac_coords)
 
         # TODO: Check all this stuff more carefully
         #qpoint = [0, 0, 0]

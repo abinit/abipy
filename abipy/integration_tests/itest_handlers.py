@@ -1,7 +1,4 @@
-from __future__ import print_function, division, unicode_literals, absolute_import
 
-import sys
-import os
 import pytest
 import abipy.data as abidata
 import abipy.abilab as abilab
@@ -24,10 +21,10 @@ def itest_tolsymerror_handler(fwp):
     """
     structure = dict(
         acell=(1.0, 1.0, 1.0),
-        xred = [
+        xred=[
            1.0001907690, 1.0040151117, 0.0099335191,
            0.2501907744, 0.2540150788, 0.2599335332],
-        rprim = [
+        rprim=[
           -6.2733366562, 0.0000000000, -3.6219126071,
           -6.2733366562, 0.0000000000,  3.6219126071,
           -4.1822244376, 5.9145585205,  0.0000000000],
@@ -57,14 +54,13 @@ def itest_tolsymerror_handler(fwp):
     assert flow.make_scheduler().start() == 0
 
     flow.show_status()
-    assert flow.all_ok
+    if not flow.all_ok:
+        flow.debug()
+        raise RuntimeError()
 
     task = flow[0][0]
     assert len(task.corrections) == 1
     assert task.corrections[0]["event"]["@class"] == "TolSymError"
-
-    #assert task.corrections.count("TolSymError") == 1
-    #assert 0
 
 
 def itest_dilatmxerror_handler(fwp):
@@ -80,8 +76,8 @@ def itest_dilatmxerror_handler(fwp):
 
     in variable cell structural optimizations.
     """
-    if fwp.on_travis:
-        pytest.xfail("dilatmxerror_handler is not portable and it's been disabled on travis builder!")
+    #if fwp.on_travis:
+    pytest.xfail("dilatmxerror_handler is not portable and it's been disabled!")
 
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
     structure.scale_lattice(structure.volume * 0.8)
@@ -116,7 +112,9 @@ def itest_dilatmxerror_handler(fwp):
     assert flow.make_scheduler().start() == 0
 
     flow.show_status()
-    assert flow.all_ok
+    if not flow.all_ok:
+        flow.debug()
+        raise RuntimeError()
 
     task = flow[0][0]
     # Don't check the number of corrections as it's not portable.

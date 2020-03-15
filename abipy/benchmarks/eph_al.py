@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 """Benchmark for electron-phonon calculations."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import sys
 import numpy as np
 import abipy.abilab as abilab
@@ -84,7 +82,7 @@ def make_flow_ephinp(options):
         # q-path for phonons and phonon linewidths.
         ph_ndivsm=20,
         ph_nqpath=3,
-        ph_qpath= [
+        ph_qpath=[
           0  , 0  , 0,
           0.5, 0  , 0,
           0.5, 0.5, 0,],

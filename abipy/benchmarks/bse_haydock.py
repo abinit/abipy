@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 """Analyze the parallel efficiency of the BSE code (Haydock method with model dielectric function)"""
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import sys
 import abipy.abilab as abilab
 import abipy.data as abidata

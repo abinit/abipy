@@ -1,8 +1,6 @@
 """
 Integration tests for flows (require pytest, ABINIT and a properly configured environment)
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import pytest
 import os
 import numpy as np
@@ -27,14 +25,14 @@ def make_scf_nscf_inputs(tvars, pp_paths, nstep=50):
     ecut = 4
     global_vars = dict(
         ecut=ecut,
-        nband=int(nval/2),
+        nband=int(nval / 2),
         nstep=nstep,
         paral_kgb=tvars.paral_kgb,
         timopt=-1,
     )
 
     if multi.ispaw:
-        global_vars.update(pawecutdg=2*ecut)
+        global_vars.update(pawecutdg=2 * ecut)
 
     multi.set_vars(global_vars)
 
@@ -121,7 +119,9 @@ def itest_unconverged_scf(fwp, tvars):
     assert t1.status == t1.S_OK
 
     flow.show_status()
-    assert flow.all_ok
+    if not flow.all_ok:
+        flow.debug()
+        raise RuntimeError()
 
     # Test inspect methods
     if has_matplotlib():
@@ -228,7 +228,10 @@ def itest_bandstructure_flow(fwp, tvars):
     #afalse(t1.can_run)
 
     flow.show_status()
-    assert flow.all_ok
+    if not flow.all_ok:
+        flow.debug()
+        raise RuntimeError()
+
     assert all(work.finalized for work in flow)
 
     for task in flow.iflat_tasks():
@@ -248,6 +251,10 @@ def itest_bandstructure_flow(fwp, tvars):
         assert timer.plot_pie(show=False)
         assert timer.plot_stacked_hist(show=False)
         assert timer.plot_efficiency(show=False)
+
+    df, ebands_plotter = flow.compare_ebands(
+                            verbose=2,
+                            with_spglib=False, printout=True, with_colors=True)
 
     # Test CUT3D API provided by DensityFortranFile.
     den_path = t0.outdir.has_abiext("DEN")
@@ -269,6 +276,12 @@ def itest_bandstructure_flow(fwp, tvars):
         if flow.manager.abinit_build.version_ge("8.5.2"):
             den = denfile.get_density(workdir=workdir)
             assert den.structure is not None and hasattr(den, "datar")
+
+    df = flow.get_dims_dataframe(printout=False, with_colors=True)
+    assert "natom" in df
+
+    df = flow.compare_abivars(["ecut", "natom"], printout=True, with_colors=True)
+    assert np.all(df["natom"].values == 2)
 
 
 def itest_bandstructure_schedflow(fwp, tvars):
@@ -298,7 +311,10 @@ def itest_bandstructure_schedflow(fwp, tvars):
     assert fwp.scheduler.nlaunch == 2
 
     flow.show_status()
-    assert flow.all_ok
+    if not flow.all_ok:
+        flow.debug()
+        raise RuntimeError()
+
     assert all(work.finalized for work in flow)
 
     # The WFK files should have been removed because we called set_garbage_collector
@@ -354,7 +370,10 @@ def itest_htc_bandstructure(fwp, tvars):
     assert fwp.scheduler.nlaunch == 3
 
     flow.show_status()
-    assert flow.all_ok
+    if not flow.all_ok:
+        flow.debug()
+        raise RuntimeError()
+
     assert all(work.finalized for work in flow)
 
     # Test if GSR files are produced and are readable.
@@ -377,3 +396,45 @@ def itest_htc_bandstructure(fwp, tvars):
                 assert gsr.ebands.has_bzmesh
                 assert not gsr.ebands.has_bzpath
                 gsr.ebands.get_edos()
+
+
+def itest_metagga_ebands_flow(fwp, tvars):
+    """
+    Test band structure calculation with meta-GGA
+    """
+    if not fwp.abinit_build.has_libxc:
+        pytest.skip("itest_metagga_ebands_flow requires libxc support in Abinit.")
+
+    from abipy.data.hgh_pseudos import HGH_TABLE
+    multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"),
+                                pseudos=HGH_TABLE, ndtset=2)
+
+    # Global variables
+    shiftk = [float(s) for s in "0.5 0.5 0.5 0.5 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.5".split()]
+    multi.set_vars(ecut=20, diemac=12, iomode=3, ixc=-208012, prtkden=1, usekden=1)
+
+    # Dataset 1
+    multi[0].set_vars(tolvrs=1e-7)
+    multi[0].set_kmesh(ngkpt=[2, 2, 2], shiftk=shiftk)
+
+    # Dataset 2
+    multi[1].set_vars(tolwfr=1e-8)
+    multi[1].set_kpath(ndivsm=2)
+
+    scf_input, nscf_input = multi.split_datasets()
+    work = flowtk.works.BandStructureWork(scf_input=scf_input, nscf_input=nscf_input)
+
+    flow = abilab.Flow(workdir=fwp.workdir, manager=fwp.manager)
+    flow.register_work(work)
+    flow.build_and_pickle_dump(abivalidate=True)
+
+    fwp.scheduler.add_flow(flow)
+    assert fwp.scheduler.start() == 0
+    assert not fwp.scheduler.exceptions
+    #assert fwp.scheduler.nlaunch == 3
+
+    flow.show_status()
+    if not flow.all_ok:
+        flow.debug()
+        raise RuntimeError()
+    assert all(work.finalized for work in flow)

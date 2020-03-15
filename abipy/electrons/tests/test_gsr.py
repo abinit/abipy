@@ -1,10 +1,9 @@
 """Test for GSR module"""
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import os
 import numpy as np
 import abipy.data as abidata
 import abipy.core
+import abipy.core.abinit_units as abu
 
 from pprint import pprint
 from abipy.core.testing import AbipyTest
@@ -114,15 +113,9 @@ class GSRFileTestCase(AbipyTest):
             #  sigma(1 1)=  1.77139311E-04  sigma(3 2)=  0.00000000E+00
             #  sigma(2 2)=  1.77139311E-04  sigma(3 1)=  0.00000000E+00
             #  sigma(3 3)=  1.77139311E-04  sigma(2 1)=  2.67294316E-15
-            self.assert_almost_equal(gsr.pressure, -5.21162150)
-
-            # Test as_dict
-            d = gsr.as_dict()
-            assert d and "structure" in d
-            #import json
-            #with open("hello.json", "w") as fp:
-            #    json.dump(gsr.as_dict(), fp)
-            #assert 0
+            for i in range(3):
+                self.assert_almost_equal(gsr.cart_stress_tensor[0, 0], 1.77139311E-04 * abu.HaBohr3_GPa)
+            self.assert_almost_equal(gsr.pressure, -5.211617575719521)
 
             # Test pymatgen computed_entries
             for inc_structure in (True, False):
@@ -135,10 +128,13 @@ class GSRFileTestCase(AbipyTest):
 
             if self.has_matplotlib():
                 assert gsr.plot_ebands(show=False)
-                assert gsr.plot_ebands_with_edos(edos=gsr.ebands.get_edos(), show=False)
+                assert gsr.plot_ebands_with_edos(edos=gsr.get_edos(), show=False)
 
             if self.has_nbformat():
                 gsr.write_notebook(nbpath=self.get_tmpname(text=True))
+
+            if self.has_panel():
+                assert hasattr(gsr.get_panel(), "show")
 
 
 class GsrRobotTest(AbipyTest):
@@ -146,9 +142,9 @@ class GsrRobotTest(AbipyTest):
     def test_gsr_robot(self):
         """Testing GSR robot"""
         from abipy import abilab
-        gsr_path = abidata.ref_file("si_scf_GSR.nc")
+        gsr_ibz = abidata.ref_file("si_scf_GSR.nc")
         robot = abilab.GsrRobot()
-        robot.add_file("gsr0", gsr_path)
+        robot.add_file("gsr0", gsr_ibz)
         assert len(robot.abifiles) == 1
         assert "gsr0" in robot.keys()
         assert "gsr0" in robot.labels
@@ -158,10 +154,10 @@ class GsrRobotTest(AbipyTest):
 
 	# Cannot have same label
         with self.assertRaises(ValueError):
-            robot.add_file("gsr0", gsr_path)
+            robot.add_file("gsr0", gsr_ibz)
 
         assert len(robot) == 1 and not robot.exceptions
-        robot.add_file("gsr1", abilab.abiopen(gsr_path))
+        robot.add_file("gsr1", abilab.abiopen(gsr_ibz))
         assert len(robot) == 2
         robot.show_files()
         assert not robot.has_different_structures()
@@ -177,6 +173,10 @@ class GsrRobotTest(AbipyTest):
         assert dfs.lattice is not None
         assert dfs.coords is not None
         assert len(dfs.structures) == len(robot)
+
+        assert len(robot.get_ebands_plotter(kselect="path")) == 0
+        filter_abifile = lambda gsr: gsr.ebands.kpoints.is_ibz
+        assert len(robot.get_ebands_plotter(filter_abifile=filter_abifile)) == 2
 
         ebands_plotter = robot.get_ebands_plotter()
         edos_plotter = robot.get_edos_plotter()
@@ -200,6 +200,9 @@ class GsrRobotTest(AbipyTest):
             assert robot.plot_egaps(show=False)
             assert robot.plot_egaps(sortby="nkpt", hue="tsmear")
             assert robot.gridplot_with_hue("structure.formula", show=False)
+
+        if self.has_panel():
+            assert hasattr(robot.get_panel(), "show")
 
 	# Get pandas dataframe.
         df = robot.get_dataframe()

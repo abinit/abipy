@@ -1,6 +1,4 @@
 """Tests for frozen_phonons"""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 import abipy.data as abidata
 
@@ -19,14 +17,14 @@ class FrozenPhononTest(AbipyTest):
         phbands = PhononBands.from_file(filename)
 
         qpt_frac_coords = [0.5, 0.5, 0.5]
-        fp = FrozenPhonon.from_phbands(phbands, qpt_frac_coords, 0 ,
-                                       etas=[-0.2, -0.1, 0, 0.1, 0.2], max_supercell=[5,5,5])
+        fp = FrozenPhonon.from_phbands(phbands, qpt_frac_coords, 0,
+                                       etas=[-0.2, -0.1, 0, 0.1, 0.2], max_supercell=[5, 5, 5])
 
-        self.assertArrayEqual(fp.scale_matrix, [[-1,  0,  1], [-1,  1,  0], [-1, -1,  0]])
+        self.assertArrayEqual(fp.scale_matrix, [[-1, 0, 1], [-1, 1, 0], [-1, -1, 0]])
 
         w = phbands.phfreqs[phbands.qindex(qpt_frac_coords), 0]
 
-        energies = [0.0704, 0.0176, 0. , 0.0175, 0.0703]
+        energies = [0.0704, 0.0176, 0., 0.0175, 0.0703]
 
         with self.assertRaises(ValueError):
             fp.energies = energies[:3]

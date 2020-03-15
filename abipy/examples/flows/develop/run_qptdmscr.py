@@ -68,7 +68,6 @@ def all_inputs(paral_kgb=1):
 
     # Dataset3: Calculation of the screening.
     scr.set_kmesh(**gw_kmesh)
-
     scr.set_vars(
         optdriver=3,
         nband=6,
@@ -80,7 +79,6 @@ def all_inputs(paral_kgb=1):
 
     # Dataset4: Calculation of the Self-Energy matrix elements (GW corrections)
     sigma.set_kmesh(**gw_kmesh)
-
     sigma.set_vars(
             optdriver=4,
             nband=8,
@@ -100,7 +98,6 @@ def all_inputs(paral_kgb=1):
     ]
 
     bdgw = [1, 8]
-
     sigma.set_kptgw(kptgw, bdgw)
 
     return multi.split_datasets()
@@ -114,6 +111,7 @@ def build_flow(options):
     """
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
+        __file__ = os.path.join(os.getcwd(), "run_qptdmscr.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     # Build the input files for GS, NSCF, SCR and SIGMA runs.
@@ -126,11 +124,11 @@ def build_flow(options):
 
 # This block generates the thumbnails in the Abipy gallery.
 # You can safely REMOVE this part if you are using this script for production runs.
-if os.getenv("GENERATE_SPHINX_GALLERY", False):
+if os.getenv("READTHEDOCS", False):
     __name__ = None
-    #import tempfile
-    #options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-    #build_flow(options).plot_networkx(with_edge_labels=True, tight_layout=True)
+    import tempfile
+    options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
+    build_flow(options).graphviz_imshow()
 
 
 @flowtk.flow_main

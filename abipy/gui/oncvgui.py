@@ -1,14 +1,11 @@
 #!/usr/bin/env python
 """Gui for the oncvpsp norm-conserving pseudopotential generator."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 import copy
 import time
 import shutil
 import abc
 import sys
-import six
 import wx
 import wx.lib.mixins.listctrl as listmix
 import numpy as np
@@ -427,8 +424,7 @@ allows you to scan a set of possible values for the generation of the pseudopote
             website="http://www.mat-simresearch.com/")
 
 
-@six.add_metaclass(abc.ABCMeta)
-class OptimizationFrame(awx.Frame):
+class OptimizationFrame(awx.Frame, metaclass=abc.ABCMeta):
     """Base class for optimization frames."""
     def __init__(self, parent, **kwargs):
         super(OptimizationFrame, self).__init__(parent, **kwargs)

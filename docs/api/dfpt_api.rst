@@ -28,6 +28,14 @@ dfpt Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`elastic` Module
+---------------------
+
+.. automodule:: abipy.dfpt.elastic
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`frozen_phonons` Module
 ----------------------------
 
@@ -45,10 +53,34 @@ dfpt Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`ifc` Module
+-----------------
+
+.. automodule:: abipy.dfpt.ifc
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`msqdos` Module
+--------------------
+
+.. automodule:: abipy.dfpt.msqdos
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`phonons` Module
 ---------------------
 
 .. automodule:: abipy.dfpt.phonons
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`phtk` Module
+------------------
+
+.. automodule:: abipy.dfpt.phtk
    :members:
    :undoc-members:
    :show-inheritance:
@@ -61,11 +93,18 @@ dfpt Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`raman` Module
+-------------------
 
-:mod:`tensors` Module
----------------------
+.. automodule:: abipy.dfpt.raman
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
-.. automodule:: abipy.dfpt.tensors
+:mod:`vsound` Module
+--------------------
+
+.. automodule:: abipy.dfpt.vsound
    :members:
    :undoc-members:
    :show-inheritance:

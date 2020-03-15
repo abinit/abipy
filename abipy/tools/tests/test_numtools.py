@@ -1,5 +1,3 @@
-from __future__ import print_function, division, absolute_import, unicode_literals
-
 import numpy as np
 
 from abipy.tools.numtools import *
@@ -44,6 +42,24 @@ class TestNumTools(AbipyTest):
             assert np.all(view[...,0] == view[...,-1])
             assert np.all(view[...,0,0] == view[...,-1,-1])
             assert np.all(view[...,0,0,0] == view[...,-1,-1,-1])
+
+    def test_data_from_cplx_mode(self):
+        """Testing data_from_cplx_mode."""
+        carr = np.empty((2, 4), dtype=np.complex)
+
+        self.assert_equal(data_from_cplx_mode("all", carr), carr)
+        self.assert_equal(data_from_cplx_mode("re", carr), carr.real)
+        self.assert_equal(data_from_cplx_mode("im", carr), carr.imag)
+        self.assert_equal(data_from_cplx_mode("abs", carr), np.abs(carr))
+        self.assert_equal(data_from_cplx_mode("angle", carr), np.angle(carr))
+
+        with self.assertRaises(ValueError):
+            data_from_cplx_mode("foo", carr)
+        with self.assertRaises(ValueError):
+            data_from_cplx_mode("angle", carr, tol=1.0)
+
+        rarr = np.ones((2, 4), dtype=np.float)
+        self.assert_equal(data_from_cplx_mode("re", rarr, tol=1.1), np.zeros_like(rarr))
 
     def test_special_functions(self):
         """Testing special functions."""

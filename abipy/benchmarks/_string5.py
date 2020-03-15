@@ -4,8 +4,6 @@ Hydronium ion + NH3 molecule. String method.
 Moving the proton from H2O to NH3 keeping O and H atoms fixed.
 Based on tutoparal/tstring_04.in
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import sys
 import operator
 import numpy as np
@@ -44,7 +42,7 @@ def make_input(): # pragma: no cover
         2.9570301511E+00  5.5992672027E-02 -1.3560839453E-01""", sep=" ").reshape((-1,3))
 
     structure = abilab.Structure.from_abivars(
-        acell = abilab.ArrayWithUnit([10, 5, 5], "ang").to("bohr"),
+        acell=abilab.ArrayWithUnit([10, 5, 5], "ang").to("bohr"),
         rprim=np.eye(3),
         typat=[1, 3, 3, 2, 3, 3, 3, 3], # Type of atoms (H2O + NH3 + H)
         znucl=[8.0, 7.0, 1.0],
@@ -138,8 +136,7 @@ def build_flow(options): # pragma: no cover
     #    print("wfoptalg:", wfoptalg, "done with MPI_PROCS:", mpi_procs, "and:", d)
     #    inp = template.new_with_vars(d)
     #    work.register_scf_task(inp, manager=manager)
-
-	#flow.register_work(work)
+    #flow.register_work(work)
 
     return flow.allocate()
 

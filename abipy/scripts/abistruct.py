@@ -2,8 +2,6 @@
 """
 Script to analyze/export/visualize the crystal structure saved in the netcdf files produced by ABINIT.
 """
-from __future__ import unicode_literals, division, print_function, absolute_import
-
 import sys
 import os
 import argparse
@@ -11,7 +9,6 @@ import numpy as np
 
 from pprint import pprint
 from tabulate import tabulate
-from warnings import warn
 from monty.string import marquee
 from monty.functools import prof_main
 from monty.termcolor import cprint
@@ -25,22 +22,6 @@ from abipy.iotools.xsf import xsf_write_structure
 from abipy.abio import factories
 
 
-#def remove_equivalent_atoms(structure):
-#    from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-#    spgan = SpacegroupAnalyzer(structure) #, symprec=symprec, angle_tolerance=angle_tolerance)
-#    spgdata = spgan.get_symmetry_dataset()
-#    equivalent_atoms = spgdata["equivalent_atoms"]
-#    mask = np.zeros(len(structure), dtype=np.int)
-#    for pos, eqpos in enumerate(equivalent_atoms):
-#        mask[eqpos] += 1
-#
-#    indices = [i for i, m in enumerate(mask) if m == 0]
-#    new = structure.copy()
-#    new.remove_sites(indices)
-#    with open("foo.abi", "wt") as fh:
-#        fh.write(new.abi_string)
-
-
 def save_structure(structure, options):
     """Save structure to file."""
     if not options.savefile: return
@@ -52,6 +33,17 @@ def save_structure(structure, options):
 
     structure.to(filename=options.savefile)
 
+
+def check_ordered_structure(structure):
+    """Print a warning and sys.exit 1 if structure is disordered."""
+    if not structure.is_ordered:
+        cprint("""
+Cannot handle disordered structure with fractional site occupancies.
+Use OrderDisorderedStructureTransformation or EnumerateStructureTransformation
+to build an appropriate supercell from partial occupancies.""", color="magenta")
+        sys.exit(1)
+
+
 def get_epilog():
     return """\
 Usage example:
@@ -62,10 +54,15 @@ Usage example:
 
   abistruct.py spglib FILE                 => Read structure from FILE and analyze it with spglib.
   abistruct.py abispg FILE                 => Read structure from FILE, and compute ABINIT space group.
+  abistruct.py primitive FILE              => Read structure from FILE, use pymatgen and spglib to find primitive structure.
   abistruct.py abisanitize FILE            => Read structure from FILE, call abisanitize, compare structures
                                               and save "abisanitized" structure to file.
   abistruct.py conventional FILE           => Read structure from FILE, generate conventional structure
                                               following Setyawan, W., & Curtarolo, S. (2010) doi:10.1016/j.commatsci.2010.05.010 
+  abistruct.py proto FILE                 => Read structure from FILE, find possible crystallographic prototypes:
+                                             in the AFLOW library of crystallographic prototypes.
+                                             http://doi.org/10.1016/j.commatsci.2017.01.017
+
 ##################
 # Conversion tools
 ##################
@@ -92,6 +89,8 @@ Usage example:
   abistruct.py lgk FILE -k 0.25 0 0        => Read structure from FILE, find little group of k-point,
                                               print Bilbao character table.
   abistruct.py kstar FILE -k 0.25 0 0      => Read structure from FILE, print star of k-point.
+  abistruct.py keq FILE -k 0.5 0 0 0 0.5 0  => Read structure from FILE, test whether k1 and k2 are
+                                               symmetry-equivalent k-points.
 
 ###############
 # Miscelleanous
@@ -110,6 +109,8 @@ Usage example:
                                               Supports also ovito, xcrysden, vtk, mayavi, matplotlib See --help
   abistruct.py ipython FILE                => Read structure from FILE and open it in the Ipython terminal.
   abistruct.py notebook FILE               => Read structure from FILE and generate jupyter notebook.
+  abistruct.py panel FILE                  => Generate GUI in web browser to interact with the structure
+                                              Requires panel package.
 
 ###########
 # Databases
@@ -127,12 +128,15 @@ Usage example:
                                               Print info and Abinit input files. Use e.g. `-f POSCAR`
                                               to change output format. `-f None` to disable structure output.
   abistruct.py mp_pd FILE-or-elements      => Generate phase diagram with entries from the Materials Project.
-                                              Accept FILE with structure or list of elements e.g `Li-Fe-O`
+  abistruct.py mp_ebands FILE             => Fetch electron band structure from MP database. Print gaps.
+                                              Accept FILE with structure if ebands fro structure is wanted
+                                              or mp id e.g. "mp-149 or list of elements e.g `Li-Fe-O` or chemical formula.
 
 `FILE` is any file supported by abipy/pymatgen e.g Netcdf files, Abinit input/output, POSCAR, xsf ...
 Use `abistruct.py --help` for help and `abistruct.py COMMAND --help` to get the documentation for `COMMAND`.
 Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 """
+
 
 def get_parser(with_epilog=False):
 
@@ -144,6 +148,12 @@ def get_parser(with_epilog=False):
     # Parent parser for commands supporting (jupyter notebooks)
     nb_parser = argparse.ArgumentParser(add_help=False)
     nb_parser.add_argument('-nb', '--notebook', default=False, action="store_true", help='Generate jupyter notebook.')
+    nb_parser.add_argument('--classic-notebook', action='store_true', default=False,
+                           help="Use classic notebook instead of jupyterlab.")
+    nb_parser.add_argument('--no-browser', action='store_true', default=False,
+                           help=("Start the jupyter server to serve the notebook "
+                                 "but don't open the notebook in the browser.\n"
+                                 "Use this option to connect remotely from localhost to the machine running the kernel"))
     nb_parser.add_argument('--foreground', action='store_true', default=False,
         help="Run jupyter notebook in the foreground.")
 
@@ -151,6 +161,7 @@ def get_parser(with_epilog=False):
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
 
+    # Parser for commands that need to call spglib.
     spgopt_parser = argparse.ArgumentParser(add_help=False)
     spgopt_parser.add_argument('--symprec', default=1e-3, type=float,
         help="""\
@@ -161,6 +172,8 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
     spgopt_parser.add_argument('--angle-tolerance', default=5.0, type=float,
         help="angle_tolerance (float): Angle tolerance for symmetry finding. Default: 5.0")
     spgopt_parser.add_argument("--no-time-reversal", default=False, action="store_true", help="Don't use time-reversal.")
+    spgopt_parser.add_argument("--site-symmetry", default=False, action="store_true",
+                               help="Show site symmetries i.e. the point group operations that leave the site invariant.")
 
     # Parent parser for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)
@@ -184,6 +197,7 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
             help="Enforce primitive standard cell.")
 
     supported_formats = "(abivars, cif, xsf, poscar, qe, siesta, wannier90, cssr, json, None)"
+
     def add_format_arg(parser, default, option=True, formats=None):
         """Add --format option to a parser with default value `default`."""
         formats = supported_formats if formats is None else formats
@@ -207,9 +221,11 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
         help="Extract/Compute Abinit space group from file with structure.")
     p_abispg.add_argument("-t", "--tolsym", type=float, default=None, help="""\
 Gives the tolerance on the atomic positions (reduced coordinates), primitive vectors, or magnetization,
-to be considered equivalent, thanks to symmetry operations. This is used in the recognition of the set
+to be considered equivalent, thanks to symmetry operations. This value is used by ABINIT in the recognition of the set
 of symmetries of the system, or the application of the symmetry operations to generate from a reduced set of atoms,
-the full set of atoms. Note that a value larger than 0.01 is considered to be unacceptable.""")
+The internal default is 1e-8. Setting tolsym to a value larger than 1e-8 will make Abinit detect the spacegroup within
+this tolerance and re-symmetrize the input structure. This option is useful if the structure has been taken from a CIF
+file that does not have enough significant digits.""")
     p_abispg.add_argument("-d", "--diff-mode", type=str, default="table", choices=["table", "diff"],
         help="Select diff output format.")
 
@@ -217,6 +233,9 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
     p_convert = subparsers.add_parser('convert', parents=[copts_parser, path_selector],
         help="Convert structure to the specified format.")
     add_format_arg(p_convert, default="cif")
+
+    p_print = subparsers.add_parser('print', parents=[copts_parser, path_selector],
+                                    help="Print Structure to terminal.")
 
     # Subparser for supercell command.
     p_supercell = subparsers.add_parser('supercell', parents=[copts_parser, path_selector],
@@ -240,6 +259,9 @@ Has to be all integers. Several options are possible:
         help="Sanitize structure with abi_sanitize, compare structures and save result to file.")
     add_primitive_options(p_abisanitize)
 
+    p_primitive = subparsers.add_parser('primitive', parents=[copts_parser, path_selector, spgopt_parser, savefile_parser],
+        help="Use spglib to find a smaller unit cell than the input")
+
     # Subparser for irefine
     p_irefine = subparsers.add_parser('irefine', parents=[copts_parser, path_selector, spgopt_parser],
         help="Refine structure with abi_sanitize iteratively, stop if target space group is obtained.")
@@ -253,6 +275,26 @@ Has to be all integers. Several options are possible:
     p_conventional = subparsers.add_parser('conventional', parents=[copts_parser, path_selector, spgopt_parser, savefile_parser],
         help="Gives a structure with a conventional cell according to certain standards. "
              "The standards are defined in Setyawan, W., & Curtarolo, S. (2010) doi:10.1016/j.commatsci.2010.05.010")
+
+    # Subparser for proto.
+    p_proto = subparsers.add_parser('proto', parents=[copts_parser, path_selector],
+        help=("Find prototype in the AFLOW LIBRARY OF CRYSTALLOGRAPHIC PROTOTYPES. "
+              "http://doi.org/10.1016/j.commatsci.2017.01.017"))
+    p_proto.add_argument("--ltol", default=0.2, type=float, help="fractional length tolerance.")
+    p_proto.add_argument("--stol", default=0.3, type=float, help="site tolerance.")
+    p_proto.add_argument("--angle-tol", default=5, type=float, help="angle tolerance.")
+
+    # Subparser for wyckoff.
+    p_wyckoff = subparsers.add_parser('wyckoff', parents=[copts_parser, spgopt_parser, path_selector],
+            help="Print wyckoff positions. WARNING: still under development!")
+    p_wyckoff.add_argument("--refine", default=False, action="store_true",
+                           help="Use spglib to refine structure before computation")
+
+    # Subparser for tensor_site.
+    p_tensor_site = subparsers.add_parser('tensor_site', parents=[copts_parser, spgopt_parser, path_selector],
+            help="Print symmetry properties of tensors due to site-symmetries. WARNING: still under development!")
+    p_tensor_site.add_argument("--refine", default=False, action="store_true",
+                               help="Use spglib to refine structure before computation")
 
     # Subparser for neighbors.
     p_neighbors = subparsers.add_parser('neighbors', parents=[copts_parser, path_selector],
@@ -293,8 +335,18 @@ closest points in this particular structure. This is usually what you want in a 
     # Subparser for notebook.
     p_notebook = subparsers.add_parser('notebook', parents=[copts_parser, path_selector],
         help="Read structure from file and generate jupyter notebook.")
+    p_notebook.add_argument('--classic-notebook', action='store_true', default=False,
+                            help="Use classic notebook instead of jupyterlab.")
+    p_notebook.add_argument('--no-browser', action='store_true', default=False,
+                            help=("Start the jupyter server to serve the notebook "
+                                  "but don't open the notebook in the browser.\n"
+                                  "Use this option to connect remotely from localhost to the machine running the kernel"))
     p_notebook.add_argument('--foreground', action='store_true', default=False,
         help="Run jupyter notebook in the foreground.")
+
+    p_panel = subparsers.add_parser('panel', parents=[copts_parser, path_selector],
+        help="Open GUI in web browser, requires panel package.")
+
     # Subparser for kpath.
     p_kpath = subparsers.add_parser('kpath', parents=[copts_parser, path_selector],
         help="Read structure from file, generate k-path for band-structure calculations.")
@@ -348,6 +400,12 @@ closest points in this particular structure. This is usually what you want in a 
     p_kstar.add_argument("-k", "--kpoint", nargs=3, required=True, type=float,
         help="K-point in reduced coordinates e.g. 0.25 0 0")
 
+    # Subparser for keq.
+    p_keq = subparsers.add_parser('keq', parents=[copts_parser, path_selector, spgopt_parser],
+        help="Read structure from file, check whether two k-points are equivalent by symmetry.")
+    p_keq.add_argument("-k", "--kpoints", nargs=6, required=True, type=float,
+        help="K-points in reduced coordinates e.g. 0.25 0 0 0 0.25 0")
+
     # Subparser for visualize command.
     p_visualize = subparsers.add_parser('visualize', parents=[copts_parser, path_selector],
         help=("Visualize the structure with the specified application. "
@@ -358,14 +416,14 @@ closest points in this particular structure. This is usually what you want in a 
     # Options for commands accessing the materials project database.
     mp_rest_parser = argparse.ArgumentParser(add_help=False)
     mp_rest_parser.add_argument("--mapi-key", default=None,
-        help="Pymatgen MAPI_KEY. Use value in .pmgrc.yaml if not specified.")
+        help="Pymatgen PMG_MAPI_KEY. Use value in .pmgrc.yaml if not specified.")
     mp_rest_parser.add_argument("--endpoint", help="Pymatgen database.", default="https://www.materialsproject.org/rest/v2")
     mp_rest_parser.add_argument("-b", "--browser", default=False, action='store_true',
         help="Open materials-project webpages in browser")
 
     # Subparser for mp_id command.
     p_mpid = subparsers.add_parser('mp_id', parents=[copts_parser, mp_rest_parser],
-        help="Get structure from the pymatgen database. Export to format. Requires internet connection and MAPI_KEY.")
+        help="Get structure from the pymatgen database. Export to format. Requires internet connection and PMG_MAPI_KEY.")
     p_mpid.add_argument("mpid", type=str, default=None, help="Pymatgen identifier.")
     add_format_arg(p_mpid, default="cif")
 
@@ -378,7 +436,7 @@ closest points in this particular structure. This is usually what you want in a 
     p_mpsearch = subparsers.add_parser('mp_search', parents=[mp_rest_parser, copts_parser, nb_parser],
         help="Get structure from the pymatgen database. Requires internet connection and PMG_MAPI_KEY")
     p_mpsearch.add_argument("chemsys_formula_id", type=str, default=None,
-        help="A chemical system (e.g., Li-Fe-O), or formula (e.g., Fe2O3) or materials_id (e.g., mp-1234).")
+        help="A chemical system (e.g., Li-Fe-O), or formula (e.g., Fe2O3) or materials_id (e.g., mp-149).")
     p_mpsearch.add_argument("-s", "--select-spgnum", type=int, default=None,
         help="Select structures with this space group number.")
     add_format_arg(p_mpsearch, default="abivars")
@@ -393,6 +451,13 @@ closest points in this particular structure. This is usually what you want in a 
         help="""Whether unstable phases will be plotted as
 well as red crosses. If a number > 0 is entered, all phases with
 ehull < show_unstable will be shown.""")
+
+    # Subparser for mp_ebands command.
+    p_mp_ebands = subparsers.add_parser('mp_ebands', parents=[copts_parser, mp_rest_parser],
+        help="Get structure from the pymatgen database. Export to format. Requires internet connection and PMG_MAPI_KEY.")
+    p_mp_ebands.add_argument("chemsys_formula_id", type=str, default=None,
+        help="A chemical system (e.g., Li-Fe-O), or formula (e.g., Fe2O3) or materials_id (e.g., mp-149).")
+    #add_format_arg(p_mp_ebands, default="cif")
 
     # Subparser for cod_search command.
     p_codsearch = subparsers.add_parser('cod_search', parents=[copts_parser, nb_parser],
@@ -413,9 +478,10 @@ ehull < show_unstable will be shown.""")
 
     # Subparser for animate command.
     p_animate = subparsers.add_parser('animate', parents=[copts_parser, path_selector],
-        help="Read structures from HIST.nc or XDATCAR. Print structures in Xrysden AXSF format to stdout.")
+        help="Read structures from HIST.nc or XDATCAR. Print structures in Xcrysden AXSF format to stdout.")
 
     return parser
+
 
 @prof_main
 def main():
@@ -437,6 +503,9 @@ def main():
     if not options.command:
         show_examples_and_exit(error_code=1)
 
+    if hasattr(options, "format"):
+        options.format = options.format.strip()
+
     # loglevel is bound to the string value obtained from the command line argument.
     # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
     import logging
@@ -451,25 +520,30 @@ def main():
     if options.command == "spglib":
         structure = abilab.Structure.from_file(options.filepath)
         print(structure.spget_summary(symprec=options.symprec, angle_tolerance=options.angle_tolerance,
-                                      verbose=options.verbose))
-        #remove_equivalent_atoms(structure)
+                                      site_symmetry=options.site_symmetry, verbose=options.verbose))
 
     elif options.command == "abispg":
         structure = abilab.Structure.from_file(options.filepath)
-        spgrp = structure.abi_spacegroup
+        check_ordered_structure(structure)
+        abi_spg = structure.abi_spacegroup
 
-        if spgrp is not None:
+        if abi_spg is not None and options.tolsym is None:
             print(structure.spget_summary(verbose=options.verbose))
         else:
-            # Here we compare Abinit wrt spglib. If spgrp is None, we create a temporary
+            # Here we compare Abinit wrt spglib. If abi_spg is None, we create a temporary
             # task to run the code in dry-run mode.
-            print("FILE does not contain Abinit symmetry operations.")
-            print("Calling Abinit in --dry-run mode with chkprim = 0 to get space group.")
+            if abi_spg is None:
+                print("FILE does not contain Abinit symmetry operations.")
+            cprint("Calling Abinit in --dry-run mode with chkprim = 0 to get space group.")
+            if options.tolsym is not None and options.tolsym > 1e-8:
+                cprint("Crystal structure will be re-symmetrized by Abinit with tolsym: %s" % options.tolsym, "yellow")
+
             from abipy.data.hgh_pseudos import HGH_TABLE
             gsinp = factories.gs_input(structure, HGH_TABLE, spin_mode="unpolarized")
             gsinp["chkprim"] = 0
             abistructure = gsinp.abiget_spacegroup(tolsym=options.tolsym)
             print(abistructure.spget_summary(verbose=options.verbose))
+            print("")
 
             diff_structures([structure, abistructure], mode=options.diff_mode,
                             headers=["Input structure", "After Abinit symmetrization"], fmt="abivars")
@@ -481,6 +555,9 @@ def main():
         fmt = options.format
         if fmt == "cif" and options.filepath.endswith(".cif"): fmt = "abivars"
         print(abilab.Structure.from_file(options.filepath).convert(fmt=fmt))
+
+    elif options.command == "print":
+        print(abilab.Structure.from_file(options.filepath).to_string(verbose=options.verbose))
 
     elif options.command == "supercell":
         structure = abilab.Structure.from_file(options.filepath)
@@ -512,7 +589,6 @@ def main():
 
         if not options.verbose:
             print("\nUse -v for more info")
-            #print(sanitized.convert(fmt="cif"))
         else:
             #print("\nDifference between structures:")
             if len(structure) == len(sanitized):
@@ -530,6 +606,18 @@ def main():
         # Save file.
         save_structure(sanitized, options)
 
+    elif options.command == "primitive":
+        structure = abilab.Structure.from_file(options.filepath)
+        primitive = structure.get_primitive_structure(tolerance=0.25, use_site_props=False, constrain_latt=None)
+        separator = "\n" + 90 * "="
+        print("\nInitial structure:\n", structure, separator)
+        print("\nPrimitive structure returned by pymatgen:\n", primitive, separator)
+        print("\nAbinit input for primitive structure:\n", primitive.abi_string)
+        if structure != primitive:
+            print("\nInput structure is not primitive (according to pymatgen + spglib)")
+        else:
+            print("\nInput structure seems to be primitive (according to pymatgen + spglib)")
+
     elif options.command == "irefine":
         structure = abilab.Structure.from_file(options.filepath)
         sanitized = structure.copy()
@@ -545,11 +633,11 @@ def main():
             spg_symb, spg_num = sanitized.get_space_group_info(symprec=symprec, angle_tolerance=angle_tolerance)
             print(">>> Space-group number:", spg_symb, ", symbol:", spg_num, "for trial:", itrial)
             if spg_num == options.target_spgnum:
-                print(2 * "\n", "# Final structure with space group number:", spg_symb, ", symbol:", spg_num, 2 *"\n")
+                print(2 * "\n", "# Final structure with space group number:", spg_symb, ", symbol:", spg_num, 2 * "\n")
                 print(sanitized.convert(fmt="cif"))
                 break
 
-            # Increment counter and tols.
+            # Increment counter and tolerances.
             itrial += 1
             symprec += options.symprec_step
             angle_tolerance += options.angle_tolerance_step
@@ -562,7 +650,7 @@ def main():
 
     elif options.command == "conventional":
         print("\nCalling get_conventional_standard_structure to get conventional structure:")
-        print("The standards are defined in Setyawan, W., & Curtarolo, S. (2010). ")
+        print("The standards are defined in Setyawan, W., & Curtarolo, S. (2010).")
         print("High-throughput electronic band structure calculations: Challenges and tools. ")
         print("Computational Materials Science, 49(2), 299-312. doi:10.1016/j.commatsci.2010.05.010\n")
 
@@ -592,6 +680,48 @@ def main():
 
         # Save file.
         save_structure(conv, options)
+
+    elif options.command == "proto":
+        structure = abilab.Structure.from_file(options.filepath)
+        from pymatgen.analysis.aflow_prototypes import AflowPrototypeMatcher
+        m = AflowPrototypeMatcher(initial_ltol=options.ltol, initial_stol=options.stol,
+                                  initial_angle_tol=options.angle_tol)
+        dlist = m.get_prototypes(structure)
+        if not dlist:
+            cprint("Cannot find AFLOW prototype for structure.")
+            print(structure.to_string(verbose=options.verbose))
+            return 1
+        else:
+            cprint("Found %d matches" % len(dlist), "green")
+            for d in dlist:
+                if "snl" in d:
+                    snl = d.pop("snl")
+                    if options.verbose: pprint(snl.as_dict())
+                pprint(d)
+                url = "http://aflow.org/CrystalDatabase/%s.html" % d["tags"]["aflow"]
+                print("AFLOW url: %s\n" % url)
+            if not options.verbose:
+                print("Use --verbose to increase output level")
+
+    elif options.command == "wyckoff":
+        structure = abilab.Structure.from_file(options.filepath)
+        if options.refine:
+            print("Refining structure with symprec: %s, angle_tolerance: %s" % (options.symprec, options.angle_tolerance))
+            structure = structure.refine(symprec=options.symprec, angle_tolerance=options.angle_tolerance)
+        print(structure.spget_summary(verbose=options.verbose))
+        ss = structure.site_symmetries
+        df = ss.get_wyckoff_dataframe(verbose=options.verbose)
+        abilab.print_dataframe(df, title="\nWyckoff positions in reduced coordinates.")
+
+    elif options.command == "tensor_site":
+        structure = abilab.Structure.from_file(options.filepath)
+        if options.refine:
+            print("Refining structure with symprec: %s, angle_tolerance: %s" % (options.symprec, options.angle_tolerance))
+            structure = structure.refine(symprec=options.symprec, angle_tolerance=options.angle_tolerance)
+        print(structure.spget_summary(verbose=options.verbose))
+        ss = structure.site_symmetries
+        df = ss.get_tensor_rank2_dataframe(verbose=options.verbose)
+        abilab.print_dataframe(df, title="\nTensor components in reduced coordinates (rank 2, symmetric)")
 
     elif options.command == "neighbors":
         abilab.Structure.from_file(options.filepath).print_neighbors(radius=options.radius)
@@ -625,7 +755,20 @@ def main():
 
     elif options.command == "notebook":
         structure = abilab.Structure.from_file(options.filepath)
-        structure.make_and_open_notebook(nbpath=None, foreground=options.foreground)
+        structure.make_and_open_notebook(nbpath=None, foreground=options.foreground,
+                                         classic_notebook=options.classic_notebook,
+                                         no_browser=options.no_browser)
+
+    elif options.command == "panel":
+        structure = abilab.Structure.from_file(options.filepath)
+        try:
+            import panel  # flake8: noqa
+        except ImportError as exc:
+            cprint("Use `conda install panel` or `pip install panel` to install the python package.", "red")
+            raise exc
+
+        structure.get_panel().show()  #threaded=True)
+        return 0
 
     elif options.command == "visualize":
         structure = abilab.Structure.from_file(options.filepath)
@@ -679,8 +822,11 @@ def main():
 
     #elif options.command == "kmesh_jhu":
     #    structure = abilab.Structure.from_file(options.filepath)
-    #    ksampling = structure.ksampling_from_jhudb(kppra=1000)
-    #    #print(ksampling)
+    #    from pymatgen.ext.jhu import get_kpoints
+    #    kpoints = get_kpoints(structure, min_distance=0, min_total_kpoints=1,
+    #                           kppra=None, gap_distance=7, remove_symmetry=None,
+    #                           include_gamma="auto", header="simple", incar=None)
+    #    #print(kpoints)
 
     elif options.command == "lgk":
         structure = abilab.Structure.from_file(options.filepath)
@@ -703,9 +849,6 @@ def main():
     elif options.command == "kstar":
         structure = abilab.Structure.from_file(options.filepath)
 
-        # TODO
-        #kstar = structure.get_star_kpoint(options.kpoint, has_timerev=not options.no_time_reversal)
-
         # Call spglib to get spacegroup if Abinit spacegroup is not available.
         if structure.abi_spacegroup is None:
             structure.spgset_abi_spacegroup(has_timerev=not options.no_time_reversal)
@@ -715,6 +858,23 @@ def main():
         print("Found %s points in the star of %s\n" % (len(kstar), repr(kpoint)))
         for k in kstar:
             print(4 * " ", repr(k))
+
+    elif options.command == "keq":
+        structure = abilab.Structure.from_file(options.filepath)
+
+        # Call spglib to get spacegroup if Abinit spacegroup is not available.
+        if structure.abi_spacegroup is None:
+            structure.spgset_abi_spacegroup(has_timerev=not options.no_time_reversal)
+
+        k1, k2 = options.kpoints[:3], options.kpoints[3:6]
+        k1tab = structure.abi_spacegroup.symeq(k1, k2)
+
+        if k1tab.isym != -1:
+            print("\nk1:", k1, "and k2:", k2, "are symmetry equivalent k-points\n")
+            print("Related by the symmetry operation (reduced coords):\n", k1tab.op)
+            print("With umklapp vector Go = TO(k1) - k2 =", k1tab.g0)
+        else:
+            print(k1, "and", k2, "are NOT symmetry equivalent")
 
     elif options.command == "mp_id":
         # Get the Structure corresponding to material_id.
@@ -726,11 +886,13 @@ def main():
     elif options.command == "mp_match":
         mp = abilab.mp_match_structure(options.filepath)
         if not mp.structures:
-            cprint("No structure found in database", "yellow")
+            cprint("No structure found in MP database", "yellow")
             return 1
 
         if options.notebook:
-            return mp.make_and_open_notebook(foreground=options.foreground)
+            return mp.make_and_open_notebook(foreground=options.foreground,
+                                             classic_notebook=options.classic_notebook,
+                                             no_browser=options.no_browser)
         else:
             mp.print_results(fmt=options.format, verbose=options.verbose)
 
@@ -745,7 +907,9 @@ def main():
         if options.select_spgnum: mp = mp.filter_by_spgnum(options.select_spgnum)
 
         if options.notebook:
-            return mp.make_and_open_notebook(foreground=options.foreground)
+            return mp.make_and_open_notebook(foreground=options.foreground,
+                                             classic_notebook=options.classic_notebook,
+                                             no_browser=options.no_browser)
         else:
             mp.print_results(fmt=options.format, verbose=options.verbose)
 
@@ -765,6 +929,34 @@ def main():
             pdr.print_dataframes(verbose=options.verbose)
             pdr.plot(show_unstable=options.show_unstable)
 
+    elif options.command == "mp_ebands":
+        if os.path.exists(options.chemsys_formula_id):
+            mp = abilab.mp_match_structure(options.chemsys_formula_id)
+            for mpid in mp.ids:
+                ebands = abilab.ElectronBands.from_mpid(mpid, api_key=options.mapi_key, endpoint=options.endpoint)
+                print(ebands)
+        else:
+            if options.chemsys_formula_id.startswith("mp-"):
+                # Assume valid mp identifier.
+                mpid = options.chemsys_formula_id
+                ebands = abilab.ElectronBands.from_mpid(mpid, api_key=options.mapi_key, endpoint=options.endpoint)
+                print(ebands)
+            else:
+                mp = abilab.mp_search(options.chemsys_formula_id)
+                if not mp.structures:
+                    cprint("No structure found in Materials Project database", "yellow")
+                    return 1
+
+                for mpid, structure in zip(mp.ids, mp.structures):
+                    if structure is None:
+                        cprint("ignoring mpid %s because cannot find structure" % mpid, "red")
+                        continue
+                    ebands = abilab.ElectronBands.from_mpid(mpid, api_key=options.mapi_key, endpoint=options.endpoint)
+                    if ebands is None:
+                        cprint("Cannot get ebands for structure:\n%s" % str(structure), "red")
+                    else:
+                        print(ebands)
+
     elif options.command == "cod_search":
         cod = abilab.cod_search(options.formula, primitive=options.primitive)
         if not cod.structures:
@@ -773,7 +965,9 @@ def main():
         if options.select_spgnum: cod = cod.filter_by_spgnum(options.select_spgnum)
 
         if options.notebook:
-            return cod.make_and_open_notebook(foreground=options.foreground)
+            return cod.make_and_open_notebook(foreground=options.foreground,
+                                              classic_notebook=options.classic_notebook,
+                                              no_browser=options.no_browser)
         else:
             cod.print_results(fmt=options.format, verbose=options.verbose)
 

@@ -2,14 +2,11 @@
 """
 Interface to the database of ABINIT input variables
 """
-from __future__ import unicode_literals, division, print_function, absolute_import
 
 import sys
-import os
 import argparse
 import abipy.flowtk as flowtk
 
-from pprint import pprint
 from monty.functools import prof_main
 from monty.termcolor import cprint
 from abipy.core.release import __version__
@@ -87,7 +84,7 @@ def get_parser(with_epilog=False):
                                       help="Find variables related to varname.")
     # Subparser for find.
     p_find = subparsers.add_parser('find', parents=[copts_parser, var_parser],
-                                    help="Find all variables whose name contains varname.")
+                                   help="Find all variables whose name contains varname.")
     # Subparser for require.
     #p_require = subparsers.add_parser('require', parents=[copts_parser], help="Find all variables required by varname.")
 
@@ -180,13 +177,13 @@ def main():
         elif options.mode == "s":
             # Grouped by varset
             for section in vdb.my_varset_list:
-                print(30*"#" +  " Section: " + section + " " + 30*"#")
+                print(30 * "#" + " Section: " + section + " " + 30 * "#")
                 print_vlist(vdb.vars_with_section(section), options)
 
         elif options.mode == "c":
             # Grouped by characteristics.
             for char in vdb.my_characteristics:
-                print(30*"#" +  " Characteristic: " + char + 30*"#")
+                print(30 * "#" + " Characteristic: " + char + 30 * "#")
                 print_vlist(vdb.vars_with_char(char), options)
 
         else:

@@ -11,4 +11,8 @@ the :ref:`abiopen.py` script and the command::
 
     abiopen.py FILE -nb
 
-or use one of the options of :ref:`abiview.py` to plot the results automatically.
+issue 
+
+    abiopen.py FILE --expose
+
+to generate plots automatically or use one of the options of :ref:`abiview.py` to plot the results automatically.

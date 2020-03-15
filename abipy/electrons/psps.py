@@ -1,39 +1,16 @@
 # coding: utf-8
 """PSPS file with tabulated data."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import numpy as np
 
+from collections import OrderedDict
 from monty.bisect import find_gt
 from monty.functools import lazy_property
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
-from abipy.flowtk import Pseudo
 from abipy.iotools import ETSF_Reader
 from abipy.core.mixins import AbinitNcFile
 
 import logging
 logger = logging.getLogger(__name__)
-
-
-#def compare_pseudos(filepaths, ecut=30):
-#    """
-#    This function receives a list of pseudopotential files, call
-#    Abinit to produced the PSPS.nc files and produces matplotlib plots
-#    comparing the behaviour of the pseudos in real and in reciprocal space.
-#
-#    Args:
-#        filepaths: List of file names.
-#        ecut: Cutoff energy in Ha for the wavefunctions.
-#    """
-#    pseudos = [Pseudo.from_file(path) for path in filepaths]
-#
-#    psps_files = [p.open_pspsfile(ecut=ecut) for p in pseudos]
-#
-#    p0 = psps_files[0]
-#    p0.compare(psps_files[1:])
-#
-#    for pfile in psps_files:
-#        pfile.close()
 
 
 def mklabel(fsym, der, arg):
@@ -52,6 +29,35 @@ def rescale(arr, scale=1.0):
     amax = np.abs(arr).max()
     fact = scale / amax if amax != 0 else 1
     return fact * arr, fact
+
+
+def dataframe_from_pseudos(pseudos, index=None):
+    """
+    Build pandas dataframe with the most important info associated to
+    a list of pseudos or a list of objects that can be converted into pseudos.
+
+    Args:
+        pseudos: List of objects that can be converted to pseudos.
+        index: Index of the dataframe.
+
+    Return: pandas Dataframe.
+    """
+    from abipy.flowtk import PseudoTable
+    pseudos = PseudoTable.as_table(pseudos)
+
+    import pandas as pd
+    attname = ["Z_val", "l_max", "l_local", "nlcc_radius", "xc", "supports_soc", "type"]
+    rows = []
+    for p in pseudos:
+        row = OrderedDict([(k, getattr(p, k, None)) for k in attname])
+        row["ecut_normal"], row["pawecutdg_normal"] = None, None
+        if p.has_hints:
+            hint = p.hint_for_accuracy(accuracy="normal")
+            row["ecut_normal"] = hint.ecut
+            if hint.pawecutdg: row["pawecutdg_normal"] = hint.pawecutdg
+        rows.append(row)
+
+    return pd.DataFrame(rows, index=index, columns=list(rows[0].keys()) if rows else None)
 
 
 class PspsFile(AbinitNcFile):
@@ -75,7 +81,7 @@ class PspsFile(AbinitNcFile):
         return cls(filepath)
 
     def __init__(self, filepath):
-        super(PspsFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = r = PspsReader(filepath)
 
     def close(self):
@@ -318,7 +324,7 @@ class PspsFile(AbinitNcFile):
                 return {0: "red", 1: "blue"}[count]
             else:
                 cmap = plt.get_cmap("jet")
-                return cmap(float(count)/ (1 + len(others)))
+                return cmap(float(count) / (1 + len(others)))
 
         ic = 0; ax = ax_list[ic]
         self.plot_tcore_rspace(ax=ax, color=mkcolor(0), show=False, with_legend=False)
@@ -349,7 +355,7 @@ class PspsReader(ETSF_Reader):
     It provides helper function to access the most important quantities.
     """
     def __init__(self, filepath):
-        super(PspsReader, self).__init__(filepath)
+        super().__init__(filepath)
 
         # Get important quantities.
         self.usepaw, self.useylm = self.read_value("usepaw"), self.read_value("useylm")

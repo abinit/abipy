@@ -1,6 +1,4 @@
 """Tests for electrons.ebands module"""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import sys
 import numpy as np
 import unittest
@@ -93,8 +91,8 @@ class ElectronBandsTest(AbipyTest):
         assert smearing.scheme == "gaussian"
         assert not ni_ebands_kmesh.get_gaps_string()
 
-        #ni_ebands_kmesh.copy()
-        #ni_ebands_kmesh.deepcopy()
+        same = ni_ebands_kmesh.deepcopy()
+        assert same.structure == ni_ebands_kmesh.structure
 
         ni_edos = ni_ebands_kmesh.get_edos()
         repr(ni_edos); str(ni_edos)
@@ -107,7 +105,7 @@ class ElectronBandsTest(AbipyTest):
             # Combiplot.
             assert edos_plotter.combiplot(title="default values", show=False)
             assert edos_plotter.combiplot(what_list=("dos", "idos"), spin_mode="resolved", show=False)
-            assert edos_plotter.combiplot(e0=0, what_list="dos", spin_mode="resolved", fontsize=12, show=False)
+            assert edos_plotter.combiplot(e0=0, what_list="dos", spin_mode="automatic", fontsize=12, show=False)
             # Gridplot
             assert edos_plotter.gridplot(title="default values", show=False)
             assert edos_plotter.gridplot(what="idos", spin_mode="resolved", xlims=(-10, 10), show=False)
@@ -297,7 +295,7 @@ class ElectronBandsTest(AbipyTest):
         # Test plot methods
         if self.has_matplotlib():
             klabels = {
-                (0,0,0): "$\Gamma$",
+                (0,0,0): r"$\Gamma$",
                 (0.375, 0.375, 0.7500): "K",
                 (0.5, 0.5, 1.0): "X",
                 (0.5, 0.5, 0.5): "L",
@@ -386,6 +384,14 @@ class ElectronBandsTest(AbipyTest):
         e2 = si_ebands_kpath.lomo_sk(spin=0, kpoint=si_ebands_kpath.kpoints[0])
         assert e1.eig == e2.eig
 
+        # Find k0_list and effmass_bands_f90 (Fortran notation)
+        k0_list, effmass_bands_f90 = si_ebands_kpath.get_kpoints_and_band_range_for_edges()
+
+        self.assert_equal(effmass_bands_f90, [[4, 4], [5, 5]])
+        self.assert_almost_equal(k0_list, np.array(
+                                [[0., 0.        , 0.        ],
+                                 [0., 0.42857143, 0.42857143]]))
+
         # Test abipy-->pymatgen converter
         pmg_bands_kpath = si_ebands_kpath.to_pymatgen()
         assert hasattr(pmg_bands_kpath, "get_branch")  # Should be BandStructureSymmLine
@@ -464,7 +470,7 @@ class ElectronBandsTest(AbipyTest):
 
         self.assert_almost_equal(np.array(values), 1.0)
 
-        em = ebands.effmass_line(spin=0, kpoint=(0, 0, 0), band=0)
+        em = ebands.get_effmass_line(spin=0, kpoint=(0, 0, 0), band=0)
         repr(em); str(em)
         #self.assert_almost_equal(np.array(values), 1.0)
 
@@ -473,6 +479,7 @@ class ElectronBandsTest(AbipyTest):
         with abilab.abiopen(abidata.ref_file("mgb2_kmesh181818_FATBANDS.nc")) as fbnc_kmesh:
             ebands = fbnc_kmesh.ebands
             str(ebands)
+            assert ebands.supports_fermi_surface
             ebands.to_bxsf(self.get_tmpname(text=True))
 
             # Test Ebands3d
@@ -483,7 +490,7 @@ class ElectronBandsTest(AbipyTest):
             if self.has_matplotlib():
                 assert eb3d.plot_contour(band=4, spin=0, plane="xy", elevation=0, show=False)
                 if self.has_skimage():
-                    assert eb3d.plot_isosurfaces(e0="fermie", verbose=1, show=False)
+                    assert eb3d.plot_isosurfaces(e0="fermie", cmap="rainbow", verbose=1, show=False)
 
             # Test Mayavi
             if self.has_mayavi():
@@ -497,7 +504,7 @@ class ElectronBandsTest(AbipyTest):
         gsr_nscf_path = abidata.ref_file("si_nscf_GSR.nc")
         index = ["foo", "bar", "hello"]
         df = dataframe_from_ebands([gsr_kmesh, si_ebands_kmesh, gsr_nscf_path], index=index, with_spglib=True)
-        str(df)
+        #str(df)
         assert all(f == "Si2" for f in df["formula"])
         assert all(num == 227 for num in df["abispg_num"])
         assert all(df["spglib_num"] == df["abispg_num"])
@@ -517,9 +524,16 @@ class ElectronBandsFromRestApi(AbipyTest):
         # Results are very sensitive to the value of lpratio. The default is not enough in this case!!
         r = ebands.interpolate(lpratio=50, kmesh=[10, 10, 10])
 
+        new_fermie = r.ebands_kpath.set_fermie_to_vbm()
+        assert new_fermie == r.ebands_kpath.fermie
+        assert not r.ebands_kpath.supports_fermi_surface
+
+        edos = r.ebands_kmesh.get_edos()
+        new_fermie = r.ebands_kpath.set_fermie_from_edos(edos)
+        assert new_fermie == edos.fermie
+
         if self.has_matplotlib():
             # Plot bands + dos using interpolated energies.
-            edos = r.ebands_kmesh.get_edos()
             assert r.ebands_kpath.plot_with_edos(edos, show=False)
 
 
@@ -542,7 +556,7 @@ class ElectronBandsPlotterTest(AbipyTest):
         assert len(p2.edoses_list) == 0
         assert hasattr(p2, "combiplot")
 
-        print(plotter.bands_statdiff())
+        assert plotter.bands_statdiff()
         df = plotter.get_ebands_frame()
         assert df is not None
 
@@ -554,6 +568,7 @@ class ElectronBandsPlotterTest(AbipyTest):
                 plotter.combiboxplot(title="Silicon band structure", swarm=True, show=False)
             assert plotter.gridplot(title="Silicon band structure", with_gaps=True, show=False)
             assert plotter.boxplot(title="Silicon band structure", swarm=True, show=False)
+            assert plotter.plot_band_edges(epad_ev=2.0, show=False)
             assert plotter.animate(show=False)
 
         if self.has_ipywidgets():

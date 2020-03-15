@@ -3,13 +3,9 @@
 Function1D describes a function of a single variable and provides an easy-to-use API
 for performing common tasks such as algebraic operations, integrations, differentiations, plots ...
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
-import six
-import itertools
 import numpy as np
 
-from six.moves import cStringIO
+from io import StringIO
 from monty.functools import lazy_property
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, data_from_cplx_mode
 from abipy.tools.derivatives import finite_diff
@@ -53,10 +49,7 @@ class Function1D(object):
         return len(self.mesh)
 
     def __iter__(self):
-        if six.PY2:
-            return itertools.izip(self.mesh, self.values)
-        else:
-            return zip(self.mesh, self.values)
+        return zip(self.mesh, self.values)
 
     def __getitem__(self, slice):
         return self.mesh[slice], self.values[slice]
@@ -183,7 +176,7 @@ class Function1D(object):
         return "%s at %s, size = %d" % (self.__class__.__name__, id(self), len(self))
 
     def __str__(self):
-        stream = cStringIO()
+        stream = StringIO()
         for x, y in zip(self.mesh, self.values):
             stream.write("%.18e %.18e\n" % (x, y))
         return "".join(stream.getvalue())
@@ -330,7 +323,7 @@ class Function1D(object):
     @lazy_property
     def l2_norm(self):
         r"""Compute :math:`\sqrt{\int |f(x)|^2 dx}`."""
-        return np.sqrt( (abs(self)**2).integral()[-1][1] )
+        return np.sqrt((abs(self)**2).integral()[-1][1])
 
     def fft(self):
         """Compute the FFT transform (negative sign)."""

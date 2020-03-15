@@ -1,7 +1,5 @@
 # coding: utf-8
 """This module contains the class defining the G-sphere for wavefunctions, densities and potentials"""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import collections
 import numpy as np
 
@@ -14,7 +12,7 @@ __all__ = [
 ]
 
 
-class GSphere(collections.Sequence):
+class GSphere(collections.abc.Sequence):
     """Descriptor-class for the G-sphere."""
 
     def __init__(self, ecut, lattice, kpoint, gvecs, istwfk=1):
@@ -191,7 +189,7 @@ class GSphere(collections.Sequence):
         """
         Transfer ``arr_on_mesh`` given on the FFT mesh to the G-sphere.
         """
-        indim =  arr_on_mesh.ndim
+        indim = arr_on_mesh.ndim
         arr_on_mesh = mesh.reshape(arr_on_mesh)
         ishape = arr_on_mesh.shape
         s0 = ishape[0]

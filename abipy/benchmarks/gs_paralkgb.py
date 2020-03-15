@@ -3,8 +3,6 @@
 Benchmark paral_kgb=1 algorithm with wfoptalg in [default, 1].
 default correspongs to the lobpcg algorithm, 1 enables the Chebyschev solver.
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import sys
 import operator
 import abipy.abilab as abilab
@@ -21,8 +19,7 @@ def make_input(paw=False):
     Build and return an input file for GS calculations with paral_kgb=1
     """
     pseudos = abidata.pseudos("14si.pspnc", "8o.pspnc")
-              #if not paw else
-              #abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
+              #if not paw else abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
     structure = abidata.structure_from_ucell("SiO2-alpha")
 
     inp = abilab.AbinitInput(structure, pseudos)

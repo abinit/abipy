@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 """Tests for kpoints.kpoints module."""
-from __future__ import print_function, division
-
 import itertools
 import unittest
 import numpy as np
@@ -11,7 +9,7 @@ from pymatgen.core.lattice import Lattice
 from abipy import abilab
 from abipy.core.kpoints import (wrap_to_ws, wrap_to_bz, issamek, Kpoint, KpointList, IrredZone, Kpath, KpointsReader,
     has_timrev_from_kptopt, KSamplingInfo, as_kpoints, rc_list, kmesh_from_mpdivs, map_grid2ibz,
-    set_atol_kdiff, set_spglib_tols)  #Ktables,
+    set_atol_kdiff, set_spglib_tols, kpath_from_bounds_and_ndivsm, build_segments)  #Ktables,
 from abipy.core.testing import AbipyTest
 
 
@@ -63,6 +61,21 @@ class TestHelperFunctions(AbipyTest):
         for kptopt in [-5, 0, 1, 2, 3, 4]:
             assert kptopt2str(kptopt, verbose=1 if kptopt != 1 else 0)
 
+    def test_kpath_from_bounds_and_ndivsm(self):
+        """Testing kpath_from_bounds_and_ndivsm."""
+        structure = abilab.Structure.as_structure(abidata.cif_file("si.cif"))
+        with self.assertRaises(ValueError):
+            kpath_from_bounds_and_ndivsm([(0, 0, 0)], 5, structure)
+        with self.assertRaises(ValueError):
+            kpath_from_bounds_and_ndivsm([(0, 0, 0), (0, 0, 0)], 5, structure)
+
+        path = kpath_from_bounds_and_ndivsm([(0, 0, 0), (0.5, 0, 0)], 5, structure)
+        self.assert_equal(path, [[0.0, 0.0, 0.0 ],
+                                 [0.1, 0.0, 0.0 ],
+                                 [0.2, 0.0, 0.0 ],
+                                 [0.3, 0.0, 0.0 ],
+                                 [0.4, 0.0, 0.0 ],
+                                 [0.5, 0.0, 0.0 ]])
 
 class TestKpoint(AbipyTest):
     """Unit tests for Kpoint object."""
@@ -93,6 +106,9 @@ class TestKpoint(AbipyTest):
         K = Kpoint([1/3, 1/3, 1/3], lattice)
         repr(X); str(X)
         assert X.to_string(verbose=2)
+        assert X.tos(m="fract")
+        assert X.tos(m="cart")
+        assert X.tos(m="fracart")
 
         assert gamma.is_gamma()
         assert not pgamma.is_gamma()
@@ -170,7 +186,6 @@ class TestKpointList(AbipyTest):
 
         frac_coords = [0, 0, 0, 1/2, 1/2, 1/2, 1/3, 1/3, 1/3]
         weights = [0.1, 0.2, 0.7]
-
         klist = KpointList(lattice, frac_coords, weights=weights)
         repr(klist); str(klist)
 
@@ -185,6 +200,7 @@ class TestKpointList(AbipyTest):
         for i, kpoint in enumerate(klist):
             assert kpoint in klist
             assert klist.count(kpoint) == 1
+            assert klist.index(kpoint) == i
             assert klist.find(kpoint) == i
 
         # Changing the weight of the Kpoint object should change the weights of klist.
@@ -223,6 +239,12 @@ class TestKpointList(AbipyTest):
         assert add_klist.count([0,0,0]) == 1
         assert len(add_klist) == 4
         assert add_klist == add_klist.remove_duplicated()
+
+        frac_coords = [1/2, 1/2, 1/2, 1/2, 1/2, 1/2]
+        klist = KpointList(lattice, frac_coords, weights=None)
+        assert np.all(klist.get_all_kindices([1/2, 1/2, 1/2]) == [0, 1])
+        with self.assertRaises(ValueError):
+            klist.index((0, 0, 0))
 
 
 class TestIrredZone(AbipyTest):
@@ -276,6 +298,28 @@ class TestKpath(AbipyTest):
         #assert not kpath.is_ibz and kpath.is_path
         #assert len(kpath) == 60
         #self.assert_equal(kpath.ksampling.mpdivs, [8, 8, 8])
+
+        segments = build_segments(k0_list=(0, 0, 0), npts=1, step=0.01, red_dirs=(1, 0, 0),
+                                  reciprocal_lattice=structure.reciprocal_lattice)
+        assert len(segments) == 1
+        assert np.all(segments[0] == (0, 0, 0))
+
+        step, npts = 0.1, 5
+        red_dir = np.array((1, 1, 0))
+        segments = build_segments(k0_list=(0, 0, 0, 0.5, 0, 0), npts=npts, step=step, red_dirs=red_dir,
+                                  reciprocal_lattice=structure.reciprocal_lattice)
+
+        #print("segments:\n", segments)
+        # (nk0_list, len(red_dirs) * npts, 3)
+        assert segments.shape == (2, npts, 3)
+        self.assert_almost_equal(segments[0, 2], (0, 0, 0))
+        self.assert_almost_equal(segments[1, 2], (0.5, 0.0, 0))
+        def r2c(vec):
+            return structure.reciprocal_lattice.get_cartesian_coords(vec)
+        cart_vers = r2c(red_dir)
+        cart_vers /= np.linalg.norm(cart_vers)
+        self.assert_almost_equal(r2c(segments[1, 1] - segments[1, 0]), step * cart_vers)
+        self.assert_almost_equal(r2c(segments[1, 3] - segments[1, 2]), step * cart_vers)
 
 
 class TestKpointsReader(AbipyTest):

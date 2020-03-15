@@ -3,8 +3,6 @@
 This benchmark uses paral_kgb=1 and compares the effective parallel efficiency with
 the one reported by autoparal.
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import sys
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk

@@ -88,6 +88,7 @@
 .. |pymatgen-Structure| replace:: :class:`pymatgen.core.structure.Structure`
 .. |Lattice| replace:: :class:`pymatgen.core.lattice.Lattice`
 .. |AbinitInput| replace:: :class:`abipy.abio.inputs.AbinitInput`
+.. |AnaddbInput| replace:: :class:`abipy.abio.inputs.AnaddbInput`
 .. |MultiDataset| replace:: :class:`abipy.abio.inputs.MultiDataset`
 .. |ElectronBands| replace:: :class:`abipy.electrons.ebands.ElectronBands`
 .. |ElectronBandsPlotter| replace:: :class:`abipy.electrons.ebands.ElectronBandsPlotter`
@@ -95,27 +96,41 @@
 .. |ElectronDos| replace:: :class:`abipy.electrons.ebands.ElectronDos`
 .. |ElectronDosPlotter| replace:: :class:`abipy.electrons.ebands.ElectronDosPlotter`
 .. |PhononBands| replace:: :class:`abipy.dfpt.phonons.PhononBands`
-.. |Task| replace:: :class:`pymatgen.io.abinit.tasks.Task`
-.. |ScfTask| replace:: :class:`pymatgen.io.abinit.tasks.ScfTask`
-.. |NscfTask| replace:: :class:`pymatgen.io.abinit.tasks.NscfTask`
-.. |Flow| replace:: :class:`pymatgen.io.abinit.flows.Flow`
-.. |Work| replace:: :class:`pymatgen.io.abinit.works.Work`
-.. |TaskManager| replace:: :class:`pymatgen.io.abinit.tasks.TaskManager`
+.. |Node| replace:: :class:`abipy.flowtk.nodes.Node`
+.. |Task| replace:: :class:`abipy.flowtk.tasks.Task`
+.. |AbinitTask| replace:: :class:`abipy.flowtk.tasks.AbinitTask`
+.. |ScfTask| replace:: :class:`abipy.flowtk.tasks.ScfTask`
+.. |NscfTask| replace:: :class:`abipy.flowtk.tasks.NscfTask`
+.. |AnaddbTask| replace:: :class:`abipy.flowtk.tasks.AnaddbTask`
+.. |Flow| replace:: :class:`abipy.flowtk.flows.Flow`
+.. |Work| replace:: :class:`abipy.flowtk.works.Work`
+.. |TaskManager| replace:: :class:`abipy.flowtk.tasks.TaskManager`
 .. |GsrFile| replace:: :class:`abipy.electrons.gsr.GsrFile`
 .. |GsrRobot| replace:: :class:`abipy.electrons.gsr.GsrRobot`
+.. |MdfFile| replace:: :class:`abipy.electrons.bse.MdfFile`
 .. |DdbFile| replace:: :class:`abipy.dfpt.ddb.DdbFile`
+.. |HistFile| replace:: :class:`abipy.dynamics.hist.HistFile`
+.. |FatBandsFile| replace:: :class:`abipy.electrons.fatbands.FatBandsFile`
 .. |DielectricTensorGenerator| replace:: :class:`abipy.dfpt.ddb.DielectricTensorGenerator`
 .. |DdbRobot| replace:: :class:`abipy.dfpt.ddb.DdbRobot`
 .. |AnaddbNcFile| replace:: :class:`abipy.dfpt.anaddb.AnaddbNcFile`
+.. |AbinitNcFile| replace:: :class:`abipy.core.mixins.AbinitNcFile`
+.. |pmg-Tensor| replace:: :class:`pymatgen.core.tensors.Tensor` 
+.. |Stress| replace:: :class:`abipy.tools.tensors.Stress` 
+.. |DielectricTensor| replace:: :class:`abipy.tools.tensors.DielectricTensor` 
+.. |ElasticData| replace:: :class:`abipy.dfpt.elastic.ElasticData`
 .. |PhbstFile| replace:: :class:`abipy.dfpt.phonons.PhbstFile`
 .. |PhdosFile| replace:: :class:`abipy.dfpt.phonons.PhdosFile`
 .. |PhononDos| replace:: :class:`abipy.dfpt.phonons.PhononDos`
 .. |PhononBandsPlotter| replace:: :class:`abipy.dfpt.phonons.PhononBandsPlotter`
 .. |PhononDosPlotter| replace:: :class:`abipy.dfpt.phonons.PhononDosPlotter`
+.. |MsqDos| replace:: :class:`abipy.dfpt.msqdos.MsqDos`
 .. |Pseudo| replace:: :class:`pymatgen.io.abinit.pseudos.Pseudo`
 .. |PseudoTable| replace:: :class:`pymatgen.io.abinit.pseudos.PseudoTable`
 .. |Visualizer| replace:: :class:`abipy.iotools.visualizer.Visualizer`
 .. |SigresFile| replace:: :class:`abipy.electrons.gw.SigresFile`
+.. |SigephFile| replace:: :class:`abipy.electrons.eph.SigephFile`
+.. |SigephRobot| replace:: :class:`abipy.electrons.eph.SigephRobot`
 
 .. Important objects provided by libraries.
 .. |matplotlib-Figure| replace:: :class:`matplotlib.figure.Figure`
@@ -123,7 +138,6 @@
 .. |pandas-DataFrame| replace:: :class:`pandas.DataFrame`
 .. |pandas-DataFrames| replace:: :class:`pandas.DataFrame`
 .. |numpy-array| replace:: :class:`numpy.ndarray`
-
 
 .. Badges
 .. |pypi-version| image:: https://badge.fury.io/py/abipy.svg
@@ -162,10 +176,6 @@
      :target: https://requires.io/github/abinit/abipy/requirements/?branch=develop
      :alt: Requirements Status
 
-.. |docs-stable| image:: https://img.shields.io/badge/docs-stable_version-blue.svg
-     :alt: Documentation stable version
-     :target: http://pythonhosted.org/abipy/
-
-.. |docs-devel| image:: https://img.shields.io/badge/docs-devel_version-ff69b4.svg
-     :alt: Documentation development version
+.. |docs-github| image:: https://img.shields.io/badge/docs-ff69b4.svg
+     :alt: AbiPy Documentation
      :target: http://abinit.github.io/abipy

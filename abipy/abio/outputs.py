@@ -1,14 +1,12 @@
 """
 Objects used to extract and plot results from output files in text format.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import os
 import numpy as np
 import pandas as pd
 
 from collections import OrderedDict
-from six.moves import cStringIO
+from io import StringIO
 from monty.string import is_string, marquee
 from monty.functools import lazy_property
 from monty.termcolor import cprint
@@ -25,7 +23,7 @@ from abipy.flowtk import EventsParser, NetcdfReader, GroundStateScfCycle, D2DESc
 
 class AbinitTextFile(TextFile):
     """
-    Class for the ABINIT main output file and the log file.
+    Base class for the ABINIT main output files and log files.
     """
     @property
     def events(self):
@@ -93,7 +91,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
     # TODO: Extract number of errors and warnings.
 
     def __init__(self, filepath):
-        super(AbinitOutputFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.debug_level = 0
         self._parse()
 
@@ -204,14 +202,14 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             if magic_start in line:
                 break
         else:
-            raise ValueError("Cannot find magic_start line: %s" % magic_start)
+            raise ValueError("Cannot find magic_start line: `%s`\nPerhaps this is not an Abinit output file!" % magic_start)
         lines = lines[i+1:]
 
         for i, line in enumerate(lines):
             if magic_stop in line:
                 break
         else:
-            raise ValueError("Cannot find magic_stop line: %s" % magic_stop)
+            raise ValueError("Cannot find magic_stop line: `%s`\nPerhaps this is not an Abinit output file!" % magic_stop)
         lines = lines[:i]
 
         # Parse data. Assume format:
@@ -228,7 +226,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                     break
                 l.append(c)
             else:
-                raise ValueError("Cannot find dataset index in token: %s" % s)
+                raise ValueError("Cannot find dataset index in token: %s\n" % s)
 
             #print(line, "\n", l)
             dtindex = None
@@ -239,6 +237,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
 
         # (varname, dtindex), [line1, line2 ...]
         stack_var, stack_lines = None, []
+
         def pop_stack():
             if stack_lines:
                 key, dtidx = stack_var
@@ -371,7 +370,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         if self.run_completed:
             return self._get_structures("footer")
         else:
-            print("Cannot extract final structures from file.\n %s" % str(exc))
+            cprint("Cannot extract final structures from file.\n %s" % self.filepath, "red")
             return []
 
     @lazy_property
@@ -486,6 +485,21 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                 app(str(df.coords))
 
         # Print dataframe with dimensions.
+        df = self.get_dims_spginfo_dataframe(verbose=verbose)
+        from abipy.tools.printing import print_dataframe
+        strio = StringIO()
+        print_dataframe(df, file=strio)
+        strio.seek(0)
+        app("")
+        app(marquee("Dimensions of calculation", mark="="))
+        app("".join(strio))
+
+        return "\n".join(lines)
+
+    def get_dims_spginfo_dataframe(self, verbose=0):
+        """
+        Parse the section with the dimensions of the calculation. Return Dataframe.
+        """
         dims_dataset, spginfo_dataset = self.get_dims_spginfo_dataset(verbose=verbose)
         rows = []
         for dtind, dims in dims_dataset.items():
@@ -495,21 +509,13 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             d.update(spginfo_dataset[dtind])
             rows.append(d)
 
-        from abipy.tools.printing import print_dataframe
         df = pd.DataFrame(rows, columns=list(rows[0].keys()) if rows else None)
         df = df.set_index('dataset')
-        strio = cStringIO()
-        print_dataframe(df, file=strio)
-        strio.seek(0)
-        app("")
-        app(marquee("Dimensions of calculation", mark="="))
-        app("".join(strio))
-
-        return "\n".join(lines)
+        return df
 
     def get_dims_spginfo_dataset(self, verbose=0):
         """
-        Parse the section with the dimensions of the calculation.
+        Parse the section with the dimensions of the calculation. Return dictionaries
 
         Args:
             verbose: Verbosity level.
@@ -580,9 +586,10 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                 line = line.strip()
                 if verbose > 1: print("inblock:", inblock, " at line:", line)
 
-                if line.startswith(magic_exit):
-                    break
+                if line.startswith(magic_exit): break
+
                 if (not line or line.startswith("===") or line.startswith("---")
+                    #or line.startswith("P")
                     or line.startswith("Rough estimation") or line.startswith("PAW method is used")):
                     continue
 
@@ -606,6 +613,8 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
 
                 if inblock == 2:
                     # Lines with data.
+                    if line.startswith("For the susceptibility"): continue
+
                     if line.startswith(memory_pre):
                         dims["mem_per_proc_mb"] = float(line.replace(memory_pre, "").split()[0])
                     elif line.startswith(filesizes_pre):
@@ -631,11 +640,34 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         """
         return GroundStateScfCycle.from_stream(self)
 
+    def get_all_gs_scf_cycles(self):
+        """Return list of :class:`GroundStateScfCycle` objects. Empty list if no entry is found."""
+        # NOTE: get_all should not used with next because of the call to self.seek(0)
+        # The API should be refactored
+        cycles = []
+        self.seek(0)
+        while True:
+            cycle = self.next_gs_scf_cycle()
+            if cycle is None: break
+            cycles.append(cycle)
+        self.seek(0)
+        return cycles
+
     def next_d2de_scf_cycle(self):
         """
-        Return :class:`GroundStateScfCycle` with information on the GS iterations. None if not found.
+        Return :class:`D2DEScfCycle` with information on the DFPT iterations. None if not found.
         """
         return D2DEScfCycle.from_stream(self)
+
+    def get_all_d2de_scf_cycles(self):
+        """Return list of :class:`D2DEScfCycle` objects. Empty list if no entry is found."""
+        cycles = []
+        self.seek(0)
+        while True:
+            cycle = self.next_d2de_scf_cycle()
+            if cycle is None: break
+            cycles.append(cycle)
+        return cycles
 
     def plot(self, tight_layout=True, with_timer=False, show=True):
         """
@@ -653,24 +685,14 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         """
-        tight_layout = kwargs.pop("tight_layout", True)
+        tight_layout = kwargs.pop("tight_layout", False)
         with_timer = kwargs.pop("with_timer", True)
 
-        self.seek(0)
-        icycle = -1
-        while True:
-            gs_cycle = self.next_gs_scf_cycle()
-            if gs_cycle is None: break
-            icycle += 1
-            yield gs_cycle.plot(title="SCF cycle #%d" % icycle, tight_layout=tight_layout, show=False)
+        for icycle, cycle in enumerate(self.get_all_gs_scf_cycles()):
+            yield cycle.plot(title="SCF cycle #%d" % icycle, tight_layout=tight_layout, show=False)
 
-        self.seek(0)
-        icycle = -1
-        while True:
-            d2de_cycle = self.next_d2de_scf_cycle()
-            if d2de_cycle is None: break
-            icycle += 1
-            yield d2de_cycle.plot(title="DFPT cycle #%d" % icycle, tight_layout=tight_layout, show=False)
+        for icycle, cycle in enumerate(self.get_all_d2de_scf_cycles()):
+            yield cycle.plot(title="DFPT cycle #%d" % icycle, tight_layout=tight_layout, show=False)
 
         if with_timer:
             self.seek(0)
@@ -678,7 +700,6 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                 yield self.get_timer().plot_all(tight_layout=tight_layout, show=False)
             except Exception:
                 print("Abinit output files does not contain timopt data")
-
 
     def compare_gs_scf_cycles(self, others, show=True):
         """
@@ -757,6 +778,13 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             for i in close_files: others[i].close()
 
         return figures
+
+    def get_panel(self):
+        """
+        Build panel with widgets to interact with the Abinit output file either in a notebook or in panel app.
+        """
+        from abipy.panels.outputs import AbinitOutputFilePanel
+        return AbinitOutputFilePanel(self).get_panel()
 
     def write_notebook(self, nbpath=None):
         """
@@ -973,10 +1001,11 @@ class OutNcFile(AbinitNcFile):
     produced at the end of the run. The netcdf variables can be accessed
     via instance attribute e.g. ``outfile.ecut``. Provides integration with ipython_.
     """
+    # TODO: This object is deprecated
     def __init__(self, filepath):
-        super(OutNcFile, self).__init__(filepath)
+        super().__init__(filepath)
         self.reader = NetcdfReader(filepath)
-        self._varscache= {k: None for k in self.reader.rootgrp.variables}
+        self._varscache = {k: None for k in self.reader.rootgrp.variables}
 
     def __dir__(self):
         """Ipython integration."""
@@ -984,13 +1013,13 @@ class OutNcFile(AbinitNcFile):
 
     def __getattribute__(self, name):
         try:
-            return super(OutNcFile, self).__getattribute__(name)
+            return super().__getattribute__(name)
         except AttributeError:
             # Look in self._varscache
-            varscache = super(OutNcFile, self).__getattribute__("_varscache")
+            varscache = super().__getattribute__("_varscache")
             if name not in varscache:
                 raise AttributeError("Cannot find attribute %s" % name)
-            reader = super(OutNcFile, self).__getattribute__("reader")
+            reader = super().__getattribute__("reader")
             if varscache[name] is None:
                 varscache[name] = reader.read_value(name)
             return varscache[name]

@@ -6,7 +6,6 @@ Flow for convergence studies of e-DOS wrt ngkpt
 This examples shows how to build a Flow to compute the
 band structure and the electron DOS of MgB2 with different k-point samplings.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 import sys
@@ -48,13 +47,13 @@ def make_scf_nscf_inputs(structure, pseudos, paral_kgb=1):
         )
 
     # return GS, NSCF (band structure), DOSes input.
-    return  multi.split_datasets()
+    return multi.split_datasets()
 
 
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
-        options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
+        options.workdir = os.path.basename(sys.argv[0]).replace(".py", "").replace("run_", "flow_")
 
     structure = abidata.structure_from_ucell("MgB2")
 
@@ -72,13 +71,13 @@ def build_flow(options):
                                      dos_inputs=dos_inputs, manager=options.manager)
 
 
-# This block generates the thumbnails in the Abipy gallery.
+# This block generates the thumbnails in the AbiPy gallery.
 # You can safely REMOVE this part if you are using this script for production runs.
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-    build_flow(options).plot_networkx(with_edge_labels=True, tight_layout=True)
+    build_flow(options).graphviz_imshow()
 
 
 @flowtk.flow_main

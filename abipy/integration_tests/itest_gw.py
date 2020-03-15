@@ -1,12 +1,10 @@
 """Integration tests for GW flows."""
-from __future__ import print_function, division, unicode_literals, absolute_import
 
-import pytest
 import abipy.data as abidata
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk
 
-from abipy.core.testing import has_abinit, has_matplotlib
+#from abipy.core.testing import has_abinit, has_matplotlib
 
 
 def make_g0w0_inputs(ngkpt, tvars):
@@ -109,7 +107,9 @@ def itest_g0w0_flow(fwp, tvars):
 
     flow.check_status(show=True)
     assert all(work.finalized for work in flow)
-    assert flow.all_ok
+    if not flow.all_ok:
+        flow.debug()
+        raise RuntimeError()
 
     scf_task = flow[0][0]
     nscf_task = flow[0][1]
@@ -193,7 +193,9 @@ def itest_g0w0qptdm_flow(fwp, tvars):
 
     flow.show_status()
     assert all(work.finalized for work in flow)
-    assert flow.all_ok
+    if not flow.all_ok:
+        flow.debug()
+        raise RuntimeError()
 
     # Test set_garbage_collector
     # The WFK|SCR file should have been removed because we call set_garbage_collector
@@ -258,7 +260,10 @@ def itest_htc_g0w0(fwp, tvars):
     assert len(work[2].outdir.list_filepaths(wildcard="*SCR")) == 1
 
     flow.show_status()
-    assert flow.all_ok
+    if not flow.all_ok:
+        flow.debug()
+        raise RuntimeError()
+
     assert all(work.finalized for work in flow)
 
     #assert flow.validate_json_schema()

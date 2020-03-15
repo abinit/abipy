@@ -1,14 +1,8 @@
 """Database with the names of the input variables used in Abinit and in other main programs."""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import sys
-import os
 
 from collections import OrderedDict
 
-# Unit names.
-# Operators.
-from abipy.abio.abivar_database.variables import ABI_UNITS, ABI_OPS
 
 ##############
 # Public API #
@@ -21,9 +15,10 @@ def get_abinit_variables():
     return get_codevars()["abinit"]
 
 
-def docvar(varname):
+def docvar(varname, executable="abinit"):
     """Return the `Variable` object associated to this name."""
-    return get_abinit_variables()[varname]
+    from abipy.abio.abivar_database.variables import get_codevars
+    return get_codevars()[executable][varname]
 
 
 def abinit_help(varname, info=True, stream=sys.stdout):

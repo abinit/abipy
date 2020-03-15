@@ -1,7 +1,5 @@
 # coding: utf-8
 """Duck-typing tests"""
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import collections
 import warnings
 import numpy as np
@@ -48,7 +46,7 @@ def is_number_like(obj):
 def is_listlike(obj):
     #if isinstance(branch, (list, tuple, np.ndarray)):
     if isinstance(obj, np.ndarray): return True
-    if not isinstance(obj, collections.Sequence): return False
+    if not isinstance(obj, collections.abc.Sequence): return False
     if is_string(obj): return False
 
     try:
@@ -94,7 +92,7 @@ def torange(obj):
     else:
         try:
             return obj.__iter__()
-        except:
+        except Exception:
             raise TypeError("Don't know how to convert %s into a range object" % str(obj))
 
 
@@ -130,3 +128,38 @@ def as_slice(obj):
         return slice(*tokens)
 
     raise ValueError("Cannot convert %s into a slice:\n%s" % (type(obj), obj))
+
+
+class NoDefaultProvided(object):
+    pass
+
+
+def hasattrd(obj, name):
+    """
+    The arguments are an object and a string.
+    The result is True if the string is the name of one of the object’s attributes, False if not.
+    Unlike the builtin hasattr, hasattrd supports dot notation e.g. hasattr(int, "__class__.__name__")
+    (This is implemented by calling getattrd(object, name) and seeing whether it raises an exception or not.)
+    """
+    try:
+        getattrd(obj, name)
+        return True
+    except AttributeError:
+        return False
+
+
+def getattrd(obj, name, default=NoDefaultProvided):
+    """
+    Same as getattr(), but allows dot notation lookup e.g. getattrd(obj, "a.b")
+
+    Raises: AttributeError if ``name`` is not found and ``default`` is not given.
+
+    Discussed in: http://stackoverflow.com/questions/11975781
+    """
+    from functools import reduce
+    try:
+        return reduce(getattr, name.split("."), obj)
+    except AttributeError:
+        if default is not NoDefaultProvided:
+            return default
+        raise

@@ -4,11 +4,6 @@
 API documentation
 =================
 
-.. htmlonly::
-
-   :Release: |version|
-   :Date: |today|
-
 .. toctree::
    :maxdepth: 1
 
@@ -23,6 +18,7 @@ API documentation
    eph_api.rst
    flowtk_api.rst
    iotools_api.rst
+   panels_api.rst
    tools_api.rst
    waves_api.rst
    wannier90_api.rst

@@ -1,5 +1,3 @@
-from __future__ import unicode_literals, division, print_function
-
 import abipy.data as abidata
 import abipy.abilab as abilab
 
@@ -43,9 +41,11 @@ class FactoryTest(AbipyTest):
         inp = gs_input(self.si_structure, self.si_pseudo, kppa=None, ecut=2, spin_mode="unpolarized")
         self.abivalidate_input(inp)
 
-        if False:  # write_inputs_to_json:
-            with open('gs_input.json', mode='w') as fp:
-                json.dump(inp.as_dict(), fp, indent=2)
+        if False:
+            print("Updating json reference files.")
+            #with open('gs_input.json', mode='w') as fp:
+            #    json.dump(inp.as_dict(), fp, indent=2)
+
         self.assertIn('scf', inp.runlevel)
         self.assertIn('ground_state', inp.runlevel)
         self.assert_input_equality('gs_input.json', inp)
@@ -56,11 +56,12 @@ class FactoryTest(AbipyTest):
 
         scf_inp, nscf_inp = multi.split_datasets()
 
-        if False:  # write_inputs_to_json:
-            with open('scf_input.json', mode='w') as fp:
-                json.dump(scf_inp.as_dict(), fp, indent=2)
-            with open('nscf_input.json', mode='w') as fp:
-                json.dump(nscf_inp.as_dict(), fp, indent=2)
+        if False:
+            print("Updating json reference files.")
+            #with open('scf_input.json', mode='w') as fp:
+            #    json.dump(scf_inp.as_dict(), fp, indent=2)
+            #with open('nscf_input.json', mode='w') as fp:
+            #    json.dump(nscf_inp.as_dict(), fp, indent=2)
 
         self.assertIn('bands', nscf_inp.runlevel)
         self.assertIn('nscf', nscf_inp.runlevel)
@@ -82,8 +83,6 @@ class FactoryTest(AbipyTest):
                                  spin_mode="unpolarized", smearing=None, charge=2.0, dos_kppa=[50, 100])
         assert len(multi_dos) == 4
         self.assert_equal(multi_dos.get("iscf"), [None, -2, -2, -2])
-
-
 
     def test_ion_ioncell_relax_input(self):
         """Testing ion_ioncell_relax_input factory."""
@@ -147,7 +146,6 @@ class FactoryTest(AbipyTest):
         flow = Flow.temporary_flow()
         flow.register_work(G0W0Work(scf_input, nscf_input, scr_input, sigma_input))
         assert flow.build_and_pickle_dump(abivalidate=True) == 0
-
 
         # The default value of `shifts` changed in v0.3 from (0.5, 0.5, 0.5) to (0.0, 0.0, 0.0)
         multi = g0w0_with_ppmodel_inputs(self.si_structure, self.si_pseudo,
@@ -272,14 +270,15 @@ class FactoryTest(AbipyTest):
         inp_ph_q_pert_2 = multi.filter_by_tags(PH_Q_PERT)[10]
 
         if False:
-            with open('phonons_from_gsinput_ddk.json', mode='w') as fp:
-                json.dump(inp_ddk.as_dict(), fp, indent=2)
-            with open('phonons_from_gsinput_dde.json', mode='w') as fp:
-                json.dump(inp_dde.as_dict(), fp, indent=2)
-            with open('phonons_from_gsinput_ph_q_pert_1.json', mode='w') as fp:
-                json.dump(inp_ph_q_pert_1.as_dict(), fp, indent=2)
-            with open('phonons_from_gsinput_ph_q_pert_2.json', mode='w') as fp:
-                json.dump(inp_ph_q_pert_2.as_dict(), fp, indent=2)
+            print("Updating json reference files.")
+            #with open('phonons_from_gsinput_ddk.json', mode='w') as fp:
+            #    json.dump(inp_ddk.as_dict(), fp, indent=2)
+            #with open('phonons_from_gsinput_dde.json', mode='w') as fp:
+            #    json.dump(inp_dde.as_dict(), fp, indent=2)
+            #with open('phonons_from_gsinput_ph_q_pert_1.json', mode='w') as fp:
+            #    json.dump(inp_ph_q_pert_1.as_dict(), fp, indent=2)
+            #with open('phonons_from_gsinput_ph_q_pert_2.json', mode='w') as fp:
+            #    json.dump(inp_ph_q_pert_2.as_dict(), fp, indent=2)
 
         self.assert_input_equality('phonons_from_gsinput_ddk.json', inp_ddk)
         self.assert_input_equality('phonons_from_gsinput_dde.json', inp_dde)
@@ -300,7 +299,6 @@ class FactoryTest(AbipyTest):
         self.assert_input_equality('phonons_from_gsinput_dde.json', inp_dde_obj)
         self.assert_input_equality('phonons_from_gsinput_ph_q_pert_1.json', inp_ph_q_pert_1_obj)
         self.assert_input_equality('phonons_from_gsinput_ph_q_pert_2.json', inp_ph_q_pert_2_obj)
-
 
     def test_elastic_inputs_from_gsinput(self):
         """Testing elastic_inputs_from_gsinput."""
@@ -365,7 +363,6 @@ class FactoryTest(AbipyTest):
         self.assertMSONable(factory_obj)
         icrelax_input_obj = factory_obj.build_input(gs_inp)
 
-
     def test_hybrid_oneshot_input(self):
         """Testing hybrid_oneshot_input."""
         from abipy.abio.factories import hybrid_oneshot_input
@@ -388,8 +385,9 @@ class FactoryTest(AbipyTest):
         self.abivalidate_input(scf_inp)
 
         if False:
-            with open('scf_for_phonons.json', mode='w') as fp:
-                json.dump(scf_inp.as_dict(), fp, indent=2)
+            print("Updating json reference files.")
+            #with open('scf_for_phonons.json', mode='w') as fp:
+            #    json.dump(scf_inp.as_dict(), fp, indent=2)
 
         self.assert_input_equality('scf_for_phonons.json', scf_inp)
 
@@ -417,11 +415,52 @@ class FactoryTest(AbipyTest):
         inp2 = multi[5]
 
         if False:
-            with open('dte_from_gsinput_1.json', mode='w') as fp:
-                json.dump(inp1.as_dict(), fp, indent=2)
-            with open('dte_from_gsinput_2.json', mode='w') as fp:
-                json.dump(inp2.as_dict(), fp, indent=2)
+            print("Updating json reference files.")
+            #with open('dte_from_gsinput_1.json', mode='w') as fp:
+            #    json.dump(inp1.as_dict(), fp, indent=2)
+            #with open('dte_from_gsinput_2.json', mode='w') as fp:
+            #    json.dump(inp2.as_dict(), fp, indent=2)
 
         self.assert_input_equality('dte_from_gsinput_1.json', inp1)
         self.assert_input_equality('dte_from_gsinput_2.json', inp2)
 
+    def test_dfpt_from_gsinput(self):
+        """Testing phonons_from_gsinput"""
+        pseudos = [self.ga_pseudo.pseudo_with_symbol('Ga'), self.n_pseudo.pseudo_with_symbol('N')]
+        gs_inp = gs_input(self.gan_structure, pseudos, kppa=None, ecut=2,
+                          spin_mode="unpolarized", smearing=None)
+        # dte calculations only work with selected values of ixc
+        gs_inp['ixc'] = 7
+        multi = dfpt_from_gsinput(gs_inp, ph_ngqpt=[4, 4, 4], do_ddk=True, do_dde=True, do_strain=True,
+                                  do_dte=True, ph_tol=None, ddk_tol=None, dde_tol=None)
+        self.abivalidate_multi(multi)
+
+        from abipy.abio.input_tags import DDK, DDE, PH_Q_PERT, STRAIN, DTE
+        inp_ddk = multi.filter_by_tags(DDK)[0]
+        inp_dde = multi.filter_by_tags(DDE)[0]
+        inp_ph_q_pert_1 = multi.filter_by_tags(PH_Q_PERT)[0]
+        inp_ph_q_pert_2 = multi.filter_by_tags(PH_Q_PERT)[10]
+        inp_strain = multi.filter_by_tags(STRAIN)[0]
+        inp_dte = multi.filter_by_tags(DTE)[0]
+
+        if False:
+            print("Updating json reference files.")
+            #with open('dfpt_from_gsinput_ddk.json', mode='w') as fp:
+            #    json.dump(inp_ddk.as_dict(), fp, indent=2)
+            #with open('dfpt_from_gsinput_dde.json', mode='w') as fp:
+            #    json.dump(inp_dde.as_dict(), fp, indent=2)
+            #with open('dfpt_from_gsinput_ph_q_pert_1.json', mode='w') as fp:
+            #    json.dump(inp_ph_q_pert_1.as_dict(), fp, indent=2)
+            #with open('dfpt_from_gsinput_ph_q_pert_2.json', mode='w') as fp:
+            #    json.dump(inp_ph_q_pert_2.as_dict(), fp, indent=2)
+            #with open('dfpt_from_gsinput_strain.json', mode='w') as fp:
+            #    json.dump(inp_strain.as_dict(), fp, indent=2)
+            #with open('dfpt_from_gsinput_dte.json', mode='w') as fp:
+            #    json.dump(inp_dte.as_dict(), fp, indent=2)
+
+        self.assert_input_equality('dfpt_from_gsinput_ddk.json', inp_ddk)
+        self.assert_input_equality('dfpt_from_gsinput_dde.json', inp_dde)
+        self.assert_input_equality('dfpt_from_gsinput_ph_q_pert_1.json', inp_ph_q_pert_1)
+        self.assert_input_equality('dfpt_from_gsinput_ph_q_pert_2.json', inp_ph_q_pert_2)
+        self.assert_input_equality('dfpt_from_gsinput_strain.json', inp_strain)
+        self.assert_input_equality('dfpt_from_gsinput_dte.json', inp_dte)

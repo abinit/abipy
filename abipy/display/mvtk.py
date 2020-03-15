@@ -4,8 +4,6 @@ mayavi_ toolkit.
 
 WARNING: This code is still under development.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
-
 import itertools
 import numpy as np
 
