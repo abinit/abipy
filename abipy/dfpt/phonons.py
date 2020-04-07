@@ -1715,7 +1715,7 @@ class PhononBands(object):
                 summed on a separate group. if None all the atoms will be considered and grouped by type.
             labels_groups: If atoms_index is not None will provide the labels for each of the group in atoms_index.
                 Should have the same length of atoms_index or be None. If None automatic labelling will be used.
-            branches: list of indices for the modes that shoul be represented. If None all the modes will be shown.
+            branches: list of indices for the modes that should be represented. If None all the modes will be shown.
             format_w: string used to format the values of the frequency. Default "%.3f".
 
         See plot_phdispl for the meaning of the other arguments.
@@ -1727,7 +1727,7 @@ class PhononBands(object):
             self.plot_phdispl(qpoint, cart_dir=cart_dir, ax=ax, units=units, colormap=colormap,
                               is_non_analytical_direction=is_non_analytical_direction, use_eigvec=use_eigvec,
                               fontsize=fontsize, hatches=hatches, atoms_index=atoms_index, labels_groups=labels_groups,
-                              normalize=normalize, use_sqrt=use_sqrt, branches=branches, show=False)
+                              normalize=normalize, use_sqrt=use_sqrt, branches=branches, show=False, format_w=format_w)
             # Disable artists.
             if i != 0:
                 set_visible(ax, False, "legend", "title")
@@ -1927,6 +1927,216 @@ class PhononBands(object):
 
         return self.structure.frozen_phonon(qpoint=self.qpoints[qind].frac_coords, displ=displ, eta=eta,
                                             frac_coords=False, scale_matrix=scale_matrix, max_supercell=max_supercell)
+
+    def get_longitudinal_fraction(self, qpoint, idir=None):
+        """
+        Calculates "longitudinal" fraction of the eigendisplacements.
+
+        Args:
+            qpoint: q vector in reduced coordinate in reciprocal space or index of the qpoint.
+            idir: an integer with the index of the non analytical direction if qpoint is gamma.
+                If None all will be given.
+
+        Returns:
+            A numpy array with the longitudinal fractions for each mode of the specified q point.
+            If qpoint is gamma and idir is None it will be a numpy array with all the non analytical
+            directions.
+        """
+        qind = self.qindex(qpoint)
+        qpoint = self.qpoints[qind]
+
+        def get_fraction(direction, displ):
+            displ = np.real(displ)
+            # Normalization. Such that \sum_i dot(q, displ[i]) <= 1
+            # and = 1 if q is parallel to displ[i] for each i.
+            displ_norm = np.sum(np.linalg.norm(displ, axis=-1), axis=-1)
+            displ = displ / displ_norm[:, None, None]
+            versor = direction / np.linalg.norm(direction)
+            return np.absolute(np.dot(displ, versor)).sum(axis=-1)
+
+        if qpoint.is_gamma():
+            if self.non_anal_phdispl_cart is None:
+                raise RuntimeError("Cannot calculate the lo/to fraction at Gamma if the non analytical"
+                                   "contributions have not been calculated.")
+            phdispl = self.non_anal_phdispl_cart.reshape((len(self.non_anal_directions), self.num_branches, self.num_atoms, 3))
+            if idir is None:
+                fractions = []
+                for non_anal_dir, phd in zip(self.non_anal_directions, phdispl):
+                    fractions.append(get_fraction(non_anal_dir, phd))
+                return np.array(fractions)
+            else:
+                return get_fraction(self.non_anal_directions[idir], phdispl[idir])
+        else:
+            phdispl = self.phdispl_cart[qind].reshape((self.num_branches, self.num_atoms, 3))
+            return get_fraction(qpoint.cart_coords, phdispl)
+
+    @add_fig_kwargs
+    def plot_longitudinal_fraction(self, qpoint, idir=None, ax_list=None, units="eV", branches=None,
+                                   format_w="%.3f", fontsize=10, **kwargs):
+        """
+        Plots an instogram "longitudinal" fraction of the eigendisplacements.
+
+        Args:
+            qpoint: q vector in reduced coordinate in reciprocal space or index of the qpoint.
+            idir: an integer with the index of the non analytical direction if qpoint is gamma.
+                If None all will be plot.
+            ax_list: The axes for the plot. If ax_list is None, a new figure is created and
+                the axes are automatically generated.
+            units: Units for the output. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
+            branches: list of indices for the modes that should be represented. If None all the modes will be shown.
+            format_w: string used to format the values of the frequency. Default "%.3f".
+            fontsize: Labels and title fontsize.
+
+        Returns:
+            |matplotlib-Figure|
+
+        """
+        qind = self.qindex(qpoint)
+        qpoint = self.qpoints[qind]
+        fractions = self.get_longitudinal_fraction(qind, idir)
+
+        factor = abu.phfactor_ev2units(units)
+
+        if branches is None:
+            branches = self.branches
+        elif not isinstance(branches, (list, tuple)):
+            branches = [branches]
+
+        is_non_anal = qpoint.is_gamma()
+
+        # if non analytical directions at gamma the
+        if len(fractions.shape) == 1:
+            fractions = [fractions]
+
+        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=len(fractions), ncols=1,
+                                                sharex=False, sharey=False, squeeze=False)
+
+        width, pad = 4, 1
+        pad = width + pad
+
+        for i, ax in enumerate(ax_list.ravel()):
+            xticks, xticklabels = [], []
+            x = 0
+            if idir is not None:
+                i_ref = idir
+            else:
+                i_ref = i
+            for inu, nu in enumerate(branches):
+                height = fractions[i][nu]
+                ax.bar(x, height, width, 0, align="center",
+                       color="r", edgecolor='black')
+
+                xticks.append(x)
+                if is_non_anal:
+                    w_qnu = self.non_anal_phfreqs[i_ref, nu] * factor
+                else:
+                    w_qnu = self.phfreqs[qind, nu] * factor
+                xticklabels.append(format_w % w_qnu)
+
+                x += (width + pad) / 2
+
+            if is_non_anal:
+                # no title for multiple axes, not enough space.
+                if idir is not None:
+                    ax.set_title(f"q-direction = {self.non_anal_directions[i_ref]}", fontsize=fontsize)
+            else:
+                ax.set_title(f"qpoint = {repr(qpoint)}", fontsize=fontsize)
+
+            ax.set_ylabel(r"Longitudinal fraction", fontsize=fontsize)
+            ax.set_ylim(0, 1)
+
+            ax.set_xticks(xticks)
+            ax.set_xticklabels((xticklabels))
+
+            if i == len(fractions) - 1:
+                ax.set_xlabel(f'Frequency {abu.phunit_tag(units)}')
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_longitudinal_fatbands(self, ax=None, units="eV", qlabels=None, branch_range=None, match_bands=False,
+                                   sum_degenerate=False, factor=1, **kwargs):
+        r"""
+        Plot the phonon band structure with width representing the longitudinal fraction of the fatbands.
+
+        Args:
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
+            qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
+                The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
+            branch_range: Tuple specifying the minimum and maximum branch index to plot (default: all branches are plotted).
+            match_bands: if True the bands will be matched based on the scalar product between the eigenvectors.
+            sum_degenerate: if True modes with similar frequencies will be considered as degenerated and their
+                contributions will be summed (squared sum). Notice that this may end up summing contributions
+                from modes that are just accidentally degenerated.
+            factor: a float that will used to scale the width of the fatbands.
+
+        Returns:
+            |matplotlib-Figure|
+        """
+        # Select the band range.
+        if branch_range is None:
+            branch_range = range(self.num_branches)
+        else:
+            branch_range = range(branch_range[0], branch_range[1], 1)
+
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+
+        # Decorate the axis (e.g add ticks and labels).
+        self.decorate_ax(ax, units=units, qlabels=qlabels)
+
+        if "color" not in kwargs: kwargs["color"] = "black"
+        if "linewidth" not in kwargs: kwargs["linewidth"] = 1.0
+
+        first_xx = 0
+
+        units_factor = abu.phfactor_ev2units(units)
+
+        for i, (q_l, pf_l) in enumerate(zip(self.split_qpoints, self.split_phfreqs)):
+            if match_bands:
+                ind = self.split_matched_indices[i]
+                pf_l = pf_l[np.arange(len(pf_l))[:, None], ind]
+            pf_l = pf_l * units_factor
+            xx = list(range(first_xx, first_xx + len(pf_l)))
+            for branch in branch_range:
+                ax.plot(xx, pf_l[:, branch], **kwargs)
+            first_xx = xx[-1]
+
+            width = []
+            for iq, (q, pf) in enumerate(zip(q_l, pf_l)):
+
+                if np.allclose(q, [0, 0, 0]):
+                    if iq == 0:
+                        direction = q_l[iq+1]
+                    else:
+                        direction = q_l[iq-1]
+                    idir = self.non_anal_ph.index_direction(direction)
+                    frac = self.get_longitudinal_fraction(q, idir)
+                else:
+                    frac = self.get_longitudinal_fraction(q)
+
+                # sum the contributions from degenerate modes
+                if sum_degenerate:
+                    pf_round = pf.round(decimals=int(6 * units_factor))
+                    partitioned_pf = [np.where(pf_round == element)[0].tolist() for element in np.unique(pf_round)]
+                    for group in partitioned_pf:
+                        if len(group) > 1:
+                            frac[group[0]] = np.linalg.norm(frac[group])
+                            frac[group[1:]] = 0
+
+                if match_bands:
+                    ind = self.split_matched_indices[i]
+                    frac = frac[ind[iq]]
+
+                width.append(frac * units_factor * factor / 600)
+
+            width = np.array(width)
+            for branch in branch_range:
+                ax.fill_between(xx, pf_l[:, branch] + width[:, branch], pf_l[:, branch] - width[:, branch], facecolor="r", alpha=0.4, linewidth=0)
+
+        return fig
 
 
 class PHBST_Reader(ETSF_Reader):
