@@ -480,7 +480,7 @@ _EXT2VARS = {
     "EFMAS.nc": {"irdefmas": 1},
     # Abinit does not implement getkden and irdkden but relies on irden
     "KDEN": {},  #{"irdkden": 1},
-    "KERANGE": {"getkerange_path": '"indata/in_KERANGE"'},
+    "KERANGE.nc": {"getkerange_path": '"indata/in_KERANGE.nc"'},
 }
 
 

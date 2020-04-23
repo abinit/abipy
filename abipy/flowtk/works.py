@@ -2018,6 +2018,51 @@ class ConducWork(Work):
         for task in new[2:]:
             task.with_fixed_mpi_omp(nbr_procs, 1)
         return new
+    
+    @classmethod
+    def from_phwork_and_scf_nscf_inp_with_kerange(cls, phwork, multi, nbr_procs, flow, skipInter=True, manager=None):
+        """
+        Construct a |ConducWork| from a |PhononWork| and |MultiDataset|.
+
+        Args:
+            phwork: a |PhononWork| object calculating the DDB and DVDB files.
+
+            multi: a |MultiDataset| object containing a list of 4 inputs respectively :
+                   SCF GS, NSCF GS, DVDB Interpolation and Conductivity.
+                   See abipy/abio/factories.py -> conduc_from_scf_nscf_inputs for details about multi.
+
+            nbr_procs: Number of processors used for t2 and t3. Required since autoparal isn't yet implemented with optdriver=7
+
+            flow: The flow calling the work. Used for  with_fixed_mpi_omp.
+
+            skipInter: Used to skip the interpolation task and compute the fine DVDB during the conductivity task.
+
+            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
+        """
+        if not isinstance(phwork, PhononWork):
+            raise TypeError("Work `%s` does not inherit from PhononWork" % phwork)
+
+        new = cls(manager=manager)
+        new.set_flow(flow)
+
+        new.register_task(multi[0])
+        new.register_task(multi[1], deps={new[0]: "DEN"})
+        new.register_task(multi[2], deps={new[1]: "WFK"})
+        new.register_task(multi[3], deps={new[0]: "DEN", new[1]: "WFK", new[2]: "KERANGE.nc"})
+        
+        if(skipInter):
+            new.register_task(multi[5], deps={new[3]: "WFK", phwork: ["DDB","DVDB"]})
+
+        else:
+            new.register_task(multi[4], deps={phwork: ["DDB","DVDB"]})
+            new.register_task(multi[5], deps={new[3]: "WFK", phwork: "DDB", new[2]: "DVDB"})
+
+        for task in new:
+            task.set_work(new)
+
+        for task in new[2:]:
+            task.with_fixed_mpi_omp(nbr_procs, 1)
+        return new
 
     @classmethod
     def from_multi_and_DDB_DVDB(cls, multi, ddb_file, dvdb_file, nbr_procs, flow, skipInter=True, manager=None):
