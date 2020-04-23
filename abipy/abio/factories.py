@@ -1454,7 +1454,8 @@ def conduc_from_scf_nscf_inputs(scf_inp, nscf_inp, tmesh, ddb_ngqpt, eph_ngqpt_f
     return multi
 
 
-def conduc_kerange_from_scf_nscf_inputs(scf_inp, nscf_inp, tmesh, ddb_ngqpt, sigma_ngkpt, sigma_erange, einterp=[1,5,0,0], eph_ngqpt_fine=None):
+def conduc_kerange_from_scf_nscf_inputs(scf_inp, nscf_inp, tmesh, ddb_ngqpt, sigma_ngkpt,
+                                        sigma_erange, einterp=[1,5,0,0], eph_ngqpt_fine=None):
     """
     Returns a list of inputs in the form of a MultiDataset to perform a set of calculations to determine conductivity.
     This part require a ground state |AbinitInput| and a non self-consistent |AbinitInput|. You will also need
@@ -1478,12 +1479,14 @@ def conduc_kerange_from_scf_nscf_inputs(scf_inp, nscf_inp, tmesh, ddb_ngqpt, sig
     """
     if eph_ngqpt_fine is None:
         eph_ngqpt_fine = sigma_ngkpt
-    
+
     multi = MultiDataset.from_inputs([scf_inp])
     extension = MultiDataset.replicate_input(nscf_inp, 5)
     multi.extend(extension)
-    
-    multi[2].set_vars(optdriver=8, wfk_task='"wfk_kpts_erange"', kptopt=1, sigma_ngkpt=sigma_ngkpt, einterp=einterp, sigma_erange=sigma_erange)
+
+    multi[2].set_vars(optdriver=8, wfk_task='"wfk_kpts_erange"', kptopt=1,
+                      sigma_ngkpt=sigma_ngkpt, einterp=einterp, sigma_erange=sigma_erange)
+
     multi[3].set_vars(optdriver=0, symsigma=1, iscf=-2, kptopt=0, ddb_ngqpt=ddb_ngqpt)
 
     multi[4].pop_vars("iscf")
@@ -1491,7 +1494,7 @@ def conduc_kerange_from_scf_nscf_inputs(scf_inp, nscf_inp, tmesh, ddb_ngqpt, sig
                       ddb_ngqpt=ddb_ngqpt,
                       eph_task=5,
                       eph_ngqpt_fine=eph_ngqpt_fine)
-    
+
     multi[5].pop_vars("iscf")
     multi[5].set_vars(irdden=0, optdriver=7,
                       ddb_ngqpt=ddb_ngqpt,
@@ -1500,8 +1503,9 @@ def conduc_kerange_from_scf_nscf_inputs(scf_inp, nscf_inp, tmesh, ddb_ngqpt, sig
                       tmesh=tmesh,
                       symsigma=1,
                       ngkpt=sigma_ngkpt)
-    
+
     return multi
+
 
 #FIXME if the pseudos are passed as a PseudoTable the whole table will be serialized,
 # it would be better to filter on the structure elements

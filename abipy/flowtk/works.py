@@ -2018,7 +2018,7 @@ class ConducWork(Work):
         for task in new[2:]:
             task.with_fixed_mpi_omp(nbr_procs, 1)
         return new
-    
+
     @classmethod
     def from_phwork_and_scf_nscf_inp_with_kerange(cls, phwork, multi, nbr_procs, flow, skipInter=True, manager=None):
         """
@@ -2049,7 +2049,7 @@ class ConducWork(Work):
         new.register_task(multi[1], deps={new[0]: "DEN"})
         new.register_task(multi[2], deps={new[1]: "WFK"})
         new.register_task(multi[3], deps={new[0]: "DEN", new[1]: "WFK", new[2]: "KERANGE.nc"})
-        
+
         if(skipInter):
             new.register_task(multi[5], deps={new[3]: "WFK", phwork: ["DDB","DVDB"]})
 
