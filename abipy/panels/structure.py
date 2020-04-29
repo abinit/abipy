@@ -1,22 +1,42 @@
 """"GUIs for structure."""
+
 import param
 import panel as pn
 import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 
-from abipy.panels.core import AbipyParameterized
+from abipy.panels.core import AbipyParameterized, gen_id
 
-
-pn.config.js_files = {
+pn.config.js_files.update({
     '$': 'https://code.jquery.com/jquery-3.4.1.slim.min.js',
     "clipboard": "https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js",
-}
+})
+
+pn.config.js_files["ngl"] = "https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js"
+
+
+_html_with_copy_to_clipboard_ncalls = 0
+
+def html_with_copy_to_clipboard(html, btn_cls="btn-primary btn-sm"):
+    global _html_with_copy_to_clipboard_ncalls
+    _html_with_copy_to_clipboard_ncalls += 1
+    myid = gen_id()
+    html = f"""
+<button class="btn {btn_cls}" data-clipboard-target="#{myid}"> Copy to clipboard </button>
+<div id="{myid}"> {html} </div>
+"""
+    if _html_with_copy_to_clipboard_ncalls == 1:
+        html += "<script>$(document).ready(function () {new ClipboardJS('.btn')})</script>"
+
+    return pn.pane.HTML(html)
 
 
 class StructurePanel(AbipyParameterized):
     """
     Panel with widgets to interact with an AbiPy Structure
     """
+    verbose = param.Integer(0, bounds=(0, None), doc="Verbosity Level")
+
     # Convert widgets.
     output_format = pnw.Select(name="format", value="abinit",
                                options="abinit,cif,xsf,poscar,qe,siesta,wannier90,cssr,json".split(","))
@@ -80,17 +100,60 @@ class StructurePanel(AbipyParameterized):
     @param.depends("viewer_btn.clicks")
     def view(self):
         if self.viewer_btn.clicks == 0: return
-        #return self.structure.nglview()
+
+        import panel as pn
+
+        #js_files = {'ngl': 'https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js'}
+        #pn.extension(comms='ipywidgets', js_files=js_files)
+        #view = self.structure.get_ngl_view()
+        #return pn.Pane(view)
+
+        #pn.config.js_files["ngl"]="https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js"
+        #pn.extension()
+
+        html = """<div id="viewport" style="width:100%; height:100%;"></div>
+        <script>
+        stage = new NGL.Stage("viewport");
+        stage.loadFile("rcsb://1NKT.mmtf", {defaultRepresentation: true});
+        </script>"""
+
+#        html = """
+#         <script>
+#    document.addeventlistener("domcontentloaded", function () {
+#      var stage = new ngl.stage("viewport");
+#      stage.loadfile("rcsb://1crn", {defaultrepresentation: true});
+#    });
+#  </script>"""
+
+#        html = """
+#<script>
+#document.addeventlistener("domcontentloaded", function () {
+#    // create a `stage` object
+#    var stage = new NGL.Stage("viewport");
+#    // load a PDB structure and consume the returned `Promise`
+#    stage.loadFile("rcsb://1CRN").then(function (component) {
+#    // add a "cartoon" representation to the structure component
+#    component.addRepresentation("cartoon");
+#    // provide a "good" view of the structure
+#    component.autoView();
+#  });
+#});
+#</script>"""
+
+        ngl_pane = pn.pane.HTML(html, height=500, width=500)
+        return pn.Row(ngl_pane)
+
+        view = self.structure.get_ngl_view()
         #return self.structure.crystaltoolkitview()
         #import nglview as nv
         #view = nv.demo(gui=False)
 
-        #view = self.structure.get_jsmol()
-        #from ipywidgets_bokeh import IPyWidget
-        #view = IPyWidget(view)
-        #from IPython.display import display
-        #display(view)
-        #view = pn.ipywidget(view)
+        #view = self.structure.get_jsmol_view()
+        from ipywidgets_bokeh import IPyWidget
+        view = IPyWidget(widget=view) #, width=800, height=300)
+        from IPython.display import display
+        display(view)
+        return pn.Row(display(view))
         #return pn.Row(view)
 
         #from bokeh.models import ColumnDataSource
@@ -129,7 +192,6 @@ class StructurePanel(AbipyParameterized):
         #curdoc().add_root(ly)
 
         return pn.Row(applet)
-
         return self.structure.visualize(appname=self.viewer.value)
 
     @param.depends("gs_input_btn.clicks")
@@ -149,10 +211,7 @@ class StructurePanel(AbipyParameterized):
             gs_inp.set_vars(optcell=2, ionmov=2, ecutsm=0.5, dilatmx=1.05)
 
         gs_inp.set_mnemonics(False)
-        return """
-<button class="btn btn-primary btn-sm" data-clipboard-target="#foobar"> Copy to clipboard </button>
-<div id="foobar"> %s </div>
-""" % gs_inp._repr_html_()
+        return html_with_copy_to_clipboard(gs_inp._repr_html_())
 
     @param.depends("mp_match_btn.clicks")
     def on_mp_match_btn(self):
@@ -178,6 +237,8 @@ class StructurePanel(AbipyParameterized):
     def get_panel(self):
         """Build panel with widgets to interact with the structure either in a notebook or in a bokeh app"""
         tabs = pn.Tabs(); app = tabs.append
+        row = pn.Row(bkw.PreText(text=self.structure.to_string(verbose=self.verbose), sizing_mode="scale_both"))
+        app(("Summary", row))
         ws = pn.Column('# Spglib options', self.spglib_symprec, self.spglib_angtol)
         app(("Spglib", pn.Row(ws, self.spglib_summary)))
         ws = pn.Column('# K-path options', self.kpath_format, self.line_density)
@@ -188,5 +249,4 @@ class StructurePanel(AbipyParameterized):
         app(("GS-input", pn.Row(ws, self.on_gs_input_btn)))
         app(("MP-match", pn.Row(pn.Column(self.mp_match_btn), self.on_mp_match_btn)))
 
-        #return tabs
-        return pn.Column(tabs, pn.pane.HTML("<script>$(document).ready(function () {new ClipboardJS('.btn')})</script>"))
+        return tabs

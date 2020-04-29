@@ -16,7 +16,7 @@ class HistFilePanel(AbipyParameterized):
     what_list = pn.widgets.CheckBoxGroup(name="Select", value=_what_list, options=_what_list, inline=False)
     plot_relax_btn = pn.widgets.Button(name="Show relaxation", button_type="primary")
 
-    sizing_mode = sizing_mode_select(value="fixed")
+    sizing_mode = sizing_mode_select(value="stretch_width")
 
     appname = pn.widgets.Select(name="Viewer", value="ovito", options=["ovito", "mayavi", "vtk"])
     to_unit_cell = pn.widgets.Checkbox(name="To unit cell")

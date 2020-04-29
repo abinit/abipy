@@ -64,6 +64,12 @@ def xsf_write_structure(file, structures):
                 fwrite(' %20.14f %20.14f %20.14f\n' % tuple(cart_forces[a]))
 
 
+#def xsf_write_structure_and_data(file, structure, data, add_replicas=True, cplx_mode=None):
+#   with open(filename, mode="wt") as fh:
+#       xsf.xsf_write_structure(fh, self.structure)
+#       xsf.xsf_write_data(fh, self.structure, datar, add_replicas=True)
+
+
 def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None):
     """
     Write data in the Xcrysden format (XSF)
@@ -71,9 +77,9 @@ def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None):
     Args:
         file: file-like object.
         structure: :class:`Structure` object.
-        data: array-like object in C-order, i.e data[nx,ny,nz]
+        data: array-like object in C-order, i.e data[nx, ny, nz]
         add_replicas: If True, data is padded with redundant data points.
-            in order to have a periodic 3D array of shape=(nx+1,ny+1,nz+1).
+            in order to have a periodic 3D array of shape: (nx+1, ny+1, nz+1).
         cplx_mode: string defining the data to print when data is a complex array.
             Possible choices are (case-insensitive):
 

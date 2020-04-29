@@ -715,7 +715,12 @@ class Structure(pymatgen.Structure, NotebookWriter):
     @property
     def reciprocal_lattice(self):
         """
-        Reciprocal lattice of the structure.
+        Reciprocal lattice of the structure. Note that this is the standard
+        reciprocal lattice used for solid state physics with a factor of 2 * pi
+        i.e.  a_j . b_j = 2pi delta_ij
+
+        If you are looking for the crystallographic reciprocal lattice,
+        use the reciprocal_lattice_crystallographic property.
         """
         return self._lattice.reciprocal_lattice
 
@@ -1453,7 +1458,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
     def get_jsmol_view(self, symprec=None, verbose=0, **kwargs): # pragma: no cover
         """
-        Visualize the structure with nglview inside the jupyter notebook.
+        Visualize the structure with jsmol inside the jupyter notebook.
 
         Args:
             symprec (float): If not none, finds the symmetry of the structure
@@ -2142,13 +2147,13 @@ class Structure(pymatgen.Structure, NotebookWriter):
             nbv.new_code_cell("if structure.abi_spacegroup is not None: print(structure.abi_spacegroup)"),
             nbv.new_code_cell("print(structure.hsym_kpoints)"),
             nbv.new_code_cell("structure.plot_bz();"),
-            nbv.new_code_cell("# structure.plot_xrd();"),
+            nbv.new_code_cell("#import panel as pn; pn.extension()\n#structure.get_panel()"),
             nbv.new_code_cell("# sanitized = structure.abi_sanitize(); print(sanitized)"),
             nbv.new_code_cell("# ase_atoms = structure.to_ase_atoms()"),
             nbv.new_code_cell("# structure.plot_atoms();"),
-            nbv.new_code_cell("# jsmol_view = structure.get_jsmol_view()\njsmol_view"),
-            nbv.new_code_cell("# ngl_view = structure.get_ngl_view()\nngl_view"),
-            nbv.new_code_cell("# ctk_view = structure.get_crystaltk_view()\nctk_view"),
+            nbv.new_code_cell("# jsmol_view = structure.get_jsmol_view(); jsmol_view"),
+            nbv.new_code_cell("# ngl_view = structure.get_ngl_view(); ngl_view"),
+            nbv.new_code_cell("# ctk_view = structure.get_crystaltk_view(); ctk_view"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)

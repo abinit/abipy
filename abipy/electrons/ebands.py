@@ -1872,6 +1872,12 @@ class ElectronBands(Has_Structure):
             points: Marker object with the position and the size of the marker.
                 Used for plotting purpose e.g. QP energies, energy derivatives...
             with_gaps: True to add markers and arrows showing the fundamental and the direct gap.
+                IMPORTANT: If the gaps are now showed correctly in a non-magnetic semiconductor,
+                    call `ebands.set_fermie_to_vbm()` to align the Fermi level at the top of the valence
+                    bands before executing `ebands.plot().
+                    The Fermi energy stored in the object, indeed, comes from the GS calculation
+                    that produced the DEN file. If the k-mesh used for the GS and the CBM is e.g. at Gamma,
+                    the Fermi energy will be underestimated and a manual aligment is needed.
             max_phfreq: Max phonon frequency in eV to activate scatterplot showing
                 possible phonon absorption/emission processes based on energy-conservation alone.
                 All final states whose energy is within +- max_phfreq of the initial state are included.

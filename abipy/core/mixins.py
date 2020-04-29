@@ -148,6 +148,11 @@ class AbinitNcFile(BaseFile):
         Used to construct |pandas-DataFrames|.
         """
 
+    #def get_abinit_input(self):
+    #    input_string = self.rootgrp.get_varname_set("input_string")
+    #    from abipy.abio.inputs import AbinitInput
+    #    return AbinitInput(structure, pseudos, pseudo_dir=None, abi_kwargs=None)
+
 
 class AbinitFortranFile(BaseFile):
     """
@@ -710,7 +715,7 @@ abilab.enable_notebook(with_seaborn=True)
 
 
 class Has_Header(object):
-    """Mixin class for netcdf_ files containing the Abinit header."""
+    """Mixin class for netcdf files containing the Abinit header."""
 
     @lazy_property
     def hdr(self):

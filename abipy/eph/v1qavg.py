@@ -128,6 +128,35 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         return list(od.keys()), list(od.values())
 
+    #def xsf_write(self, idir=0, ipert=0, ispden=0):
+    #    natom = len(self.structure)
+    #    ip = idir + 3 * ipert
+    #    r = self.reader
+    #    ngfft = r.read_value("ngfft")
+
+    #    from abipy.tools.numtools import transpose_last3dims
+    #    from abipy.iotools import xsf
+
+    #    def write(datar, filename):
+    #        with open(filename, mode="wt") as fh:
+    #            xsf.xsf_write_structure(fh, self.structure)
+    #            xsf.xsf_write_data(fh, self.structure, datar, add_replicas=True, cplx_mode="abs")
+
+    #    # nctkarr_t("v1r_interpolated", "dp", "two, nfft, nspden, natom3")
+    #    var = r.read_variable("v1r_interpolated")
+    #    datar = var[ip, ispden, :, 0] + 1j * var[ip, ispden, :, 1]
+    #    # Because we are reading Fortran data (z,y,x) and xsf_write_data expects (..., x, y, z)
+    #    #print(datar.shape)
+    #    datar = np.reshape(datar, np.flip(ngfft))
+    #    datar = transpose_last3dims(datar)
+    #    write(datar, "v1r_interp_idir%d_ipert%d.xsf" % (idir, ipert))
+
+    #    var = r.read_variable("v1r_lrmodel")
+    #    datar = var[ip, ispden, :, 0] + 1j * var[ip, ispden, :, 1]
+    #    datar = np.reshape(datar, np.flip(ngfft))
+    #    datar = transpose_last3dims(datar)
+    #    write(datar, "v1r_lr_idir%d_ipert%d.xsf" % (idir, ipert))
+
     @add_fig_kwargs
     def plot(self, what_list="all", ispden=0, fontsize=6, sharey=False, **kwargs):
         """
@@ -189,7 +218,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         Plot
 
         Args:
-            gvec
+            gvec: G vector in reduced coordinates.
             ispden: Spin density component to plot.
             fontsize: fontsize for legends and titles
             sharey: True to share y-axes.
@@ -268,8 +297,8 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         # Fortran array: nctkarr_t("maxw", "dp", "nrpt, natom3")
-        maxw = self.reader.read_value("maxw")
         rmod = self.reader.read_value("rmod")
+        maxw = self.reader.read_value("maxw")
         data = np.max(maxw, axis=0)
         f = {"plot": ax.plot, "semilogy": ax.semilogy, "loglog": ax.loglog}[scale]
         f(rmod, data, marker="o", ls=":", lw=0, **kwargs)
@@ -306,8 +335,8 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         # Fortran array: nctkarr_t("maxw", "dp", "nrpt, natom3")
         nrpt = self.reader.read_dimvalue("nrpt")
-        maxw = np.reshape(self.reader.read_value("maxw"), (natom, 3, nrpt))
         rmod = self.reader.read_value("rmod")
+        maxw = np.reshape(self.reader.read_value("maxw"), (natom, 3, nrpt))
 
         for iatom, ax in enumerate(ax_list.ravel()):
             site = self.structure[iatom]

@@ -326,7 +326,7 @@ class Variable(object):
         self.text = my_unicode(text)
 
         errors = []
-        for a in ("abivarname", "varset", "vartype", "topics", "dimensions", "text"):
+        for a in ("abivarname", "varset", "vartype", "topics", "dimensions", "text", "added_in_version"):
             if getattr(self, a) is None:
                 errors.append("attribute %s is mandatory" % a)
         if errors:
