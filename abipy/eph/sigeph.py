@@ -6,7 +6,7 @@ For a theoretical introduction see :cite:`Giustino2017`
 
 Warning:
 
-    Work in progress, DO NOT USE THIS CODE
+    This code is still work in progress, API may change...
 """
 import tempfile
 import pickle

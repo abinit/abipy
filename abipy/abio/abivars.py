@@ -131,6 +131,18 @@ class Dataset(dict, Has_Structure):
 
     @lazy_property
     def structure(self):
+        """
+        The initial structure associated to the dataset.
+        """
+
+        # First of all check whether the structure is defined through external file.
+        if "structure" in self:
+            s = self["structure"].replace('"', "")
+            filetype, path = s.split(":")
+            from abipy import abilab
+            with abilab.abiopen(path) as abifile:
+                return abifile.structure
+
         # Get lattice.
         kwargs = {}
         if "angdeg" in self:
@@ -233,6 +245,7 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
     the input variables. Mainly used for inspecting the structure
     declared in the Abinit input file.
     """
+
     @classmethod
     def from_string(cls, string):
         """Build the object from string."""
@@ -319,8 +332,6 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
                 return None
 
         return self.datasets[0].structure
-
-    #def to_abinit_input(self):
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """

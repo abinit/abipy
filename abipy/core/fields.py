@@ -87,7 +87,7 @@ class _Field(Has_Structure):
         assert iorder in ["f", "c"]
 
         if iorder == "f":
-            # (z,x,y) --> (x,y,z)
+            # (z,y,x) --> (x,y,z)
             datar = transpose_last3dims(datar)
 
         # Init Mesh3D
@@ -1102,6 +1102,10 @@ class FieldReader(ETSF_Reader):
         """Read potential data. Return :class:`VksPotential` object."""
         return self.read_denpot(varname=field_cls.netcdf_name, field_cls=field_cls)
 
+    #def read_vks1(self, field_cls=Vks1Potential):
+    #    """Read potential data. Return :class:`Vks1Potential` object."""
+    #    return self.read_denpot(varname=field_cls.netcdf_name, field_cls=field_cls)
+
     def read_denpot(self, varname, field_cls):
         """
         Factory function to read den/pot data from netcdf_ files and instantiate :class:`_Field` objects.
@@ -1164,7 +1168,7 @@ class FieldReader(ETSF_Reader):
 
         datar *= fact
 
-        # use iorder="f" to transpose the last 3 dimensions since ETSF
+        # use iorder = "f" to transpose the last 3 dimensions since ETSF
         # stores data in Fortran order while AbiPy uses C-ordering.
         if cplex == 1:
             return field_cls(dims.nspinor, dims.nsppol, dims.nspden, datar, structure, iorder="f")

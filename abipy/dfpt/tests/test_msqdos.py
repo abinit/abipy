@@ -42,7 +42,7 @@ class MsqdTest(AbipyTest):
         assert np.all(abipy_indsym == msqd_dos.structure.indsym)
 
         cif_string = msqd_dos.get_cif_string(temp=300)
-        #print(cif_string)
+        print("cif_string:\n", cif_string)
 
         self.assertMultiLineEqual(cif_string, """\
 # generated using pymatgen
@@ -71,15 +71,15 @@ loop_
  _atom_site_fract_y
  _atom_site_fract_z
  _atom_site_occupancy
-  Si  Si0  1  0.528855  0.000000  0.833333  1
-  Si  Si1  1  0.471145  0.471145  0.500000  1
-  Si  Si2  1  0.000000  0.528855  0.166667  1
-  O  O3  1  0.413167  0.147706  0.620242  1
-  O  O4  1  0.852294  0.265462  0.953576  1
-  O  O5  1  0.734538  0.586833  0.286909  1
-  O  O6  1  0.265462  0.852294  0.046424  1
-  O  O7  1  0.147706  0.413167  0.379758  1
-  O  O8  1  0.586833  0.734538  0.713091  1
+  Si  Si0  1  0.52885459  0.00000000  0.83333333  1
+  Si  Si1  1  0.47114541  0.47114541  0.50000000  1
+  Si  Si2  1  0.00000000  0.52885459  0.16666667  1
+  O  O3  1  0.41316747  0.14770576  0.62024227  1
+  O  O4  1  0.85229424  0.26546172  0.95357560  1
+  O  O5  1  0.73453828  0.58683253  0.28690893  1
+  O  O6  1  0.26546172  0.85229424  0.04642440  1
+  O  O7  1  0.14770576  0.41316747  0.37975773  1
+  O  O8  1  0.58683253  0.73453828  0.71309107  1
 loop_
 _atom_site_aniso_label
 _atom_site_aniso_U_11

@@ -84,3 +84,13 @@ class ETSF_Reader(ionc.ETSF_Reader):
         amu_symbol = {Element.from_Z(n).symbol: v for n, v in amu_z.items()}
 
         return amu_symbol
+
+    def read_ngfft3(self):
+        """
+        Return the number of FFT divisions.
+        """
+        ngfft3 = 3 * [None]
+        ngfft3[0] = self.read_dimvalue("number_of_grid_points_vector1")
+        ngfft3[1] = self.read_dimvalue("number_of_grid_points_vector2")
+        ngfft3[2] = self.read_dimvalue("number_of_grid_points_vector3")
+        return np.array(ngfft3, np.int)
