@@ -2542,6 +2542,21 @@ class ElectronBands(Has_Structure):
 
         return dict2namedtuple(ebands_kpath=ebands_kpath, ebands_kmesh=ebands_kmesh, interpolator=skw)
 
+    def get_magnetization(self):
+        """
+        Calculates the total magnetization in Bohr magneton as the difference
+        between the spin up and spin down densities.
+
+        Returns:
+            float: the total magnetization.
+        """
+        if self.nsppol == 1:
+            return 0
+        else:
+            rhoup = np.sum(self.kpoints.weights[:, None] * self.occfacts[0])
+            rhoudown = np.sum(self.kpoints.weights[:, None] * self.occfacts[1])
+            return rhoup - rhoudown
+
 
 def dataframe_from_ebands(ebands_objects, index=None, with_spglib=True):
     """

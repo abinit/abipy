@@ -97,6 +97,7 @@ class ElectronBandsTest(AbipyTest):
         ni_edos = ni_ebands_kmesh.get_edos()
         repr(ni_edos); str(ni_edos)
         assert ni_edos.to_string(verbose=2)
+        self.assert_almost_equal(ni_ebands_kmesh.get_magnetization(), 0.6501439036904575)
 
         # Get ElectronDosPlotter with nsppol == 2 and test matplotlib methods.
         edos_plotter = ni_ebands_kmesh.compare_gauss_edos(widths=[0.2, 0.4], step=0.2)
@@ -257,6 +258,8 @@ class ElectronBandsTest(AbipyTest):
         self.assert_almost_equal(estats.min, 0)
         self.assert_almost_equal(estats.max, 11.855874158768694)
         repr(estats); str(estats)
+
+        assert si_ebands_kmesh.get_magnetization() == 0
 
         with self.assertRaises(NotImplementedError):
             si_ebands_kmesh.get_edos(method="tetrahedron")
