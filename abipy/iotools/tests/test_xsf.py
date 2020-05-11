@@ -42,6 +42,9 @@ PRIMCOORD 1
         # 2 x 3 x 2 grid without pbc stored in fortran mode.
         data = np.reshape(np.arange(12), (2,3,2)).T
         tmp_file = tempfile.TemporaryFile(mode="w+")
+
+        xsf_write_structure_and_data_to_path(tmp_file, self.mgb2, data, add_replicas=True)
+
         xsf_write_data(tmp_file, self.mgb2, data, add_replicas=True)
 
         xsf_string = \

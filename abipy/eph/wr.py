@@ -29,10 +29,9 @@ class WrNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         # FFT mesh.
         self.ngfft = r.read_value("ngfft")
 
-    def create_xsf(self):
+    def create_xsf(self, iatom=0, red_dir=(1, 0, 0), u=1.0, ispden=0):
 
-        nfft = self.nfft
-        nrpt = self.nrpt
+        nfft, nrpt = self.nfft, self.nrpt
 
         nx, ny, nz = self.ngfft
         nqx, nqy, nqz = self.ngqpt
@@ -91,12 +90,9 @@ class WrNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
                 #iffr2box[ifft, ir] = box_iloc
         print("Done")
 
-        ispden = 0
-        ip = 0
-
-        #idir2 = mod(ip2-1, 3) + 1; ipert2 = (ip2 - idir2) / 3 + 1
-        idir = ip % 3
-        iatom = (ip - idir) // 3 # + 1
+        #ip = 0
+        #idir = ip % 3
+        #iatom = (ip - idir) // 3 # + 1
 
         # nctkarr_t("v1scf_rpt_sr", "dp", "two, nrpt, nfft, nspden, natom3")
         # use iorder = "f" to transpose the last 3 dimensions since ETSF
@@ -104,24 +100,18 @@ class WrNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         # (z,y,x) --> (x,y,z)
         # datar = transpose_last3dims(datar)
         wsr_var = self.reader.read_variable("v1scf_rpt_sr")
-        wsr = wsr_var[ip, ispden]
-        wsr = wsr[..., 0] #+  1j * wsr[..., 1]
-
         wlr_var = self.reader.read_variable("v1scf_rpt_lr")
-        wlr = wlr_var[ip, ispden]
-        wlr = wlr[..., 0] # +  1j * wlr[..., 1]
+
+        wsr = np.zeros(nfft, nrpt)
+        wlr = np.zeros(nfft, nrpt)
+        for idir, red_comp in enumerate(red_dir):
+            ip = idir + 3 * iatom
+            wsr += u * red_comp * wsr_var[ip, ispden, :, :, 0]
+            wlr += u * red_comp * wlr_var[ip, ispden, :, :, 0]
 
         print("wsr.shape:", wsr.shape)
         print("Max |Re Wsr|:", np.max(np.abs(wsr.real)), "Max |Im Wsr|:", np.max(np.abs(wsr.imag)))
         #print("Max |Re Wlr|:", np.max(np.abs(wlr.real)), "Max |Im Wlr|:", np.max(np.abs(wlr.imag)))
-
-        #data = np.empty(box_size)
-        #for box_iloc, (ifft, ir) in enumerate(box2fr):
-        #    #ifft, ir = box2fr[box_iloc]
-        #    print("box_iloc", box_iloc, " --> ifft, ir", ifft, ir)
-        #    data[box_iloc] = wsr[ifft, ir].real
-        #data = wsr[idiratm, ispden] box2fr[:]]
-        #data.shape = box_shape
 
         r0 = np.array([0, 0, 0], dtype=np.int)
         qgrid = np.where(self.ngqpt > 2, self.ngqpt, 0)
@@ -129,7 +119,7 @@ class WrNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         print("Origin of datagrid set at R0:", r0)
 
         # Build datagrid in the supercell using C indexing
-        # This is waht xsf_write_data expects.
+        # This is what xsf_write_data expects.
         miss = []
         data_lr = np.empty(box_shape)
         data_sr = np.empty(box_shape)
@@ -159,9 +149,7 @@ class WrNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         def dump_xsf(filename, data):
             from abipy.iotools import xsf
-            with open(filename, mode="wt") as fh:
-                xsf.xsf_write_structure(fh, super_structure)
-                xsf.xsf_write_data(fh, super_structure, data, add_replicas=True) #, cplx_mode="abs")
+            xsf.xsf_write_structure_and_data_to_path(filename, super_structure, data, cplx_mode="abs")
 
         dump_xsf("foo_lr.xsf", data_lr)
         dump_xsf("foo_sr.xsf", data_sr)
@@ -190,7 +178,6 @@ class WrNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         app("")
         app(self.structure.to_string(verbose=verbose, title="Structure"))
         app("")
-        #app("symv1scf: %s" % self.symv1scf)
 
         return "\n".join(lines)
 
@@ -246,49 +233,6 @@ class WrNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         #                 fontsize=fontsize)
         return fig
 
-    #@add_fig_kwargs
-    #def plot_maxw_perts(self, scale="semilogy", sharey=False, fontsize=8, **kwargs):
-    #    """
-    #    Plot the decay of max_r |W(R,r,idir,ipert)| for the individual atomic perturbations.
-
-    #    Args:
-    #        scale: "semilogy", "loglog" or "plot".
-    #        sharey: True is y-axes should be shared.
-    #        fontsize: fontsize for legends and titles.
-
-    #    Return: |matplotlib-Figure|
-    #    """
-    #    # Build grid of plots.
-    #    natom = len(self.structure)
-    #    ncols, nrows = (2, natom // 2) if natom % 2 == 0 else (1, natom)
-
-    #    ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-    #                                            sharex=True, sharey=sharey, squeeze=False)
-    #    ax_list = ax_list.ravel()
-
-    #    # Fortran array: nctkarr_t("maxw", "dp", "nrpt, natom3")
-    #    nrpt = self.reader.read_dimvalue("nrpt")
-    #    rmod = self.reader.read_value("rmod")
-    #    maxw = np.reshape(self.reader.read_value("maxw"), (natom, 3, nrpt))
-
-    #    for iatom, ax in enumerate(ax_list.ravel()):
-    #        site = self.structure[iatom]
-    #        title = "{} [{:.4f} {:.4f} {:.4f}]".format(site.specie.symbol, *site.frac_coords)
-    #        ax.set_title(title, fontsize=fontsize)
-    #        f = {"plot": ax.plot, "semilogy": ax.semilogy, "loglog": ax.loglog}[scale]
-    #        f(rmod, maxw[iatom, 0], marker="o", ls=":", lw=0, label="$L_x$" if iatom == 0 else None)
-    #        f(rmod, maxw[iatom, 1], marker="o", ls=":", lw=0, label="$L_y$" if iatom == 0 else None)
-    #        f(rmod, maxw[iatom, 2], marker="o", ls=":", lw=0, label="$L_z$" if iatom == 0 else None)
-    #        ax.grid(True)
-    #        if iatom == 0:
-    #            ax.set_ylabel(r"$Max_{{\bf{r}}} \| W({\bf{r}}, {\bf{R}}) \|$")
-    #            ax.legend(loc="best", fontsize=fontsize, shadow=True)
-    #        if iatom == len(ax_list) - 1: ax.set_xlabel(r"$\|{\bf{R}}\|$ (Bohr)")
-
-    #    #fig.suptitle("dvdb_add_lr %d, qdamp: %s, symv1scf: %d" % (self.dvdb_add_lr, self.qdamp, self.symv1scf),
-    #    #             fontsize=fontsize)
-    #    return fig
-
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
@@ -308,7 +252,6 @@ class WrNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         ])
 
         #nb.cells.append(nbv.new_code_cell("ncfile.plot_diff_at_qpoint(qpoint=%d);" % iq))
-        #nb.cells.append(nbv.new_code_cell("ncfile.plot_diff_at_qpoint(qpoint=%d);" % iq))
 
         return self._write_nb_nbpath(nb, nbpath)
 
@@ -319,6 +262,4 @@ if __name__ == "__main__":
 
     #print(ncfile)
     ncfile.plot_maxw(scale="semilogy", ax=None, fontsize=8)
-    #ncfile.plot_maxw_perts()
-
-    #ncfile.create_xsf()
+    #ncfile.create_xsf(iatom=0, red_dict=(-1, +1, +1), u=0.1)

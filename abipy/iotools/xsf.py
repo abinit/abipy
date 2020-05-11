@@ -8,6 +8,7 @@ from abipy.tools.numtools import transpose_last3dims, add_periodic_replicas
 
 
 __all__ = [
+    "xsf_write_structure_and_data_to_path",
     "xsf_write_structure",
     "xsf_write_data",
     "bxsf_write",
@@ -64,10 +65,11 @@ def xsf_write_structure(file, structures):
                 fwrite(' %20.14f %20.14f %20.14f\n' % tuple(cart_forces[a]))
 
 
-#def xsf_write_structure_and_data(file, structure, data, add_replicas=True, cplx_mode=None):
-#   with open(filename, mode="wt") as fh:
-#       xsf.xsf_write_structure(fh, self.structure)
-#       xsf.xsf_write_data(fh, self.structure, datar, add_replicas=True)
+def xsf_write_structure_and_data_to_path(filepath, structure, datar, **kwargs):
+    """Simplified interface to xsf routines to write structure and data to filepath."""
+    with open(filepath, mode="wt") as fh:
+        xsf.xsf_write_structure(fh, structure)
+        xsf.xsf_write_data(fh, structure, datar, **kwargs)
 
 
 def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None):
