@@ -2107,13 +2107,17 @@ class PhononBands(object):
             width = []
             for iq, (q, pf) in enumerate(zip(q_l, pf_l)):
 
-                if np.allclose(q, [0, 0, 0]):
-                    if iq == 0:
-                        direction = q_l[iq+1]
+                print(q)
+                if np.allclose(np.mod(q, 1), [0, 0, 0]):
+                    if self.non_anal_ph is not None:
+                        if iq == 0:
+                            direction = q_l[iq+1]
+                        else:
+                            direction = q_l[iq-1]
+                        idir = self.non_anal_ph.index_direction(direction)
+                        frac = self.get_longitudinal_fraction(q, idir)
                     else:
-                        direction = q_l[iq-1]
-                    idir = self.non_anal_ph.index_direction(direction)
-                    frac = self.get_longitudinal_fraction(q, idir)
+                        frac = np.zeros(self.num_branches)
                 else:
                     frac = self.get_longitudinal_fraction(q)
 
