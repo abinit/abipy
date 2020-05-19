@@ -121,6 +121,9 @@ class PhononBandsTest(AbipyTest):
                 assert phbands.plot_phdispl(qpoint=1, is_non_analytical_direction=True, show=False)
             assert phbands.plot_phdispl_cartdirs(qpoint=0, units="cm^-1", show=False)
             assert phbands.boxplot(units="ev", mode_range=[2, 4], show=False)
+            assert phbands.plot_longitudinal_fatbands(show=False)
+            assert phbands.plot_longitudinal_fatbands(sum_degenerate=True, show=False)
+            assert phbands.plot_longitudinal_fraction([0.0375, 0.0375, 0.075], show=False)
 
         # Cannot compute PHDOS with q-path
         with self.assertRaises(ValueError):
@@ -136,6 +139,22 @@ class PhononBandsTest(AbipyTest):
         phbands.linewidths = np.ones(phbands.shape)
         assert phbands.has_linewidths
 
+        lf = phbands.get_longitudinal_fraction([0.0375, 0.0375, 0.075])
+        self.assertAlmostEqual(lf[5], 0.999984194)
+        self.assertAlmostEqual(lf[0], 0.)
+
+    def test_with_loto(self):
+        with abilab.abiopen(abidata.ref_file("ZnSe_hex_886.out_PHBST.nc")) as ncfile:
+            phbands = ncfile.phbands
+
+        phbands.read_non_anal_from_file(abidata.ref_file("ZnSe_hex_886.anaddb.nc"))
+
+        lf = phbands.get_longitudinal_fraction([0., 0., 0.], idir=0)
+        self.assertAlmostEqual(lf[11], 1.0)
+
+        if self.has_matplotlib():
+            assert phbands.plot_longitudinal_fatbands(match_bands=True, show=False)
+            assert phbands.plot_longitudinal_fraction([0., 0., 0.], idir=None, show=False)
 
 class PlotterTest(AbipyTest):
 
