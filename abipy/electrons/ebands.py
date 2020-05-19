@@ -2548,16 +2548,20 @@ class ElectronBands(Has_Structure):
 
         return dict2namedtuple(ebands_kpath=ebands_kpath, ebands_kmesh=ebands_kmesh, interpolator=skw)
 
-    def get_magnetization(self):
+    def get_collinear_mag(self):
         """
-        Calculates the total magnetization in Bohr magneton as the difference
+        Calculates the total collinear magnetization in Bohr magneton as the difference
         between the spin up and spin down densities.
 
         Returns:
             float: the total magnetization.
         """
         if self.nsppol == 1:
-            return 0
+            if self.nspinor == 1 or (self.nspinor == 2 and self.nspden == 1):
+                return 0
+            else:
+                raise ValueError("Cannot calculate collinear magnetization for nsppol: {}, "
+                                 "nspinor {}, nspden {}".format(self.nsppol, self.nspinor, self.nspden))
         else:
             rhoup = np.sum(self.kpoints.weights[:, None] * self.occfacts[0])
             rhoudown = np.sum(self.kpoints.weights[:, None] * self.occfacts[1])
