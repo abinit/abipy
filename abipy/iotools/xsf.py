@@ -68,8 +68,8 @@ def xsf_write_structure(file, structures):
 def xsf_write_structure_and_data_to_path(filepath, structure, datar, **kwargs):
     """Simplified interface to xsf routines to write structure and data to filepath."""
     with open(filepath, mode="wt") as fh:
-        xsf.xsf_write_structure(fh, structure)
-        xsf.xsf_write_data(fh, structure, datar, **kwargs)
+        xsf_write_structure(fh, structure)
+        xsf_write_data(fh, structure, datar, **kwargs)
 
 
 def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None):

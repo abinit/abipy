@@ -9,7 +9,7 @@ from monty.string import marquee
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.electrons.ebands import ElectronsReader #, RobotWithEbands
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
-#from abipy.abio.robots import Robot
+from abipy.abio.robots import Robot
 
 
 __all__ = [
@@ -292,11 +292,134 @@ class TransportReader(ElectronsReader):
         return vels * (abu.Ha_to_eV / abu.Bohr_Ang)
 
 
-#class TransportRobot(Robot, RobotWithEbands):
-#    """
-#    This robot analyzes the results contained in multiple TRANSPORT.nc files.
-#
-#    .. rubric:: Inheritance Diagram
-#    .. inheritance-diagram:: TransportRobot
-#    """
-#    EXT = "TRANSPORT"
+class TransportRobot(Robot): #, RobotWithEbands):
+    """
+    This robot analyzes the results contained in multiple TRANSPORT.nc files.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: TransportRobot
+    """
+    EXT = "TRANSPORT"
+
+    @add_fig_kwargs
+    def plot_conv(self, eh=0, component='xx', itemp=0, spin=0, fontsize=14, ax=None, **kwargs):
+        """
+        Plot the convergence of the mobility obtained in a list of files
+
+        Args:
+            ax: Axis for the plot
+            eh: 0 for electrons, 1 for holes
+            component: Component to plot ('xx', 'xy', ...)
+            itemp: Index of the temperature.
+            spin: Spin index.
+        """
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        ax.grid(True)
+
+        i,j = abu.s2itup(component)
+
+        res = []
+        for ncfile in self.abifiles:
+            kptrlatt  = ncfile.reader.read_value('kptrlatt')
+            kptrlattx = kptrlatt[0,0]
+            kptrlatty = kptrlatt[1,1]
+            kptrlattz = kptrlatt[2,2]
+            nkpt      = ncfile.nkpt
+            mobility  = ncfile.reader.read_value('mobility_mu')[itemp][i,j][spin][eh]
+            res.append([kptrlattx, mobility])
+
+        res.sort(key=lambda t: t[0])
+        res = np.array(res)
+
+        size = 14
+        if eh == 0:
+            ax.set_ylabel(r'Electron mobility (cm$^2$/(V$\cdot$s))', size=size)
+        elif eh == 1:
+            ax.set_ylabel(r'Hole mobility (cm$^2$/(V$\cdot$s))', size=size)
+
+        from fractions import Fraction
+        ratio1 = Fraction(kptrlatty,kptrlattx)
+        ratio2 = Fraction(kptrlattz,kptrlattx)
+        text1  = '' if ratio1.numerator == ratio1.denominator else \
+                 r'$\frac{{{0}}}{{{1}}}$'.format(ratio1.numerator, ratio1.denominator)
+        text2  = '' if ratio2.numerator == ratio2.denominator else \
+                 r'$\frac{{{0}}}{{{1}}}$'.format(ratio2.numerator, ratio2.denominator)
+
+        ax.set_xlabel(r'Homogeneous $N_k \times$ '+ text1 + r'$N_k \times$ '+ text2 + r'$N_k$ $\mathbf{k}$-point grid',
+                      size=size)
+
+        ax.plot(res[:,0], res[:,1], **kwargs)
+
+        ax.legend(loc="best", shadow=True, fontsize=fontsize)
+
+        return fig
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        Used in abiview.py to get a quick look at the results.
+        """
+        yield self.plot_lattice_convergence(show=False)
+        yield self.plot_gsr_convergence(show=False)
+        for fig in self.get_ebands_plotter().yield_figs(): yield fig
+
+    #def get_panel(self):
+    #    """
+    #    Build panel with widgets to interact with the |GsrRobot| either in a notebook or in panel app.
+    #    """
+    #    from abipy.panels.gsr import GsrRobotPanel
+    #    return GsrRobotPanel(self).get_panel()
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        args = [(l, f.filepath) for l, f in self.items()]
+        nb.cells.extend([
+            #nbv.new_markdown_cell("# This is a markdown cell"),
+            nbv.new_code_cell("robot = abilab.GsrRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+            #nbv.new_code_cell("ebands_plotter = robot.get_ebands_plotter()"),
+        ])
+
+        # Mixins
+        #nb.cells.extend(self.get_baserobot_code_cells())
+        #nb.cells.extend(self.get_ebands_code_cells())
+
+        return self._write_nb_nbpath(nb, nbpath)
+
+
+if __name__ == "__main__":
+    import sys
+    robot = TransportRobot.from_files(sys.argv[1:])
+    print(robot)
+
+    import matplotlib.pyplot as plt
+    plt.figure(0, figsize=(14,9))
+    plt.tick_params(labelsize=14)
+    ax = plt.gca()
+
+    robot.plot_conv(ax=ax, color='k', marker='o', label=r'$N_{{q_{{x,y,z}}}}$ = $N_{{k_{{x,y,z}}}}$')
+
+    #fileslist = ['conv_fine/k27x27x27/q27x27x27/Sio_DS1_TRANSPORT.nc',
+    #             'conv_fine/k30x30x30/q30x30x30/Sio_DS1_TRANSPORT.nc',
+    #             'conv_fine/k108x108x108/q108x108x108/Sio_DS1_TRANSPORT.nc',
+    #             'conv_fine/k120x120x120/q120x120x120/Sio_DS1_TRANSPORT.nc',
+    #             'conv_fine/k132x132x132/q132x132x132/Sio_DS1_TRANSPORT.nc',
+    #             'conv_fine/k144x144x144/q144x144x144/Sio_DS1_TRANSPORT.nc',]
+
+
+    #plot_conv(ax, fileslist, color='k', marker='o', label=r'$N_{{q_{{x,y,z}}}}$ = $N_{{k_{{x,y,z}}}}$')
+
+
+    #fileslist = ['conv_fine/k27x27x27/q54x54x54/Sio_DS1_TRANSPORT.nc',
+    #             'conv_fine/k30x30x30/q60x60x60/Sio_DS1_TRANSPORT.nc',
+    #             'conv_fine/k66x66x66/q132x132x132/Sio_DS1_TRANSPORT.nc',
+    #             'conv_fine/k72x72x72/q144x144x144/Sio_DS1_TRANSPORT.nc']
+
+    #plot_conv(ax, fileslist, color='r', marker='x', label=r'$N_{{q_{{x,y,z}}}}$ = $2 N_{{k_{{x,y,z}}}}$')
+
+    #plt.legend(loc='best',fontsize=14)
+    #plt.show()

@@ -606,7 +606,9 @@ class AbipyTest(PymatgenTest):
 
         if errors:
             for e in errors:
+                print(90 * "=")
                 print(e)
+                print(90 * "=")
 
         assert not errors
 
