@@ -16,7 +16,6 @@ class TestXsfUtils(AbipyTest):
     def test_xsf_write_structure(self):
         """Testing crystalline structures in the XSF format."""
         tmp_file = tempfile.TemporaryFile(mode="w+")
-
         xsf_write_structure(tmp_file, self.mgb2)
 
         xsf_string = \
@@ -41,9 +40,10 @@ PRIMCOORD 1
         """Testing XSF file with datasets."""
         # 2 x 3 x 2 grid without pbc stored in fortran mode.
         data = np.reshape(np.arange(12), (2,3,2)).T
-        tmp_file = tempfile.TemporaryFile(mode="w+")
 
-        xsf_write_structure_and_data_to_path(tmp_file, self.mgb2, data, add_replicas=True)
+        xsf_write_structure_and_data_to_path(self.get_tmpname(), self.mgb2, data, add_replicas=True)
+
+        tmp_file = tempfile.TemporaryFile(mode="w+")
 
         xsf_write_data(tmp_file, self.mgb2, data, add_replicas=True)
 

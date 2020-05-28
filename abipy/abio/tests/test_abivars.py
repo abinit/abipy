@@ -56,7 +56,7 @@ class TestAbinitInputFile(AbipyTest):
 
         # acell and rprimd with unit.
         s = ("acell 1 2*1 Bohr rprim 1 0 0 0 1 0 0 0 1 Bohr natom 1 "
-             "ntypat 1 typat *1 znucl 1*14 xangst 0 0 0")
+             "ntypat 1 typat *1 znucl 1*14 xred 0 0 0")
         with AbinitInputFile.from_string(s) as inp:
             assert inp.structure == si1_structure
             if self.has_nbformat():

@@ -30,6 +30,22 @@ TODO list:
 
 * BECS: 3x3 Tensor is not symmetric. Remove get_voigt_dataframe
 
+* Parse stderr to detect runtime errors such as 
+
+    forrtl: severe (24): end-of-file during read, unit 5, file /proc/59090/fd/0
+    Image              PC                Routine            Line        Source             
+    abinit             0000000008914AC2  for__io_return        Unknown  Unknown
+    abinit             000000000894378D  for_read_seq_fmt      Unknown  Unknown
+    abinit             000000000194409E  Unknown               Unknown  Unknown
+    abinit             000000000042C671  Unknown               Unknown  Unknown
+    abinit             000000000042C30E  Unknown               Unknown  Unknown
+    libc-2.17.so       00002AAAB5DD8505  __libc_start_main     Unknown  Unknown
+    abinit             000000000042C229  Unknown               Unknown  Unknown
+
+
+  and kill the scheduler else the code gets stuck here (issue reported on lemaitre3)
+
+
 ## Medium priority
 
 * Add support for PSML/UPF format

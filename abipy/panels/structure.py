@@ -103,10 +103,18 @@ class StructurePanel(AbipyParameterized):
 
         import panel as pn
 
-        #js_files = {'ngl': 'https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js'}
-        #pn.extension(comms='ipywidgets', js_files=js_files)
-        #view = self.structure.get_ngl_view()
-        #return pn.Pane(view)
+        #view = self.structure.get_jsmol_view()
+        #from ipywidgets_bokeh import IPyWidget
+        #view = IPyWidget(widget=view) #, width=800, height=300)
+        #from IPython.display import display
+        #display(view)
+        #return pn.Row(display(view))
+        #return pn.panel(view)
+
+        js_files = {'ngl': 'https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js'}
+        pn.extension(comms='ipywidgets', js_files=js_files)
+        view = self.structure.get_ngl_view()
+        return pn.panel(view)
 
         #pn.config.js_files["ngl"]="https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js"
         #pn.extension()
@@ -148,13 +156,6 @@ class StructurePanel(AbipyParameterized):
         #import nglview as nv
         #view = nv.demo(gui=False)
 
-        #view = self.structure.get_jsmol_view()
-        from ipywidgets_bokeh import IPyWidget
-        view = IPyWidget(widget=view) #, width=800, height=300)
-        from IPython.display import display
-        display(view)
-        return pn.Row(display(view))
-        #return pn.Row(view)
 
         #from bokeh.models import ColumnDataSource
         #from bokeh.io import show, curdoc
