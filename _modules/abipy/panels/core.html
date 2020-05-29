@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>abipy.panels.core &#8212; abipy 0.8.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../graphical_interface.html">Graphical interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <h1>Source code for abipy.panels.core</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;&quot;Base classes and mixins for AbiPy panels.&quot;&quot;&quot;</span>
+
+<span class="c1">#import abc</span>
+<span class="kn">import</span> <span class="nn">param</span>
+<span class="kn">import</span> <span class="nn">panel</span> <span class="k">as</span> <span class="nn">pn</span>
+<span class="kn">import</span> <span class="nn">panel.widgets</span> <span class="k">as</span> <span class="nn">pnw</span>
+<span class="kn">import</span> <span class="nn">bokeh.models.widgets</span> <span class="k">as</span> <span class="nn">bkw</span>
+
+<span class="kn">from</span> <span class="nn">monty.functools</span> <span class="kn">import</span> <span class="n">lazy_property</span>
+
+
+<div class="viewcode-block" id="gen_id"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.gen_id">[docs]</a><span class="k">def</span> <span class="nf">gen_id</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">pre</span><span class="o">=</span><span class="s2">&quot;uuid-&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate ``n`` universally unique identifiers prepended with ``pre`` string.</span>
+<span class="sd">    Return string if n == 1 or list of strings if n &gt; 1</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># The HTML4 spec says:</span>
+    <span class="c1"># ID and NAME tokens must begin with a letter ([A-Za-z]) and may be followed by any number of letters,</span>
+    <span class="c1"># digits ([0-9]), hyphens (&quot;-&quot;), underscores (&quot;_&quot;), colons (&quot;:&quot;), and periods (&quot;.&quot;).</span>
+    <span class="kn">import</span> <span class="nn">uuid</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pre</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>
+    <span class="k">elif</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">pre</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;n must be &gt; 0 but got </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="sizing_mode_select"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.sizing_mode_select">[docs]</a><span class="k">def</span> <span class="nf">sizing_mode_select</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;sizing_mode&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;scale_both&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Widget to select the value of sizing_mode. See https://panel.holoviz.org/user_guide/Customization.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">widgets</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;fixed&quot;</span><span class="p">,</span>
+                 <span class="s2">&quot;stretch_width&quot;</span><span class="p">,</span> <span class="s2">&quot;stretch_height&quot;</span><span class="p">,</span> <span class="s2">&quot;stretch_both&quot;</span><span class="p">,</span>
+                 <span class="s2">&quot;scale_height&quot;</span><span class="p">,</span> <span class="s2">&quot;scale_width&quot;</span><span class="p">,</span> <span class="s2">&quot;scale_both&quot;</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="AbipyParameterized"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.AbipyParameterized">[docs]</a><span class="k">class</span> <span class="nc">AbipyParameterized</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">Parameterized</span><span class="p">):</span>
+
+    <span class="n">verbose</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">Integer</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Verbosity Level&quot;</span><span class="p">)</span>
+    <span class="n">mpi_procs</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">Integer</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Number of MPI processes used when runnin Fortran code&quot;</span><span class="p">)</span>
+    <span class="c1">#fontsize =</span>
+
+    <span class="c1">#def get_global_widgets(self):</span>
+    <span class="c1">#    return pn.Column(self.verbose, self.mpi_procs)</span>
+
+<div class="viewcode-block" id="AbipyParameterized.fig_kwargs"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.AbipyParameterized.fig_kwargs">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">fig_kwargs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Default arguments passed to AbiPy plot methods.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fig_close</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_mp</span><span class="p">(</span><span class="n">fig</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">pane</span><span class="o">.</span><span class="n">Matplotlib</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;scale_width&quot;</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_df</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">disabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;scale_width&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">widgets</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">disabled</span><span class="o">=</span><span class="n">disabled</span><span class="p">,</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="n">sizing_mode</span><span class="p">)</span></div>
+
+
+<span class="c1">#class PanelWithNcFile(AbipyParameterized): #, metaclass=abc.ABCMeta):</span>
+<span class="c1">#    &quot;&quot;&quot;</span>
+<span class="c1">#    This frame allows the user to inspect the dimensions and the variables reported in  a netcdf file.</span>
+<span class="c1">#    Tab showing information on the netcdf file.</span>
+<span class="c1">#    &quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="PanelWithElectronBands"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.PanelWithElectronBands">[docs]</a><span class="k">class</span> <span class="nc">PanelWithElectronBands</span><span class="p">(</span><span class="n">AbipyParameterized</span><span class="p">):</span> <span class="c1">#, metaclass=abc.ABCMeta):</span>
+
+    <span class="c1"># Bands plot</span>
+    <span class="n">with_gaps</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Checkbox</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Show gaps&#39;</span><span class="p">)</span>
+    <span class="c1">#ebands_ylims</span>
+    <span class="c1">#ebands_e0</span>
+    <span class="c1"># e0: Option used to define the zero of energy in the band structure plot. Possible values:</span>
+    <span class="c1">#     - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).</span>
+    <span class="c1">#     -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV</span>
+    <span class="c1">#     -  None: Don&#39;t shift energies, equivalent to e0=0</span>
+    <span class="n">set_fermie_to_vbm</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Checkbox</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Set Fermie to VBM&quot;</span><span class="p">)</span>
+
+    <span class="n">plot_ebands_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Plot e-bands&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+
+    <span class="c1"># DOS plot.</span>
+    <span class="n">edos_method</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;e-DOS method&quot;</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;tetra&quot;</span><span class="p">])</span>
+    <span class="n">edos_step</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Spinner</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;e-DOS step (eV)&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">edos_width</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Spinner</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;e-DOS Gaussian broadening (eV)&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">plot_edos_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Plot e-DOS&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Fermi surface plot.</span>
+    <span class="n">fs_viewer</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;FS viewer&quot;</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;matplotlib&quot;</span><span class="p">,</span> <span class="s2">&quot;xcrysden&quot;</span><span class="p">])</span>
+    <span class="n">plot_fermi_surface_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Plot Fermi surface&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+
+    <span class="c1">#@abc.abstractproperty</span>
+    <span class="c1">#def ebands(self):</span>
+    <span class="c1">#    &quot;&quot;&quot;Returns the |ElectronBands| object.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="PanelWithElectronBands.get_plot_ebands_widgets"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.PanelWithElectronBands.get_plot_ebands_widgets">[docs]</a>    <span class="k">def</span> <span class="nf">get_plot_ebands_widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Widgets to plot ebands.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">with_gaps</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_fermie_to_vbm</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_ebands_btn</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PanelWithElectronBands.on_plot_ebands_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.PanelWithElectronBands.on_plot_ebands_btn">[docs]</a>    <span class="nd">@param</span><span class="o">.</span><span class="n">depends</span><span class="p">(</span><span class="s1">&#39;plot_ebands_btn.clicks&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">on_plot_ebands_btn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Button triggering ebands plot.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_ebands_btn</span><span class="o">.</span><span class="n">clicks</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_fermie_to_vbm</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">set_fermie_to_vbm</span><span class="p">()</span>
+
+        <span class="n">fig1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">with_gaps</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">with_gaps</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">max_phfreq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">fig_kwargs</span><span class="p">)</span>
+
+        <span class="n">fig2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">kpoints</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">fig_kwargs</span><span class="p">)</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mp</span><span class="p">(</span><span class="n">fig1</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mp</span><span class="p">(</span><span class="n">fig2</span><span class="p">))</span> <span class="c1">#, sizing_mode=&#39;scale_width&#39;)</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">bkw</span><span class="o">.</span><span class="n">PreText</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;scale_width&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PanelWithElectronBands.get_plot_edos_widgets"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.PanelWithElectronBands.get_plot_edos_widgets">[docs]</a>    <span class="k">def</span> <span class="nf">get_plot_edos_widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Widgets to compute e-DOS.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edos_method</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edos_step</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edos_width</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_edos_btn</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PanelWithElectronBands.on_plot_edos_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.PanelWithElectronBands.on_plot_edos_btn">[docs]</a>    <span class="nd">@param</span><span class="o">.</span><span class="n">depends</span><span class="p">(</span><span class="s1">&#39;plot_edos_btn.clicks&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">on_plot_edos_btn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Button triggering edos plot.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_edos_btn</span><span class="o">.</span><span class="n">clicks</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span>
+        <span class="n">edos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">get_edos</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">edos_method</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">edos_step</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">edos_width</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">edos</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">fig_kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mp</span><span class="p">(</span><span class="n">fig</span><span class="p">),</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;scale_width&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PanelWithElectronBands.get_plot_fermi_surface_widgets"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.PanelWithElectronBands.get_plot_fermi_surface_widgets">[docs]</a>    <span class="k">def</span> <span class="nf">get_plot_fermi_surface_widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Widgets to compute e-DOS.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fs_viewer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_fermi_surface_btn</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PanelWithElectronBands.on_plot_fermi_surface_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.PanelWithElectronBands.on_plot_fermi_surface_btn">[docs]</a>    <span class="nd">@param</span><span class="o">.</span><span class="n">depends</span><span class="p">(</span><span class="s1">&#39;plot_fermi_surface_btn.clicks&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">on_plot_fermi_surface_btn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_fermi_surface_btn</span><span class="o">.</span><span class="n">clicks</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span>
+
+        <span class="c1"># Cache eb3d</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_eb3d&quot;</span><span class="p">):</span>
+            <span class="n">eb3d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eb3d</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Build ebands in full BZ.</span>
+            <span class="n">eb3d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eb3d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">get_ebands3d</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fs_viewer</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s2">&quot;matplotlib&quot;</span><span class="p">:</span>
+            <span class="c1"># Use matplotlib to plot isosurfaces corresponding to the Fermi level (default)</span>
+            <span class="c1"># Warning: requires skimage package, rendering could be slow.</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">eb3d</span><span class="o">.</span><span class="n">plot_isosurfaces</span><span class="p">(</span><span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">fig_kwargs</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mp</span><span class="p">(</span><span class="n">fig</span><span class="p">),</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;scale_width&#39;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid choice: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">fs_viewer</span><span class="o">.</span><span class="n">value</span><span class="p">)</span></div></div>
+
+        <span class="c1">#elif self.fs_viewer.value == &quot;xcrysden&quot;:</span>
+            <span class="c1"># Alternatively, it&#39;s possible to export the data in xcrysden format</span>
+            <span class="c1"># and then use `xcrysden --bxsf mgb2.bxsf`</span>
+            <span class="c1">#eb3d.to_bxsf(&quot;mgb2.bxsf&quot;)</span>
+            <span class="c1"># If you have mayavi installed, try:</span>
+            <span class="c1">#eb3d.mvplot_isosurfaces()</span>
+
+
+<div class="viewcode-block" id="BaseRobotPanel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.BaseRobotPanel">[docs]</a><span class="k">class</span> <span class="nc">BaseRobotPanel</span><span class="p">(</span><span class="n">AbipyParameterized</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;pass&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="PanelWithEbandsRobot"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.PanelWithEbandsRobot">[docs]</a><span class="k">class</span> <span class="nc">PanelWithEbandsRobot</span><span class="p">(</span><span class="n">BaseRobotPanel</span><span class="p">):</span> <span class="c1">#, metaclass=abc.ABCMeta):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mixin class for panels with a robot that owns a list of of |ElectronBands|</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Widgets to plot ebands.</span>
+    <span class="n">ebands_plotter_mode</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Plot Mode&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;gridplot&quot;</span><span class="p">,</span>
+        <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;gridplot&quot;</span><span class="p">,</span> <span class="s2">&quot;combiplot&quot;</span><span class="p">,</span> <span class="s2">&quot;boxplot&quot;</span><span class="p">,</span> <span class="s2">&quot;combiboxplot&quot;</span><span class="p">])</span> <span class="c1"># &quot;animate&quot;,</span>
+    <span class="n">ebands_plotter_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Plot&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+    <span class="n">ebands_df_checkbox</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Checkbox</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;With Ebands DataFrame&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># Widgets to plot edos.</span>
+    <span class="n">edos_plotter_mode</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Plot Mode&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;gridplot&quot;</span><span class="p">,</span>
+        <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;gridplot&quot;</span><span class="p">,</span> <span class="s2">&quot;combiplot&quot;</span><span class="p">])</span>
+    <span class="n">edos_plotter_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Plot&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="PanelWithEbandsRobot.get_ebands_plotter_widgets"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.PanelWithEbandsRobot.get_ebands_plotter_widgets">[docs]</a>    <span class="k">def</span> <span class="nf">get_ebands_plotter_widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ebands_plotter_mode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands_df_checkbox</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands_plotter_btn</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PanelWithEbandsRobot.on_ebands_plotter_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.PanelWithEbandsRobot.on_ebands_plotter_btn">[docs]</a>    <span class="nd">@param</span><span class="o">.</span><span class="n">depends</span><span class="p">(</span><span class="s2">&quot;ebands_plotter_btn.clicks&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">on_ebands_plotter_btn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands_plotter_btn</span><span class="o">.</span><span class="n">clicks</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span>
+        <span class="n">ebands_plotter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">get_ebands_plotter</span><span class="p">()</span>
+        <span class="n">plot_mode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands_plotter_mode</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">plotfunc</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ebands_plotter</span><span class="p">,</span> <span class="n">plot_mode</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">plotfunc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to handle plot_mode: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">plot_mode</span><span class="p">)</span>
+
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plotfunc</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">fig_kwargs</span><span class="p">)</span>
+        <span class="n">col</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mp</span><span class="p">(</span><span class="n">fig</span><span class="p">),</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;scale_width&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands_df_checkbox</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">ebands_plotter</span><span class="o">.</span><span class="n">get_ebands_frame</span><span class="p">(</span><span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">col</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_df</span><span class="p">(</span><span class="n">df</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;scale_width&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PanelWithEbandsRobot.get_edos_plotter_widgets"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.PanelWithEbandsRobot.get_edos_plotter_widgets">[docs]</a>    <span class="k">def</span> <span class="nf">get_edos_plotter_widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edos_plotter_mode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edos_plotter_btn</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PanelWithEbandsRobot.on_edos_plotter_btn"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.core.PanelWithEbandsRobot.on_edos_plotter_btn">[docs]</a>    <span class="nd">@param</span><span class="o">.</span><span class="n">depends</span><span class="p">(</span><span class="s2">&quot;edos_plotter_btn.clicks&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">on_edos_plotter_btn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">edos_plotter_btn</span><span class="o">.</span><span class="n">clicks</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span>
+        <span class="n">edos_plotter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">get_edos_plotter</span><span class="p">()</span>
+        <span class="n">plot_mode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edos_plotter_mode</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">plotfunc</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">edos_plotter</span><span class="p">,</span> <span class="n">plot_mode</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">plotfunc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to handle plot_mode: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">plot_mode</span><span class="p">)</span>
+
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plotfunc</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">fig_kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mp</span><span class="p">(</span><span class="n">fig</span><span class="p">)),</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;scale_width&#39;</span><span class="p">)</span></div></div>
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
+      Last updated on May 29, 2020.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

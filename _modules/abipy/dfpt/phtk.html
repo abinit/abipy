@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>abipy.dfpt.phtk &#8212; abipy 0.7.0 documentation</title>
+    <title>abipy.dfpt.phtk &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -39,7 +42,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -62,6 +65,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -131,10 +135,10 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">abipy.core.abinit_units</span> <span class="k">as</span> <span class="nn">abu</span>
 
-<span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
-<span class="kn">from</span> <span class="nn">pymatgen.core.periodic_table</span> <span class="k">import</span> <span class="n">Element</span>
-<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">Has_Structure</span>
-<span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">ETSF_Reader</span>
+<span class="kn">from</span> <span class="nn">monty.functools</span> <span class="kn">import</span> <span class="n">lazy_property</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.periodic_table</span> <span class="kn">import</span> <span class="n">Element</span>
+<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="kn">import</span> <span class="n">Has_Structure</span>
+<span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="kn">import</span> <span class="n">ETSF_Reader</span>
 
 
 <span class="c1"># TODO: amu should become mandatory.</span>
@@ -212,7 +216,7 @@
 <span class="sd">    Read from anaddb.nc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">directions</span><span class="p">,</span> <span class="n">phfreqs</span><span class="p">,</span> <span class="n">phdispl_cart</span><span class="p">,</span> <span class="n">amu</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">directions</span><span class="p">,</span> <span class="n">phfreqs</span><span class="p">,</span> <span class="n">phdispl_cart</span><span class="p">,</span> <span class="n">amu</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            structure: |Structure| object.</span>
@@ -334,7 +338,7 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">filetype</span> <span class="o">=</span> <span class="s2">&quot;rest&quot;</span>
 
-    <span class="kn">from</span> <span class="nn">http.server</span> <span class="k">import</span> <span class="n">HTTPServer</span><span class="p">,</span> <span class="n">SimpleHTTPRequestHandler</span>
+    <span class="kn">from</span> <span class="nn">http.server</span> <span class="kn">import</span> <span class="n">HTTPServer</span><span class="p">,</span> <span class="n">SimpleHTTPRequestHandler</span>
 
     <span class="c1"># Add CORS header to the website</span>
     <span class="k">class</span> <span class="nc">CORSRequestHandler</span><span class="p">(</span><span class="n">SimpleHTTPRequestHandler</span><span class="p">):</span>
@@ -363,16 +367,16 @@
 
     <span class="c1"># Create threads python</span>
     <span class="n">server</span><span class="o">.</span><span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;http://</span><span class="si">{}</span><span class="s1">:</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">server</span><span class="o">.</span><span class="n">server_port</span><span class="p">)</span>
-    <span class="kn">from</span> <span class="nn">threading</span> <span class="k">import</span> <span class="n">Thread</span>
+    <span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span>
     <span class="n">t</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">server</span><span class="o">.</span><span class="n">serve_forever</span><span class="p">)</span>
     <span class="n">t</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">t</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 
     <span class="c1"># Open website with the file</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="k">import</span> <span class="n">quote</span>
+        <span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">quote</span>
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">urllib</span> <span class="k">import</span> <span class="n">quote</span>
+        <span class="kn">from</span> <span class="nn">urllib</span> <span class="kn">import</span> <span class="n">quote</span>
 
     <span class="n">url_filename</span> <span class="o">=</span> <span class="s1">&#39;http://</span><span class="si">{}</span><span class="s1">:</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">server</span><span class="o">.</span><span class="n">server_port</span><span class="p">,</span> <span class="n">quote</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
     <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">/phonon.html?</span><span class="si">%s</span><span class="s1">=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">website</span><span class="p">,</span> <span class="n">filetype</span><span class="p">,</span> <span class="n">url_filename</span><span class="p">)</span>
@@ -405,7 +409,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on May 29, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

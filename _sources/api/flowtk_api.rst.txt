@@ -53,6 +53,14 @@ flowtk Package
    :show-inheritance:
 
 
+:mod:`effmass_works` Module
+---------------------------
+
+.. automodule:: abipy.flowtk.effmass_works
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`eph_flows` Module
 -----------------------
 

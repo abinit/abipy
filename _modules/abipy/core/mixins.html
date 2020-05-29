@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>abipy.core.mixins &#8212; abipy 0.7.0 documentation</title>
+    <title>abipy.core.mixins &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -39,7 +42,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -62,6 +65,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -131,12 +135,12 @@
 <span class="kn">import</span> <span class="nn">pickle</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">time</span> <span class="k">import</span> <span class="n">ctime</span>
-<span class="kn">from</span> <span class="nn">monty.os.path</span> <span class="k">import</span> <span class="n">which</span>
-<span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
-<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">list_strings</span>
-<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">dict2namedtuple</span>
-<span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">ctime</span>
+<span class="kn">from</span> <span class="nn">monty.os.path</span> <span class="kn">import</span> <span class="n">which</span>
+<span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="kn">import</span> <span class="n">cprint</span>
+<span class="kn">from</span> <span class="nn">monty.string</span> <span class="kn">import</span> <span class="n">list_strings</span>
+<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="kn">import</span> <span class="n">dict2namedtuple</span>
+<span class="kn">from</span> <span class="nn">monty.functools</span> <span class="kn">import</span> <span class="n">lazy_property</span>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -154,7 +158,7 @@
 <span class="sd">    Abstract base class defining the methods that must be implemented</span>
 <span class="sd">    by the concrete classes representing the different files produced by ABINIT.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
 
         <span class="c1"># Save stat values</span>
@@ -163,14 +167,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_last_mtime</span> <span class="o">=</span> <span class="n">stat</span><span class="o">.</span><span class="n">st_mtime</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_last_ctime</span> <span class="o">=</span> <span class="n">stat</span><span class="o">.</span><span class="n">st_ctime</span>
 
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;&lt;</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">relpath</span><span class="p">)</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize the object from a string.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">filepath</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span> <span class="k">return</span> <span class="n">filepath</span>
 
         <span class="c1">#print(&quot;Perhaps the subclass&quot;, cls, &quot;must redefine the classmethod from_file.&quot;)</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
@@ -201,8 +204,7 @@
 
     <span class="k">def</span> <span class="nf">filestat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">as_string</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Dictionary with file metadata</span>
-<span class="sd">        if ``as_string`` is True, a string is returned.</span>
+<span class="sd">        Dictionary with file metadata, if ``as_string`` is True, a string is returned.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">d</span> <span class="o">=</span> <span class="n">get_filestat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">as_string</span><span class="p">:</span> <span class="k">return</span> <span class="n">d</span>
@@ -210,23 +212,14 @@
 
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
     <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Close file.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Close the file.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span>
 
-    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Activated at the end of the with statement. It automatically closes the file.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-
-    <span class="c1">#def __del__(self):</span>
-    <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    Called when the instance is about to be destroyed.</span>
-    <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    try:</span>
-    <span class="c1">#        self.close()</span>
-    <span class="c1">#    finally:</span>
-    <span class="c1">#        super().__close__(self)</span>
 
 
 <span class="k">class</span> <span class="nc">TextFile</span><span class="p">(</span><span class="n">BaseFile</span><span class="p">):</span>
@@ -235,12 +228,12 @@
     <span class="c1">#def from_string(cls, s):</span>
     <span class="c1">#    return cls.from_file(filepath)</span>
 
-    <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Open the file</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_file</span>
         <span class="k">return</span> <span class="bp">self</span>
 
-    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="p">)</span>
 
     <span class="nd">@lazy_property</span>
@@ -258,6 +251,7 @@
     <span class="k">def</span> <span class="nf">seek</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">whence</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Set the file&#39;s current position, like stdio&#39;s fseek().&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">offset</span><span class="p">,</span> <span class="n">whence</span><span class="p">)</span>
+
 
 
 <div class="viewcode-block" id="AbinitNcFile"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.AbinitNcFile">[docs]</a><span class="k">class</span> <span class="nc">AbinitNcFile</span><span class="p">(</span><span class="n">BaseFile</span><span class="p">):</span>
@@ -281,6 +275,11 @@
 <span class="sd">        :class:`OrderedDict` with the convergence parameters</span>
 <span class="sd">        Used to construct |pandas-DataFrames|.</span>
 <span class="sd">        &quot;&quot;&quot;</span></div>
+
+    <span class="c1">#def get_abinit_input(self):</span>
+    <span class="c1">#    input_string = self.rootgrp.get_varname_set(&quot;input_string&quot;)</span>
+    <span class="c1">#    from abipy.abio.inputs import AbinitInput</span>
+    <span class="c1">#    return AbinitInput(structure, pseudos, pseudo_dir=None, abi_kwargs=None)</span>
 
 
 <span class="k">class</span> <span class="nc">AbinitFortranFile</span><span class="p">(</span><span class="n">BaseFile</span><span class="p">):</span>
@@ -306,8 +305,8 @@
 
 <span class="sd">        |numpy-array| of shape [nx, ny, nz] with numerical values on the real-space mesh.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">abipy.iotools.cube</span> <span class="k">import</span> <span class="n">cube_read_structure_mesh_data</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">abipy.iotools.cube</span> <span class="kn">import</span> <span class="n">cube_read_structure_mesh_data</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">cube_read_structure_mesh_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span>
 
@@ -322,7 +321,7 @@
 
 
 <div class="viewcode-block" id="Has_Structure"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.Has_Structure">[docs]</a><span class="k">class</span> <span class="nc">Has_Structure</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Mixin class for :class:`AbinitNcFile` containing crystallographic data.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Mixin class for |AbinitNcFile| containing crystallographic data.&quot;&quot;&quot;</span>
 
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractproperty</span>
     <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -351,7 +350,7 @@
 
 <span class="sd">        See |Visualizer| for the list of applications and formats supported.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">abipy.iotools.visualizer</span> <span class="k">import</span> <span class="n">Visualizer</span>
+        <span class="kn">from</span> <span class="nn">abipy.iotools.visualizer</span> <span class="kn">import</span> <span class="n">Visualizer</span>
         <span class="n">visu</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="o">.</span><span class="n">from_name</span><span class="p">(</span><span class="n">appname</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="n">visu</span><span class="o">.</span><span class="n">supported_extensions</span><span class="p">():</span>
@@ -413,7 +412,7 @@
 
 
 <div class="viewcode-block" id="Has_ElectronBands"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.Has_ElectronBands">[docs]</a><span class="k">class</span> <span class="nc">Has_ElectronBands</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Mixin class for :class:`AbinitNcFile` containing electron data.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Mixin class for |AbinitNcFile| containing electron data.&quot;&quot;&quot;</span>
 
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractproperty</span>
     <span class="k">def</span> <span class="nf">ebands</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -500,14 +499,14 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Shows a predefined list of matplotlib figures for electron bands with minimal input from the user.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">MplExpose</span>
+        <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="kn">import</span> <span class="n">MplExpose</span>
         <span class="k">with</span> <span class="n">MplExpose</span><span class="p">(</span><span class="n">slide_mode</span><span class="o">=</span><span class="n">slide_mode</span><span class="p">,</span> <span class="n">slide_timeout</span><span class="o">=</span><span class="n">slide_mode</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">e</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">yield_ebands_figs</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">))</span></div></div>
 
 
 <div class="viewcode-block" id="Has_PhononBands"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.Has_PhononBands">[docs]</a><span class="k">class</span> <span class="nc">Has_PhononBands</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Mixin class for :class:`AbinitNcFile` containing phonon data.</span>
+<span class="sd">    Mixin class for |AbinitNcFile| containing phonon data.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractproperty</span>
@@ -543,7 +542,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Shows a predefined list of matplotlib figures for phonon bands with minimal input from the user.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">MplExpose</span>
+        <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="kn">import</span> <span class="n">MplExpose</span>
         <span class="k">with</span> <span class="n">MplExpose</span><span class="p">(</span><span class="n">slide_mode</span><span class="o">=</span><span class="n">slide_mode</span><span class="p">,</span> <span class="n">slide_timeout</span><span class="o">=</span><span class="n">slide_mode</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">e</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">yield_phbands_figs</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">))</span></div></div>
 
@@ -551,7 +550,7 @@
 <span class="k">class</span> <span class="nc">NcDumper</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Wrapper object for the ncdump tool.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">nc_args</span><span class="p">,</span> <span class="o">**</span><span class="n">nc_kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">nc_args</span><span class="p">,</span> <span class="o">**</span><span class="n">nc_kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            nc_args: Arguments passed to ncdump.</span>
@@ -566,7 +565,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncdump</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="s2">&quot;Cannot find ncdump tool in $PATH&quot;</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="kn">from</span> <span class="nn">subprocess</span> <span class="k">import</span> <span class="n">check_output</span>
+            <span class="kn">from</span> <span class="nn">subprocess</span> <span class="kn">import</span> <span class="n">check_output</span>
             <span class="k">return</span> <span class="n">check_output</span><span class="p">([</span><span class="s2">&quot;ncdump&quot;</span><span class="p">,</span> <span class="n">filepath</span><span class="p">])</span>
 
 
@@ -605,43 +604,116 @@
 <span class="sd">    Mixin class for objects that are able to generate jupyter_ notebooks.</span>
 <span class="sd">    Subclasses must provide a concrete implementation of `write_notebook`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="NotebookWriter.make_and_open_notebook"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.NotebookWriter.make_and_open_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">make_and_open_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+
+<div class="viewcode-block" id="NotebookWriter.make_and_open_notebook"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.NotebookWriter.make_and_open_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">make_and_open_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                               <span class="n">classic_notebook</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">no_browser</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generate an jupyter_ notebook and open it in the browser.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            nbpath: If nbpath is None, a temporay file is created.</span>
-<span class="sd">            foreground: By default, jupyter is executed in background and stdout, stderr are redirected</span>
+<span class="sd">            foreground: By default, jupyter is executed in background and stdout, stderr are redirected.</span>
 <span class="sd">            to devnull. Use foreground to run the process in foreground</span>
+<span class="sd">            classic_notebook: True to use the classic notebook instead of jupyter-lab (default)</span>
+<span class="sd">            no_browser: Start the jupyter server to serve the notebook but don&#39;t open the notebook in the browser.</span>
+<span class="sd">                        Use this option to connect remotely from localhost to the machine running the kernel</span>
 
-<span class="sd">        Return:</span>
-<span class="sd">            system exit code.</span>
+<span class="sd">        Return: system exit code.</span>
 
-<span class="sd">        Raise:</span>
-<span class="sd">            `RuntimeError` if jupyter_ is not in $PATH</span>
+<span class="sd">        Raise: `RuntimeError` if jupyter executable is not in $PATH</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">nbpath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">write_notebook</span><span class="p">(</span><span class="n">nbpath</span><span class="o">=</span><span class="n">nbpath</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">which</span><span class="p">(</span><span class="s2">&quot;jupyter&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Cannot find jupyter in $PATH. Install it with `conda install jupyter or `pip install jupyter`&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">classic_notebook</span><span class="p">:</span>
+            <span class="c1"># Use jupyter-lab.</span>
+            <span class="n">app_path</span> <span class="o">=</span> <span class="n">which</span><span class="p">(</span><span class="s2">&quot;jupyter-lab&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">app_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">Cannot find jupyter-lab application in $PATH. Install it with:</span>
 
-        <span class="c1"># Use jupyter-lab instead of classic notebook if possible.</span>
-        <span class="n">has_jupyterlab</span> <span class="o">=</span> <span class="n">which</span><span class="p">(</span><span class="s2">&quot;jupyter-lab&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-        <span class="c1">#has_jupyterlab = False</span>
-        <span class="n">appname</span> <span class="o">=</span> <span class="s2">&quot;jupyter-lab&quot;</span> <span class="k">if</span> <span class="n">has_jupyterlab</span> <span class="k">else</span> <span class="s2">&quot;jupyter notebook&quot;</span>
+<span class="s2">    conda install -c conda-forge jupyterlab</span>
 
-        <span class="k">if</span> <span class="n">foreground</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">appname</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">))</span>
+<span class="s2">or:</span>
+
+<span class="s2">    pip install jupyterlab</span>
+
+<span class="s2">See also https://jupyterlab.readthedocs.io/</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">fd</span><span class="p">,</span> <span class="n">tmpname</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">tmpname</span><span class="p">)</span>
-            <span class="n">cmd</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">appname</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span>
+            <span class="c1"># Use classic notebook</span>
+            <span class="n">app_path</span> <span class="o">=</span> <span class="n">which</span><span class="p">(</span><span class="s2">&quot;jupyter&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">app_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">Cannot find jupyter application in $PATH. Install it with:</span>
+
+<span class="s2">    conda install -c conda-forge jupyter</span>
+
+<span class="s2">or:</span>
+
+<span class="s2">    pip install jupyterlab</span>
+
+<span class="s2">See also https://jupyter.readthedocs.io/en/latest/install.html</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+            <span class="n">app_path</span> <span class="o">=</span> <span class="n">app_path</span>  <span class="o">+</span> <span class="s2">&quot; notebook &quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">no_browser</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="n">foreground</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">app_path</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">fd</span><span class="p">,</span> <span class="n">tmpname</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">tmpname</span><span class="p">)</span>
+                <span class="n">cmd</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">app_path</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Executing:&quot;</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">stdout and stderr redirected to </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">tmpname</span><span class="p">)</span>
+                <span class="kn">import</span> <span class="nn">subprocess</span>
+                <span class="n">process</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="n">cmd</span><span class="o">.</span><span class="n">split</span><span class="p">(),</span> <span class="n">shell</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">fd</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">fd</span><span class="p">)</span>
+                <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;pid: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">pid</span><span class="p">),</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="mi">0</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Based on https://github.com/arose/nglview/blob/master/nglview/scripts/nglview.py</span>
+            <span class="n">notebook_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">nbpath</span><span class="p">)</span>
+            <span class="n">dirname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">nbpath</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;nbpath:&quot;</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span>
+
+            <span class="kn">import</span> <span class="nn">socket</span>
+            <span class="k">def</span> <span class="nf">find_free_port</span><span class="p">():</span>
+                <span class="sd">&quot;&quot;&quot;https://stackoverflow.com/questions/1365265/on-localhost-how-do-i-pick-a-free-port-number&quot;&quot;&quot;</span>
+                <span class="kn">from</span> <span class="nn">contextlib</span> <span class="kn">import</span> <span class="n">closing</span>
+                <span class="k">with</span> <span class="n">closing</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">))</span> <span class="k">as</span> <span class="n">s</span><span class="p">:</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">bind</span><span class="p">((</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">setsockopt</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">SOL_SOCKET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SO_REUSEADDR</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">getsockname</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="n">username</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getlogin</span><span class="p">()</span>
+            <span class="n">hostname</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">gethostname</span><span class="p">()</span>
+            <span class="n">port</span> <span class="o">=</span> <span class="n">find_free_port</span><span class="p">()</span>
+
+            <span class="n">client_cmd</span> <span class="o">=</span> <span class="s2">&quot;ssh -NL localhost:</span><span class="si">{port}</span><span class="s2">:localhost:</span><span class="si">{port}</span><span class="s2"> </span><span class="si">{username}</span><span class="s2">@</span><span class="si">{hostname}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">username</span><span class="o">=</span><span class="n">username</span><span class="p">,</span> <span class="n">hostname</span><span class="o">=</span><span class="n">hostname</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">port</span><span class="p">)</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">Using port: </span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s2"></span>
+
+<span class="se">\033</span><span class="s2">[32m In your local machine, run: </span><span class="se">\033</span><span class="s2">[0m</span>
+
+<span class="s2">                </span><span class="si">{</span><span class="n">client_cmd</span><span class="si">}</span><span class="s2"></span>
+
+<span class="se">\033</span><span class="s2">[32m NOTE: you might want to replace </span><span class="si">{</span><span class="n">hostname</span><span class="si">}</span><span class="s2"> by full hostname with domain name </span><span class="se">\033</span><span class="s2">[0m</span>
+<span class="se">\033</span><span class="s2">[32m Then open your web browser, copy and paste the URL: </span><span class="se">\033</span><span class="s2">[0m</span>
+
+<span class="s2">http://localhost:</span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s2">/notebooks/</span><span class="si">{</span><span class="n">notebook_name</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">classic_notebook</span><span class="p">:</span>
+              <span class="n">cmd</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">app_path</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">notebook_name</span><span class="si">}</span><span class="s1"> --no-browser --port </span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s1"> --notebook-dir </span><span class="si">{</span><span class="n">dirname</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+              <span class="n">cmd</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">app_path</span><span class="si">}</span><span class="s1"> notebook </span><span class="si">{</span><span class="n">notebook_name</span><span class="si">}</span><span class="s1"> --no-browser --port </span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s1"> --notebook-dir </span><span class="si">{</span><span class="n">dirname</span><span class="si">}</span><span class="s1">&#39;</span>
+
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Executing:&quot;</span><span class="p">,</span> <span class="n">cmd</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;stdout and stderr redirected to </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">tmpname</span><span class="p">)</span>
-            <span class="kn">import</span> <span class="nn">subprocess</span>
-            <span class="n">process</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="n">cmd</span><span class="o">.</span><span class="n">split</span><span class="p">(),</span> <span class="n">shell</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">fd</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">fd</span><span class="p">)</span>
-            <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;pid: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">pid</span><span class="p">),</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="mi">0</span></div>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;NOTE: make sure to open `</span><span class="si">{}</span><span class="s1">` in your local machine</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">notebook_name</span><span class="p">))</span>
+
+            <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="NotebookWriter.get_nbformat_nbv"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.NotebookWriter.get_nbformat_nbv">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_nbformat_nbv</span><span class="p">():</span>
@@ -663,8 +735,6 @@
 
         <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
-<span class="s2">from __future__ import print_function, division, unicode_literals, absolute_import</span>
-
 <span class="s2">import sys, os</span>
 <span class="s2">import numpy as np</span>
 
@@ -688,10 +758,7 @@
 <span class="s2"># Tell AbiPy we are inside a notebook and use seaborn settings for plots.</span>
 <span class="s2"># See https://seaborn.pydata.org/generated/seaborn.set.html#seaborn.set</span>
 <span class="s2">abilab.enable_notebook(with_seaborn=True)</span>
-
-<span class="s2"># AbiPy widgets for pandas and seaborn plot APIs</span>
-<span class="s2">#import abipy.display.seabornw import snw</span>
-<span class="s2">#import abipy.display.pandasw import pdw&quot;&quot;&quot;</span><span class="p">)</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
         <span class="p">])</span>
 
         <span class="k">return</span> <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span></div>
@@ -750,8 +817,7 @@
 <span class="sd">        Save the status of the object in pickle format.</span>
 <span class="sd">        If filepath is None, a temporary file is created.</span>
 
-<span class="sd">        Return:</span>
-<span class="sd">            name of the pickle file.</span>
+<span class="sd">        Return: The name of the pickle file.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">filepath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">_</span><span class="p">,</span> <span class="n">filepath</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;.pickle&#39;</span><span class="p">)</span>
@@ -760,7 +826,6 @@
             <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fh</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">filepath</span></div>
 
-    <span class="c1"># TODO: Activate this</span>
 <div class="viewcode-block" id="NotebookWriter.yield_figs"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.NotebookWriter.yield_figs">[docs]</a>    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
     <span class="k">def</span> <span class="nf">yield_figs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -772,22 +837,18 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Shows a predefined list of matplotlib figures with minimal input from the user.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">MplExpose</span>
+        <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="kn">import</span> <span class="n">MplExpose</span>
         <span class="k">with</span> <span class="n">MplExpose</span><span class="p">(</span><span class="n">slide_mode</span><span class="o">=</span><span class="n">slide_mode</span><span class="p">,</span> <span class="n">slide_timeout</span><span class="o">=</span><span class="n">slide_mode</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">e</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">yield_figs</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">))</span></div></div>
 
 
 <div class="viewcode-block" id="Has_Header"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.Has_Header">[docs]</a><span class="k">class</span> <span class="nc">Has_Header</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Mixin class for netcdf_ files containing the Abinit header.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Mixin class for netcdf files containing the Abinit header.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="Has_Header.hdr"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.Has_Header.hdr">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">hdr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;|AttrDict| with the Abinit header e.g. hdr.ecut.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_abinit_hdr</span><span class="p">()</span></div></div>
-
-    <span class="c1">#def get_hdr_params(self):</span>
-    <span class="c1">#    &quot;&quot;&quot;:class:`OrderedDict` with the convergence parameters.&quot;&quot;&quot;</span>
-    <span class="c1">#    return collections.OrderedDict([</span>
 
     <span class="c1">#def compare_hdr(self, other_hdr):</span>
 </pre></div>
@@ -804,7 +865,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on May 29, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

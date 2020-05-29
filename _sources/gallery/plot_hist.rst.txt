@@ -46,6 +46,8 @@ structure relaxation run using the HIST.nc file.
       1  Si     0.25  0.25   0.25  [-0. -0. -0.] eV ang^-1
     /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
       plt.show()
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+      plt.show()
 
 
 
@@ -78,7 +80,7 @@ structure relaxation run using the HIST.nc file.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.602 seconds)
+   **Total running time of the script:** ( 0 minutes  0.741 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_hist.py:

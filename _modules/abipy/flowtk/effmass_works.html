@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>abipy.flowtk.effmass_works &#8212; abipy 0.8.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../graphical_interface.html">Graphical interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <h1>Source code for abipy.flowtk.effmass_works</h1><div class="highlight"><pre>
+<span></span><span class="c1"># coding: utf-8</span>
+<span class="sd">&quot;&quot;&quot;Work subclasses related to effective mass calculations.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">monty.json</span> <span class="kn">import</span> <span class="n">jsanitize</span>
+<span class="kn">from</span> <span class="nn">abipy.core.kpoints</span> <span class="kn">import</span> <span class="n">build_segments</span>
+<span class="kn">from</span> <span class="nn">.nodes</span> <span class="kn">import</span> <span class="n">Node</span>
+<span class="kn">from</span> <span class="nn">.works</span> <span class="kn">import</span> <span class="n">Work</span><span class="p">,</span> <span class="n">PhononWork</span>
+<span class="kn">from</span> <span class="nn">.flows</span> <span class="kn">import</span> <span class="n">Flow</span>
+
+
+<span class="k">def</span> <span class="nf">_get_red_dirs_from_opts</span><span class="p">(</span><span class="n">red_dirs</span><span class="p">,</span> <span class="n">cart_dirs</span><span class="p">,</span> <span class="n">reciprocal_lattice</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper function to compute the list of directions from user input. Return numpy array.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">all_red_dirs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">red_dirs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">all_red_dirs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">red_dirs</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span>
+
+    <span class="k">if</span> <span class="n">cart_dirs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">frac_coords</span> <span class="o">=</span> <span class="n">reciprocal_lattice</span><span class="o">.</span><span class="n">get_fractional_coords</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">cart_dirs</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span>
+        <span class="n">all_red_dirs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">frac_coords</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">all_red_dirs</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="EffMassLineWork"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.effmass_works.EffMassLineWork">[docs]</a><span class="k">class</span> <span class="nc">EffMassLineWork</span><span class="p">(</span><span class="n">Work</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Work for the computation of effective masses via finite differences along a k-line.</span>
+<span class="sd">    Useful for cases such as NC+SOC where DFPT is not implemented or if one is interested</span>
+<span class="sd">    in non-parabolic behaviour.</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: EffMassLineWork</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="EffMassLineWork.from_scf_input"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.effmass_works.EffMassLineWork.from_scf_input">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_scf_input</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">scf_input</span><span class="p">,</span> <span class="n">k0_list</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">npts</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
+                       <span class="n">red_dirs</span><span class="o">=</span><span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span> <span class="n">cart_dirs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="n">den_node</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build the Work from an |AbinitInput| representing a GS-SCF calculation.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            scf_input: |AbinitInput| for GS-SCF used as template to generate the other inputs.</span>
+<span class="sd">            k0_list: List with the reduced coordinates of the k-points where effective masses are wanted.</span>
+<span class="sd">            step: Step for finite difference in Angstrom^-1</span>
+<span class="sd">            npts: Number of points sampled around each k-point for each direction.</span>
+<span class="sd">            red_dirs: List of reduced directions used to generate the segments passing through the k-point</span>
+<span class="sd">            cart_dirs: List of Cartesian directions used to generate the segments passing through the k-point</span>
+<span class="sd">            den_node: Path to the DEN file or Task object producing a DEN file.</span>
+<span class="sd">                Can be used to avoid the initial SCF calculation if a DEN file is already available.</span>
+<span class="sd">                If None, a GS calculation is performed.</span>
+<span class="sd">            manager: |TaskManager| instance. Use default if None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">npts</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Number of points: `</span><span class="si">%s</span><span class="s2">` should be &gt;= 3 for finite differences&quot;</span> <span class="o">%</span> <span class="n">npts</span><span class="p">)</span>
+
+        <span class="c1"># Define list of directions from user input.</span>
+        <span class="n">reciprocal_lattice</span> <span class="o">=</span> <span class="n">scf_input</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">reciprocal_lattice</span>
+        <span class="n">all_red_dirs</span> <span class="o">=</span> <span class="n">_get_red_dirs_from_opts</span><span class="p">(</span><span class="n">red_dirs</span><span class="p">,</span> <span class="n">cart_dirs</span><span class="p">,</span> <span class="n">reciprocal_lattice</span><span class="p">)</span>
+        <span class="n">kpts</span> <span class="o">=</span> <span class="n">build_segments</span><span class="p">(</span><span class="n">k0_list</span><span class="p">,</span> <span class="n">npts</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">all_red_dirs</span><span class="p">,</span> <span class="n">reciprocal_lattice</span><span class="p">)</span>
+
+        <span class="c1"># Now build NSCF input with explicit list of k-points.</span>
+        <span class="n">nscf_input</span> <span class="o">=</span> <span class="n">scf_input</span><span class="o">.</span><span class="n">make_nscf_kptopt0_input</span><span class="p">(</span><span class="n">kpts</span><span class="p">)</span>
+
+        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
+
+        <span class="c1"># Need to perform SCF run if DEN file is not available.</span>
+        <span class="n">scf_task</span> <span class="o">=</span> <span class="n">new</span><span class="o">.</span><span class="n">register_scf_task</span><span class="p">(</span><span class="n">scf_input</span><span class="p">)</span> <span class="k">if</span> <span class="n">den_node</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">Node</span><span class="o">.</span><span class="n">as_node</span><span class="p">(</span><span class="n">den_node</span><span class="p">)</span>
+
+        <span class="n">new</span><span class="o">.</span><span class="n">register_nscf_task</span><span class="p">(</span><span class="n">nscf_input</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="p">{</span><span class="n">scf_task</span><span class="p">:</span> <span class="s2">&quot;DEN&quot;</span><span class="p">})</span>
+        <span class="k">return</span> <span class="n">new</span></div></div>
+
+
+<div class="viewcode-block" id="EffMassDFPTWork"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.effmass_works.EffMassDFPTWork">[docs]</a><span class="k">class</span> <span class="nc">EffMassDFPTWork</span><span class="p">(</span><span class="n">Work</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Work for the computation of effective masses with DFPT.</span>
+<span class="sd">    Requires explicit list of k-points and range of bands.</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: EffMassDFPTWork</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="EffMassDFPTWork.from_scf_input"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.effmass_works.EffMassDFPTWork.from_scf_input">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_scf_input</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">scf_input</span><span class="p">,</span> <span class="n">k0_list</span><span class="p">,</span> <span class="n">effmass_bands_f90</span><span class="p">,</span> <span class="n">den_node</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build the Work from an |AbinitInput| representing a GS-SCF calculation.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            scf_input: |AbinitInput| for GS-SCF used as template to generate the other inputs.</span>
+<span class="sd">            k0_list: List with the reduced coordinates of the k-points where effective masses are wanted.</span>
+<span class="sd">            effmass_bands_f90: (nkpt, 2) array with band range for effmas computation.</span>
+<span class="sd">                WARNING: Assumes Fortran convention with indices starting from 1.</span>
+<span class="sd">            den_node: Path to the DEN file or Task object producing a DEN file.</span>
+<span class="sd">                Can be used to avoid the initial SCF calculation if a DEN file is already available.</span>
+<span class="sd">                If None, a GS calculation is performed.</span>
+<span class="sd">            manager: |TaskManager| instance. Use default if None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">multi</span> <span class="o">=</span> <span class="n">scf_input</span><span class="o">.</span><span class="n">make_dfpt_effmass_input</span><span class="p">(</span><span class="n">k0_list</span><span class="p">,</span> <span class="n">effmass_bands_f90</span><span class="p">)</span>
+        <span class="n">nscf_input</span><span class="p">,</span> <span class="n">effmass_input</span> <span class="o">=</span> <span class="n">multi</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">multi</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
+
+        <span class="c1"># Important: keep a reference to the Frohlich input that can be used to run EPH calculations if needed.</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">frohlich_input</span> <span class="o">=</span> <span class="n">multi</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
+        <span class="c1"># Need to perform SCF run if DEN file is not available</span>
+        <span class="n">scf_task</span> <span class="o">=</span> <span class="n">new</span><span class="o">.</span><span class="n">register_scf_task</span><span class="p">(</span><span class="n">scf_input</span><span class="p">)</span> <span class="k">if</span> <span class="n">den_node</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">Node</span><span class="o">.</span><span class="n">as_node</span><span class="p">(</span><span class="n">den_node</span><span class="p">)</span>
+
+        <span class="n">nscf_task</span> <span class="o">=</span> <span class="n">new</span><span class="o">.</span><span class="n">register_nscf_task</span><span class="p">(</span><span class="n">nscf_input</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="p">{</span><span class="n">scf_task</span><span class="p">:</span> <span class="s2">&quot;DEN&quot;</span><span class="p">})</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">register_effmass_task</span><span class="p">(</span><span class="n">effmass_input</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="p">{</span><span class="n">scf_task</span><span class="p">:</span> <span class="s2">&quot;DEN&quot;</span><span class="p">,</span> <span class="n">nscf_task</span><span class="p">:</span> <span class="s2">&quot;WFK&quot;</span><span class="p">})</span>
+        <span class="k">return</span> <span class="n">new</span></div></div>
+
+
+<div class="viewcode-block" id="EffMassAutoDFPTWork"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.effmass_works.EffMassAutoDFPTWork">[docs]</a><span class="k">class</span> <span class="nc">EffMassAutoDFPTWork</span><span class="p">(</span><span class="n">Work</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Work for the automatic computation of effective masses with DFPT.</span>
+<span class="sd">    Band extrema are automatically detected by performing a NSCF calculation</span>
+<span class="sd">    along a high-symmetry k-path with ndivsm.</span>
+<span class="sd">    Requires more computation that EffMassWork since input variables (kpoints and band range)</span>
+<span class="sd">    are computed at runtime.</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: EffMassAutoDFPTWork</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="EffMassAutoDFPTWork.from_scf_input"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.effmass_works.EffMassAutoDFPTWork.from_scf_input">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_scf_input</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">scf_input</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">tolwfr</span><span class="o">=</span><span class="mf">1e-20</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build the Work from an |AbinitInput| representing a GS-SCF calculation.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            scf_input: |AbinitInput| for GS-SCF used as template to generate the other inputs.</span>
+<span class="sd">            ndivsm: Number of divisions used to sample the smallest segment of the k-path.</span>
+<span class="sd">            tolwfr: Tolerance on residuals for NSCF calculation</span>
+<span class="sd">            manager: |TaskManager| instance. Use default if None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">scf_input</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;nsppol&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Magnetic semiconductors with nsppol = 2 are not implemented!&quot;</span><span class="p">)</span>
+
+        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
+        <span class="c1"># Keep a copy of the initial input.</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">scf_input</span> <span class="o">=</span> <span class="n">scf_input</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
+
+        <span class="c1"># Need SCF run to get DEN file.</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">scf_task</span> <span class="o">=</span> <span class="n">new</span><span class="o">.</span><span class="n">register_scf_task</span><span class="p">(</span><span class="n">new</span><span class="o">.</span><span class="n">scf_input</span><span class="p">)</span>
+
+        <span class="c1"># Perform NSCF run along k-path that will be used to find band extrema.</span>
+        <span class="n">bands_input</span> <span class="o">=</span> <span class="n">scf_input</span><span class="o">.</span><span class="n">make_ebands_input</span><span class="p">(</span><span class="n">ndivsm</span><span class="o">=</span><span class="n">ndivsm</span><span class="p">,</span> <span class="n">tolwfr</span><span class="o">=</span><span class="n">tolwfr</span><span class="p">)</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">bands_task</span> <span class="o">=</span> <span class="n">new</span><span class="o">.</span><span class="n">register_nscf_task</span><span class="p">(</span><span class="n">bands_input</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="p">{</span><span class="n">new</span><span class="o">.</span><span class="n">scf_task</span><span class="p">:</span> <span class="s2">&quot;DEN&quot;</span><span class="p">})</span>
+
+        <span class="k">return</span> <span class="n">new</span></div>
+
+<div class="viewcode-block" id="EffMassAutoDFPTWork.on_all_ok"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.effmass_works.EffMassAutoDFPTWork.on_all_ok">[docs]</a>    <span class="k">def</span> <span class="nf">on_all_ok</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is called once the `Work` is completed i.e. when all tasks have reached status S_OK.</span>
+<span class="sd">        Here, we read the band structure from GSR to find the position of the band edges and use these values</span>
+<span class="sd">        to generate a new work for effective masses with DFPT.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">bands_task</span><span class="o">.</span><span class="n">open_gsr</span><span class="p">()</span> <span class="k">as</span> <span class="n">gsr</span><span class="p">:</span>
+            <span class="n">ebands</span> <span class="o">=</span> <span class="n">gsr</span><span class="o">.</span><span class="n">ebands</span>
+            <span class="c1"># Warning: Assuming semiconductor with spin-unpolarized band energies.</span>
+            <span class="c1"># At present, Abinit input variables do not take into account nsppol.</span>
+            <span class="n">ebands</span><span class="o">.</span><span class="n">set_fermie_to_vbm</span><span class="p">()</span>
+            <span class="c1"># Find k0_list and effmass_bands_f90</span>
+            <span class="n">k0_list</span><span class="p">,</span> <span class="n">effmass_bands_f90</span> <span class="o">=</span> <span class="n">ebands</span><span class="o">.</span><span class="n">get_kpoints_and_band_range_for_edges</span><span class="p">()</span>
+
+        <span class="c1"># Create the work for effective mass computation with DFPT and add it to the flow.</span>
+        <span class="c1"># Keep a reference in generated_effmass_dfpt_work.</span>
+        <span class="n">work</span> <span class="o">=</span> <span class="n">EffMassDFPTWork</span><span class="o">.</span><span class="n">from_scf_input</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scf_input</span><span class="p">,</span> <span class="n">k0_list</span><span class="p">,</span> <span class="n">effmass_bands_f90</span><span class="p">,</span> <span class="n">den_node</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">scf_task</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">generated_effmass_dfpt_work</span> <span class="o">=</span> <span class="n">work</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">register_work</span><span class="p">(</span><span class="n">work</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">allocate</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">build_and_pickle_dump</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">finalized</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">on_all_ok</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="FrohlichZPRFlow"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.effmass_works.FrohlichZPRFlow">[docs]</a><span class="k">class</span> <span class="nc">FrohlichZPRFlow</span><span class="p">(</span><span class="n">Flow</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: FrohlichZPRFlow</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="FrohlichZPRFlow.from_scf_input"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.effmass_works.FrohlichZPRFlow.from_scf_input">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_scf_input</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">workdir</span><span class="p">,</span> <span class="n">scf_input</span><span class="p">,</span> <span class="n">ddb_node</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">tolwfr</span><span class="o">=</span><span class="mf">1e-20</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build the Work from an |AbinitInput| representing a GS-SCF calculation.</span>
+<span class="sd">        Final results are stored in the &quot;zprfrohl_results.json&quot; in the outdata directory of the flow.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            workdir: Working directory.</span>
+<span class="sd">            scf_input: |AbinitInput| for GS-SCF used as template to generate the other inputs.</span>
+<span class="sd">            ddb_node: Path to an external DDB file that is used to avoid the calculation of BECS/eps_inf and phonons.</span>
+<span class="sd">                If None, a DFPT calculation is automatically performed by the flow.</span>
+<span class="sd">            ndivsm: Number of divisions used to sample the smallest segment of the k-path.</span>
+<span class="sd">            tolwfr: Tolerance on residuals for NSCF calculation</span>
+<span class="sd">            manager: |TaskManager| instance. Use default if None.</span>
+<span class="sd">            metadata: Dictionary with metadata addeded to the final JSON file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="n">jsanitize</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span> <span class="k">if</span> <span class="n">metadata</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+
+        <span class="c1"># Build work for the automatic computation of effective masses.</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">effmass_auto_work</span> <span class="o">=</span> <span class="n">EffMassAutoDFPTWork</span><span class="o">.</span><span class="n">from_scf_input</span><span class="p">(</span><span class="n">scf_input</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="n">ndivsm</span><span class="p">,</span> <span class="n">tolwfr</span><span class="o">=</span><span class="n">tolwfr</span><span class="p">)</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">register_work</span><span class="p">(</span><span class="n">new</span><span class="o">.</span><span class="n">effmass_auto_work</span><span class="p">)</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">scf_task</span><span class="p">,</span> <span class="n">new</span><span class="o">.</span><span class="n">ebands_kpath_task</span> <span class="o">=</span> <span class="n">new</span><span class="o">.</span><span class="n">effmass_auto_work</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">new</span><span class="o">.</span><span class="n">effmass_auto_work</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">ddb_node</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">ddb_node</span> <span class="o">=</span> <span class="n">Node</span><span class="o">.</span><span class="n">as_node</span><span class="p">(</span><span class="n">ddb_node</span><span class="p">)</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">ddb_file_path_if_ddb_node</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">ddb_node</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Compute DDB with BECS and eps_inf.</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">ddb_file_path_if_ddb_node</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">ph_work</span> <span class="o">=</span> <span class="n">PhononWork</span><span class="o">.</span><span class="n">from_scf_task</span><span class="p">(</span><span class="n">new</span><span class="o">.</span><span class="n">scf_task</span><span class="p">,</span> <span class="n">qpoints</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                                               <span class="n">is_ngqpt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_becs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                               <span class="n">ddk_tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">register_work</span><span class="p">(</span><span class="n">ph_work</span><span class="p">)</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">ddb_node</span> <span class="o">=</span> <span class="n">ph_work</span>
+
+        <span class="k">return</span> <span class="n">new</span></div>
+
+<div class="viewcode-block" id="FrohlichZPRFlow.on_all_ok"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.effmass_works.FrohlichZPRFlow.on_all_ok">[docs]</a>    <span class="k">def</span> <span class="nf">on_all_ok</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is called when all the works in the flow have reached S_OK.</span>
+<span class="sd">        This method shall return True if the calculation is completed or</span>
+<span class="sd">        False if the execution should continue due to side-effects such as adding a new work to the flow.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_all_ok_num_calls</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">on_all_ok_num_calls</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">work</span> <span class="o">=</span> <span class="n">Work</span><span class="p">()</span>
+        <span class="n">inp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">effmass_auto_work</span><span class="o">.</span><span class="n">generated_effmass_dfpt_work</span><span class="o">.</span><span class="n">frohlich_input</span>
+        <span class="n">wfk_task</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">effmass_auto_work</span><span class="o">.</span><span class="n">generated_effmass_dfpt_work</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">effmass_task</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">effmass_auto_work</span><span class="o">.</span><span class="n">generated_effmass_dfpt_work</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">deps</span> <span class="o">=</span> <span class="p">{</span><span class="n">wfk_task</span><span class="p">:</span> <span class="s2">&quot;WFK&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ddb_node</span><span class="p">:</span> <span class="s2">&quot;DDB&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">effmass_task</span><span class="p">:</span> <span class="s2">&quot;EFMAS.nc&quot;</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">frohl_task</span> <span class="o">=</span> <span class="n">work</span><span class="o">.</span><span class="n">register_eph_task</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="n">deps</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_work</span><span class="p">(</span><span class="n">work</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">allocate</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">build_and_pickle_dump</span><span class="p">()</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="FrohlichZPRFlow.finalize"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.effmass_works.FrohlichZPRFlow.finalize">[docs]</a>    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is called when the flow is completed.</span>
+<span class="sd">        Here we write the final results in the &quot;zprfrohl_results.json&quot; file</span>
+<span class="sd">        in the `outdata` directory of the flow</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;metadata&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">})</span>
+
+        <span class="c1"># Add GS results.</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">scf_task</span><span class="o">.</span><span class="n">open_gsr</span><span class="p">()</span> <span class="k">as</span> <span class="n">gsr</span><span class="p">:</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;gsr_scf_path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gsr</span><span class="o">.</span><span class="n">filepath</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;pressure_GPa&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">gsr</span><span class="o">.</span><span class="n">pressure</span><span class="p">)</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;max_force_eV_Ang&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">gsr</span><span class="o">.</span><span class="n">max_force</span><span class="p">)</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;structure&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gsr</span><span class="o">.</span><span class="n">structure</span>
+
+        <span class="c1"># Add NSCF band structure.</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands_kpath_task</span><span class="o">.</span><span class="n">open_gsr</span><span class="p">()</span> <span class="k">as</span> <span class="n">gsr</span><span class="p">:</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;gsr_nscf_kpath&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gsr</span><span class="o">.</span><span class="n">filepath</span>
+            <span class="n">gsr</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">set_fermie_to_vbm</span><span class="p">()</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;ebands_kpath&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gsr</span><span class="o">.</span><span class="n">ebands</span>
+            <span class="c1">#d[&quot;ebands_info&quot;] = gsr.ebands.get_dict4pandas(with_geo=False, with_spglib=False)</span>
+
+        <span class="c1"># TODO</span>
+        <span class="c1"># Extract results from run.abo</span>
+        <span class="c1">#d[&quot;effmass_results&quot;] = self.effmass_task.yaml_parse_results()</span>
+        <span class="c1">#d[&quot;frohl_results&quot;] = self.frohl_task.yaml_parse_results()</span>
+
+        <span class="c1"># Add epsinf, e0, BECS, alpha and DDB as string.</span>
+        <span class="kn">from</span> <span class="nn">abipy</span> <span class="kn">import</span> <span class="n">abilab</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ddb_file_path_if_ddb_node</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ddb_filepath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ddb_file_path_if_ddb_node</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ddb_filepath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ddb_node</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">path_in</span><span class="p">(</span><span class="s2">&quot;out_DDB&quot;</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">abilab</span><span class="o">.</span><span class="n">abiopen</span><span class="p">(</span><span class="n">ddb_filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">ddb</span><span class="p">:</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;ddb_path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ddb</span><span class="o">.</span><span class="n">filepath</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;ddb_string&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ddb</span><span class="o">.</span><span class="n">get_string</span><span class="p">()</span>
+            <span class="n">epsinf</span><span class="p">,</span> <span class="n">becs</span> <span class="o">=</span> <span class="n">ddb</span><span class="o">.</span><span class="n">anaget_epsinf_and_becs</span><span class="p">(</span><span class="n">chneut</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">gen</span> <span class="o">=</span> <span class="n">ddb</span><span class="o">.</span><span class="n">anaget_dielectric_tensor_generator</span><span class="p">(</span><span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">eps0</span> <span class="o">=</span> <span class="n">gen</span><span class="o">.</span><span class="n">tensor_at_frequency</span><span class="p">(</span><span class="n">w</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;becs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">becs</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;epsinf_cart&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">epsinf</span>
+            <span class="c1"># FIXME Complex is not supported by JSON.</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;eps0_cart&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">eps0</span><span class="o">.</span><span class="n">real</span>
+
+        <span class="c1">#print(d)</span>
+        <span class="n">abilab</span><span class="o">.</span><span class="n">mjson_write</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">path_in</span><span class="p">(</span><span class="s2">&quot;zprfrohl_results.json&quot;</span><span class="p">),</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">finalize</span><span class="p">()</span></div></div>
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
+      Last updated on May 29, 2020.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

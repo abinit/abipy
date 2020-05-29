@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>abipy.flowtk.eph_flows &#8212; abipy 0.7.0 documentation</title>
+    <title>abipy.flowtk.eph_flows &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -39,7 +42,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -62,6 +65,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -128,40 +132,42 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">abipy.core.kpoints</span> <span class="k">import</span> <span class="n">kpath_from_bounds_and_ndivsm</span>
-<span class="kn">from</span> <span class="nn">.works</span> <span class="k">import</span> <span class="n">Work</span><span class="p">,</span> <span class="n">PhononWork</span><span class="p">,</span> <span class="n">PhononWfkqWork</span>
-<span class="kn">from</span> <span class="nn">.flows</span> <span class="k">import</span> <span class="n">Flow</span>
+<span class="kn">from</span> <span class="nn">abipy.core.kpoints</span> <span class="kn">import</span> <span class="n">kpath_from_bounds_and_ndivsm</span>
+<span class="kn">from</span> <span class="nn">.works</span> <span class="kn">import</span> <span class="n">Work</span><span class="p">,</span> <span class="n">PhononWork</span><span class="p">,</span> <span class="n">PhononWfkqWork</span>
+<span class="kn">from</span> <span class="nn">.flows</span> <span class="kn">import</span> <span class="n">Flow</span>
 
 
-<div class="viewcode-block" id="GkqPathFlow"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.eph_flows.GkqPathFlow">[docs]</a><span class="k">class</span> <span class="nc">GkqPathFlow</span><span class="p">(</span><span class="n">Flow</span><span class="p">):</span>
+<div class="viewcode-block" id="EphPotFlow"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.eph_flows.EphPotFlow">[docs]</a><span class="k">class</span> <span class="nc">EphPotFlow</span><span class="p">(</span><span class="n">Flow</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This flow computes the gkq e-ph matrix elements &lt;k+q|\Delta V_q|k&gt; for a list of q-points (usually a q-path).</span>
-<span class="sd">    The results stored in the GKQ.nc files for the different q-points can be used to analyze the behaviour</span>
-<span class="sd">    of the e-ph matrix elements as a function of q with the the objects provided by the abipy.eph.gkq module.</span>
-<span class="sd">    It is also possible to compute the e-ph matrix elements using the interpolated DFPT potentials</span>
-<span class="sd">    if test_ft_interpolation is set to True.</span>
+<span class="sd">    This flow computes the e-ph scattering potentials on a q-mesh defined by ngqpt</span>
+<span class="sd">    and a list of q-points (usually a q-path) specified by the user.</span>
+<span class="sd">    The DFPT potentials on the q-mesh are merged in the DVDB located in the outdata</span>
+<span class="sd">    of the second work while the DFPT potentials on the q-path are merged in the DVDB</span>
+<span class="sd">    located in the outdata of the third work.</span>
+<span class="sd">    These DVDB files are then passed to the EPH code to compute the average over the unit</span>
+<span class="sd">    cell of the periodic part of the scattering potentials as a function of q.</span>
+<span class="sd">    Results are stored in the V1QAVG.nc files of the outdata of the tasks in the fourth work.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="GkqPathFlow.from_scf_input"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.eph_flows.GkqPathFlow.from_scf_input">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_scf_input</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">workdir</span><span class="p">,</span> <span class="n">scf_input</span><span class="p">,</span> <span class="n">ngqpt</span><span class="p">,</span> <span class="n">qbounds</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">with_becs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ddk_tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                       <span class="n">test_ft_interpolation</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">prepgkk</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="EphPotFlow.from_scf_input"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.eph_flows.EphPotFlow.from_scf_input">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_scf_input</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">workdir</span><span class="p">,</span> <span class="n">scf_input</span><span class="p">,</span> <span class="n">ngqpt</span><span class="p">,</span> <span class="n">qbounds</span><span class="p">,</span>
+                       <span class="n">ndivsm</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">with_becs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ddk_tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prepgkk</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build the flow from an input file representing a GS calculation.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            workdir: Path to the working directory.</span>
+<span class="sd">            workdir: Working directory.</span>
 <span class="sd">            scf_input: Input for the GS SCF run.</span>
 <span class="sd">            ngqpt: 3 integers defining the q-mesh.</span>
 <span class="sd">            qbounds: List of boundaries defining the q-path used for the computation of the GKQ files.</span>
 <span class="sd">                The q-path is automatically generated using `ndivsm` and the reciprocal-space metric.</span>
-<span class="sd">                If `ndivsm` is negative, the code assumes that `qbounds` contains the full list of q-points</span>
+<span class="sd">                If `ndivsm` is 0, the code assumes that `qbounds` contains the full list of q-points</span>
 <span class="sd">                and no pre-processing is performed.</span>
+<span class="sd">            ndivsm: Number of points in the smallest segment of the path defined by `qbounds`.</span>
+<span class="sd">                Use 0 to pass list of q-points.</span>
 <span class="sd">            with_becs: Activate calculation of Electric field and Born effective charges.</span>
 <span class="sd">            ddk_tolerance: dict {&quot;varname&quot;: value} with the tolerance used in the DDK run if `with_becs`.</span>
-<span class="sd">            test_ft_interpolation: True to add an extra Work in which the GKQ files are computed</span>
-<span class="sd">                using the interpolated DFPT potentials and the q-mesh defined by `ngqpt`.</span>
-<span class="sd">                The quality of the interpolation depends on the convergence of the BECS, epsinf and `ngqpt`.</span>
-<span class="sd">            prepgkk: 1 to activate computation of all 3*natom perts (debugging option).</span>
+<span class="sd">            prepgkk: 1 to activate computation of all 3 * natom perts (debugging option).</span>
 <span class="sd">            manager: |TaskManager| object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">flow</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
@@ -169,7 +175,7 @@
         <span class="c1"># First work with GS run.</span>
         <span class="n">scf_task</span> <span class="o">=</span> <span class="n">flow</span><span class="o">.</span><span class="n">register_scf_task</span><span class="p">(</span><span class="n">scf_input</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
-        <span class="c1"># Second work to compute phonons on the nqgpt q-mesh.</span>
+        <span class="c1"># Second work to compute phonons on the input nqgpt q-mesh.</span>
         <span class="n">work_qmesh</span> <span class="o">=</span> <span class="n">PhononWork</span><span class="o">.</span><span class="n">from_scf_task</span><span class="p">(</span><span class="n">scf_task</span><span class="p">,</span> <span class="n">qpoints</span><span class="o">=</span><span class="n">ngqpt</span><span class="p">,</span> <span class="n">is_ngqpt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                                               <span class="n">with_becs</span><span class="o">=</span><span class="n">with_becs</span><span class="p">,</span> <span class="n">ddk_tolerance</span><span class="o">=</span><span class="n">ddk_tolerance</span><span class="p">)</span>
         <span class="n">flow</span><span class="o">.</span><span class="n">register_work</span><span class="p">(</span><span class="n">work_qmesh</span><span class="p">)</span>
@@ -177,21 +183,114 @@
         <span class="k">if</span> <span class="n">ndivsm</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># Generate list of q-points from qbounds and ndivsm.</span>
             <span class="n">qpath_list</span> <span class="o">=</span> <span class="n">kpath_from_bounds_and_ndivsm</span><span class="p">(</span><span class="n">qbounds</span><span class="p">,</span> <span class="n">ndivsm</span><span class="p">,</span> <span class="n">scf_input</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># Use input list of q-pooints.</span>
+        <span class="k">elif</span> <span class="n">ndivsm</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># Use input list of q-points.</span>
             <span class="n">qpath_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">qbounds</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;ndivsm cannot be negative. Received ndivsm: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">ndivsm</span><span class="p">)</span>
 
-        <span class="c1"># Compute WFK/WFQ and phonons for qpt in qpath_list.</span>
+        <span class="c1"># Third Work: compute WFK/WFQ and phonons for qpt in qpath_list.</span>
         <span class="c1"># Don&#39;t include BECS because they have been already computed in the previous work.</span>
-        <span class="n">work_qpath</span> <span class="o">=</span> <span class="n">PhononWfkqWork</span><span class="o">.</span><span class="n">from_scf_task</span><span class="p">(</span><span class="n">scf_task</span><span class="p">,</span> <span class="n">qpath_list</span><span class="p">,</span> <span class="n">ph_tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tolwfr</span><span class="o">=</span><span class="mf">1.0e-22</span><span class="p">,</span> <span class="n">nband</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                      <span class="n">with_becs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ddk_tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shiftq</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">is_ngqpt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">remove_wfkq</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                      <span class="n">prepgkk</span><span class="o">=</span><span class="n">prepgkk</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
+        <span class="n">work_qpath</span> <span class="o">=</span> <span class="n">PhononWfkqWork</span><span class="o">.</span><span class="n">from_scf_task</span><span class="p">(</span>
+                       <span class="n">scf_task</span><span class="p">,</span> <span class="n">qpath_list</span><span class="p">,</span> <span class="n">ph_tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tolwfr</span><span class="o">=</span><span class="mf">1.0e-22</span><span class="p">,</span> <span class="n">nband</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="n">with_becs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ddk_tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shiftq</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">is_ngqpt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">remove_wfkq</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                       <span class="n">prepgkk</span><span class="o">=</span><span class="n">prepgkk</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
+
+        <span class="n">flow</span><span class="o">.</span><span class="n">register_work</span><span class="p">(</span><span class="n">work_qpath</span><span class="p">)</span>
+
+        <span class="c1"># Now we compute matrix elements fully ab-initio for each q-point.</span>
+        <span class="n">eph_work</span> <span class="o">=</span> <span class="n">Work</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">eph_task</span> <span class="ow">in</span> <span class="p">(</span><span class="o">-</span><span class="mi">15</span><span class="p">,</span> <span class="mi">15</span><span class="p">):</span>
+            <span class="n">eph_inp</span> <span class="o">=</span> <span class="n">scf_input</span><span class="o">.</span><span class="n">new_with_vars</span><span class="p">(</span>
+                <span class="n">optdriver</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
+                <span class="n">ddb_ngqpt</span><span class="o">=</span><span class="n">ngqpt</span><span class="p">,</span>    <span class="c1"># q-mesh associated to the DDB file.</span>
+                <span class="c1">#dvdb_ngqpt=ngqpt,  # q-mesh associated to the DDVDB file.</span>
+                <span class="n">prtphdos</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="n">eph_task</span><span class="o">=</span><span class="n">eph_task</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">eph_task</span> <span class="o">==</span> <span class="o">-</span><span class="mi">15</span><span class="p">:</span>
+                <span class="c1"># Use DVDB with ab-initio POTS along q-path to produce V1QAVG</span>
+                <span class="n">deps</span> <span class="o">=</span> <span class="p">{</span><span class="n">work_qmesh</span><span class="p">:</span> <span class="s2">&quot;DDB&quot;</span><span class="p">,</span> <span class="n">work_qpath</span><span class="p">:</span> <span class="s2">&quot;DVDB&quot;</span><span class="p">}</span>
+            <span class="k">elif</span> <span class="n">eph_task</span> <span class="o">==</span> <span class="mi">15</span><span class="p">:</span>
+                <span class="c1"># Use q-mesh to interpolate along the same q-path as above.</span>
+                <span class="n">deps</span> <span class="o">=</span> <span class="p">{</span><span class="n">work_qmesh</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;DDB&quot;</span><span class="p">,</span> <span class="s2">&quot;DVDB&quot;</span><span class="p">]}</span>
+                <span class="n">eph_inp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">ph_nqpath</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">qpath_list</span><span class="p">),</span> <span class="n">ph_qpath</span><span class="o">=</span><span class="n">qpath_list</span><span class="p">)</span>
+
+            <span class="n">eph_work</span><span class="o">.</span><span class="n">register_eph_task</span><span class="p">(</span><span class="n">eph_inp</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="n">deps</span><span class="p">)</span>
+
+        <span class="n">flow</span><span class="o">.</span><span class="n">register_work</span><span class="p">(</span><span class="n">eph_work</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">flow</span></div></div>
+
+
+<div class="viewcode-block" id="GkqPathFlow"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.eph_flows.GkqPathFlow">[docs]</a><span class="k">class</span> <span class="nc">GkqPathFlow</span><span class="p">(</span><span class="n">Flow</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This flow computes the gkq e-ph matrix elements &lt;k+q|\Delta V_q|k&gt; for a list of q-points (usually a q-path).</span>
+<span class="sd">    The results are stored in the GKQ.nc files for the different q-points. These files can be used to analyze the behaviour</span>
+<span class="sd">    of the e-ph matrix elements as a function of qpts with the the objects provided by the abipy.eph.gkq module.</span>
+<span class="sd">    It is also possible to compute the e-ph matrix elements using the interpolated DFPT potentials</span>
+<span class="sd">    if test_ft_interpolation is set to True.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="GkqPathFlow.from_scf_input"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.eph_flows.GkqPathFlow.from_scf_input">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_scf_input</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">workdir</span><span class="p">,</span> <span class="n">scf_input</span><span class="p">,</span> <span class="n">ngqpt</span><span class="p">,</span> <span class="n">qbounds</span><span class="p">,</span>
+                       <span class="n">ndivsm</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">with_becs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ddk_tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="n">test_ft_interpolation</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">prepgkk</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build the flow from an input file representing a GS calculation.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            workdir: Working directory.</span>
+<span class="sd">            scf_input: Input for the GS SCF run.</span>
+<span class="sd">            ngqpt: 3 integers defining the q-mesh.</span>
+<span class="sd">            qbounds: List of boundaries defining the q-path used for the computation of the GKQ files.</span>
+<span class="sd">                The q-path is automatically generated using `ndivsm` and the reciprocal-space metric.</span>
+<span class="sd">                If `ndivsm` is 0, the code assumes that `qbounds` contains the full list of q-points</span>
+<span class="sd">                and no pre-processing is performed.</span>
+<span class="sd">            ndivsm: Number of points in the smallest segment of the path defined by `qbounds`.</span>
+<span class="sd">                Use 0 to pass list of q-points.</span>
+<span class="sd">            with_becs: Activate calculation of Electric field and Born effective charges.</span>
+<span class="sd">            ddk_tolerance: dict {&quot;varname&quot;: value} with the tolerance used in the DDK run if `with_becs`.</span>
+<span class="sd">            test_ft_interpolation: True to add an extra Work in which the GKQ files are computed</span>
+<span class="sd">                using the interpolated DFPT potentials and the q-mesh defined by `ngqpt`.</span>
+<span class="sd">                The quality of the interpolation depends on the convergence of the BECS, epsinf and `ngqpt`.</span>
+<span class="sd">            prepgkk: 1 to activate computation of all 3 * natom perts (debugging option).</span>
+<span class="sd">            manager: |TaskManager| object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">flow</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
+
+        <span class="c1"># First work with GS run.</span>
+        <span class="n">scf_task</span> <span class="o">=</span> <span class="n">flow</span><span class="o">.</span><span class="n">register_scf_task</span><span class="p">(</span><span class="n">scf_input</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># Second work to compute phonons on the input nqgpt q-mesh.</span>
+        <span class="n">work_qmesh</span> <span class="o">=</span> <span class="n">PhononWork</span><span class="o">.</span><span class="n">from_scf_task</span><span class="p">(</span><span class="n">scf_task</span><span class="p">,</span> <span class="n">qpoints</span><span class="o">=</span><span class="n">ngqpt</span><span class="p">,</span> <span class="n">is_ngqpt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                              <span class="n">with_becs</span><span class="o">=</span><span class="n">with_becs</span><span class="p">,</span> <span class="n">ddk_tolerance</span><span class="o">=</span><span class="n">ddk_tolerance</span><span class="p">)</span>
+        <span class="n">flow</span><span class="o">.</span><span class="n">register_work</span><span class="p">(</span><span class="n">work_qmesh</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">ndivsm</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># Generate list of q-points from qbounds and ndivsm.</span>
+            <span class="n">qpath_list</span> <span class="o">=</span> <span class="n">kpath_from_bounds_and_ndivsm</span><span class="p">(</span><span class="n">qbounds</span><span class="p">,</span> <span class="n">ndivsm</span><span class="p">,</span> <span class="n">scf_input</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">ndivsm</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># Use input list of q-points.</span>
+            <span class="n">qpath_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">qbounds</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;ndivsm cannot be negative. Received ndivsm: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">ndivsm</span><span class="p">)</span>
+
+        <span class="c1"># Third Work. Compute WFK/WFQ and phonons for qpt in qpath_list.</span>
+        <span class="c1"># Don&#39;t include BECS because they have been already computed in the previous work.</span>
+        <span class="n">work_qpath</span> <span class="o">=</span> <span class="n">PhononWfkqWork</span><span class="o">.</span><span class="n">from_scf_task</span><span class="p">(</span>
+                       <span class="n">scf_task</span><span class="p">,</span> <span class="n">qpath_list</span><span class="p">,</span> <span class="n">ph_tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tolwfr</span><span class="o">=</span><span class="mf">1.0e-22</span><span class="p">,</span> <span class="n">nband</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="n">with_becs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ddk_tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shiftq</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">is_ngqpt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">remove_wfkq</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                       <span class="n">prepgkk</span><span class="o">=</span><span class="n">prepgkk</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
+
         <span class="n">flow</span><span class="o">.</span><span class="n">register_work</span><span class="p">(</span><span class="n">work_qpath</span><span class="p">)</span>
 
         <span class="k">def</span> <span class="nf">make_eph_input</span><span class="p">(</span><span class="n">scf_inp</span><span class="p">,</span> <span class="n">ngqpt</span><span class="p">,</span> <span class="n">qpt</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Build input file to compute GKQ.nc file from GS SCF input.</span>
-<span class="sd">            The calculation requires GS wavefunctions WFK, WFQ a DDB and a DVDB file</span>
+<span class="sd">            The calculation requires GS wavefunctions WFK, WFQ, a DDB file and a DVDB file</span>
 <span class="sd">            &quot;&quot;&quot;</span>
             <span class="k">return</span> <span class="n">scf_inp</span><span class="o">.</span><span class="n">new_with_vars</span><span class="p">(</span>
                 <span class="n">optdriver</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
@@ -204,6 +303,7 @@
 
         <span class="c1"># Now we compute matrix elements fully ab-initio for each q-point.</span>
         <span class="n">eph_work</span> <span class="o">=</span> <span class="n">Work</span><span class="p">()</span>
+
         <span class="n">qseen</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">work_qpath</span><span class="o">.</span><span class="n">phonon_tasks</span><span class="p">:</span>
             <span class="n">qpt</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">input</span><span class="p">[</span><span class="s2">&quot;qpt&quot;</span><span class="p">])</span>
@@ -211,9 +311,11 @@
             <span class="n">qseen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">qpt</span><span class="p">)</span>
             <span class="n">t</span> <span class="o">=</span> <span class="n">eph_work</span><span class="o">.</span><span class="n">register_eph_task</span><span class="p">(</span><span class="n">make_eph_input</span><span class="p">(</span><span class="n">scf_input</span><span class="p">,</span> <span class="n">ngqpt</span><span class="p">,</span> <span class="n">qpt</span><span class="p">),</span> <span class="n">deps</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">deps</span><span class="p">)</span>
             <span class="n">t</span><span class="o">.</span><span class="n">add_deps</span><span class="p">({</span><span class="n">work_qmesh</span><span class="p">:</span> <span class="s2">&quot;DDB&quot;</span><span class="p">,</span> <span class="n">work_qpath</span><span class="p">:</span> <span class="s2">&quot;DVDB&quot;</span><span class="p">})</span>
+
         <span class="n">flow</span><span class="o">.</span><span class="n">register_work</span><span class="p">(</span><span class="n">eph_work</span><span class="p">)</span>
 
-        <span class="c1"># Here we build another work to compute gkq matrix elements with interpolated potentials along the q-path.</span>
+        <span class="c1"># Here we build another work to compute the gkq matrix elements</span>
+        <span class="c1"># with interpolated potentials along the q-path.</span>
         <span class="c1"># The potentials are interpolated using the input ngqpt q-mesh.</span>
         <span class="k">if</span> <span class="n">test_ft_interpolation</span><span class="p">:</span>
             <span class="n">inteph_work</span> <span class="o">=</span> <span class="n">Work</span><span class="p">()</span>
@@ -244,7 +346,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on May 29, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

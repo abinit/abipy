@@ -1,0 +1,139 @@
+.. note::
+    :class: sphx-glr-download-link-note
+
+    Click :ref:`here <sphx_glr_download_gallery_plot_qha_vs_qmesh.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
+
+.. _sphx_glr_gallery_plot_qha_vs_qmesh.py:
+
+
+Quasi-harmonic approximation (convergence wrt Q-mesh)
+=====================================================
+
+This example shows how to use the GSR.nc and PHDOS.nc files computed with different volumes
+to analyze the convergence of QHA thermodynamic properties with respect to the number of q-points
+used to compute the phonon DOS.
+
+
+
+.. rst-class:: sphx-glr-horizontal
+
+
+    *
+
+      .. image:: /gallery/images/sphx_glr_plot_qha_vs_qmesh_001.png
+            :class: sphx-glr-multi-img
+
+    *
+
+      .. image:: /gallery/images/sphx_glr_plot_qha_vs_qmesh_002.png
+            :class: sphx-glr-multi-img
+
+    *
+
+      .. image:: /gallery/images/sphx_glr_plot_qha_vs_qmesh_003.png
+            :class: sphx-glr-multi-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ Out:
+
+ .. code-block:: none
+
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
+      warnings.warn("The input structure does not match the expected standard primitive! "
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
+      warnings.warn("The input structure does not match the expected standard primitive! "
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
+      warnings.warn("The input structure does not match the expected standard primitive! "
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
+      warnings.warn("The input structure does not match the expected standard primitive! "
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
+      warnings.warn("The input structure does not match the expected standard primitive! "
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
+      warnings.warn("The input structure does not match the expected standard primitive! "
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
+      warnings.warn("The input structure does not match the expected standard primitive! "
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
+      warnings.warn("The input structure does not match the expected standard primitive! "
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
+      warnings.warn("The input structure does not match the expected standard primitive! "
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+      plt.show()
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+      plt.show()
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+      plt.show()
+
+
+
+
+
+|
+
+
+.. code-block:: default
+
+    import os
+    import abipy.data as abidata
+
+    from abipy.dfpt.qha import QHAQmeshAnalyzer
+
+    # We use a list of GSR.nc and PHDOS.nc files corresponding to different isotropic strains.
+    # These files are shipped with AbiPy so that we don't need to run calculations from scratch.
+    #strains = [-4, -2, 0, 2, 4, 6]
+    strains = [-2, 0, 2, 4]
+    dirpath = os.path.join(abidata.dirpath, "refs", "si_qha")
+
+    gsr_paths = [os.path.join(dirpath, "mp-149_{:+d}_GSR.nc".format(s)) for s in strains]
+    ddb_paths = [os.path.join(dirpath, "mp-149_{:+d}_DDB".format(s)) for s in strains]
+
+    # Initialize QHA object from files.
+    qhana = QHAQmeshAnalyzer(gsr_paths, ddb_paths)
+
+    # To change the default EOS (vinet), use
+    #qhana.set_eos("vinet")
+
+    # Compute ph-DOS with this list of nqsmall values.
+    qhana.run_qlist([2, 4])
+
+    # Analyze convergence. API similar to QHA.
+    qhana.plot_energies(title="Energies as a function of volume for different T")
+
+    qhana.plot_thermal_expansion_coeff(title="Thermal expansion coefficient as a function of T")
+
+    qhana.plot_vol_vs_t(title="Volume as a function of T")
+
+
+.. rst-class:: sphx-glr-timing
+
+   **Total running time of the script:** ( 0 minutes  16.696 seconds)
+
+
+.. _sphx_glr_download_gallery_plot_qha_vs_qmesh.py:
+
+
+.. only :: html
+
+ .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
+
+
+  .. container:: sphx-glr-download
+
+     :download:`Download Python source code: plot_qha_vs_qmesh.py <plot_qha_vs_qmesh.py>`
+
+
+
+  .. container:: sphx-glr-download
+
+     :download:`Download Jupyter notebook: plot_qha_vs_qmesh.ipynb <plot_qha_vs_qmesh.ipynb>`
+
+
+.. only:: html
+
+ .. rst-class:: sphx-glr-signature
+
+    `Gallery generated by Sphinx-Gallery <https://sphinx-gallery.github.io>`_

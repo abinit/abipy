@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>dynamics Package &#8212; abipy 0.7.0 documentation</title>
+    <title>dynamics Package &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -41,7 +44,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -64,6 +67,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -252,7 +256,7 @@
 <dl class="attribute">
 <dt id="abipy.dynamics.hist.HistFile.etotals">
 <code class="sig-name descname">etotals</code><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.etotals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.etotals" title="Permalink to this definition">¶</a></dt>
-<dd><p><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> with total energies in eV at the different steps.</p>
+<dd><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.18)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> with total energies in eV at the different steps.</p>
 </dd></dl>
 
 <dl class="method">
@@ -311,13 +315,13 @@ See <code class="xref py py-class docutils literal notranslate"><span class="pre
 
 <dl class="method">
 <dt id="abipy.dynamics.hist.HistFile.plot_ax">
-<code class="sig-name descname">plot_ax</code><span class="sig-paren">(</span><em class="sig-param">ax</em>, <em class="sig-param">what</em>, <em class="sig-param">fontsize=12</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.plot_ax"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.plot_ax" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">plot_ax</code><span class="sig-paren">(</span><em class="sig-param">ax</em>, <em class="sig-param">what</em>, <em class="sig-param">fontsize=8</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.plot_ax"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.plot_ax" title="Permalink to this definition">¶</a></dt>
 <dd><p>Helper function to plot quantity <code class="docutils literal notranslate"><span class="pre">what</span></code> on axis <code class="docutils literal notranslate"><span class="pre">ax</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>fontsize</strong> – fontsize for legend</p></li>
-<li><p><strong>are passed to matplotlib plot method</strong> (<em>kwargs</em>) – </p></li>
+<li><p><strong>fontsize</strong> – fontsize for legend.</p></li>
+<li><p><strong>are passed to matplotlib plot method.</strong> (<em>kwargs</em>) – </p></li>
 </ul>
 </dd>
 </dl>
@@ -325,18 +329,19 @@ See <code class="xref py py-class docutils literal notranslate"><span class="pre
 
 <dl class="method">
 <dt id="abipy.dynamics.hist.HistFile.plot">
-<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param">ax_list=None</em>, <em class="sig-param">fontsize=8</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.plot" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param">what_list=None</em>, <em class="sig-param">ax_list=None</em>, <em class="sig-param">fontsize=8</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot the evolution of structural parameters (lattice lengths, angles and volume)
 as well as pressure, info on forces and total energy.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.1.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a>. If None, a new figure is created.</p></li>
+<li><p><strong>what_list</strong> – </p></li>
+<li><p><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.2.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a>. If None, a new figure is created.</p></li>
 <li><p><strong>fontsize</strong> – fontsize for legend</p></li>
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.1.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.2.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -372,6 +377,9 @@ Default: None i.e. fig is left unchanged.</p></td>
 <tr class="row-even"><td><p>ax_annotate</p></td>
 <td><p>Add labels to  subplots e.g. (a), (b).
 Default: False</p></td>
+</tr>
+<tr class="row-odd"><td><p>fig_close</p></td>
+<td><p>Close figure. Default: False.</p></td>
 </tr>
 </tbody>
 </table>
@@ -379,17 +387,17 @@ Default: False</p></td>
 
 <dl class="method">
 <dt id="abipy.dynamics.hist.HistFile.plot_energies">
-<code class="sig-name descname">plot_energies</code><span class="sig-paren">(</span><em class="sig-param">ax=None</em>, <em class="sig-param">fontsize=12</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.plot_energies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.plot_energies" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">plot_energies</code><span class="sig-paren">(</span><em class="sig-param">ax=None</em>, <em class="sig-param">fontsize=8</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.plot_energies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.plot_energies" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot the total energies as function of the iteration step.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.1.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
+<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.2.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
 <li><p><strong>fontsize</strong> – Legend and title fontsize.</p></li>
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.1.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.2.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -425,6 +433,9 @@ Default: None i.e. fig is left unchanged.</p></td>
 <tr class="row-even"><td><p>ax_annotate</p></td>
 <td><p>Add labels to  subplots e.g. (a), (b).
 Default: False</p></td>
+</tr>
+<tr class="row-odd"><td><p>fig_close</p></td>
+<td><p>Close figure. Default: False.</p></td>
 </tr>
 </tbody>
 </table>
@@ -446,6 +457,12 @@ Default: False</p></td>
 <dt id="abipy.dynamics.hist.HistFile.mvanimate">
 <code class="sig-name descname">mvanimate</code><span class="sig-paren">(</span><em class="sig-param">delay=500</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.mvanimate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.mvanimate" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.dynamics.hist.HistFile.get_panel">
+<code class="sig-name descname">get_panel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.get_panel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.get_panel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build panel with widgets to interact with the <a class="reference internal" href="#abipy.dynamics.hist.HistFile" title="abipy.dynamics.hist.HistFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.dynamics.hist.HistFile</span></code></a> either in a notebook or in panel app.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="abipy.dynamics.hist.HistFile.write_notebook">
@@ -525,7 +542,7 @@ Must be in [“energy”, “abc”, “angles”, “volume”, “pressure”,
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.1.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.2.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -561,6 +578,9 @@ Default: None i.e. fig is left unchanged.</p></td>
 <tr class="row-even"><td><p>ax_annotate</p></td>
 <td><p>Add labels to  subplots e.g. (a), (b).
 Default: False</p></td>
+</tr>
+<tr class="row-odd"><td><p>fig_close</p></td>
+<td><p>Close figure. Default: False.</p></td>
 </tr>
 </tbody>
 </table>
@@ -579,7 +599,7 @@ Default: False</p></td>
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.1.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a>.</p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.2.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a>.</p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -615,6 +635,9 @@ Default: None i.e. fig is left unchanged.</p></td>
 <tr class="row-even"><td><p>ax_annotate</p></td>
 <td><p>Add labels to  subplots e.g. (a), (b).
 Default: False</p></td>
+</tr>
+<tr class="row-odd"><td><p>fig_close</p></td>
+<td><p>Close figure. Default: False.</p></td>
 </tr>
 </tbody>
 </table>
@@ -672,14 +695,14 @@ working directory is created. Return path to the notebook.</p>
 <dl class="method">
 <dt id="abipy.dynamics.hist.HistReader.read_cart_forces">
 <code class="sig-name descname">read_cart_forces</code><span class="sig-paren">(</span><em class="sig-param">unit='eV ang^-1'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistReader.read_cart_forces"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistReader.read_cart_forces" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read and return a <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> with the cartesian forces in unit <code class="docutils literal notranslate"><span class="pre">unit</span></code>.
+<dd><p>Read and return a <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.18)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> with the cartesian forces in unit <code class="docutils literal notranslate"><span class="pre">unit</span></code>.
 Shape (num_steps, natom, 3)</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="abipy.dynamics.hist.HistReader.read_reduced_forces">
 <code class="sig-name descname">read_reduced_forces</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistReader.read_reduced_forces"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistReader.read_reduced_forces" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read and return a <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> with the forces in reduced coordinates
+<dd><p>Read and return a <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.18)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> with the forces in reduced coordinates
 Shape (num_steps, natom, 3)</p>
 </dd></dl>
 
@@ -708,7 +731,7 @@ and the list of pressures in GPa unit.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on May 29, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

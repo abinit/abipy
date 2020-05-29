@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>abipy.flowtk &#8212; abipy 0.7.0 documentation</title>
+    <title>abipy.flowtk &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -39,7 +42,7 @@
         </button>
         <a class="navbar-brand" href="../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -62,6 +65,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -126,26 +130,26 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>
 
-<span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
-<span class="kn">from</span> <span class="nn">pymatgen.io.abinit.abiobjects</span> <span class="k">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">pymatgen.io.abinit.pseudos</span> <span class="k">import</span> <span class="n">Pseudo</span><span class="p">,</span> <span class="n">PseudoTable</span><span class="p">,</span> <span class="n">PseudoParser</span>
-<span class="kn">from</span> <span class="nn">pymatgen.io.abinit.netcdf</span> <span class="k">import</span> <span class="n">NetcdfReader</span>
-<span class="kn">from</span> <span class="nn">.launcher</span> <span class="k">import</span> <span class="n">PyFlowScheduler</span><span class="p">,</span> <span class="n">PyLauncher</span>
-<span class="kn">from</span> <span class="nn">.qadapters</span> <span class="k">import</span> <span class="n">show_qparams</span><span class="p">,</span> <span class="n">all_qtypes</span>
-<span class="kn">from</span> <span class="nn">.wrappers</span> <span class="k">import</span> <span class="n">Mrgscr</span><span class="p">,</span> <span class="n">Mrgddb</span><span class="p">,</span> <span class="n">Cut3D</span><span class="p">,</span> <span class="n">Fold2Bloch</span>
-<span class="kn">from</span> <span class="nn">.nodes</span> <span class="k">import</span> <span class="n">Status</span>
-<span class="kn">from</span> <span class="nn">.tasks</span> <span class="k">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">.tasks</span> <span class="k">import</span> <span class="n">EphTask</span><span class="p">,</span> <span class="n">ElasticTask</span>
-<span class="kn">from</span> <span class="nn">.works</span> <span class="k">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">.flows</span> <span class="k">import</span> <span class="p">(</span><span class="n">Flow</span><span class="p">,</span> <span class="n">G0W0WithQptdmFlow</span><span class="p">,</span> <span class="n">bandstructure_flow</span><span class="p">,</span> <span class="n">PhononFlow</span><span class="p">,</span> <span class="n">phonon_conv_flow</span><span class="p">,</span>
+<span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="kn">import</span> <span class="n">cprint</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.abinit.abiobjects</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.abinit.pseudos</span> <span class="kn">import</span> <span class="n">Pseudo</span><span class="p">,</span> <span class="n">PseudoTable</span><span class="p">,</span> <span class="n">PseudoParser</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.abinit.netcdf</span> <span class="kn">import</span> <span class="n">NetcdfReader</span>
+<span class="kn">from</span> <span class="nn">.launcher</span> <span class="kn">import</span> <span class="n">PyFlowScheduler</span><span class="p">,</span> <span class="n">PyLauncher</span>
+<span class="kn">from</span> <span class="nn">.qadapters</span> <span class="kn">import</span> <span class="n">show_qparams</span><span class="p">,</span> <span class="n">all_qtypes</span>
+<span class="kn">from</span> <span class="nn">.wrappers</span> <span class="kn">import</span> <span class="n">Mrgscr</span><span class="p">,</span> <span class="n">Mrgddb</span><span class="p">,</span> <span class="n">Cut3D</span><span class="p">,</span> <span class="n">Fold2Bloch</span>
+<span class="kn">from</span> <span class="nn">.nodes</span> <span class="kn">import</span> <span class="n">Status</span>
+<span class="kn">from</span> <span class="nn">.tasks</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">.tasks</span> <span class="kn">import</span> <span class="n">EphTask</span><span class="p">,</span> <span class="n">ElasticTask</span>
+<span class="kn">from</span> <span class="nn">.works</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">.flows</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Flow</span><span class="p">,</span> <span class="n">G0W0WithQptdmFlow</span><span class="p">,</span> <span class="n">bandstructure_flow</span><span class="p">,</span> <span class="n">PhononFlow</span><span class="p">,</span> <span class="n">phonon_conv_flow</span><span class="p">,</span>
     <span class="n">g0w0_flow</span><span class="p">,</span> <span class="n">NonLinearCoeffFlow</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">.abitimer</span> <span class="k">import</span> <span class="n">AbinitTimerParser</span><span class="p">,</span> <span class="n">AbinitTimerSection</span>
-<span class="kn">from</span> <span class="nn">pymatgen.io.abinit.abiinspect</span> <span class="k">import</span> <span class="n">GroundStateScfCycle</span><span class="p">,</span> <span class="n">D2DEScfCycle</span><span class="p">,</span> <span class="n">yaml_read_kpoints</span><span class="p">,</span> <span class="n">yaml_read_irred_perts</span>
+<span class="kn">from</span> <span class="nn">.abitimer</span> <span class="kn">import</span> <span class="n">AbinitTimerParser</span><span class="p">,</span> <span class="n">AbinitTimerSection</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.abinit.abiinspect</span> <span class="kn">import</span> <span class="n">GroundStateScfCycle</span><span class="p">,</span> <span class="n">D2DEScfCycle</span><span class="p">,</span> <span class="n">yaml_read_kpoints</span><span class="p">,</span> <span class="n">yaml_read_irred_perts</span>
 
-<span class="kn">from</span> <span class="nn">.events</span> <span class="k">import</span> <span class="n">EventsParser</span><span class="p">,</span> <span class="n">autodoc_event_handlers</span>
+<span class="kn">from</span> <span class="nn">.events</span> <span class="kn">import</span> <span class="n">EventsParser</span><span class="p">,</span> <span class="n">autodoc_event_handlers</span>
 <span class="c1">#from abipy.flowtk.works import *</span>
 <span class="c1">#from abipy.flowtk.gs_works import EosWork</span>
-<span class="kn">from</span> <span class="nn">abipy.flowtk.dfpt_works</span> <span class="k">import</span> <span class="n">ElasticWork</span><span class="p">,</span> <span class="n">NscfDdksWork</span>
+<span class="kn">from</span> <span class="nn">abipy.flowtk.dfpt_works</span> <span class="kn">import</span> <span class="n">ElasticWork</span><span class="p">,</span> <span class="n">NscfDdksWork</span>
 
 
 <div class="viewcode-block" id="flow_main"><a class="viewcode-back" href="../../api/flowtk_api.html#abipy.flowtk.flow_main">[docs]</a><span class="k">def</span> <span class="nf">flow_main</span><span class="p">(</span><span class="n">main</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
@@ -162,7 +166,7 @@
 <span class="sd">    Args:</span>
 <span class="sd">        main: main function.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">wraps</span>
+    <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
 
     <span class="nd">@wraps</span><span class="p">(</span><span class="n">main</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -286,7 +290,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on May 29, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

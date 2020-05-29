@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Post-processing How-To &#8212; abipy 0.7.0 documentation</title>
+    <title>Post-processing How-To &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -41,7 +44,7 @@
         </button>
         <a class="navbar-brand" href="index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -64,6 +67,7 @@
 </ul>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Post-processing How-To</a></li>
 </ul>
@@ -233,22 +237,122 @@ The option can be can be supplied multiple times e.g. <code class="docutils lite
 </pre></div>
 </div>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ abiopen.py --help
-Traceback (most recent call last):
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/bin/abiopen.py&quot;, line 4, in &lt;module&gt;
-    __import__(&#39;pkg_resources&#39;).require(&#39;abipy==0.7.0.dev0&#39;)
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3250, in &lt;module&gt;
-    @_call_aside
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3234, in _call_aside
-    f(*args, **kwargs)
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3263, in _initialize_master_working_set
-    working_set = WorkingSet._build_master()
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 583, in _build_master
-    ws.require(__requires__)
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 900, in require
-    needed = self.resolve(parse_requirements(requirements))
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 786, in resolve
-    raise DistributionNotFound(req, requirers)
-pkg_resources.DistributionNotFound: The &#39;abipy==0.7.0.dev0&#39; distribution was not found and is required by the application
+usage: abiopen.py [-h] [--loglevel LOGLEVEL] [-V] [-v] [-nb]
+                  [--classic-notebook] [--no-browser] [--foreground] [-p]
+                  [--panel] [-e] [-s] [-t SLIDE_TIMEOUT] [-sns [SEABORN]]
+                  [-mpl MPL_BACKEND]
+                  filepath
+
+positional arguments:
+  filepath              File to open. See table below for the list of
+                        supported extensions.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --loglevel LOGLEVEL   Set the loglevel. Possible values: CRITICAL, ERROR
+                        (default), WARNING, INFO, DEBUG
+  -V, --version         show program&#39;s version number and exit
+  -v, --verbose         verbose, can be supplied multiple times to increase
+                        verbosity
+  -nb, --notebook       Open file in jupyter notebook
+  --classic-notebook    Use classic notebook instead of jupyterlab.
+  --no-browser          Start the jupyter server to serve the notebook but
+                        don&#39;t open the notebook in the browser. Use this
+                        option to connect remotely from localhost to the
+                        machine running the kernel
+  --foreground          Run jupyter notebook in the foreground.
+  -p, --print           Print python object and return.
+  --panel               Open GUI in web browser, requires panel package.
+  -e, --expose          Open file and generate matplotlib figures
+                        automatically by calling expose method.
+  -s, --slide-mode      Iterate over figures. Expose all figures at once if
+                        not given on the CLI.
+  -t SLIDE_TIMEOUT, --slide-timeout SLIDE_TIMEOUT
+                        Close figure after slide-timeout seconds (only if
+                        slide-mode). Block if not specified.
+  -sns [SEABORN], --seaborn [SEABORN]
+                        Use seaborn settings. Accept value defining context in
+                        (&quot;paper&quot;, &quot;notebook&quot;, &quot;talk&quot;, &quot;poster&quot;). Default:
+                        paper
+  -mpl MPL_BACKEND, --mpl-backend MPL_BACKEND
+                        Set matplotlib interactive backend. Possible values:
+                        GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX,
+                        TkAgg, Qt4Agg, Qt5Agg, macosx.See also:
+                        https://matplotlib.org/faq/usage_faq.html#what-is-a-
+                        backend.
+
+Usage example:
+
+    abiopen.py FILE          =&gt; Open file in ipython shell.
+    abiopen.py FILE -nb      =&gt; Generate jupyter notebook.
+    abiopen.py FILE -p       =&gt; Print info on object to terminal.
+    abiopen.py FILE -e       =&gt; Generate matplotlib figures automatically.
+                                Use -sns to activate seaborn settings.
+    abiopen.py FILE --panel  =&gt; Generate GUI in web browser to interact with FILE
+                                Requires panel package (WARNING: still under development!)
+
+where `FILE` is any file supported by abipy/pymatgen e.g. Netcdf files, Abinit input, POSCAR, xsf.
+File extensions supported (including zipped files with extension in &quot;.bz2&quot;, &quot;.gz&quot;, &quot;.z&quot;):
+Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
+
+JSON file are supported as well. In this case, abiopen.py tries to reconstruct python objects
+assuming JSON document in MSONable format and then invokes ipython with the `data` object.
+Use `-e` or `--notebook` or `--panel` to print the JSON dictionary without reconstructing python objects.
+
+Table mapping file extension to AbiPy object:
+
+Extension          Class
+-----------------  -----------------------------------------------------
+.abi               &lt;class &#39;abipy.abio.abivars.AbinitInputFile&#39;&gt;
+.in                &lt;class &#39;abipy.abio.abivars.AbinitInputFile&#39;&gt;
+.abo               &lt;class &#39;abipy.abio.outputs.AbinitOutputFile&#39;&gt;
+.out               &lt;class &#39;abipy.abio.outputs.AbinitOutputFile&#39;&gt;
+.log               &lt;class &#39;abipy.abio.outputs.AbinitLogFile&#39;&gt;
+.cif               &lt;class &#39;abipy.core.structure.Structure&#39;&gt;
+POSCAR             &lt;class &#39;abipy.core.structure.Structure&#39;&gt;
+.cssr              &lt;class &#39;abipy.core.structure.Structure&#39;&gt;
+.cube              &lt;class &#39;abipy.core.mixins.CubeFile&#39;&gt;
+anaddb.nc          &lt;class &#39;abipy.dfpt.anaddbnc.AnaddbNcFile&#39;&gt;
+DEN                &lt;class &#39;abipy.electrons.denpot.DensityFortranFile&#39;&gt;
+.psp8              &lt;class &#39;pymatgen.io.abinit.pseudos.Pseudo&#39;&gt;
+.pspnc             &lt;class &#39;pymatgen.io.abinit.pseudos.Pseudo&#39;&gt;
+.fhi               &lt;class &#39;pymatgen.io.abinit.pseudos.Pseudo&#39;&gt;
+JTH.xml            &lt;class &#39;pymatgen.io.abinit.pseudos.Pseudo&#39;&gt;
+.wout              &lt;class &#39;abipy.wannier90.wout.WoutFile&#39;&gt;
+COHPCAR.lobster    &lt;class &#39;abipy.electrons.lobster.CoxpFile&#39;&gt;
+COOPCAR.lobster    &lt;class &#39;abipy.electrons.lobster.CoxpFile&#39;&gt;
+ICOHPLIST.lobster  &lt;class &#39;abipy.electrons.lobster.ICoxpFile&#39;&gt;
+DOSCAR.lobster     &lt;class &#39;abipy.electrons.lobster.LobsterDoscarFile&#39;&gt;
+GSR.nc             &lt;class &#39;abipy.electrons.gsr.GsrFile&#39;&gt;
+ESKW.nc            &lt;class &#39;abipy.electrons.eskw.EskwFile&#39;&gt;
+DEN.nc             &lt;class &#39;abipy.electrons.denpot.DensityNcFile&#39;&gt;
+OUT.nc             &lt;class &#39;abipy.abio.outputs.OutNcFile&#39;&gt;
+VHA.nc             &lt;class &#39;abipy.electrons.denpot.VhartreeNcFile&#39;&gt;
+VXC.nc             &lt;class &#39;abipy.electrons.denpot.VxcNcFile&#39;&gt;
+VHXC.nc            &lt;class &#39;abipy.electrons.denpot.VhxcNcFile&#39;&gt;
+POT.nc             &lt;class &#39;abipy.electrons.denpot.PotNcFile&#39;&gt;
+WFK.nc             &lt;class &#39;abipy.waves.wfkfile.WfkFile&#39;&gt;
+HIST.nc            &lt;class &#39;abipy.dynamics.hist.HistFile&#39;&gt;
+PSPS.nc            &lt;class &#39;abipy.electrons.psps.PspsFile&#39;&gt;
+DDB                &lt;class &#39;abipy.dfpt.ddb.DdbFile&#39;&gt;
+PHBST.nc           &lt;class &#39;abipy.dfpt.phonons.PhbstFile&#39;&gt;
+PHDOS.nc           &lt;class &#39;abipy.dfpt.phonons.PhdosFile&#39;&gt;
+SCR.nc             &lt;class &#39;abipy.electrons.scr.ScrFile&#39;&gt;
+SIGRES.nc          &lt;class &#39;abipy.electrons.gw.SigresFile&#39;&gt;
+GRUNS.nc           &lt;class &#39;abipy.dfpt.gruneisen.GrunsNcFile&#39;&gt;
+MDF.nc             &lt;class &#39;abipy.electrons.bse.MdfFile&#39;&gt;
+FATBANDS.nc        &lt;class &#39;abipy.electrons.fatbands.FatBandsFile&#39;&gt;
+FOLD2BLOCH.nc      &lt;class &#39;abipy.electrons.fold2bloch.Fold2BlochNcfile&#39;&gt;
+CUT3DDENPOT.nc     &lt;class &#39;abipy.electrons.denpot.Cut3dDenPotNcFile&#39;&gt;
+OPTIC.nc           &lt;class &#39;abipy.electrons.optic.OpticNcFile&#39;&gt;
+A2F.nc             &lt;class &#39;abipy.eph.a2f.A2fFile&#39;&gt;
+SIGEPH.nc          &lt;class &#39;abipy.eph.sigeph.SigEPhFile&#39;&gt;
+TRANSPORT.nc       &lt;class &#39;abipy.eph.transportfile.TransportFile&#39;&gt;
+V1SYM.nc           &lt;class &#39;abipy.eph.v1sym.V1symFile&#39;&gt;
+GKQ.nc             &lt;class &#39;abipy.eph.gkq.GkqFile&#39;&gt;
+V1QNU.nc           &lt;class &#39;abipy.eph.v1qnu.V1qnuFile&#39;&gt;
+V1QAVG.nc          &lt;class &#39;abipy.eph.v1qavg.V1qAvgFile&#39;&gt;
+ABIWAN.nc          &lt;class &#39;abipy.wannier90.abiwan.AbiwanFile&#39;&gt;
 </pre></div>
 </div>
 </div>
@@ -506,10 +610,10 @@ file and compare the data with the database:</p>
 <span class="n">this</span>     <span class="n">Si1</span> <span class="n">C1</span>      <span class="mi">2</span>    <span class="mf">60.0</span>    <span class="mf">60.0</span>    <span class="mf">60.0</span>  <span class="mf">3.064763</span>  <span class="mf">3.064763</span>  <span class="mf">3.064763</span>
 
             <span class="n">volume</span> <span class="n">abispg_num</span> <span class="n">spglib_symb</span>  <span class="n">spglib_num</span>
-<span class="n">mp</span><span class="o">-</span><span class="mi">8062</span>  <span class="mf">21.000596</span>       <span class="bp">None</span>       <span class="n">F</span><span class="o">-</span><span class="mi">43</span><span class="n">m</span>         <span class="mi">216</span>
-<span class="n">this</span>     <span class="mf">20.355222</span>       <span class="bp">None</span>       <span class="n">F</span><span class="o">-</span><span class="mi">43</span><span class="n">m</span>         <span class="mi">216</span>
+<span class="n">mp</span><span class="o">-</span><span class="mi">8062</span>  <span class="mf">21.000596</span>       <span class="kc">None</span>       <span class="n">F</span><span class="o">-</span><span class="mi">43</span><span class="n">m</span>         <span class="mi">216</span>
+<span class="n">this</span>     <span class="mf">20.355222</span>       <span class="kc">None</span>       <span class="n">F</span><span class="o">-</span><span class="mi">43</span><span class="n">m</span>         <span class="mi">216</span>
 
-<span class="n">Use</span> <span class="o">--</span><span class="n">verbose</span> <span class="n">to</span> <span class="k">print</span> <span class="n">atomic</span> <span class="n">positions</span><span class="o">.</span>
+<span class="n">Use</span> <span class="o">--</span><span class="n">verbose</span> <span class="n">to</span> <span class="nb">print</span> <span class="n">atomic</span> <span class="n">positions</span><span class="o">.</span>
 </pre></div>
 </div>
 <p>Note that one can replace the <a class="reference external" href="https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/hist.ipynb">HIST.nc</a> file with any other file providing a structure object.</p>
@@ -717,7 +821,7 @@ to open/visualize the files stored on the cluster.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on Feb 22, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

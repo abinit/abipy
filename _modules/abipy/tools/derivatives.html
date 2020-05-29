@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>abipy.tools.derivatives &#8212; abipy 0.7.0 documentation</title>
+    <title>abipy.tools.derivatives &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -39,7 +42,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -62,6 +65,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -125,6 +129,8 @@
 <span></span><span class="c1"># coding: utf-8</span>
 <span class="sd">&quot;&quot;&quot;Tools for computing derivatives by finite differences.&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="kn">import</span> <span class="n">dict2namedtuple</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;finite_diff&quot;</span><span class="p">,</span>
@@ -212,35 +218,34 @@
         <span class="n">d</span><span class="p">[</span><span class="nb">ord</span><span class="p">][</span><span class="n">accuracy</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="nb">ord</span><span class="p">)</span> <span class="o">*</span> <span class="n">weights</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
 
-<div class="viewcode-block" id="finite_diff"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.derivatives.finite_diff">[docs]</a><span class="k">def</span> <span class="nf">finite_diff</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">acc</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
+<div class="viewcode-block" id="finite_diff"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.derivatives.finite_diff">[docs]</a><span class="k">def</span> <span class="nf">finite_diff</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">acc</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute the derivative of order `order` by finite difference.</span>
 <span class="sd">    For each point in arr, the function tries to use central differences</span>
 <span class="sd">    and fallbacks to forward/backward approximations for points that are close to the extrema.</span>
-<span class="sd">    Note that high accuracy levels can fail and raise `ValueError` if not enough points</span>
-<span class="sd">    are available in `arr`.</span>
+<span class="sd">    Note that high accuracy levels can fail and raise `ValueError` if not enough points are available in `arr`.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        arr: Input array with y-values.</span>
 <span class="sd">        h: Spacing along x</span>
 <span class="sd">        order: Derivative order</span>
 <span class="sd">        acc: accuracy level.</span>
+<span class="sd">        index: If not None, gives the index of the single element in arr where the derivative is wanted.</span>
+<span class="sd">            In this case a namedtuple with the derivative, the number of points used and the mode is returned</span>
 
 <span class="sd">    Return:</span>
-<span class="sd">        numpy array.</span>
+<span class="sd">        numpy array or (value, npts, mode) if index is not None .</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">iscomplexobj</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Derivatives of complex functions are not supported&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Derivatives of complex functions are not supported!&quot;</span><span class="p">)</span>
 
     <span class="c1"># Retrieve weights.</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">centr_ws</span> <span class="o">=</span> <span class="n">central_fdiff_weights</span><span class="p">[</span><span class="n">order</span><span class="p">][</span><span class="n">acc</span><span class="p">]</span>
-        <span class="n">forw_ws</span> <span class="o">=</span> <span class="n">forward_fdiff_weights</span><span class="p">[</span><span class="n">order</span><span class="p">][</span><span class="n">acc</span><span class="p">]</span>
-        <span class="n">back_ws</span> <span class="o">=</span> <span class="n">backward_fdiff_weights</span><span class="p">[</span><span class="n">order</span><span class="p">][</span><span class="n">acc</span><span class="p">]</span>
     <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Weights for order </span><span class="si">%s</span><span class="s2">, accuracy </span><span class="si">%s</span><span class="s2"> are missing!&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">order</span><span class="p">,</span> <span class="n">acc</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Centeral diff weights for order: </span><span class="si">%s</span><span class="s2">, and accuracy: </span><span class="si">%s</span><span class="s2"> are missing!&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">order</span><span class="p">,</span> <span class="n">acc</span><span class="p">))</span>
 
     <span class="n">npsum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span>
     <span class="n">ders</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
@@ -248,36 +253,46 @@
     <span class="n">cpad</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">centr_ws</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
 
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">index</span><span class="p">:</span> <span class="k">continue</span>
         <span class="n">start</span> <span class="o">=</span> <span class="n">i</span> <span class="o">-</span> <span class="n">cpad</span>
         <span class="n">stop</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="n">cpad</span> <span class="o">+</span> <span class="mi">1</span>
 
         <span class="k">if</span> <span class="n">start</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">stop</span> <span class="o">&lt;=</span> <span class="n">n</span><span class="p">:</span>
             <span class="c1"># Can do central difference.</span>
             <span class="n">ders</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">npsum</span><span class="p">(</span><span class="n">centr_ws</span> <span class="o">*</span> <span class="n">arr</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">stop</span><span class="p">])</span>
+            <span class="n">npts</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">centr_ws</span><span class="p">)</span>
+            <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;central&quot;</span>
 
         <span class="k">elif</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># Try forward.</span>
+            <span class="n">forw_ws</span> <span class="o">=</span> <span class="n">forward_fdiff_weights</span><span class="p">[</span><span class="n">order</span><span class="p">][</span><span class="n">acc</span><span class="p">]</span>
             <span class="n">stop</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">forw_ws</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">stop</span> <span class="o">&gt;</span> <span class="n">n</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="p">(</span><span class="s2">&quot;Don&#39;t have enough points for index=</span><span class="si">%s</span><span class="s2"> in array of len=</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span>
-                     <span class="s2">&quot;to compute foward finite difference with order=</span><span class="si">%s</span><span class="s2">, and acc=</span><span class="si">%s</span><span class="s2"> (nweights=</span><span class="si">%s</span><span class="s2">)</span><span class="se">\n</span><span class="s2">&quot;</span>
-                     <span class="s2">&quot;Decrease acc or increase the sampling&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">acc</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">forw_ws</span><span class="p">))</span>
-                    <span class="p">))</span>
+                        <span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Don&#39;t have enough points for index: </span><span class="si">%s</span><span class="s2"> in array of lenght: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span>
+                         <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">to compute forward finite difference with order: </span><span class="si">%s</span><span class="s2">, and acc: </span><span class="si">%s</span><span class="s2"> (num_weights: </span><span class="si">%s</span><span class="s2">)</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span>
+                         <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Decrease acc or increase the number of sampling points.&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">acc</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">forw_ws</span><span class="p">)))</span>
             <span class="n">ders</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">npsum</span><span class="p">(</span><span class="n">forw_ws</span> <span class="o">*</span> <span class="n">arr</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">stop</span><span class="p">])</span>
+            <span class="n">npts</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">forw_ws</span><span class="p">)</span>
+            <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;forward&quot;</span>
 
         <span class="k">elif</span> <span class="n">stop</span> <span class="o">&gt;</span> <span class="n">n</span><span class="p">:</span>
             <span class="c1"># Try backward.</span>
+            <span class="n">back_ws</span> <span class="o">=</span> <span class="n">backward_fdiff_weights</span><span class="p">[</span><span class="n">order</span><span class="p">][</span><span class="n">acc</span><span class="p">]</span>
             <span class="n">start</span> <span class="o">=</span> <span class="n">i</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">back_ws</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
             <span class="k">if</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="p">(</span><span class="s2">&quot;Don&#39;t have enough points for index=</span><span class="si">%s</span><span class="s2"> in array of len=</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span>
-                     <span class="s2">&quot;to compute backward finite difference with order=</span><span class="si">%s</span><span class="s2">, and acc=</span><span class="si">%s</span><span class="s2"> (nweights=</span><span class="si">%s</span><span class="s2">)</span><span class="se">\n</span><span class="s2">&quot;</span>
-                     <span class="s2">&quot;Decrease acc or increase the sampling&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">acc</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">back_ws</span><span class="p">))</span>
-                    <span class="p">))</span>
+                    <span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Don&#39;t have enough points for index: </span><span class="si">%s</span><span class="s2"> in array of length: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span>
+                    <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">to compute backward finite difference with order: </span><span class="si">%s</span><span class="s2">, and acc: </span><span class="si">%s</span><span class="s2"> (num_weights: </span><span class="si">%s</span><span class="s2">)</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span>
+                    <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Decrease acc or increase the number of sampling points.&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">acc</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">back_ws</span><span class="p">)))</span>
             <span class="n">ders</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">npsum</span><span class="p">(</span><span class="n">back_ws</span> <span class="o">*</span> <span class="n">arr</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">npts</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">back_ws</span><span class="p">)</span>
+            <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;backward&quot;</span>
 
-    <span class="k">return</span> <span class="n">ders</span><span class="o">/</span><span class="p">(</span><span class="n">h</span><span class="o">**</span><span class="n">order</span><span class="p">)</span></div>
+    <span class="k">if</span> <span class="n">index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ders</span> <span class="o">/</span> <span class="p">(</span><span class="n">h</span> <span class="o">**</span> <span class="n">order</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">ders</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="n">h</span> <span class="o">**</span> <span class="n">order</span><span class="p">),</span> <span class="n">npts</span><span class="o">=</span><span class="n">npts</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span></div>
 </pre></div>
 
     </div>
@@ -292,7 +307,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on May 29, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

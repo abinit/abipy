@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>abipy.flowtk.nodes &#8212; abipy 0.7.0 documentation</title>
+    <title>abipy.flowtk.nodes &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -39,7 +42,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -62,6 +65,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -134,19 +138,19 @@
 <span class="kn">import</span> <span class="nn">abc</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
-<span class="kn">from</span> <span class="nn">pprint</span> <span class="k">import</span> <span class="n">pprint</span>
-<span class="kn">from</span> <span class="nn">pymatgen.util.io_utils</span> <span class="k">import</span> <span class="n">AtomicFile</span>
-<span class="kn">from</span> <span class="nn">pydispatch</span> <span class="k">import</span> <span class="n">dispatcher</span>
-<span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="k">import</span> <span class="n">colored</span>
-<span class="kn">from</span> <span class="nn">monty.serialization</span> <span class="k">import</span> <span class="n">loadfn</span>
-<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">is_string</span>
-<span class="kn">from</span> <span class="nn">monty.io</span> <span class="k">import</span> <span class="n">FileLock</span>
-<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">AttrDict</span><span class="p">,</span> <span class="n">Namespace</span>
-<span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
-<span class="kn">from</span> <span class="nn">monty.json</span> <span class="k">import</span> <span class="n">MSONable</span>
-<span class="kn">from</span> <span class="nn">pymatgen.util.serialization</span> <span class="k">import</span> <span class="n">json_pretty_dump</span><span class="p">,</span> <span class="n">pmg_serialize</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">File</span><span class="p">,</span> <span class="n">Directory</span><span class="p">,</span> <span class="n">Dirviz</span><span class="p">,</span> <span class="n">irdvars_for_ext</span><span class="p">,</span> <span class="n">abi_extensions</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">pprint</span> <span class="kn">import</span> <span class="n">pprint</span>
+<span class="kn">from</span> <span class="nn">pymatgen.util.io_utils</span> <span class="kn">import</span> <span class="n">AtomicFile</span>
+<span class="kn">from</span> <span class="nn">pydispatch</span> <span class="kn">import</span> <span class="n">dispatcher</span>
+<span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="kn">import</span> <span class="n">colored</span>
+<span class="kn">from</span> <span class="nn">monty.serialization</span> <span class="kn">import</span> <span class="n">loadfn</span>
+<span class="kn">from</span> <span class="nn">monty.string</span> <span class="kn">import</span> <span class="n">is_string</span>
+<span class="kn">from</span> <span class="nn">monty.io</span> <span class="kn">import</span> <span class="n">FileLock</span>
+<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="kn">import</span> <span class="n">AttrDict</span><span class="p">,</span> <span class="n">Namespace</span>
+<span class="kn">from</span> <span class="nn">monty.functools</span> <span class="kn">import</span> <span class="n">lazy_property</span>
+<span class="kn">from</span> <span class="nn">monty.json</span> <span class="kn">import</span> <span class="n">MSONable</span>
+<span class="kn">from</span> <span class="nn">pymatgen.util.serialization</span> <span class="kn">import</span> <span class="n">json_pretty_dump</span><span class="p">,</span> <span class="n">pmg_serialize</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">File</span><span class="p">,</span> <span class="n">Directory</span><span class="p">,</span> <span class="n">Dirviz</span><span class="p">,</span> <span class="n">irdvars_for_ext</span><span class="p">,</span> <span class="n">abi_extensions</span>
 
 
 <span class="kn">import</span> <span class="nn">logging</span>
@@ -189,10 +193,10 @@
     <span class="n">_STATUS2STR</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">_STATUS_INFO</span><span class="p">])</span>
     <span class="n">_STATUS2COLOR_OPTS</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">{</span><span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="s2">&quot;on_color&quot;</span><span class="p">:</span> <span class="n">t</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;attrs&quot;</span><span class="p">:</span> <span class="n">_2attrs</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">4</span><span class="p">])})</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">_STATUS_INFO</span><span class="p">])</span>
 
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;&lt;</span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">, at </span><span class="si">%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_STATUS2STR</span><span class="p">[</span><span class="bp">self</span><span class="p">]</span>
 
@@ -247,7 +251,7 @@
 <span class="sd">        # Register the NSCF calculation and its dependency on the SCF run via deps.</span>
 <span class="sd">        nscf_task = work.register(nscf_strategy, deps={scf_task: &quot;DEN&quot;})</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">exts</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">exts</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            node: The task or the worfklow associated to the dependency or string with a filepath.</span>
@@ -264,13 +268,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">getters</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">exts</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;@&quot;</span><span class="p">)]</span>
         <span class="c1">#if self.getters: print(self.getters)</span>
 
-    <span class="k">def</span> <span class="nf">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_node</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;node </span><span class="si">%s</span><span class="s2"> will produce: </span><span class="si">%s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="p">),</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exts</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;node </span><span class="si">%s</span><span class="s2"> will produce: </span><span class="si">%s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exts</span><span class="p">))</span>
 
     <span class="nd">@property</span>
@@ -279,12 +283,12 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">node</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;The :class:`Node` associated to the dependency.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;The |Node| associated to the dependency.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_node</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;The status of the dependency, i.e. the status of the :class:`Node`.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;The status of the dependency, i.e. the status of the |Node|.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="o">.</span><span class="n">status</span>
 
 <div class="viewcode-block" id="Dependency.products"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.nodes.Dependency.products">[docs]</a>    <span class="nd">@lazy_property</span>
@@ -322,7 +326,7 @@
 <div class="viewcode-block" id="Dependency.connecting_vars"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.nodes.Dependency.connecting_vars">[docs]</a>    <span class="k">def</span> <span class="nf">connecting_vars</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a dictionary with the variables that must be added to the</span>
-<span class="sd">        input file in order to connect this :class:`Node` to its dependencies.</span>
+<span class="sd">        input file in order to connect this |Node| to its dependencies.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">vars</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">prod</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">products</span><span class="p">:</span>
@@ -343,14 +347,14 @@
 <span class="sd">    A product represents an output file produced by ABINIT instance.</span>
 <span class="sd">    This file is needed to start another `Task` or another `Work`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ext</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ext</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            ext: ABINIT file extension</span>
 <span class="sd">            path: (asbolute) filepath</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">ext</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">abi_extensions</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Extension </span><span class="si">%s</span><span class="s2"> has not been registered in the internal database&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">ext</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Extension `</span><span class="si">%s</span><span class="s2">` has not been registered in the internal database&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">ext</span><span class="p">))</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">ext</span> <span class="o">=</span> <span class="n">ext</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
@@ -368,7 +372,7 @@
 
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">ext</span><span class="p">,</span> <span class="n">filepath</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;File=</span><span class="si">%s</span><span class="s2">, Extension=</span><span class="si">%s</span><span class="s2">, &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ext</span><span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -386,12 +390,12 @@
 
 <div class="viewcode-block" id="GridFsFile"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.nodes.GridFsFile">[docs]</a><span class="k">class</span> <span class="nc">GridFsFile</span><span class="p">(</span><span class="n">AttrDict</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Information on a file that will stored in the MongoDb gridfs collection.&quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">fs_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;b&quot;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">fs_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;b&quot;</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">fs_id</span><span class="o">=</span><span class="n">fs_id</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="NodeResults"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.nodes.NodeResults">[docs]</a><span class="k">class</span> <span class="nc">NodeResults</span><span class="p">(</span><span class="nb">dict</span><span class="p">,</span> <span class="n">MSONable</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Dictionary used to store the most important results produced by a :class:`Node`.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Dictionary used to store the most important results produced by a |Node|.&quot;&quot;&quot;</span>
     <span class="n">JSON_SCHEMA</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
         <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
@@ -422,7 +426,7 @@
 
         <span class="k">return</span> <span class="n">node</span><span class="o">.</span><span class="n">Results</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">node</span> <span class="o">=</span> <span class="n">node</span>
 
@@ -540,9 +544,9 @@
 
 <div class="viewcode-block" id="check_spectator"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.nodes.check_spectator">[docs]</a><span class="k">def</span> <span class="nf">check_spectator</span><span class="p">(</span><span class="n">node_method</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Decorator for :class:`Node` methods. Raise `SpectatorNodeError`.</span>
+<span class="sd">    Decorator for |Node| methods. Raise `SpectatorNodeError`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">wraps</span>
+    <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
     <span class="nd">@wraps</span><span class="p">(</span><span class="n">node_method</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">node</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -557,12 +561,12 @@
 
 
 <div class="viewcode-block" id="NodeError"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.nodes.NodeError">[docs]</a><span class="k">class</span> <span class="nc">NodeError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Base Exception raised by :class:`Node` subclasses&quot;&quot;&quot;</span></div>
+    <span class="sd">&quot;&quot;&quot;Base Exception raised by |Node| subclasses&quot;&quot;&quot;</span></div>
 
 
 <div class="viewcode-block" id="SpectatorNodeError"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.nodes.SpectatorNodeError">[docs]</a><span class="k">class</span> <span class="nc">SpectatorNodeError</span><span class="p">(</span><span class="n">NodeError</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Exception raised by :class:`Node` methods when the node is in spectator mode</span>
+<span class="sd">    Exception raised by |Node| methods when the node is in spectator mode</span>
 <span class="sd">    and we are calling a method with side effects.</span>
 <span class="sd">    &quot;&quot;&quot;</span></div>
 
@@ -611,7 +615,7 @@
     <span class="c1"># Color used to plot the network in networkx</span>
     <span class="n">color_rgb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">105</span><span class="p">,</span> <span class="mi">105</span><span class="p">,</span> <span class="mi">105</span><span class="p">))</span> <span class="o">/</span> <span class="mi">255</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_in_spectator_mode</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="c1"># Node identifier.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_node_id</span> <span class="o">=</span> <span class="n">get_newnode_id</span><span class="p">()</span>
@@ -632,17 +636,17 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_finalized</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">S_INIT</span>
 
-    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Node</span><span class="p">):</span> <span class="k">return</span> <span class="kc">False</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_id</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">node_id</span>
 
-    <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">node_id</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="s2">&quot;&lt;</span><span class="si">%s</span><span class="s2">, node_id=</span><span class="si">%s</span><span class="s2">, workdir=</span><span class="si">%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">relworkdir</span><span class="p">)</span>
@@ -798,33 +802,33 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">is_task</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;True if this node is a Task&quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">.tasks</span> <span class="k">import</span> <span class="n">Task</span>
+        <span class="kn">from</span> <span class="nn">.tasks</span> <span class="kn">import</span> <span class="n">Task</span>
         <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Task</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">is_work</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;True if this node is a Work&quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">.works</span> <span class="k">import</span> <span class="n">Work</span>
+        <span class="kn">from</span> <span class="nn">.works</span> <span class="kn">import</span> <span class="n">Work</span>
         <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Work</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">is_flow</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;True if this node is a Flow&quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">.flows</span> <span class="k">import</span> <span class="n">Flow</span>
+        <span class="kn">from</span> <span class="nn">.flows</span> <span class="kn">import</span> <span class="n">Flow</span>
         <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Flow</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">deps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        List of :class:`Dependency` objects defining the dependencies</span>
-<span class="sd">        of this `Node`. Empty list if this :class:`Node` does not have dependencies.</span>
+<span class="sd">        of this `Node`. Empty list if this |Node| does not have dependencies.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_deps</span>
 
 <div class="viewcode-block" id="Node.add_deps"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.nodes.Node.add_deps">[docs]</a>    <span class="nd">@check_spectator</span>
     <span class="k">def</span> <span class="nf">add_deps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">deps</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Add a list of dependencies to the :class:`Node`.</span>
+<span class="sd">        Add a list of dependencies to the |Node|.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            deps: List of :class:`Dependency` objects specifying the dependencies of the node.</span>
@@ -840,23 +844,37 @@
 
         <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">Dependency</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">deps</span><span class="p">)</span>
 
-        <span class="c1"># Add the dependencies to the node</span>
+        <span class="c1"># Add the dependencies to the node and merge possibly duplicated keys.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_deps</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">deps</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">merge_deps</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_work</span><span class="p">:</span>
             <span class="c1"># The task in the work should inherit the same dependency.</span>
             <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
                 <span class="n">task</span><span class="o">.</span><span class="n">add_deps</span><span class="p">(</span><span class="n">deps</span><span class="p">)</span>
+                <span class="n">task</span><span class="o">.</span><span class="n">merge_deps</span><span class="p">()</span>
 
         <span class="c1"># If we have a FileNode as dependency, add self to its children</span>
         <span class="c1"># Node.get_parents will use this list if node.is_isfile.</span>
         <span class="k">for</span> <span class="n">dep</span> <span class="ow">in</span> <span class="p">(</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">deps</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">node</span><span class="o">.</span><span class="n">is_file</span><span class="p">):</span>
             <span class="n">dep</span><span class="o">.</span><span class="n">node</span><span class="o">.</span><span class="n">add_filechild</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="Node.merge_deps"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.nodes.Node.merge_deps">[docs]</a>    <span class="k">def</span> <span class="nf">merge_deps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Group all extensions associated to the same node in a single list.</span>
+<span class="sd">        Useful for cases in which we may end up with the same node appearing more than once</span>
+<span class="sd">        in self.deps. See e.g. ``add_deps``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+        <span class="n">node2exts</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">dep</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">deps</span><span class="p">:</span>
+            <span class="n">node2exts</span><span class="p">[</span><span class="n">dep</span><span class="o">.</span><span class="n">node</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">dep</span><span class="o">.</span><span class="n">exts</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_deps</span> <span class="o">=</span> <span class="p">[</span><span class="n">Dependency</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">exts</span><span class="p">)</span> <span class="k">for</span> <span class="n">node</span><span class="p">,</span> <span class="n">exts</span> <span class="ow">in</span> <span class="n">node2exts</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span></div>
+
 <div class="viewcode-block" id="Node.remove_deps"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.nodes.Node.remove_deps">[docs]</a>    <span class="nd">@check_spectator</span>
     <span class="k">def</span> <span class="nf">remove_deps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">deps</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Remove a list of dependencies from the :class:`Node`.</span>
+<span class="sd">        Remove a list of dependencies from the |Node|.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            deps: List of :class:`Dependency` objects specifying the  dependencies of the node.</span>
@@ -885,19 +903,30 @@
         <span class="sd">&quot;&quot;&quot;True if this node depends on the other node.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">other</span> <span class="ow">in</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">node</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">deps</span><span class="p">]</span></div>
 
+<div class="viewcode-block" id="Node.find_parent_with_ext"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.nodes.Node.find_parent_with_ext">[docs]</a>    <span class="k">def</span> <span class="nf">find_parent_with_ext</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ext</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the parent (usually a |Task|) that produces the file with extension `ext`.</span>
+<span class="sd">        Raises ValueError if multiple parents are found.</span>
+<span class="sd">        Return None if no parent is found.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">parent</span><span class="p">,</span> <span class="n">count</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">dep</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">deps</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ext</span> <span class="ow">in</span> <span class="n">dep</span><span class="o">.</span><span class="n">exts</span><span class="p">:</span>
+                <span class="n">parent</span> <span class="o">=</span> <span class="n">dep</span><span class="o">.</span><span class="n">node</span>
+                <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot have multiple parents producing the same file extension!</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">str_deps</span><span class="p">())</span>
+
+        <span class="k">return</span> <span class="n">parent</span></div>
+
 <div class="viewcode-block" id="Node.get_parents"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.nodes.Node.get_parents">[docs]</a>    <span class="k">def</span> <span class="nf">get_parents</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the list of nodes in the :class:`Flow` required by this :class:`Node`&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Return the list of nodes in the |Flow| required by this |Node|&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">node</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">deps</span><span class="p">]</span></div>
-        <span class="c1">#parents = []</span>
-        <span class="c1">#for work in self.flow:</span>
-        <span class="c1">#    if self.depends_on(work): parents.append(work)</span>
-        <span class="c1">#    for task in work:</span>
-        <span class="c1">#        if self.depends_on(task): parents.append(task)</span>
-        <span class="c1">#return parents</span>
 
 <div class="viewcode-block" id="Node.get_children"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.nodes.Node.get_children">[docs]</a>    <span class="k">def</span> <span class="nf">get_children</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return the list of nodes in the :class:`Flow` that depends on this :class:`Node`</span>
+<span class="sd">        Return the list of nodes in the |Flow| that depends on this |Node|</span>
 
 <span class="sd">        .. note::</span>
 
@@ -1023,7 +1052,7 @@
         <span class="k">if</span> <span class="n">categories</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">handlers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;categories and handlers are mutually exclusive!&quot;</span><span class="p">)</span>
 
-        <span class="kn">from</span> <span class="nn">.events</span> <span class="k">import</span> <span class="n">get_event_handler_classes</span>
+        <span class="kn">from</span> <span class="nn">.events</span> <span class="kn">import</span> <span class="n">get_event_handler_classes</span>
         <span class="k">if</span> <span class="n">categories</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
             <span class="n">handlers</span> <span class="o">=</span> <span class="p">[</span><span class="bp">cls</span><span class="p">()</span> <span class="k">for</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="n">get_event_handler_classes</span><span class="p">(</span><span class="n">categories</span><span class="o">=</span><span class="n">categories</span><span class="p">)]</span>
@@ -1058,7 +1087,7 @@
 <span class="sd">        possible to not have all receivers called if a raises an error.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">in_spectator_mode</span><span class="p">:</span> <span class="k">return</span> <span class="kc">None</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Node </span><span class="si">%s</span><span class="s2"> broadcasts signal </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">signal</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Node </span><span class="si">%s</span><span class="s2"> broadcasts signal </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">signal</span><span class="p">))</span>
         <span class="n">dispatcher</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">signal</span><span class="o">=</span><span class="n">signal</span><span class="p">,</span> <span class="n">sender</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span></div>
 
     <span class="c1">##########################</span>
@@ -1079,11 +1108,11 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A Node that consists of a file. May be not yet existing</span>
 
-<span class="sd">    Mainly used to connect :class:`Task` objects to external files produced in previous runs.</span>
+<span class="sd">    Mainly used to connect |Task| objects to external files produced in previous runs.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">color_rgb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">102</span><span class="p">,</span> <span class="mi">51</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mi">255</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
 
@@ -1096,7 +1125,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_filechildren</span> <span class="o">=</span> <span class="p">[]</span>
 
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="s2">&quot;&lt;</span><span class="si">%s</span><span class="s2">, node_id=</span><span class="si">%s</span><span class="s2">, rpath=</span><span class="si">%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_id</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">))</span>
@@ -1142,7 +1171,7 @@
     <span class="c1"># a NscfTask will change the FFT grid to match the one used in the GsTask.</span>
 
 <div class="viewcode-block" id="FileNode.abiopen"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.nodes.FileNode.abiopen">[docs]</a>    <span class="k">def</span> <span class="nf">abiopen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">abipy</span> <span class="k">import</span> <span class="n">abilab</span>
+        <span class="kn">from</span> <span class="nn">abipy</span> <span class="kn">import</span> <span class="n">abilab</span>
         <span class="k">return</span> <span class="n">abilab</span><span class="o">.</span><span class="n">abiopen</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="FileNode.open_gsr"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.nodes.FileNode.open_gsr">[docs]</a>    <span class="k">def</span> <span class="nf">open_gsr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1150,14 +1179,13 @@
 
     <span class="k">def</span> <span class="nf">_abiopen_abiext</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">abiext</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">glob</span>
-        <span class="kn">from</span> <span class="nn">abipy</span> <span class="k">import</span> <span class="n">abilab</span>
+        <span class="kn">from</span> <span class="nn">abipy</span> <span class="kn">import</span> <span class="n">abilab</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">abiext</span><span class="p">):</span>
             <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\n</span><span class="s2"></span>
 <span class="s2">File type does not match the abinit file extension.</span>
 <span class="s2">Caller asked for abiext: `</span><span class="si">%s</span><span class="s2">` whereas filepath: `</span><span class="si">%s</span><span class="s2">`.</span>
 <span class="s2">Continuing anyway assuming that the netcdf file provides the API/dims/vars neeeded by the caller.</span>
 <span class="s2">&quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">abiext</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 
         <span class="c1">#try to find file in the same path</span>
@@ -1217,7 +1245,7 @@
 <span class="sd">    .. attribute:: message</span>
 <span class="sd">        The result of record.getMessage(), computed just as the record is emitted</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">pathname</span><span class="p">,</span> <span class="n">lineno</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">exc_info</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">pathname</span><span class="p">,</span> <span class="n">lineno</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">exc_info</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize a logging record with interesting information.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1259,10 +1287,10 @@
         <span class="n">i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">asctime</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">asctime</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">asctime</span><span class="p">[:</span><span class="n">i</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s1">&#39;&lt;</span><span class="si">%s</span><span class="s1">, </span><span class="si">%s</span><span class="s1">, </span><span class="si">%s</span><span class="s1">, </span><span class="si">%s</span><span class="s1">,</span><span class="se">\n</span><span class="s1">&quot;</span><span class="si">%s</span><span class="s1">&quot;&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">levelno</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pathname</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lineno</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_message</span><span class="p">(</span><span class="n">metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
 <div class="viewcode-block" id="HistoryRecord.get_message"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.nodes.HistoryRecord.get_message">[docs]</a>    <span class="k">def</span> <span class="nf">get_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">asctime</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
@@ -1302,7 +1330,7 @@
 <div class="viewcode-block" id="NodeHistory"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.nodes.NodeHistory">[docs]</a><span class="k">class</span> <span class="nc">NodeHistory</span><span class="p">(</span><span class="n">collections</span><span class="o">.</span><span class="n">deque</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Logger-like object&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
 <div class="viewcode-block" id="NodeHistory.to_string"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.nodes.NodeHistory.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -1320,6 +1348,10 @@
 <div class="viewcode-block" id="NodeHistory.critical"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.nodes.NodeHistory.critical">[docs]</a>    <span class="k">def</span> <span class="nf">critical</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Log &#39;msg % args&#39; with the critical severity level&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="p">(</span><span class="s2">&quot;CRITICAL&quot;</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="NodeHistory.debug"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.nodes.NodeHistory.debug">[docs]</a>    <span class="k">def</span> <span class="nf">debug</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Log &#39;msg % args&#39; with the critical severity level&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="p">(</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Low-level logging routine which creates a :class:`HistoryRecord`.&quot;&quot;&quot;</span>
@@ -1347,7 +1379,7 @@
 
 <div class="viewcode-block" id="GarbageCollector"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.nodes.GarbageCollector">[docs]</a><span class="k">class</span> <span class="nc">GarbageCollector</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;This object stores information on the &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exts</span><span class="p">,</span> <span class="n">policy</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exts</span><span class="p">,</span> <span class="n">policy</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">exts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">policy</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">exts</span><span class="p">),</span> <span class="n">policy</span></div>
 
 
@@ -1379,7 +1411,7 @@
 
 <div class="viewcode-block" id="get_newnode_id"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.nodes.get_newnode_id">[docs]</a><span class="k">def</span> <span class="nf">get_newnode_id</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns a new node identifier used for :class:`Task`, :class:`Work` and :class:`Flow` objects.</span>
+<span class="sd">    Returns a new node identifier used for |Task|, |Work| and |Flow| objects.</span>
 
 <span class="sd">    .. warning:</span>
 
@@ -1419,7 +1451,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on May 29, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

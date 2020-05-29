@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Changelog &#8212; abipy 0.7.0 documentation</title>
+    <title>Changelog &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -41,7 +44,7 @@
         </button>
         <a class="navbar-brand" href="index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -64,6 +67,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -140,12 +144,27 @@
       
   <div class="section" id="changelog">
 <span id="id1"></span><h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h1>
+<p>Release 0.8.0: xxxx-xx-xx</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Add abicheck.py –create-config option to install predefined yaml configuration files</p></li>
+<li><p>Add support for NSCF calculations with meta-GGA.</p></li>
+<li><p>Preliminary support for panel dashboards exposed via <cite>abiopen FILE –panel</cite> and <cite>abistruct panel FILE</cite>.
+Note that not all Abinit files are supported at present.</p></li>
+<li><p>Add examples and flows for effective mass calculations</p></li>
+<li><p>Add examples for quasi-harmonic calculations and post-processing tools</p></li>
+<li><p>Add support for JSON files (including MSONable format) to abiopen.py
+Supports <cite>–notebook</cite>, <cite>–panel</cite> options such as <cite>abiopen.py FILE.json –panel</cite></p></li>
+<li><p>Improved support for EPH calculations.</p></li>
+<li><p>Add <cite>primitive</cite> command to <cite>abistruct.py</cite> to get primitive structure from spglib</p></li>
+</ul>
+</div></blockquote>
 <p>Release 0.7.0: 2019-10-18</p>
 <blockquote>
 <div><ul class="simple">
 <li><p>Remove support for py2. Now Abipy requires py &gt;= 3.6 (3.8 is not yet supported)</p></li>
 <li><p>AbiPy now requires pymatgen &gt;= 2019.10.16</p></li>
-<li><p>Move workflow code from pymatgen to abipy.flowk</p></li>
+<li><p>Move workflow code from pymatgen to abipy.flowtk</p></li>
 <li><p>Improved support for EPH calculations.</p></li>
 </ul>
 </div></blockquote>
@@ -193,7 +212,7 @@ saved in the FATBANDS.nc file.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on May 29, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

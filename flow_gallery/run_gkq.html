@@ -3,22 +3,25 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Flow for computing e-ph matrix elements along a q-path &#8212; abipy 0.7.0 documentation</title>
+    <title>Flow to compute e-ph matrix elements along a q-path &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Flow for phonons with DFPT" href="run_phonons.html" />
-    <link rel="prev" title="Starting a Flow from external files" href="run_from_files.html" />
+    <link rel="next" title="Band structure w/wo magnetization" href="run_fe_ebands.html" />
+    <link rel="prev" title="Band structure Flow" href="run_si_ebands.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
@@ -41,7 +44,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -64,6 +67,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -90,7 +94,7 @@
   <ul class="dropdown-menu localtoc"
       role="menu"
       aria-labelledby="dLabelLocalToc"><ul>
-<li><a class="reference internal" href="#">Flow for computing e-ph matrix elements along a q-path</a></li>
+<li><a class="reference internal" href="#">Flow to compute e-ph matrix elements along a q-path</a></li>
 </ul>
 </ul>
 </li>
@@ -100,11 +104,11 @@
               
                 
   <li>
-    <a href="run_from_files.html" title="Previous Chapter: Starting a Flow from external files"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Starting a Fl...</span>
+    <a href="run_si_ebands.html" title="Previous Chapter: Band structure Flow"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Band structure Flow</span>
     </a>
   </li>
   <li>
-    <a href="run_phonons.html" title="Next Chapter: Flow for phonons with DFPT"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Flow for phon... &raquo;</span>
+    <a href="run_fe_ebands.html" title="Next Chapter: Band structure w/wo magnetization"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Band structur... &raquo;</span>
     </a>
   </li>
               
@@ -142,19 +146,16 @@
 <p class="admonition-title">Note</p>
 <p>Click <a class="reference internal" href="#sphx-glr-download-flow-gallery-run-gkq-py"><span class="std std-ref">here</span></a> to download the full example code</p>
 </div>
-<div class="sphx-glr-example-title section" id="flow-for-computing-e-ph-matrix-elements-along-a-q-path">
-<span id="sphx-glr-flow-gallery-run-gkq-py"></span><h1>Flow for computing e-ph matrix elements along a q-path<a class="headerlink" href="#flow-for-computing-e-ph-matrix-elements-along-a-q-path" title="Permalink to this headline">¶</a></h1>
-<p>This example shows how to compute the phonon band structure of AlAs with AbiPy flows.
-The final results (out_DDB, out_DVDB) will be produced automatically at the end of the run
-and saved in <code class="docutils literal notranslate"><span class="pre">flow_phonons/outdata/</span></code>.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
-
-<span class="kn">import</span> <span class="nn">sys</span>
+<div class="sphx-glr-example-title section" id="flow-to-compute-e-ph-matrix-elements-along-a-q-path">
+<span id="sphx-glr-flow-gallery-run-gkq-py"></span><h1>Flow to compute e-ph matrix elements along a q-path<a class="headerlink" href="#flow-to-compute-e-ph-matrix-elements-along-a-q-path" title="Permalink to this headline">¶</a></h1>
+<p>This example shows how to compute the e-ph matrix elements in AlAs along a q-path with AbiPy flows.
+The final results are stored in the GKQ.nc file (one file for q-point) in the outdata of each task.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">abipy.abilab</span> <span class="k">as</span> <span class="nn">abilab</span>
 <span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
 
-<span class="kn">from</span> <span class="nn">abipy</span> <span class="k">import</span> <span class="n">flowtk</span>
+<span class="kn">from</span> <span class="nn">abipy</span> <span class="kn">import</span> <span class="n">flowtk</span>
 
 
 <span class="k">def</span> <span class="nf">make_scf_input</span><span class="p">(</span><span class="n">ngkpt</span><span class="p">):</span>
@@ -179,40 +180,34 @@ and saved in <code class="docutils literal notranslate"><span class="pre">flow_p
 
 <span class="k">def</span> <span class="nf">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Create a `Flow` for phonon calculations. The flow has two works.</span>
-
-<span class="sd">    The first work contains a single GS task that produces the WFK file used in DFPT</span>
-<span class="sd">    Then we have multiple Works that are generated automatically</span>
-<span class="sd">    in order to compute the dynamical matrix on a [2, 2, 2] mesh.</span>
-<span class="sd">    Symmetries are taken into account: only q-points in the IBZ are generated and</span>
-<span class="sd">    for each q-point only the independent atomic perturbations are computed.</span>
+<span class="sd">    Create a `Flow` for the computation of e-ph matrix elements</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Working directory (default is the name of the script with &#39;.py&#39; removed and &quot;run_&quot; replaced by &quot;flow_&quot;)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">workdir</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;READTHEDOCS&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span> <span class="vm">__file__</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="s2">&quot;run_gkq.py&quot;</span><span class="p">)</span>
-        <span class="n">options</span><span class="o">.</span><span class="n">workdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.py&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;run_&quot;</span><span class="p">,</span> <span class="s2">&quot;flow_&quot;</span><span class="p">)</span>
+        <span class="n">options</span><span class="o">.</span><span class="n">workdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.py&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;run_&quot;</span><span class="p">,</span> <span class="s2">&quot;flow_&quot;</span><span class="p">)</span>
 
-    <span class="c1"># Use 2x2x2 both for k-mesh and q-mesh</span>
+    <span class="c1"># Use 2x2x2 both for k-mesh.</span>
     <span class="c1"># Build input for GS calculation</span>
     <span class="n">scf_input</span> <span class="o">=</span> <span class="n">make_scf_input</span><span class="p">(</span><span class="n">ngkpt</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
 
-    <span class="c1"># Create flow to compute all the independent atomic perturbations</span>
-    <span class="c1"># corresponding to a [4, 4, 4] q-mesh.</span>
-    <span class="c1"># Electric field and Born effective charges are also computed.</span>
-    <span class="kn">from</span> <span class="nn">abipy.flowtk.eph_flows</span> <span class="k">import</span> <span class="n">GkqPathFlow</span>
+    <span class="c1"># corresponding to a [2, 2, 2] q-mesh.</span>
     <span class="n">ngqpt</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-    <span class="c1">#qpath_list = [[0.01, 0, 0], [0.02, 0, 0], [0.24, 0, 0], [0.45, 0, 0]]</span>
+
+    <span class="c1"># Create flow to compute all the independent atomic perturbations</span>
+    <span class="c1"># Use ndivsm = 0 to pass an explicit list of q-points.</span>
+    <span class="c1"># If ndivsm &gt; 0, qpath_list is interpreted as a list of boundaries for the q-path</span>
     <span class="n">qpath_list</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.01</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
                   <span class="p">[</span><span class="mf">0.24</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.45</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]]</span>
 
+    <span class="kn">from</span> <span class="nn">abipy.flowtk.eph_flows</span> <span class="kn">import</span> <span class="n">GkqPathFlow</span>
     <span class="n">flow</span> <span class="o">=</span> <span class="n">GkqPathFlow</span><span class="o">.</span><span class="n">from_scf_input</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="n">scf_input</span><span class="p">,</span>
-                                      <span class="n">ngqpt</span><span class="p">,</span> <span class="n">qpath_list</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
-                                      <span class="n">with_becs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                                      <span class="n">ngqpt</span><span class="p">,</span> <span class="n">qpath_list</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">with_becs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                      <span class="n">ddk_tolerance</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;tolwfr&quot;</span><span class="p">:</span> <span class="mf">1e-8</span><span class="p">})</span>
 
     <span class="k">return</span> <span class="n">flow</span>
 
 
-<span class="c1"># This block generates the thumbnails in the Abipy gallery.</span>
+<span class="c1"># This block generates the thumbnails in the AbiPy gallery.</span>
 <span class="c1"># You can safely REMOVE this part if you are using this script for production runs.</span>
 <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;READTHEDOCS&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
     <span class="vm">__name__</span> <span class="o">=</span> <span class="kc">None</span>
@@ -243,33 +238,13 @@ and saved in <code class="docutils literal notranslate"><span class="pre">flow_p
 </div>
 <p>Run the script with:</p>
 <blockquote>
-<div><p>run_phonons.py -s</p>
+<div><p>run_gkq.py -s</p>
 </div></blockquote>
 <p>then use:</p>
 <blockquote>
 <div><p>abirun.py flow_phonons history</p>
 </div></blockquote>
-<p>to get the list of actions perfomed by AbiPy to complete the flow.
-Note how the <code class="docutils literal notranslate"><span class="pre">PhononWork</span></code> has merged all the partial DDB files produced by the PhononTasks</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">===================================================================================================================================</span>
-<span class="o">======================================</span> &lt;PhononWork, <span class="nv">node_id</span><span class="o">=</span><span class="m">241274</span>, <span class="nv">workdir</span><span class="o">=</span>flow_phonons/w1&gt; <span class="o">================================</span>
-<span class="o">===================================================================================================================================</span>
-<span class="o">[</span>Thu Dec  <span class="m">7</span> <span class="m">22</span>:55:02 <span class="m">2017</span><span class="o">]</span> Finalized <span class="nb">set</span> to True
-<span class="o">[</span>Thu Dec  <span class="m">7</span> <span class="m">22</span>:55:02 <span class="m">2017</span><span class="o">]</span> Will call mrgddb to merge <span class="o">[</span> .... <span class="o">]</span>
-</pre></div>
-</div>
-<p>Now open the final DDB file with:</p>
-<blockquote>
-<div><p>abiopen.py flow_phonons/outdata/out_DDB</p>
-</div></blockquote>
-<p>and invoke anaddb to compute the phonon band structure and the phonon DOS with:</p>
-<div class="highlight-ipython notranslate"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="n">phbst_file</span><span class="p">,</span> <span class="n">phdos_file</span> <span class="o">=</span> <span class="n">abifile</span><span class="o">.</span><span class="n">anaget_phbst_and_phdos_files</span><span class="p">()</span>
-<span class="gp">In [2]: </span><span class="o">%</span><span class="k">matplotlib</span>
-<span class="gp">In [3]: </span><span class="n">phbst_file</span><span class="o">.</span><span class="n">plot_phbands</span><span class="p">()</span>
-</pre></div>
-</div>
-<img alt="Phonon band structure of AlAs." src="https://github.com/abinit/abipy_assets/blob/master/run_phonons.png?raw=true" />
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  2.636 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  2.924 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-flow-gallery-run-gkq-py">
 <div class="sphx-glr-download docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/83d3207578b673df7355e7d6cf48509f/run_gkq.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">run_gkq.py</span></code></a></p>
@@ -294,7 +269,7 @@ Note how the <code class="docutils literal notranslate"><span class="pre">Phonon
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on Feb 22, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

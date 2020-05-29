@@ -22,7 +22,6 @@ If you replace GGA with LDA, you will observe that LDA tends to underestimate th
 
 .. code-block:: default
 
-    from __future__ import division, print_function, unicode_literals, absolute_import
 
     import sys
     import os
@@ -38,8 +37,7 @@ If you replace GGA with LDA, you will observe that LDA tends to underestimate th
         """
         # Set working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
         if not options.workdir:
-            if os.getenv("READTHEDOCS", False): __file__ = os.path.join(os.getcwd(), "run_relax_vs_kpts.py")
-            options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
+            options.workdir = os.path.basename(sys.argv[0]).replace(".py", "").replace("run_", "flow_")
 
         # List of k-meshes.
         ngkpt_list = [
@@ -78,13 +76,12 @@ If you replace GGA with LDA, you will observe that LDA tends to underestimate th
                                        task_class=flowtk.RelaxTask)
 
 
-    # This block generates the thumbnails in the Abipy gallery.
+    # This block generates the thumbnails in the AbiPy gallery.
     # You can safely REMOVE this part if you are using this script for production runs.
     if os.getenv("READTHEDOCS", False):
         __name__ = None
         import tempfile
         options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-        #build_flow(options).plot_networkx(with_edge_labels=True, tight_layout=True)
         build_flow(options).graphviz_imshow()
 
 
@@ -114,7 +111,7 @@ If you replace GGA with LDA, you will observe that LDA tends to underestimate th
 
  .. code-block:: none
 
-    /Users/gmatteo/git_repos/pymatgen/pymatgen/io/cif.py:1116: UserWarning: Issues encountered while parsing CIF: Some fractional co-ordinates rounded to ideal values to avoid issues with finite precision.
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/io/cif.py:1118: UserWarning: Issues encountered while parsing CIF: Some fractional co-ordinates rounded to ideal values to avoid issues with finite precision.
       warnings.warn("Issues encountered while parsing CIF: %s" % "\n".join(self.warnings))
     /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
       plt.show()
@@ -162,7 +159,7 @@ The experimental results are:
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.468 seconds)
+   **Total running time of the script:** ( 0 minutes  0.527 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_relax_vs_kpts.py:

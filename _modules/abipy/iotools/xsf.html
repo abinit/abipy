@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>abipy.iotools.xsf &#8212; abipy 0.7.0 documentation</title>
+    <title>abipy.iotools.xsf &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -39,7 +42,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -62,6 +65,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -127,11 +131,12 @@
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">pymatgen.core.units</span> <span class="k">import</span> <span class="n">Energy</span><span class="p">,</span> <span class="n">EnergyArray</span> <span class="c1">#, ArrayWithUnit</span>
-<span class="kn">from</span> <span class="nn">abipy.tools.numtools</span> <span class="k">import</span> <span class="n">transpose_last3dims</span><span class="p">,</span> <span class="n">add_periodic_replicas</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.units</span> <span class="kn">import</span> <span class="n">Energy</span><span class="p">,</span> <span class="n">EnergyArray</span> <span class="c1">#, ArrayWithUnit</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.numtools</span> <span class="kn">import</span> <span class="n">transpose_last3dims</span><span class="p">,</span> <span class="n">add_periodic_replicas</span>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;xsf_write_structure_and_data_to_path&quot;</span><span class="p">,</span>
     <span class="s2">&quot;xsf_write_structure&quot;</span><span class="p">,</span>
     <span class="s2">&quot;xsf_write_data&quot;</span><span class="p">,</span>
     <span class="s2">&quot;bxsf_write&quot;</span><span class="p">,</span>
@@ -188,6 +193,13 @@
                 <span class="n">fwrite</span><span class="p">(</span><span class="s1">&#39; </span><span class="si">%20.14f</span><span class="s1"> </span><span class="si">%20.14f</span><span class="s1"> </span><span class="si">%20.14f</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">cart_forces</span><span class="p">[</span><span class="n">a</span><span class="p">]))</span></div>
 
 
+<div class="viewcode-block" id="xsf_write_structure_and_data_to_path"><a class="viewcode-back" href="../../../api/iotools_api.html#abipy.iotools.xsf.xsf_write_structure_and_data_to_path">[docs]</a><span class="k">def</span> <span class="nf">xsf_write_structure_and_data_to_path</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">datar</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Simplified interface to xsf routines to write structure and data to filepath.&quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+        <span class="n">xsf_write_structure</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="n">structure</span><span class="p">)</span>
+        <span class="n">xsf_write_data</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">datar</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
 <div class="viewcode-block" id="xsf_write_data"><a class="viewcode-back" href="../../../api/iotools_api.html#abipy.iotools.xsf.xsf_write_data">[docs]</a><span class="k">def</span> <span class="nf">xsf_write_data</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">add_replicas</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">cplx_mode</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Write data in the Xcrysden format (XSF)</span>
@@ -195,9 +207,9 @@
 <span class="sd">    Args:</span>
 <span class="sd">        file: file-like object.</span>
 <span class="sd">        structure: :class:`Structure` object.</span>
-<span class="sd">        data: array-like object in C-order, i.e data[nx,ny,nz]</span>
+<span class="sd">        data: array-like object in C-order, i.e data[nx, ny, nz]</span>
 <span class="sd">        add_replicas: If True, data is padded with redundant data points.</span>
-<span class="sd">            in order to have a periodic 3D array of shape=(nx+1,ny+1,nz+1).</span>
+<span class="sd">            in order to have a periodic 3D array of shape: (nx+1, ny+1, nz+1).</span>
 <span class="sd">        cplx_mode: string defining the data to print when data is a complex array.</span>
 <span class="sd">            Possible choices are (case-insensitive):</span>
 
@@ -355,7 +367,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on May 29, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

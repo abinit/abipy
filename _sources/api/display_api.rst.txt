@@ -21,22 +21,6 @@ display Package
    :undoc-members:
    :show-inheritance:
 
-:mod:`pandasw` Module
-----------------------
-
-.. automodule:: abipy.display.pandasw
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-:mod:`seabornw` Module
-----------------------
-
-.. automodule:: abipy.display.seabornw
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 :mod:`utils` Module
 -------------------
 

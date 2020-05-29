@@ -43,7 +43,11 @@ See :cite:`Lee1995` for the further details about the internal implementation an
 
  .. code-block:: none
 
-    [33mCreating temporary file: /var/folders/nc/k69spyd12qv2tk3stk2xrxg40000gr/T/tmpi3ta41_6mp-7000_DDB[0m
+    [33mCreating temporary file: /var/folders/nc/k69spyd12qv2tk3stk2xrxg40000gr/T/tmpjsnw1eybmp-7000_DDB[0m
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+      plt.show()
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+      plt.show()
     /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
       plt.show()
 
@@ -96,11 +100,12 @@ See :cite:`Lee1995` for the further details about the internal implementation an
     # Remember to close the files.
     phbst_file.close()
     phdos_file.close()
+    ddb.close()
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  5.050 seconds)
+   **Total running time of the script:** ( 0 minutes  5.215 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_phonons_msqd.py:

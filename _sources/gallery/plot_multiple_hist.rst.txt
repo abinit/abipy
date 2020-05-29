@@ -42,6 +42,8 @@ structure relaxations with the HIST robot.
     [2 rows x 26 columns]
     /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
       plt.show()
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+      plt.show()
 
 
 
@@ -75,7 +77,7 @@ structure relaxations with the HIST robot.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.992 seconds)
+   **Total running time of the script:** ( 0 minutes  1.182 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_multiple_hist.py:

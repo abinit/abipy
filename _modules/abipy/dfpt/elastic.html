@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>abipy.dfpt.elastic &#8212; abipy 0.7.0 documentation</title>
+    <title>abipy.dfpt.elastic &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -39,7 +42,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -62,6 +65,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -128,13 +132,13 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
-<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
-<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">list_strings</span><span class="p">,</span> <span class="n">marquee</span>
-<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">AttrDict</span>
-<span class="kn">from</span> <span class="nn">monty.json</span> <span class="k">import</span> <span class="n">MSONable</span>
-<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">Has_Structure</span>
-<span class="kn">from</span> <span class="nn">abipy.tools.tensors</span> <span class="k">import</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">ElasticTensor</span><span class="p">,</span> <span class="n">PiezoTensor</span>
-<span class="kn">from</span> <span class="nn">abipy.flowtk.netcdf</span> <span class="k">import</span> <span class="n">ETSF_Reader</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">monty.string</span> <span class="kn">import</span> <span class="n">list_strings</span><span class="p">,</span> <span class="n">marquee</span>
+<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="kn">import</span> <span class="n">AttrDict</span>
+<span class="kn">from</span> <span class="nn">monty.json</span> <span class="kn">import</span> <span class="n">MSONable</span>
+<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="kn">import</span> <span class="n">Has_Structure</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.tensors</span> <span class="kn">import</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">ElasticTensor</span><span class="p">,</span> <span class="n">PiezoTensor</span>
+<span class="kn">from</span> <span class="nn">abipy.flowtk.netcdf</span> <span class="kn">import</span> <span class="n">ETSF_Reader</span>
 
 
 <div class="viewcode-block" id="MyElasticTensor"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.elastic.MyElasticTensor">[docs]</a><span class="k">class</span> <span class="nc">MyElasticTensor</span><span class="p">(</span><span class="n">ElasticTensor</span><span class="p">):</span>
@@ -250,7 +254,7 @@
             <span class="n">units</span><span class="o">=</span><span class="s2">&quot;GN/c&quot;</span><span class="p">,</span> <span class="n">latex</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$</span><span class="si">{h}</span><span class="s2">$&quot;</span><span class="p">),</span>
     <span class="p">}</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">elastic_clamped</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">elastic_relaxed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">elastic_stress_corr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">elastic_clamped</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">elastic_relaxed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">elastic_stress_corr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">elastic_relaxed_fixed_D</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">piezo_clamped</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">piezo_relaxed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">d_piezo_relaxed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">g_piezo_relaxed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">h_piezo_relaxed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -360,7 +364,7 @@
 
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="o">**</span><span class="n">ts</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
 <div class="viewcode-block" id="ElasticData.to_string"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.elastic.ElasticData.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
@@ -603,7 +607,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on May 29, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

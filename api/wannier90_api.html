@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>wannier90 Package &#8212; abipy 0.7.0 documentation</title>
+    <title>wannier90 Package &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -41,7 +44,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -64,6 +67,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -174,17 +178,17 @@ Inspired to the Fortran version of wannier90.</p>
 calling wannier90 in library mode.</p>
 <p>Usage example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">abilab</span><span class="o">.</span><span class="n">abiopen</span><span class="p">(</span><span class="s2">&quot;foo_ABIWAN.nc&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">abiwan</span><span class="p">:</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">abiwan</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">abiwan</span><span class="p">)</span>
 </pre></div>
 </div>
 <p class="rubric">Inheritance Diagram</p>
-<div class="graphviz"><img src="../_images/inheritance-71c64ac49e608fd59e1a32d1d28ac37fe03a9db3.png" alt="Inheritance diagram of AbiwanFile" usemap="#inheritanceb5e4c480bc" class="inheritance graphviz" /></div>
+<div class="graphviz"><img src="../_images/inheritance-8d465c1db228fc9a420f069ec682efbb6a84879c.png" alt="Inheritance diagram of AbiwanFile" usemap="#inheritanceb5e4c480bc" class="inheritance graphviz" /></div>
 <map id="inheritanceb5e4c480bc" name="inheritanceb5e4c480bc">
 <area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="256,197,454,221"/>
 <area shape="rect" id="node7" href="#abipy.wannier90.abiwan.AbiwanFile" target="_top" title="File produced by Abinit with the unitary matrices obtained by" alt="" coords="525,101,757,125"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for :class:`AbinitNcFile` containing electron data." alt="" coords="232,5,477,29"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Header" target="_top" title="Mixin class for netcdf_ files containing the Abinit header." alt="" coords="254,53,456,77"/>
-<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for :class:`AbinitNcFile` containing crystallographic data." alt="" coords="249,101,461,125"/>
+<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for |AbinitNcFile| containing electron data." alt="" coords="232,5,477,29"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Header" target="_top" title="Mixin class for netcdf files containing the Abinit header." alt="" coords="254,53,456,77"/>
+<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="249,101,461,125"/>
 <area shape="rect" id="node6" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="245,149,464,173"/>
 </map><dl class="method">
 <dt id="abipy.wannier90.abiwan.AbiwanFile.from_file">
@@ -376,14 +380,14 @@ Optionally compute gradients and Hessian matrices.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.1.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
+<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.2.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
 <li><p><strong>fontsize</strong> – fontsize for legends and titles</p></li>
 <li><p><strong>yscale</strong> – Define scale for y-axis. Passed to ax.set_yscale</p></li>
 <li><p><strong>kwargs</strong> – options passed to <code class="docutils literal notranslate"><span class="pre">ax.plot</span></code>.</p></li>
 </ul>
 </dd>
 </dl>
-<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.1.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.2.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -419,6 +423,9 @@ Default: None i.e. fig is left unchanged.</p></td>
 <tr class="row-even"><td><p>ax_annotate</p></td>
 <td><p>Add labels to  subplots e.g. (a), (b).
 Default: False</p></td>
+</tr>
+<tr class="row-odd"><td><p>fig_close</p></td>
+<td><p>Close figure. Default: False.</p></td>
 </tr>
 </tbody>
 </table>
@@ -489,13 +496,13 @@ on the same Axes.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.1.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
+<li><p><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v3.2.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</p></li>
 <li><p><strong>colormap</strong> – matplotlib color map.</p></li>
 <li><p><strong>fontsize</strong> – fontsize for legends and titles</p></li>
 </ul>
 </dd>
 </dl>
-<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.1.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.2.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -531,6 +538,9 @@ Default: None i.e. fig is left unchanged.</p></td>
 <tr class="row-even"><td><p>ax_annotate</p></td>
 <td><p>Add labels to  subplots e.g. (a), (b).
 Default: False</p></td>
+</tr>
+<tr class="row-odd"><td><p>fig_close</p></td>
+<td><p>Close figure. Default: False.</p></td>
 </tr>
 </tbody>
 </table>
@@ -592,11 +602,11 @@ working directory is created. Return path to the notebook.</p>
 <dd><p>Bases: <a class="reference internal" href="abio_api.html#abipy.abio.inputs.AbstractInput" title="abipy.abio.inputs.AbstractInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.abio.inputs.AbstractInput</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a></p>
 <p>This object stores the wannier90 input variables.</p>
 <p class="rubric">Inheritance Diagram</p>
-<div class="graphviz"><img src="../_images/inheritance-f3fa80757d3d0b49cf45ddcb3e7b8c116c0a9c2f.png" alt="Inheritance diagram of Wannier90Input" usemap="#inheritance82c2cc5b65" class="inheritance graphviz" /></div>
+<div class="graphviz"><img src="../_images/inheritance-d14cf6b774376e823cc00e99e2b1442c3b8de9dd.png" alt="Inheritance diagram of Wannier90Input" usemap="#inheritance82c2cc5b65" class="inheritance graphviz" /></div>
 <map id="inheritance82c2cc5b65" name="inheritance82c2cc5b65">
 <area shape="rect" id="node1" href="abio_api.html#abipy.abio.inputs.AbstractInput" target="_top" title="Abstract class defining the methods that must be implemented by Input objects." alt="" coords="497,29,607,42"/>
 <area shape="rect" id="node4" href="#abipy.wannier90.win.Wannier90Input" target="_top" title="This object stores the wannier90 input variables." alt="" coords="636,16,765,29"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for :class:`AbinitNcFile` containing crystallographic data." alt="" coords="495,3,610,16"/>
+<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="495,3,610,16"/>
 </map><dl class="method">
 <dt id="abipy.wannier90.win.Wannier90Input.from_abinit_file">
 <em class="property">classmethod </em><code class="sig-name descname">from_abinit_file</code><span class="sig-paren">(</span><em class="sig-param">filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/wannier90/win.html#Wannier90Input.from_abinit_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.wannier90.win.Wannier90Input.from_abinit_file" title="Permalink to this definition">¶</a></dt>
@@ -671,15 +681,15 @@ If None, we use the default high-symmetry k-path defined in the pymatgen databas
 <p>Main output file produced by Wannier90</p>
 <p>Usage example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">abilab</span><span class="o">.</span><span class="n">abiopen</span><span class="p">(</span><span class="s2">&quot;foo.wout&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">wout</span><span class="p">:</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">wout</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">wout</span><span class="p">)</span>
     <span class="n">wout</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 </pre></div>
 </div>
 <p class="rubric">Inheritance Diagram</p>
-<div class="graphviz"><img src="../_images/inheritance-59a2022731f3501c96ca48ffade33f6c4a1eff67.png" alt="Inheritance diagram of WoutFile" usemap="#inheritancefe6ca5ff52" class="inheritance graphviz" /></div>
+<div class="graphviz"><img src="../_images/inheritance-db9439052fceac82538531ddc6be49d585af5469.png" alt="Inheritance diagram of WoutFile" usemap="#inheritancefe6ca5ff52" class="inheritance graphviz" /></div>
 <map id="inheritancefe6ca5ff52" name="inheritancefe6ca5ff52">
 <area shape="rect" id="node4" href="#abipy.wannier90.wout.WoutFile" target="_top" title="Main output file produced by Wannier90" alt="" coords="273,53,478,77"/>
-<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for :class:`AbinitNcFile` containing crystallographic data." alt="" coords="9,53,221,77"/>
+<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="9,53,221,77"/>
 <area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="5,101,225,125"/>
 </map><dl class="method">
 <dt id="abipy.wannier90.wout.WoutFile.close">
@@ -708,7 +718,7 @@ If None, we use the default high-symmetry k-path defined in the pymatgen databas
 <dd class="field-odd"><p><strong>fontsize</strong> – legend and label fontsize.</p>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.1.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.2.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -744,6 +754,9 @@ Default: None i.e. fig is left unchanged.</p></td>
 <tr class="row-even"><td><p>ax_annotate</p></td>
 <td><p>Add labels to  subplots e.g. (a), (b).
 Default: False</p></td>
+</tr>
+<tr class="row-odd"><td><p>fig_close</p></td>
+<td><p>Close figure. Default: False.</p></td>
 </tr>
 </tbody>
 </table>
@@ -759,7 +772,7 @@ as function of iteration number</p>
 <dd class="field-odd"><p><strong>fontsize</strong> – legend and label fontsize.</p>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.1.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.2.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -795,6 +808,9 @@ Default: None i.e. fig is left unchanged.</p></td>
 <tr class="row-even"><td><p>ax_annotate</p></td>
 <td><p>Add labels to  subplots e.g. (a), (b).
 Default: False</p></td>
+</tr>
+<tr class="row-odd"><td><p>fig_close</p></td>
+<td><p>Close figure. Default: False.</p></td>
 </tr>
 </tbody>
 </table>
@@ -831,7 +847,7 @@ working directory is created. Return path to the notebook.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on May 29, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

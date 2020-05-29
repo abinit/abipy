@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>abipy.dfpt.msqdos &#8212; abipy 0.7.0 documentation</title>
+    <title>abipy.dfpt.msqdos &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -39,7 +42,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -62,6 +65,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -129,19 +133,21 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">abipy.core.abinit_units</span> <span class="k">as</span> <span class="nn">abu</span>
 
-<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
-<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">list_strings</span><span class="p">,</span> <span class="n">marquee</span>
-<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">dict2namedtuple</span>
-<span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
-<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">Has_Structure</span>
-<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">set_axlims</span><span class="p">,</span> <span class="n">get_axarray_fig_plt</span><span class="p">,</span> <span class="n">set_visible</span>
-<span class="kn">from</span> <span class="nn">abipy.tools.printing</span> <span class="k">import</span> <span class="n">print_dataframe</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">monty.string</span> <span class="kn">import</span> <span class="n">list_strings</span><span class="p">,</span> <span class="n">marquee</span>
+<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="kn">import</span> <span class="n">dict2namedtuple</span>
+<span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="kn">import</span> <span class="n">cprint</span>
+<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="kn">import</span> <span class="n">Has_Structure</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="kn">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">set_axlims</span><span class="p">,</span> <span class="n">get_axarray_fig_plt</span><span class="p">,</span> <span class="n">set_visible</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.printing</span> <span class="kn">import</span> <span class="n">print_dataframe</span>
 
 
 <span class="k">class</span> <span class="nc">_Component</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Small object to select/plot the components of the DW tensor.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Object used to select/plot the components of the DW tensor.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">ij</span><span class="p">,</span> <span class="o">**</span><span class="n">plot_kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">ij</span><span class="p">,</span> <span class="o">**</span><span class="n">plot_kwargs</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ij</span> <span class="o">=</span> <span class="n">ij</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">i</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
@@ -199,7 +205,7 @@
     <span class="p">])</span>
     <span class="k">del</span> <span class="n">C</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">wmesh</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">amu_symbol</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">wmesh</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">amu_symbol</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Arg:</span>
 <span class="sd">            structure: |Structure| object.</span>
@@ -219,7 +225,7 @@
         <span class="sd">&quot;&quot;&quot;|Structure| object.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Invoked by str&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
@@ -236,7 +242,7 @@
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
         <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Fullfilment of \int dw g_ij(w) = \delta_ij&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-        <span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="k">import</span> <span class="n">simps</span>
+        <span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="kn">import</span> <span class="n">simps</span>
         <span class="k">for</span> <span class="n">iatom</span><span class="p">,</span> <span class="n">site</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">):</span>
             <span class="n">d</span> <span class="o">=</span> <span class="n">simps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">iatom</span><span class="p">],</span> <span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">wmesh</span><span class="p">)</span>
             <span class="n">app</span><span class="p">(</span><span class="s2">&quot;For site: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">site</span><span class="p">)</span>
@@ -286,7 +292,7 @@
             <span class="s2">&quot;amu_symbol&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">amu_symbol</span><span class="p">,</span>  <span class="c1"># Dict symbol --&gt; Atomic mass in a.u.</span>
             <span class="s2">&quot;structure&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span>    <span class="c1"># Structure object</span>
             <span class="s2">&quot;ucif_t&quot;</span><span class="p">:</span> <span class="n">ucif_t</span><span class="p">,</span>               <span class="c1"># U tensors (natom, 3, 3, ntemp)  as a function of T for T in tmesh in CIF format.</span>
-            <span class="s2">&quot;ucif_string_t300k&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cif_string</span><span class="p">(</span><span class="n">temp</span><span class="o">=</span><span class="mi">300</span><span class="p">),</span>  <span class="c1"># String with U tensor at T=300 in Cif format.</span>
+            <span class="s2">&quot;ucif_string_t300k&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cif_string</span><span class="p">(</span><span class="n">temp</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="kc">None</span><span class="p">),</span>  <span class="c1"># String with U tensor at T=300 in Cif format.</span>
         <span class="p">}</span>
 
         <span class="k">return</span> <span class="n">jdoc</span></div>
@@ -329,7 +335,7 @@
         <span class="n">what_list</span> <span class="o">=</span> <span class="n">list_strings</span><span class="p">(</span><span class="n">what_list</span><span class="p">)</span>
 
         <span class="c1"># Perform frequency integration to get tensor(T)</span>
-        <span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="k">import</span> <span class="n">simps</span>
+        <span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="kn">import</span> <span class="n">simps</span>
         <span class="k">if</span> <span class="n">iatom_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">iatom_list</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">iatom_list</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">iatom</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">natom</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">iatom_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">iatom</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">iatom_list</span><span class="p">:</span> <span class="k">continue</span>
@@ -443,13 +449,15 @@
         <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="k">if</span> <span class="n">rows</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="MsqDos.write_cif_file"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.msqdos.MsqDos.write_cif_file">[docs]</a>    <span class="k">def</span> <span class="nf">write_cif_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="mi">300</span><span class="p">):</span>
+<div class="viewcode-block" id="MsqDos.write_cif_file"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.msqdos.MsqDos.write_cif_file">[docs]</a>    <span class="k">def</span> <span class="nf">write_cif_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Write CIF file with structure and anisotropic U tensor in CIF format.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            filepath: Name of CIF file. If None, a temporary filepath is created.</span>
 <span class="sd">            temp: Temperature in Kelvin (used to compute U).</span>
+<span class="sd">            symprec (float): If not none, finds the symmetry of the structure</span>
+<span class="sd">                and writes the cif with symmetry information. Passes symprec to the SpacegroupAnalyzer</span>
 
 <span class="sd">        Return: Filepath</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -458,9 +466,35 @@
             <span class="n">_</span><span class="p">,</span> <span class="n">filepath</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;.cif&quot;</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
-            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_cif_string</span><span class="p">(</span><span class="n">temp</span><span class="o">=</span><span class="n">temp</span><span class="p">))</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_cif_string</span><span class="p">(</span><span class="n">temp</span><span class="o">=</span><span class="n">temp</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="n">filepath</span></div>
+
+    <span class="c1">#def jsmol(self, temp=300, symprec=None, verbose=0): # pragma: no cover</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    Args:</span>
+    <span class="c1">#        symprec (float): If not none, finds the symmetry of the structure</span>
+    <span class="c1">#            and writes the cif with symmetry information. Passes symprec to the SpacegroupAnalyzer</span>
+    <span class="c1">#        verbose: Verbosity level.</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    cif_string = self.get_cif_string(temp=temp, symprec=symprec)</span>
+
+    <span class="c1">#    try:</span>
+    <span class="c1">#      from jupyter_jsmol import JsmolView</span>
+    <span class="c1">#    except ImportError:</span>
+    <span class="c1">#        raise ImportError(&quot;jupyter_jsmol is not installed. See https://github.com/fekad/jupyter-jsmol&quot;)</span>
+
+    <span class="c1">#    jsmol = JsmolView(color=&#39;white&#39;)</span>
+    <span class="c1">#    from IPython.display import display, HTML</span>
+    <span class="c1">#    FIXME TEMPORARY HACK</span>
+    <span class="c1">#    display(HTML(&#39;&lt;script type=&quot;text/javascript&quot; src=&quot;/nbextensions/jupyter-jsmol/jsmol/JSmol.min.js&quot;&gt;&lt;/script&gt;&#39;))</span>
+    <span class="c1">#    display(jsmol)</span>
+
+    <span class="c1">#    cmd = &#39;load inline &quot;%s&quot; {1 1 1}; ellipsoid;&#39; % cif_string</span>
+    <span class="c1">#    if verbose: print(&quot;executing cmd:&quot;, cmd)</span>
+    <span class="c1">#    jsmol.script(cmd)</span>
+
+    <span class="c1">#    return jsmol</span>
 
 <div class="viewcode-block" id="MsqDos.vesta_open"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.msqdos.MsqDos.vesta_open">[docs]</a>    <span class="k">def</span> <span class="nf">vesta_open</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="mi">300</span><span class="p">):</span> <span class="c1"># pragma: no cover</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -469,20 +503,25 @@
         <span class="n">filepath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">write_cif_file</span><span class="p">(</span><span class="n">filepath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="n">temp</span><span class="p">)</span>
         <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Writing structure + Debye-Waller tensor in CIF format for T = </span><span class="si">%s</span><span class="s2"> (K) to file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">filepath</span><span class="p">),</span> <span class="s2">&quot;green&quot;</span><span class="p">)</span>
         <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;In the Vesta GUI, select: Properties -&gt; Atoms -&gt; Show as displament ellipsoids.&quot;</span><span class="p">,</span> <span class="s2">&quot;green&quot;</span><span class="p">)</span>
-        <span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">Visualizer</span>
+        <span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="kn">import</span> <span class="n">Visualizer</span>
         <span class="n">visu</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="o">.</span><span class="n">from_name</span><span class="p">(</span><span class="s2">&quot;vesta&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">visu</span><span class="p">(</span><span class="n">filepath</span><span class="p">)()</span></div>
 
-<div class="viewcode-block" id="MsqDos.get_cif_string"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.msqdos.MsqDos.get_cif_string">[docs]</a>    <span class="k">def</span> <span class="nf">get_cif_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="mi">300</span><span class="p">):</span>
+<div class="viewcode-block" id="MsqDos.get_cif_string"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.msqdos.MsqDos.get_cif_string">[docs]</a>    <span class="k">def</span> <span class="nf">get_cif_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return string with structure and anisotropic U tensor in CIF format at temperature `temp` in Kelvin</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            symprec (float): If not none, finds the symmetry of the structure</span>
+<span class="sd">                and writes the cif with symmetry information. Passes symprec</span>
+<span class="sd">                to the SpacegroupAnalyzer</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Get string with structure in CIF format.</span>
         <span class="c1"># Don&#39;t use symprec because it changes the order of the sites</span>
         <span class="c1"># and we must be consistent with site_labels when writing aniso_U terms!</span>
-        <span class="kn">from</span> <span class="nn">pymatgen.io.cif</span> <span class="k">import</span> <span class="n">CifWriter</span>
-        <span class="n">cif</span> <span class="o">=</span> <span class="n">CifWriter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="kn">from</span> <span class="nn">pymatgen.io.cif</span> <span class="kn">import</span> <span class="n">CifWriter</span>
+        <span class="n">cif</span> <span class="o">=</span> <span class="n">CifWriter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">)</span>
 
         <span class="n">aniso_u</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;loop_</span>
 <span class="s2">_atom_site_aniso_label</span>
@@ -787,7 +826,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on May 29, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

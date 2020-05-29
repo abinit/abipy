@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>abipy.abilab &#8212; abipy 0.7.0 documentation</title>
+    <title>abipy.abilab &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -39,7 +42,7 @@
         </button>
         <a class="navbar-brand" href="../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -62,6 +65,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -125,16 +129,14 @@
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">This module gathers the most important classes and helper functions used for scripting.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span>
-
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">collections</span>
 
 <span class="c1">####################</span>
 <span class="c1">### Monty import ###</span>
 <span class="c1">####################</span>
-<span class="kn">from</span> <span class="nn">monty.os.path</span> <span class="k">import</span> <span class="n">which</span>
-<span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
+<span class="kn">from</span> <span class="nn">monty.os.path</span> <span class="kn">import</span> <span class="n">which</span>
+<span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="kn">import</span> <span class="n">cprint</span>
 
 <span class="c1">#######################</span>
 <span class="c1">### Pymatgen import ###</span>
@@ -147,57 +149,58 @@
 <span class="c1">####################</span>
 <span class="c1">### Abipy import ###</span>
 <span class="c1">####################</span>
-<span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">Pseudo</span><span class="p">,</span> <span class="n">PseudoTable</span><span class="p">,</span> <span class="n">Mrgscr</span><span class="p">,</span> <span class="n">Mrgddb</span><span class="p">,</span> <span class="n">Flow</span><span class="p">,</span> <span class="n">Work</span><span class="p">,</span> <span class="n">TaskManager</span><span class="p">,</span> <span class="n">AbinitBuild</span><span class="p">,</span> <span class="n">flow_main</span>
-<span class="kn">from</span> <span class="nn">abipy.core.release</span> <span class="k">import</span> <span class="n">__version__</span><span class="p">,</span> <span class="n">min_abinit_version</span>
-<span class="kn">from</span> <span class="nn">abipy.core.globals</span> <span class="k">import</span> <span class="n">enable_notebook</span><span class="p">,</span> <span class="n">in_notebook</span><span class="p">,</span> <span class="n">disable_notebook</span>
-<span class="kn">from</span> <span class="nn">abipy.core</span> <span class="k">import</span> <span class="n">restapi</span>
-<span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="p">(</span><span class="n">Lattice</span><span class="p">,</span> <span class="n">Structure</span><span class="p">,</span> <span class="n">StructureModifier</span><span class="p">,</span> <span class="n">dataframes_from_structures</span><span class="p">,</span>
+<span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="kn">import</span> <span class="n">Pseudo</span><span class="p">,</span> <span class="n">PseudoTable</span><span class="p">,</span> <span class="n">Mrgscr</span><span class="p">,</span> <span class="n">Mrgddb</span><span class="p">,</span> <span class="n">Flow</span><span class="p">,</span> <span class="n">Work</span><span class="p">,</span> <span class="n">TaskManager</span><span class="p">,</span> <span class="n">AbinitBuild</span><span class="p">,</span> <span class="n">flow_main</span>
+<span class="kn">from</span> <span class="nn">abipy.core.release</span> <span class="kn">import</span> <span class="n">__version__</span><span class="p">,</span> <span class="n">min_abinit_version</span>
+<span class="kn">from</span> <span class="nn">abipy.core.globals</span> <span class="kn">import</span> <span class="n">enable_notebook</span><span class="p">,</span> <span class="n">in_notebook</span><span class="p">,</span> <span class="n">disable_notebook</span>
+<span class="kn">from</span> <span class="nn">abipy.core</span> <span class="kn">import</span> <span class="n">restapi</span>
+<span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Lattice</span><span class="p">,</span> <span class="n">Structure</span><span class="p">,</span> <span class="n">StructureModifier</span><span class="p">,</span> <span class="n">dataframes_from_structures</span><span class="p">,</span>
   <span class="n">mp_match_structure</span><span class="p">,</span> <span class="n">mp_search</span><span class="p">,</span> <span class="n">cod_search</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">CubeFile</span>
-<span class="kn">from</span> <span class="nn">abipy.core.func1d</span> <span class="k">import</span> <span class="n">Function1D</span>
-<span class="kn">from</span> <span class="nn">abipy.core.kpoints</span> <span class="k">import</span> <span class="n">set_atol_kdiff</span>
-<span class="kn">from</span> <span class="nn">abipy.abio.robots</span> <span class="k">import</span> <span class="n">Robot</span>
-<span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="k">import</span> <span class="n">AbinitInput</span><span class="p">,</span> <span class="n">MultiDataset</span><span class="p">,</span> <span class="n">AnaddbInput</span><span class="p">,</span> <span class="n">OpticInput</span>
-<span class="kn">from</span> <span class="nn">abipy.abio.abivars</span> <span class="k">import</span> <span class="n">AbinitInputFile</span>
-<span class="kn">from</span> <span class="nn">abipy.abio.outputs</span> <span class="k">import</span> <span class="n">AbinitLogFile</span><span class="p">,</span> <span class="n">AbinitOutputFile</span><span class="p">,</span> <span class="n">OutNcFile</span><span class="p">,</span> <span class="n">AboRobot</span> <span class="c1">#, CubeFile</span>
-<span class="kn">from</span> <span class="nn">abipy.tools.printing</span> <span class="k">import</span> <span class="n">print_dataframe</span>
-<span class="kn">from</span> <span class="nn">abipy.tools.notebooks</span> <span class="k">import</span> <span class="n">print_source</span><span class="p">,</span> <span class="n">print_doc</span>
-<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">get_ax_fig_plt</span><span class="p">,</span> <span class="n">get_axarray_fig_plt</span><span class="p">,</span> <span class="n">get_ax3d_fig_plt</span> <span class="c1">#, plot_array, ArrayPlotter</span>
-<span class="kn">from</span> <span class="nn">abipy.abio.factories</span> <span class="k">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">abipy.electrons.ebands</span> <span class="k">import</span> <span class="p">(</span><span class="n">ElectronBands</span><span class="p">,</span> <span class="n">ElectronBandsPlotter</span><span class="p">,</span> <span class="n">ElectronDos</span><span class="p">,</span> <span class="n">ElectronDosPlotter</span><span class="p">,</span>
+<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="kn">import</span> <span class="n">CubeFile</span>
+<span class="kn">from</span> <span class="nn">abipy.core.func1d</span> <span class="kn">import</span> <span class="n">Function1D</span>
+<span class="kn">from</span> <span class="nn">abipy.core.kpoints</span> <span class="kn">import</span> <span class="n">set_atol_kdiff</span>
+<span class="kn">from</span> <span class="nn">abipy.abio.robots</span> <span class="kn">import</span> <span class="n">Robot</span>
+<span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="kn">import</span> <span class="n">AbinitInput</span><span class="p">,</span> <span class="n">MultiDataset</span><span class="p">,</span> <span class="n">AnaddbInput</span><span class="p">,</span> <span class="n">OpticInput</span>
+<span class="kn">from</span> <span class="nn">abipy.abio.abivars</span> <span class="kn">import</span> <span class="n">AbinitInputFile</span>
+<span class="kn">from</span> <span class="nn">abipy.abio.outputs</span> <span class="kn">import</span> <span class="n">AbinitLogFile</span><span class="p">,</span> <span class="n">AbinitOutputFile</span><span class="p">,</span> <span class="n">OutNcFile</span><span class="p">,</span> <span class="n">AboRobot</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.printing</span> <span class="kn">import</span> <span class="n">print_dataframe</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.notebooks</span> <span class="kn">import</span> <span class="n">print_source</span><span class="p">,</span> <span class="n">print_doc</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="kn">import</span> <span class="n">get_ax_fig_plt</span><span class="p">,</span> <span class="n">get_axarray_fig_plt</span><span class="p">,</span> <span class="n">get_ax3d_fig_plt</span>
+<span class="kn">from</span> <span class="nn">abipy.abio.factories</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">abipy.electrons.ebands</span> <span class="kn">import</span> <span class="p">(</span><span class="n">ElectronBands</span><span class="p">,</span> <span class="n">ElectronBandsPlotter</span><span class="p">,</span> <span class="n">ElectronDos</span><span class="p">,</span> <span class="n">ElectronDosPlotter</span><span class="p">,</span>
     <span class="n">dataframe_from_ebands</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">abipy.electrons.gsr</span> <span class="k">import</span> <span class="n">GsrFile</span><span class="p">,</span> <span class="n">GsrRobot</span>
-<span class="kn">from</span> <span class="nn">abipy.electrons.eskw</span> <span class="k">import</span> <span class="n">EskwFile</span>
-<span class="kn">from</span> <span class="nn">abipy.electrons.psps</span> <span class="k">import</span> <span class="n">PspsFile</span>
-<span class="kn">from</span> <span class="nn">abipy.electrons.gw</span> <span class="k">import</span> <span class="n">SigresFile</span><span class="p">,</span> <span class="n">SigresRobot</span>
-<span class="kn">from</span> <span class="nn">abipy.electrons.bse</span> <span class="k">import</span> <span class="n">MdfFile</span><span class="p">,</span> <span class="n">MdfRobot</span>
-<span class="kn">from</span> <span class="nn">abipy.electrons.scissors</span> <span class="k">import</span> <span class="n">ScissorsBuilder</span>
-<span class="kn">from</span> <span class="nn">abipy.electrons.scr</span> <span class="k">import</span> <span class="n">ScrFile</span>
-<span class="kn">from</span> <span class="nn">abipy.electrons.denpot</span> <span class="k">import</span> <span class="p">(</span><span class="n">DensityNcFile</span><span class="p">,</span> <span class="n">VhartreeNcFile</span><span class="p">,</span> <span class="n">VxcNcFile</span><span class="p">,</span> <span class="n">VhxcNcFile</span><span class="p">,</span> <span class="n">PotNcFile</span><span class="p">,</span>
+<span class="kn">from</span> <span class="nn">abipy.electrons.gsr</span> <span class="kn">import</span> <span class="n">GsrFile</span><span class="p">,</span> <span class="n">GsrRobot</span>
+<span class="kn">from</span> <span class="nn">abipy.electrons.eskw</span> <span class="kn">import</span> <span class="n">EskwFile</span>
+<span class="kn">from</span> <span class="nn">abipy.electrons.psps</span> <span class="kn">import</span> <span class="n">PspsFile</span>
+<span class="kn">from</span> <span class="nn">abipy.electrons.gw</span> <span class="kn">import</span> <span class="n">SigresFile</span><span class="p">,</span> <span class="n">SigresRobot</span>
+<span class="kn">from</span> <span class="nn">abipy.electrons.bse</span> <span class="kn">import</span> <span class="n">MdfFile</span><span class="p">,</span> <span class="n">MdfRobot</span>
+<span class="kn">from</span> <span class="nn">abipy.electrons.scissors</span> <span class="kn">import</span> <span class="n">ScissorsBuilder</span>
+<span class="kn">from</span> <span class="nn">abipy.electrons.scr</span> <span class="kn">import</span> <span class="n">ScrFile</span>
+<span class="kn">from</span> <span class="nn">abipy.electrons.denpot</span> <span class="kn">import</span> <span class="p">(</span><span class="n">DensityNcFile</span><span class="p">,</span> <span class="n">VhartreeNcFile</span><span class="p">,</span> <span class="n">VxcNcFile</span><span class="p">,</span> <span class="n">VhxcNcFile</span><span class="p">,</span> <span class="n">PotNcFile</span><span class="p">,</span>
     <span class="n">DensityFortranFile</span><span class="p">,</span> <span class="n">Cut3dDenPotNcFile</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">abipy.electrons.fatbands</span> <span class="k">import</span> <span class="n">FatBandsFile</span>
-<span class="kn">from</span> <span class="nn">abipy.electrons.optic</span> <span class="k">import</span> <span class="n">OpticNcFile</span><span class="p">,</span> <span class="n">OpticRobot</span>
-<span class="kn">from</span> <span class="nn">abipy.electrons.fold2bloch</span> <span class="k">import</span> <span class="n">Fold2BlochNcfile</span>
-<span class="kn">from</span> <span class="nn">abipy.dfpt.phonons</span> <span class="k">import</span> <span class="p">(</span><span class="n">PhbstFile</span><span class="p">,</span> <span class="n">PhbstRobot</span><span class="p">,</span> <span class="n">PhononBands</span><span class="p">,</span> <span class="n">PhononBandsPlotter</span><span class="p">,</span> <span class="n">PhdosFile</span><span class="p">,</span> <span class="n">PhononDosPlotter</span><span class="p">,</span>
+<span class="kn">from</span> <span class="nn">abipy.electrons.fatbands</span> <span class="kn">import</span> <span class="n">FatBandsFile</span>
+<span class="kn">from</span> <span class="nn">abipy.electrons.optic</span> <span class="kn">import</span> <span class="n">OpticNcFile</span><span class="p">,</span> <span class="n">OpticRobot</span>
+<span class="kn">from</span> <span class="nn">abipy.electrons.fold2bloch</span> <span class="kn">import</span> <span class="n">Fold2BlochNcfile</span>
+<span class="kn">from</span> <span class="nn">abipy.dfpt.phonons</span> <span class="kn">import</span> <span class="p">(</span><span class="n">PhbstFile</span><span class="p">,</span> <span class="n">PhbstRobot</span><span class="p">,</span> <span class="n">PhononBands</span><span class="p">,</span> <span class="n">PhononBandsPlotter</span><span class="p">,</span> <span class="n">PhdosFile</span><span class="p">,</span> <span class="n">PhononDosPlotter</span><span class="p">,</span>
     <span class="n">PhdosReader</span><span class="p">,</span> <span class="n">phbands_gridplot</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">abipy.dfpt.ddb</span> <span class="k">import</span> <span class="n">DdbFile</span><span class="p">,</span> <span class="n">DdbRobot</span>
-<span class="kn">from</span> <span class="nn">abipy.dfpt.anaddbnc</span> <span class="k">import</span> <span class="n">AnaddbNcFile</span><span class="p">,</span> <span class="n">AnaddbNcRobot</span>
-<span class="kn">from</span> <span class="nn">abipy.dfpt.gruneisen</span> <span class="k">import</span> <span class="n">GrunsNcFile</span>
-<span class="kn">from</span> <span class="nn">abipy.dynamics.hist</span> <span class="k">import</span> <span class="n">HistFile</span><span class="p">,</span> <span class="n">HistRobot</span>
-<span class="kn">from</span> <span class="nn">abipy.waves</span> <span class="k">import</span> <span class="n">WfkFile</span>
-<span class="kn">from</span> <span class="nn">abipy.eph.a2f</span> <span class="k">import</span> <span class="n">A2fFile</span><span class="p">,</span> <span class="n">A2fRobot</span>
-<span class="kn">from</span> <span class="nn">abipy.eph.sigeph</span> <span class="k">import</span> <span class="n">SigEPhFile</span><span class="p">,</span> <span class="n">SigEPhRobot</span>
-<span class="kn">from</span> <span class="nn">abipy.eph.eph_plotter</span> <span class="k">import</span> <span class="n">EphPlotter</span>
-<span class="kn">from</span> <span class="nn">abipy.eph.v1sym</span> <span class="k">import</span> <span class="n">V1symFile</span>
-<span class="kn">from</span> <span class="nn">abipy.eph.gkq</span> <span class="k">import</span> <span class="n">GkqFile</span><span class="p">,</span> <span class="n">GkqRobot</span>
-<span class="kn">from</span> <span class="nn">abipy.eph.v1qnu</span> <span class="k">import</span> <span class="n">V1qnuFile</span>
-<span class="kn">from</span> <span class="nn">abipy.eph.v1qavg</span> <span class="k">import</span> <span class="n">V1qAvgFile</span>
-<span class="kn">from</span> <span class="nn">abipy.eph.transportfile</span> <span class="k">import</span> <span class="n">TransportFile</span>
-<span class="kn">from</span> <span class="nn">abipy.wannier90</span> <span class="k">import</span> <span class="n">WoutFile</span><span class="p">,</span> <span class="n">AbiwanFile</span><span class="p">,</span> <span class="n">AbiwanRobot</span>
-<span class="kn">from</span> <span class="nn">abipy.electrons.lobster</span> <span class="k">import</span> <span class="n">CoxpFile</span><span class="p">,</span> <span class="n">ICoxpFile</span><span class="p">,</span> <span class="n">LobsterDoscarFile</span><span class="p">,</span> <span class="n">LobsterInput</span><span class="p">,</span> <span class="n">LobsterAnalyzer</span>
+<span class="kn">from</span> <span class="nn">abipy.dfpt.ddb</span> <span class="kn">import</span> <span class="n">DdbFile</span><span class="p">,</span> <span class="n">DdbRobot</span>
+<span class="kn">from</span> <span class="nn">abipy.dfpt.anaddbnc</span> <span class="kn">import</span> <span class="n">AnaddbNcFile</span><span class="p">,</span> <span class="n">AnaddbNcRobot</span>
+<span class="kn">from</span> <span class="nn">abipy.dfpt.gruneisen</span> <span class="kn">import</span> <span class="n">GrunsNcFile</span>
+<span class="kn">from</span> <span class="nn">abipy.dynamics.hist</span> <span class="kn">import</span> <span class="n">HistFile</span><span class="p">,</span> <span class="n">HistRobot</span>
+<span class="kn">from</span> <span class="nn">abipy.waves</span> <span class="kn">import</span> <span class="n">WfkFile</span>
+<span class="kn">from</span> <span class="nn">abipy.eph.a2f</span> <span class="kn">import</span> <span class="n">A2fFile</span><span class="p">,</span> <span class="n">A2fRobot</span>
+<span class="kn">from</span> <span class="nn">abipy.eph.sigeph</span> <span class="kn">import</span> <span class="n">SigEPhFile</span><span class="p">,</span> <span class="n">SigEPhRobot</span>
+<span class="kn">from</span> <span class="nn">abipy.eph.eph_plotter</span> <span class="kn">import</span> <span class="n">EphPlotter</span>
+<span class="kn">from</span> <span class="nn">abipy.eph.v1sym</span> <span class="kn">import</span> <span class="n">V1symFile</span>
+<span class="kn">from</span> <span class="nn">abipy.eph.gkq</span> <span class="kn">import</span> <span class="n">GkqFile</span><span class="p">,</span> <span class="n">GkqRobot</span>
+<span class="kn">from</span> <span class="nn">abipy.eph.v1qnu</span> <span class="kn">import</span> <span class="n">V1qnuFile</span>
+<span class="c1">#from abipy.eph.wr import WrNcFile</span>
+<span class="kn">from</span> <span class="nn">abipy.eph.v1qavg</span> <span class="kn">import</span> <span class="n">V1qAvgFile</span>
+<span class="kn">from</span> <span class="nn">abipy.eph.transportfile</span> <span class="kn">import</span> <span class="n">TransportFile</span>
+<span class="kn">from</span> <span class="nn">abipy.wannier90</span> <span class="kn">import</span> <span class="n">WoutFile</span><span class="p">,</span> <span class="n">AbiwanFile</span><span class="p">,</span> <span class="n">AbiwanRobot</span>
+<span class="kn">from</span> <span class="nn">abipy.electrons.lobster</span> <span class="kn">import</span> <span class="n">CoxpFile</span><span class="p">,</span> <span class="n">ICoxpFile</span><span class="p">,</span> <span class="n">LobsterDoscarFile</span><span class="p">,</span> <span class="n">LobsterInput</span><span class="p">,</span> <span class="n">LobsterAnalyzer</span>
 
 <span class="c1"># Abinit Documentation.</span>
-<span class="kn">from</span> <span class="nn">abipy.abio.abivars_db</span> <span class="k">import</span> <span class="n">get_abinit_variables</span><span class="p">,</span> <span class="n">abinit_help</span><span class="p">,</span> <span class="n">docvar</span>
+<span class="kn">from</span> <span class="nn">abipy.abio.abivars_db</span> <span class="kn">import</span> <span class="n">get_abinit_variables</span><span class="p">,</span> <span class="n">abinit_help</span><span class="p">,</span> <span class="n">docvar</span>
 
 
 <span class="k">def</span> <span class="nf">_straceback</span><span class="p">():</span>
@@ -262,6 +265,7 @@
     <span class="p">(</span><span class="s2">&quot;GKQ.nc&quot;</span><span class="p">,</span> <span class="n">GkqFile</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">&quot;V1QNU.nc&quot;</span><span class="p">,</span> <span class="n">V1qnuFile</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">&quot;V1QAVG.nc&quot;</span><span class="p">,</span> <span class="n">V1qAvgFile</span><span class="p">),</span>
+    <span class="c1">#(&quot;WR.nc&quot;, WrNcFile),</span>
     <span class="p">(</span><span class="s2">&quot;ABIWAN.nc&quot;</span><span class="p">,</span> <span class="n">AbiwanFile</span><span class="p">),</span>
 <span class="p">])</span>
 
@@ -270,8 +274,8 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Print the association table between file extensions and File classes.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">chain</span>
-    <span class="kn">from</span> <span class="nn">tabulate</span> <span class="k">import</span> <span class="n">tabulate</span>
+    <span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">chain</span>
+    <span class="kn">from</span> <span class="nn">tabulate</span> <span class="kn">import</span> <span class="n">tabulate</span>
     <span class="n">table</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">for</span> <span class="n">ext</span><span class="p">,</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="n">chain</span><span class="p">(</span><span class="n">ext2file</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">abiext2ncfile</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
@@ -287,7 +291,7 @@
     <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span> <span class="o">==</span> <span class="n">Flow</span><span class="o">.</span><span class="n">PICKLE_FNAME</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">Flow</span>
 
-    <span class="kn">from</span> <span class="nn">abipy.tools.text</span> <span class="k">import</span> <span class="n">rreplace</span>
+    <span class="kn">from</span> <span class="nn">abipy.tools.text</span> <span class="kn">import</span> <span class="n">rreplace</span>
     <span class="k">for</span> <span class="n">ext</span><span class="p">,</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="n">ext2file</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="c1"># This to support gzipped files.</span>
         <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.gz&quot;</span><span class="p">):</span> <span class="n">filename</span> <span class="o">=</span> <span class="n">rreplace</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;.gz&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">occurrence</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -354,7 +358,7 @@
     <span class="c1"># Handle zipped files by creating temporary file with correct extension.</span>
     <span class="n">root</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;.bz2&quot;</span><span class="p">,</span> <span class="s2">&quot;.gz&quot;</span><span class="p">,</span> <span class="s2">&quot;.z&quot;</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">monty.io</span> <span class="k">import</span> <span class="n">zopen</span>
+        <span class="kn">from</span> <span class="nn">monty.io</span> <span class="kn">import</span> <span class="n">zopen</span>
         <span class="k">with</span> <span class="n">zopen</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;rt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="kn">import</span> <span class="nn">tempfile</span>
             <span class="n">_</span><span class="p">,</span> <span class="n">tmp_path</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">root</span><span class="p">),</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -392,7 +396,7 @@
 <span class="sd">        kwargs: Keyword arguments passed to `nbjsmol_display`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">nbjsmol</span> <span class="k">import</span> <span class="n">nbjsmol_display</span>
+        <span class="kn">from</span> <span class="nn">nbjsmol</span> <span class="kn">import</span> <span class="n">nbjsmol_display</span>
     <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span> <span class="o">+</span>
                           <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">display structure requires nbjsmol package</span><span class="se">\n</span><span class="s2">.&quot;</span>
@@ -402,6 +406,35 @@
     <span class="c1"># Cast to structure, get string with cif data and pass it to nbjsmol.</span>
     <span class="n">structure</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">nbjsmol_display</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;cif&quot;</span><span class="p">),</span> <span class="n">ext</span><span class="o">=</span><span class="s2">&quot;.cif&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="mjson_load"><a class="viewcode-back" href="../../api/abilab_api.html#abipy.abilab.mjson_load">[docs]</a><span class="k">def</span> <span class="nf">mjson_load</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Read JSON file in MSONable format with MontyDecoder. Return dict with python objects.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">json</span>
+    <span class="kn">from</span> <span class="nn">monty.json</span> <span class="kn">import</span> <span class="n">MontyDecoder</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;rt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">MontyDecoder</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="mjson_loads"><a class="viewcode-back" href="../../api/abilab_api.html#abipy.abilab.mjson_loads">[docs]</a><span class="k">def</span> <span class="nf">mjson_loads</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Read JSON string in MSONable format with MontyDecoder. Return dict with python objects.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">json</span>
+    <span class="kn">from</span> <span class="nn">monty.json</span> <span class="kn">import</span> <span class="n">MontyDecoder</span>
+    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">MontyDecoder</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="mjson_write"><a class="viewcode-back" href="../../api/abilab_api.html#abipy.abilab.mjson_write">[docs]</a><span class="k">def</span> <span class="nf">mjson_write</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Write dictionary d to filepath in JSON format using MontyDecoder</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">json</span>
+    <span class="kn">from</span> <span class="nn">monty.json</span> <span class="kn">import</span> <span class="n">MontyEncoder</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+        <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">fh</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">MontyEncoder</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="software_stack"><a class="viewcode-back" href="../../api/abilab_api.html#abipy.abilab.software_stack">[docs]</a><span class="k">def</span> <span class="nf">software_stack</span><span class="p">():</span>
@@ -452,8 +485,8 @@
         <span class="n">app</span><span class="p">(</span><span class="n">_straceback</span><span class="p">())</span>
 
     <span class="c1"># Get info on the Abinit build.</span>
-    <span class="kn">from</span> <span class="nn">abipy.core.testing</span> <span class="k">import</span> <span class="n">cmp_version</span>
-    <span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">PyFlowScheduler</span>
+    <span class="kn">from</span> <span class="nn">abipy.core.testing</span> <span class="kn">import</span> <span class="n">cmp_version</span>
+    <span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="kn">import</span> <span class="n">PyFlowScheduler</span>
 
     <span class="k">if</span> <span class="n">manager</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;AbiPy Manager:</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">manager</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;green&quot;</span><span class="p">)</span>
@@ -472,7 +505,7 @@
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
         <span class="n">app</span><span class="p">(</span><span class="n">_straceback</span><span class="p">())</span>
 
-    <span class="kn">from</span> <span class="nn">tabulate</span> <span class="k">import</span> <span class="n">tabulate</span>
+    <span class="kn">from</span> <span class="nn">tabulate</span> <span class="kn">import</span> <span class="n">tabulate</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">d</span> <span class="o">=</span> <span class="n">software_stack</span><span class="p">()</span>
         <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Installed packages:&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span><span class="p">)</span>
@@ -482,6 +515,115 @@
         <span class="n">app</span><span class="p">(</span><span class="n">_straceback</span><span class="p">())</span>
 
     <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">err_lines</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="install_config_files"><a class="viewcode-back" href="../../api/abilab_api.html#abipy.abilab.install_config_files">[docs]</a><span class="k">def</span> <span class="nf">install_config_files</span><span class="p">(</span><span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">force_reinstall</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Install pre-defined configuration files for the TaskManager and the Scheduler</span>
+<span class="sd">    in the workdir directory.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        workdir: Directory when configuration files should be produced. Use ~/abinit/abipy/ if None</span>
+<span class="sd">        force_reinstall: Allow overwrite pre-existent configuration files. By default, the function</span>
+<span class="sd">            raises RuntimeError if configuration files are already present.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">workdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~&quot;</span><span class="p">),</span> <span class="s2">&quot;.abinit&quot;</span><span class="p">,</span> <span class="s2">&quot;abipy&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">workdir</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">workdir</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Installing configuration files in directory:&quot;</span><span class="p">,</span> <span class="n">workdir</span><span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">monty.os</span> <span class="kn">import</span> <span class="n">makedirs_p</span>
+    <span class="n">makedirs_p</span><span class="p">(</span><span class="n">workdir</span><span class="p">)</span>
+
+    <span class="n">scheduler_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s2">&quot;scheduler.yaml&quot;</span><span class="p">)</span>
+    <span class="n">scheduler_yaml</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2"># The launcher will stop submitting jobs when the</span>
+<span class="s2"># number of jobs in the queue is &gt;= Max number of jobs</span>
+<span class="s2">max_njobs_inqueue: 2</span>
+
+<span class="s2"># Maximum number of cores that can be used by the scheduler.</span>
+<span class="s2">max_ncores_used: 2</span>
+
+<span class="s2"># number of hours to wait.</span>
+<span class="s2">#hours: 0</span>
+
+<span class="s2"># number of minutes to wait.</span>
+<span class="s2">#minutes: 0</span>
+
+<span class="s2"># number of seconds to wait.</span>
+<span class="s2">seconds: 2</span>
+
+<span class="s2"># Send mail to the specified address (accepts string or list of strings).</span>
+<span class="s2"># PRO TIP: the scheduler WILL try to send and email after a default time of 4 days. If you</span>
+<span class="s2">#          comment out the mailto address, this will cause the scheduler to terminate, with</span>
+<span class="s2">#          potentially nefarious effects on your running jobs. If you do not wish to receive</span>
+<span class="s2">#          emails, a work around is to set the variable `remindme_s` below to something very</span>
+<span class="s2">#          large (say, 100 days).</span>
+<span class="s2">#mailto: nobody@nowhere.com</span>
+
+<span class="s2"># verbosity level (int, default 0)</span>
+<span class="s2">#verbose: 0</span>
+
+<span class="s2"># The scheduler will shutdown when the number of python exceptions is &gt; max_num_pyexcs</span>
+<span class="s2">#max_num_pyexcs: 2</span>
+
+<span class="s2"># The scheduler will shutdown when the number of Abinit errors is &gt; max_num_abierrs</span>
+<span class="s2">#max_num_abierrs: 0</span>
+
+<span class="s2"># The scheduler will shutdow when the total number of tasks launched is &gt; safety_ratio * tot_num_tasks.</span>
+<span class="s2">#safety_ratio: 5</span>
+
+<span class="s2"># Send an e-mail to mailto every remindme_s seconds.</span>
+<span class="s2">#remindme_s: 345600</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+    <span class="n">manager_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s2">&quot;manager.yaml&quot;</span><span class="p">)</span>
+    <span class="n">manager_yaml</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">qadapters:</span>
+<span class="s2">    -</span>
+<span class="s2">      priority: 1</span>
+<span class="s2">      queue:</span>
+<span class="s2">        qname: abipy</span>
+<span class="s2">        qtype: shell</span>
+<span class="s2">      job:</span>
+<span class="s2">        mpi_runner: mpirun</span>
+<span class="s2">        pre_run:</span>
+<span class="s2">         - export OMP_NUM_THREADS=1</span>
+<span class="s2">         # IMPORTANT: Change the below line so that the abinit executable is in PATH</span>
+<span class="s2">         #- export PATH=$HOME/git_repos/abinit/_build/src/98_main:$PATH</span>
+<span class="s2">         #- ulimit -s unlimited; ulimit -n 2048</span>
+
+<span class="s2">      limits:</span>
+<span class="s2">         min_cores: 1</span>
+<span class="s2">         max_cores: 2</span>
+<span class="s2">         timelimit: 0:10:0</span>
+<span class="s2">      hardware:</span>
+<span class="s2">         num_nodes: 1</span>
+<span class="s2">         sockets_per_node: 1</span>
+<span class="s2">         cores_per_socket: 2</span>
+<span class="s2">         mem_per_node: 4 Gb</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+    <span class="c1"># Write configuration files.</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">scheduler_path</span><span class="p">)</span> <span class="ow">or</span> <span class="n">force_reinstall</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">scheduler_path</span><span class="p">,</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">scheduler_yaml</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Scheduler configuration file written to:&quot;</span><span class="p">,</span> <span class="n">scheduler_path</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Configuration file: </span><span class="si">%s</span><span class="s2"> already exists.</span><span class="se">\n</span><span class="s2">Use force_reinstall option to overwrite it&quot;</span> <span class="o">%</span> <span class="n">scheduler_path</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">manager_path</span><span class="p">)</span> <span class="ow">or</span> <span class="n">force_reinstall</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">manager_path</span><span class="p">,</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">manager_yaml</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Manager configuration file written to:&quot;</span><span class="p">,</span> <span class="n">manager_path</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Configuration file: </span><span class="si">%s</span><span class="s2"> already exists.</span><span class="se">\n</span><span class="s2">Use force_reinstall option to overwrite it&quot;</span> <span class="o">%</span> <span class="n">manager_path</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">Configuration files installed successfully.</span>
+<span class="s2">Please edit the configuration options according to your installation.</span>
+<span class="s2">In particular, edit the `pre_run` section in manager.yml</span>
+<span class="s2">so that the abinit executable is in $PATH.</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="mi">0</span></div>
 
 
 <div class="viewcode-block" id="abipy_logo1"><a class="viewcode-back" href="../../api/abilab_api.html#abipy.abilab.abipy_logo1">[docs]</a><span class="k">def</span> <span class="nf">abipy_logo1</span><span class="p">():</span>
@@ -533,6 +675,7 @@
 <span class="s2">   `  ..` `:-                            :+              /:         --` `-` `</span>
 <span class="s2">            `.`                                                   ..`</span>
 <span class="s2">&quot;&quot;&quot;</span></div>
+
 </pre></div>
 
     </div>
@@ -547,7 +690,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on May 29, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>abipy.dfpt.raman &#8212; abipy 0.8.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../graphical_interface.html">Graphical interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <h1>Source code for abipy.dfpt.raman</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">abipy.core.abinit_units</span> <span class="k">as</span> <span class="nn">abu</span>
+<span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="kn">import</span> <span class="n">ETSF_Reader</span>
+<span class="kn">from</span> <span class="nn">abipy.core.func1d</span> <span class="kn">import</span> <span class="n">Function1D</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="kn">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+
+
+<span class="n">PowderIntensity</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s2">&quot;PowderIntensity&quot;</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;paral&quot;</span><span class="p">,</span> <span class="s2">&quot;perp&quot;</span><span class="p">,</span> <span class="s2">&quot;tot&quot;</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="Raman"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.raman.Raman">[docs]</a><span class="k">class</span> <span class="nc">Raman</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An object that allows to obtain the Raman intensities based on the calculated</span>
+<span class="sd">    susceptibilities. The expressions used to extract the different values of the</span>
+<span class="sd">    Raman intensities can be found for example in PRB 71, 214307, Physics of the</span>
+<span class="sd">    Earth and Planetary Interiors 174, 113 or PRB 71, 125107.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">susceptibility</span><span class="p">,</span> <span class="n">phfreqs</span><span class="p">,</span> <span class="n">non_anal_susceptibility</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">non_anal_phfreqs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">non_anal_directions</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            susceptibility: a numpy array with shape (n modes, 3 3) containing the</span>
+<span class="sd">                Raman susceptibilities of transverse zone-center phonon modes.</span>
+<span class="sd">            phfreqs: a numpy array with the phonon frequencies at Gamma, without non</span>
+<span class="sd">                analytical contributions.</span>
+<span class="sd">            non_anal_susceptibility: a numpy array with shape (n directions, n modes, 3 3)</span>
+<span class="sd">                containing the Raman susceptibilities of zone-center phonons, with non-analyticity</span>
+<span class="sd">                in  different directions.</span>
+<span class="sd">            non_anal_phfreqs: a numpy array with the phonon frequencies with shape</span>
+<span class="sd">                (n directions, n modes), with non analytical contributions along the different</span>
+<span class="sd">                directions.</span>
+<span class="sd">            non_anal_directions: a numpy array with shape (n directions, 3) with the directions</span>
+<span class="sd">                along which the non analytical contribution has been calculated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">susceptibility</span> <span class="o">=</span> <span class="n">susceptibility</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">phfreqs</span> <span class="o">=</span> <span class="n">phfreqs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">non_anal_susceptibility</span> <span class="o">=</span> <span class="n">non_anal_susceptibility</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">non_anal_phfreqs</span> <span class="o">=</span> <span class="n">non_anal_phfreqs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">non_anal_directions</span> <span class="o">=</span> <span class="n">non_anal_directions</span>
+
+<div class="viewcode-block" id="Raman.from_file"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.raman.Raman.from_file">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create the object from an anaddb.nc netcdf file.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            filepath: path to the netcdf file.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            An instance of Raman.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">with</span> <span class="n">ETSF_Reader</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">r</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">susceptibility</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;raman_sus&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+                <span class="n">phfreqs</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;gamma_phonon_modes&quot;</span><span class="p">)</span>
+                <span class="n">non_anal_susceptibility</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;non_analytical_raman_sus&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">non_anal_susceptibility</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">non_anal_susceptibility</span> <span class="o">=</span> <span class="n">non_anal_susceptibility</span><span class="o">.</span><span class="n">T</span>
+                <span class="n">non_anal_phfreqs</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;non_analytical_phonon_modes&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+                <span class="n">non_anal_directions</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;non_analytical_directions&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">traceback</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()</span>
+                <span class="n">msg</span> <span class="o">+=</span> <span class="p">(</span><span class="s2">&quot;Error while trying to read Raman from file.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                        <span class="s2">&quot;Verify that the required variables are used in anaddb: nlflag</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">susceptibility</span><span class="o">=</span><span class="n">susceptibility</span><span class="p">,</span> <span class="n">phfreqs</span><span class="o">=</span><span class="n">phfreqs</span><span class="p">,</span> <span class="n">non_anal_susceptibility</span><span class="o">=</span><span class="n">non_anal_susceptibility</span><span class="p">,</span>
+                       <span class="n">non_anal_phfreqs</span><span class="o">=</span><span class="n">non_anal_phfreqs</span><span class="p">,</span> <span class="n">non_anal_directions</span><span class="o">=</span><span class="n">non_anal_directions</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Raman.get_modes_intensities"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.raman.Raman.get_modes_intensities">[docs]</a>    <span class="k">def</span> <span class="nf">get_modes_intensities</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">laser_freq</span><span class="p">,</span> <span class="n">non_anal_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">relative</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span>
+                              <span class="n">pol_in</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pol_out</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculates the Raman intensities for each mode in arbitrary units. It is possible to use the</span>
+<span class="sd">        susceptibilities from the transverse modes only or to specify one of the directions with non</span>
+<span class="sd">        analytical contributions. By default it returns an array with shape (n modes, 3, 3) where each</span>
+<span class="sd">        component of the 3x3 matrix are those with different incoming (the first index) and outgoing</span>
+<span class="sd">        (the second index) polarization. These are along the components along the standard axes (e.g.</span>
+<span class="sd">        &quot;xx&quot; or &quot;yz&quot; components). If pol_in and pol_out an array with shape (n modes) is returned</span>
+<span class="sd">        corresponding to the selected polarizations.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            temp: temperature in K.</span>
+<span class="sd">            laser_freq: frequency of the incident laser. The units are determined the &quot;units&quot;</span>
+<span class="sd">                argument.</span>
+<span class="sd">            non_anal_dir: index of the direction along which the non analytical contribution</span>
+<span class="sd">                has been calculated. Corresponds to the indices in the non_anal_directions attribute.</span>
+<span class="sd">            relative: if True the intensities will be rescaled so that the largest value is 1.</span>
+<span class="sd">            units: the units in which the input and the output frequencies will be given.</span>
+<span class="sd">                Possible values in (&quot;eV&quot;, &quot;meV&quot;, &quot;Ha&quot;, &quot;cm-1&quot;, &quot;Thz&quot;)</span>
+<span class="sd">            pol_in: the polarization of the incoming photon. If not None can be either either a string</span>
+<span class="sd">                with one of the cartesian components i.e. &quot;x&quot;, &quot;y&quot;, &quot;z&quot; or an array with 3 elements</span>
+<span class="sd">                representing the polarization direction. If not None pol_out can not be None.</span>
+<span class="sd">            pol_out: the polarization of the outgoing photon. If not None can be either either a string</span>
+<span class="sd">                with one of the cartesian components i.e. &quot;x&quot;, &quot;y&quot;, &quot;z&quot; or an array with 3 elements</span>
+<span class="sd">                representing the polarization direction. If not None pol_in can not be None.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            An array with the Raman intensities. If pol_in==pol_out==None has shape (n modes, 3, 3)</span>
+<span class="sd">            with all the components. Otherwise an array with size (n modes) with the intensities of</span>
+<span class="sd">            the selected polarizations.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">non_anal_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phfreqs</span>
+            <span class="n">sus</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">susceptibility</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">non_anal_phfreqs</span><span class="p">[</span><span class="n">non_anal_dir</span><span class="p">]</span>
+            <span class="n">sus</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">non_anal_susceptibility</span><span class="p">[</span><span class="n">non_anal_dir</span><span class="p">]</span>
+
+        <span class="n">laser_freq</span> <span class="o">=</span> <span class="n">laser_freq</span> <span class="o">/</span> <span class="n">abu</span><span class="o">.</span><span class="n">phfactor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+
+        <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_prefactor</span><span class="p">(</span><span class="n">w</span><span class="o">=</span><span class="n">w</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="n">temp</span><span class="p">,</span> <span class="n">laser_freq</span><span class="o">=</span><span class="n">laser_freq</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pol_in</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">pol_out</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="n">c</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span> <span class="o">*</span> <span class="n">sus</span><span class="o">**</span><span class="mi">2</span>
+            <span class="c1"># this will make the indices of the i,j component such that the first</span>
+            <span class="c1"># will refer to the polarization of the incoming photon and the second</span>
+            <span class="c1"># to the polarization of the created one.</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">pol_in</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">pol_out</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;pol_in and pol_out should be either both None or both defined&quot;</span><span class="p">)</span>
+            <span class="n">dxyz</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;z&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]}</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pol_in</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">pol_in</span> <span class="o">=</span> <span class="n">dxyz</span><span class="p">[</span><span class="n">pol_in</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pol_out</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">pol_out</span> <span class="o">=</span> <span class="n">dxyz</span><span class="p">[</span><span class="n">pol_out</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span>
+
+            <span class="n">pol_in</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pol_in</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">pol_in</span><span class="p">)</span>
+            <span class="n">pol_out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pol_out</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">pol_out</span><span class="p">)</span>
+
+            <span class="n">i</span> <span class="o">=</span> <span class="n">c</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ijk, j, k -&gt; i&quot;</span><span class="p">,</span> <span class="n">sus</span><span class="p">,</span> <span class="n">pol_out</span><span class="p">,</span> <span class="n">pol_in</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+
+        <span class="k">if</span> <span class="n">relative</span><span class="p">:</span>
+            <span class="n">i</span> <span class="o">/=</span> <span class="n">i</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">i</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_get_prefactor</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">laser_freq</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Helper method to calculate the coefficient for the Raman intensities.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            w: the selected frequencies in eV.</span>
+<span class="sd">            temp: the temperature in K.</span>
+<span class="sd">            laser_freq: the frequency of the laser in eV</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            An array with shape (n modes) with the coefficient for the Raman intensities.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
+        <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">w</span> <span class="o">&gt;</span> <span class="mf">1e-5</span><span class="p">)</span>
+
+        <span class="n">bose_factor</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">w</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="n">abu</span><span class="o">.</span><span class="n">kb_eVK</span> <span class="o">*</span> <span class="n">temp</span><span class="p">)))</span>
+
+        <span class="n">c</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">w</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span> <span class="o">-</span> <span class="n">laser_freq</span><span class="p">)</span> <span class="o">**</span> <span class="mi">4</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">w</span><span class="p">[</span><span class="n">ind</span><span class="p">])</span> <span class="o">*</span> <span class="n">bose_factor</span>
+
+        <span class="k">return</span> <span class="n">c</span>
+
+    <span class="k">def</span> <span class="nf">_get_lorentz_freqs_and_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">intensity</span><span class="p">,</span> <span class="n">non_anal_dir</span><span class="p">,</span> <span class="n">min_freq</span><span class="p">,</span> <span class="n">max_freq</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">units</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Helper method to get the list of frequencies and the main spread factors to</span>
+<span class="sd">        calculate the broadened Raman intensities with a Lorentz distribution.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            intensity: the Raman intensities at specified frequencies.</span>
+<span class="sd">            non_anal_dir: ndex of the direction along which the non analytical contribution</span>
+<span class="sd">                has been calculated. Corresponds to the indices in the non_anal_directions attribute.</span>
+<span class="sd">            min_freq: minimum frequency considered. If None it will be given by the minimum</span>
+<span class="sd">                frequency with non zero intensities minus 10 times the width of the distribution.</span>
+<span class="sd">            max_freq: maximum frequency considered. If None it will be given by the maximum</span>
+<span class="sd">                frequency with non zero intensities plus 10 times the width of the distribution.</span>
+<span class="sd">            width: the width of the Lorentz distribution.</span>
+<span class="sd">            units: the units in which the input and the output frequencies will be given.</span>
+<span class="sd">                Possible values in (&quot;eV&quot;, &quot;meV&quot;, &quot;Ha&quot;, &quot;cm-1&quot;, &quot;Thz&quot;)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple with list of &quot;num&quot; frequencies in eV and factors for the Lorentz broadening</span>
+<span class="sd">            with shape (n modes, num).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">non_anal_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phfreqs</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">non_anal_phfreqs</span><span class="p">[</span><span class="n">non_anal_dir</span><span class="p">]</span>
+
+        <span class="n">units_factor</span> <span class="o">=</span> <span class="n">abu</span><span class="o">.</span><span class="n">phfactor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+
+        <span class="n">width</span> <span class="o">=</span> <span class="n">width</span> <span class="o">/</span> <span class="n">units_factor</span>
+
+        <span class="k">if</span> <span class="n">min_freq</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">min_ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">intensity</span><span class="o">/</span><span class="n">intensity</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mf">1e-10</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+            <span class="n">min_freq</span> <span class="o">=</span> <span class="n">w</span><span class="p">[</span><span class="n">min_ind</span><span class="p">]</span> <span class="o">-</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">width</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">min_freq</span> <span class="o">=</span> <span class="n">min_freq</span> <span class="o">/</span> <span class="n">units_factor</span>
+
+        <span class="k">if</span> <span class="n">max_freq</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">max_ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">intensity</span><span class="o">/</span><span class="n">intensity</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mf">1e-10</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+            <span class="n">max_freq</span> <span class="o">=</span> <span class="n">w</span><span class="p">[</span><span class="n">max_ind</span><span class="p">]</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">width</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">max_freq</span> <span class="o">=</span> <span class="n">max_freq</span> <span class="o">/</span> <span class="n">units_factor</span>
+
+        <span class="n">freqs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">min_freq</span><span class="p">,</span> <span class="n">max_freq</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span>
+
+        <span class="n">lorentz</span> <span class="o">=</span> <span class="n">width</span> <span class="o">/</span> <span class="p">((</span><span class="n">freqs</span> <span class="o">-</span> <span class="n">w</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">width</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+
+        <span class="k">return</span> <span class="n">freqs</span><span class="p">,</span> <span class="n">lorentz</span>
+
+<div class="viewcode-block" id="Raman.get_lorentz_intensity"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.raman.Raman.get_lorentz_intensity">[docs]</a>    <span class="k">def</span> <span class="nf">get_lorentz_intensity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">laser_freq</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">non_anal_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">min_freq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_freq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                              <span class="n">num</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">relative</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">pol_in</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pol_out</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculates the broadened Raman intensities in arbitrary units for frequencies in an interval. It is</span>
+<span class="sd">        possible to use the susceptibilities from the transverse modes only or to specify one of the directions</span>
+<span class="sd">        with non analytical contributions. By default it returns a 3x3 matrix where each component is a</span>
+<span class="sd">        Function1D object with the Raman intensities with different incoming (the first index) and outgoing</span>
+<span class="sd">        (the second index) polarization. These are along the components along the standard axes (e.g. &quot;xx&quot; or</span>
+<span class="sd">        &quot;yz&quot; components). If pol_in and pol_out a single Function1D is returned corresponding to the selected</span>
+<span class="sd">        polarizations.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            temp: temperature in K.</span>
+<span class="sd">            laser_freq: frequency of the incident laser. The units are determined the &quot;units&quot;</span>
+<span class="sd">                argument.</span>
+<span class="sd">            width: the width of the Lorentz distribution. The units are determined the &quot;units&quot;</span>
+<span class="sd">                argument.</span>
+<span class="sd">            non_anal_dir: index of the direction along which the non analytical contribution</span>
+<span class="sd">                has been calculated. Corresponds to the indices in the non_anal_directions attribute.</span>
+<span class="sd">            min_freq: minimum frequency considered. If None it will be given by the minimum</span>
+<span class="sd">                frequency with non zero intensities minus 10 times the width of the distribution.</span>
+<span class="sd">                If given the units are determined by the &quot;units&quot; argument.</span>
+<span class="sd">            max_freq: maximum frequency considered. If None it will be given by the maximum</span>
+<span class="sd">                frequency with non zero intensities plus 10 times the width of the distribution.</span>
+<span class="sd">                If given the units are determined by the &quot;units&quot; argument.</span>
+<span class="sd">            num: number of frequencies in the interval (min_freq, max_freq).</span>
+<span class="sd">            relative: if True the intensities will be rescaled so that the largest value is 1.</span>
+<span class="sd">            units: the units in which the input and the output frequencies will be given.</span>
+<span class="sd">                Possible values in (&quot;eV&quot;, &quot;meV&quot;, &quot;Ha&quot;, &quot;cm-1&quot;, &quot;Thz&quot;)</span>
+<span class="sd">            pol_in: the polarization of the incoming photon. If not None can be either either a string</span>
+<span class="sd">                with one of the cartesian components i.e. &quot;x&quot;, &quot;y&quot;, &quot;z&quot; or an array with 3 elements</span>
+<span class="sd">                representing the polarization direction. If not None pol_out can not be None.</span>
+<span class="sd">            pol_out: the polarization of the outgoing photon. If not None can be either either a string</span>
+<span class="sd">                with one of the cartesian components i.e. &quot;x&quot;, &quot;y&quot;, &quot;z&quot; or an array with 3 elements</span>
+<span class="sd">                representing the polarization direction. If not None pol_in can not be None.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            If pol_in==pol_out==None a 3x3 list with a Function1D corresponding to the different</span>
+<span class="sd">            components of the intensities. Otherwise a single Function1D with the  intensities of</span>
+<span class="sd">            the selected polarizations. Each Function1D has &quot;num&quot; points.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_modes_intensities</span><span class="p">(</span><span class="n">temp</span><span class="o">=</span><span class="n">temp</span><span class="p">,</span> <span class="n">laser_freq</span><span class="o">=</span><span class="n">laser_freq</span><span class="p">,</span> <span class="n">non_anal_dir</span><span class="o">=</span><span class="n">non_anal_dir</span><span class="p">,</span>
+                                       <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">pol_in</span><span class="o">=</span><span class="n">pol_in</span><span class="p">,</span> <span class="n">pol_out</span><span class="o">=</span><span class="n">pol_out</span><span class="p">)</span>
+
+        <span class="n">freqs</span><span class="p">,</span> <span class="n">lorentz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_lorentz_freqs_and_factor</span><span class="p">(</span><span class="n">intensity</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">non_anal_dir</span><span class="o">=</span><span class="n">non_anal_dir</span><span class="p">,</span> <span class="n">min_freq</span><span class="o">=</span><span class="n">min_freq</span><span class="p">,</span>
+                                                            <span class="n">max_freq</span><span class="o">=</span><span class="n">max_freq</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="n">num</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">)</span>
+
+        <span class="c1"># convert the frequencies to the desired units for the output</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">freqs</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">phfactor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">pol_in</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">pol_out</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">li</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">lorentz</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">relative</span><span class="p">:</span>
+                <span class="n">li</span> <span class="o">/=</span> <span class="n">li</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+            <span class="k">return</span> <span class="n">Function1D</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">li</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">li</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ij, ikl -&gt; jkl&quot;</span><span class="p">,</span> <span class="n">lorentz</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+
+            <span class="n">li_func</span> <span class="o">=</span> <span class="p">[[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="mi">3</span><span class="p">]</span><span class="o">*</span><span class="mi">3</span>
+
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                    <span class="n">y</span> <span class="o">=</span> <span class="n">li</span><span class="p">[:,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">relative</span><span class="p">:</span>
+                        <span class="n">y</span> <span class="o">/=</span> <span class="n">y</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+                    <span class="n">li_func</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">Function1D</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">li_func</span></div>
+
+<div class="viewcode-block" id="Raman.get_powder_intensity"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.raman.Raman.get_powder_intensity">[docs]</a>    <span class="k">def</span> <span class="nf">get_powder_intensity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">laser_freq</span><span class="p">,</span> <span class="n">non_anal_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">relative</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculates the Raman intensities in arbitrary units for each mode integrated over all possible</span>
+<span class="sd">        orientation to reproduce the powder measurements. It is possible to use the susceptibilities from</span>
+<span class="sd">        transverse modes only or to specify one of the directions with non analytical contributions.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            temp: temperature in K.</span>
+<span class="sd">            laser_freq: frequency of the incident laser. The units are determined the &quot;units&quot;</span>
+<span class="sd">                argument.</span>
+<span class="sd">            non_anal_dir: index of the direction along which the non analytical contribution</span>
+<span class="sd">                has been calculated. Corresponds to the indices in the non_anal_directions attribute.</span>
+<span class="sd">            relative: if True the intensities will be rescaled so that the largest value of the</span>
+<span class="sd">                total intensity is 1.</span>
+<span class="sd">            units: the units in which the input and the output frequencies will be given.</span>
+<span class="sd">                Possible values in (&quot;eV&quot;, &quot;meV&quot;, &quot;Ha&quot;, &quot;cm-1&quot;, &quot;Thz&quot;)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A PowderIntensity with the parallel, perpendicular and total components of the powder</span>
+<span class="sd">            intensities. Each one is an array with length n modes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">non_anal_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phfreqs</span>
+            <span class="n">sus</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">susceptibility</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">non_anal_phfreqs</span><span class="p">[</span><span class="n">non_anal_dir</span><span class="p">]</span>
+            <span class="n">sus</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">non_anal_susceptibility</span><span class="p">[</span><span class="n">non_anal_dir</span><span class="p">]</span>
+
+        <span class="n">g0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="n">sus</span><span class="p">,</span> <span class="n">axis1</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">axis2</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="mi">3</span>
+        <span class="n">g1</span> <span class="o">=</span> <span class="p">((</span><span class="n">sus</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">sus</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">sus</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">sus</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">sus</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">sus</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">g2</span> <span class="o">=</span> <span class="p">((</span><span class="n">sus</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">sus</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">sus</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">sus</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">sus</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">sus</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">+</span> \
+             <span class="p">((</span><span class="n">sus</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">sus</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">sus</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">sus</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">sus</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">sus</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">3</span>
+
+        <span class="n">laser_freq</span> <span class="o">=</span> <span class="n">laser_freq</span> <span class="o">/</span> <span class="n">abu</span><span class="o">.</span><span class="n">phfactor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+
+        <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_prefactor</span><span class="p">(</span><span class="n">w</span><span class="o">=</span><span class="n">w</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="n">temp</span><span class="p">,</span> <span class="n">laser_freq</span><span class="o">=</span><span class="n">laser_freq</span><span class="p">)</span>
+
+        <span class="n">paral</span> <span class="o">=</span> <span class="n">c</span> <span class="o">*</span> <span class="p">(</span><span class="mi">10</span> <span class="o">*</span> <span class="n">g0</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">g2</span><span class="p">)</span>
+        <span class="n">perp</span> <span class="o">=</span> <span class="n">c</span> <span class="o">*</span> <span class="p">(</span><span class="mi">5</span> <span class="o">*</span> <span class="n">g1</span> <span class="o">+</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">g2</span><span class="p">)</span>
+        <span class="n">tot</span> <span class="o">=</span> <span class="n">paral</span> <span class="o">+</span> <span class="n">perp</span>
+        <span class="k">if</span> <span class="n">relative</span><span class="p">:</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">tot</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+            <span class="n">paral</span> <span class="o">/=</span> <span class="n">m</span>
+            <span class="n">perp</span> <span class="o">/=</span> <span class="n">m</span>
+            <span class="n">tot</span> <span class="o">/=</span> <span class="n">m</span>
+
+        <span class="k">return</span> <span class="n">PowderIntensity</span><span class="p">(</span><span class="n">paral</span><span class="p">,</span> <span class="n">perp</span><span class="p">,</span> <span class="n">tot</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Raman.get_powder_lorentz_intensity"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.raman.Raman.get_powder_lorentz_intensity">[docs]</a>    <span class="k">def</span> <span class="nf">get_powder_lorentz_intensity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">laser_freq</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">non_anal_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">min_freq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                     <span class="n">max_freq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">relative</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculates the broadened Raman intensities in arbitrary units integrated over all possible</span>
+<span class="sd">        orientation to reproduce the powder measurements for frequencies in an interval. It is possible to</span>
+<span class="sd">        use the susceptibilities from the transverse modes only or to specify one of the directions with non</span>
+<span class="sd">        analytical contributions.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            temp: temperature in K.</span>
+<span class="sd">            laser_freq: frequency of the incident laser. The units are determined the &quot;units&quot;</span>
+<span class="sd">                argument.</span>
+<span class="sd">            width: the width of the Lorentz distribution. The units are determined the &quot;units&quot;</span>
+<span class="sd">                argument.</span>
+<span class="sd">            non_anal_dir: index of the direction along which the non analytical contribution</span>
+<span class="sd">                has been calculated. Corresponds to the indices in the non_anal_directions attribute.</span>
+<span class="sd">            min_freq: minimum frequency considered. If None it will be given by the minimum</span>
+<span class="sd">                frequency with non zero intensities minus 10 times the width of the distribution.</span>
+<span class="sd">                If given the units are determined by the &quot;units&quot; argument.</span>
+<span class="sd">            max_freq: maximum frequency considered. If None it will be given by the maximum</span>
+<span class="sd">                frequency with non zero intensities plus 10 times the width of the distribution.</span>
+<span class="sd">                If given the units are determined by the &quot;units&quot; argument.</span>
+<span class="sd">            num: number of frequencies in the interval (min_freq, max_freq).</span>
+<span class="sd">            relative: if True the intensities will be rescaled so that the largest value of the</span>
+<span class="sd">                total intensity is 1.</span>
+<span class="sd">            units: the units in which the input and the output frequencies will be given.</span>
+<span class="sd">                Possible values in (&quot;eV&quot;, &quot;meV&quot;, &quot;Ha&quot;, &quot;cm-1&quot;, &quot;Thz&quot;)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A PowderIntensity with the parallel, perpendicular and total components of the powder</span>
+<span class="sd">            intensities. Each one is a Function1D with &quot;num&quot; points.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">pi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_powder_intensity</span><span class="p">(</span><span class="n">temp</span><span class="o">=</span><span class="n">temp</span><span class="p">,</span> <span class="n">laser_freq</span><span class="o">=</span><span class="n">laser_freq</span><span class="p">,</span> <span class="n">non_anal_dir</span><span class="o">=</span><span class="n">non_anal_dir</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">)</span>
+
+        <span class="n">freqs</span><span class="p">,</span> <span class="n">lorentz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_lorentz_freqs_and_factor</span><span class="p">(</span><span class="n">intensity</span><span class="o">=</span><span class="n">pi</span><span class="o">.</span><span class="n">tot</span><span class="p">,</span> <span class="n">non_anal_dir</span><span class="o">=</span><span class="n">non_anal_dir</span><span class="p">,</span> <span class="n">min_freq</span><span class="o">=</span><span class="n">min_freq</span><span class="p">,</span>
+                                                            <span class="n">max_freq</span><span class="o">=</span><span class="n">max_freq</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="n">num</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">)</span>
+
+        <span class="n">lpi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">lorentz</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">pi</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">relative</span><span class="p">:</span>
+            <span class="n">lpi</span> <span class="o">/=</span> <span class="n">lpi</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+        <span class="c1"># now convert the frequencies to the desired units for the output</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">freqs</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">phfactor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">PowderIntensity</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">Function1D</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">lpi</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Raman.plot_intensity"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.raman.Raman.plot_intensity">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_intensity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">laser_freq</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">non_anal_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">min_freq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_freq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="n">num</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">relative</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plot_phfreqs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot one representation of the broadened Raman intensities.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            temp: temperature in K.</span>
+<span class="sd">            laser_freq: frequency of the incident laser. The units are determined the &quot;units&quot;</span>
+<span class="sd">                argument.</span>
+<span class="sd">            width: the width of the Lorentz distribution. The units are determined the &quot;units&quot;</span>
+<span class="sd">                argument. If None or 0 a plot of only the frequencies for each mode will be given.</span>
+<span class="sd">            value: a string describing the value that should be plotted. Can be &quot;powder&quot; or</span>
+<span class="sd">                a string of the type &quot;xz&quot; with the polarization of the incoming and outgoing</span>
+<span class="sd">                phonon. All the combinations of &quot;x&quot;, &quot;y&quot; and &quot;z&quot; are accepted.</span>
+<span class="sd">            non_anal_dir: index of the direction along which the non analytical contribution</span>
+<span class="sd">                has been calculated. Corresponds to the indices in the non_anal_directions attribute.</span>
+<span class="sd">            min_freq: minimum frequency considered. If None it will be given by the minimum</span>
+<span class="sd">                frequency with non zero intensities minus 10 times the width of the distribution.</span>
+<span class="sd">                If given the units are determined by the &quot;units&quot; argument.</span>
+<span class="sd">            max_freq: maximum frequency considered. If None it will be given by the maximum</span>
+<span class="sd">                frequency with non zero intensities plus 10 times the width of the distribution.</span>
+<span class="sd">                If given the units are determined by the &quot;units&quot; argument.</span>
+<span class="sd">            num: number of frequencies in the interval (min_freq, max_freq).</span>
+<span class="sd">            relative: if True the intensities will be rescaled so that the largest value of the</span>
+<span class="sd">                total intensity is 1.</span>
+<span class="sd">            units: the units in which the input and the output frequencies will be given.</span>
+<span class="sd">                Possible values in (&quot;eV&quot;, &quot;meV&quot;, &quot;Ha&quot;, &quot;cm-1&quot;, &quot;Thz&quot;)</span>
+<span class="sd">            ax: |matplotlib-Axes| or None if a new figure should be created.</span>
+<span class="sd">            plot_phfreqs: if True vertical dashed lines are added to the figure for all the</span>
+<span class="sd">                phonon modes.</span>
+<span class="sd">            **kwargs: arguments passed to the plot function.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            |matplotlib-Figure|</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">width</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="s2">&quot;powder&quot;</span><span class="p">:</span>
+                <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_powder_lorentz_intensity</span><span class="p">(</span><span class="n">temp</span><span class="o">=</span><span class="n">temp</span><span class="p">,</span> <span class="n">laser_freq</span><span class="o">=</span><span class="n">laser_freq</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
+                                                      <span class="n">non_anal_dir</span><span class="o">=</span><span class="n">non_anal_dir</span><span class="p">,</span> <span class="n">min_freq</span><span class="o">=</span><span class="n">min_freq</span><span class="p">,</span> <span class="n">max_freq</span><span class="o">=</span><span class="n">max_freq</span><span class="p">,</span>
+                                                      <span class="n">num</span><span class="o">=</span><span class="n">num</span><span class="p">,</span> <span class="n">relative</span><span class="o">=</span><span class="n">relative</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">)</span><span class="o">.</span><span class="n">tot</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">pol_in</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">pol_out</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_lorentz_intensity</span><span class="p">(</span><span class="n">temp</span><span class="o">=</span><span class="n">temp</span><span class="p">,</span> <span class="n">laser_freq</span><span class="o">=</span><span class="n">laser_freq</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">non_anal_dir</span><span class="o">=</span><span class="n">non_anal_dir</span><span class="p">,</span>
+                                               <span class="n">min_freq</span><span class="o">=</span><span class="n">min_freq</span><span class="p">,</span> <span class="n">max_freq</span><span class="o">=</span><span class="n">max_freq</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="n">num</span><span class="p">,</span> <span class="n">relative</span><span class="o">=</span><span class="n">relative</span><span class="p">,</span>
+                                               <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">pol_in</span><span class="o">=</span><span class="n">pol_in</span><span class="p">,</span> <span class="n">pol_out</span><span class="o">=</span><span class="n">pol_out</span><span class="p">)</span>
+
+            <span class="n">f</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">plot_phfreqs</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">non_anal_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phfreqs</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">non_anal_phfreqs</span><span class="p">[</span><span class="n">non_anal_dir</span><span class="p">]</span>
+
+                <span class="n">w</span> <span class="o">=</span> <span class="n">w</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">phfactor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+
+                <span class="n">min_freq</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">mesh</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">max_freq</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">mesh</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+                <span class="k">for</span> <span class="n">wi</span> <span class="ow">in</span> <span class="n">w</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">min_freq</span> <span class="o">&lt;</span> <span class="n">wi</span> <span class="o">&lt;</span> <span class="n">max_freq</span><span class="p">:</span>
+                        <span class="n">ax</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">wi</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="s2">&quot;powder&quot;</span><span class="p">:</span>
+                <span class="n">ri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_powder_intensity</span><span class="p">(</span><span class="n">temp</span><span class="o">=</span><span class="n">temp</span><span class="p">,</span> <span class="n">laser_freq</span><span class="o">=</span><span class="n">laser_freq</span><span class="p">,</span> <span class="n">non_anal_dir</span><span class="o">=</span><span class="n">non_anal_dir</span><span class="p">,</span>
+                                               <span class="n">relative</span><span class="o">=</span><span class="n">relative</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">)</span>
+
+                <span class="n">i</span> <span class="o">=</span> <span class="n">ri</span><span class="o">.</span><span class="n">tot</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">pol_in</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">pol_out</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_modes_intensities</span><span class="p">(</span><span class="n">temp</span><span class="o">=</span><span class="n">temp</span><span class="p">,</span> <span class="n">laser_freq</span><span class="o">=</span><span class="n">laser_freq</span><span class="p">,</span> <span class="n">non_anal_dir</span><span class="o">=</span><span class="n">non_anal_dir</span><span class="p">,</span>
+                                               <span class="n">relative</span><span class="o">=</span><span class="n">relative</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">pol_in</span><span class="o">=</span><span class="n">pol_in</span><span class="p">,</span> <span class="n">pol_out</span><span class="o">=</span><span class="n">pol_out</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">non_anal_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phfreqs</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">phfactor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">non_anal_phfreqs</span><span class="p">[</span><span class="n">non_anal_dir</span><span class="p">]</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">phfactor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+
+            <span class="n">ax</span><span class="o">.</span><span class="n">stem</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fig</span></div></div>
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
+      Last updated on May 29, 2020.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

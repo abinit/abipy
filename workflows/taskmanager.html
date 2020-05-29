@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>TaskManager &#8212; abipy 0.7.0 documentation</title>
+    <title>TaskManager &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -41,7 +44,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -64,6 +67,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -206,7 +210,7 @@ If no file is found, the code aborts immediately.</p>
 <p>An important piece of information for the <code class="docutils literal notranslate"><span class="pre">TaskManager</span></code> is the type of queueing system available on the cluster,
 the list of queues and their specifications.
 In AbiPy queueing systems or resource managers are supported via <code class="docutils literal notranslate"><span class="pre">quadapters</span></code>.
-At the time of writing (Oct 18, 2019), AbiPy provides <code class="docutils literal notranslate"><span class="pre">qadapters</span></code> for the following resource managers:</p>
+At the time of writing (Feb 22, 2020), AbiPy provides <code class="docutils literal notranslate"><span class="pre">qadapters</span></code> for the following resource managers:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">shell</span></code></p></li>
 <li><p><a class="reference external" href="http://pbspro.org/">pbspro</a></p></li>
@@ -292,22 +296,38 @@ available on your personal computer.
 Save the file in the current working directory and run the <a class="reference internal" href="../scripts/abicheck.html#abicheck-py"><span class="std std-ref">abicheck.py</span></a> script provided by AbiPy.
 If everything is configured properly, you should see something like this in the terminal.</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ abicheck.py --no-colors
-Traceback (most recent call last):
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/bin/abicheck.py&quot;, line 4, in &lt;module&gt;
-    __import__(&#39;pkg_resources&#39;).require(&#39;abipy==0.7.0.dev0&#39;)
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3250, in &lt;module&gt;
-    @_call_aside
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3234, in _call_aside
-    f(*args, **kwargs)
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3263, in _initialize_master_working_set
-    working_set = WorkingSet._build_master()
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 583, in _build_master
-    ws.require(__requires__)
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 900, in require
-    needed = self.resolve(parse_requirements(requirements))
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 786, in resolve
-    raise DistributionNotFound(req, requirers)
-pkg_resources.DistributionNotFound: The &#39;abipy==0.7.0.dev0&#39; distribution was not found and is required by the application
+AbiPy Manager:
+[Qadapter 0]
+ShellAdapter:gmac
+Hardware:
+   num_nodes: 1, sockets_per_node: 1, cores_per_socket: 2, mem_per_node 4096,
+Qadapter selected: 0
+
+Abinitbuild:
+Abinit Build Information:
+    Abinit version: 9.0.0
+    MPI: True, MPI-IO: True, OpenMP: False
+    Netcdf: True
+
+Abipy Scheduler:
+PyFlowScheduler, Pid: 54070
+Scheduler options: {&#39;weeks&#39;: 0, &#39;days&#39;: 0, &#39;hours&#39;: 0, &#39;minutes&#39;: 0, &#39;seconds&#39;: 2}
+
+Installed packages:
+Package         Version
+--------------  ---------
+system          Darwin
+python_version  3.7.0
+numpy           1.18.1
+scipy           1.3.1
+netCDF4         1.5.1.2
+apscheduler     2.1.0
+pydispatch      2.0.5
+yaml            5.3
+pymatgen        2020.1.28
+
+
+Abipy requirements are properly configured
 </pre></div>
 </div>
 <p>This message tells us that everything is in place and we can finally run our first calculation.</p>
@@ -474,7 +494,7 @@ job submission and job execution. The scenario is completely different if you ar
 jobs to a resource manager because the task will get a priority value and will enter the queue.</p>
 </div>
 <p>If you execute <code class="docutils literal notranslate"><span class="pre">status</span></code> again, you should see that the first task is completed.
-We can thus run <code class="docutils literal notranslate"><span class="pre">rapid</span></code> again to launch the <code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.tasks.NscfTask</span></code>.
+We can thus run <code class="docutils literal notranslate"><span class="pre">rapid</span></code> again to launch the <a class="reference internal" href="../api/flowtk_api.html#abipy.flowtk.tasks.NscfTask" title="abipy.flowtk.tasks.NscfTask"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.flowtk.tasks.NscfTask</span></code></a>.
 The second task won’t take long and if you issue <code class="docutils literal notranslate"><span class="pre">status</span></code> again, you should see that the entire flow
 completed successfully.</p>
 <p>To understand what happened in more detail, use the <code class="docutils literal notranslate"><span class="pre">history</span></code> command to get
@@ -553,22 +573,107 @@ the phonon frequencies and plot the DOS and the phonon band structure with <a cl
 <p>gives the full documentation for the different entries of <code class="docutils literal notranslate"><span class="pre">manager.yml</span></code>.</p>
 </div>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ abirun.py . doc_manager
-Traceback (most recent call last):
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/bin/abirun.py&quot;, line 4, in &lt;module&gt;
-    __import__(&#39;pkg_resources&#39;).require(&#39;abipy==0.7.0.dev0&#39;)
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3250, in &lt;module&gt;
-    @_call_aside
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3234, in _call_aside
-    f(*args, **kwargs)
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3263, in _initialize_master_working_set
-    working_set = WorkingSet._build_master()
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 583, in _build_master
-    ws.require(__requires__)
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 900, in require
-    needed = self.resolve(parse_requirements(requirements))
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 786, in resolve
-    raise DistributionNotFound(req, requirers)
-pkg_resources.DistributionNotFound: The &#39;abipy==0.7.0.dev0&#39; distribution was not found and is required by the application
+
+# TaskManager configuration file (YAML Format)
+
+policy:
+    # Dictionary with options used to control the execution of the tasks.
+
+qadapters:
+    # List of qadapters objects (mandatory)
+    -  # qadapter_1
+    -  # qadapter_2
+
+db_connector:
+    # Connection to MongoDB database (optional)
+
+batch_adapter:
+    # Adapter used to submit flows with batch script. (optional)
+
+##########################################
+# Individual entries are documented below:
+##########################################
+
+policy: 
+    autoparal:                # (integer). 0 to disable the autoparal feature (DEFAULT: 1 i.e. autoparal is on)
+    condition:                # condition used to filter the autoparal configurations (Mongodb-like syntax).
+                              # DEFAULT: empty i.e. ignored.
+    vars_condition:           # Condition used to filter the list of ABINIT variables reported by autoparal
+                              # (Mongodb-like syntax). DEFAULT: empty i.e. ignored.
+    frozen_timeout:           # A job is considered frozen and its status is set to ERROR if no change to
+                              # the output file has been done for `frozen_timeout` seconds. Accepts int with seconds or
+                              # string in slurm form i.e. days-hours:minutes:seconds. DEFAULT: 1 hour.
+    precedence:               # Under development.
+    autoparal_priorities:     # Under development.
+
+qadapter: 
+# Dictionary with info on the hardware available on this queue.
+hardware:
+    num_nodes:           # Number of nodes available on this queue (integer, MANDATORY).
+    sockets_per_node:    # Number of sockets per node (integer, MANDATORY).
+    cores_per_socket:    # Number of cores per socket (integer, MANDATORY).
+                         # The total number of cores available on this queue is
+                         # `num_nodes * sockets_per_node * cores_per_socket`.
+
+# Dictionary with the options used to prepare the enviroment before submitting the job
+job:
+    setup:                # List of commands (strings) executed before running (DEFAULT: empty)
+    omp_env:              # Dictionary with OpenMP environment variables (DEFAULT: empty i.e. no OpenMP)
+    modules:              # List of modules to be imported before running the code (DEFAULT: empty).
+                          # NB: Error messages produced by module load are redirected to mods.err
+    shell_env:            # Dictionary with shell environment variables.
+    mpi_runner:           # MPI runner. Possible values in [&quot;mpirun&quot;, &quot;mpiexec&quot;, &quot;srun&quot;, None]
+                          # DEFAULT: None i.e. no mpirunner is used.
+    mpi_runner_options    # String with optional options passed to the `mpi_runner` e.g. &quot;--bind-to None&quot;
+    shell_runner:         # Used for running small sequential jobs on the front-end. Set it to None
+                          # if mpirun or mpiexec are not available on the fron-end. If not
+                          # given, small sequential jobs are executed with `mpi_runner`.
+    shell_runner_options  # Similar to mpi_runner_options but for the runner used on the front-end.
+    pre_run:              # List of commands (strings) executed before the run (DEFAULT: empty)
+    post_run:             # List of commands (strings) executed after the run (DEFAULT: empty)
+
+# dictionary with the name of the queue and optional parameters
+# used to build/customize the header of the submission script.
+queue:
+    qtype:                # String defining the qapapter type e.g. slurm, shell ...
+    qname:                # Name of the submission queue (string, MANDATORY)
+    qparams:              # Dictionary with values used to generate the header of the job script
+                          # We use the *normalized* version of the options i.e dashes in the official name
+                          # are replaced by underscores e.g. ``--mail-type`` becomes ``mail_type``
+                          # See pymatgen.io.abinit.qadapters.py for the list of supported values.
+                          # Use ``qverbatim`` to pass additional options that are not included in the template.
+
+# dictionary with the constraints that must be fulfilled in order to run on this queue.
+limits:
+    min_cores:             # Minimum number of cores (integer, DEFAULT: 1)
+    max_cores:             # Maximum number of cores (integer, MANDATORY). Hard limit to hint_cores:
+                           # it&#39;s the limit beyond which the scheduler will not accept the job (MANDATORY).
+    hint_cores:            # The limit used in the initial setup of jobs.
+                           # Fix_Critical method may increase this number until max_cores is reached
+    min_mem_per_proc:      # Minimum memory per MPI process in Mb, units can be specified e.g. 1.4 Gb
+                           # (DEFAULT: hardware.mem_per_core)
+    max_mem_per_proc:      # Maximum memory per MPI process in Mb, units can be specified e.g. `1.4Gb`
+                           # (DEFAULT: hardware.mem_per_node)
+    timelimit:             # Initial time-limit. Accepts time according to slurm-syntax i.e:
+                           # &quot;days-hours&quot; or &quot;days-hours:minutes&quot; or &quot;days-hours:minutes:seconds&quot; or
+                           # &quot;minutes&quot; or &quot;minutes:seconds&quot; or &quot;hours:minutes:seconds&quot;,
+    timelimit_hard:        # The hard time-limit for this queue. Same format as timelimit.
+                           # Error handlers could try to submit jobs with increased timelimit
+                           # up to timelimit_hard. If not specified, timelimit_hard == timelimit
+    condition:             # MongoDB-like condition (DEFAULT: empty, i.e. not used)
+    allocation:            # String defining the policy used to select the optimal number of CPUs.
+                           # possible values are in [&quot;nodes&quot;, &quot;force_nodes&quot;, &quot;shared&quot;]
+                           # &quot;nodes&quot; means that we should try to allocate entire nodes if possible.
+                           # This is a soft limit, in the sense that the qadapter may use a configuration
+                           # that does not fulfill this requirement. In case of failure, it will try to use the
+                           # smallest number of nodes compatible with the optimal configuration.
+                           # Use `force_nodes` to enfore entire nodes allocation.
+                           # `shared` mode does not enforce any constraint (DEFAULT: shared).
+    max_num_launches:      # Limit to the number of times a specific task can be restarted (integer, DEFAULT: 5)
+
+
+qtype supported: [&#39;bluegene&#39;, &#39;moab&#39;, &#39;pbspro&#39;, &#39;sge&#39;, &#39;shell&#39;, &#39;slurm&#39;, &#39;torque&#39;]
+Use `abirun.py . manager slurm` to have the list of qparams for slurm.
 </pre></div>
 </div>
 </div>
@@ -646,22 +751,36 @@ The next section discusses how to configure AbiPy to run on a cluster with a que
 <p>Use <code class="docutils literal notranslate"><span class="pre">abirun.py</span> <span class="pre">.</span> <span class="pre">doc_scheduler</span></code> to get the full list of options supported by the scheduler.</p>
 </div>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ abirun.py doc_scheduler
-Traceback (most recent call last):
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/bin/abirun.py&quot;, line 4, in &lt;module&gt;
-    __import__(&#39;pkg_resources&#39;).require(&#39;abipy==0.7.0.dev0&#39;)
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3250, in &lt;module&gt;
-    @_call_aside
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3234, in _call_aside
-    f(*args, **kwargs)
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3263, in _initialize_master_working_set
-    working_set = WorkingSet._build_master()
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 583, in _build_master
-    ws.require(__requires__)
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 900, in require
-    needed = self.resolve(parse_requirements(requirements))
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 786, in resolve
-    raise DistributionNotFound(req, requirers)
-pkg_resources.DistributionNotFound: The &#39;abipy==0.7.0.dev0&#39; distribution was not found and is required by the application
+Options that can be specified in scheduler.yml:
+
+            weeks: number of weeks to wait (DEFAULT: 0).
+            days: number of days to wait (DEFAULT: 0).
+            hours: number of hours to wait (DEFAULT: 0).
+            minutes: number of minutes to wait (DEFAULT: 0).
+            seconds: number of seconds to wait (DEFAULT: 0).
+            mailto: The scheduler will send an email to `mailto` every `remindme_s` seconds.
+                (DEFAULT: None i.e. not used).
+            verbose: (int) verbosity level. (DEFAULT: 0)
+            use_dynamic_manager: &quot;yes&quot; if the |TaskManager| must be re-initialized from
+                file before launching the jobs. (DEFAULT: &quot;no&quot;)
+            max_njobs_inqueue: Limit on the number of jobs that can be present in the queue. (DEFAULT: 200)
+            max_ncores_used: Maximum number of cores that can be used by the scheduler.
+            remindme_s: The scheduler will send an email to the user specified
+                by `mailto` every `remindme_s` seconds. (int, DEFAULT: 1 day).
+            max_num_pyexcs: The scheduler will exit if the number of python exceptions is &gt; max_num_pyexcs
+                (int, DEFAULT: 0)
+            max_num_abierrs: The scheduler will exit if the number of errored tasks is &gt; max_num_abierrs
+                (int, DEFAULT: 0)
+            safety_ratio: The scheduler will exits if the number of jobs launched becomes greater than
+               `safety_ratio` * total_number_of_tasks_in_flow. (int, DEFAULT: 5)
+            max_nlaunches: Maximum number of tasks launched in a single iteration of the scheduler.
+                (DEFAULT: -1 i.e. no limit)
+            debug: Debug level. Use 0 for production (int, DEFAULT: 0)
+            fix_qcritical: &quot;yes&quot; if the launcher should try to fix QCritical Errors (DEFAULT: &quot;no&quot;)
+            rmflow: If &quot;yes&quot;, the scheduler will remove the flow directory if the calculation
+                completed successfully. (DEFAULT: &quot;no&quot;)
+            killjobs_if_errors: &quot;yes&quot; if the scheduler should try to kill all the runnnig jobs
+                before exiting due to an error. (DEFAULT: &quot;yes&quot;)
 </pre></div>
 </div>
 </div>
@@ -760,22 +879,136 @@ and it will stop when it reaches the maximum amount given by <code class="docuti
 will be added as time goes by.</p>
 <p>The get the complete list of options supported by the Slurm <code class="docutils literal notranslate"><span class="pre">qadapter</span></code> use:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ abirun.py . doc_manager slurm
-Traceback (most recent call last):
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/bin/abirun.py&quot;, line 4, in &lt;module&gt;
-    __import__(&#39;pkg_resources&#39;).require(&#39;abipy==0.7.0.dev0&#39;)
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3250, in &lt;module&gt;
-    @_call_aside
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3234, in _call_aside
-    f(*args, **kwargs)
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3263, in _initialize_master_working_set
-    working_set = WorkingSet._build_master()
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 583, in _build_master
-    ws.require(__requires__)
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 900, in require
-    needed = self.resolve(parse_requirements(requirements))
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 786, in resolve
-    raise DistributionNotFound(req, requirers)
-pkg_resources.DistributionNotFound: The &#39;abipy==0.7.0.dev0&#39; distribution was not found and is required by the application
+
+# TaskManager configuration file (YAML Format)
+
+policy:
+    # Dictionary with options used to control the execution of the tasks.
+
+qadapters:
+    # List of qadapters objects (mandatory)
+    -  # qadapter_1
+    -  # qadapter_2
+
+db_connector:
+    # Connection to MongoDB database (optional)
+
+batch_adapter:
+    # Adapter used to submit flows with batch script. (optional)
+
+##########################################
+# Individual entries are documented below:
+##########################################
+
+policy: 
+    autoparal:                # (integer). 0 to disable the autoparal feature (DEFAULT: 1 i.e. autoparal is on)
+    condition:                # condition used to filter the autoparal configurations (Mongodb-like syntax).
+                              # DEFAULT: empty i.e. ignored.
+    vars_condition:           # Condition used to filter the list of ABINIT variables reported by autoparal
+                              # (Mongodb-like syntax). DEFAULT: empty i.e. ignored.
+    frozen_timeout:           # A job is considered frozen and its status is set to ERROR if no change to
+                              # the output file has been done for `frozen_timeout` seconds. Accepts int with seconds or
+                              # string in slurm form i.e. days-hours:minutes:seconds. DEFAULT: 1 hour.
+    precedence:               # Under development.
+    autoparal_priorities:     # Under development.
+
+qadapter: 
+# Dictionary with info on the hardware available on this queue.
+hardware:
+    num_nodes:           # Number of nodes available on this queue (integer, MANDATORY).
+    sockets_per_node:    # Number of sockets per node (integer, MANDATORY).
+    cores_per_socket:    # Number of cores per socket (integer, MANDATORY).
+                         # The total number of cores available on this queue is
+                         # `num_nodes * sockets_per_node * cores_per_socket`.
+
+# Dictionary with the options used to prepare the enviroment before submitting the job
+job:
+    setup:                # List of commands (strings) executed before running (DEFAULT: empty)
+    omp_env:              # Dictionary with OpenMP environment variables (DEFAULT: empty i.e. no OpenMP)
+    modules:              # List of modules to be imported before running the code (DEFAULT: empty).
+                          # NB: Error messages produced by module load are redirected to mods.err
+    shell_env:            # Dictionary with shell environment variables.
+    mpi_runner:           # MPI runner. Possible values in [&quot;mpirun&quot;, &quot;mpiexec&quot;, &quot;srun&quot;, None]
+                          # DEFAULT: None i.e. no mpirunner is used.
+    mpi_runner_options    # String with optional options passed to the `mpi_runner` e.g. &quot;--bind-to None&quot;
+    shell_runner:         # Used for running small sequential jobs on the front-end. Set it to None
+                          # if mpirun or mpiexec are not available on the fron-end. If not
+                          # given, small sequential jobs are executed with `mpi_runner`.
+    shell_runner_options  # Similar to mpi_runner_options but for the runner used on the front-end.
+    pre_run:              # List of commands (strings) executed before the run (DEFAULT: empty)
+    post_run:             # List of commands (strings) executed after the run (DEFAULT: empty)
+
+# dictionary with the name of the queue and optional parameters
+# used to build/customize the header of the submission script.
+queue:
+    qtype:                # String defining the qapapter type e.g. slurm, shell ...
+    qname:                # Name of the submission queue (string, MANDATORY)
+    qparams:              # Dictionary with values used to generate the header of the job script
+                          # We use the *normalized* version of the options i.e dashes in the official name
+                          # are replaced by underscores e.g. ``--mail-type`` becomes ``mail_type``
+                          # See pymatgen.io.abinit.qadapters.py for the list of supported values.
+                          # Use ``qverbatim`` to pass additional options that are not included in the template.
+
+# dictionary with the constraints that must be fulfilled in order to run on this queue.
+limits:
+    min_cores:             # Minimum number of cores (integer, DEFAULT: 1)
+    max_cores:             # Maximum number of cores (integer, MANDATORY). Hard limit to hint_cores:
+                           # it&#39;s the limit beyond which the scheduler will not accept the job (MANDATORY).
+    hint_cores:            # The limit used in the initial setup of jobs.
+                           # Fix_Critical method may increase this number until max_cores is reached
+    min_mem_per_proc:      # Minimum memory per MPI process in Mb, units can be specified e.g. 1.4 Gb
+                           # (DEFAULT: hardware.mem_per_core)
+    max_mem_per_proc:      # Maximum memory per MPI process in Mb, units can be specified e.g. `1.4Gb`
+                           # (DEFAULT: hardware.mem_per_node)
+    timelimit:             # Initial time-limit. Accepts time according to slurm-syntax i.e:
+                           # &quot;days-hours&quot; or &quot;days-hours:minutes&quot; or &quot;days-hours:minutes:seconds&quot; or
+                           # &quot;minutes&quot; or &quot;minutes:seconds&quot; or &quot;hours:minutes:seconds&quot;,
+    timelimit_hard:        # The hard time-limit for this queue. Same format as timelimit.
+                           # Error handlers could try to submit jobs with increased timelimit
+                           # up to timelimit_hard. If not specified, timelimit_hard == timelimit
+    condition:             # MongoDB-like condition (DEFAULT: empty, i.e. not used)
+    allocation:            # String defining the policy used to select the optimal number of CPUs.
+                           # possible values are in [&quot;nodes&quot;, &quot;force_nodes&quot;, &quot;shared&quot;]
+                           # &quot;nodes&quot; means that we should try to allocate entire nodes if possible.
+                           # This is a soft limit, in the sense that the qadapter may use a configuration
+                           # that does not fulfill this requirement. In case of failure, it will try to use the
+                           # smallest number of nodes compatible with the optimal configuration.
+                           # Use `force_nodes` to enfore entire nodes allocation.
+                           # `shared` mode does not enforce any constraint (DEFAULT: shared).
+    max_num_launches:      # Limit to the number of times a specific task can be restarted (integer, DEFAULT: 5)
+
+
+qtype supported: [&#39;bluegene&#39;, &#39;moab&#39;, &#39;pbspro&#39;, &#39;sge&#39;, &#39;shell&#39;, &#39;slurm&#39;, &#39;torque&#39;]
+Use `abirun.py . manager slurm` to have the list of qparams for slurm.
+
+QPARAMS for slurm
+#!/bin/bash
+
+#SBATCH --partition=$${partition}
+#SBATCH --job-name=$${job_name}
+#SBATCH --nodes=$${nodes}
+#SBATCH --total_tasks=$${total_tasks}
+#SBATCH --ntasks=$${ntasks}
+#SBATCH --ntasks-per-node=$${ntasks_per_node}
+#SBATCH --cpus-per-task=$${cpus_per_task}
+#####SBATCH --mem=$${mem}
+#SBATCH --mem-per-cpu=$${mem_per_cpu}
+#SBATCH --hint=$${hint}
+#SBATCH --time=$${time}
+#SBATCH	--exclude=$${exclude_nodes}
+#SBATCH --account=$${account}
+#SBATCH --mail-user=$${mail_user}
+#SBATCH --mail-type=$${mail_type}
+#SBATCH --constraint=$${constraint}
+#SBATCH --gres=$${gres}
+#SBATCH --requeue=$${requeue}
+#SBATCH --nodelist=$${nodelist}
+#SBATCH --propagate=$${propagate}
+#SBATCH --licenses=$${licenses}
+#SBATCH --output=$${_qout_path}
+#SBATCH --error=$${_qerr_path}
+#SBATCH --qos=$${qos}
+$${qverbatim}
 </pre></div>
 </div>
 <div class="admonition important">
@@ -899,7 +1132,7 @@ by the event handlers.</p>
 <span class="go">event documentation:</span>
 
 <span class="go">Class of errors raised by the memory analyzer.</span>
-<span class="go">(the section that estimates the memory requirements from the input parameters).</span>
+<span class="gp gp-VirtualEnv">(the section that estimates the memory requirements from the input parameters)</span><span class="go">.</span>
 
 <span class="go">handler documentation:</span>
 
@@ -952,22 +1185,40 @@ If you are interested in a particular task e.g. <code class="docutils literal no
 <p><code class="docutils literal notranslate"><span class="pre">abirun.py</span> <span class="pre">events</span> <span class="pre">--help</span></code> is your best friend</p>
 </div>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ abirun.py events --help
-Traceback (most recent call last):
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/bin/abirun.py&quot;, line 4, in &lt;module&gt;
-    __import__(&#39;pkg_resources&#39;).require(&#39;abipy==0.7.0.dev0&#39;)
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3250, in &lt;module&gt;
-    @_call_aside
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3234, in _call_aside
-    f(*args, **kwargs)
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3263, in _initialize_master_working_set
-    working_set = WorkingSet._build_master()
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 583, in _build_master
-    ws.require(__requires__)
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 900, in require
-    needed = self.resolve(parse_requirements(requirements))
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 786, in resolve
-    raise DistributionNotFound(req, requirers)
-pkg_resources.DistributionNotFound: The &#39;abipy==0.7.0.dev0&#39; distribution was not found and is required by the application
+usage: abirun.py [flowdir] events [-h] [-v] [--no-colors] [--no-logo]
+                                  [--loglevel LOGLEVEL] [--remove-lock]
+                                  [-n NIDS | -w WSLICE | -S TASK_STATUS | -t TASK_CLASS]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -v, --verbose         verbose, can be supplied multiple times to increase
+                        verbosity.
+  --no-colors           Disable ASCII colors.
+  --no-logo             Disable AbiPy logo.
+  --loglevel LOGLEVEL   Set the loglevel. Possible values: CRITICAL, ERROR
+                        (default), WARNING, INFO, DEBUG.
+  --remove-lock         Remove the lock on the pickle file used to save the
+                        status of the flow.
+  -n NIDS, --nids NIDS  Node identifier(s) used to select the task. Accept
+                        single integer, comma-separated list of integers or
+                        python slice. Use `status` command to get the node
+                        ids. Examples: --nids=12 --nids=12,13,16 --nids=10:12
+                        to select 10 and 11 (slice syntax), --nids=2:5:2 to
+                        select 2,4.
+  -w WSLICE, --wslice WSLICE
+                        Select the list of works to analyze (python syntax for
+                        slices): Examples: --wslice=1 to select the second
+                        workflow, --wslice=:3 for 0,1,2, --wslice=-1 for the
+                        last workflow, --wslice::2 for even indices.
+  -S TASK_STATUS, --task-status TASK_STATUS
+                        Select only the tasks with the given status. Default:
+                        None i.e. ignored. Possible values: [&#39;Initialized&#39;,
+                        &#39;Locked&#39;, &#39;Ready&#39;, &#39;Submitted&#39;, &#39;Running&#39;, &#39;Done&#39;,
+                        &#39;AbiCritical&#39;, &#39;QCritical&#39;, &#39;Unconverged&#39;, &#39;Error&#39;,
+                        &#39;Completed&#39;].
+  -t TASK_CLASS, --task-class TASK_CLASS
+                        Select only tasks with the given class e.g. `-t
+                        NscfTask`.
 </pre></div>
 </div>
 <p>To get information on the Abinit executable called by AbiPy, use:</p>
@@ -1035,7 +1286,7 @@ Other values of autoparal are not supported.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on Feb 22, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

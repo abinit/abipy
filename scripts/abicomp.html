@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>abicomp.py &#8212; abipy 0.7.0 documentation</title>
+    <title>abicomp.py &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -41,7 +44,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -64,6 +67,7 @@
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -325,22 +329,195 @@ with the <code class="docutils literal notranslate"><span class="pre">robot</spa
 </div>
 <p><a class="reference external" href="https://seaborn.pydata.org/">seaborn</a> plot style and settings can be changed from the command line interface with the <cite>-sns</cite> option</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ abicomp.py --help
-Traceback (most recent call last):
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/bin/abicomp.py&quot;, line 4, in &lt;module&gt;
-    __import__(&#39;pkg_resources&#39;).require(&#39;abipy==0.7.0.dev0&#39;)
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3250, in &lt;module&gt;
-    @_call_aside
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3234, in _call_aside
-    f(*args, **kwargs)
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3263, in _initialize_master_working_set
-    working_set = WorkingSet._build_master()
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 583, in _build_master
-    ws.require(__requires__)
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 900, in require
-    needed = self.resolve(parse_requirements(requirements))
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 786, in resolve
-    raise DistributionNotFound(req, requirers)
-pkg_resources.DistributionNotFound: The &#39;abipy==0.7.0.dev0&#39; distribution was not found and is required by the application
+usage: abicomp.py [-h] [-V]
+                  {structure,spg,mp_structure,cod_structure,xrd,data,ebands,edos,phbands,phdos,getattr,gsr,hist,ddb,anaddb,phbst,sigres,mdf,optic,a2f,sigeph,gkq,v1qavg,wrmax,abiwan,pseudos,time,gs_scf,dfpt2_scf,text}
+                  ...
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -V, --version         show program&#39;s version number and exit
+
+subcommands:
+  Valid subcommands
+
+  {structure,spg,mp_structure,cod_structure,xrd,data,ebands,edos,phbands,phdos,getattr,gsr,hist,ddb,anaddb,phbst,sigres,mdf,optic,a2f,sigeph,gkq,v1qavg,wrmax,abiwan,pseudos,time,gs_scf,dfpt2_scf,text}
+                        sub-command help
+    structure           Compare crystalline structures. Use `--group` to
+                        compare for similarity.
+    spg                 Compare the space group found by Abinit with the
+                        spglib results for a set of crystalline structure(s)
+                        read from FILE(s).
+    mp_structure        Compare the crystalline structure(s) read from FILE
+                        with the one(s) reported in the materials project
+                        database.
+    cod_structure       Compare the crystalline structure(s) read from FILE
+                        with the one(s) given in the COD database
+                        (http://www.crystallography.net/cod).
+    xrd                 Compare X-ray diffraction plots.
+    data                Compare results stored in multiple files with data in
+                        tabular format.
+    ebands              Plot electron bands on a grid.
+    edos                Plot electron DOSes on a grid.
+    phbands             Plot phonon bands on a grid.
+    phdos               Compare multiple PHDOS files.
+    getattr             Extract attribute from Abipy object for all files
+                        listed on the command line and print them. Use
+                        `--list` option to list the attributes available (in
+                        the first file).
+    gsr                 Compare multiple GSR files.
+    hist                Compare multiple HIST files.
+    ddb                 Compare multiple DDB files. Assume DDB files with a
+                        list of q-points in the IBZ corresponding to
+                        homogeneous sampling i.e. files that have been merged
+                        with mrgddb.
+    anaddb              Compare multiple anaddb.nc files.
+    phbst               Compare multiple PHBST.nc files.
+    sigres              Compare multiple SIGRES files.
+    mdf                 Compare macroscopic dielectric functions stored in
+                        multiple MDF files.
+    optic               Compare results stored in OPTIC.nc files.
+    a2f                 Compare results stored in A2f.nc files.
+    sigeph              Compare multiple SIGEPH files storing the e-ph self-
+                        energy.
+    gkq                 Compare multiple GKQ files with EPH matrix elements
+                        for a given q-point.
+    v1qavg              Compare multiple V1QAVG files with the average of the
+                        DFPT V1 potentials as function of q-point.
+    wrmax               Compare multiple WRmax files with first order
+                        potential in real-space.
+    abiwan              Compare multiple ABIWAN files.
+    pseudos             &quot;Compare multiple pseudos Print table to terminal.
+    time                Analyze/plot the timing data of single or multiple
+                        runs.
+    gs_scf              Compare ground-state SCF cycles.
+    dfpt2_scf           Compare DFPT SCF cycles.
+    text                Compare 2+ text files in the browser
+
+Usage example:
+
+############
+# Structures
+############
+
+  abicomp.py structure */*/outdata/out_GSR.nc   =&gt; Compare structures in multiple files.
+                                                   Use `--group` to compare for similarity.
+  abicomp.py spg si.cif out_GSR.nc              =&gt; Compare spacegroup(s) found by Abinit and spglib.
+  abicomp.py hist FILE(s)                       =&gt; Compare final structures read from HIST.nc files.
+  abicomp.py mp_structure FILE(s)               =&gt; Compare structure(s) read from FILE(s) with the one(s)
+                                                   given in the materials project database.
+  abicomp.py cod_structure FILE(s)              =&gt; Compare structure(s) read from FILE(s) with the one(s)
+                                                   given in the COD database (http://www.crystallography.net/cod).
+  abicomp.py xrd *.cif *.GSR.nc                 =&gt; Compare X-ray diffraction plots (requires FILES with structure).
+
+###########
+# Electrons
+###########
+
+  abicomp.py ebands out1_GSR.nc out2_WFK.nc     =&gt; Plot electron bands on a grid (Use `-p` to change plot mode)
+  abicomp.py ebands *_GSR.nc -ipy               =&gt; Build plotter object and start ipython console.
+  abicomp.py ebands *_GSR.nc -nb                =&gt; Interact with the plotter in the jupyter notebook.
+  abicomp.py ebands `find . -name &quot;*_GSR.nc&quot;` -c = Find all GSR.nc files startign from current working directory
+                                                   Copy dataframe to the system clipboard.
+                                                   This can be pasted into Excel, for example
+  abicomp.py edos *_WFK.nc -nb                  =&gt; Compare electron DOS in the jupyter notebook.
+  abicomp.py optic DIR -nb                      =&gt; Compare optic results in the jupyter notebook.
+  abicomp.py abiwan *_ABIWAN.nc --expose        =&gt; Compare ABIWAN results, produce matplotlib figures.
+
+#########
+# Phonons
+#########
+
+  abicomp.py phbands *_PHBST.nc -p gridplot     =&gt; Compare phonon bands with matplotlib grid.
+  abicomp.py phbands *_PHBST.nc -p panel        =&gt; Compare phonon bands in the panel dashboard (GUI)
+  abicomp.py phbst *_PHBST.nc -ipy              =&gt; Compare phonon bands with robot in ipython terminal.
+  abicomp.py phdos *_PHDOS.nc -nb               =&gt; Compare phonon DOSes in the jupyter notebook.
+  abicomp.py ddb outdir1 outdir2 out_DDB -nb    =&gt; Analyze all DDB files in directories outdir1, outdir2 and out_DDB file.
+
+###############
+# Anaddb netcdf
+###############
+
+  abicomp anaddb tutorespfn_telast_2-telast_3/anaddb.nc
+
+#########
+# E-PH
+#########
+
+  abicomp.py a2f *_A2F.nc -nb                   =&gt; Compare A2f results in the jupyter notebook.
+  abicomp.py sigeph *_SIGEPH.nc -nb             =&gt; Compare Fan-Migdal self-energy in the jupyter notebook.
+  abicomp.py gkq out1_GKQ.nc out1_GKQ.nc -d     =&gt; Plot difference between matrix elements (supports 2+ files).
+  abicomp.py v1qavg out_V1QAVG.nc               =&gt; Compare V1QAVG files.
+
+########
+# GW/BSE
+########
+
+  abicomp.py sigres *_SIGRES.nc                 =&gt; Compare multiple SIGRES files.
+  abicomp.py mdf *_MDF.nc --seaborn             =&gt; Compare macroscopic dielectric functions.
+                                                   Use seaborn settings.
+
+###############
+# Miscelleanous
+###############
+
+  abicomp.py data FILE1 FILE2 ...                 =&gt; Read data from files with results in tabular format and
+                                                     compare results. Mainly used for text files without any schema.
+  abicomp.py getattr energy *_GSR.nc              =&gt; Extract the `energy` attribute from a list of GSR files
+                                                     and print results. Use `--list` to get list of possible names.
+  abicomp.py pseudos PSEUDO_FILES                 =&gt; Compare pseudopotential files.
+
+############
+# Text files
+############
+
+  abicomp.py gs_scf run1.abo run2.abo             =&gt; Compare the SCF cycles in two output files.
+  abicomp.py dfpt2_scf run1.abo run2.abo          =&gt; Compare the DFPT SCF cycles in two output files.
+  abicomp.py.py time [OUT_FILES]                  =&gt; Parse timing data in files and plot results
+  abicomp.py.py time . --ext=abo                  =&gt; Scan directory tree from `.`, look for files with extension `abo`
+                                                     parse timing data and plot results.
+  abicomp.py text run1.abo run2.abo               =&gt; Produce diff of 2+ text files in the browser.
+
+TIP:
+
+The python code operates on a list of files/directories passed via the command line interface.
+The arguments are interpreted by the shell before invoking the script.
+This means that one can use the bash syntax and the unix tools to precompute the list of files/directories.
+
+For example, one can use Unix find to select all files with the a given extension and pass them to abicomp.py.
+For command:
+
+    abicomp.py structure `find . -name &quot;*_GSR.nc&quot;`
+
+will compare the structures extracted from all GSR.nc files found within the current working directory (note backticks).
+
+Also, remember that in bash {#..#} generates a sequence of numbers or chars, similarly to range() in Python
+For instance:
+
+    {1..5} --&gt; 1 2 3 4 5
+
+and this trick can be used to select files/directories as in:
+
+    abicomp.py structure w1/t{2..4}/outdata/*_GSR.nc
+
+The [!name] syntax can be used to exclude patterns, so
+
+    abicomp.py structure w1/t[!2]*/outdata/*_GSR.nc
+
+excludes all the GSR.nc files in the t2/outdata directory.
+
+See also http://wiki.bash-hackers.org/syntax/pattern
+
+NOTE: The `gsr`, `ddb`, `sigres`, `mdf` commands use robots to analyze files.
+In this case, one can provide a list of files and/or list of directories on the command-line interface e.g.:
+
+    $ abicomp.py ddb dir1 out_DDB dir2
+
+Directories will be scanned recursively to find files with the extension associated to the robot, e.g.
+`abicompy.py mdf .` will read all *_MDF.nc files inside the current directory including sub-directories (if any).
+Use --no-walk to ignore sub-directories when robots are used.
+
+Use `abicomp.py --help` for help and `abicomp.py COMMAND --help` to get the documentation for `COMMAND`.
+Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 </pre></div>
 </div>
 <p>Complete command line reference</p>
@@ -374,9 +551,9 @@ pkg_resources.DistributionNotFound: The &#39;abipy==0.7.0.dev0&#39; distribution
 <blockquote>
 <div><p>Compare crystalline structures. Use <cite>–group</cite> to compare for similarity.</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">structure</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">pylustrator</span><span class="p">]</span>
-                     <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
-                     <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">symprec</span> <span class="n">SYMPREC</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">structure</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+                     <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">classic</span><span class="o">-</span><span class="n">notebook</span><span class="p">]</span>
+                     <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">browser</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">symprec</span> <span class="n">SYMPREC</span><span class="p">]</span>
                      <span class="p">[</span><span class="o">--</span><span class="n">angle</span><span class="o">-</span><span class="n">tolerance</span> <span class="n">ANGLE_TOLERANCE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">g</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span><span class="p">]</span>
                      <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
@@ -399,10 +576,6 @@ pkg_resources.DistributionNotFound: The &#39;abipy==0.7.0.dev0&#39; distribution
 <dt><kbd>-sns, --seaborn</kbd></dt>
 <dd><p>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</p>
 </dd>
-<dt><kbd>--pylustrator</kbd></dt>
-<dd><p>Style matplotlib plots with pylustrator. See <a class="reference external" href="https://pylustrator.readthedocs.io/en/latest/">https://pylustrator.readthedocs.io/en/latest/</a></p>
-<p>Default: False</p>
-</dd>
 <dt><kbd>-mpl, --mpl-backend</kbd></dt>
 <dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
 </dd>
@@ -412,6 +585,15 @@ pkg_resources.DistributionNotFound: The &#39;abipy==0.7.0.dev0&#39; distribution
 </dd>
 <dt><kbd>-nb, --notebook</kbd></dt>
 <dd><p>Generate jupyter notebook.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--classic-notebook</kbd></dt>
+<dd><p>Use classic notebook instead of jupyterlab.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--no-browser</kbd></dt>
+<dd><p>Start the jupyter server to serve the notebook but don’t open the notebook in the browser.
+Use this option to connect remotely from localhost to the machine running the kernel</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>--foreground</kbd></dt>
@@ -454,7 +636,7 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
 <div><p>Compare the space group found by Abinit with the spglib results
 for a set of crystalline structure(s) read from FILE(s).</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">spg</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">pylustrator</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">spg</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
                <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">symprec</span> <span class="n">SYMPREC</span><span class="p">]</span>
                <span class="p">[</span><span class="o">--</span><span class="n">angle</span><span class="o">-</span><span class="n">tolerance</span> <span class="n">ANGLE_TOLERANCE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">TOLSYM</span><span class="p">]</span>
                <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
@@ -477,10 +659,6 @@ for a set of crystalline structure(s) read from FILE(s).</p>
 </dd>
 <dt><kbd>-sns, --seaborn</kbd></dt>
 <dd><p>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</p>
-</dd>
-<dt><kbd>--pylustrator</kbd></dt>
-<dd><p>Style matplotlib plots with pylustrator. See <a class="reference external" href="https://pylustrator.readthedocs.io/en/latest/">https://pylustrator.readthedocs.io/en/latest/</a></p>
-<p>Default: False</p>
 </dd>
 <dt><kbd>-mpl, --mpl-backend</kbd></dt>
 <dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
@@ -519,9 +697,9 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
 <div><p>Compare the crystalline structure(s) read from FILE with the one(s)
 reported in the materials project database.</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">mp_structure</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">pylustrator</span><span class="p">]</span>
-                        <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
-                        <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">same</span><span class="o">-</span><span class="n">spgnum</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">mp_structure</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+                        <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span>
+                        <span class="p">[</span><span class="o">--</span><span class="n">same</span><span class="o">-</span><span class="n">spgnum</span><span class="p">]</span>
                         <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -542,10 +720,6 @@ reported in the materials project database.</p>
 </dd>
 <dt><kbd>-sns, --seaborn</kbd></dt>
 <dd><p>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</p>
-</dd>
-<dt><kbd>--pylustrator</kbd></dt>
-<dd><p>Style matplotlib plots with pylustrator. See <a class="reference external" href="https://pylustrator.readthedocs.io/en/latest/">https://pylustrator.readthedocs.io/en/latest/</a></p>
-<p>Default: False</p>
 </dd>
 <dt><kbd>-mpl, --mpl-backend</kbd></dt>
 <dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
@@ -575,9 +749,8 @@ reported in the materials project database.</p>
 <div><p>Compare the crystalline structure(s) read from FILE with the one(s)
 given in the COD database (<a class="reference external" href="http://www.crystallography.net/cod">http://www.crystallography.net/cod</a>).</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">cod_structure</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">pylustrator</span><span class="p">]</span>
-                         <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
-                         <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">cod_structure</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+                         <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span>
                          <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -598,10 +771,6 @@ given in the COD database (<a class="reference external" href="http://www.crysta
 </dd>
 <dt><kbd>-sns, --seaborn</kbd></dt>
 <dd><p>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</p>
-</dd>
-<dt><kbd>--pylustrator</kbd></dt>
-<dd><p>Style matplotlib plots with pylustrator. See <a class="reference external" href="https://pylustrator.readthedocs.io/en/latest/">https://pylustrator.readthedocs.io/en/latest/</a></p>
-<p>Default: False</p>
 </dd>
 <dt><kbd>-mpl, --mpl-backend</kbd></dt>
 <dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
@@ -624,7 +793,7 @@ given in the COD database (<a class="reference external" href="http://www.crysta
 <div class="section" id="xrd">
 <h3>xrd<a class="headerlink" href="#xrd" title="Permalink to this headline">¶</a></h3>
 <p>Compare X-ray diffraction plots.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">xrd</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">pylustrator</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">xrd</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
                <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">w</span> <span class="n">WAVELENGTH</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SYMPREC</span><span class="p">]</span>
                <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">TWO_THETA_RANGE</span> <span class="n">TWO_THETA_RANGE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nap</span><span class="p">]</span>
                <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
@@ -647,10 +816,6 @@ given in the COD database (<a class="reference external" href="http://www.crysta
 </dd>
 <dt><kbd>-sns, --seaborn</kbd></dt>
 <dd><p>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</p>
-</dd>
-<dt><kbd>--pylustrator</kbd></dt>
-<dd><p>Style matplotlib plots with pylustrator. See <a class="reference external" href="https://pylustrator.readthedocs.io/en/latest/">https://pylustrator.readthedocs.io/en/latest/</a></p>
-<p>Default: False</p>
 </dd>
 <dt><kbd>-mpl, --mpl-backend</kbd></dt>
 <dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
@@ -683,7 +848,7 @@ given in the COD database (<a class="reference external" href="http://www.crysta
 <blockquote>
 <div><p>Compare results stored in multiple files with data in tabular format.</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">data</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">pylustrator</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">data</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
                 <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span><span class="p">]</span>
                 <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
@@ -705,10 +870,6 @@ given in the COD database (<a class="reference external" href="http://www.crysta
 </dd>
 <dt><kbd>-sns, --seaborn</kbd></dt>
 <dd><p>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</p>
-</dd>
-<dt><kbd>--pylustrator</kbd></dt>
-<dd><p>Style matplotlib plots with pylustrator. See <a class="reference external" href="https://pylustrator.readthedocs.io/en/latest/">https://pylustrator.readthedocs.io/en/latest/</a></p>
-<p>Default: False</p>
 </dd>
 <dt><kbd>-mpl, --mpl-backend</kbd></dt>
 <dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
@@ -740,9 +901,9 @@ given in the COD database (<a class="reference external" href="http://www.crysta
 <blockquote>
 <div><p>Plot electron bands on a grid.</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">ebands</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">pylustrator</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">ebands</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">classic</span><span class="o">-</span><span class="n">notebook</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">browser</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                   <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="p">{</span><span class="n">gridplot</span><span class="p">,</span><span class="n">combiplot</span><span class="p">,</span><span class="n">boxplot</span><span class="p">,</span><span class="n">combiboxplot</span><span class="p">,</span><span class="n">plot_band_edges</span><span class="p">,</span><span class="n">animate</span><span class="p">,</span><span class="kc">None</span><span class="p">}]</span>
                   <span class="p">[</span><span class="o">-</span><span class="n">e0</span> <span class="p">{</span><span class="n">fermie</span><span class="p">,</span><span class="kc">None</span><span class="p">}]</span>
                   <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
@@ -766,10 +927,6 @@ given in the COD database (<a class="reference external" href="http://www.crysta
 <dt><kbd>-sns, --seaborn</kbd></dt>
 <dd><p>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</p>
 </dd>
-<dt><kbd>--pylustrator</kbd></dt>
-<dd><p>Style matplotlib plots with pylustrator. See <a class="reference external" href="https://pylustrator.readthedocs.io/en/latest/">https://pylustrator.readthedocs.io/en/latest/</a></p>
-<p>Default: False</p>
-</dd>
 <dt><kbd>-mpl, --mpl-backend</kbd></dt>
 <dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
 </dd>
@@ -779,6 +936,15 @@ given in the COD database (<a class="reference external" href="http://www.crysta
 </dd>
 <dt><kbd>-nb, --notebook</kbd></dt>
 <dd><p>Generate jupyter notebook.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--classic-notebook</kbd></dt>
+<dd><p>Use classic notebook instead of jupyterlab.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--no-browser</kbd></dt>
+<dd><p>Start the jupyter server to serve the notebook but don’t open the notebook in the browser.
+Use this option to connect remotely from localhost to the machine running the kernel</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>--foreground</kbd></dt>
@@ -811,8 +977,9 @@ given in the COD database (<a class="reference external" href="http://www.crysta
 <blockquote>
 <div><p>Plot electron DOSes on a grid.</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">edos</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">pylustrator</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
-                <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">edos</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+                <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">classic</span><span class="o">-</span><span class="n">notebook</span><span class="p">]</span>
+                <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">browser</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span>
                 <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="p">{</span><span class="n">gridplot</span><span class="p">,</span><span class="n">combiplot</span><span class="p">,</span><span class="kc">None</span><span class="p">}]</span>
                 <span class="p">[</span><span class="o">-</span><span class="n">e0</span> <span class="p">{</span><span class="n">fermie</span><span class="p">,</span><span class="kc">None</span><span class="p">}]</span>
                 <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
@@ -836,10 +1003,6 @@ given in the COD database (<a class="reference external" href="http://www.crysta
 <dt><kbd>-sns, --seaborn</kbd></dt>
 <dd><p>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</p>
 </dd>
-<dt><kbd>--pylustrator</kbd></dt>
-<dd><p>Style matplotlib plots with pylustrator. See <a class="reference external" href="https://pylustrator.readthedocs.io/en/latest/">https://pylustrator.readthedocs.io/en/latest/</a></p>
-<p>Default: False</p>
-</dd>
 <dt><kbd>-mpl, --mpl-backend</kbd></dt>
 <dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
 </dd>
@@ -849,6 +1012,15 @@ given in the COD database (<a class="reference external" href="http://www.crysta
 </dd>
 <dt><kbd>-nb, --notebook</kbd></dt>
 <dd><p>Generate jupyter notebook.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--classic-notebook</kbd></dt>
+<dd><p>Use classic notebook instead of jupyterlab.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--no-browser</kbd></dt>
+<dd><p>Start the jupyter server to serve the notebook but don’t open the notebook in the browser.
+Use this option to connect remotely from localhost to the machine running the kernel</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>--foreground</kbd></dt>
@@ -888,10 +1060,11 @@ given in the COD database (<a class="reference external" href="http://www.crysta
 <blockquote>
 <div><p>Plot phonon bands on a grid.</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">phbands</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">pylustrator</span><span class="p">]</span>
-                   <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
-                   <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span>
-                   <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="p">{</span><span class="n">gridplot</span><span class="p">,</span><span class="n">combiplot</span><span class="p">,</span><span class="n">boxplot</span><span class="p">,</span><span class="n">combiboxplot</span><span class="p">,</span><span class="n">animate</span><span class="p">,</span><span class="kc">None</span><span class="p">}]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">phbands</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+                   <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">classic</span><span class="o">-</span><span class="n">notebook</span><span class="p">]</span>
+                   <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">browser</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span>
+                   <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span>
+                   <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="p">{</span><span class="n">gridplot</span><span class="p">,</span><span class="n">combiplot</span><span class="p">,</span><span class="n">boxplot</span><span class="p">,</span><span class="n">combiboxplot</span><span class="p">,</span><span class="n">animate</span><span class="p">,</span><span class="n">panel</span><span class="p">,</span><span class="kc">None</span><span class="p">}]</span>
                    <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -913,10 +1086,6 @@ given in the COD database (<a class="reference external" href="http://www.crysta
 <dt><kbd>-sns, --seaborn</kbd></dt>
 <dd><p>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</p>
 </dd>
-<dt><kbd>--pylustrator</kbd></dt>
-<dd><p>Style matplotlib plots with pylustrator. See <a class="reference external" href="https://pylustrator.readthedocs.io/en/latest/">https://pylustrator.readthedocs.io/en/latest/</a></p>
-<p>Default: False</p>
-</dd>
 <dt><kbd>-mpl, --mpl-backend</kbd></dt>
 <dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
 </dd>
@@ -926,6 +1095,15 @@ given in the COD database (<a class="reference external" href="http://www.crysta
 </dd>
 <dt><kbd>-nb, --notebook</kbd></dt>
 <dd><p>Generate jupyter notebook.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--classic-notebook</kbd></dt>
+<dd><p>Use classic notebook instead of jupyterlab.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--no-browser</kbd></dt>
+<dd><p>Start the jupyter server to serve the notebook but don’t open the notebook in the browser.
+Use this option to connect remotely from localhost to the machine running the kernel</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>--foreground</kbd></dt>
@@ -948,8 +1126,8 @@ given in the COD database (<a class="reference external" href="http://www.crysta
 <dd><p>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</p>
 </dd>
 <dt><kbd>-p, --plot-mode</kbd></dt>
-<dd><p>Possible choices: gridplot, combiplot, boxplot, combiboxplot, animate, None</p>
-<p>Plot mode e.g. <cite>-p combiplot</cite> to plot bands on the same figure. Default is <cite>gridplot</cite>.</p>
+<dd><p>Possible choices: gridplot, combiplot, boxplot, combiboxplot, animate, panel, None</p>
+<p>Plot mode e.g. <cite>-p combiplot</cite> to plot bands on the same figure.Use <cite>panel</cite> for GUI in web browser. Default is <cite>gridplot</cite>.</p>
 <p>Default: “gridplot”</p>
 </dd>
 </dl>
@@ -960,8 +1138,9 @@ given in the COD database (<a class="reference external" href="http://www.crysta
 <blockquote>
 <div><p>Compare multiple PHDOS files.</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">phdos</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">pylustrator</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
-                 <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">phdos</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+                 <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">classic</span><span class="o">-</span><span class="n">notebook</span><span class="p">]</span>
+                 <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">browser</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span>
                  <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="p">{</span><span class="n">gridplot</span><span class="p">,</span><span class="n">combiplot</span><span class="p">,</span><span class="kc">None</span><span class="p">}]</span>
                  <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
@@ -984,10 +1163,6 @@ given in the COD database (<a class="reference external" href="http://www.crysta
 <dt><kbd>-sns, --seaborn</kbd></dt>
 <dd><p>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</p>
 </dd>
-<dt><kbd>--pylustrator</kbd></dt>
-<dd><p>Style matplotlib plots with pylustrator. See <a class="reference external" href="https://pylustrator.readthedocs.io/en/latest/">https://pylustrator.readthedocs.io/en/latest/</a></p>
-<p>Default: False</p>
-</dd>
 <dt><kbd>-mpl, --mpl-backend</kbd></dt>
 <dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
 </dd>
@@ -997,6 +1172,15 @@ given in the COD database (<a class="reference external" href="http://www.crysta
 </dd>
 <dt><kbd>-nb, --notebook</kbd></dt>
 <dd><p>Generate jupyter notebook.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--classic-notebook</kbd></dt>
+<dd><p>Use classic notebook instead of jupyterlab.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--no-browser</kbd></dt>
+<dd><p>Start the jupyter server to serve the notebook but don’t open the notebook in the browser.
+Use this option to connect remotely from localhost to the machine running the kernel</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>--foreground</kbd></dt>
@@ -1032,8 +1216,8 @@ given in the COD database (<a class="reference external" href="http://www.crysta
 <div><p>Extract attribute from Abipy object for all files listed on the command line and print them.
 Use <cite>–list</cite> option to list the attributes available (in the first file).</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="nb">getattr</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">pylustrator</span><span class="p">]</span>
-                   <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">plot</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="nb">list</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="nb">getattr</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+                   <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">plot</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="nb">list</span><span class="p">]</span>
                    <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1054,10 +1238,6 @@ Use <cite>–list</cite> option to list the attributes available (in the first f
 </dd>
 <dt><kbd>-sns, --seaborn</kbd></dt>
 <dd><p>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</p>
-</dd>
-<dt><kbd>--pylustrator</kbd></dt>
-<dd><p>Style matplotlib plots with pylustrator. See <a class="reference external" href="https://pylustrator.readthedocs.io/en/latest/">https://pylustrator.readthedocs.io/en/latest/</a></p>
-<p>Default: False</p>
 </dd>
 <dt><kbd>-mpl, --mpl-backend</kbd></dt>
 <dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
@@ -1082,9 +1262,9 @@ Use <cite>–list</cite> option to list the attributes available (in the first f
 <blockquote>
 <div><p>Compare multiple GSR files.</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">gsr</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">pylustrator</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">gsr</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
                <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
-               <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">--</span><span class="n">panel</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1105,10 +1285,6 @@ Use <cite>–list</cite> option to list the attributes available (in the first f
 </dd>
 <dt><kbd>-sns, --seaborn</kbd></dt>
 <dd><p>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</p>
-</dd>
-<dt><kbd>--pylustrator</kbd></dt>
-<dd><p>Style matplotlib plots with pylustrator. See <a class="reference external" href="https://pylustrator.readthedocs.io/en/latest/">https://pylustrator.readthedocs.io/en/latest/</a></p>
-<p>Default: False</p>
 </dd>
 <dt><kbd>-mpl, --mpl-backend</kbd></dt>
 <dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
@@ -1131,6 +1307,10 @@ Use <cite>–list</cite> option to list the attributes available (in the first f
 </dd>
 <dt><kbd>--no-walk</kbd></dt>
 <dd><p>Don’t enter subdirectories.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--panel</kbd></dt>
+<dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-e, --expose</kbd></dt>
@@ -1156,9 +1336,9 @@ Use <cite>–list</cite> option to list the attributes available (in the first f
 <blockquote>
 <div><p>Compare multiple HIST files.</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">hist</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">pylustrator</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">hist</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
                 <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
-                <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+                <span class="p">[</span><span class="o">--</span><span class="n">panel</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                 <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1179,10 +1359,6 @@ Use <cite>–list</cite> option to list the attributes available (in the first f
 </dd>
 <dt><kbd>-sns, --seaborn</kbd></dt>
 <dd><p>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</p>
-</dd>
-<dt><kbd>--pylustrator</kbd></dt>
-<dd><p>Style matplotlib plots with pylustrator. See <a class="reference external" href="https://pylustrator.readthedocs.io/en/latest/">https://pylustrator.readthedocs.io/en/latest/</a></p>
-<p>Default: False</p>
 </dd>
 <dt><kbd>-mpl, --mpl-backend</kbd></dt>
 <dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
@@ -1205,6 +1381,10 @@ Use <cite>–list</cite> option to list the attributes available (in the first f
 </dd>
 <dt><kbd>--no-walk</kbd></dt>
 <dd><p>Don’t enter subdirectories.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--panel</kbd></dt>
+<dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-e, --expose</kbd></dt>
@@ -1231,9 +1411,9 @@ Use <cite>–list</cite> option to list the attributes available (in the first f
 <div><p>Compare multiple DDB files. Assume DDB files with a list of q-points in the IBZ
 corresponding to homogeneous sampling i.e. files that have been merged with mrgddb.</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">ddb</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">pylustrator</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">ddb</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
                <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
-               <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">--</span><span class="n">panel</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1254,10 +1434,6 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>-sns, --seaborn</kbd></dt>
 <dd><p>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</p>
-</dd>
-<dt><kbd>--pylustrator</kbd></dt>
-<dd><p>Style matplotlib plots with pylustrator. See <a class="reference external" href="https://pylustrator.readthedocs.io/en/latest/">https://pylustrator.readthedocs.io/en/latest/</a></p>
-<p>Default: False</p>
 </dd>
 <dt><kbd>-mpl, --mpl-backend</kbd></dt>
 <dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
@@ -1280,6 +1456,10 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>--no-walk</kbd></dt>
 <dd><p>Don’t enter subdirectories.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--panel</kbd></dt>
+<dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-e, --expose</kbd></dt>
@@ -1305,10 +1485,9 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <blockquote>
 <div><p>Compare multiple anaddb.nc files.</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">anaddb</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">pylustrator</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">anaddb</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">panel</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                   <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1329,10 +1508,6 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>-sns, --seaborn</kbd></dt>
 <dd><p>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</p>
-</dd>
-<dt><kbd>--pylustrator</kbd></dt>
-<dd><p>Style matplotlib plots with pylustrator. See <a class="reference external" href="https://pylustrator.readthedocs.io/en/latest/">https://pylustrator.readthedocs.io/en/latest/</a></p>
-<p>Default: False</p>
 </dd>
 <dt><kbd>-mpl, --mpl-backend</kbd></dt>
 <dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
@@ -1355,6 +1530,10 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>--no-walk</kbd></dt>
 <dd><p>Don’t enter subdirectories.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--panel</kbd></dt>
+<dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-e, --expose</kbd></dt>
@@ -1380,9 +1559,9 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <blockquote>
 <div><p>Compare multiple PHBST.nc files.</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">phbst</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">pylustrator</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">phbst</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
                  <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
-                 <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+                 <span class="p">[</span><span class="o">--</span><span class="n">panel</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                  <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1403,10 +1582,6 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>-sns, --seaborn</kbd></dt>
 <dd><p>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</p>
-</dd>
-<dt><kbd>--pylustrator</kbd></dt>
-<dd><p>Style matplotlib plots with pylustrator. See <a class="reference external" href="https://pylustrator.readthedocs.io/en/latest/">https://pylustrator.readthedocs.io/en/latest/</a></p>
-<p>Default: False</p>
 </dd>
 <dt><kbd>-mpl, --mpl-backend</kbd></dt>
 <dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
@@ -1429,6 +1604,10 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>--no-walk</kbd></dt>
 <dd><p>Don’t enter subdirectories.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--panel</kbd></dt>
+<dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-e, --expose</kbd></dt>
@@ -1454,10 +1633,9 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <blockquote>
 <div><p>Compare multiple SIGRES files.</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">sigres</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">pylustrator</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">sigres</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">panel</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                   <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1478,10 +1656,6 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>-sns, --seaborn</kbd></dt>
 <dd><p>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</p>
-</dd>
-<dt><kbd>--pylustrator</kbd></dt>
-<dd><p>Style matplotlib plots with pylustrator. See <a class="reference external" href="https://pylustrator.readthedocs.io/en/latest/">https://pylustrator.readthedocs.io/en/latest/</a></p>
-<p>Default: False</p>
 </dd>
 <dt><kbd>-mpl, --mpl-backend</kbd></dt>
 <dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
@@ -1504,6 +1678,10 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>--no-walk</kbd></dt>
 <dd><p>Don’t enter subdirectories.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--panel</kbd></dt>
+<dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-e, --expose</kbd></dt>
@@ -1529,9 +1707,9 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <blockquote>
 <div><p>Compare macroscopic dielectric functions stored in multiple MDF files.</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">mdf</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">pylustrator</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">mdf</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
                <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
-               <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">--</span><span class="n">panel</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1552,10 +1730,6 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>-sns, --seaborn</kbd></dt>
 <dd><p>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</p>
-</dd>
-<dt><kbd>--pylustrator</kbd></dt>
-<dd><p>Style matplotlib plots with pylustrator. See <a class="reference external" href="https://pylustrator.readthedocs.io/en/latest/">https://pylustrator.readthedocs.io/en/latest/</a></p>
-<p>Default: False</p>
 </dd>
 <dt><kbd>-mpl, --mpl-backend</kbd></dt>
 <dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
@@ -1578,6 +1752,10 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>--no-walk</kbd></dt>
 <dd><p>Don’t enter subdirectories.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--panel</kbd></dt>
+<dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-e, --expose</kbd></dt>
@@ -1603,9 +1781,9 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <blockquote>
 <div><p>Compare results stored in OPTIC.nc files.</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">optic</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">pylustrator</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">optic</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
                  <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
-                 <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+                 <span class="p">[</span><span class="o">--</span><span class="n">panel</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                  <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1626,10 +1804,6 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>-sns, --seaborn</kbd></dt>
 <dd><p>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</p>
-</dd>
-<dt><kbd>--pylustrator</kbd></dt>
-<dd><p>Style matplotlib plots with pylustrator. See <a class="reference external" href="https://pylustrator.readthedocs.io/en/latest/">https://pylustrator.readthedocs.io/en/latest/</a></p>
-<p>Default: False</p>
 </dd>
 <dt><kbd>-mpl, --mpl-backend</kbd></dt>
 <dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
@@ -1652,6 +1826,10 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>--no-walk</kbd></dt>
 <dd><p>Don’t enter subdirectories.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--panel</kbd></dt>
+<dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-e, --expose</kbd></dt>
@@ -1677,9 +1855,9 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <blockquote>
 <div><p>Compare results stored in A2f.nc files.</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">a2f</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">pylustrator</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">a2f</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
                <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
-               <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">--</span><span class="n">panel</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1700,10 +1878,6 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>-sns, --seaborn</kbd></dt>
 <dd><p>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</p>
-</dd>
-<dt><kbd>--pylustrator</kbd></dt>
-<dd><p>Style matplotlib plots with pylustrator. See <a class="reference external" href="https://pylustrator.readthedocs.io/en/latest/">https://pylustrator.readthedocs.io/en/latest/</a></p>
-<p>Default: False</p>
 </dd>
 <dt><kbd>-mpl, --mpl-backend</kbd></dt>
 <dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
@@ -1726,6 +1900,10 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>--no-walk</kbd></dt>
 <dd><p>Don’t enter subdirectories.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--panel</kbd></dt>
+<dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-e, --expose</kbd></dt>
@@ -1751,10 +1929,9 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <blockquote>
 <div><p>Compare multiple SIGEPH files storing the e-ph self-energy.</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">sigeph</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">pylustrator</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">sigeph</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">panel</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                   <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1775,10 +1952,6 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>-sns, --seaborn</kbd></dt>
 <dd><p>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</p>
-</dd>
-<dt><kbd>--pylustrator</kbd></dt>
-<dd><p>Style matplotlib plots with pylustrator. See <a class="reference external" href="https://pylustrator.readthedocs.io/en/latest/">https://pylustrator.readthedocs.io/en/latest/</a></p>
-<p>Default: False</p>
 </dd>
 <dt><kbd>-mpl, --mpl-backend</kbd></dt>
 <dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
@@ -1801,6 +1974,10 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>--no-walk</kbd></dt>
 <dd><p>Don’t enter subdirectories.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--panel</kbd></dt>
+<dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-e, --expose</kbd></dt>
@@ -1826,9 +2003,9 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <blockquote>
 <div><p>Compare multiple GKQ files with EPH matrix elements for a given q-point.</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">gkq</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">pylustrator</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">gkq</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
                <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
-               <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">--</span><span class="n">panel</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span><span class="p">]</span>
                <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1849,10 +2026,6 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>-sns, --seaborn</kbd></dt>
 <dd><p>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</p>
-</dd>
-<dt><kbd>--pylustrator</kbd></dt>
-<dd><p>Style matplotlib plots with pylustrator. See <a class="reference external" href="https://pylustrator.readthedocs.io/en/latest/">https://pylustrator.readthedocs.io/en/latest/</a></p>
-<p>Default: False</p>
 </dd>
 <dt><kbd>-mpl, --mpl-backend</kbd></dt>
 <dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
@@ -1875,6 +2048,10 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>--no-walk</kbd></dt>
 <dd><p>Don’t enter subdirectories.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--panel</kbd></dt>
+<dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-e, --expose</kbd></dt>
@@ -1904,10 +2081,9 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <blockquote>
 <div><p>Compare multiple V1QAVG files with the average of the DFPT V1 potentials as function of q-point.</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">v1qavg</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">pylustrator</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">v1qavg</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">panel</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                   <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1928,10 +2104,6 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>-sns, --seaborn</kbd></dt>
 <dd><p>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</p>
-</dd>
-<dt><kbd>--pylustrator</kbd></dt>
-<dd><p>Style matplotlib plots with pylustrator. See <a class="reference external" href="https://pylustrator.readthedocs.io/en/latest/">https://pylustrator.readthedocs.io/en/latest/</a></p>
-<p>Default: False</p>
 </dd>
 <dt><kbd>-mpl, --mpl-backend</kbd></dt>
 <dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
@@ -1954,6 +2126,10 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>--no-walk</kbd></dt>
 <dd><p>Don’t enter subdirectories.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--panel</kbd></dt>
+<dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-e, --expose</kbd></dt>
@@ -1979,9 +2155,9 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <blockquote>
 <div><p>Compare multiple WRmax files with first order potential in real-space.</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">wrmax</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">pylustrator</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">wrmax</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
                  <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
-                 <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+                 <span class="p">[</span><span class="o">--</span><span class="n">panel</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                  <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -2002,10 +2178,6 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>-sns, --seaborn</kbd></dt>
 <dd><p>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</p>
-</dd>
-<dt><kbd>--pylustrator</kbd></dt>
-<dd><p>Style matplotlib plots with pylustrator. See <a class="reference external" href="https://pylustrator.readthedocs.io/en/latest/">https://pylustrator.readthedocs.io/en/latest/</a></p>
-<p>Default: False</p>
 </dd>
 <dt><kbd>-mpl, --mpl-backend</kbd></dt>
 <dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
@@ -2028,6 +2200,10 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>--no-walk</kbd></dt>
 <dd><p>Don’t enter subdirectories.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--panel</kbd></dt>
+<dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>-e, --expose</kbd></dt>
@@ -2053,10 +2229,9 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <blockquote>
 <div><p>Compare multiple ABIWAN files.</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">abiwan</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">pylustrator</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">abiwan</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">panel</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                   <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -2077,10 +2252,6 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>-sns, --seaborn</kbd></dt>
 <dd><p>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</p>
-</dd>
-<dt><kbd>--pylustrator</kbd></dt>
-<dd><p>Style matplotlib plots with pylustrator. See <a class="reference external" href="https://pylustrator.readthedocs.io/en/latest/">https://pylustrator.readthedocs.io/en/latest/</a></p>
-<p>Default: False</p>
 </dd>
 <dt><kbd>-mpl, --mpl-backend</kbd></dt>
 <dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
@@ -2105,6 +2276,10 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <dd><p>Don’t enter subdirectories.</p>
 <p>Default: False</p>
 </dd>
+<dt><kbd>--panel</kbd></dt>
+<dd><p>Open GUI in web browser, requires panel package. WARNING: Experimental</p>
+<p>Default: False</p>
+</dd>
 <dt><kbd>-e, --expose</kbd></dt>
 <dd><p>Execute robot.expose to produce a pre-defined list of matplotlib figures.</p>
 <p>Default: False</p>
@@ -2126,8 +2301,8 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <div class="section" id="pseudos">
 <h3>pseudos<a class="headerlink" href="#pseudos" title="Permalink to this headline">¶</a></h3>
 <p>“Compare multiple pseudos Print table to terminal.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">pseudos</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">pylustrator</span><span class="p">]</span>
-                   <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">pseudos</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+                   <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
                    <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -2149,10 +2324,6 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <dt><kbd>-sns, --seaborn</kbd></dt>
 <dd><p>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</p>
 </dd>
-<dt><kbd>--pylustrator</kbd></dt>
-<dd><p>Style matplotlib plots with pylustrator. See <a class="reference external" href="https://pylustrator.readthedocs.io/en/latest/">https://pylustrator.readthedocs.io/en/latest/</a></p>
-<p>Default: False</p>
-</dd>
 <dt><kbd>-mpl, --mpl-backend</kbd></dt>
 <dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
 </dd>
@@ -2168,8 +2339,9 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <blockquote>
 <div><p>Analyze/plot the timing data of single or multiple runs.</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">time</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">pylustrator</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
-                <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">EXT</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">time</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+                <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">classic</span><span class="o">-</span><span class="n">notebook</span><span class="p">]</span>
+                <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">browser</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">EXT</span><span class="p">]</span>
                 <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -2191,10 +2363,6 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <dt><kbd>-sns, --seaborn</kbd></dt>
 <dd><p>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</p>
 </dd>
-<dt><kbd>--pylustrator</kbd></dt>
-<dd><p>Style matplotlib plots with pylustrator. See <a class="reference external" href="https://pylustrator.readthedocs.io/en/latest/">https://pylustrator.readthedocs.io/en/latest/</a></p>
-<p>Default: False</p>
-</dd>
 <dt><kbd>-mpl, --mpl-backend</kbd></dt>
 <dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
 </dd>
@@ -2204,6 +2372,15 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>-nb, --notebook</kbd></dt>
 <dd><p>Generate jupyter notebook.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--classic-notebook</kbd></dt>
+<dd><p>Use classic notebook instead of jupyterlab.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--no-browser</kbd></dt>
+<dd><p>Start the jupyter server to serve the notebook but don’t open the notebook in the browser.
+Use this option to connect remotely from localhost to the machine running the kernel</p>
 <p>Default: False</p>
 </dd>
 <dt><kbd>--foreground</kbd></dt>
@@ -2226,8 +2403,8 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <blockquote>
 <div><p>Compare ground-state SCF cycles.</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">gs_scf</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">pylustrator</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">gs_scf</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
                   <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -2249,10 +2426,6 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <dt><kbd>-sns, --seaborn</kbd></dt>
 <dd><p>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</p>
 </dd>
-<dt><kbd>--pylustrator</kbd></dt>
-<dd><p>Style matplotlib plots with pylustrator. See <a class="reference external" href="https://pylustrator.readthedocs.io/en/latest/">https://pylustrator.readthedocs.io/en/latest/</a></p>
-<p>Default: False</p>
-</dd>
 <dt><kbd>-mpl, --mpl-backend</kbd></dt>
 <dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
 </dd>
@@ -2268,8 +2441,8 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <blockquote>
 <div><p>Compare DFPT SCF cycles.</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">dfpt2_scf</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">pylustrator</span><span class="p">]</span>
-                     <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">dfpt2_scf</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+                     <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
                      <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -2291,10 +2464,6 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <dt><kbd>-sns, --seaborn</kbd></dt>
 <dd><p>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</p>
 </dd>
-<dt><kbd>--pylustrator</kbd></dt>
-<dd><p>Style matplotlib plots with pylustrator. See <a class="reference external" href="https://pylustrator.readthedocs.io/en/latest/">https://pylustrator.readthedocs.io/en/latest/</a></p>
-<p>Default: False</p>
-</dd>
 <dt><kbd>-mpl, --mpl-backend</kbd></dt>
 <dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
 </dd>
@@ -2310,7 +2479,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <blockquote>
 <div><p>Compare 2+ text files in the browser</p>
 </div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">text</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">pylustrator</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">text</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
                 <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">DIFFMODE</span><span class="p">]</span>
                 <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
@@ -2332,10 +2501,6 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </dd>
 <dt><kbd>-sns, --seaborn</kbd></dt>
 <dd><p>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</p>
-</dd>
-<dt><kbd>--pylustrator</kbd></dt>
-<dd><p>Style matplotlib plots with pylustrator. See <a class="reference external" href="https://pylustrator.readthedocs.io/en/latest/">https://pylustrator.readthedocs.io/en/latest/</a></p>
-<p>Default: False</p>
 </dd>
 <dt><kbd>-mpl, --mpl-backend</kbd></dt>
 <dd><p>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</p>
@@ -2367,7 +2532,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on Feb 22, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

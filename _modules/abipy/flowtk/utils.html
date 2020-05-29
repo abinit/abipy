@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>abipy.flowtk.utils &#8212; abipy 0.7.0 documentation</title>
+    <title>abipy.flowtk.utils &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -39,7 +42,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -62,6 +65,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -131,12 +135,12 @@
 <span class="kn">import</span> <span class="nn">operator</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">fnmatch</span> <span class="k">import</span> <span class="n">fnmatch</span>
-<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">dict2namedtuple</span>
-<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">list_strings</span>
-<span class="kn">from</span> <span class="nn">monty.fnmatch</span> <span class="k">import</span> <span class="n">WildCard</span>
-<span class="kn">from</span> <span class="nn">monty.shutil</span> <span class="k">import</span> <span class="n">copy_r</span>
-<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span>
+<span class="kn">from</span> <span class="nn">fnmatch</span> <span class="kn">import</span> <span class="n">fnmatch</span>
+<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="kn">import</span> <span class="n">dict2namedtuple</span>
+<span class="kn">from</span> <span class="nn">monty.string</span> <span class="kn">import</span> <span class="n">list_strings</span>
+<span class="kn">from</span> <span class="nn">monty.fnmatch</span> <span class="kn">import</span> <span class="n">WildCard</span>
+<span class="kn">from</span> <span class="nn">monty.shutil</span> <span class="kn">import</span> <span class="n">copy_r</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="kn">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span>
 
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -164,19 +168,19 @@
 <span class="sd">    Very simple class used to store file basenames, absolute paths and directory names.</span>
 <span class="sd">    Provides wrappers for the most commonly used functions defined in os.path.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;&lt;</span><span class="si">%s</span><span class="s2"> at </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;&lt;</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">False</span> <span class="k">if</span> <span class="n">other</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">path</span>
 
-    <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -279,19 +283,19 @@
 <span class="sd">    Very simple class that provides helper functions</span>
 <span class="sd">    wrapping the most commonly used functions defined in os.path.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;&lt;</span><span class="si">%s</span><span class="s2"> at </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span>
 
-    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">False</span> <span class="k">if</span> <span class="n">other</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">path</span>
 
-    <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -358,7 +362,7 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            wildcard: String of tokens separated by &quot;|&quot;. Each token represents a pattern.</span>
-<span class="sd">                If wildcard is not None, we return only those files that match</span>
+<span class="sd">                If wildcard is not None, we return only those files whose basename matches</span>
 <span class="sd">                the given shell pattern (uses fnmatch).</span>
 <span class="sd">                Example:</span>
 <span class="sd">                  wildcard=&quot;*.nc|*.pdf&quot; selects only those files that end with .nc or .pdf</span>
@@ -367,9 +371,11 @@
         <span class="n">fnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)]</span>
         <span class="n">filepaths</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">,</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fnames</span><span class="p">])</span>
 
-        <span class="c1"># Filter using the shell patterns.</span>
         <span class="k">if</span> <span class="n">wildcard</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">filepaths</span> <span class="o">=</span> <span class="n">WildCard</span><span class="p">(</span><span class="n">wildcard</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">filepaths</span><span class="p">)</span>
+            <span class="c1"># Filter using shell patterns.</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="n">WildCard</span><span class="p">(</span><span class="n">wildcard</span><span class="p">)</span>
+            <span class="n">filepaths</span> <span class="o">=</span> <span class="p">[</span><span class="n">path</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">filepaths</span> <span class="k">if</span> <span class="n">w</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="p">))]</span>
+            <span class="c1">#filepaths = WildCard(wildcard).filter(filepaths)</span>
 
         <span class="k">return</span> <span class="n">filepaths</span></div>
 
@@ -411,7 +417,7 @@
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">single_file</span><span class="p">:</span>
             <span class="c1"># ABINIT users must learn that multiple datasets are bad!</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Found multiple files with the same extensions:</span><span class="se">\n</span><span class="s2"> </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">files</span> <span class="o">+</span>
-                             <span class="s2">&quot;Please avoid using multiple datasets!&quot;</span><span class="p">)</span>
+                             <span class="s2">&quot;Please avoid multiple datasets!&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">single_file</span> <span class="k">else</span> <span class="n">files</span></div>
 
@@ -472,7 +478,7 @@
         <span class="k">return</span> <span class="mi">0</span></div>
 
 <div class="viewcode-block" id="Directory.copy_abiext"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.utils.Directory.copy_abiext">[docs]</a>    <span class="k">def</span> <span class="nf">copy_abiext</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inext</span><span class="p">,</span> <span class="n">outext</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Copy the Abinit file with extension inext to a new file withw extension outext&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Copy the Abinit file with extension inext to a new file with the extension outext&quot;&quot;&quot;</span>
         <span class="n">infile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_abiext</span><span class="p">(</span><span class="n">inext</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">infile</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;no file with extension </span><span class="si">%s</span><span class="s1"> in </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">inext</span><span class="p">,</span> <span class="bp">self</span><span class="p">))</span>
@@ -579,10 +585,9 @@
 
 <span class="c1"># This dictionary maps ABINIT file extensions to the variables that must be used to read the file in input.</span>
 <span class="c1">#</span>
-<span class="c1"># TODO: It would be nice to pass absolute paths to abinit with getden_path</span>
-<span class="c1"># so that I can avoid creating symbolic links before running but</span>
-<span class="c1"># the presence of the C-bindings complicates the implementation</span>
-<span class="c1"># (gfortran SIGFAULTs if I add strings to dataset_type!</span>
+<span class="c1"># TODO: In Abinit9, it&#39;s possible to specify absolute paths with e.g., getden_path</span>
+<span class="c1"># Now it&#39;s possible to avoid creating symbolic links before running but</span>
+<span class="c1"># moving to the new approach requires some careful testing besides not all files support the get*_path syntax!</span>
 
 <span class="n">_EXT2VARS</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;DEN&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;irdden&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
@@ -600,6 +605,9 @@
     <span class="s2">&quot;DVDB&quot;</span><span class="p">:</span> <span class="p">{},</span>
     <span class="s2">&quot;GKK&quot;</span><span class="p">:</span> <span class="p">{},</span>
     <span class="s2">&quot;DKK&quot;</span><span class="p">:</span> <span class="p">{},</span>
+    <span class="s2">&quot;EFMAS.nc&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;irdefmas&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+    <span class="c1"># Abinit does not implement getkden and irdkden but relies on irden</span>
+    <span class="s2">&quot;KDEN&quot;</span><span class="p">:</span> <span class="p">{},</span>  <span class="c1">#{&quot;irdkden&quot;: 1},</span>
 <span class="p">}</span>
 
 
@@ -637,7 +645,7 @@
 
     <span class="c1"># This algorith fails if we have two files</span>
     <span class="c1"># e.g. HAYDR_SAVE, ANOTHER_HAYDR_SAVE</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
         <span class="n">ext</span> <span class="o">=</span> <span class="n">filename</span><span class="p">[</span><span class="n">i</span><span class="p">:]</span>
         <span class="k">if</span> <span class="n">ext</span> <span class="ow">in</span> <span class="n">known_extensions</span><span class="p">:</span>
             <span class="k">break</span>
@@ -646,8 +654,7 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot find a registered extension in </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
 
     <span class="n">root</span> <span class="o">=</span> <span class="n">filename</span><span class="p">[:</span><span class="n">i</span><span class="p">]</span>
-    <span class="k">if</span> <span class="n">is_ncfile</span><span class="p">:</span>
-        <span class="n">ext</span> <span class="o">+=</span> <span class="s2">&quot;.nc&quot;</span>
+    <span class="k">if</span> <span class="n">is_ncfile</span><span class="p">:</span> <span class="n">ext</span> <span class="o">+=</span> <span class="s2">&quot;.nc&quot;</span>
 
     <span class="k">return</span> <span class="n">root</span><span class="p">,</span> <span class="n">ext</span></div>
 
@@ -659,7 +666,7 @@
 <span class="sd">    Having a one-to-one mapping between file extension and data format</span>
 <span class="sd">    is indeed fundamental for the correct behaviour of abinit since:</span>
 
-<span class="sd">        - We locate the output file by just inspecting the extension</span>
+<span class="sd">        - We locate the output file by just inspecting the file extension</span>
 
 <span class="sd">        - We select the variables that must be added to the input file</span>
 <span class="sd">          on the basis of the extension specified by the user during</span>
@@ -675,7 +682,7 @@
 <span class="sd">        fixer.fix_paths(&#39;/foo/out_1WF17&#39;) == {&#39;/foo/out_1WF17&#39;: &#39;/foo/out_1WF&#39;}</span>
 <span class="sd">        fixer.fix_paths(&#39;/foo/out_1WF5.nc&#39;) == {&#39;/foo/out_1WF5.nc&#39;: &#39;/foo/out_1WF.nc&#39;}</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># dictionary mapping the *official* file extension to</span>
         <span class="c1"># the regular expression used to tokenize the basename of the file</span>
         <span class="c1"># To add a new file it&#39;s sufficient to add a new regexp and</span>
@@ -774,7 +781,7 @@
     <span class="s2">&quot;$divisible&quot;</span><span class="p">:</span> <span class="n">_bop_divisible</span><span class="p">,</span>
     <span class="s2">&quot;$and&quot;</span><span class="p">:</span> <span class="n">_bop_and</span><span class="p">,</span>
     <span class="s2">&quot;$or&quot;</span><span class="p">:</span>  <span class="n">_bop_or</span><span class="p">,</span>
-    <span class="p">}</span>
+<span class="p">}</span>
 
 
 <span class="n">_ALL_OPS</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_UNARY_OPS</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">_BIN_OPS</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
@@ -846,8 +853,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Evaluates the RPN form produced my map2rpn.</span>
 
-<span class="sd">    Returns:</span>
-<span class="sd">        bool</span>
+<span class="sd">    Returns: bool</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">vals_stack</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -871,8 +877,6 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Push the operand</span>
             <span class="n">vals_stack</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
-
-        <span class="c1">#print(vals_stack)</span>
 
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">vals_stack</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
     <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">vals_stack</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">bool</span><span class="p">)</span>
@@ -913,18 +917,18 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="n">obj</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cmap</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">cmap</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">cmap</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cmap</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__bool__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__bool__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cmap</span><span class="p">)</span>
 
     <span class="n">__nonzero__</span> <span class="o">=</span> <span class="fm">__bool__</span>
 
-    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="p">:</span> <span class="k">return</span> <span class="kc">True</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">evaluate_rpn</span><span class="p">(</span><span class="n">map2rpn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cmap</span><span class="p">,</span> <span class="n">obj</span><span class="p">))</span>
@@ -938,7 +942,7 @@
 <span class="sd">    Wrapper class that calls the editor specified by the user</span>
 <span class="sd">    or the one specified in the $EDITOR env variable.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">editor</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">editor</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;If editor is None, $EDITOR is used.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">editor</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;EDITOR&quot;</span><span class="p">,</span> <span class="s2">&quot;vi&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">editor</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">editor</span><span class="p">)</span>
 
@@ -951,7 +955,7 @@
         <span class="k">return</span> <span class="n">exit_status</span></div>
 
 <div class="viewcode-block" id="Editor.edit_file"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.utils.Editor.edit_file">[docs]</a>    <span class="k">def</span> <span class="nf">edit_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">subprocess</span> <span class="k">import</span> <span class="n">call</span>
+        <span class="kn">from</span> <span class="nn">subprocess</span> <span class="kn">import</span> <span class="n">call</span>
         <span class="n">retcode</span> <span class="o">=</span> <span class="n">call</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">editor</span><span class="p">,</span> <span class="n">fname</span><span class="p">])</span>
 
         <span class="k">if</span> <span class="n">retcode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
@@ -974,11 +978,11 @@
 
 <div class="viewcode-block" id="SparseHistogram"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.utils.SparseHistogram">[docs]</a><span class="k">class</span> <span class="nc">SparseHistogram</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">items</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">items</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">num</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">step</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Either num or step must be specified&quot;</span><span class="p">)</span>
 
-        <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">defaultdict</span>
+        <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
 
         <span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">]</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">items</span>
         <span class="n">start</span><span class="p">,</span> <span class="n">stop</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">values</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
@@ -987,7 +991,7 @@
             <span class="k">if</span> <span class="n">num</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">num</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="n">mesh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
-        <span class="kn">from</span> <span class="nn">monty.bisect</span> <span class="k">import</span> <span class="n">find_le</span>
+        <span class="kn">from</span> <span class="nn">monty.bisect</span> <span class="kn">import</span> <span class="n">find_le</span>
 
         <span class="n">hist</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">item</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
@@ -1019,7 +1023,7 @@
     <span class="c1">#file_color = np.array((255, 0, 0)) / 255</span>
     <span class="c1">#dir_color = np.array((0, 0, 255)) / 255</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">top</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">top</span><span class="p">):</span>
         <span class="c1">#if not os.path.isdir(top):</span>
         <span class="c1">#    raise TypeError(&quot;%s should be a directory!&quot; % str(top))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">top</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">top</span><span class="p">)</span>
@@ -1042,7 +1046,7 @@
 <span class="sd">        Returns: graphviz.Digraph &lt;https://graphviz.readthedocs.io/en/stable/api.html#digraph&gt;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># https://www.graphviz.org/doc/info/</span>
-        <span class="kn">from</span> <span class="nn">graphviz</span> <span class="k">import</span> <span class="n">Digraph</span>
+        <span class="kn">from</span> <span class="nn">graphviz</span> <span class="kn">import</span> <span class="n">Digraph</span>
         <span class="n">g</span> <span class="o">=</span> <span class="n">Digraph</span><span class="p">(</span><span class="s2">&quot;directory&quot;</span><span class="p">,</span> <span class="c1">#filename=&quot;flow_%s.gv&quot; % os.path.basename(self.relworkdir),</span>
             <span class="n">engine</span><span class="o">=</span><span class="n">engine</span><span class="p">)</span> <span class="c1"># if engine == &quot;automatic&quot; else engine)</span>
 
@@ -1125,7 +1129,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on May 29, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

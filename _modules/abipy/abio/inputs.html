@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>abipy.abio.inputs &#8212; abipy 0.7.0 documentation</title>
+    <title>abipy.abio.inputs &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -39,7 +42,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -62,6 +65,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -136,25 +140,24 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">abipy.abio.input_tags</span> <span class="k">as</span> <span class="nn">atags</span>
 
-<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
-<span class="kn">from</span> <span class="nn">collections.abc</span> <span class="k">import</span> <span class="n">MutableMapping</span>
-<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">dict2namedtuple</span>
-<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">is_string</span><span class="p">,</span> <span class="n">list_strings</span>
-<span class="kn">from</span> <span class="nn">monty.json</span> <span class="k">import</span> <span class="n">MontyDecoder</span><span class="p">,</span> <span class="n">MSONable</span>
-<span class="kn">from</span> <span class="nn">pymatgen.core.units</span> <span class="k">import</span> <span class="n">Energy</span>
-<span class="kn">from</span> <span class="nn">pymatgen.util.serialization</span> <span class="k">import</span> <span class="n">pmg_serialize</span>
-<span class="kn">from</span> <span class="nn">pymatgen.symmetry.bandstructure</span> <span class="k">import</span> <span class="n">HighSymmKpath</span>
-<span class="kn">from</span> <span class="nn">pymatgen.io.abinit.abiobjects</span> <span class="k">import</span> <span class="n">KSampling</span>
-<span class="kn">from</span> <span class="nn">abipy.tools.numtools</span> <span class="k">import</span> <span class="n">is_diagonal</span>
-<span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="n">Structure</span>
-<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">Has_Structure</span>
-<span class="kn">from</span> <span class="nn">abipy.core.kpoints</span> <span class="k">import</span> <span class="n">has_timrev_from_kptopt</span>
-<span class="kn">from</span> <span class="nn">abipy.abio.variable</span> <span class="k">import</span> <span class="n">InputVariable</span>
-<span class="kn">from</span> <span class="nn">abipy.abio.abivars</span> <span class="k">import</span> <span class="n">is_abivar</span><span class="p">,</span> <span class="n">is_anaddb_var</span>
-<span class="kn">from</span> <span class="nn">abipy.abio.abivars_db</span> <span class="k">import</span> <span class="n">get_abinit_variables</span>
-<span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">PseudoTable</span><span class="p">,</span> <span class="n">Pseudo</span><span class="p">,</span> <span class="n">AbinitTask</span><span class="p">,</span> <span class="n">AnaddbTask</span><span class="p">,</span> <span class="n">ParalHintsParser</span><span class="p">,</span> <span class="n">NetcdfReader</span>
-<span class="kn">from</span> <span class="nn">abipy.flowtk.abiinspect</span> <span class="k">import</span> <span class="n">yaml_read_irred_perts</span>
-<span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">abiobjects</span> <span class="k">as</span> <span class="n">aobj</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">MutableMapping</span>
+<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="kn">import</span> <span class="n">dict2namedtuple</span>
+<span class="kn">from</span> <span class="nn">monty.string</span> <span class="kn">import</span> <span class="n">is_string</span><span class="p">,</span> <span class="n">list_strings</span>
+<span class="kn">from</span> <span class="nn">monty.json</span> <span class="kn">import</span> <span class="n">MontyDecoder</span><span class="p">,</span> <span class="n">MSONable</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.units</span> <span class="kn">import</span> <span class="n">Energy</span>
+<span class="kn">from</span> <span class="nn">pymatgen.util.serialization</span> <span class="kn">import</span> <span class="n">pmg_serialize</span>
+<span class="kn">from</span> <span class="nn">pymatgen.symmetry.bandstructure</span> <span class="kn">import</span> <span class="n">HighSymmKpath</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.numtools</span> <span class="kn">import</span> <span class="n">is_diagonal</span>
+<span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="kn">import</span> <span class="n">Structure</span>
+<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="kn">import</span> <span class="n">Has_Structure</span>
+<span class="kn">from</span> <span class="nn">abipy.core.kpoints</span> <span class="kn">import</span> <span class="n">has_timrev_from_kptopt</span>
+<span class="kn">from</span> <span class="nn">abipy.abio.variable</span> <span class="kn">import</span> <span class="n">InputVariable</span>
+<span class="kn">from</span> <span class="nn">abipy.abio.abivars</span> <span class="kn">import</span> <span class="n">is_abivar</span><span class="p">,</span> <span class="n">is_anaddb_var</span>
+<span class="kn">from</span> <span class="nn">abipy.abio.abivars_db</span> <span class="kn">import</span> <span class="n">get_abinit_variables</span><span class="p">,</span> <span class="n">get_anaddb_variables</span>
+<span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="kn">import</span> <span class="n">PseudoTable</span><span class="p">,</span> <span class="n">Pseudo</span><span class="p">,</span> <span class="n">AbinitTask</span><span class="p">,</span> <span class="n">AnaddbTask</span><span class="p">,</span> <span class="n">ParalHintsParser</span><span class="p">,</span> <span class="n">NetcdfReader</span>
+<span class="kn">from</span> <span class="nn">abipy.flowtk.abiinspect</span> <span class="kn">import</span> <span class="n">yaml_read_irred_perts</span>
+<span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="kn">import</span> <span class="n">abiobjects</span> <span class="k">as</span> <span class="n">aobj</span>
 
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
@@ -234,26 +237,26 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># ABC protocol: __delitem__, __getitem__, __iter__, __len__, __setitem__</span>
-    <span class="k">def</span> <span class="nf">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="fm">__delitem__</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vars</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_check_varname</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;&lt;</span><span class="si">%s</span><span class="s2"> at </span><span class="si">%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
 <div class="viewcode-block" id="AbstractInput.write"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbstractInput.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="o">=</span><span class="s2">&quot;run.abi&quot;</span><span class="p">):</span>
@@ -427,7 +430,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">Error</span> <span class="o">=</span> <span class="n">AbinitInputError</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">,</span> <span class="n">pseudo_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">decorators</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">abi_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">,</span> <span class="n">pseudo_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">decorators</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">abi_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">abi_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
@@ -491,7 +494,6 @@
         <span class="kn">import</span> <span class="nn">hashlib</span>
         <span class="n">sha1</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">()</span>
 
-        <span class="c1"># Py3K</span>
         <span class="k">def</span> <span class="nf">tos</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
             <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
 
@@ -551,7 +553,7 @@
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;structure&quot;</span><span class="p">],</span> <span class="n">pseudos</span><span class="p">,</span> <span class="n">decorators</span><span class="o">=</span><span class="n">dec</span><span class="o">.</span><span class="n">process_decoded</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;decorators&quot;</span><span class="p">]),</span>
                    <span class="n">comment</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;comment&quot;</span><span class="p">],</span> <span class="n">abi_args</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;abi_args&quot;</span><span class="p">],</span> <span class="n">tags</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">])</span></div>
 
-    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">_TOLVARS_SCF</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_vars&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vars</span> <span class="ow">and</span> <span class="n">t</span> <span class="o">!=</span> <span class="n">key</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">_TOLVARS_SCF</span><span class="p">):</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Replacing previously set tolerance variable: </span><span class="si">{0}</span><span class="s2">.&quot;</span>
                         <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">remove_vars</span><span class="p">(</span><span class="n">_TOLVARS_SCF</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">)))</span>
@@ -739,7 +741,7 @@
 
             <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">mnemonics</span> <span class="ow">and</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;# &lt;&quot;</span> <span class="o">+</span> <span class="n">var_database</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">mnemonics</span> <span class="o">+</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">)</span>
+                    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;#### &lt;&quot;</span> <span class="o">+</span> <span class="n">var_database</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">mnemonics</span> <span class="o">+</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">)</span>
 
                 <span class="c1"># Build variable, convert to string and append it</span>
                 <span class="n">vname</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="n">post</span>
@@ -751,16 +753,16 @@
             <span class="c1"># Get dict mapping section_name --&gt; list of variable names belonging to the section.</span>
             <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">exclude</span> <span class="ow">and</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
             <span class="n">sec2names</span> <span class="o">=</span> <span class="n">var_database</span><span class="o">.</span><span class="n">group_by_varset</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span>
-            <span class="n">w</span> <span class="o">=</span> <span class="mi">92</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="mi">46</span>
 
             <span class="k">for</span> <span class="n">sec</span><span class="p">,</span> <span class="n">names</span> <span class="ow">in</span> <span class="n">sec2names</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="n">app</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="s2">&quot;#&quot;</span><span class="p">)</span>
-                <span class="n">app</span><span class="p">(</span><span class="s2">&quot;#&quot;</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;SECTION: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">sec</span><span class="p">)</span><span class="o">.</span><span class="n">center</span><span class="p">(</span><span class="n">w</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="n">app</span><span class="p">(</span><span class="s2">&quot;####&quot;</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;SECTION: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">sec</span><span class="p">)</span><span class="o">.</span><span class="n">center</span><span class="p">(</span><span class="n">w</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
                 <span class="n">app</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="s2">&quot;#&quot;</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
                     <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
                     <span class="k">if</span> <span class="n">mnemonics</span> <span class="ow">and</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="n">app</span><span class="p">(</span><span class="n">escape</span><span class="p">(</span><span class="s2">&quot;# &lt;&quot;</span> <span class="o">+</span> <span class="n">var_database</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">mnemonics</span> <span class="o">+</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">))</span>
+                        <span class="n">app</span><span class="p">(</span><span class="n">escape</span><span class="p">(</span><span class="s2">&quot;#### &lt;&quot;</span> <span class="o">+</span> <span class="n">var_database</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">mnemonics</span> <span class="o">+</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">))</span>
 
                     <span class="c1"># Build variable, convert to string and append it</span>
                     <span class="n">vname</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="n">post</span>
@@ -770,11 +772,11 @@
 
             <span class="k">if</span> <span class="n">with_structure</span><span class="p">:</span>
                 <span class="n">app</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="s2">&quot;#&quot;</span><span class="p">)</span>
-                <span class="n">app</span><span class="p">(</span><span class="s2">&quot;#&quot;</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;STRUCTURE&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">center</span><span class="p">(</span><span class="n">w</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="n">app</span><span class="p">(</span><span class="s2">&quot;####&quot;</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;STRUCTURE&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">center</span><span class="p">(</span><span class="n">w</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
                 <span class="n">app</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="s2">&quot;#&quot;</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">to_abivars</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                     <span class="k">if</span> <span class="n">mnemonics</span> <span class="ow">and</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="n">app</span><span class="p">(</span><span class="n">escape</span><span class="p">(</span><span class="s2">&quot;# &lt;&quot;</span> <span class="o">+</span> <span class="n">var_database</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">mnemonics</span> <span class="o">+</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">))</span>
+                        <span class="n">app</span><span class="p">(</span><span class="n">escape</span><span class="p">(</span><span class="s2">&quot;#### &lt;&quot;</span> <span class="o">+</span> <span class="n">var_database</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">mnemonics</span> <span class="o">+</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">))</span>
                     <span class="n">vname</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="n">post</span>
                     <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;html&quot;</span><span class="p">:</span> <span class="n">vname</span> <span class="o">=</span> <span class="n">var_database</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">html_link</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">vname</span><span class="p">)</span>
                     <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">InputVariable</span><span class="p">(</span><span class="n">vname</span><span class="p">,</span> <span class="n">value</span><span class="p">)))</span>
@@ -794,6 +796,7 @@
 
         <span class="n">s</span> <span class="o">+=</span> <span class="n">escape</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">#&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ppinfo</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;html&quot;</span><span class="p">:</span> <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;br&gt;&quot;</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="n">s</span></div>
 
     <span class="k">def</span> <span class="nf">_repr_html_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -919,10 +922,10 @@
 <span class="sd">                If None, we use the default high-symmetry k-path defined in the pymatgen database.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">kptbounds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">kptbounds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">calc_kptbounds</span><span class="p">()</span>
-        <span class="n">kptbounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">kptbounds</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+        <span class="n">kptbounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">kptbounds</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
         <span class="c1">#self.pop_vars([&quot;ngkpt&quot;, &quot;shiftk&quot;]) ??</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">kptbounds</span><span class="o">=</span><span class="n">kptbounds</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=-</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">kptbounds</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">ndivsm</span><span class="o">=</span><span class="n">ndivsm</span><span class="p">,</span> <span class="n">iscf</span><span class="o">=</span><span class="n">iscf</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">kptbounds</span><span class="o">=</span><span class="n">kptbounds</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=-</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">kptbounds</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="n">ndivsm</span><span class="o">=</span><span class="n">ndivsm</span><span class="p">,</span> <span class="n">iscf</span><span class="o">=</span><span class="n">iscf</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AbinitInput.set_qpath"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.set_qpath">[docs]</a>    <span class="k">def</span> <span class="nf">set_qpath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ndivsm</span><span class="p">,</span> <span class="n">qptbounds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1296,6 +1299,114 @@
                 <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">t</span><span class="p">]</span>
 
         <span class="k">return</span> <span class="n">tolvar</span><span class="p">,</span> <span class="n">value</span>
+
+<div class="viewcode-block" id="AbinitInput.make_ebands_input"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.make_ebands_input">[docs]</a>    <span class="k">def</span> <span class="nf">make_ebands_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">tolwfr</span><span class="o">=</span><span class="mf">1e-20</span><span class="p">,</span> <span class="n">nscf_nband</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate an input file for band structure calculation from a GS-SCF input.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ndivsm: Number of divisions used to sample the smallest segment of the k-path.</span>
+<span class="sd">            tolwfr: Tolerance on residuals for NSCF calculation</span>
+<span class="sd">            nscf_nband: Number of bands for NSCF calculation. +10 if None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nscf_input</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
+        <span class="n">nscf_input</span><span class="o">.</span><span class="n">pop_vars</span><span class="p">([</span><span class="s2">&quot;ngkpt&quot;</span><span class="p">,</span> <span class="s2">&quot;shiftk&quot;</span><span class="p">])</span>
+        <span class="n">nscf_input</span><span class="o">.</span><span class="n">pop_tolerances</span><span class="p">()</span>
+
+        <span class="c1"># Define k-path.</span>
+        <span class="n">nscf_ksampling</span> <span class="o">=</span> <span class="n">aobj</span><span class="o">.</span><span class="n">KSampling</span><span class="o">.</span><span class="n">path_from_structure</span><span class="p">(</span><span class="n">ndivsm</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
+        <span class="n">nscf_nband</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;nband&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">10</span> <span class="k">if</span> <span class="n">nscf_nband</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">nscf_nband</span>
+
+        <span class="n">nscf_input</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">nscf_ksampling</span><span class="o">.</span><span class="n">to_abivars</span><span class="p">())</span>
+        <span class="n">nscf_input</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">iscf</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="n">nband</span><span class="o">=</span><span class="n">nscf_nband</span><span class="p">,</span> <span class="n">tolwfr</span><span class="o">=</span><span class="n">tolwfr</span><span class="p">)</span>
+        <span class="c1">#nscf_input.set_vars(_stopping_criterion(&quot;nscf&quot;, accuracy))</span>
+
+        <span class="k">return</span> <span class="n">nscf_input</span></div>
+
+<div class="viewcode-block" id="AbinitInput.make_edos_input"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.make_edos_input">[docs]</a>    <span class="k">def</span> <span class="nf">make_edos_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ngkpt</span><span class="p">,</span> <span class="n">shiftk</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">tolwfr</span><span class="o">=</span><span class="mf">1e-20</span><span class="p">,</span> <span class="n">nscf_nband</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate an input file for electron DOS calculation from a GS-SCF input.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ngkpt: Number of divisions for the k-mesh.</span>
+<span class="sd">            shiftk: List of shifts.</span>
+<span class="sd">            tolwfr: Tolerance on residuals for NSCF calculation</span>
+<span class="sd">            nscf_nband: Number of bands for NSCF calculation. +10 if None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dos_input</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
+        <span class="n">dos_input</span><span class="o">.</span><span class="n">pop_tolerances</span><span class="p">()</span>
+        <span class="n">nscf_nband</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;nband&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">10</span> <span class="k">if</span> <span class="n">nscf_nband</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">nscf_nband</span>
+        <span class="n">dos_input</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">iscf</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="n">nband</span><span class="o">=</span><span class="n">nscf_nband</span><span class="p">,</span> <span class="n">tolwfr</span><span class="o">=</span><span class="n">tolwfr</span><span class="p">)</span>
+        <span class="n">dos_input</span><span class="o">.</span><span class="n">set_kmesh</span><span class="p">(</span><span class="n">ngkpt</span><span class="p">,</span> <span class="n">shiftk</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">dos_input</span></div>
+
+<div class="viewcode-block" id="AbinitInput.make_nscf_kptopt0_input"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.make_nscf_kptopt0_input">[docs]</a>    <span class="k">def</span> <span class="nf">make_nscf_kptopt0_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">tolwfr</span><span class="o">=</span><span class="mf">1e-20</span><span class="p">,</span> <span class="n">iscf</span><span class="o">=-</span><span class="mi">2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build an input for NSCF calculation from a GS-SCF one.</span>
+<span class="sd">        Uses explicit list of k-points and kptopt 0.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            kpts: List of k-points in reduced coordinates.</span>
+<span class="sd">            tolwfr: Tolerance on residuals.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nscf_input</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
+        <span class="n">nscf_input</span><span class="o">.</span><span class="n">pop_vars</span><span class="p">([</span><span class="s2">&quot;ngkpt&quot;</span><span class="p">,</span> <span class="s2">&quot;shiftk&quot;</span><span class="p">])</span>
+        <span class="n">nscf_input</span><span class="o">.</span><span class="n">pop_tolerances</span><span class="p">()</span>
+        <span class="n">kpts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">kpts</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="n">nscf_input</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">tolwfr</span><span class="o">=</span><span class="n">tolwfr</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">iscf</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="n">nkpt</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">kpts</span><span class="p">),</span> <span class="n">kpt</span><span class="o">=</span><span class="n">kpts</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">nscf_input</span></div>
+
+<div class="viewcode-block" id="AbinitInput.make_dfpt_effmass_input"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.make_dfpt_effmass_input">[docs]</a>    <span class="k">def</span> <span class="nf">make_dfpt_effmass_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">effmass_bands_f90</span><span class="p">,</span> <span class="n">tolwfr</span><span class="o">=</span><span class="mf">1e-20</span><span class="p">,</span> <span class="n">iscf</span><span class="o">=-</span><span class="mi">2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return |MultiDataset| with 2 inputs for the calculation of effective masses with DFPT</span>
+<span class="sd">            The first input in a standard NSCF run, the second input computes the effective masses.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            kpts: List of k-points in reduced coordinates where effective masses are wanted.</span>
+<span class="sd">            efmas_bands_f90: (nkpt, 2) array with band range for effmas computation.</span>
+<span class="sd">                WARNING: Assumes Fortran convention with indices starting from 1.</span>
+<span class="sd">            tolwfr: Tolerance on residuals.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">multi</span> <span class="o">=</span> <span class="n">MultiDataset</span><span class="o">.</span><span class="n">replicate_input</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">ndtset</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">multi</span><span class="o">.</span><span class="n">pop_vars</span><span class="p">([</span><span class="s2">&quot;ngkpt&quot;</span><span class="p">,</span> <span class="s2">&quot;shiftk&quot;</span><span class="p">,</span> <span class="s2">&quot;iscf&quot;</span><span class="p">])</span>
+        <span class="n">multi</span><span class="o">.</span><span class="n">pop_tolerances</span><span class="p">()</span>
+
+        <span class="n">kpts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">kpts</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="n">nkpt</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">kpts</span><span class="p">)</span>
+        <span class="c1"># NSCF calculation (requires DEN)</span>
+        <span class="n">multi</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">tolwfr</span><span class="o">=</span><span class="n">tolwfr</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">iscf</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="n">nkpt</span><span class="o">=</span><span class="n">nkpt</span><span class="p">,</span> <span class="n">kpt</span><span class="o">=</span><span class="n">kpts</span><span class="p">,</span> <span class="n">prtwf</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Response Function calculation: d/dk (requires DEN and GS WFK)</span>
+        <span class="n">multi</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
+            <span class="n">rfelfd</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>      <span class="c1"># Activate d/dk perturbation (required for effective mass calc.)</span>
+            <span class="n">efmas</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>       <span class="c1"># Activate calculation of effective mass tensors</span>
+            <span class="n">prtefmas</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>    <span class="c1"># Print netcdf file (should be default)</span>
+            <span class="n">prtwf</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">tolwfr</span><span class="o">=</span><span class="n">tolwfr</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">nkpt</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">kpts</span><span class="p">),</span> <span class="n">kpt</span><span class="o">=</span><span class="n">kpts</span><span class="p">,</span>
+            <span class="c1"># The range of bands for which the effective mass tensors will be computed, for each k-point.</span>
+            <span class="n">efmas_bands</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">effmass_bands_f90</span><span class="p">,</span> <span class="p">(</span><span class="n">nkpt</span><span class="p">,</span> <span class="mi">2</span><span class="p">)),</span>
+            <span class="c1"># And we request the scalar effective mass along directions in cartesian coordinates</span>
+            <span class="n">efmas_calc_dirs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">efmas_n_dirs</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
+            <span class="n">efmas_dirs</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="p">)),</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Input variables for Frohlich model calculation (need DDB, WFK and EFMAS file)</span>
+        <span class="c1"># See https://docs.abinit.org/tests/v8/Input/t57.in</span>
+        <span class="n">multi</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
+            <span class="n">iscf</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span>
+            <span class="n">optdriver</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
+            <span class="n">eph_frohlichm</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">eph_task</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+            <span class="n">tolwfr</span><span class="o">=</span><span class="n">tolwfr</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">nkpt</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">kpts</span><span class="p">),</span> <span class="n">kpt</span><span class="o">=</span><span class="n">kpts</span><span class="p">,</span>
+            <span class="n">ddb_ngqpt</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+            <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="n">chneut</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">prtphdos</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">multi</span></div>
 
 <div class="viewcode-block" id="AbinitInput.make_ph_inputs_qpoint"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.make_ph_inputs_qpoint">[docs]</a>    <span class="k">def</span> <span class="nf">make_ph_inputs_qpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpt</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prtwf</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">prepgkk</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1692,7 +1803,7 @@
         <span class="n">task</span><span class="o">.</span><span class="n">start_and_wait</span><span class="p">(</span><span class="n">autoparal</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">exec_args</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;--dry-run&quot;</span><span class="p">])</span>
 
         <span class="c1"># Parse the output file and return structure extracted from run.abo</span>
-        <span class="kn">from</span> <span class="nn">abipy.abio.outputs</span> <span class="k">import</span> <span class="n">AbinitOutputFile</span>
+        <span class="kn">from</span> <span class="nn">abipy.abio.outputs</span> <span class="kn">import</span> <span class="n">AbinitOutputFile</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">with</span> <span class="n">AbinitOutputFile</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">output_file</span><span class="o">.</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">out</span><span class="p">:</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">retdict</span><span class="p">:</span>
@@ -2138,7 +2249,7 @@
 
         <span class="k">return</span> <span class="n">multi</span></div>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">,</span> <span class="n">pseudo_dir</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">ndtset</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">,</span> <span class="n">pseudo_dir</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">ndtset</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            structure: file with the structure, |Structure| object or dictionary with ABINIT geo variable</span>
@@ -2204,16 +2315,16 @@
         <span class="sd">&quot;&quot;&quot;True if norm-conserving calculation.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">isnc</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pseudos</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_inputs</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inputs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inputs</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="n">_inputs</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_inputs&quot;</span><span class="p">)</span>
         <span class="n">m</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">_inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">name</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -2236,7 +2347,7 @@
         <span class="k">if</span> <span class="n">isattr</span><span class="p">:</span> <span class="n">on_all</span> <span class="o">=</span> <span class="n">on_all</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">on_all</span>
 
-    <span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;self + other&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">AbinitInput</span><span class="p">):</span>
             <span class="n">new_mds</span> <span class="o">=</span> <span class="n">MultiDataset</span><span class="o">.</span><span class="n">from_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
@@ -2249,7 +2360,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Operation not supported&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__radd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__radd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">AbinitInput</span><span class="p">):</span>
             <span class="n">new_mds</span> <span class="o">=</span> <span class="n">MultiDataset</span><span class="o">.</span><span class="n">from_inputs</span><span class="p">([</span><span class="n">other</span><span class="p">])</span>
             <span class="n">new_mds</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
@@ -2291,7 +2402,7 @@
         <span class="sd">&quot;&quot;&quot;True if all inputs in MultiDataset are equal.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">structure</span> <span class="o">==</span> <span class="n">inp</span><span class="o">.</span><span class="n">structure</span> <span class="k">for</span> <span class="n">inp</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
 <div class="viewcode-block" id="MultiDataset.to_string"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.MultiDataset.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">with_pseudos</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
@@ -2331,7 +2442,7 @@
             <span class="n">w</span> <span class="o">=</span> <span class="mi">92</span>
             <span class="k">if</span> <span class="n">global_vars</span><span class="p">:</span>
                 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="s2">&quot;#&quot;</span><span class="p">)</span>
-                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;### Global Variables.&quot;</span><span class="p">)</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;#### Global Variables.&quot;</span><span class="p">)</span>
                 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="s2">&quot;#&quot;</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">global_vars</span><span class="p">:</span>
                     <span class="n">vname</span> <span class="o">=</span> <span class="n">key</span> <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;text&quot;</span> <span class="k">else</span> <span class="n">var_database</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">html_link</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
@@ -2341,14 +2452,14 @@
             <span class="k">if</span> <span class="n">has_same_structures</span><span class="p">:</span>
                 <span class="c1"># Write structure here and disable structure output in input.to_string</span>
                 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="s2">&quot;#&quot;</span><span class="p">)</span>
-                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;#&quot;</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;STRUCTURE&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">center</span><span class="p">(</span><span class="n">w</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;####&quot;</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;STRUCTURE&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">center</span><span class="p">(</span><span class="n">w</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
                 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="s2">&quot;#&quot;</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">to_abivars</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                     <span class="n">vname</span> <span class="o">=</span> <span class="n">key</span> <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;text&quot;</span> <span class="k">else</span> <span class="n">var_database</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">html_link</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
                     <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">InputVariable</span><span class="p">(</span><span class="n">vname</span><span class="p">,</span> <span class="n">value</span><span class="p">)))</span>
 
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">inp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-                <span class="n">header</span> <span class="o">=</span> <span class="s2">&quot;### DATASET </span><span class="si">%d</span><span class="s2"> ###&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">header</span> <span class="o">=</span> <span class="s2">&quot;##### DATASET </span><span class="si">%d</span><span class="s2"> #####&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
                 <span class="n">is_last</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndtset</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
                 <span class="n">s</span> <span class="o">=</span> <span class="n">inp</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">post</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">with_pseudos</span><span class="o">=</span><span class="n">is_last</span> <span class="ow">and</span> <span class="n">with_pseudos</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span>
                                   <span class="n">with_structure</span><span class="o">=</span><span class="ow">not</span> <span class="n">has_same_structures</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="n">global_vars</span><span class="p">)</span>
@@ -2480,7 +2591,7 @@
 
     <span class="n">Error</span> <span class="o">=</span> <span class="n">AnaddbInputError</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">anaddb_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">spell_check</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">anaddb_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">spell_check</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
@@ -2551,8 +2662,8 @@
 <span class="sd">            anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)</span>
 <span class="sd">            spell_check: False to disable spell checking for input variables.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;ANADDB input for phonon frequencies at one q-point&quot;</span><span class="p">,</span>
-                  <span class="n">anaddb_args</span><span class="o">=</span><span class="n">anaddb_args</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="n">anaddb_kwargs</span><span class="p">)</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;ANADDB input for phonon frequencies for a single q-point generated by AbiPy.&quot;</span><span class="p">,</span>
+                  <span class="n">anaddb_args</span><span class="o">=</span><span class="n">anaddb_args</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="n">anaddb_kwargs</span><span class="p">,</span> <span class="n">spell_check</span><span class="o">=</span><span class="n">spell_check</span><span class="p">)</span>
 
         <span class="c1"># We need a numpy array.</span>
         <span class="n">qpoint</span> <span class="o">=</span> <span class="n">qpoint</span><span class="o">.</span><span class="n">frac_coords</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span> <span class="s2">&quot;frac_coords&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">qpoint</span><span class="p">)</span>
@@ -2643,12 +2754,12 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Wrong value for dos_method: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">dos_method</span><span class="p">))</span>
 
-        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;ANADDB input for phonon bands and DOS&quot;</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">comment</span> <span class="k">else</span> <span class="n">comment</span><span class="p">,</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;ANADDB input for phonon bands and DOS generated by AbiPy&quot;</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">comment</span> <span class="k">else</span> <span class="n">comment</span><span class="p">,</span>
                   <span class="n">anaddb_args</span><span class="o">=</span><span class="n">anaddb_args</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="n">anaddb_kwargs</span><span class="p">,</span> <span class="n">spell_check</span><span class="o">=</span><span class="n">spell_check</span><span class="p">)</span>
 
         <span class="c1"># Parameters for the DOS</span>
         <span class="k">if</span> <span class="n">qppa</span><span class="p">:</span>
-            <span class="n">ng2qpt</span> <span class="o">=</span> <span class="n">KSampling</span><span class="o">.</span><span class="n">automatic_density</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">kppa</span><span class="o">=</span><span class="n">qppa</span><span class="p">)</span><span class="o">.</span><span class="n">kpts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">ng2qpt</span> <span class="o">=</span> <span class="n">aobj</span><span class="o">.</span><span class="n">KSampling</span><span class="o">.</span><span class="n">automatic_density</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">kppa</span><span class="o">=</span><span class="n">qppa</span><span class="p">)</span><span class="o">.</span><span class="n">kpts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="c1"># Set new variables</span>
             <span class="n">new</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">ng2qpt</span><span class="o">=</span><span class="n">ng2qpt</span><span class="p">,</span> <span class="n">prtdos</span><span class="o">=</span><span class="n">prtdos</span><span class="p">,</span> <span class="n">dossmear</span><span class="o">=</span><span class="n">dossmear</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -2726,7 +2837,8 @@
 <span class="sd">            anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)</span>
 <span class="sd">            anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;ANADDB input for modes&quot;</span><span class="p">,</span> <span class="n">anaddb_args</span><span class="o">=</span><span class="n">anaddb_args</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="n">anaddb_kwargs</span><span class="p">)</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;ANADDB input for modes generated by AbiPy&quot;</span><span class="p">,</span>
+                  <span class="n">anaddb_args</span><span class="o">=</span><span class="n">anaddb_args</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="n">anaddb_kwargs</span><span class="p">)</span>
 
         <span class="n">new</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
             <span class="n">enunit</span><span class="o">=</span><span class="n">enunit</span><span class="p">,</span>
@@ -2759,7 +2871,7 @@
 <span class="sd">            anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)</span>
 <span class="sd">            anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;ANADDB input for IFC&quot;</span><span class="p">,</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;ANADDB input for IFC generated by AbiPy.&quot;</span><span class="p">,</span>
                   <span class="n">anaddb_args</span><span class="o">=</span><span class="n">anaddb_args</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="n">anaddb_kwargs</span><span class="p">)</span>
 
         <span class="n">q1shft</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">q1shft</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
@@ -2787,8 +2899,9 @@
 
 <div class="viewcode-block" id="AnaddbInput.dfpt"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput.dfpt">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">dfpt</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">ngqpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">relaxed_ion</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">piezo</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dde</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">strain</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dte</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-             <span class="n">stress_correction</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">nqsmall</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">qppa</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">line_density</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">q1shft</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
-             <span class="n">qptbounds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dos_method</span><span class="o">=</span><span class="s2">&quot;tetra&quot;</span><span class="p">,</span> <span class="n">anaddb_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+             <span class="n">raman</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">stress_correction</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">nqsmall</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">qppa</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">line_density</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+             <span class="n">q1shft</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">qptbounds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ramansr</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">alphon</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dos_method</span><span class="o">=</span><span class="s2">&quot;tetra&quot;</span><span class="p">,</span>
+             <span class="n">directions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Builds an |AnaddbInput| to post-process a generic DFPT calculation.</span>
 
@@ -2806,6 +2919,7 @@
 <span class="sd">            strain: if True the elastic tensors will be calculated (requires the strain perturbations)</span>
 <span class="sd">            dte: if True properties related to the nonlinear tensors will be calculated</span>
 <span class="sd">                (requires third orders perturbations)</span>
+<span class="sd">            raman: if True the Raman tensor will be calculated (sets dte to True).</span>
 <span class="sd">            nqsmall: Used to generate the (dense) mesh for the DOS.</span>
 <span class="sd">                It defines the number of q-points used to sample the smallest lattice vector.</span>
 <span class="sd">            qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per reciproval atom.</span>
@@ -2815,11 +2929,13 @@
 <span class="sd">            ndivsm: Used to generate a normalized path for the phonon bands.</span>
 <span class="sd">                If gives the number of divisions for the smallest segment of the path.</span>
 <span class="sd">            q1shft: Shifts used for the coarse Q-mesh</span>
-<span class="sd">            qptbounds Boundaries of the path. If None, the path is generated from an internal database</span>
+<span class="sd">            qptbounds: Boundaries of the path. If None, the path is generated from an internal database</span>
 <span class="sd">                depending on the input structure.</span>
-<span class="sd">            asr, chneut, dipdp: Anaddb input variable. See official documentation.</span>
+<span class="sd">            asr, chneut, dipdp, ramansr, alphon: Anaddb input variable. See official documentation.</span>
 <span class="sd">            dos_method: Possible choices: &quot;tetra&quot;, &quot;gaussian&quot; or &quot;gaussian:0.001 eV&quot;.</span>
 <span class="sd">                In the later case, the value 0.001 eV is used as gaussian broadening</span>
+<span class="sd">            directions: list of 3D directions along which the non analytical contribution will be calculated.</span>
+<span class="sd">                If None the three cartesian direction will be used. Used only when dte=True.</span>
 <span class="sd">            anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)</span>
 <span class="sd">            anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)</span>
 <span class="sd">            comment: Optional string with a comment that will be placed at the beginning of the file.</span>
@@ -2864,19 +2980,31 @@
         <span class="k">if</span> <span class="n">elaflag</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">anaddb_input</span><span class="p">[</span><span class="s2">&quot;instrflag&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
 
+        <span class="k">if</span> <span class="n">raman</span><span class="p">:</span>
+            <span class="n">dte</span> <span class="o">=</span> <span class="kc">True</span>
+
         <span class="k">if</span> <span class="n">dte</span><span class="p">:</span>
-            <span class="n">ramansr</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="n">alphon</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="n">prtmbm</span> <span class="o">=</span> <span class="mi">0</span>
 
-            <span class="c1"># if there are phonons at gamma</span>
-            <span class="k">if</span> <span class="n">ngqpt</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">q1shft</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">q1shft</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])):</span>
+            <span class="k">if</span> <span class="n">raman</span><span class="p">:</span>
                 <span class="n">nlflag</span> <span class="o">=</span> <span class="mi">1</span>
-                <span class="n">ramansr</span> <span class="o">=</span> <span class="mi">1</span>
-                <span class="n">alphon</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">ramansr</span> <span class="o">=</span> <span class="n">ramansr</span>
+                <span class="n">alphon</span> <span class="o">=</span> <span class="n">alphon</span>
                 <span class="n">prtmbm</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">directions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">directions</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+                    <span class="n">directions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">directions</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+                    <span class="c1"># append 0 to specify that these are directions,</span>
+                    <span class="n">directions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="n">directions</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">directions</span><span class="p">))]</span>
+
+                <span class="n">anaddb_input</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
+                    <span class="n">nph2l</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">directions</span><span class="p">),</span>
+                    <span class="n">qph2l</span><span class="o">=</span><span class="n">directions</span>
+                <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">nlflag</span> <span class="o">=</span> <span class="mi">3</span>
+                <span class="n">ramansr</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">alphon</span> <span class="o">=</span> <span class="mi">0</span>
 
             <span class="n">anaddb_input</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">nlflag</span><span class="o">=</span><span class="n">nlflag</span><span class="p">,</span>
                                   <span class="n">ramansr</span><span class="o">=</span><span class="n">ramansr</span><span class="p">,</span>
@@ -2919,11 +3047,15 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported value for sortmode </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">sortmode</span><span class="p">))</span>
 
-        <span class="n">root</span> <span class="o">=</span> <span class="s2">&quot;https://docs.abinit.org/variables/anaddb/&quot;</span>
-        <span class="k">for</span> <span class="n">varname</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
-            <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">varname</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;html&quot;</span><span class="p">:</span> <span class="n">varname</span> <span class="o">=</span> <span class="n">root</span> <span class="o">+</span> <span class="s2">&quot;#</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">varname</span>
-            <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">InputVariable</span><span class="p">(</span><span class="n">varname</span><span class="p">,</span> <span class="n">value</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;html&quot;</span><span class="p">:</span>
+            <span class="n">var_database</span> <span class="o">=</span> <span class="n">get_anaddb_variables</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">vname</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">vname</span><span class="p">]</span>
+            <span class="c1">#root = &quot;https://docs.abinit.org/variables/anaddb/&quot;</span>
+            <span class="c1">#if mode == &quot;html&quot;: vname = root + &quot;#%s&quot; % vname</span>
+            <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;html&quot;</span><span class="p">:</span> <span class="n">vname</span> <span class="o">=</span> <span class="n">var_database</span><span class="p">[</span><span class="n">vname</span><span class="p">]</span><span class="o">.</span><span class="n">html_link</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">vname</span><span class="p">)</span>
+            <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">InputVariable</span><span class="p">(</span><span class="n">vname</span><span class="p">,</span> <span class="n">value</span><span class="p">)))</span>
 
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;text&quot;</span> <span class="k">else</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;br&gt;&quot;</span><span class="p">)</span></div>
 
@@ -2980,7 +3112,7 @@
 
 <div class="viewcode-block" id="OpticVar"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.OpticVar">[docs]</a><span class="k">class</span> <span class="nc">OpticVar</span><span class="p">(</span><span class="n">collections</span><span class="o">.</span><span class="n">namedtuple</span><span class="p">(</span><span class="s2">&quot;OpticVar&quot;</span><span class="p">,</span> <span class="s2">&quot;name default group help&quot;</span><span class="p">)):</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">sval</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">default</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">(</span><span class="mi">4</span><span class="o">*</span><span class="s2">&quot; &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">sval</span><span class="p">,</span> <span class="s2">&quot;!&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">help</span><span class="p">])</span>
 
@@ -3055,7 +3187,7 @@
     <span class="c1"># Mapping name --&gt; var object.</span>
     <span class="n">_NAME2VAR</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">_VARIABLES</span><span class="p">}</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="c1"># Initalize with default values.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_vars</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">((</span><span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">default</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_VARIABLES</span><span class="p">)</span>
 
@@ -3065,7 +3197,7 @@
                 <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;varname </span><span class="si">%s</span><span class="s2"> not in </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_VARNAMES</span><span class="p">)))</span>
             <span class="bp">self</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
     <span class="nd">@property</span>
@@ -3160,7 +3292,7 @@
 <span class="sd">        Return:</span>
 <span class="sd">            Set internal variables and return list of components to compute.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">pymatgen.symmetry.analyzer</span> <span class="k">import</span> <span class="n">SpacegroupAnalyzer</span>
+        <span class="kn">from</span> <span class="nn">pymatgen.symmetry.analyzer</span> <span class="kn">import</span> <span class="n">SpacegroupAnalyzer</span>
         <span class="n">spgan</span> <span class="o">=</span> <span class="n">SpacegroupAnalyzer</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="n">angle_tolerance</span><span class="p">)</span>
         <span class="n">system</span> <span class="o">=</span> <span class="n">spgan</span><span class="o">.</span><span class="n">get_crystal_system</span><span class="p">()</span>
 
@@ -3224,7 +3356,7 @@
 
 <span class="sd">        Converters with nspden &gt; 1 won&#39;t work since cut3d asks for the ispden index.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">infile_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_filepath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">infile_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_filepath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            infile_path: absolute or relative path to the input file produced by abinit (e.g. DEN, WFK, ...). Can be</span>
@@ -3238,7 +3370,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">output_filepath</span> <span class="o">=</span> <span class="n">output_filepath</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">options</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">o</span><span class="p">)</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">options</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
 <div class="viewcode-block" id="Cut3DInput.to_string"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.Cut3DInput.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
@@ -3452,7 +3584,7 @@
     <span class="n">values</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">vals</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">Iterable</span><span class="p">):</span> <span class="n">v</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Iterable</span><span class="p">):</span> <span class="n">v</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span><span class="p">]</span>
         <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
 
     <span class="c1"># Build list of dictionaries. Use ordered dicts so that</span>
@@ -3478,7 +3610,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on May 29, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

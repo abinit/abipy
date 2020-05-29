@@ -60,17 +60,19 @@ from a calculation done with a (relatively dense) IBZ sampling.
     smearing scheme: none, tsmear_eV: 0.272, occopt: 1
     Direct gap:
         Energy: 2.532 (eV)
-        Initial state: spin=0, kpt=[+0.000, +0.000, +0.000], weight: 0.000, band=3, eig=5.598, occ=2.000
-        Final state:   spin=0, kpt=[+0.000, +0.000, +0.000], weight: 0.000, band=4, eig=8.130, occ=0.000
+        Initial state: spin: 0, kpt: [+0.000, +0.000, +0.000], weight: 0.000, band: 3, eig: 5.598, occ: 2.000
+        Final state:   spin: 0, kpt: [+0.000, +0.000, +0.000], weight: 0.000, band: 4, eig: 8.130, occ: 0.000
     Fundamental gap:
         Energy: 0.562 (eV)
-        Initial state: spin=0, kpt=[+0.000, +0.000, +0.000], weight: 0.000, band=3, eig=5.598, occ=2.000
-        Final state:   spin=0, kpt=[+0.375, -0.000, +0.375], weight: 0.000, band=4, eig=6.161, occ=0.000
+        Initial state: spin: 0, kpt: [+0.000, +0.000, +0.000], weight: 0.000, band: 3, eig: 5.598, occ: 2.000
+        Final state:   spin: 0, kpt: [+0.375, -0.000, +0.375], weight: 0.000, band: 4, eig: 6.161, occ: 0.000
     Bandwidth: 11.856 (eV)
     Valence maximum located at:
-        spin=0, kpt=[+0.000, +0.000, +0.000], weight: 0.000, band=3, eig=5.598, occ=2.000
+        spin: 0, kpt: [+0.000, +0.000, +0.000], weight: 0.000, band: 3, eig: 5.598, occ: 2.000
     Conduction minimum located at:
-        spin=0, kpt=[+0.375, -0.000, +0.375], weight: 0.000, band=4, eig=6.161, occ=0.000
+        spin: 0, kpt: [+0.375, -0.000, +0.375], weight: 0.000, band: 4, eig: 6.161, occ: 0.000
+
+    TIP: Call set_fermie_to_vbm() to set the Fermi level to the VBM if this is a non-magnetic semiconductor
 
     /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
       plt.show()
@@ -105,7 +107,7 @@ from a calculation done with a (relatively dense) IBZ sampling.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  1.252 seconds)
+   **Total running time of the script:** ( 0 minutes  1.378 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_kpath_from_ibz.py:

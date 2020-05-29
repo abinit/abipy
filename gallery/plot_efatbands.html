@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>MgB2 fatbands &#8212; abipy 0.7.0 documentation</title>
+    <title>MgB2 fatbands &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -41,7 +44,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -64,6 +67,7 @@
 </ul>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -170,7 +174,7 @@ See also PhysRevLett.86.4656</p>
 Name: mgb2_kpath_FATBANDS.nc
 Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/mgb2_fatbands
 Size: 149.01 kb
-Access Time: Fri Oct 18 18:48:16 2019
+Access Time: Sat Feb 22 16:03:27 2020
 Modification Time: Wed Mar 20 16:53:35 2019
 Change Time: Wed Mar 20 16:53:35 2019
 
@@ -208,17 +212,19 @@ nsppol: 1, nkpt: 78, mband: 8, nspinor: 1, nspden: 1
 smearing scheme: none, tsmear_eV: 0.272, occopt: 1
 Direct gap:
     Energy: 0.312 (eV)
-    Initial state: spin=0, kpt=[+0.050, +0.050, +0.000], weight: 0.000, band=2, eig=6.621, occ=2.000
-    Final state:   spin=0, kpt=[+0.050, +0.050, +0.000], weight: 0.000, band=3, eig=6.933, occ=2.000
+    Initial state: spin: 0, kpt: [+0.050, +0.050, +0.000], weight: 0.000, band: 2, eig: 6.621, occ: 2.000
+    Final state:   spin: 0, kpt: [+0.050, +0.050, +0.000], weight: 0.000, band: 3, eig: 6.933, occ: 2.000
 Fundamental gap:
     Energy: 0.038 (eV)
-    Initial state: spin=0, kpt=[+0.441, +0.000, +0.000], weight: 0.000, band=3, eig=6.822, occ=2.000
-    Final state:   spin=0, kpt=[+0.147, +0.000, +0.500], weight: 0.000, band=3, eig=6.860, occ=2.000
+    Initial state: spin: 0, kpt: [+0.441, +0.000, +0.000], weight: 0.000, band: 3, eig: 6.822, occ: 2.000
+    Final state:   spin: 0, kpt: [+0.147, +0.000, +0.500], weight: 0.000, band: 3, eig: 6.860, occ: 2.000
 Bandwidth: 12.435 (eV)
 Valence maximum located at:
-    spin=0, kpt=[+0.441, +0.000, +0.000], weight: 0.000, band=3, eig=6.822, occ=2.000
+    spin: 0, kpt: [+0.441, +0.000, +0.000], weight: 0.000, band: 3, eig: 6.822, occ: 2.000
 Conduction minimum located at:
-    spin=0, kpt=[+0.147, +0.000, +0.500], weight: 0.000, band=3, eig=6.860, occ=2.000
+    spin: 0, kpt: [+0.147, +0.000, +0.500], weight: 0.000, band: 3, eig: 6.860, occ: 2.000
+
+TIP: Call set_fermie_to_vbm() to set the Fermi level to the VBM if this is a non-magnetic semiconductor
 
 
 =============================== Fatbands Info ===============================
@@ -234,11 +240,15 @@ nsppol: 1, nkpt: 78, mband: 8
   plt.show()
 /Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
   warnings.warn(&quot;The input structure does not match the expected standard primitive! &quot;
+/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+  plt.show()
+/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+  plt.show()
 ================================= File Info =================================
 Name: mgb2_kmesh181818_FATBANDS.nc
 Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/mgb2_fatbands
 Size: 480.70 kb
-Access Time: Fri Oct 18 18:48:17 2019
+Access Time: Sat Feb 22 16:03:28 2020
 Modification Time: Wed Mar 20 16:53:35 2019
 Change Time: Wed Mar 20 16:53:35 2019
 
@@ -284,6 +294,14 @@ nsppol: 1, nkpt: 370, mband: 8
     0  Mg        0.00000 0.00000 0.00000       4                2  Yes
     1  B         0.33333 0.66667 0.50000       4                2  Yes
     2  B         0.66667 0.33333 0.50000       4                2  Yes
+/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+  plt.show()
+/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+  plt.show()
+/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+  plt.show()
+/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+  plt.show()
 </pre></div>
 </div>
 <div class="line-block">
@@ -342,7 +360,7 @@ nsppol: 1, nkpt: 370, mband: 8
 <span class="n">fbnc_kmesh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  3.978 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  3.284 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-efatbands-py">
 <div class="sphx-glr-download docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/7e0007c40b7a3e263fe42deac4c0576b/plot_efatbands.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_efatbands.py</span></code></a></p>
@@ -367,7 +385,7 @@ nsppol: 1, nkpt: 370, mband: 8
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on Feb 22, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

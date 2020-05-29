@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>abipy.flowtk.launcher &#8212; abipy 0.7.0 documentation</title>
+    <title>abipy.flowtk.launcher &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -39,7 +42,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -62,6 +65,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -132,17 +136,17 @@
 <span class="kn">import</span> <span class="nn">ruamel.yaml</span> <span class="k">as</span> <span class="nn">yaml</span>
 <span class="kn">import</span> <span class="nn">pickle</span>
 
-<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">deque</span>
-<span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">timedelta</span>
-<span class="kn">from</span> <span class="nn">io</span> <span class="k">import</span> <span class="n">StringIO</span>
-<span class="kn">from</span> <span class="nn">monty.io</span> <span class="k">import</span> <span class="n">get_open_fds</span>
-<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">boxed</span><span class="p">,</span> <span class="n">is_string</span>
-<span class="kn">from</span> <span class="nn">monty.os.path</span> <span class="k">import</span> <span class="n">which</span>
-<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">AttrDict</span><span class="p">,</span> <span class="n">dict2namedtuple</span>
-<span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">as_bool</span><span class="p">,</span> <span class="n">File</span><span class="p">,</span> <span class="n">Directory</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">qutils</span> <span class="k">as</span> <span class="n">qu</span>
-<span class="kn">from</span> <span class="nn">pymatgen.util.io_utils</span> <span class="k">import</span> <span class="n">ask_yesno</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">deque</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">timedelta</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">StringIO</span>
+<span class="kn">from</span> <span class="nn">monty.io</span> <span class="kn">import</span> <span class="n">get_open_fds</span>
+<span class="kn">from</span> <span class="nn">monty.string</span> <span class="kn">import</span> <span class="n">boxed</span><span class="p">,</span> <span class="n">is_string</span>
+<span class="kn">from</span> <span class="nn">monty.os.path</span> <span class="kn">import</span> <span class="n">which</span>
+<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="kn">import</span> <span class="n">AttrDict</span><span class="p">,</span> <span class="n">dict2namedtuple</span>
+<span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="kn">import</span> <span class="n">cprint</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">as_bool</span><span class="p">,</span> <span class="n">File</span><span class="p">,</span> <span class="n">Directory</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">qutils</span> <span class="k">as</span> <span class="n">qu</span>
+<span class="kn">from</span> <span class="nn">pymatgen.util.io_utils</span> <span class="kn">import</span> <span class="n">ask_yesno</span>
 
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">apscheduler</span>
@@ -171,7 +175,7 @@
     <span class="sd">&quot;&quot;&quot;Simple editor that simplifies the writing of shell scripts&quot;&quot;&quot;</span>
     <span class="n">_shell</span> <span class="o">=</span> <span class="s1">&#39;/bin/bash&#39;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_lines</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="nd">@property</span>
@@ -254,15 +258,15 @@
 
 
 <div class="viewcode-block" id="PyLauncher"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.launcher.PyLauncher">[docs]</a><span class="k">class</span> <span class="nc">PyLauncher</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;This object handle the submission of the tasks contained in a :class:`Flow`&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;This object handle the submission of the tasks contained in a |Flow|.&quot;&quot;&quot;</span>
     <span class="n">Error</span> <span class="o">=</span> <span class="n">PyLauncherError</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize the object</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            flow: :class:`Flow` object</span>
+<span class="sd">            flow: |Flow| object</span>
 <span class="sd">            max_njobs_inqueue: The launcher will stop submitting jobs when the</span>
 <span class="sd">                number of jobs in the queue is &gt;= Max number of jobs</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -372,7 +376,7 @@
 
 <div class="viewcode-block" id="PyFlowScheduler"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.launcher.PyFlowScheduler">[docs]</a><span class="k">class</span> <span class="nc">PyFlowScheduler</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This object schedules the submission of the tasks in a :class:`Flow`.</span>
+<span class="sd">    This object schedules the submission of the tasks in a |Flow|.</span>
 <span class="sd">    There are two types of errors that might occur during the execution of the jobs:</span>
 
 <span class="sd">        #. Python exceptions</span>
@@ -405,7 +409,7 @@
         <span class="n">i</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="fm">__init__</span><span class="o">.</span><span class="vm">__doc__</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;Args:&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="fm">__init__</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">5</span><span class="p">:]</span></div>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            weeks: number of weeks to wait (DEFAULT: 0).</span>
@@ -416,7 +420,7 @@
 <span class="sd">            mailto: The scheduler will send an email to `mailto` every `remindme_s` seconds.</span>
 <span class="sd">                (DEFAULT: None i.e. not used).</span>
 <span class="sd">            verbose: (int) verbosity level. (DEFAULT: 0)</span>
-<span class="sd">            use_dynamic_manager: &quot;yes&quot; if the :class:`TaskManager` must be re-initialized from</span>
+<span class="sd">            use_dynamic_manager: &quot;yes&quot; if the |TaskManager| must be re-initialized from</span>
 <span class="sd">                file before launching the jobs. (DEFAULT: &quot;no&quot;)</span>
 <span class="sd">            max_njobs_inqueue: Limit on the number of jobs that can be present in the queue. (DEFAULT: 200)</span>
 <span class="sd">            max_ncores_used: Maximum number of cores that can be used by the scheduler.</span>
@@ -480,10 +484,10 @@
 
         <span class="k">if</span> <span class="n">has_sched_v3</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Using scheduler v&gt;=3.0.0&quot;</span><span class="p">)</span>
-            <span class="kn">from</span> <span class="nn">apscheduler.schedulers.blocking</span> <span class="k">import</span> <span class="n">BlockingScheduler</span>
+            <span class="kn">from</span> <span class="nn">apscheduler.schedulers.blocking</span> <span class="kn">import</span> <span class="n">BlockingScheduler</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">sched</span> <span class="o">=</span> <span class="n">BlockingScheduler</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="kn">from</span> <span class="nn">apscheduler.scheduler</span> <span class="k">import</span> <span class="n">Scheduler</span>
+            <span class="kn">from</span> <span class="nn">apscheduler.scheduler</span> <span class="kn">import</span> <span class="n">Scheduler</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">sched</span> <span class="o">=</span> <span class="n">Scheduler</span><span class="p">(</span><span class="n">standalone</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">nlaunch</span> <span class="o">=</span> <span class="mi">0</span>
@@ -531,7 +535,7 @@
 
         <span class="k">raise</span> <span class="bp">cls</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;Cannot locate </span><span class="si">%s</span><span class="s2"> neither in current directory nor in </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">YAML_FILE</span><span class="p">,</span> <span class="n">path</span><span class="p">))</span></div>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s2">&quot;, Pid: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">pid</span><span class="p">]</span>
         <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
@@ -579,7 +583,7 @@
 
 <div class="viewcode-block" id="PyFlowScheduler.add_flow"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.launcher.PyFlowScheduler.add_flow">[docs]</a>    <span class="k">def</span> <span class="nf">add_flow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flow</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Add an :class:`Flow` flow to the scheduler.</span>
+<span class="sd">        Add a flow to the scheduler.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_flow&quot;</span><span class="p">):</span>
             <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;Only one flow can be added to the scheduler.&quot;</span><span class="p">)</span>
@@ -695,7 +699,7 @@
 
         <span class="c1"># Allow to change the manager at run-time</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_dynamic_manager</span><span class="p">:</span>
-            <span class="kn">from</span> <span class="nn">pymatgen.io.abinit.tasks</span> <span class="k">import</span> <span class="n">TaskManager</span>
+            <span class="kn">from</span> <span class="nn">pymatgen.io.abinit.tasks</span> <span class="kn">import</span> <span class="n">TaskManager</span>
             <span class="n">new_manager</span> <span class="o">=</span> <span class="n">TaskManager</span><span class="o">.</span><span class="n">from_user_config</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">work</span> <span class="ow">in</span> <span class="n">flow</span><span class="p">:</span>
                 <span class="n">work</span><span class="o">.</span><span class="n">set_manager</span><span class="p">(</span><span class="n">new_manager</span><span class="p">)</span>
@@ -811,8 +815,10 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_runem_all</span><span class="p">()</span>
 
-        <span class="c1"># Mission accomplished. Shutdown the scheduler.</span>
         <span class="n">all_ok</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">all_ok</span>
+        <span class="c1">#if all_ok: all_ok = self.flow.on_all_ok()</span>
+
+        <span class="c1"># Mission accomplished. Shutdown the scheduler.</span>
         <span class="k">if</span> <span class="n">all_ok</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">shutdown</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="s2">&quot;All tasks have reached S_OK. Will shutdown the scheduler and exit&quot;</span><span class="p">)</span>
 
@@ -1026,7 +1032,7 @@
 <span class="sd">        Exit status</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">user_at_host</span><span class="p">():</span>
-        <span class="kn">from</span> <span class="nn">socket</span> <span class="k">import</span> <span class="n">gethostname</span>
+        <span class="kn">from</span> <span class="nn">socket</span> <span class="kn">import</span> <span class="n">gethostname</span>
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">getlogin</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;@&quot;</span> <span class="o">+</span> <span class="n">gethostname</span><span class="p">()</span>
 
     <span class="c1"># Body of the message.</span>
@@ -1037,7 +1043,7 @@
 
     <span class="k">if</span> <span class="n">is_string</span><span class="p">(</span><span class="n">mailto</span><span class="p">):</span> <span class="n">mailto</span> <span class="o">=</span> <span class="p">[</span><span class="n">mailto</span><span class="p">]</span>
 
-    <span class="kn">from</span> <span class="nn">email.mime.text</span> <span class="k">import</span> <span class="n">MIMEText</span>
+    <span class="kn">from</span> <span class="nn">email.mime.text</span> <span class="kn">import</span> <span class="n">MIMEText</span>
     <span class="n">mail</span> <span class="o">=</span> <span class="n">MIMEText</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
     <span class="n">mail</span><span class="p">[</span><span class="s2">&quot;Subject&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">subject</span>
     <span class="n">mail</span><span class="p">[</span><span class="s2">&quot;From&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sender</span>
@@ -1047,7 +1053,7 @@
 
     <span class="c1"># sendmail works much better than the python interface.</span>
     <span class="c1"># Note that sendmail is available only on Unix-like OS.</span>
-    <span class="kn">from</span> <span class="nn">subprocess</span> <span class="k">import</span> <span class="n">Popen</span><span class="p">,</span> <span class="n">PIPE</span>
+    <span class="kn">from</span> <span class="nn">subprocess</span> <span class="kn">import</span> <span class="n">Popen</span><span class="p">,</span> <span class="n">PIPE</span>
     <span class="kn">import</span> <span class="nn">sys</span>
 
     <span class="n">sendmail</span> <span class="o">=</span> <span class="n">which</span><span class="p">(</span><span class="s2">&quot;sendmail&quot;</span><span class="p">)</span>
@@ -1095,12 +1101,12 @@
 <span class="sd">            top: Top level directory or list of directories.</span>
 <span class="sd">            workdir: Batch workdir.</span>
 <span class="sd">            name:</span>
-<span class="sd">            manager: :class:`TaskManager` object. If None, the manager is read from `manager.yml`</span>
+<span class="sd">            manager: |TaskManager| object. If None, the manager is read from `manager.yml`</span>
 <span class="sd">                In this case the YAML file must provide the entry `batch_manager` that defined</span>
 <span class="sd">                the queue adapter used to submit the batch script.</span>
 <span class="sd">            max_depth: Search in directory only if it is N or fewer levels below top</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">.flows</span> <span class="k">import</span> <span class="n">Flow</span>
+        <span class="kn">from</span> <span class="nn">.flows</span> <span class="kn">import</span> <span class="n">Flow</span>
 
         <span class="k">def</span> <span class="nf">find_pickles</span><span class="p">(</span><span class="n">dirtop</span><span class="p">):</span>
             <span class="c1"># Walk through each directory inside path and find the pickle database.</span>
@@ -1159,7 +1165,7 @@
         <span class="c1"># new.flows is a list of strings with the workdir of the flows (see __getstate__).</span>
         <span class="c1"># Here we read the Flow from the pickle file so that we have</span>
         <span class="c1"># and up-to-date version and we set the flow in visitor_mode</span>
-        <span class="kn">from</span> <span class="nn">.flows</span> <span class="k">import</span> <span class="n">Flow</span>
+        <span class="kn">from</span> <span class="nn">.flows</span> <span class="kn">import</span> <span class="n">Flow</span>
         <span class="n">flow_workdirs</span><span class="p">,</span> <span class="n">new</span><span class="o">.</span><span class="n">flows</span> <span class="o">=</span> <span class="n">new</span><span class="o">.</span><span class="n">flows</span><span class="p">,</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">flow</span> <span class="ow">in</span> <span class="nb">map</span><span class="p">(</span><span class="n">Flow</span><span class="o">.</span><span class="n">pickle_load</span><span class="p">,</span> <span class="n">flow_workdirs</span><span class="p">):</span>
             <span class="n">new</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">flow</span><span class="p">)</span>
@@ -1182,13 +1188,13 @@
         <span class="n">d</span><span class="p">[</span><span class="s2">&quot;flows&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">flow</span><span class="o">.</span><span class="n">workdir</span> <span class="k">for</span> <span class="n">flow</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">flows</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">d</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workdir</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flows</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">timelimit</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workdir</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flows</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">timelimit</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            workdir: Working directory</span>
 <span class="sd">            name: Name assigned to the `BatchLauncher`.</span>
-<span class="sd">            flows:  List of `Flow` objects.</span>
-<span class="sd">            manager: :class:`TaskManager` object responsible for the submission of the jobs.</span>
+<span class="sd">            flows:  List of |Flow| objects.</span>
+<span class="sd">            manager: |TaskManager| object responsible for the submission of the jobs.</span>
 <span class="sd">                     If manager is None, the object is initialized from the yaml file</span>
 <span class="sd">                     located either in the working directory or in the user configuration dir.</span>
 <span class="sd">            timelimit: Time limit (int with seconds or string with time given with</span>
@@ -1210,7 +1216,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">log_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="s2">&quot;run.log&quot;</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">batch_pidfile</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="s2">&quot;batch.pid&quot;</span><span class="p">))</span>
 
-        <span class="kn">from</span> <span class="nn">.tasks</span> <span class="k">import</span> <span class="n">TaskManager</span>
+        <span class="kn">from</span> <span class="nn">.tasks</span> <span class="kn">import</span> <span class="n">TaskManager</span>
         <span class="n">manager</span> <span class="o">=</span> <span class="n">TaskManager</span><span class="o">.</span><span class="n">as_manager</span><span class="p">(</span><span class="n">manager</span><span class="p">)</span>
 
         <span class="c1"># Extract the qadapater to be used for the batch script.</span>
@@ -1254,14 +1260,14 @@
 
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">add_flow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flow</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Add a flow. Accept filepath or :class:`Flow` object. Return 1 if flow was added else 0.</span>
+<span class="sd">        Add a flow. Accept filepath or |Flow| object. Return 1 if flow was added else 0.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">.flows</span> <span class="k">import</span> <span class="n">Flow</span>
+        <span class="kn">from</span> <span class="nn">.flows</span> <span class="kn">import</span> <span class="n">Flow</span>
         <span class="n">flow</span> <span class="o">=</span> <span class="n">Flow</span><span class="o">.</span><span class="n">as_flow</span><span class="p">(</span><span class="n">flow</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">flow</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">flows</span><span class="p">:</span>
@@ -1456,7 +1462,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on May 29, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

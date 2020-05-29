@@ -93,6 +93,14 @@ dfpt Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`raman` Module
+-------------------
+
+.. automodule:: abipy.dfpt.raman
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`vsound` Module
 --------------------
 

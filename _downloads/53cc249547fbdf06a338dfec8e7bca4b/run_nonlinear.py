@@ -5,7 +5,6 @@ Flow for Non-linear optic with DFPT
 
 Flow to compute non-linear optical properties with DFPT (static limit).
 """
-from __future__ import division, print_function, unicode_literals
 
 import sys
 import os
@@ -56,21 +55,19 @@ def make_scf_input(ecut=10, ngkpt=(8, 8, 8)):
 
 def build_flow(options):
     if not options.workdir:
-        if os.getenv("READTHEDOCS", False): __file__ = os.path.join(os.getcwd(), "run_nonlinear.py")
-        options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
+        options.workdir = os.path.basename(sys.argv[0]).replace(".py", "").replace("run_", "flow_")
 
     scf_input = make_scf_input(ecut=10, ngkpt=(6, 6, 6))
     return flowtk.NonLinearCoeffFlow.from_scf_input(options.workdir, scf_input)
 
 
-# This block generates the thumbnails in the Abipy gallery.
+# This block generates the thumbnails in the AbiPy gallery.
 # You can safely REMOVE this part if you are using this script for production runs.
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
     # Temporarily disabled in v8.8.2
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-    #build_flow(options).plot_networkx(with_edge_labels=False, tight_layout=True)
     build_flow(options).graphviz_imshow()
 
 

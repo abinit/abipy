@@ -67,7 +67,7 @@ See also PhysRevLett.86.4656
     Name: mgb2_kpath_FATBANDS.nc
     Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/mgb2_fatbands
     Size: 149.01 kb
-    Access Time: Fri Oct 18 18:48:16 2019
+    Access Time: Sat Feb 22 16:03:27 2020
     Modification Time: Wed Mar 20 16:53:35 2019
     Change Time: Wed Mar 20 16:53:35 2019
 
@@ -105,17 +105,19 @@ See also PhysRevLett.86.4656
     smearing scheme: none, tsmear_eV: 0.272, occopt: 1
     Direct gap:
         Energy: 0.312 (eV)
-        Initial state: spin=0, kpt=[+0.050, +0.050, +0.000], weight: 0.000, band=2, eig=6.621, occ=2.000
-        Final state:   spin=0, kpt=[+0.050, +0.050, +0.000], weight: 0.000, band=3, eig=6.933, occ=2.000
+        Initial state: spin: 0, kpt: [+0.050, +0.050, +0.000], weight: 0.000, band: 2, eig: 6.621, occ: 2.000
+        Final state:   spin: 0, kpt: [+0.050, +0.050, +0.000], weight: 0.000, band: 3, eig: 6.933, occ: 2.000
     Fundamental gap:
         Energy: 0.038 (eV)
-        Initial state: spin=0, kpt=[+0.441, +0.000, +0.000], weight: 0.000, band=3, eig=6.822, occ=2.000
-        Final state:   spin=0, kpt=[+0.147, +0.000, +0.500], weight: 0.000, band=3, eig=6.860, occ=2.000
+        Initial state: spin: 0, kpt: [+0.441, +0.000, +0.000], weight: 0.000, band: 3, eig: 6.822, occ: 2.000
+        Final state:   spin: 0, kpt: [+0.147, +0.000, +0.500], weight: 0.000, band: 3, eig: 6.860, occ: 2.000
     Bandwidth: 12.435 (eV)
     Valence maximum located at:
-        spin=0, kpt=[+0.441, +0.000, +0.000], weight: 0.000, band=3, eig=6.822, occ=2.000
+        spin: 0, kpt: [+0.441, +0.000, +0.000], weight: 0.000, band: 3, eig: 6.822, occ: 2.000
     Conduction minimum located at:
-        spin=0, kpt=[+0.147, +0.000, +0.500], weight: 0.000, band=3, eig=6.860, occ=2.000
+        spin: 0, kpt: [+0.147, +0.000, +0.500], weight: 0.000, band: 3, eig: 6.860, occ: 2.000
+
+    TIP: Call set_fermie_to_vbm() to set the Fermi level to the VBM if this is a non-magnetic semiconductor
 
 
     =============================== Fatbands Info ===============================
@@ -131,11 +133,15 @@ See also PhysRevLett.86.4656
       plt.show()
     /Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
       warnings.warn("The input structure does not match the expected standard primitive! "
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+      plt.show()
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+      plt.show()
     ================================= File Info =================================
     Name: mgb2_kmesh181818_FATBANDS.nc
     Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/mgb2_fatbands
     Size: 480.70 kb
-    Access Time: Fri Oct 18 18:48:17 2019
+    Access Time: Sat Feb 22 16:03:28 2020
     Modification Time: Wed Mar 20 16:53:35 2019
     Change Time: Wed Mar 20 16:53:35 2019
 
@@ -181,6 +187,14 @@ See also PhysRevLett.86.4656
         0  Mg        0.00000 0.00000 0.00000       4                2  Yes
         1  B         0.33333 0.66667 0.50000       4                2  Yes
         2  B         0.66667 0.33333 0.50000       4                2  Yes
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+      plt.show()
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+      plt.show()
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+      plt.show()
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+      plt.show()
 
 
 
@@ -246,7 +260,7 @@ See also PhysRevLett.86.4656
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  3.978 seconds)
+   **Total running time of the script:** ( 0 minutes  3.284 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_efatbands.py:

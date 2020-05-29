@@ -41,7 +41,7 @@ obtained with Abinit
     Invoking anaddb to compute phonon bands...
     Downloading DDB for mpid mp-66 (C2) ...
     Invoking anaddb to compute phonon bands...
-    /Users/gmatteo/git_repos/abipy/abipy/examples/plot/plot_eph_from_mp.py:54: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+    /Users/gmatteo/git_repos/abipy/abipy/examples/plot/plot_eph_from_mp.py:55: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
       plt.show()
 
 
@@ -72,6 +72,7 @@ obtained with Abinit
         phbst, _ = ddb.anaget_phbst_and_phdos_files(nqsmall=0)
         phbands_list.append(phbst.phbands)
         phbst.close()
+        ddb.close()
 
     # The figure has [len(mpids), 2] subplots
     # The i-th row contains electrons and phonons for the i-th mp identifier.
@@ -97,7 +98,7 @@ obtained with Abinit
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  19.055 seconds)
+   **Total running time of the script:** ( 0 minutes  18.064 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_eph_from_mp.py:

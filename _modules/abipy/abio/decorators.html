@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>abipy.abio.decorators &#8212; abipy 0.7.0 documentation</title>
+    <title>abipy.abio.decorators &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -39,7 +42,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -62,6 +65,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -127,10 +131,10 @@
 <span class="kn">import</span> <span class="nn">abc</span>
 <span class="kn">import</span> <span class="nn">pymatgen.io.abinit.abiobjects</span> <span class="k">as</span> <span class="nn">aobj</span>
 
-<span class="kn">from</span> <span class="nn">monty.json</span> <span class="k">import</span> <span class="n">MSONable</span>
-<span class="kn">from</span> <span class="nn">pymatgen.util.serialization</span> <span class="k">import</span> <span class="n">pmg_serialize</span>
-<span class="kn">from</span> <span class="nn">abipy.flowtk.abiobjects</span> <span class="k">import</span> <span class="n">LdauParams</span><span class="p">,</span> <span class="n">LexxParams</span>
-<span class="kn">from</span> <span class="nn">.inputs</span> <span class="k">import</span> <span class="n">AbinitInput</span><span class="p">,</span> <span class="n">MultiDataset</span>
+<span class="kn">from</span> <span class="nn">monty.json</span> <span class="kn">import</span> <span class="n">MSONable</span>
+<span class="kn">from</span> <span class="nn">pymatgen.util.serialization</span> <span class="kn">import</span> <span class="n">pmg_serialize</span>
+<span class="kn">from</span> <span class="nn">abipy.flowtk.abiobjects</span> <span class="kn">import</span> <span class="n">LdauParams</span><span class="p">,</span> <span class="n">LexxParams</span>
+<span class="kn">from</span> <span class="nn">.inputs</span> <span class="kn">import</span> <span class="n">AbinitInput</span><span class="p">,</span> <span class="n">MultiDataset</span>
 
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
@@ -165,10 +169,10 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">Error</span> <span class="o">=</span> <span class="n">InputDecoratorError</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">as_dict</span><span class="p">())</span>
 
-    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">deepcopy</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">deepcopy</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Decorate an `AbinitInput` or a `MultiDataset` object</span>
 <span class="sd">        This is the public API that calls the concrete implementation of the subclass</span>
@@ -213,7 +217,7 @@
 
 <div class="viewcode-block" id="SpinDecorator"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.decorators.SpinDecorator">[docs]</a><span class="k">class</span> <span class="nc">SpinDecorator</span><span class="p">(</span><span class="n">AbinitInputDecorator</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;This decorator changes the spin polarization.&quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spinmode</span><span class="p">,</span> <span class="n">kptopt_ifspinor</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spinmode</span><span class="p">,</span> <span class="n">kptopt_ifspinor</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">spinmode</span> <span class="o">=</span> <span class="n">aobj</span><span class="o">.</span><span class="n">SpinMode</span><span class="o">.</span><span class="n">as_spinmode</span><span class="p">(</span><span class="n">spinmode</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">kptopt_ifspinor</span> <span class="o">=</span> <span class="n">kptopt_ifspinor</span>
 
@@ -247,7 +251,7 @@
 
 <div class="viewcode-block" id="SmearingDecorator"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.decorators.SmearingDecorator">[docs]</a><span class="k">class</span> <span class="nc">SmearingDecorator</span><span class="p">(</span><span class="n">AbinitInputDecorator</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;This decorator changes the electronic smearing.&quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smearing</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smearing</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">smearing</span> <span class="o">=</span> <span class="n">aobj</span><span class="o">.</span><span class="n">Smearing</span><span class="o">.</span><span class="n">as_smearing</span><span class="p">(</span><span class="n">smearing</span><span class="p">)</span>
 
 <div class="viewcode-block" id="SmearingDecorator.as_dict"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.decorators.SmearingDecorator.as_dict">[docs]</a>    <span class="nd">@pmg_serialize</span>
@@ -266,7 +270,7 @@
 
 <div class="viewcode-block" id="XcDecorator"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.decorators.XcDecorator">[docs]</a><span class="k">class</span> <span class="nc">XcDecorator</span><span class="p">(</span><span class="n">AbinitInputDecorator</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Change the exchange-correlation functional.&quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ixc</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ixc</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            ixc: Abinit input variable</span>
@@ -293,7 +297,7 @@
 
 <div class="viewcode-block" id="LdaUDecorator"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.decorators.LdaUDecorator">[docs]</a><span class="k">class</span> <span class="nc">LdaUDecorator</span><span class="p">(</span><span class="n">AbinitInputDecorator</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;This decorator adds LDA+U parameters to an :class:`AbinitInput` object.&quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symbols_luj</span><span class="p">,</span> <span class="n">usepawu</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symbols_luj</span><span class="p">,</span> <span class="n">usepawu</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            symbols_luj: dictionary mapping chemical symbols to another dict with (l, u, j) values</span>
@@ -329,7 +333,7 @@
 
 <div class="viewcode-block" id="LexxDecorator"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.decorators.LexxDecorator">[docs]</a><span class="k">class</span> <span class="nc">LexxDecorator</span><span class="p">(</span><span class="n">AbinitInputDecorator</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;This decorator add local exact exchange to an :class:`AbinitInput` object.&quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symbols_lexx</span><span class="p">,</span> <span class="n">exchmix</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symbols_lexx</span><span class="p">,</span> <span class="n">exchmix</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            symbols_lexx: dictionary mapping chemical symbols to the angular momentum l on which lexx is applied.</span>
@@ -425,7 +429,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on May 29, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

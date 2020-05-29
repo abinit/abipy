@@ -56,6 +56,10 @@ using the eigenvalues stored in the GSR file produced at the end of the GS run.
       plt.show()
     /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
       plt.show()
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+      plt.show()
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+      plt.show()
 
 
 
@@ -117,7 +121,7 @@ using the eigenvalues stored in the GSR file produced at the end of the GS run.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  2.172 seconds)
+   **Total running time of the script:** ( 0 minutes  2.264 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_ebands_spin.py:

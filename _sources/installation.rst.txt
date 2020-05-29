@@ -86,10 +86,9 @@ Remember that if a package is not available in the official conda repository, yo
 download the package from one of the conda channels or use ``pip install`` if no conda package is available.
 
 Fortunately there are conda channels providing all dependencies needed by AbiPy.
-Now add ``conda-forge``, ``matsci`` and ``abinit`` to your conda channels with::
+Now add ``conda-forge``, and ``abinit`` to your conda channels with::
 
     conda config --add channels conda-forge
-    conda config --add channels matsci
     conda config --add channels abinit
 
 These are the channels from which we will download pymatgen, abipy and abinit.

@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>abipy.core.testing &#8212; abipy 0.7.0 documentation</title>
+    <title>abipy.core.testing &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -39,7 +42,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -62,6 +65,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -136,13 +140,16 @@
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>
 <span class="kn">import</span> <span class="nn">unittest</span>
-<span class="kn">import</span> <span class="nn">numpy.testing.utils</span> <span class="k">as</span> <span class="nn">nptu</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">numpy.testing</span> <span class="k">as</span> <span class="nn">nptu</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">numpy.testing.utils</span> <span class="k">as</span> <span class="nn">nptu</span>
 <span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
 
-<span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">wraps</span>
-<span class="kn">from</span> <span class="nn">monty.os.path</span> <span class="k">import</span> <span class="n">which</span>
-<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">is_string</span>
-<span class="kn">from</span> <span class="nn">pymatgen.util.testing</span> <span class="k">import</span> <span class="n">PymatgenTest</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
+<span class="kn">from</span> <span class="nn">monty.os.path</span> <span class="kn">import</span> <span class="n">which</span>
+<span class="kn">from</span> <span class="nn">monty.string</span> <span class="kn">import</span> <span class="n">is_string</span>
+<span class="kn">from</span> <span class="nn">pymatgen.util.testing</span> <span class="kn">import</span> <span class="n">PymatgenTest</span>
 
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
@@ -159,8 +166,8 @@
 <span class="sd">    Compare two version strings with the given operator ``op``</span>
 <span class="sd">    &gt;&gt;&gt; assert cmp_version(&quot;1.1.1&quot;, &quot;1.1.0&quot;) and not cmp_version(&quot;1.1.1&quot;, &quot;1.1.0&quot;, op=&quot;==&quot;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="k">import</span> <span class="n">parse_version</span>
-    <span class="kn">from</span> <span class="nn">monty.operator</span> <span class="k">import</span> <span class="n">operator_from_str</span>
+    <span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="kn">import</span> <span class="n">parse_version</span>
+    <span class="kn">from</span> <span class="nn">monty.operator</span> <span class="kn">import</span> <span class="n">operator_from_str</span>
     <span class="n">op</span> <span class="o">=</span> <span class="n">operator_from_str</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">op</span><span class="p">(</span><span class="n">parse_version</span><span class="p">(</span><span class="n">this</span><span class="p">),</span> <span class="n">parse_version</span><span class="p">(</span><span class="n">other</span><span class="p">))</span>
 
@@ -170,7 +177,7 @@
 <span class="sd">    True if abinit is available via TaskManager configuration options.</span>
 <span class="sd">    If version is not None, `abinit_version op version` is evaluated and the result is returned.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">TaskManager</span><span class="p">,</span> <span class="n">AbinitBuild</span>
+    <span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="kn">import</span> <span class="n">TaskManager</span><span class="p">,</span> <span class="n">AbinitBuild</span>
     <span class="n">manager</span> <span class="o">=</span> <span class="n">TaskManager</span><span class="o">.</span><span class="n">from_user_config</span><span class="p">()</span> <span class="k">if</span> <span class="n">manager</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">manager</span>
     <span class="n">build</span> <span class="o">=</span> <span class="n">AbinitBuild</span><span class="p">(</span><span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">version</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -245,7 +252,7 @@
     <span class="sd">&quot;&quot;&quot;Return mock module for testing. Raises ImportError if not found.&quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="c1"># py &gt; 3.3</span>
-        <span class="kn">from</span> <span class="nn">unittest</span> <span class="k">import</span> <span class="n">mock</span>
+        <span class="kn">from</span> <span class="nn">unittest</span> <span class="kn">import</span> <span class="n">mock</span>
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">import</span> <span class="nn">mock</span>
@@ -261,7 +268,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Read a json file from the absolute path ``json_path``, return |AbinitInput| instance.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="k">import</span> <span class="n">AbinitInput</span>
+    <span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="kn">import</span> <span class="n">AbinitInput</span>
 
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">json_path</span><span class="p">,</span> <span class="s2">&quot;rt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
         <span class="n">d</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
@@ -332,15 +339,15 @@
         <span class="n">val_list_t</span> <span class="o">=</span> <span class="n">flatten_var</span><span class="p">(</span><span class="n">val_t</span><span class="p">)</span>
         <span class="n">val_list_r</span> <span class="o">=</span> <span class="n">flatten_var</span><span class="p">(</span><span class="n">val_r</span><span class="p">)</span>
         <span class="n">error</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">val_list_r</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">val_list_r</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">val_list_t</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">val_list_t</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="c1">#print(var)</span>
+        <span class="c1">#print(val_list_r, type(val_list_r[0]))</span>
+        <span class="c1">#print(val_list_t, type(val_list_t[0]))</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">var_item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">val_list_r</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">error</span> <span class="o">=</span> <span class="n">error</span> <span class="ow">or</span> <span class="n">check_var</span><span class="p">(</span><span class="n">val_list_t</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">val_list_r</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
             <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="n">val_list_t</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">val_list_t</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
-                <span class="nb">print</span><span class="p">(</span><span class="n">val_list_r</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">val_list_r</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+                <span class="c1">#print(val_list_t, type(val_list_t[0]))</span>
+                <span class="c1">#print(val_list_r, type(val_list_r[0]))</span>
                 <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;two value lists were not flattened in the same way, try to add the collection&#39;</span>
                                    <span class="s1">&#39;type to the tree_types tuple in flatten_var&#39;</span><span class="p">)</span>
 
@@ -361,17 +368,17 @@
 
 
 <span class="k">def</span> <span class="nf">get_gsinput_si</span><span class="p">(</span><span class="n">usepaw</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">as_task</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Build and return GS input file for silicon.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Build and return a GS input file for silicon or a Task if `as_task`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">pseudos</span> <span class="o">=</span> <span class="n">abidata</span><span class="o">.</span><span class="n">pseudos</span><span class="p">(</span><span class="s2">&quot;14si.pspnc&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">usepaw</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">abidata</span><span class="o">.</span><span class="n">pseudos</span><span class="p">(</span><span class="s2">&quot;Si.GGA_PBE-JTH-paw.xml&quot;</span><span class="p">)</span>
-    <span class="c1">#silicon = abilab.Structure.zincblende(5.431, [&quot;Si&quot;, &quot;Si&quot;], units=&quot;ang&quot;)</span>
     <span class="n">silicon</span> <span class="o">=</span> <span class="n">abidata</span><span class="o">.</span><span class="n">cif_file</span><span class="p">(</span><span class="s2">&quot;si.cif&quot;</span><span class="p">)</span>
 
-    <span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="k">import</span> <span class="n">AbinitInput</span>
+    <span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="kn">import</span> <span class="n">AbinitInput</span>
     <span class="n">scf_input</span> <span class="o">=</span> <span class="n">AbinitInput</span><span class="p">(</span><span class="n">silicon</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">)</span>
     <span class="n">ecut</span> <span class="o">=</span> <span class="mi">6</span>
     <span class="n">scf_input</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
         <span class="n">ecut</span><span class="o">=</span><span class="n">ecut</span><span class="p">,</span>
-        <span class="n">pawecutdg</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
         <span class="n">nband</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
         <span class="n">paral_kgb</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
         <span class="n">iomode</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
@@ -382,10 +389,39 @@
 
     <span class="c1"># K-point sampling (shifted)</span>
     <span class="n">scf_input</span><span class="o">.</span><span class="n">set_autokmesh</span><span class="p">(</span><span class="n">nksmall</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
     <span class="k">if</span> <span class="ow">not</span> <span class="n">as_task</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">scf_input</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">abipy.flowtk.tasks</span> <span class="k">import</span> <span class="n">ScfTask</span>
+        <span class="kn">from</span> <span class="nn">abipy.flowtk.tasks</span> <span class="kn">import</span> <span class="n">ScfTask</span>
+        <span class="k">return</span> <span class="n">ScfTask</span><span class="p">(</span><span class="n">scf_input</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">get_gsinput_alas_ngkpt</span><span class="p">(</span><span class="n">ngkpt</span><span class="p">,</span> <span class="n">usepaw</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">as_task</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Build and return a GS input file for AlAs or a Task if `as_task`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">usepaw</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;PAW&quot;</span><span class="p">)</span>
+    <span class="n">pseudos</span> <span class="o">=</span> <span class="n">abidata</span><span class="o">.</span><span class="n">pseudos</span><span class="p">(</span><span class="s2">&quot;13al.981214.fhi&quot;</span><span class="p">,</span> <span class="s2">&quot;33as.pspnc&quot;</span><span class="p">)</span>
+    <span class="n">structure</span> <span class="o">=</span> <span class="n">abidata</span><span class="o">.</span><span class="n">structure_from_ucell</span><span class="p">(</span><span class="s2">&quot;AlAs&quot;</span><span class="p">)</span>
+
+    <span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="kn">import</span> <span class="n">AbinitInput</span>
+    <span class="n">scf_input</span> <span class="o">=</span> <span class="n">AbinitInput</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="o">=</span><span class="n">pseudos</span><span class="p">)</span>
+
+    <span class="n">scf_input</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
+        <span class="n">nband</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="n">ecut</span><span class="o">=</span><span class="mf">8.0</span><span class="p">,</span>
+        <span class="n">ngkpt</span><span class="o">=</span><span class="n">ngkpt</span><span class="p">,</span>
+        <span class="n">nshiftk</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">shiftk</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+        <span class="n">tolvrs</span><span class="o">=</span><span class="mf">1.0e-6</span><span class="p">,</span>
+        <span class="n">diemac</span><span class="o">=</span><span class="mf">12.0</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">as_task</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">scf_input</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">abipy.flowtk.tasks</span> <span class="kn">import</span> <span class="n">ScfTask</span>
         <span class="k">return</span> <span class="n">ScfTask</span><span class="p">(</span><span class="n">scf_input</span><span class="p">)</span>
 
 
@@ -437,18 +473,18 @@
     <span class="k">def</span> <span class="nf">has_skimage</span><span class="p">():</span>
         <span class="sd">&quot;&quot;&quot;True if skimage package is available.&quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="kn">from</span> <span class="nn">skimage</span> <span class="k">import</span> <span class="n">measure</span>
+            <span class="kn">from</span> <span class="nn">skimage</span> <span class="kn">import</span> <span class="n">measure</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="AbipyTest.has_python_graphviz"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.has_python_graphviz">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">has_python_graphviz</span><span class="p">(</span><span class="n">need_dotexec</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">has_python_graphviz</span><span class="p">(</span><span class="n">need_dotexec</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        True if python-graphviz package is installed and dot executable in path.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="kn">from</span> <span class="nn">graphviz</span> <span class="k">import</span> <span class="n">Digraph</span>
+            <span class="kn">from</span> <span class="nn">graphviz</span> <span class="kn">import</span> <span class="n">Digraph</span>
         <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
 
@@ -464,7 +500,7 @@
         <span class="c1"># This to run mayavi tests only on Travis</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;TRAVIS&quot;</span><span class="p">):</span> <span class="k">return</span> <span class="kc">False</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="kn">from</span> <span class="nn">mayavi</span> <span class="k">import</span> <span class="n">mlab</span>
+            <span class="kn">from</span> <span class="nn">mayavi</span> <span class="kn">import</span> <span class="n">mlab</span>
         <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
 
@@ -473,10 +509,39 @@
         <span class="n">mlab</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
+<div class="viewcode-block" id="AbipyTest.has_panel"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.has_panel">[docs]</a>    <span class="k">def</span> <span class="nf">has_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;False if Panel library is not installed.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">param</span>
+            <span class="kn">import</span> <span class="nn">panel</span> <span class="k">as</span> <span class="nn">pn</span>
+            <span class="kn">import</span> <span class="nn">bokeh</span>
+            <span class="k">return</span> <span class="n">pn</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="AbipyTest.has_networkx"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.has_networkx">[docs]</a>    <span class="k">def</span> <span class="nf">has_networkx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;False if networkx library is not installed.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+            <span class="k">return</span> <span class="n">nx</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="AbipyTest.has_graphviz"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.has_graphviz">[docs]</a>    <span class="k">def</span> <span class="nf">has_graphviz</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;True if graphviz library is installed and `dot` in $PATH&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">graphviz</span> <span class="kn">import</span> <span class="n">Digraph</span>
+            <span class="kn">import</span> <span class="nn">graphviz</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">&quot;dot&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="n">graphviz</span></div>
+
 <div class="viewcode-block" id="AbipyTest.get_abistructure_from_abiref"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.get_abistructure_from_abiref">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_abistructure_from_abiref</span><span class="p">(</span><span class="n">basename</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return an Abipy |Structure| from the basename of one of the reference files.&quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="n">Structure</span>
+        <span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="kn">import</span> <span class="n">Structure</span>
         <span class="k">return</span> <span class="n">Structure</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="n">basename</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="AbipyTest.mkdtemp"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.mkdtemp">[docs]</a>    <span class="nd">@staticmethod</span>
@@ -495,7 +560,7 @@
 <div class="viewcode-block" id="AbipyTest.get_tmpname"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.get_tmpname">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_tmpname</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Invoke mkstep with kwargs, return the name of a temporary file.&quot;&quot;&quot;</span>
-        <span class="n">fd</span><span class="p">,</span> <span class="n">tmpname</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">tmpname</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">tmpname</span></div>
 
 <div class="viewcode-block" id="AbipyTest.has_nbformat"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.has_nbformat">[docs]</a>    <span class="nd">@staticmethod</span>
@@ -594,10 +659,17 @@
         <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">unittest</span><span class="o">.</span><span class="n">SkipTest</span><span class="p">(</span><span class="s2">&quot;This test requires bolztrap2&quot;</span><span class="p">)</span>
 
-        <span class="kn">from</span> <span class="nn">BoltzTraP2.version</span> <span class="k">import</span> <span class="n">PROGRAM_VERSION</span>
+        <span class="kn">from</span> <span class="nn">BoltzTraP2.version</span> <span class="kn">import</span> <span class="n">PROGRAM_VERSION</span>
         <span class="k">if</span> <span class="n">version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">cmp_version</span><span class="p">(</span><span class="n">PROGRAM_VERSION</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="n">op</span><span class="p">):</span>
             <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;This test requires bolztrap2 version </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
             <span class="k">raise</span> <span class="n">unittest</span><span class="o">.</span><span class="n">SkipTest</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AbipyTest.skip_if_not_executable"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.skip_if_not_executable">[docs]</a>    <span class="k">def</span> <span class="nf">skip_if_not_executable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">executable</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Raise SkipTest if executable is not installed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="n">executable</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">unittest</span><span class="o">.</span><span class="n">SkipTest</span><span class="p">(</span><span class="s2">&quot;This test requires `</span><span class="si">%s</span><span class="s2">` in PATH&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">executable</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="AbipyTest.skip_if_not_pseudodojo"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.skip_if_not_pseudodojo">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">skip_if_not_pseudodojo</span><span class="p">():</span>
@@ -605,7 +677,7 @@
 <span class="sd">        Raise SkipTest if pseudodojo package is not installed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="kn">from</span> <span class="nn">pseudo_dojo</span> <span class="k">import</span> <span class="n">OfficialTables</span>
+            <span class="kn">from</span> <span class="nn">pseudo_dojo</span> <span class="kn">import</span> <span class="n">OfficialTables</span>
         <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">unittest</span><span class="o">.</span><span class="n">SkipTest</span><span class="p">(</span><span class="s2">&quot;This test requires pseudodojo package.&quot;</span><span class="p">)</span></div>
 
@@ -613,6 +685,14 @@
     <span class="k">def</span> <span class="nf">get_mock_module</span><span class="p">():</span>
         <span class="sd">&quot;&quot;&quot;Return mock module for testing. Raises ImportError if not found.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">get_mock_module</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="AbipyTest.decode_with_MSON"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.decode_with_MSON">[docs]</a>    <span class="k">def</span> <span class="nf">decode_with_MSON</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert obj into JSON assuming MSONable protocolo. Return new object decoded with MontyDecoder</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">monty.json</span> <span class="kn">import</span> <span class="n">MSONable</span><span class="p">,</span> <span class="n">MontyDecoder</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">MSONable</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">to_json</span><span class="p">(),</span> <span class="bp">cls</span><span class="o">=</span><span class="n">MontyDecoder</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AbipyTest.abivalidate_input"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.abivalidate_input">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">abivalidate_input</span><span class="p">(</span><span class="n">abinput</span><span class="p">,</span> <span class="n">must_fail</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -654,13 +734,15 @@
 
         <span class="k">if</span> <span class="n">errors</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">errors</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="mi">90</span> <span class="o">*</span> <span class="s2">&quot;=&quot;</span><span class="p">)</span>
                 <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="mi">90</span> <span class="o">*</span> <span class="s2">&quot;=&quot;</span><span class="p">)</span>
 
         <span class="k">assert</span> <span class="ow">not</span> <span class="n">errors</span></div>
 
 <div class="viewcode-block" id="AbipyTest.abivalidate_work"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.abivalidate_work">[docs]</a>    <span class="k">def</span> <span class="nf">abivalidate_work</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">work</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Invoke Abinit to test validity of the inputs of a |Work|&quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">Flow</span>
+        <span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="kn">import</span> <span class="n">Flow</span>
         <span class="n">tmpdir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()</span>
         <span class="n">flow</span> <span class="o">=</span> <span class="n">Flow</span><span class="p">(</span><span class="n">workdir</span><span class="o">=</span><span class="n">tmpdir</span><span class="p">)</span>
         <span class="n">flow</span><span class="o">.</span><span class="n">register_work</span><span class="p">(</span><span class="n">work</span><span class="p">)</span>
@@ -686,7 +768,12 @@
 <div class="viewcode-block" id="AbipyTest.get_gsinput_si"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.get_gsinput_si">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="nd">@wraps</span><span class="p">(</span><span class="n">get_gsinput_si</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">get_gsinput_si</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">get_gsinput_si</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="n">get_gsinput_si</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AbipyTest.get_gsinput_alas_ngkpt"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.get_gsinput_alas_ngkpt">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">get_gsinput_alas_ngkpt</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_gsinput_alas_ngkpt</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">get_gsinput_alas_ngkpt</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
 
 
 <span class="k">def</span> <span class="nf">notebook_run</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
@@ -733,7 +820,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on May 29, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

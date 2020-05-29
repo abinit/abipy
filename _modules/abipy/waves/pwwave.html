@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>abipy.waves.pwwave &#8212; abipy 0.7.0 documentation</title>
+    <title>abipy.waves.pwwave &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -39,7 +42,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -62,6 +65,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -127,12 +131,12 @@
 <span class="c1">#import copy</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
-<span class="kn">from</span> <span class="nn">abipy.core</span> <span class="k">import</span> <span class="n">Mesh3D</span>
+<span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="kn">import</span> <span class="n">cprint</span>
+<span class="kn">from</span> <span class="nn">abipy.core</span> <span class="kn">import</span> <span class="n">Mesh3D</span>
 <span class="c1">#from abipy.core.kpoints import Kpoint</span>
-<span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">Visualizer</span>
-<span class="kn">from</span> <span class="nn">abipy.iotools.xsf</span> <span class="k">import</span> <span class="n">xsf_write_structure</span><span class="p">,</span> <span class="n">xsf_write_data</span>
-<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span><span class="p">,</span> <span class="n">get_axarray_fig_plt</span>
+<span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="kn">import</span> <span class="n">Visualizer</span>
+<span class="kn">from</span> <span class="nn">abipy.iotools.xsf</span> <span class="kn">import</span> <span class="n">xsf_write_structure</span><span class="p">,</span> <span class="n">xsf_write_data</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="kn">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span><span class="p">,</span> <span class="n">get_axarray_fig_plt</span>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -154,25 +158,25 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Abstract class defining base and abstract methods for wavefunction objects.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">other</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span> <span class="kc">False</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gsphere</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">gsphere</span><span class="p">:</span> <span class="k">return</span> <span class="kc">False</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ug</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">ug</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">return</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span> <span class="o">==</span> <span class="n">other</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Yields G, ug[0:nspinor, G]&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gvecs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ug</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gvecs</span><span class="p">[</span><span class="nb">slice</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">ug</span><span class="p">[:,</span> <span class="nb">slice</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
     <span class="nd">@property</span>
@@ -341,7 +345,7 @@
 <span class="sd">    .. rubric:: Inheritance Diagram</span>
 <span class="sd">    .. inheritance-diagram:: PWWaveFunction</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">nspinor</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="n">band</span><span class="p">,</span> <span class="n">gsphere</span><span class="p">,</span> <span class="n">ug</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">nspinor</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="n">band</span><span class="p">,</span> <span class="n">gsphere</span><span class="p">,</span> <span class="n">ug</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creation method.</span>
 
@@ -417,7 +421,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return an interpolator object that interpolates periodic functions in real space.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">abipy.tools.numtools</span> <span class="k">import</span> <span class="n">BlochRegularGridInterpolator</span>
+        <span class="kn">from</span> <span class="nn">abipy.tools.numtools</span> <span class="kn">import</span> <span class="n">BlochRegularGridInterpolator</span>
         <span class="k">return</span> <span class="n">BlochRegularGridInterpolator</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ur</span><span class="p">)</span></div>
 
     <span class="c1">#def pww_translation(self, gvector, rprimd):</span>
@@ -629,7 +633,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
             <span class="c1"># fname == &quot;.ext&quot; ==&gt; Create temporary file.</span>
             <span class="c1"># dir = os.getcwd() is needed when we invoke the method from a notebook.</span>
-            <span class="kn">from</span> <span class="nn">abipy.core.globals</span> <span class="k">import</span> <span class="n">abinb_mkstemp</span>
+            <span class="kn">from</span> <span class="nn">abipy.core.globals</span> <span class="kn">import</span> <span class="n">abinb_mkstemp</span>
             <span class="n">_</span><span class="p">,</span> <span class="n">filename</span> <span class="o">=</span> <span class="n">abinb_mkstemp</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">ext</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Creating temporary file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
 
@@ -701,7 +705,7 @@
 <span class="sd">    All the methods that are related to the all-electron representation should start with ae.</span>
 
 <span class="sd">    .. rubric:: Inheritance Diagram</span>
-<span class="sd">    .. inheritance-diagram:: PaW_WaveFunction</span>
+<span class="sd">    .. inheritance-diagram:: PAW_WaveFunction</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 </pre></div>
 
@@ -717,7 +721,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on May 29, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>abipy.core.fields &#8212; abipy 0.7.0 documentation</title>
+    <title>abipy.core.fields &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -39,7 +42,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -62,6 +65,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -129,23 +133,23 @@
 <span class="kn">import</span> <span class="nn">pymatgen.core.units</span> <span class="k">as</span> <span class="nn">pmgu</span>
 <span class="kn">import</span> <span class="nn">os</span>
 
-<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
-<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">AttrDict</span>
-<span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
-<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">is_string</span><span class="p">,</span> <span class="n">marquee</span>
-<span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
-<span class="kn">from</span> <span class="nn">monty.inspect</span> <span class="k">import</span> <span class="n">all_subclasses</span>
-<span class="kn">from</span> <span class="nn">pymatgen.io.vasp.inputs</span> <span class="k">import</span> <span class="n">Poscar</span>
-<span class="kn">from</span> <span class="nn">pymatgen.io.vasp.outputs</span> <span class="k">import</span> <span class="n">Chgcar</span>
-<span class="kn">from</span> <span class="nn">pymatgen.core.units</span> <span class="k">import</span> <span class="n">bohr_to_angstrom</span>
-<span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="n">Structure</span>
-<span class="kn">from</span> <span class="nn">abipy.core.mesh3d</span> <span class="k">import</span> <span class="n">Mesh3D</span>
-<span class="kn">from</span> <span class="nn">abipy.core.func1d</span> <span class="k">import</span> <span class="n">Function1D</span>
-<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">Has_Structure</span>
-<span class="kn">from</span> <span class="nn">abipy.tools</span> <span class="k">import</span> <span class="n">duck</span>
-<span class="kn">from</span> <span class="nn">abipy.tools.numtools</span> <span class="k">import</span> <span class="n">transpose_last3dims</span>
-<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span><span class="p">,</span> <span class="n">get_axarray_fig_plt</span>
-<span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">Visualizer</span><span class="p">,</span> <span class="n">xsf</span><span class="p">,</span> <span class="n">ETSF_Reader</span><span class="p">,</span> <span class="n">cube</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="kn">import</span> <span class="n">AttrDict</span>
+<span class="kn">from</span> <span class="nn">monty.functools</span> <span class="kn">import</span> <span class="n">lazy_property</span>
+<span class="kn">from</span> <span class="nn">monty.string</span> <span class="kn">import</span> <span class="n">is_string</span><span class="p">,</span> <span class="n">marquee</span>
+<span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="kn">import</span> <span class="n">cprint</span>
+<span class="kn">from</span> <span class="nn">monty.inspect</span> <span class="kn">import</span> <span class="n">all_subclasses</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.vasp.inputs</span> <span class="kn">import</span> <span class="n">Poscar</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.vasp.outputs</span> <span class="kn">import</span> <span class="n">Chgcar</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.units</span> <span class="kn">import</span> <span class="n">bohr_to_angstrom</span>
+<span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="kn">import</span> <span class="n">Structure</span>
+<span class="kn">from</span> <span class="nn">abipy.core.mesh3d</span> <span class="kn">import</span> <span class="n">Mesh3D</span>
+<span class="kn">from</span> <span class="nn">abipy.core.func1d</span> <span class="kn">import</span> <span class="n">Function1D</span>
+<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="kn">import</span> <span class="n">Has_Structure</span>
+<span class="kn">from</span> <span class="nn">abipy.tools</span> <span class="kn">import</span> <span class="n">duck</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.numtools</span> <span class="kn">import</span> <span class="n">transpose_last3dims</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="kn">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span><span class="p">,</span> <span class="n">get_axarray_fig_plt</span>
+<span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="kn">import</span> <span class="n">Visualizer</span><span class="p">,</span> <span class="n">xsf</span><span class="p">,</span> <span class="n">ETSF_Reader</span><span class="p">,</span> <span class="n">cube</span>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -192,7 +196,7 @@
         <span class="k">with</span> <span class="n">FieldReader</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">r</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">r</span><span class="o">.</span><span class="n">read_denpot</span><span class="p">(</span><span class="n">varname</span><span class="o">=</span><span class="bp">cls</span><span class="o">.</span><span class="n">netcdf_name</span><span class="p">,</span> <span class="n">field_cls</span><span class="o">=</span><span class="bp">cls</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nspinor</span><span class="p">,</span> <span class="n">nsppol</span><span class="p">,</span> <span class="n">nspden</span><span class="p">,</span> <span class="n">datar</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">iorder</span><span class="o">=</span><span class="s2">&quot;c&quot;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nspinor</span><span class="p">,</span> <span class="n">nsppol</span><span class="p">,</span> <span class="n">nspden</span><span class="p">,</span> <span class="n">datar</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">iorder</span><span class="o">=</span><span class="s2">&quot;c&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            nspinor: Number of spinorial components.</span>
@@ -211,7 +215,7 @@
         <span class="k">assert</span> <span class="n">iorder</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;f&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">iorder</span> <span class="o">==</span> <span class="s2">&quot;f&quot;</span><span class="p">:</span>
-            <span class="c1"># (z,x,y) --&gt; (x,y,z)</span>
+            <span class="c1"># (z,y,x) --&gt; (x,y,z)</span>
             <span class="n">datar</span> <span class="o">=</span> <span class="n">transpose_last3dims</span><span class="p">(</span><span class="n">datar</span><span class="p">)</span>
 
         <span class="c1"># Init Mesh3D</span>
@@ -221,10 +225,10 @@
         <span class="c1"># Make sure we have the correct shape.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_datar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">datar</span><span class="p">,</span> <span class="p">(</span><span class="n">nspden</span><span class="p">,)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datar</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_check_and_get_datar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
@@ -244,21 +248,21 @@
 
         <span class="k">return</span> <span class="n">new_cls</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">datar</span>
 
-    <span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;self + other&quot;&quot;&quot;</span>
         <span class="n">new_cls</span><span class="p">,</span> <span class="n">datar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_and_get_datar</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">new_cls</span><span class="p">(</span><span class="n">nspinor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="n">nsppol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="n">nspden</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nspden</span><span class="p">,</span>
                        <span class="n">datar</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">datar</span> <span class="o">+</span> <span class="n">datar</span><span class="p">,</span>
                        <span class="n">structure</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">iorder</span><span class="o">=</span><span class="s2">&quot;c&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;self - other&quot;&quot;&quot;</span>
         <span class="n">new_cls</span><span class="p">,</span> <span class="n">datar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_and_get_datar</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">new_cls</span><span class="p">(</span><span class="n">nspinor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="n">nsppol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="n">nspden</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nspden</span><span class="p">,</span>
                        <span class="n">datar</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">datar</span> <span class="o">-</span> <span class="n">datar</span><span class="p">,</span>
                        <span class="n">structure</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">iorder</span><span class="o">=</span><span class="s2">&quot;c&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;self * other&quot;&quot;&quot;</span>
         <span class="n">new_cls</span><span class="p">,</span> <span class="n">datar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_and_get_datar</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">new_cls</span><span class="p">(</span><span class="n">nspinor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="n">nsppol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="n">nspden</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nspden</span><span class="p">,</span>
@@ -267,7 +271,7 @@
 
     <span class="fm">__rmul__</span> <span class="o">=</span> <span class="fm">__mul__</span>
 
-    <span class="k">def</span> <span class="nf">__truediv__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__truediv__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;self / other&quot;&quot;&quot;</span>
         <span class="n">new_cls</span><span class="p">,</span> <span class="n">datar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_and_get_datar</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">new_cls</span><span class="p">(</span><span class="n">nspinor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="n">nsppol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="n">nspden</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nspden</span><span class="p">,</span>
@@ -276,13 +280,13 @@
 
     <span class="n">__div__</span> <span class="o">=</span> <span class="fm">__truediv__</span>
 
-    <span class="k">def</span> <span class="nf">__neg__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__neg__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;-self&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">nspinor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="n">nsppol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="n">nspden</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nspden</span><span class="p">,</span>
                               <span class="n">datar</span><span class="o">=-</span><span class="bp">self</span><span class="o">.</span><span class="n">datar</span><span class="p">,</span>
                               <span class="n">structure</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">iorder</span><span class="o">=</span><span class="s2">&quot;c&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__abs__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__abs__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;abs(self)&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">nspinor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="n">nsppol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="n">nspden</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nspden</span><span class="p">,</span>
                               <span class="n">datar</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datar</span><span class="p">),</span>
@@ -414,7 +418,7 @@
             <span class="c1"># filename == &quot;.ext&quot; ==&gt; Create temporary file.</span>
             <span class="c1"># dir = os.getcwd() is needed when we invoke the method from a notebook.</span>
             <span class="c1"># nbworkdir in cwd is needed when we invoke the method from a notebook.</span>
-            <span class="kn">from</span> <span class="nn">abipy.core.globals</span> <span class="k">import</span> <span class="n">abinb_mkstemp</span>
+            <span class="kn">from</span> <span class="nn">abipy.core.globals</span> <span class="kn">import</span> <span class="n">abinb_mkstemp</span>
             <span class="n">_</span><span class="p">,</span> <span class="n">filename</span> <span class="o">=</span> <span class="n">abinb_mkstemp</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">ext</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
@@ -454,7 +458,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return an interpolator object that interpolates periodic functions in real space.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">abipy.tools.numtools</span> <span class="k">import</span> <span class="n">BlochRegularGridInterpolator</span>
+        <span class="kn">from</span> <span class="nn">abipy.tools.numtools</span> <span class="kn">import</span> <span class="n">BlochRegularGridInterpolator</span>
         <span class="k">return</span> <span class="n">BlochRegularGridInterpolator</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">datar</span><span class="p">)</span>
 
     <span class="c1">#def fourier_interp(self, new_mesh):</span>
@@ -590,7 +594,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Initialize rcut_symbol map.</span>
         <span class="k">if</span> <span class="n">rcut_symbol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="kn">from</span> <span class="nn">pymatgen.analysis.molecule_structure_comparator</span> <span class="k">import</span> <span class="n">CovalentRadius</span>
+            <span class="kn">from</span> <span class="nn">pymatgen.analysis.molecule_structure_comparator</span> <span class="kn">import</span> <span class="n">CovalentRadius</span>
             <span class="n">rcut_symbol</span> <span class="o">=</span> <span class="p">{</span><span class="n">s</span><span class="p">:</span> <span class="n">CovalentRadius</span><span class="o">.</span><span class="n">radius</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">symbol_set</span><span class="p">}</span>
             <span class="c1">#rcut_symbol = {s: 2 for s in self.structure.symbol_set}</span>
             <span class="c1">#rcut_symbol = {s: 1 for s in self.structure.symbol_set}</span>
@@ -603,7 +607,7 @@
         <span class="n">gvecs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">gvecs</span>
         <span class="n">gmods</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">gmods</span>
         <span class="n">gmax</span> <span class="o">=</span> <span class="n">gmods</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
-        <span class="kn">from</span> <span class="nn">abipy.tools</span> <span class="k">import</span> <span class="n">bessel</span>
+        <span class="kn">from</span> <span class="nn">abipy.tools</span> <span class="kn">import</span> <span class="n">bessel</span>
         <span class="n">splines</span> <span class="o">=</span> <span class="p">{</span><span class="n">s</span><span class="p">:</span> <span class="n">bessel</span><span class="o">.</span><span class="n">spline_int_jlqr</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">gmax</span><span class="p">,</span> <span class="n">rcut_symbol</span><span class="p">[</span><span class="n">s</span><span class="p">])</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">symbol_set</span><span class="p">}</span>
 
         <span class="c1"># 4 pi sum_G n(G) e^{iGRo} int_0^{rcut} r**2 j_l(Gr} dr</span>
@@ -1226,6 +1230,10 @@
         <span class="sd">&quot;&quot;&quot;Read potential data. Return :class:`VksPotential` object.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_denpot</span><span class="p">(</span><span class="n">varname</span><span class="o">=</span><span class="n">field_cls</span><span class="o">.</span><span class="n">netcdf_name</span><span class="p">,</span> <span class="n">field_cls</span><span class="o">=</span><span class="n">field_cls</span><span class="p">)</span>
 
+    <span class="c1">#def read_vks1(self, field_cls=Vks1Potential):</span>
+    <span class="c1">#    &quot;&quot;&quot;Read potential data. Return :class:`Vks1Potential` object.&quot;&quot;&quot;</span>
+    <span class="c1">#    return self.read_denpot(varname=field_cls.netcdf_name, field_cls=field_cls)</span>
+
     <span class="k">def</span> <span class="nf">read_denpot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">varname</span><span class="p">,</span> <span class="n">field_cls</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Factory function to read den/pot data from netcdf_ files and instantiate :class:`_Field` objects.</span>
@@ -1288,7 +1296,7 @@
 
         <span class="n">datar</span> <span class="o">*=</span> <span class="n">fact</span>
 
-        <span class="c1"># use iorder=&quot;f&quot; to transpose the last 3 dimensions since ETSF</span>
+        <span class="c1"># use iorder = &quot;f&quot; to transpose the last 3 dimensions since ETSF</span>
         <span class="c1"># stores data in Fortran order while AbiPy uses C-ordering.</span>
         <span class="k">if</span> <span class="n">cplex</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">field_cls</span><span class="p">(</span><span class="n">dims</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="n">dims</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="n">dims</span><span class="o">.</span><span class="n">nspden</span><span class="p">,</span> <span class="n">datar</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">iorder</span><span class="o">=</span><span class="s2">&quot;f&quot;</span><span class="p">)</span>
@@ -1308,7 +1316,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on May 29, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

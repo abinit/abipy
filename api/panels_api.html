@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>panels Package &#8212; abipy 0.8.0 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="tools Package" href="tools_api.html" />
+    <link rel="prev" title="iotools Package" href="iotools_api.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../zzbiblio.html">Bibliography</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../graphical_interface.html">Graphical interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../postprocessing_howto.html">Post-processing How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documenting AbiPy</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">panels Package</a><ul>
+<li><a class="reference internal" href="#id1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">panels</span></code> Package</a></li>
+<li><a class="reference internal" href="#module-abipy.panels.core"><code class="xref py py-mod docutils literal notranslate"><span class="pre">core</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.panels.ddb"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ddb</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.panels.flows"><code class="xref py py-mod docutils literal notranslate"><span class="pre">flows</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.panels.gsr"><code class="xref py py-mod docutils literal notranslate"><span class="pre">gsr</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.panels.phonons"><code class="xref py py-mod docutils literal notranslate"><span class="pre">phonons</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.panels.structure"><code class="xref py py-mod docutils literal notranslate"><span class="pre">structure</span></code> Module</a></li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="iotools_api.html" title="Previous Chapter: iotools Package"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; iotools Package</span>
+    </a>
+  </li>
+  <li>
+    <a href="tools_api.html" title="Next Chapter: tools Package"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">tools Package &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/api/panels_api.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <div class="section" id="panels-package">
+<h1><a class="toc-backref" href="#contents">panels Package</a><a class="headerlink" href="#panels-package" title="Permalink to this headline">¶</a></h1>
+<div class="contents topic" id="contents">
+<p class="topic-title first">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#panels-package" id="id2">panels Package</a></p>
+<ul>
+<li><p><a class="reference internal" href="#id1" id="id3"><code class="xref py py-mod docutils literal notranslate"><span class="pre">panels</span></code> Package</a></p></li>
+<li><p><a class="reference internal" href="#module-abipy.panels.core" id="id4"><code class="xref py py-mod docutils literal notranslate"><span class="pre">core</span></code> Module</a></p></li>
+<li><p><a class="reference internal" href="#module-abipy.panels.ddb" id="id5"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ddb</span></code> Module</a></p></li>
+<li><p><a class="reference internal" href="#module-abipy.panels.flows" id="id6"><code class="xref py py-mod docutils literal notranslate"><span class="pre">flows</span></code> Module</a></p></li>
+<li><p><a class="reference internal" href="#module-abipy.panels.gsr" id="id7"><code class="xref py py-mod docutils literal notranslate"><span class="pre">gsr</span></code> Module</a></p></li>
+<li><p><a class="reference internal" href="#module-abipy.panels.phonons" id="id8"><code class="xref py py-mod docutils literal notranslate"><span class="pre">phonons</span></code> Module</a></p></li>
+<li><p><a class="reference internal" href="#module-abipy.panels.structure" id="id9"><code class="xref py py-mod docutils literal notranslate"><span class="pre">structure</span></code> Module</a></p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="id1">
+<h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal notranslate"><span class="pre">panels</span></code> Package</a><a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-abipy.panels"></span></div>
+<div class="section" id="module-abipy.panels.core">
+<span id="core-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal notranslate"><span class="pre">core</span></code> Module</a><a class="headerlink" href="#module-abipy.panels.core" title="Permalink to this headline">¶</a></h2>
+<p>“Base classes and mixins for AbiPy panels.</p>
+<dl class="function">
+<dt id="abipy.panels.core.gen_id">
+<code class="sig-prename descclassname">abipy.panels.core.</code><code class="sig-name descname">gen_id</code><span class="sig-paren">(</span><em class="sig-param">n=1</em>, <em class="sig-param">pre='uuid-'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/core.html#gen_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.core.gen_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate <code class="docutils literal notranslate"><span class="pre">n</span></code> universally unique identifiers prepended with <code class="docutils literal notranslate"><span class="pre">pre</span></code> string.
+Return string if n == 1 or list of strings if n &gt; 1</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.panels.core.sizing_mode_select">
+<code class="sig-prename descclassname">abipy.panels.core.</code><code class="sig-name descname">sizing_mode_select</code><span class="sig-paren">(</span><em class="sig-param">name='sizing_mode'</em>, <em class="sig-param">value='scale_both'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/core.html#sizing_mode_select"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.core.sizing_mode_select" title="Permalink to this definition">¶</a></dt>
+<dd><p>Widget to select the value of sizing_mode. See <a class="reference external" href="https://panel.holoviz.org/user_guide/Customization.html">https://panel.holoviz.org/user_guide/Customization.html</a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.panels.core.AbipyParameterized">
+<em class="property">class </em><code class="sig-prename descclassname">abipy.panels.core.</code><code class="sig-name descname">AbipyParameterized</code><span class="sig-paren">(</span><em class="sig-param">**params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/core.html#AbipyParameterized"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.core.AbipyParameterized" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">param.parameterized.Parameterized</span></code></p>
+<p>params(mpi_procs=Integer, verbose=Integer, name=String)
+[1;32mParameters of ‘AbipyParameterized’
+==================================
+[0m
+[1;31mParameters changed from their default values are marked in red.[0m
+[1;36mSoft bound values are marked in cyan.[0m
+C/V= Constant/Variable, RO/RW = ReadOnly/ReadWrite, AN=Allow None</p>
+<p>[1;34mName       Value   Type     Bounds   Mode [0m</p>
+<p>mpi_procs   1  Integer  (1, None)  V RW
+verbose     0  Integer  (0, None)  V RW</p>
+<p>[1;32mParameter docstrings:
+=====================[0m</p>
+<p>[1;34mmpi_procs: Number of MPI processes used when runnin Fortran code[0m
+[1;31mverbose:   Verbosity Level[0m</p>
+<dl class="attribute">
+<dt id="abipy.panels.core.AbipyParameterized.verbose">
+<code class="sig-name descname">verbose</code><em class="property"> = 0</em><a class="headerlink" href="#abipy.panels.core.AbipyParameterized.verbose" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.core.AbipyParameterized.mpi_procs">
+<code class="sig-name descname">mpi_procs</code><em class="property"> = 1</em><a class="headerlink" href="#abipy.panels.core.AbipyParameterized.mpi_procs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.core.AbipyParameterized.fig_kwargs">
+<code class="sig-name descname">fig_kwargs</code><a class="reference internal" href="../_modules/abipy/panels/core.html#AbipyParameterized.fig_kwargs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.core.AbipyParameterized.fig_kwargs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default arguments passed to AbiPy plot methods.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.core.AbipyParameterized.name">
+<code class="sig-name descname">name</code><em class="property"> = 'AbipyParameterized'</em><a class="headerlink" href="#abipy.panels.core.AbipyParameterized.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.core.AbipyParameterized.param">
+<code class="sig-name descname">param</code><em class="property"> = &lt;param.parameterized.Parameters object&gt;</em><a class="headerlink" href="#abipy.panels.core.AbipyParameterized.param" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.panels.core.PanelWithElectronBands">
+<em class="property">class </em><code class="sig-prename descclassname">abipy.panels.core.</code><code class="sig-name descname">PanelWithElectronBands</code><span class="sig-paren">(</span><em class="sig-param">**params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/core.html#PanelWithElectronBands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.core.PanelWithElectronBands" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#abipy.panels.core.AbipyParameterized" title="abipy.panels.core.AbipyParameterized"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.panels.core.AbipyParameterized</span></code></a></p>
+<p>params(mpi_procs=Integer, verbose=Integer, name=String)
+[1;32mParameters of ‘PanelWithElectronBands’
+======================================
+[0m
+[1;31mParameters changed from their default values are marked in red.[0m
+[1;36mSoft bound values are marked in cyan.[0m
+C/V= Constant/Variable, RO/RW = ReadOnly/ReadWrite, AN=Allow None</p>
+<p>[1;34mName       Value   Type     Bounds   Mode [0m</p>
+<p>mpi_procs   1  Integer  (1, None)  V RW
+verbose     0  Integer  (0, None)  V RW</p>
+<p>[1;32mParameter docstrings:
+=====================[0m</p>
+<p>[1;34mmpi_procs: Number of MPI processes used when runnin Fortran code[0m
+[1;31mverbose:   Verbosity Level[0m</p>
+<dl class="attribute">
+<dt id="abipy.panels.core.PanelWithElectronBands.with_gaps">
+<code class="sig-name descname">with_gaps</code><em class="property"> = Checkbox(name='Show gaps')</em><a class="headerlink" href="#abipy.panels.core.PanelWithElectronBands.with_gaps" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.core.PanelWithElectronBands.set_fermie_to_vbm">
+<code class="sig-name descname">set_fermie_to_vbm</code><em class="property"> = Checkbox(name='Set Fermie to VBM')</em><a class="headerlink" href="#abipy.panels.core.PanelWithElectronBands.set_fermie_to_vbm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.core.PanelWithElectronBands.plot_ebands_btn">
+<code class="sig-name descname">plot_ebands_btn</code><em class="property"> = Button(button_type='primary', name='Plot e-bands')</em><a class="headerlink" href="#abipy.panels.core.PanelWithElectronBands.plot_ebands_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.core.PanelWithElectronBands.edos_method">
+<code class="sig-name descname">edos_method</code><em class="property"> = Select(name='e-DOS method', options=['gaussian', 'tetra'], value='gaussian')</em><a class="headerlink" href="#abipy.panels.core.PanelWithElectronBands.edos_method" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.core.PanelWithElectronBands.edos_step">
+<code class="sig-name descname">edos_step</code><em class="property"> = Spinner(name='e-DOS step (eV)', start=1e-06, step=0.05, value=0.1)</em><a class="headerlink" href="#abipy.panels.core.PanelWithElectronBands.edos_step" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.core.PanelWithElectronBands.edos_width">
+<code class="sig-name descname">edos_width</code><em class="property"> = Spinner(name='e-DOS Gaussian b..., start=1e-06, step=0.05, value=0.2)</em><a class="headerlink" href="#abipy.panels.core.PanelWithElectronBands.edos_width" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.core.PanelWithElectronBands.plot_edos_btn">
+<code class="sig-name descname">plot_edos_btn</code><em class="property"> = Button(button_type='primary', name='Plot e-DOS')</em><a class="headerlink" href="#abipy.panels.core.PanelWithElectronBands.plot_edos_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.core.PanelWithElectronBands.fs_viewer">
+<code class="sig-name descname">fs_viewer</code><em class="property"> = Select(name='FS viewer', options=['matplotlib', ...], value='matplotlib')</em><a class="headerlink" href="#abipy.panels.core.PanelWithElectronBands.fs_viewer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.core.PanelWithElectronBands.plot_fermi_surface_btn">
+<code class="sig-name descname">plot_fermi_surface_btn</code><em class="property"> = Button(button_type='primary', name='Plot Fermi surface')</em><a class="headerlink" href="#abipy.panels.core.PanelWithElectronBands.plot_fermi_surface_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.core.PanelWithElectronBands.get_plot_ebands_widgets">
+<code class="sig-name descname">get_plot_ebands_widgets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/core.html#PanelWithElectronBands.get_plot_ebands_widgets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.core.PanelWithElectronBands.get_plot_ebands_widgets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Widgets to plot ebands.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.core.PanelWithElectronBands.on_plot_ebands_btn">
+<code class="sig-name descname">on_plot_ebands_btn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/core.html#PanelWithElectronBands.on_plot_ebands_btn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.core.PanelWithElectronBands.on_plot_ebands_btn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Button triggering ebands plot.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.core.PanelWithElectronBands.get_plot_edos_widgets">
+<code class="sig-name descname">get_plot_edos_widgets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/core.html#PanelWithElectronBands.get_plot_edos_widgets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.core.PanelWithElectronBands.get_plot_edos_widgets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Widgets to compute e-DOS.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.core.PanelWithElectronBands.on_plot_edos_btn">
+<code class="sig-name descname">on_plot_edos_btn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/core.html#PanelWithElectronBands.on_plot_edos_btn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.core.PanelWithElectronBands.on_plot_edos_btn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Button triggering edos plot.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.core.PanelWithElectronBands.get_plot_fermi_surface_widgets">
+<code class="sig-name descname">get_plot_fermi_surface_widgets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/core.html#PanelWithElectronBands.get_plot_fermi_surface_widgets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.core.PanelWithElectronBands.get_plot_fermi_surface_widgets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Widgets to compute e-DOS.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.core.PanelWithElectronBands.on_plot_fermi_surface_btn">
+<code class="sig-name descname">on_plot_fermi_surface_btn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/core.html#PanelWithElectronBands.on_plot_fermi_surface_btn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.core.PanelWithElectronBands.on_plot_fermi_surface_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.core.PanelWithElectronBands.name">
+<code class="sig-name descname">name</code><em class="property"> = 'PanelWithElectronBands'</em><a class="headerlink" href="#abipy.panels.core.PanelWithElectronBands.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.core.PanelWithElectronBands.param">
+<code class="sig-name descname">param</code><em class="property"> = &lt;param.parameterized.Parameters object&gt;</em><a class="headerlink" href="#abipy.panels.core.PanelWithElectronBands.param" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.panels.core.BaseRobotPanel">
+<em class="property">class </em><code class="sig-prename descclassname">abipy.panels.core.</code><code class="sig-name descname">BaseRobotPanel</code><span class="sig-paren">(</span><em class="sig-param">**params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/core.html#BaseRobotPanel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.core.BaseRobotPanel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#abipy.panels.core.AbipyParameterized" title="abipy.panels.core.AbipyParameterized"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.panels.core.AbipyParameterized</span></code></a></p>
+<p>params(mpi_procs=Integer, verbose=Integer, name=String)
+pass
+[1;32mParameters of ‘BaseRobotPanel’
+==============================
+[0m
+[1;31mParameters changed from their default values are marked in red.[0m
+[1;36mSoft bound values are marked in cyan.[0m
+C/V= Constant/Variable, RO/RW = ReadOnly/ReadWrite, AN=Allow None</p>
+<p>[1;34mName       Value   Type     Bounds   Mode [0m</p>
+<p>mpi_procs   1  Integer  (1, None)  V RW
+verbose     0  Integer  (0, None)  V RW</p>
+<p>[1;32mParameter docstrings:
+=====================[0m</p>
+<p>[1;34mmpi_procs: Number of MPI processes used when runnin Fortran code[0m
+[1;31mverbose:   Verbosity Level[0m</p>
+<dl class="attribute">
+<dt id="abipy.panels.core.BaseRobotPanel.name">
+<code class="sig-name descname">name</code><em class="property"> = 'BaseRobotPanel'</em><a class="headerlink" href="#abipy.panels.core.BaseRobotPanel.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.core.BaseRobotPanel.param">
+<code class="sig-name descname">param</code><em class="property"> = &lt;param.parameterized.Parameters object&gt;</em><a class="headerlink" href="#abipy.panels.core.BaseRobotPanel.param" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.panels.core.PanelWithEbandsRobot">
+<em class="property">class </em><code class="sig-prename descclassname">abipy.panels.core.</code><code class="sig-name descname">PanelWithEbandsRobot</code><span class="sig-paren">(</span><em class="sig-param">**params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/core.html#PanelWithEbandsRobot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.core.PanelWithEbandsRobot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#abipy.panels.core.BaseRobotPanel" title="abipy.panels.core.BaseRobotPanel"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.panels.core.BaseRobotPanel</span></code></a></p>
+<p>params(mpi_procs=Integer, verbose=Integer, name=String)</p>
+<blockquote>
+<div><p>Mixin class for panels with a robot that owns a list of of <a class="reference internal" href="electrons_api.html#abipy.electrons.ebands.ElectronBands" title="abipy.electrons.ebands.ElectronBands"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.electrons.ebands.ElectronBands</span></code></a></p>
+</div></blockquote>
+<p>[0m
+[1;31mParameters changed from their default values are marked in red.[0m
+[1;36mSoft bound values are marked in cyan.[0m
+C/V= Constant/Variable, RO/RW = ReadOnly/ReadWrite, AN=Allow None</p>
+<p>[1;34mName       Value   Type     Bounds   Mode [0m</p>
+<p>mpi_procs   1  Integer  (1, None)  V RW
+verbose     0  Integer  (0, None)  V RW</p>
+<p>[1;32mParameter docstrings:
+=====================[0m</p>
+<p>[1;34mmpi_procs: Number of MPI processes used when runnin Fortran code[0m
+[1;31mverbose:   Verbosity Level[0m</p>
+<dl class="attribute">
+<dt id="abipy.panels.core.PanelWithEbandsRobot.ebands_plotter_mode">
+<code class="sig-name descname">ebands_plotter_mode</code><em class="property"> = Select(name='Plot Mode', options=['gridplot', 'combiplot', ...], value='gridplot')</em><a class="headerlink" href="#abipy.panels.core.PanelWithEbandsRobot.ebands_plotter_mode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.core.PanelWithEbandsRobot.ebands_plotter_btn">
+<code class="sig-name descname">ebands_plotter_btn</code><em class="property"> = Button(button_type='primary', name='Plot')</em><a class="headerlink" href="#abipy.panels.core.PanelWithEbandsRobot.ebands_plotter_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.core.PanelWithEbandsRobot.ebands_df_checkbox">
+<code class="sig-name descname">ebands_df_checkbox</code><em class="property"> = Checkbox(name='With Ebands DataFrame')</em><a class="headerlink" href="#abipy.panels.core.PanelWithEbandsRobot.ebands_df_checkbox" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.core.PanelWithEbandsRobot.edos_plotter_mode">
+<code class="sig-name descname">edos_plotter_mode</code><em class="property"> = Select(name='Plot Mode', options=['gridplot', 'combiplot'], value='gridplot')</em><a class="headerlink" href="#abipy.panels.core.PanelWithEbandsRobot.edos_plotter_mode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.core.PanelWithEbandsRobot.edos_plotter_btn">
+<code class="sig-name descname">edos_plotter_btn</code><em class="property"> = Button(button_type='primary', name='Plot')</em><a class="headerlink" href="#abipy.panels.core.PanelWithEbandsRobot.edos_plotter_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.core.PanelWithEbandsRobot.get_ebands_plotter_widgets">
+<code class="sig-name descname">get_ebands_plotter_widgets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/core.html#PanelWithEbandsRobot.get_ebands_plotter_widgets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.core.PanelWithEbandsRobot.get_ebands_plotter_widgets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.core.PanelWithEbandsRobot.on_ebands_plotter_btn">
+<code class="sig-name descname">on_ebands_plotter_btn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/core.html#PanelWithEbandsRobot.on_ebands_plotter_btn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.core.PanelWithEbandsRobot.on_ebands_plotter_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.core.PanelWithEbandsRobot.get_edos_plotter_widgets">
+<code class="sig-name descname">get_edos_plotter_widgets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/core.html#PanelWithEbandsRobot.get_edos_plotter_widgets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.core.PanelWithEbandsRobot.get_edos_plotter_widgets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.core.PanelWithEbandsRobot.on_edos_plotter_btn">
+<code class="sig-name descname">on_edos_plotter_btn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/core.html#PanelWithEbandsRobot.on_edos_plotter_btn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.core.PanelWithEbandsRobot.on_edos_plotter_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.core.PanelWithEbandsRobot.name">
+<code class="sig-name descname">name</code><em class="property"> = 'PanelWithEbandsRobot'</em><a class="headerlink" href="#abipy.panels.core.PanelWithEbandsRobot.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.core.PanelWithEbandsRobot.param">
+<code class="sig-name descname">param</code><em class="property"> = &lt;param.parameterized.Parameters object&gt;</em><a class="headerlink" href="#abipy.panels.core.PanelWithEbandsRobot.param" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-abipy.panels.ddb">
+<span id="ddb-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ddb</span></code> Module</a><a class="headerlink" href="#module-abipy.panels.ddb" title="Permalink to this headline">¶</a></h2>
+<p>“Panels for DDB files.</p>
+<dl class="class">
+<dt id="abipy.panels.ddb.DdbFilePanel">
+<em class="property">class </em><code class="sig-prename descclassname">abipy.panels.ddb.</code><code class="sig-name descname">DdbFilePanel</code><span class="sig-paren">(</span><em class="sig-param">ddb</em>, <em class="sig-param">**params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/ddb.html#DdbFilePanel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.ddb.DdbFilePanel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#abipy.panels.core.AbipyParameterized" title="abipy.panels.core.AbipyParameterized"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.panels.core.AbipyParameterized</span></code></a></p>
+<p>params(asr=ObjectSelector, chneut=ObjectSelector, dipdip=ObjectSelector, dos_method=ObjectSelector, gamma_ev=Number, lo_to_splitting=ObjectSelector, ndivsm=Integer, nqsmall=Integer, units=ObjectSelector, mpi_procs=Integer, verbose=Integer, name=String)</p>
+<blockquote>
+<div><p>A panel to analyze a <a class="reference internal" href="dfpt_api.html#abipy.dfpt.ddb.DdbFile" title="abipy.dfpt.ddb.DdbFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.dfpt.ddb.DdbFile</span></code></a>.
+Provides widgets to invoke anaddb and visualize the results.</p>
+</div></blockquote>
+<p>[0m
+[1;31mParameters changed from their default values are marked in red.[0m
+[1;36mSoft bound values are marked in cyan.[0m
+C/V= Constant/Variable, RO/RW = ReadOnly/ReadWrite, AN=Allow None</p>
+<p>[1;34mName                 Value          Type           Bounds     Mode [0m</p>
+<p>asr                    2       ObjectSelector                 V RW
+chneut                 1       ObjectSelector                 V RW
+dipdip                 1       ObjectSelector                 V RW
+dos_method          ‘tetra’    ObjectSelector                 V RW
+gamma_ev             0.0001        Number      (1e-20, None)  V RW
+lo_to_splitting   ‘automatic’  ObjectSelector                 V RW
+mpi_procs              1          Integer        (1, None)    V RW
+ndivsm                 2          Integer        (1, None)    V RW
+nqsmall                10         Integer        (1, None)    V RW
+units                 ‘eV’     ObjectSelector                 V RW
+verbose                0          Integer        (0, None)    V RW</p>
+<p>[1;32mParameter docstrings:
+=====================[0m</p>
+<p>[1;34masr:             Abinit variable[0m
+[1;31mchneut:          Abinit variable[0m
+[1;34mdipdip:          Abinit variable[0m
+[1;31mdos_method:      Integration method for DOS[0m
+[1;34mgamma_ev:        Phonon linewidth in eV[0m
+[1;31mlo_to_splitting: &lt; No docstring available &gt;[0m
+[1;34mmpi_procs:       Number of MPI processes used in anaddb[0m
+[1;31mndivsm:          Number of divisions for smallest segment in q-path[0m
+[1;34mnqsmall:         Number of divisions for smallest vector to generate Q-mesh[0m
+[1;31munits:           Energy units[0m
+[1;34mverbose:         Verbosity Level[0m</p>
+<dl class="attribute">
+<dt id="abipy.panels.ddb.DdbFilePanel.verbose">
+<code class="sig-name descname">verbose</code><em class="property"> = 0</em><a class="headerlink" href="#abipy.panels.ddb.DdbFilePanel.verbose" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.ddb.DdbFilePanel.mpi_procs">
+<code class="sig-name descname">mpi_procs</code><em class="property"> = 1</em><a class="headerlink" href="#abipy.panels.ddb.DdbFilePanel.mpi_procs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.ddb.DdbFilePanel.nqsmall">
+<code class="sig-name descname">nqsmall</code><em class="property"> = 10</em><a class="headerlink" href="#abipy.panels.ddb.DdbFilePanel.nqsmall" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.ddb.DdbFilePanel.ndivsm">
+<code class="sig-name descname">ndivsm</code><em class="property"> = 2</em><a class="headerlink" href="#abipy.panels.ddb.DdbFilePanel.ndivsm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.ddb.DdbFilePanel.lo_to_splitting">
+<code class="sig-name descname">lo_to_splitting</code><em class="property"> = 'automatic'</em><a class="headerlink" href="#abipy.panels.ddb.DdbFilePanel.lo_to_splitting" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.ddb.DdbFilePanel.chneut">
+<code class="sig-name descname">chneut</code><em class="property"> = 1</em><a class="headerlink" href="#abipy.panels.ddb.DdbFilePanel.chneut" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.ddb.DdbFilePanel.dipdip">
+<code class="sig-name descname">dipdip</code><em class="property"> = 1</em><a class="headerlink" href="#abipy.panels.ddb.DdbFilePanel.dipdip" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.ddb.DdbFilePanel.asr">
+<code class="sig-name descname">asr</code><em class="property"> = 2</em><a class="headerlink" href="#abipy.panels.ddb.DdbFilePanel.asr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.ddb.DdbFilePanel.units">
+<code class="sig-name descname">units</code><em class="property"> = 'eV'</em><a class="headerlink" href="#abipy.panels.ddb.DdbFilePanel.units" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.ddb.DdbFilePanel.dos_method">
+<code class="sig-name descname">dos_method</code><em class="property"> = 'tetra'</em><a class="headerlink" href="#abipy.panels.ddb.DdbFilePanel.dos_method" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.ddb.DdbFilePanel.temp_range">
+<code class="sig-name descname">temp_range</code><em class="property"> = RangeSlider(end=1000, name='T-range', step=20, value=(0.0, 300.0))</em><a class="headerlink" href="#abipy.panels.ddb.DdbFilePanel.temp_range" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.ddb.DdbFilePanel.gamma_ev">
+<code class="sig-name descname">gamma_ev</code><em class="property"> = 0.0001</em><a class="headerlink" href="#abipy.panels.ddb.DdbFilePanel.gamma_ev" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.ddb.DdbFilePanel.w_range">
+<code class="sig-name descname">w_range</code><em class="property"> = RangeSlider(name='Frequency range (eV)', step=0.001, value=(0.0, 0.1))</em><a class="headerlink" href="#abipy.panels.ddb.DdbFilePanel.w_range" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.ddb.DdbFilePanel.get_epsinf_btn">
+<code class="sig-name descname">get_epsinf_btn</code><em class="property"> = Button(button_type='primary', name='Compute')</em><a class="headerlink" href="#abipy.panels.ddb.DdbFilePanel.get_epsinf_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.ddb.DdbFilePanel.plot_phbands_btn">
+<code class="sig-name descname">plot_phbands_btn</code><em class="property"> = Button(button_type='primary', name='Plot Bands and DOS')</em><a class="headerlink" href="#abipy.panels.ddb.DdbFilePanel.plot_phbands_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.ddb.DdbFilePanel.plot_eps0w_btn">
+<code class="sig-name descname">plot_eps0w_btn</code><em class="property"> = Button(button_type='primary', name='Plot eps0(omega)')</em><a class="headerlink" href="#abipy.panels.ddb.DdbFilePanel.plot_eps0w_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.ddb.DdbFilePanel.plot_vsound_btn">
+<code class="sig-name descname">plot_vsound_btn</code><em class="property"> = Button(button_type='primary', name='Calculate speed o...)</em><a class="headerlink" href="#abipy.panels.ddb.DdbFilePanel.plot_vsound_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.ddb.DdbFilePanel.get_epsinf">
+<code class="sig-name descname">get_epsinf</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/ddb.html#DdbFilePanel.get_epsinf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.ddb.DdbFilePanel.get_epsinf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute eps_infinity and Born effective charges from DDB.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.ddb.DdbFilePanel.plot_eps0w">
+<code class="sig-name descname">plot_eps0w</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/ddb.html#DdbFilePanel.plot_eps0w"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.ddb.DdbFilePanel.plot_eps0w" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute eps0(omega) from DDB and plot the results.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.ddb.DdbFilePanel.plot_phbands_and_phdos">
+<code class="sig-name descname">plot_phbands_and_phdos</code><span class="sig-paren">(</span><em class="sig-param">event=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/ddb.html#DdbFilePanel.plot_phbands_and_phdos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.ddb.DdbFilePanel.plot_phbands_and_phdos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute phonon bands and ph-DOSes from DDB and plot the results.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.ddb.DdbFilePanel.plot_vsound">
+<code class="sig-name descname">plot_vsound</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/ddb.html#DdbFilePanel.plot_vsound"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.ddb.DdbFilePanel.plot_vsound" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the speed of sound by fitting phonon frequencies
+along selected directions by linear least-squares fit.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.ddb.DdbFilePanel.get_panel">
+<code class="sig-name descname">get_panel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/ddb.html#DdbFilePanel.get_panel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.ddb.DdbFilePanel.get_panel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return tabs with widgets to interact with the DDB file.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.ddb.DdbFilePanel.name">
+<code class="sig-name descname">name</code><em class="property"> = 'DdbFilePanel'</em><a class="headerlink" href="#abipy.panels.ddb.DdbFilePanel.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.ddb.DdbFilePanel.param">
+<code class="sig-name descname">param</code><em class="property"> = &lt;param.parameterized.Parameters object&gt;</em><a class="headerlink" href="#abipy.panels.ddb.DdbFilePanel.param" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-abipy.panels.flows">
+<span id="flows-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal notranslate"><span class="pre">flows</span></code> Module</a><a class="headerlink" href="#module-abipy.panels.flows" title="Permalink to this headline">¶</a></h2>
+<p>“Panels for AbiPy flows.</p>
+<dl class="class">
+<dt id="abipy.panels.flows.FlowPanel">
+<em class="property">class </em><code class="sig-prename descclassname">abipy.panels.flows.</code><code class="sig-name descname">FlowPanel</code><span class="sig-paren">(</span><em class="sig-param">flow</em>, <em class="sig-param">**params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/flows.html#FlowPanel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.flows.FlowPanel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#abipy.panels.core.AbipyParameterized" title="abipy.panels.core.AbipyParameterized"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.panels.core.AbipyParameterized</span></code></a></p>
+<p>params(mpi_procs=Integer, verbose=Integer, name=String)</p>
+<p>[0m
+[1;31mParameters changed from their default values are marked in red.[0m
+[1;36mSoft bound values are marked in cyan.[0m
+C/V= Constant/Variable, RO/RW = ReadOnly/ReadWrite, AN=Allow None</p>
+<p>[1;34mName       Value   Type     Bounds   Mode [0m</p>
+<p>mpi_procs   1  Integer  (1, None)  V RW
+verbose     0  Integer  (0, None)  V RW</p>
+<p>[1;32mParameter docstrings:
+=====================[0m</p>
+<p>[1;34mmpi_procs: Number of MPI processes used when runnin Fortran code[0m
+[1;31mverbose:   Verbosity Level[0m</p>
+<dl class="attribute">
+<dt id="abipy.panels.flows.FlowPanel.verbose">
+<code class="sig-name descname">verbose</code><em class="property"> = IntSlider(end=10)</em><a class="headerlink" href="#abipy.panels.flows.FlowPanel.verbose" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.flows.FlowPanel.engine">
+<code class="sig-name descname">engine</code><em class="property"> = Select(options=['dot', 'neato', ...], value='fdp')</em><a class="headerlink" href="#abipy.panels.flows.FlowPanel.engine" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.flows.FlowPanel.dirtree">
+<code class="sig-name descname">dirtree</code><em class="property"> = Checkbox(name='Dirtree')</em><a class="headerlink" href="#abipy.panels.flows.FlowPanel.dirtree" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.flows.FlowPanel.graphviz_btn">
+<code class="sig-name descname">graphviz_btn</code><em class="property"> = Button(button_type='primary', name='Show graph')</em><a class="headerlink" href="#abipy.panels.flows.FlowPanel.graphviz_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.flows.FlowPanel.status_btn">
+<code class="sig-name descname">status_btn</code><em class="property"> = Button(button_type='primary', name='Show status')</em><a class="headerlink" href="#abipy.panels.flows.FlowPanel.status_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.flows.FlowPanel.history_btn">
+<code class="sig-name descname">history_btn</code><em class="property"> = Button(button_type='primary', name='Show history')</em><a class="headerlink" href="#abipy.panels.flows.FlowPanel.history_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.flows.FlowPanel.debug_btn">
+<code class="sig-name descname">debug_btn</code><em class="property"> = Button(button_type='primary', name='Debug')</em><a class="headerlink" href="#abipy.panels.flows.FlowPanel.debug_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.flows.FlowPanel.events_btn">
+<code class="sig-name descname">events_btn</code><em class="property"> = Button(button_type='primary', name='Events')</em><a class="headerlink" href="#abipy.panels.flows.FlowPanel.events_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.flows.FlowPanel.corrections_btn">
+<code class="sig-name descname">corrections_btn</code><em class="property"> = Button(button_type='primary', name='Corrections')</em><a class="headerlink" href="#abipy.panels.flows.FlowPanel.corrections_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.flows.FlowPanel.handlers_btn">
+<code class="sig-name descname">handlers_btn</code><em class="property"> = Button(button_type='primary', name='Handlers')</em><a class="headerlink" href="#abipy.panels.flows.FlowPanel.handlers_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.flows.FlowPanel.vars_text">
+<code class="sig-name descname">vars_text</code><em class="property"> = TextInput(name='Abivars', placeholder='Enter list of v...)</em><a class="headerlink" href="#abipy.panels.flows.FlowPanel.vars_text" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.flows.FlowPanel.vars_btn">
+<code class="sig-name descname">vars_btn</code><em class="property"> = Button(button_type='primary', name='Show Variables')</em><a class="headerlink" href="#abipy.panels.flows.FlowPanel.vars_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.flows.FlowPanel.dims_btn">
+<code class="sig-name descname">dims_btn</code><em class="property"> = Button(button_type='primary', name='Show Dimensions')</em><a class="headerlink" href="#abipy.panels.flows.FlowPanel.dims_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.flows.FlowPanel.structures_btn">
+<code class="sig-name descname">structures_btn</code><em class="property"> = Button(button_type='primary', name='Show Structures')</em><a class="headerlink" href="#abipy.panels.flows.FlowPanel.structures_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.flows.FlowPanel.structures_io_checkbox">
+<code class="sig-name descname">structures_io_checkbox</code><em class="property"> = CheckBoxGroup(inline=True, name='Input/Output Structure', options=['input', 'output'], value=['output'])</em><a class="headerlink" href="#abipy.panels.flows.FlowPanel.structures_io_checkbox" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.flows.FlowPanel.ebands_btn">
+<code class="sig-name descname">ebands_btn</code><em class="property"> = Button(button_type='primary', name='Show Ebands')</em><a class="headerlink" href="#abipy.panels.flows.FlowPanel.ebands_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.flows.FlowPanel.ebands_plotter_mode">
+<code class="sig-name descname">ebands_plotter_mode</code><em class="property"> = Select(name='Plot Mode', options=['gridplot', 'combiplot', ...], value='gridplot')</em><a class="headerlink" href="#abipy.panels.flows.FlowPanel.ebands_plotter_mode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.flows.FlowPanel.ebands_plotter_btn">
+<code class="sig-name descname">ebands_plotter_btn</code><em class="property"> = Button(button_type='primary', name='Plot')</em><a class="headerlink" href="#abipy.panels.flows.FlowPanel.ebands_plotter_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.flows.FlowPanel.ebands_df_checkbox">
+<code class="sig-name descname">ebands_df_checkbox</code><em class="property"> = Checkbox(name='With Ebands DataFrame')</em><a class="headerlink" href="#abipy.panels.flows.FlowPanel.ebands_df_checkbox" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.flows.FlowPanel.ebands_ksamp_checkbox">
+<code class="sig-name descname">ebands_ksamp_checkbox</code><em class="property"> = CheckBoxGroup(inline=True, name='Input/Output Structure', options=['with_path', 'with_ibz'], value=['with_path', 'with_ibz'])</em><a class="headerlink" href="#abipy.panels.flows.FlowPanel.ebands_ksamp_checkbox" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.flows.FlowPanel.on_status_btn">
+<code class="sig-name descname">on_status_btn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/flows.html#FlowPanel.on_status_btn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.flows.FlowPanel.on_status_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.flows.FlowPanel.on_history_btn">
+<code class="sig-name descname">on_history_btn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/flows.html#FlowPanel.on_history_btn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.flows.FlowPanel.on_history_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.flows.FlowPanel.on_graphviz_btn">
+<code class="sig-name descname">on_graphviz_btn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/flows.html#FlowPanel.on_graphviz_btn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.flows.FlowPanel.on_graphviz_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.flows.FlowPanel.on_debug_btn">
+<code class="sig-name descname">on_debug_btn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/flows.html#FlowPanel.on_debug_btn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.flows.FlowPanel.on_debug_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.flows.FlowPanel.on_events_btn">
+<code class="sig-name descname">on_events_btn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/flows.html#FlowPanel.on_events_btn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.flows.FlowPanel.on_events_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.flows.FlowPanel.on_corrections_btn">
+<code class="sig-name descname">on_corrections_btn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/flows.html#FlowPanel.on_corrections_btn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.flows.FlowPanel.on_corrections_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.flows.FlowPanel.on_handlers_btn">
+<code class="sig-name descname">on_handlers_btn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/flows.html#FlowPanel.on_handlers_btn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.flows.FlowPanel.on_handlers_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.flows.FlowPanel.on_vars_btn">
+<code class="sig-name descname">on_vars_btn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/flows.html#FlowPanel.on_vars_btn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.flows.FlowPanel.on_vars_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.flows.FlowPanel.on_dims_btn">
+<code class="sig-name descname">on_dims_btn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/flows.html#FlowPanel.on_dims_btn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.flows.FlowPanel.on_dims_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.flows.FlowPanel.on_structures_btn">
+<code class="sig-name descname">on_structures_btn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/flows.html#FlowPanel.on_structures_btn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.flows.FlowPanel.on_structures_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.flows.FlowPanel.on_ebands_btn">
+<code class="sig-name descname">on_ebands_btn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/flows.html#FlowPanel.on_ebands_btn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.flows.FlowPanel.on_ebands_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.flows.FlowPanel.get_panel">
+<code class="sig-name descname">get_panel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/flows.html#FlowPanel.get_panel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.flows.FlowPanel.get_panel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return tabs with widgets to interact with the flow.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.flows.FlowPanel.name">
+<code class="sig-name descname">name</code><em class="property"> = 'FlowPanel'</em><a class="headerlink" href="#abipy.panels.flows.FlowPanel.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.flows.FlowPanel.param">
+<code class="sig-name descname">param</code><em class="property"> = &lt;param.parameterized.Parameters object&gt;</em><a class="headerlink" href="#abipy.panels.flows.FlowPanel.param" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-abipy.panels.gsr">
+<span id="gsr-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal notranslate"><span class="pre">gsr</span></code> Module</a><a class="headerlink" href="#module-abipy.panels.gsr" title="Permalink to this headline">¶</a></h2>
+<p>Panels for interacting with GSR files.</p>
+<dl class="class">
+<dt id="abipy.panels.gsr.GsrFilePanel">
+<em class="property">class </em><code class="sig-prename descclassname">abipy.panels.gsr.</code><code class="sig-name descname">GsrFilePanel</code><span class="sig-paren">(</span><em class="sig-param">gsr</em>, <em class="sig-param">**params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/gsr.html#GsrFilePanel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.gsr.GsrFilePanel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#abipy.panels.core.PanelWithElectronBands" title="abipy.panels.core.PanelWithElectronBands"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.panels.core.PanelWithElectronBands</span></code></a></p>
+<p>params(mpi_procs=Integer, verbose=Integer, name=String)</p>
+<blockquote>
+<div><p>Panel with widgets to interact with a <a class="reference internal" href="electrons_api.html#abipy.electrons.gsr.GsrFile" title="abipy.electrons.gsr.GsrFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.electrons.gsr.GsrFile</span></code></a>.</p>
+</div></blockquote>
+<p>[0m
+[1;31mParameters changed from their default values are marked in red.[0m
+[1;36mSoft bound values are marked in cyan.[0m
+C/V= Constant/Variable, RO/RW = ReadOnly/ReadWrite, AN=Allow None</p>
+<p>[1;34mName       Value   Type     Bounds   Mode [0m</p>
+<p>mpi_procs   1  Integer  (1, None)  V RW
+verbose     0  Integer  (0, None)  V RW</p>
+<p>[1;32mParameter docstrings:
+=====================[0m</p>
+<p>[1;34mmpi_procs: Number of MPI processes used when runnin Fortran code[0m
+[1;31mverbose:   Verbosity Level[0m</p>
+<dl class="method">
+<dt id="abipy.panels.gsr.GsrFilePanel.ebands">
+<em class="property">property </em><code class="sig-name descname">ebands</code><a class="headerlink" href="#abipy.panels.gsr.GsrFilePanel.ebands" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="electrons_api.html#abipy.electrons.ebands.ElectronBands" title="abipy.electrons.ebands.ElectronBands"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.electrons.ebands.ElectronBands</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.gsr.GsrFilePanel.get_panel">
+<code class="sig-name descname">get_panel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/gsr.html#GsrFilePanel.get_panel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.gsr.GsrFilePanel.get_panel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return tabs with widgets to interact with the DDB file.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.gsr.GsrFilePanel.name">
+<code class="sig-name descname">name</code><em class="property"> = 'GsrFilePanel'</em><a class="headerlink" href="#abipy.panels.gsr.GsrFilePanel.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.gsr.GsrFilePanel.param">
+<code class="sig-name descname">param</code><em class="property"> = &lt;param.parameterized.Parameters object&gt;</em><a class="headerlink" href="#abipy.panels.gsr.GsrFilePanel.param" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.panels.gsr.GsrRobotPanel">
+<em class="property">class </em><code class="sig-prename descclassname">abipy.panels.gsr.</code><code class="sig-name descname">GsrRobotPanel</code><span class="sig-paren">(</span><em class="sig-param">robot</em>, <em class="sig-param">**params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/gsr.html#GsrRobotPanel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.gsr.GsrRobotPanel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#abipy.panels.core.PanelWithEbandsRobot" title="abipy.panels.core.PanelWithEbandsRobot"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.panels.core.PanelWithEbandsRobot</span></code></a></p>
+<p>params(mpi_procs=Integer, verbose=Integer, name=String)</p>
+<blockquote>
+<div><p>A Panel to interoperate with multiple GSR files.</p>
+</div></blockquote>
+<p>[0m
+[1;31mParameters changed from their default values are marked in red.[0m
+[1;36mSoft bound values are marked in cyan.[0m
+C/V= Constant/Variable, RO/RW = ReadOnly/ReadWrite, AN=Allow None</p>
+<p>[1;34mName       Value   Type     Bounds   Mode [0m</p>
+<p>mpi_procs   1  Integer  (1, None)  V RW
+verbose     0  Integer  (0, None)  V RW</p>
+<p>[1;32mParameter docstrings:
+=====================[0m</p>
+<p>[1;34mmpi_procs: Number of MPI processes used when runnin Fortran code[0m
+[1;31mverbose:   Verbosity Level[0m</p>
+<dl class="attribute">
+<dt id="abipy.panels.gsr.GsrRobotPanel.gsr_dataframe_btn">
+<code class="sig-name descname">gsr_dataframe_btn</code><em class="property"> = Button(button_type='primary', name='Compute')</em><a class="headerlink" href="#abipy.panels.gsr.GsrRobotPanel.gsr_dataframe_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.gsr.GsrRobotPanel.on_gsr_dataframe_btn">
+<code class="sig-name descname">on_gsr_dataframe_btn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/gsr.html#GsrRobotPanel.on_gsr_dataframe_btn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.gsr.GsrRobotPanel.on_gsr_dataframe_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.gsr.GsrRobotPanel.get_panel">
+<code class="sig-name descname">get_panel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/gsr.html#GsrRobotPanel.get_panel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.gsr.GsrRobotPanel.get_panel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return tabs with widgets to interact with the <code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.electrons.gsr.GsrRobot</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.gsr.GsrRobotPanel.name">
+<code class="sig-name descname">name</code><em class="property"> = 'GsrRobotPanel'</em><a class="headerlink" href="#abipy.panels.gsr.GsrRobotPanel.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.gsr.GsrRobotPanel.param">
+<code class="sig-name descname">param</code><em class="property"> = &lt;param.parameterized.Parameters object&gt;</em><a class="headerlink" href="#abipy.panels.gsr.GsrRobotPanel.param" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-abipy.panels.phonons">
+<span id="phonons-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal notranslate"><span class="pre">phonons</span></code> Module</a><a class="headerlink" href="#module-abipy.panels.phonons" title="Permalink to this headline">¶</a></h2>
+<p>“Panels for phonon-related objects.</p>
+<dl class="class">
+<dt id="abipy.panels.phonons.PhononBandsPlotterPanel">
+<em class="property">class </em><code class="sig-prename descclassname">abipy.panels.phonons.</code><code class="sig-name descname">PhononBandsPlotterPanel</code><span class="sig-paren">(</span><em class="sig-param">plotter</em>, <em class="sig-param">**params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/phonons.html#PhononBandsPlotterPanel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.phonons.PhononBandsPlotterPanel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#abipy.panels.core.AbipyParameterized" title="abipy.panels.core.AbipyParameterized"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.panels.core.AbipyParameterized</span></code></a></p>
+<p>params(mpi_procs=Integer, verbose=Integer, name=String)
+[1;32mParameters of ‘PhononBandsPlotterPanel’
+=======================================
+[0m
+[1;31mParameters changed from their default values are marked in red.[0m
+[1;36mSoft bound values are marked in cyan.[0m
+C/V= Constant/Variable, RO/RW = ReadOnly/ReadWrite, AN=Allow None</p>
+<p>[1;34mName       Value   Type     Bounds   Mode [0m</p>
+<p>mpi_procs   1  Integer  (1, None)  V RW
+verbose     0  Integer  (0, None)  V RW</p>
+<p>[1;32mParameter docstrings:
+=====================[0m</p>
+<p>[1;34mmpi_procs: Number of MPI processes used when runnin Fortran code[0m
+[1;31mverbose:   Verbosity Level[0m</p>
+<dl class="attribute">
+<dt id="abipy.panels.phonons.PhononBandsPlotterPanel.phbands_plotter_mode">
+<code class="sig-name descname">phbands_plotter_mode</code><em class="property"> = Select(name='Plot Mode', options=['gridplot', 'combiplot', ...], value='gridplot')</em><a class="headerlink" href="#abipy.panels.phonons.PhononBandsPlotterPanel.phbands_plotter_mode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.phonons.PhononBandsPlotterPanel.phbands_plotter_units">
+<code class="sig-name descname">phbands_plotter_units</code><em class="property"> = Select(name='Units', options=['eV', 'meV', ...], value='eV')</em><a class="headerlink" href="#abipy.panels.phonons.PhononBandsPlotterPanel.phbands_plotter_units" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.phonons.PhononBandsPlotterPanel.phbands_plotter_btn">
+<code class="sig-name descname">phbands_plotter_btn</code><em class="property"> = Button(button_type='primary', name='Plot')</em><a class="headerlink" href="#abipy.panels.phonons.PhononBandsPlotterPanel.phbands_plotter_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.phonons.PhononBandsPlotterPanel.on_phbands_plot_btn">
+<code class="sig-name descname">on_phbands_plot_btn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/phonons.html#PhononBandsPlotterPanel.on_phbands_plot_btn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.phonons.PhononBandsPlotterPanel.on_phbands_plot_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.phonons.PhononBandsPlotterPanel.get_panel">
+<code class="sig-name descname">get_panel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/phonons.html#PhononBandsPlotterPanel.get_panel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.phonons.PhononBandsPlotterPanel.get_panel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return tabs with widgets to interact with the <a class="reference internal" href="dfpt_api.html#abipy.dfpt.phonons.PhononBandsPlotter" title="abipy.dfpt.phonons.PhononBandsPlotter"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.dfpt.phonons.PhononBandsPlotter</span></code></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.phonons.PhononBandsPlotterPanel.name">
+<code class="sig-name descname">name</code><em class="property"> = 'PhononBandsPlotterPanel'</em><a class="headerlink" href="#abipy.panels.phonons.PhononBandsPlotterPanel.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.phonons.PhononBandsPlotterPanel.param">
+<code class="sig-name descname">param</code><em class="property"> = &lt;param.parameterized.Parameters object&gt;</em><a class="headerlink" href="#abipy.panels.phonons.PhononBandsPlotterPanel.param" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-abipy.panels.structure">
+<span id="structure-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal notranslate"><span class="pre">structure</span></code> Module</a><a class="headerlink" href="#module-abipy.panels.structure" title="Permalink to this headline">¶</a></h2>
+<p>“GUIs for structure.</p>
+<dl class="function">
+<dt id="abipy.panels.structure.html_with_copy_to_clipboard">
+<code class="sig-prename descclassname">abipy.panels.structure.</code><code class="sig-name descname">html_with_copy_to_clipboard</code><span class="sig-paren">(</span><em class="sig-param">html</em>, <em class="sig-param">btn_cls='btn-primary btn-sm'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/structure.html#html_with_copy_to_clipboard"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.structure.html_with_copy_to_clipboard" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="abipy.panels.structure.StructurePanel">
+<em class="property">class </em><code class="sig-prename descclassname">abipy.panels.structure.</code><code class="sig-name descname">StructurePanel</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">**params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/structure.html#StructurePanel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.structure.StructurePanel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#abipy.panels.core.AbipyParameterized" title="abipy.panels.core.AbipyParameterized"><code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.panels.core.AbipyParameterized</span></code></a></p>
+<p>params(mpi_procs=Integer, verbose=Integer, name=String)</p>
+<blockquote>
+<div><p>Panel with widgets to interact with an AbiPy Structure</p>
+</div></blockquote>
+<p>[0m
+[1;31mParameters changed from their default values are marked in red.[0m
+[1;36mSoft bound values are marked in cyan.[0m
+C/V= Constant/Variable, RO/RW = ReadOnly/ReadWrite, AN=Allow None</p>
+<p>[1;34mName       Value   Type     Bounds   Mode [0m</p>
+<p>mpi_procs   1  Integer  (1, None)  V RW
+verbose     0  Integer  (0, None)  V RW</p>
+<p>[1;32mParameter docstrings:
+=====================[0m</p>
+<p>[1;34mmpi_procs: Number of MPI processes used when runnin Fortran code[0m
+[1;31mverbose:   Verbosity Level[0m</p>
+<dl class="attribute">
+<dt id="abipy.panels.structure.StructurePanel.verbose">
+<code class="sig-name descname">verbose</code><em class="property"> = 0</em><a class="headerlink" href="#abipy.panels.structure.StructurePanel.verbose" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.structure.StructurePanel.output_format">
+<code class="sig-name descname">output_format</code><em class="property"> = Select(name='format', options=['abinit', 'cif', ...], value='abinit')</em><a class="headerlink" href="#abipy.panels.structure.StructurePanel.output_format" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.structure.StructurePanel.spglib_symprec">
+<code class="sig-name descname">spglib_symprec</code><em class="property"> = Spinner(name='symprec', start=0.0, step=0.01, value=0.01)</em><a class="headerlink" href="#abipy.panels.structure.StructurePanel.spglib_symprec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.structure.StructurePanel.spglib_angtol">
+<code class="sig-name descname">spglib_angtol</code><em class="property"> = Spinner(name='angtol', start=0.0, value=5)</em><a class="headerlink" href="#abipy.panels.structure.StructurePanel.spglib_angtol" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.structure.StructurePanel.kpath_format">
+<code class="sig-name descname">kpath_format</code><em class="property"> = Select(name='format', options=['abinit', 'siesta', ...], value='abinit')</em><a class="headerlink" href="#abipy.panels.structure.StructurePanel.kpath_format" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.structure.StructurePanel.line_density">
+<code class="sig-name descname">line_density</code><em class="property"> = Spinner(name='line density', start=0, step=5, value=10)</em><a class="headerlink" href="#abipy.panels.structure.StructurePanel.line_density" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.structure.StructurePanel.viewer_btn">
+<code class="sig-name descname">viewer_btn</code><em class="property"> = Button(button_type='primary', name='View structure')</em><a class="headerlink" href="#abipy.panels.structure.StructurePanel.viewer_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.structure.StructurePanel.viewer">
+<code class="sig-name descname">viewer</code><em class="property"> = Select(name='Viewer', options=['vesta', 'xcrysden', ...], value='vesta')</em><a class="headerlink" href="#abipy.panels.structure.StructurePanel.viewer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.structure.StructurePanel.mp_match_btn">
+<code class="sig-name descname">mp_match_btn</code><em class="property"> = Button(button_type='primary', name='Connect to Materials P...)</em><a class="headerlink" href="#abipy.panels.structure.StructurePanel.mp_match_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.structure.StructurePanel.gs_input_btn">
+<code class="sig-name descname">gs_input_btn</code><em class="property"> = Button(button_type='primary', name='Generate input')</em><a class="headerlink" href="#abipy.panels.structure.StructurePanel.gs_input_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.structure.StructurePanel.gs_type">
+<code class="sig-name descname">gs_type</code><em class="property"> = Select(name='GS type', options=['scf', 'relax'], value='scf')</em><a class="headerlink" href="#abipy.panels.structure.StructurePanel.gs_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.structure.StructurePanel.kppra">
+<code class="sig-name descname">kppra</code><em class="property"> = Spinner(name='kppra', start=0, step=1000, value=1000)</em><a class="headerlink" href="#abipy.panels.structure.StructurePanel.kppra" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.structure.StructurePanel.label2mode">
+<code class="sig-name descname">label2mode</code><em class="property"> = {'anti-ferromagnetic': 'afm', 'non-collinear with magnetism': 'spinor', 'non-collinear, no magnetism': 'spinor_nomag', 'polarized': 'polarized', 'unpolarized': 'unpolarized'}</em><a class="headerlink" href="#abipy.panels.structure.StructurePanel.label2mode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.structure.StructurePanel.spin_mode">
+<code class="sig-name descname">spin_mode</code><em class="property"> = Select(name='SpinMode', options=['unpolarized', ...], value='unpolarized')</em><a class="headerlink" href="#abipy.panels.structure.StructurePanel.spin_mode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.structure.StructurePanel.convert">
+<code class="sig-name descname">convert</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/structure.html#StructurePanel.convert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.structure.StructurePanel.convert" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.structure.StructurePanel.spglib_summary">
+<code class="sig-name descname">spglib_summary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/structure.html#StructurePanel.spglib_summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.structure.StructurePanel.spglib_summary" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.structure.StructurePanel.get_kpath">
+<code class="sig-name descname">get_kpath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/structure.html#StructurePanel.get_kpath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.structure.StructurePanel.get_kpath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.structure.StructurePanel.view">
+<code class="sig-name descname">view</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/structure.html#StructurePanel.view"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.structure.StructurePanel.view" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.structure.StructurePanel.on_gs_input_btn">
+<code class="sig-name descname">on_gs_input_btn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/structure.html#StructurePanel.on_gs_input_btn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.structure.StructurePanel.on_gs_input_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.structure.StructurePanel.on_mp_match_btn">
+<code class="sig-name descname">on_mp_match_btn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/structure.html#StructurePanel.on_mp_match_btn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.structure.StructurePanel.on_mp_match_btn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.panels.structure.StructurePanel.get_panel">
+<code class="sig-name descname">get_panel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/panels/structure.html#StructurePanel.get_panel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.panels.structure.StructurePanel.get_panel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build panel with widgets to interact with the structure either in a notebook or in a bokeh app</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.structure.StructurePanel.name">
+<code class="sig-name descname">name</code><em class="property"> = 'StructurePanel'</em><a class="headerlink" href="#abipy.panels.structure.StructurePanel.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.panels.structure.StructurePanel.param">
+<code class="sig-name descname">param</code><em class="property"> = &lt;param.parameterized.Parameters object&gt;</em><a class="headerlink" href="#abipy.panels.structure.StructurePanel.param" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
+      Last updated on May 29, 2020.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

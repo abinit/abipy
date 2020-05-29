@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Flow to compute e-ph scattering potentials &#8212; abipy 0.8.0 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="G0W0 convergence study" href="run_gwconv_ecuteps.html" />
+    <link rel="prev" title="Flow for E-PH calculations" href="run_eph_al.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../zzbiblio.html">Bibliography</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../graphical_interface.html">Graphical interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../postprocessing_howto.html">Post-processing How-To</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documenting AbiPy</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">Flow to compute e-ph scattering potentials</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="run_eph_al.html" title="Previous Chapter: Flow for E-PH calculations"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Flow for E-PH...</span>
+    </a>
+  </li>
+  <li>
+    <a href="run_gwconv_ecuteps.html" title="Next Chapter: G0W0 convergence study"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">G0W0 converge... &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/flow_gallery/run_eph_pot.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <div class="sphx-glr-download-link-note admonition note">
+<p class="admonition-title">Note</p>
+<p>Click <a class="reference internal" href="#sphx-glr-download-flow-gallery-run-eph-pot-py"><span class="std std-ref">here</span></a> to download the full example code</p>
+</div>
+<div class="sphx-glr-example-title section" id="flow-to-compute-e-ph-scattering-potentials">
+<span id="sphx-glr-flow-gallery-run-eph-pot-py"></span><h1>Flow to compute e-ph scattering potentials<a class="headerlink" href="#flow-to-compute-e-ph-scattering-potentials" title="Permalink to this headline">¶</a></h1>
+<p>This example shows how to compute e-ph scattering potentials
+along a q-path, merge the POT files in the DVDB file and use the
+DVDB and the DDB file to analyze the average over the unit cell of the
+periodic part as a function of q</p>
+<img alt="../_images/sphx_glr_run_eph_pot_001.png" class="sphx-glr-single-img" src="../_images/sphx_glr_run_eph_pot_001.png" />
+<p class="sphx-glr-script-out">Out:</p>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+  plt.show()
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">abipy.abilab</span> <span class="k">as</span> <span class="nn">abilab</span>
+<span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
+
+<span class="kn">from</span> <span class="nn">abipy</span> <span class="kn">import</span> <span class="n">flowtk</span>
+
+
+<span class="k">def</span> <span class="nf">make_scf_input</span><span class="p">(</span><span class="n">ngkpt</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function constructs the input file for the GS calculation:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">structure</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">angdeg</span><span class="o">=</span><span class="mi">3</span><span class="o">*</span><span class="p">[</span><span class="mf">60.0</span><span class="p">],</span>
+        <span class="n">acell</span><span class="o">=</span><span class="mi">3</span><span class="o">*</span><span class="p">[</span><span class="mf">7.1992351952</span><span class="p">],</span>
+        <span class="n">natom</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">ntypat</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">typat</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
+        <span class="n">znucl</span><span class="o">=</span><span class="p">[</span><span class="mi">31</span><span class="p">,</span> <span class="mi">15</span><span class="p">],</span>
+        <span class="n">xred</span><span class="o">=</span><span class="p">[</span>
+            <span class="mf">0.0000000000</span><span class="p">,</span> <span class="mf">0.0000000000</span><span class="p">,</span> <span class="mf">0.0000000000</span><span class="p">,</span>
+            <span class="mf">0.2500000000</span><span class="p">,</span> <span class="mf">0.2500000000</span><span class="p">,</span> <span class="mf">0.2500000000</span><span class="p">,</span>
+        <span class="p">])</span>
+
+    <span class="n">pseudos</span> <span class="o">=</span> <span class="n">abidata</span><span class="o">.</span><span class="n">pseudos</span><span class="p">(</span><span class="s2">&quot;Ga.oncvpsp&quot;</span><span class="p">,</span> <span class="s2">&quot;P.psp8&quot;</span><span class="p">)</span>
+    <span class="n">gs_inp</span> <span class="o">=</span> <span class="n">abilab</span><span class="o">.</span><span class="n">AbinitInput</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="o">=</span><span class="n">pseudos</span><span class="p">)</span>
+
+    <span class="n">gs_inp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
+        <span class="n">nband</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+        <span class="n">ecut</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span>   <span class="c1"># Too low</span>
+        <span class="n">ngkpt</span><span class="o">=</span><span class="n">ngkpt</span><span class="p">,</span>
+        <span class="n">nshiftk</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">shiftk</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+        <span class="n">tolvrs</span><span class="o">=</span><span class="mf">1.0e-8</span><span class="p">,</span>
+        <span class="n">nstep</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">gs_inp</span>
+
+
+<span class="k">def</span> <span class="nf">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a `Flow` for phonon calculations. The flow has two works.</span>
+
+<span class="sd">    The first work contains a single GS task that produces the WFK file used in DFPT</span>
+<span class="sd">    Then we have multiple Works that are generated automatically</span>
+<span class="sd">    in order to compute the dynamical matrix on a [2, 2, 2] mesh.</span>
+<span class="sd">    Symmetries are taken into account: only q-points in the IBZ are generated and</span>
+<span class="sd">    for each q-point only the independent atomic perturbations are computed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Working directory (default is the name of the script with &#39;.py&#39; removed and &quot;run_&quot; replaced by &quot;flow_&quot;)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">workdir</span><span class="p">:</span>
+        <span class="n">options</span><span class="o">.</span><span class="n">workdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.py&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;run_&quot;</span><span class="p">,</span> <span class="s2">&quot;flow_&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Use 2x2x2 both for k-mesh and q-mesh</span>
+    <span class="c1"># Build input for GS calculation</span>
+    <span class="n">scf_input</span> <span class="o">=</span> <span class="n">make_scf_input</span><span class="p">(</span><span class="n">ngkpt</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+
+    <span class="c1"># Create flow to compute all the independent atomic perturbations</span>
+    <span class="c1"># corresponding to a [4, 4, 4] q-mesh.</span>
+    <span class="c1"># Electric field and Born effective charges are also computed.</span>
+    <span class="kn">from</span> <span class="nn">abipy.flowtk.eph_flows</span> <span class="kn">import</span> <span class="n">EphPotFlow</span>
+    <span class="n">ngqpt</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="n">qpath_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="o">+</span><span class="mf">0.10000</span><span class="p">,</span>  <span class="o">+</span><span class="mf">0.10000</span><span class="p">,</span>  <span class="o">+</span><span class="mf">0.10000</span><span class="p">,</span>  <span class="c1"># L -&gt; G</span>
+        <span class="o">+</span><span class="mf">0.00000</span><span class="p">,</span>  <span class="o">+</span><span class="mf">0.00000</span><span class="p">,</span>  <span class="o">+</span><span class="mf">0.00000</span><span class="p">,</span>  <span class="c1"># $\Gamma$</span>
+        <span class="o">+</span><span class="mf">0.10000</span><span class="p">,</span>  <span class="o">+</span><span class="mf">0.00000</span><span class="p">,</span>  <span class="o">+</span><span class="mf">0.10000</span><span class="p">,</span>  <span class="c1"># G -&gt; X</span>
+
+        <span class="c1">#+0.50000,  +0.50000,  +0.50000,  # L</span>
+        <span class="c1">#+0.00000,  +0.00000,  +0.00000,  # $\Gamma$</span>
+        <span class="c1">#+0.50000,  +0.00000,  +0.50000,  # X</span>
+        <span class="c1">#+0.50000,  +0.25000,  +0.75000,  # W</span>
+        <span class="c1">#+0.37500,  +0.37500,  +0.75000,  # K</span>
+        <span class="c1">#+0.00000,  +0.00000,  +0.00000,  # $\Gamma$</span>
+        <span class="c1">#+0.50000,  +0.25000,  +0.75000,  # W</span>
+        <span class="c1">#+0.62500  +0.25000  +0.62500  # U</span>
+        <span class="c1">#+0.50000  +0.25000  +0.75000  # W</span>
+        <span class="c1">#+0.50000  +0.50000  +0.50000  # L</span>
+        <span class="c1">#+0.37500  +0.37500  +0.75000  # K</span>
+        <span class="c1">#+0.62500  +0.25000  +0.62500  # U</span>
+        <span class="c1">#+0.50000  +0.00000  +0.50000  # X</span>
+    <span class="p">]</span>
+
+    <span class="c1"># Use small ndivsm to reduce computing time.</span>
+    <span class="n">flow</span> <span class="o">=</span> <span class="n">EphPotFlow</span><span class="o">.</span><span class="n">from_scf_input</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="n">scf_input</span><span class="p">,</span>
+                                     <span class="n">ngqpt</span><span class="p">,</span> <span class="n">qpath_list</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ddk_tolerance</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;tolwfr&quot;</span><span class="p">:</span> <span class="mf">1e-12</span><span class="p">},</span>
+                                     <span class="n">with_becs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">flow</span>
+
+
+<span class="c1"># This block generates the thumbnails in the Abipy gallery.</span>
+<span class="c1"># You can safely REMOVE this part if you are using this script for production runs.</span>
+<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;READTHEDOCS&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="vm">__name__</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="kn">import</span> <span class="nn">tempfile</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">build_flow_main_parser</span><span class="p">()</span><span class="o">.</span><span class="n">parse_args</span><span class="p">([</span><span class="s2">&quot;-w&quot;</span><span class="p">,</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()])</span>
+    <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span><span class="o">.</span><span class="n">graphviz_imshow</span><span class="p">()</span>
+
+
+<span class="nd">@flowtk</span><span class="o">.</span><span class="n">flow_main</span>
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">options</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is our main function that will be invoked by the script.</span>
+<span class="sd">    flow_main is a decorator implementing the command line interface.</span>
+<span class="sd">    Command line args are stored in `options`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+</div>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  5.054 seconds)</p>
+<div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-flow-gallery-run-eph-pot-py">
+<div class="sphx-glr-download docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/920a06ca130f4ad7c16b0f7b1cc7feaa/run_eph_pot.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">run_eph_pot.py</span></code></a></p>
+</div>
+<div class="sphx-glr-download docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/b8c0f43e589302d4b59aeeeb71e0cde9/run_eph_pot.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">run_eph_pot.ipynb</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
+      Last updated on Feb 22, 2020.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>abipy.flowtk.qha &#8212; abipy 0.7.0 documentation</title>
+    <title>abipy.flowtk.qha &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -39,7 +42,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -62,6 +65,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -124,137 +128,179 @@
   <h1>Source code for abipy.flowtk.qha</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding: utf-8</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Tools and workflows for calculations within the quasi-harmonic approximation.</span>
-
-<span class="sd">WARNING: This code is still under development.</span>
+<span class="sd">Workflows for calculations within the quasi-harmonic approximation.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="n">Structure</span>
-<span class="kn">from</span> <span class="nn">abipy.flowtk.works</span> <span class="k">import</span> <span class="n">Work</span><span class="p">,</span> <span class="n">MergeDdb</span> <span class="c1"># RelaxWork, PhononWork,</span>
-<span class="kn">from</span> <span class="nn">abipy.flowtk.flows</span> <span class="k">import</span> <span class="n">Flow</span>
-
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">monty.json</span> <span class="kn">import</span> <span class="n">jsanitize</span>
+<span class="kn">from</span> <span class="nn">abipy.flowtk.works</span> <span class="kn">import</span> <span class="n">Work</span><span class="p">,</span> <span class="n">PhononWork</span>
+<span class="kn">from</span> <span class="nn">abipy.flowtk.flows</span> <span class="kn">import</span> <span class="n">Flow</span>
 
 
-<div class="viewcode-block" id="RelaxAndPhononWork"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.qha.RelaxAndPhononWork">[docs]</a><span class="k">class</span> <span class="nc">RelaxAndPhononWork</span><span class="p">(</span><span class="n">Work</span><span class="p">,</span> <span class="n">MergeDdb</span><span class="p">):</span>
+<div class="viewcode-block" id="RelaxAndPhononWork"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.qha.RelaxAndPhononWork">[docs]</a><span class="k">class</span> <span class="nc">RelaxAndPhononWork</span><span class="p">(</span><span class="n">Work</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This work perform a structural relaxation and use the relaxed structure to</span>
-<span class="sd">    compute phonon frequencies with DFPT.</span>
+<span class="sd">    This work performs a structural relaxation for different volumes, then it uses</span>
+<span class="sd">    the relaxed structures to compute phonons, BECS and the dielectric tensor with DFPT.</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: RelaxAndPhononWork</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">_relax_done</span><span class="p">,</span> <span class="n">_phonons_done</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span>
 
-<div class="viewcode-block" id="RelaxAndPhononWork.from_gsinp"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.qha.RelaxAndPhononWork.from_gsinp">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_gsinp</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">gsinp</span><span class="p">,</span> <span class="n">ngqpt</span><span class="p">,</span> <span class="n">optcell</span><span class="p">,</span> <span class="n">ionmov</span><span class="p">):</span>
-        <span class="n">work</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
-        <span class="n">work</span><span class="o">.</span><span class="n">initial_gsinp</span><span class="p">,</span> <span class="n">work</span><span class="o">.</span><span class="n">ngqpt</span> <span class="o">=</span> <span class="n">gsinp</span><span class="p">,</span> <span class="n">ngqpt</span>
-        <span class="c1"># Create input for relaxation and register relaxation task.</span>
-        <span class="n">relaxinp</span> <span class="o">=</span> <span class="n">gsinp</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
-        <span class="n">relaxinp</span><span class="o">.</span><span class="n">pop_tolerances</span><span class="p">()</span>
-        <span class="n">relaxinp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">tolvrs</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">,</span> <span class="n">toldff</span><span class="o">=</span><span class="mf">1.e-6</span><span class="p">)</span>
-        <span class="n">relaxinp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">optcell</span><span class="o">=</span><span class="n">optcell</span><span class="p">,</span> <span class="n">ionmov</span><span class="o">=</span><span class="n">ionmov</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">optcell</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">optcell</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">relaxinp</span><span class="o">.</span><span class="n">set_vars_ifnotin</span><span class="p">(</span><span class="n">ecutsm</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">dilatmx</span><span class="o">=</span><span class="mf">1.05</span><span class="p">)</span>
-
-        <span class="n">work</span><span class="o">.</span><span class="n">relax_task</span> <span class="o">=</span> <span class="n">work</span><span class="o">.</span><span class="n">register_relax_task</span><span class="p">(</span><span class="n">relaxinp</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">work</span></div>
-
-<div class="viewcode-block" id="RelaxAndPhononWork.add_phonon_tasks_and_build"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.qha.RelaxAndPhononWork.add_phonon_tasks_and_build">[docs]</a>    <span class="k">def</span> <span class="nf">add_phonon_tasks_and_build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RelaxAndPhononWork.from_scf_input"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.qha.RelaxAndPhononWork.from_scf_input">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_scf_input</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">scf_input</span><span class="p">,</span> <span class="n">volumes</span><span class="p">,</span> <span class="n">ngqpt</span><span class="p">,</span> <span class="n">with_becs</span><span class="p">,</span> <span class="n">optcell</span><span class="p">,</span> <span class="n">ionmov</span><span class="p">,</span> <span class="n">edos_ngkpt</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Called by on_all_ok when the structural relaxation is completed.</span>
-<span class="sd">        Here the phonon tasks with the relaxed structure and constructed</span>
-<span class="sd">        and added to the work.</span>
+<span class="sd">        Build the work from an |AbinitInput| for GS-SCF calculation.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            scf_input: |AbinitInput| for GS-SCF used as template to generate the other inputs.</span>
+<span class="sd">            volumes: List of volumes in Ang**3</span>
+<span class="sd">            with_becs: Activate calculation of Electric field and Born effective charges.</span>
+<span class="sd">            optcell, ionmov: Abinit input variables.</span>
+<span class="sd">            edos_ngkpt: Three integers defining the the k-sampling for the computation of the</span>
+<span class="sd">                electron DOS with the relaxed structures. Useful for metals or small gap semiconductors</span>
+<span class="sd">                in which the electronic contribution should be included.</span>
+<span class="sd">                None disables the computation of the e-DOS.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Get relaxed structure and build tasks for phonon calculations.</span>
-        <span class="n">relaxed_structure</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">relax_task</span><span class="o">.</span><span class="n">get_final_structure</span><span class="p">()</span>
-        <span class="n">scf_input</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_gsinp</span><span class="o">.</span><span class="n">new_with_structure</span><span class="p">(</span><span class="n">relaxed_structure</span><span class="p">)</span>
-        <span class="n">scf_task</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">register_scf_task</span><span class="p">(</span><span class="n">scf_input</span><span class="p">)</span>
+        <span class="n">work</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
+        <span class="n">work</span><span class="o">.</span><span class="n">initial_scf_input</span> <span class="o">=</span> <span class="n">scf_input</span>
+        <span class="n">work</span><span class="o">.</span><span class="n">ngqpt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">ngqpt</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,))</span>
+        <span class="n">work</span><span class="o">.</span><span class="n">edos_ngkpt</span> <span class="o">=</span> <span class="n">edos_ngkpt</span> <span class="k">if</span> <span class="n">edos_ngkpt</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">edos_ngkpt</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,))</span>
+        <span class="n">work</span><span class="o">.</span><span class="n">volumes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">volumes</span><span class="p">)</span>
+        <span class="n">work</span><span class="o">.</span><span class="n">with_becs</span> <span class="o">=</span> <span class="n">with_becs</span>
 
-        <span class="n">qpoints</span> <span class="o">=</span> <span class="n">scf_input</span><span class="o">.</span><span class="n">abiget_ibz</span><span class="p">(</span><span class="n">ngkpt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ngqpt</span><span class="p">,</span> <span class="n">shiftk</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">points</span>
-        <span class="k">for</span> <span class="n">qpt</span> <span class="ow">in</span> <span class="n">qpoints</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">ph_inp</span> <span class="ow">in</span> <span class="n">scf_task</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">make_ph_inputs_qpoint</span><span class="p">(</span><span class="n">qpt</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">register_phonon_task</span><span class="p">(</span><span class="n">ph_inp</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="p">{</span><span class="n">scf_task</span><span class="p">:</span> <span class="s2">&quot;WFK&quot;</span><span class="p">})</span>
+        <span class="c1"># Create input for relaxation and register the relaxation task.</span>
+        <span class="n">relax_template</span> <span class="o">=</span> <span class="n">scf_input</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
+        <span class="n">relax_template</span><span class="o">.</span><span class="n">pop_tolerances</span><span class="p">()</span>
+        <span class="n">relax_template</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">tolvrs</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">,</span> <span class="n">toldff</span><span class="o">=</span><span class="mf">1.e-6</span><span class="p">,</span> <span class="n">optcell</span><span class="o">=</span><span class="n">optcell</span><span class="p">,</span> <span class="n">ionmov</span><span class="o">=</span><span class="n">ionmov</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">optcell</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">optcell</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">relax_template</span><span class="o">.</span><span class="n">set_vars_ifnotin</span><span class="p">(</span><span class="n">ecutsm</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">dilatmx</span><span class="o">=</span><span class="mf">1.05</span><span class="p">)</span>
 
-        <span class="c1"># Allocate new works and update the pickle database.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">allocate</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">build_and_pickle_dump</span><span class="p">()</span></div>
+        <span class="c1"># Construct len(volumes) works. Each work performs a structural relaxation</span>
+        <span class="c1"># at fixed volume followed by a DFPT calculation with the relaxed structure.</span>
+        <span class="n">work</span><span class="o">.</span><span class="n">relax_tasks_vol</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">new_volume</span> <span class="ow">in</span> <span class="n">work</span><span class="o">.</span><span class="n">volumes</span><span class="p">:</span>
+            <span class="n">new_structure</span> <span class="o">=</span> <span class="n">relax_template</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">scale_lattice</span><span class="p">(</span><span class="n">new_volume</span><span class="p">)</span>
+            <span class="n">new_input</span> <span class="o">=</span> <span class="n">relax_template</span><span class="o">.</span><span class="n">new_with_structure</span><span class="p">(</span><span class="n">new_structure</span><span class="p">)</span>
+            <span class="n">task</span> <span class="o">=</span> <span class="n">work</span><span class="o">.</span><span class="n">register_relax_task</span><span class="p">(</span><span class="n">new_input</span><span class="p">)</span>
+            <span class="n">work</span><span class="o">.</span><span class="n">relax_tasks_vol</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+
+        <span class="n">work</span><span class="o">.</span><span class="n">ph_works_vol</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">volumes</span><span class="p">)</span> <span class="o">*</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span>
+        <span class="n">work</span><span class="o">.</span><span class="n">edos_work</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">work</span></div>
 
 <div class="viewcode-block" id="RelaxAndPhononWork.on_all_ok"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.qha.RelaxAndPhononWork.on_all_ok">[docs]</a>    <span class="k">def</span> <span class="nf">on_all_ok</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        This method is called when all the task reach S_OK.</span>
-<span class="sd">        The first time we enter here, we construct the phonon tasks.</span>
-<span class="sd">        The second call runs `mrgddb` in sequential on the local machine to produce</span>
-<span class="sd">        the final DDB file in the outdir of the `Work`.</span>
+<span class="sd">        This callback is called when all tasks in the Work reach status `S_OK`.</span>
+<span class="sd">        Here are add a new PhononWork for each volume using the relaxed structure.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_relax_done</span><span class="p">:</span>
-            <span class="c1"># Build phonon tasks.</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_relax_done</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">add_phonon_tasks_and_build</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">finalized</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">edos_ngkpt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">edos_work</span> <span class="o">=</span> <span class="n">Work</span><span class="p">()</span>
 
-        <span class="k">elif</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phonons_done</span><span class="p">:</span>
-            <span class="c1"># Merge DDB files.</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_phonons_done</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">merge_ddb_files</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">finalized</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="c1"># Build phonon works for the different volumes.</span>
+        <span class="k">for</span> <span class="n">ivol</span><span class="p">,</span> <span class="n">task</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">relax_tasks_vol</span><span class="p">):</span>
+            <span class="n">relaxed_structure</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">get_final_structure</span><span class="p">()</span>
+            <span class="n">scf_input</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_scf_input</span><span class="o">.</span><span class="n">new_with_structure</span><span class="p">(</span><span class="n">relaxed_structure</span><span class="p">)</span>
+            <span class="n">ph_work</span> <span class="o">=</span> <span class="n">PhononWork</span><span class="o">.</span><span class="n">from_scf_input</span><span class="p">(</span><span class="n">scf_input</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ngqpt</span><span class="p">,</span> <span class="n">is_ngqpt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                                <span class="n">with_becs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">with_becs</span><span class="p">,</span> <span class="n">ddk_tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ph_works_vol</span><span class="p">[</span><span class="n">ivol</span><span class="p">]</span> <span class="o">=</span> <span class="n">ph_work</span>
+
+            <span class="c1"># Add e-DOS calculation.</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">edos_ngkpt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">edos_input</span> <span class="o">=</span> <span class="n">scf_input</span><span class="o">.</span><span class="n">make_edos_input</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edos_ngkpt</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">edos_work</span><span class="o">.</span><span class="n">register_nscf_task</span><span class="p">(</span><span class="n">edos_input</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="p">{</span><span class="n">ph_work</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="s2">&quot;DEN&quot;</span><span class="p">})</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">register_work</span><span class="p">(</span><span class="n">ph_work</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">edos_ngkpt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">register_work</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edos_work</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">allocate</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">build_and_pickle_dump</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">on_all_ok</span><span class="p">()</span></div></div>
 
 
 <div class="viewcode-block" id="QhaFlow"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.qha.QhaFlow">[docs]</a><span class="k">class</span> <span class="nc">QhaFlow</span><span class="p">(</span><span class="n">Flow</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="QhaFlow.from_gsinp"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.qha.QhaFlow.from_gsinp">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_gsinp</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">workdir</span><span class="p">,</span> <span class="n">gsinp</span><span class="p">,</span> <span class="n">volumes</span><span class="p">,</span> <span class="n">ngqpt</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: QhaFlow</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="QhaFlow.from_scf_input"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.qha.QhaFlow.from_scf_input">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_scf_input</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">workdir</span><span class="p">,</span> <span class="n">scf_input</span><span class="p">,</span> <span class="n">volumes</span><span class="p">,</span> <span class="n">ngqpt</span><span class="p">,</span> <span class="n">with_becs</span><span class="p">,</span>
+                       <span class="n">edos_ngkpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build a |Flow| for QHA calculations from an |AbinitInput| for GS-SCF calculations.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            workdir:</span>
-<span class="sd">            gsinp:</span>
-<span class="sd">            volumes:</span>
-<span class="sd">            ngqpt:</span>
-<span class="sd">            manager:</span>
+<span class="sd">            workdir: Working directory.</span>
+<span class="sd">            scf_input: |AbinitInput| for GS-SCF run used as template to generate the other inputs.</span>
+<span class="sd">            volumes: List of volumes in Ang**3.</span>
+<span class="sd">            ngqpt: Three integers defining the q-mesh for phonon calculation.</span>
+<span class="sd">            with_becs: Activate calculation of Electric field and Born effective charges.</span>
+<span class="sd">            edos_ngkpt: Three integers defining the the k-sampling for the computation of the</span>
+<span class="sd">                electron DOS with the relaxed structures. Useful for metals or small gap semiconductors</span>
+<span class="sd">                in which the electronic contribution should be included.</span>
+<span class="sd">                None disables the computation of the e-DOS.</span>
+<span class="sd">            metadata: Dictionary with metadata to be be added to the final JSON file.</span>
+<span class="sd">            manager: |TaskManager| instance. Use default if None.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ngqpt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">ngqpt</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
         <span class="n">flow</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
+        <span class="n">flow</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="n">jsanitize</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span> <span class="k">if</span> <span class="n">metadata</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
 
-        <span class="c1"># Construct len(volumes) works. Each work performs the structure relaxation</span>
-        <span class="c1"># at fixed volume followed by DFPT calculation with the relaxed structure.</span>
-        <span class="k">for</span> <span class="n">vol</span> <span class="ow">in</span> <span class="n">volumes</span><span class="p">:</span>
-            <span class="c1"># Build GS input file for new structure with rescaled volume.</span>
-            <span class="n">new_lattice</span> <span class="o">=</span> <span class="n">gsinp</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">vol</span><span class="p">)</span>
-            <span class="n">new_structure</span> <span class="o">=</span> <span class="n">Structure</span><span class="p">(</span><span class="n">new_lattice</span><span class="p">,</span> <span class="n">gsinp</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">species</span><span class="p">,</span> <span class="n">gsinp</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">)</span>
-            <span class="n">new_input</span> <span class="o">=</span> <span class="n">gsinp</span><span class="o">.</span><span class="n">new_with_structure</span><span class="p">(</span><span class="n">new_structure</span><span class="p">)</span>
-
-            <span class="c1"># Register work.</span>
-            <span class="n">work</span> <span class="o">=</span> <span class="n">RelaxAndPhononWork</span><span class="o">.</span><span class="n">from_gsinp</span><span class="p">(</span><span class="n">new_input</span><span class="p">,</span> <span class="n">ngqpt</span><span class="p">,</span> <span class="n">optcell</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">ionmov</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-            <span class="n">flow</span><span class="o">.</span><span class="n">register_work</span><span class="p">(</span><span class="n">work</span><span class="p">)</span>
+        <span class="n">work</span> <span class="o">=</span> <span class="n">RelaxAndPhononWork</span><span class="o">.</span><span class="n">from_scf_input</span><span class="p">(</span><span class="n">scf_input</span><span class="p">,</span> <span class="n">volumes</span><span class="p">,</span> <span class="n">ngqpt</span><span class="p">,</span>
+                                                 <span class="n">with_becs</span><span class="o">=</span><span class="n">with_becs</span><span class="p">,</span> <span class="n">optcell</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">ionmov</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">edos_ngkpt</span><span class="o">=</span><span class="n">edos_ngkpt</span><span class="p">)</span>
+        <span class="n">flow</span><span class="o">.</span><span class="n">relax_and_phonon_work</span> <span class="o">=</span> <span class="n">work</span>
+        <span class="n">flow</span><span class="o">.</span><span class="n">register_work</span><span class="p">(</span><span class="n">work</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">flow</span></div>
 
 <div class="viewcode-block" id="QhaFlow.finalize"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.qha.QhaFlow.finalize">[docs]</a>    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This method is called when the flow is completed.</span>
-<span class="sd">        It transfer the most important results to flow/outdir and perform</span>
-<span class="sd">        some basic post-processing of the results to facilitate further analysis.</span>
+<span class="sd">        It performs some basic post-processing of the results to facilitate further analysis.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1">#data = {}</span>
-        <span class="c1">#for work in self:</span>
-        <span class="c1">#    ddb_path = work.outdir.has_abiext(&quot;DDB&quot;)</span>
-        <span class="c1">#    with work.relax_task.open_gsr() as gsr</span>
-        <span class="c1">#        data.append(dict(</span>
-        <span class="c1">#            volume=gsr.structure.volume,</span>
-        <span class="c1">#            etotal=gsr.etotal,</span>
-        <span class="c1">#            structure=gsr.structure,</span>
-        <span class="c1">#            pressure_GPa=gsr.pressure,</span>
-        <span class="c1">#            stress_tensor=gsr.stress_tensor,</span>
-        <span class="c1">#            forces=gsr.forces,</span>
-        <span class="c1">#            ddb_path=ddb_path,</span>
-        <span class="c1">#            gsr_path=gsr.path,</span>
-        <span class="c1">#        ))</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;metadata&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">})</span>
 
-        <span class="c1">#with open(self.outdir.path_in(&quot;qha.sjon&quot;), &quot;wt&quot;) as fh:</span>
-        <span class="c1">#    json.dump(fh, data)</span>
+        <span class="c1">#QHA.from_files(cls, gsr_paths, phdos_paths)</span>
+        <span class="c1"># Build list of strings with path to the relevant output files ordered by V.</span>
+        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;gsr_relax_paths&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">task</span><span class="o">.</span><span class="n">gsr_path</span> <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">relax_and_phonon_work</span><span class="o">.</span><span class="n">relax_tasks_vol</span><span class="p">]</span>
+        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;ddb_paths&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">ph_work</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">has_abiext</span><span class="p">(</span><span class="s2">&quot;DDB&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">ph_work</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">relax_and_phonon_work</span><span class="o">.</span><span class="n">ph_works_vol</span><span class="p">]</span>
+        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;gsr_edos_path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">relax_and_phonon_work</span><span class="o">.</span><span class="n">edos_ngkpt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;gsr_edos_paths&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">task</span><span class="o">.</span><span class="n">gsr_path</span> <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">relax_and_phonon_work</span><span class="o">.</span><span class="n">edos_work</span><span class="p">]</span>
+
+        <span class="kn">from</span> <span class="nn">abipy</span> <span class="kn">import</span> <span class="n">abilab</span>
+        <span class="c1">#entries = []</span>
+        <span class="c1">#items = zip(self.relax_and_phonon_work.relax_tasks_vol, self.relax_and_phonon_work.ph_works_vol)</span>
+        <span class="c1">#for ivol, (relax_task, ph_work) in enumerate(items):</span>
+        <span class="c1">#    ddb_path = ph_work.outdir.has_abiext(&quot;DDB&quot;)</span>
+        <span class="c1">#    with relax_task.open_gsr() as gsr:</span>
+        <span class="c1">#        entry = dict(</span>
+        <span class="c1">#            volume=gsr.structure.volume,</span>
+        <span class="c1">#            energy_eV=gsr.energy,</span>
+        <span class="c1">#            pressure_GPa=gsr.pressure,</span>
+        <span class="c1">#            structure=gsr.structure,</span>
+        <span class="c1">#            gsr_edos_path=None,</span>
+        <span class="c1">#            ddb_path=ddb_path,</span>
+        <span class="c1">#        )</span>
+
+        <span class="c1">#    if self.relax_and_phonon_work.edos_ngkpt is not None:</span>
+        <span class="c1">#        task = self.relax_and_phonon_work.edos_work[ivol]</span>
+        <span class="c1">#        entry[&quot;gsr_edos_path&quot;] = task.gsr_path</span>
+
+        <span class="c1">#    entries.append(entry)</span>
+        <span class="c1">#d[&quot;entries_for_each_volume&quot;] = entries</span>
+
+        <span class="n">abilab</span><span class="o">.</span><span class="n">mjson_write</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">path_in</span><span class="p">(</span><span class="s2">&quot;qha.json&quot;</span><span class="p">),</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+        <span class="c1">#pyscript = &quot;&quot;&quot;</span>
+        <span class="c1">#from abipy import abilab</span>
+        <span class="c1">#from abipy.qha import Qha</span>
+        <span class="c1">#data = abilab.mjson_read(&quot;qha.json&quot;)</span>
+        <span class="c1">#data</span>
+        <span class="c1">#qha = from_files(gsr_files_paths, phdos_files_paths):</span>
+        <span class="c1">#&quot;&quot;&quot;</span>
 
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">finalize</span><span class="p">()</span></div></div>
 </pre></div>
@@ -271,7 +317,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on May 29, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>abipy.panels.ddb &#8212; abipy 0.8.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../graphical_interface.html">Graphical interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <h1>Source code for abipy.panels.ddb</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;&quot;Panels for DDB files.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">param</span>
+<span class="kn">import</span> <span class="nn">panel</span> <span class="k">as</span> <span class="nn">pn</span>
+<span class="kn">import</span> <span class="nn">panel.widgets</span> <span class="k">as</span> <span class="nn">pnw</span>
+<span class="kn">import</span> <span class="nn">bokeh.models.widgets</span> <span class="k">as</span> <span class="nn">bkw</span>
+
+<span class="kn">from</span> <span class="nn">abipy.panels.core</span> <span class="kn">import</span> <span class="n">AbipyParameterized</span>
+
+
+<div class="viewcode-block" id="DdbFilePanel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.DdbFilePanel">[docs]</a><span class="k">class</span> <span class="nc">DdbFilePanel</span><span class="p">(</span><span class="n">AbipyParameterized</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A panel to analyze a |DdbFile|.</span>
+<span class="sd">    Provides widgets to invoke anaddb and visualize the results.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">verbose</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">Integer</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Verbosity Level&quot;</span><span class="p">)</span>
+    <span class="n">mpi_procs</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">Integer</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Number of MPI processes used in anaddb&quot;</span><span class="p">)</span>
+
+    <span class="n">nqsmall</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">Integer</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Number of divisions for smallest vector to generate Q-mesh&quot;</span><span class="p">)</span>
+    <span class="n">ndivsm</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">Integer</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Number of divisions for smallest segment in q-path&quot;</span><span class="p">)</span>
+    <span class="n">lo_to_splitting</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">ObjectSelector</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;automatic&quot;</span><span class="p">,</span> <span class="n">objects</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;automatic&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">])</span>
+    <span class="n">chneut</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">ObjectSelector</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">objects</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Abinit variable&quot;</span><span class="p">)</span>
+    <span class="n">dipdip</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">ObjectSelector</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">objects</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Abinit variable&quot;</span><span class="p">)</span>
+    <span class="n">asr</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">ObjectSelector</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">objects</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Abinit variable&quot;</span><span class="p">)</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">ObjectSelector</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">objects</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="s2">&quot;meV&quot;</span><span class="p">,</span> <span class="s2">&quot;Ha&quot;</span><span class="p">,</span> <span class="s2">&quot;cm-1&quot;</span><span class="p">,</span> <span class="s2">&quot;Thz&quot;</span><span class="p">],</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Energy units&quot;</span><span class="p">)</span>
+
+    <span class="n">dos_method</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">ObjectSelector</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;tetra&quot;</span><span class="p">,</span> <span class="n">objects</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;tetra&quot;</span><span class="p">,</span> <span class="s2">&quot;gaussian&quot;</span><span class="p">],</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Integration method for DOS&quot;</span><span class="p">)</span>
+    <span class="n">temp_range</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">RangeSlider</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;T-range&quot;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">300.0</span><span class="p">),</span> <span class="n">step</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+
+    <span class="n">gamma_ev</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">Number</span><span class="p">(</span><span class="mf">1e-4</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="mf">1e-20</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Phonon linewidth in eV&quot;</span><span class="p">)</span>
+    <span class="n">w_range</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">RangeSlider</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Frequency range (eV)&quot;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                              <span class="n">value</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">),</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.001</span><span class="p">)</span>
+
+    <span class="n">get_epsinf_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Compute&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+    <span class="n">plot_phbands_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Plot Bands and DOS&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+    <span class="n">plot_eps0w_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Plot eps0(omega)&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+
+    <span class="n">plot_vsound_btn</span> <span class="o">=</span> <span class="n">pnw</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Calculate speed of sound&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ddb</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ddb</span> <span class="o">=</span> <span class="n">ddb</span>
+
+<div class="viewcode-block" id="DdbFilePanel.get_epsinf"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.DdbFilePanel.get_epsinf">[docs]</a>    <span class="nd">@param</span><span class="o">.</span><span class="n">depends</span><span class="p">(</span><span class="s1">&#39;get_epsinf_btn.clicks&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_epsinf</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute eps_infinity and Born effective charges from DDB.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_epsinf_btn</span><span class="o">.</span><span class="n">clicks</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span>
+
+        <span class="n">epsinf</span><span class="p">,</span> <span class="n">becs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ddb</span><span class="o">.</span><span class="n">anaget_epsinf_and_becs</span><span class="p">(</span><span class="n">chneut</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">chneut</span><span class="p">,</span>
+                                                       <span class="n">mpi_procs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mpi_procs</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">)</span>
+
+        <span class="n">gen</span><span class="p">,</span> <span class="n">inp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ddb</span><span class="o">.</span><span class="n">anaget_dielectric_tensor_generator</span><span class="p">(</span><span class="n">asr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">asr</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">chneut</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dipdip</span><span class="p">,</span>
+                                                               <span class="n">mpi_procs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mpi_procs</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span>
+                                                               <span class="n">return_input</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">eps0</span> <span class="o">=</span> <span class="n">gen</span><span class="o">.</span><span class="n">tensor_at_frequency</span><span class="p">(</span><span class="n">w</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">gamma_ev</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gamma_ev</span><span class="p">)</span>
+        <span class="c1">#eps0 = pnw.DataFrame(eps0.get_dataframe())</span>
+        <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">epsinf</span><span class="p">,</span> <span class="n">eps0</span><span class="p">,</span> <span class="n">becs</span><span class="p">,</span> <span class="n">pn</span><span class="o">.</span><span class="n">pane</span><span class="o">.</span><span class="n">HTML</span><span class="p">(</span><span class="n">inp</span><span class="o">.</span><span class="n">_repr_html_</span><span class="p">()))</span></div>
+
+<div class="viewcode-block" id="DdbFilePanel.plot_eps0w"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.DdbFilePanel.plot_eps0w">[docs]</a>    <span class="nd">@param</span><span class="o">.</span><span class="n">depends</span><span class="p">(</span><span class="s1">&#39;plot_eps0w_btn.clicks&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">plot_eps0w</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute eps0(omega) from DDB and plot the results.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_eps0w_btn</span><span class="o">.</span><span class="n">clicks</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span>
+        <span class="n">gen</span><span class="p">,</span> <span class="n">inp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ddb</span><span class="o">.</span><span class="n">anaget_dielectric_tensor_generator</span><span class="p">(</span><span class="n">asr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">asr</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">chneut</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dipdip</span><span class="p">,</span>
+                                                               <span class="n">mpi_procs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mpi_procs</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span>
+                                                               <span class="n">return_input</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">ws</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w_range</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">w_max</span> <span class="o">=</span> <span class="n">ws</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">w_max</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span> <span class="n">w_max</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1"># Will compute w_max in plot routine from ph freqs.</span>
+
+        <span class="k">def</span> <span class="nf">p</span><span class="p">(</span><span class="n">component</span><span class="p">,</span> <span class="n">reim</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">gen</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">w_min</span><span class="o">=</span><span class="n">ws</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">w_max</span><span class="o">=</span><span class="n">w_max</span><span class="p">,</span> <span class="n">gamma_ev</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gamma_ev</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">component</span><span class="o">=</span><span class="n">component</span><span class="p">,</span>
+                            <span class="n">reim</span><span class="o">=</span><span class="n">reim</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">units</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">fig_kwargs</span><span class="p">)</span>
+
+        <span class="c1"># Build grid</span>
+        <span class="n">gspec</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">GridSpec</span><span class="p">(</span><span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;scale_width&#39;</span><span class="p">)</span>
+        <span class="n">gspec</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">(</span><span class="s2">&quot;diag&quot;</span><span class="p">,</span> <span class="s2">&quot;re&quot;</span><span class="p">)</span>
+        <span class="n">gspec</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">(</span><span class="s2">&quot;diag&quot;</span><span class="p">,</span> <span class="s2">&quot;im&quot;</span><span class="p">)</span>
+        <span class="n">gspec</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">(</span><span class="s2">&quot;offdiag&quot;</span><span class="p">,</span> <span class="s2">&quot;re&quot;</span><span class="p">)</span>
+        <span class="n">gspec</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">(</span><span class="s2">&quot;offdiag&quot;</span><span class="p">,</span> <span class="s2">&quot;im&quot;</span><span class="p">)</span>
+        <span class="n">gspec</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">gen</span><span class="o">.</span><span class="n">get_oscillator_dataframe</span><span class="p">(</span><span class="n">reim</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span>
+        <span class="c1"># Add HTML pane with input.</span>
+        <span class="n">gspec</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">pane</span><span class="o">.</span><span class="n">HTML</span><span class="p">(</span><span class="n">inp</span><span class="o">.</span><span class="n">_repr_html_</span><span class="p">())</span>
+
+        <span class="k">return</span> <span class="n">gspec</span></div>
+
+<div class="viewcode-block" id="DdbFilePanel.plot_phbands_and_phdos"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.DdbFilePanel.plot_phbands_and_phdos">[docs]</a>    <span class="nd">@param</span><span class="o">.</span><span class="n">depends</span><span class="p">(</span><span class="s1">&#39;plot_phbands_btn.clicks&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">plot_phbands_and_phdos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute phonon bands and ph-DOSes from DDB and plot the results.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_phbands_btn</span><span class="o">.</span><span class="n">clicks</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span>
+        <span class="c1">#self.plot_phbands_btn.button_type = &quot;warning&quot;</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Computing phbands&quot;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">ddb</span><span class="o">.</span><span class="n">anaget_phbst_and_phdos_files</span><span class="p">(</span>
+                <span class="n">nqsmall</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nqsmall</span><span class="p">,</span> <span class="n">qppa</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ndivsm</span><span class="p">,</span>
+                <span class="n">line_density</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">asr</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">chneut</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dipdip</span><span class="p">,</span>
+                <span class="n">dos_method</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dos_method</span><span class="p">,</span> <span class="n">lo_to_splitting</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lo_to_splitting</span><span class="p">,</span>
+                <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="n">mpi_procs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mpi_procs</span><span class="p">,</span> <span class="n">return_input</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">g</span><span class="p">:</span>
+
+            <span class="n">phbst_file</span><span class="p">,</span> <span class="n">phdos_file</span> <span class="o">=</span> <span class="n">g</span>
+            <span class="n">phbands</span><span class="p">,</span> <span class="n">phdos</span> <span class="o">=</span> <span class="n">phbst_file</span><span class="o">.</span><span class="n">phbands</span><span class="p">,</span> <span class="n">phdos_file</span><span class="o">.</span><span class="n">phdos</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Computing phbands completed&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Build grid</span>
+            <span class="n">gspec</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">GridSpec</span><span class="p">(</span><span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;scale_width&#39;</span><span class="p">)</span>
+            <span class="n">gspec</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">phbands</span><span class="o">.</span><span class="n">plot_with_phdos</span><span class="p">(</span><span class="n">phdos</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">units</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">fig_kwargs</span><span class="p">)</span>
+            <span class="n">gspec</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">phdos_file</span><span class="o">.</span><span class="n">plot_pjdos_type</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">units</span><span class="p">,</span> <span class="n">exchange_xy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">fig_kwargs</span><span class="p">)</span>
+            <span class="n">gspec</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">phdos_file</span><span class="o">.</span><span class="n">msqd_dos</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">units</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">fig_kwargs</span><span class="p">)</span>
+            <span class="n">temps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp_range</span><span class="o">.</span><span class="n">value</span>
+            <span class="n">gspec</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">phdos</span><span class="o">.</span><span class="n">plot_harmonic_thermo</span><span class="p">(</span><span class="n">tstart</span><span class="o">=</span><span class="n">temps</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">tstop</span><span class="o">=</span><span class="n">temps</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">num</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">fig_kwargs</span><span class="p">)</span>
+            <span class="c1">#msqd_dos.plot_tensor(**self.fig_kwargs)</span>
+            <span class="c1">#self.plot_phbands_btn.button_type = &quot;primary&quot;</span>
+
+            <span class="c1"># Add HTML pane with input</span>
+            <span class="n">gspec</span><span class="p">[</span><span class="mi">2</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">pane</span><span class="o">.</span><span class="n">HTML</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">_repr_html_</span><span class="p">())</span>
+
+        <span class="k">return</span> <span class="n">gspec</span></div>
+
+<div class="viewcode-block" id="DdbFilePanel.plot_vsound"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.DdbFilePanel.plot_vsound">[docs]</a>    <span class="nd">@param</span><span class="o">.</span><span class="n">depends</span><span class="p">(</span><span class="s1">&#39;plot_vsound_btn.clicks&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">plot_vsound</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the speed of sound by fitting phonon frequencies</span>
+<span class="sd">        along selected directions by linear least-squares fit.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_vsound_btn</span><span class="o">.</span><span class="n">clicks</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span>
+        <span class="kn">from</span> <span class="nn">abipy.dfpt.vsound</span> <span class="kn">import</span> <span class="n">SoundVelocity</span>
+        <span class="n">sv</span> <span class="o">=</span> <span class="n">SoundVelocity</span><span class="o">.</span><span class="n">from_ddb</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ddb</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="n">num_points</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">qpt_norm</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+                                    <span class="n">ignore_neg_freqs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">asr</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">chneut</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dipdip</span><span class="p">,</span>
+                                    <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="n">mpi_procs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mpi_procs</span><span class="p">)</span>
+
+        <span class="c1"># Insert results in grid.</span>
+        <span class="n">gspec</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">GridSpec</span><span class="p">(</span><span class="n">sizing_mode</span><span class="o">=</span><span class="s1">&#39;scale_width&#39;</span><span class="p">)</span>
+        <span class="n">gspec</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">sv</span><span class="o">.</span><span class="n">get_dataframe</span><span class="p">()</span>
+        <span class="n">gspec</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">sv</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">fig_kwargs</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">gspec</span></div>
+
+<div class="viewcode-block" id="DdbFilePanel.get_panel"><a class="viewcode-back" href="../../../api/panels_api.html#abipy.panels.ddb.DdbFilePanel.get_panel">[docs]</a>    <span class="k">def</span> <span class="nf">get_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return tabs with widgets to interact with the DDB file.&quot;&quot;&quot;</span>
+        <span class="n">tabs</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Tabs</span><span class="p">();</span> <span class="n">app</span> <span class="o">=</span> <span class="n">tabs</span><span class="o">.</span><span class="n">append</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">bkw</span><span class="o">.</span><span class="n">PreText</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ddb</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">),</span> <span class="n">sizing_mode</span><span class="o">=</span><span class="s2">&quot;scale_both&quot;</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">((</span><span class="s2">&quot;Summary&quot;</span><span class="p">,</span> <span class="n">row</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">((</span><span class="s2">&quot;Ph-bands&quot;</span><span class="p">,</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+            <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s2">&quot;# PH-bands options&quot;</span><span class="p">,</span>
+                      <span class="o">*</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">param</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;nqsmall&quot;</span><span class="p">,</span> <span class="s2">&quot;ndivsm&quot;</span><span class="p">,</span> <span class="s2">&quot;asr&quot;</span><span class="p">,</span> <span class="s2">&quot;chneut&quot;</span><span class="p">,</span> <span class="s2">&quot;dipdip&quot;</span><span class="p">,</span> <span class="s2">&quot;lo_to_splitting&quot;</span><span class="p">)],</span>
+                      <span class="bp">self</span><span class="o">.</span><span class="n">temp_range</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_phbands_btn</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">plot_phbands_and_phdos</span><span class="p">)</span>
+        <span class="p">))</span>
+        <span class="n">app</span><span class="p">((</span><span class="s2">&quot;BECs&quot;</span><span class="p">,</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+            <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s2">&quot;# Born effective charges options&quot;</span><span class="p">,</span>
+                     <span class="o">*</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">param</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;asr&quot;</span><span class="p">,</span> <span class="s2">&quot;chneut&quot;</span><span class="p">,</span> <span class="s2">&quot;dipdip&quot;</span><span class="p">,</span> <span class="s2">&quot;gamma_ev&quot;</span><span class="p">)],</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_epsinf_btn</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_epsinf</span><span class="p">)</span>
+        <span class="p">))</span>
+        <span class="n">app</span><span class="p">((</span><span class="s2">&quot;eps0&quot;</span><span class="p">,</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+            <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s2">&quot;# epsilon_0&quot;</span><span class="p">,</span>
+                      <span class="o">*</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">param</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;asr&quot;</span><span class="p">,</span> <span class="s2">&quot;chneut&quot;</span><span class="p">,</span> <span class="s2">&quot;dipdip&quot;</span><span class="p">,</span> <span class="s2">&quot;gamma_ev&quot;</span><span class="p">)],</span>
+                      <span class="bp">self</span><span class="o">.</span><span class="n">w_range</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_eps0w_btn</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">plot_eps0w</span><span class="p">)</span>
+        <span class="p">))</span>
+        <span class="n">app</span><span class="p">((</span><span class="s2">&quot;Speed of sound&quot;</span><span class="p">,</span> <span class="n">pn</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+            <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s2">&quot;# Speed of sound options&quot;</span><span class="p">,</span>
+                      <span class="o">*</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">param</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;asr&quot;</span><span class="p">,</span> <span class="s2">&quot;chneut&quot;</span><span class="p">,</span> <span class="s2">&quot;dipdip&quot;</span><span class="p">)],</span>
+                      <span class="bp">self</span><span class="o">.</span><span class="n">plot_vsound_btn</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">plot_vsound</span><span class="p">)</span>
+        <span class="p">))</span>
+        <span class="n">app</span><span class="p">((</span><span class="s2">&quot;Global&quot;</span><span class="p">,</span> <span class="n">pn</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s2">&quot;# Global parameters&quot;</span><span class="p">,</span> <span class="o">*</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">param</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;units&quot;</span><span class="p">,</span> <span class="s2">&quot;mpi_procs&quot;</span><span class="p">,</span> <span class="s2">&quot;verbose&quot;</span><span class="p">)])))</span>
+
+        <span class="k">return</span> <span class="n">tabs</span></div></div>
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
+      Last updated on May 29, 2020.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

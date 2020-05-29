@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Quasi-harmonic approximation (convergence wrt Q-mesh) &#8212; abipy 0.8.0 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Band structure interpolation with Wannier functions" href="plot_wannier90_abiwan.html" />
+    <link rel="prev" title="Phonon fatbands" href="plot_phonon_fatbands.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../zzbiblio.html">Bibliography</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../graphical_interface.html">Graphical interface</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../postprocessing_howto.html">Post-processing How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documenting AbiPy</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">Quasi-harmonic approximation (convergence wrt Q-mesh)</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="plot_phonon_fatbands.html" title="Previous Chapter: Phonon fatbands"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Phonon fatbands</span>
+    </a>
+  </li>
+  <li>
+    <a href="plot_wannier90_abiwan.html" title="Next Chapter: Band structure interpolation with Wannier functions"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Band structur... &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/gallery/plot_qha_vs_qmesh.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <div class="sphx-glr-download-link-note admonition note">
+<p class="admonition-title">Note</p>
+<p>Click <a class="reference internal" href="#sphx-glr-download-gallery-plot-qha-vs-qmesh-py"><span class="std std-ref">here</span></a> to download the full example code</p>
+</div>
+<div class="sphx-glr-example-title section" id="quasi-harmonic-approximation-convergence-wrt-q-mesh">
+<span id="sphx-glr-gallery-plot-qha-vs-qmesh-py"></span><h1>Quasi-harmonic approximation (convergence wrt Q-mesh)<a class="headerlink" href="#quasi-harmonic-approximation-convergence-wrt-q-mesh" title="Permalink to this headline">¶</a></h1>
+<p>This example shows how to use the GSR.nc and PHDOS.nc files computed with different volumes
+to analyze the convergence of QHA thermodynamic properties with respect to the number of q-points
+used to compute the phonon DOS.</p>
+<ul class="sphx-glr-horizontal">
+<li><img alt="../_images/sphx_glr_plot_qha_vs_qmesh_001.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_qha_vs_qmesh_001.png" />
+</li>
+<li><img alt="../_images/sphx_glr_plot_qha_vs_qmesh_002.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_qha_vs_qmesh_002.png" />
+</li>
+<li><img alt="../_images/sphx_glr_plot_qha_vs_qmesh_003.png" class="sphx-glr-multi-img" src="../_images/sphx_glr_plot_qha_vs_qmesh_003.png" />
+</li>
+</ul>
+<p class="sphx-glr-script-out">Out:</p>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
+  warnings.warn(&quot;The input structure does not match the expected standard primitive! &quot;
+/Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
+  warnings.warn(&quot;The input structure does not match the expected standard primitive! &quot;
+/Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
+  warnings.warn(&quot;The input structure does not match the expected standard primitive! &quot;
+/Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
+  warnings.warn(&quot;The input structure does not match the expected standard primitive! &quot;
+/Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
+  warnings.warn(&quot;The input structure does not match the expected standard primitive! &quot;
+/Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
+  warnings.warn(&quot;The input structure does not match the expected standard primitive! &quot;
+/Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
+  warnings.warn(&quot;The input structure does not match the expected standard primitive! &quot;
+/Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
+  warnings.warn(&quot;The input structure does not match the expected standard primitive! &quot;
+/Users/gmatteo/git_repos/pymatgen/pymatgen/symmetry/bandstructure.py:63: UserWarning: The input structure does not match the expected standard primitive! The path can be incorrect. Use at your own risk.
+  warnings.warn(&quot;The input structure does not match the expected standard primitive! &quot;
+/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+  plt.show()
+/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+  plt.show()
+/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+  plt.show()
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
+
+<span class="kn">from</span> <span class="nn">abipy.dfpt.qha</span> <span class="kn">import</span> <span class="n">QHAQmeshAnalyzer</span>
+
+<span class="c1"># We use a list of GSR.nc and PHDOS.nc files corresponding to different isotropic strains.</span>
+<span class="c1"># These files are shipped with AbiPy so that we don&#39;t need to run calculations from scratch.</span>
+<span class="c1">#strains = [-4, -2, 0, 2, 4, 6]</span>
+<span class="n">strains</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+<span class="n">dirpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">dirpath</span><span class="p">,</span> <span class="s2">&quot;refs&quot;</span><span class="p">,</span> <span class="s2">&quot;si_qha&quot;</span><span class="p">)</span>
+
+<span class="n">gsr_paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="s2">&quot;mp-149_</span><span class="si">{:+d}</span><span class="s2">_GSR.nc&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="p">))</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">strains</span><span class="p">]</span>
+<span class="n">ddb_paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="s2">&quot;mp-149_</span><span class="si">{:+d}</span><span class="s2">_DDB&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="p">))</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">strains</span><span class="p">]</span>
+
+<span class="c1"># Initialize QHA object from files.</span>
+<span class="n">qhana</span> <span class="o">=</span> <span class="n">QHAQmeshAnalyzer</span><span class="p">(</span><span class="n">gsr_paths</span><span class="p">,</span> <span class="n">ddb_paths</span><span class="p">)</span>
+
+<span class="c1"># To change the default EOS (vinet), use</span>
+<span class="c1">#qhana.set_eos(&quot;vinet&quot;)</span>
+
+<span class="c1"># Compute ph-DOS with this list of nqsmall values.</span>
+<span class="n">qhana</span><span class="o">.</span><span class="n">run_qlist</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span>
+
+<span class="c1"># Analyze convergence. API similar to QHA.</span>
+<span class="n">qhana</span><span class="o">.</span><span class="n">plot_energies</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Energies as a function of volume for different T&quot;</span><span class="p">)</span>
+
+<span class="n">qhana</span><span class="o">.</span><span class="n">plot_thermal_expansion_coeff</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Thermal expansion coefficient as a function of T&quot;</span><span class="p">)</span>
+
+<span class="n">qhana</span><span class="o">.</span><span class="n">plot_vol_vs_t</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Volume as a function of T&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  16.696 seconds)</p>
+<div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-qha-vs-qmesh-py">
+<div class="sphx-glr-download docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/56e70fae79d9837fab39487fd80c0e9a/plot_qha_vs_qmesh.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_qha_vs_qmesh.py</span></code></a></p>
+</div>
+<div class="sphx-glr-download docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/391b4b94bec333e7905ecf39a9a084b8/plot_qha_vs_qmesh.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_qha_vs_qmesh.ipynb</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
+      Last updated on Feb 22, 2020.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

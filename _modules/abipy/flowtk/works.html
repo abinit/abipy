@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>abipy.flowtk.works &#8212; abipy 0.7.0 documentation</title>
+    <title>abipy.flowtk.works &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -39,7 +42,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -62,6 +65,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -134,24 +138,21 @@
 <span class="kn">import</span> <span class="nn">collections</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">AttrDict</span>
-<span class="kn">from</span> <span class="nn">monty.itertools</span> <span class="k">import</span> <span class="n">chunks</span>
-<span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
-<span class="kn">from</span> <span class="nn">monty.fnmatch</span> <span class="k">import</span> <span class="n">WildCard</span>
-<span class="kn">from</span> <span class="nn">pydispatch</span> <span class="k">import</span> <span class="n">dispatcher</span>
-<span class="kn">from</span> <span class="nn">pymatgen.core.units</span> <span class="k">import</span> <span class="n">EnergyArray</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">wrappers</span>
-<span class="kn">from</span> <span class="nn">.nodes</span> <span class="k">import</span> <span class="n">Dependency</span><span class="p">,</span> <span class="n">Node</span><span class="p">,</span> <span class="n">NodeError</span><span class="p">,</span> <span class="n">NodeResults</span><span class="p">,</span> <span class="n">FileNode</span> <span class="c1">#, check_spectator</span>
-<span class="kn">from</span> <span class="nn">.tasks</span> <span class="k">import</span> <span class="p">(</span><span class="n">Task</span><span class="p">,</span> <span class="n">AbinitTask</span><span class="p">,</span> <span class="n">ScfTask</span><span class="p">,</span> <span class="n">NscfTask</span><span class="p">,</span> <span class="n">DfptTask</span><span class="p">,</span> <span class="n">PhononTask</span><span class="p">,</span> <span class="n">ElasticTask</span><span class="p">,</span> <span class="n">DdkTask</span><span class="p">,</span>
+<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="kn">import</span> <span class="n">AttrDict</span>
+<span class="kn">from</span> <span class="nn">monty.itertools</span> <span class="kn">import</span> <span class="n">chunks</span>
+<span class="kn">from</span> <span class="nn">monty.functools</span> <span class="kn">import</span> <span class="n">lazy_property</span>
+<span class="kn">from</span> <span class="nn">monty.fnmatch</span> <span class="kn">import</span> <span class="n">WildCard</span>
+<span class="kn">from</span> <span class="nn">pydispatch</span> <span class="kn">import</span> <span class="n">dispatcher</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.units</span> <span class="kn">import</span> <span class="n">EnergyArray</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">wrappers</span>
+<span class="kn">from</span> <span class="nn">.nodes</span> <span class="kn">import</span> <span class="n">Dependency</span><span class="p">,</span> <span class="n">Node</span><span class="p">,</span> <span class="n">NodeError</span><span class="p">,</span> <span class="n">NodeResults</span><span class="p">,</span> <span class="n">FileNode</span> <span class="c1">#, check_spectator</span>
+<span class="kn">from</span> <span class="nn">.tasks</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Task</span><span class="p">,</span> <span class="n">AbinitTask</span><span class="p">,</span> <span class="n">ScfTask</span><span class="p">,</span> <span class="n">NscfTask</span><span class="p">,</span> <span class="n">DfptTask</span><span class="p">,</span> <span class="n">PhononTask</span><span class="p">,</span> <span class="n">ElasticTask</span><span class="p">,</span> <span class="n">DdkTask</span><span class="p">,</span> <span class="n">EffMassTask</span><span class="p">,</span>
                     <span class="n">BseTask</span><span class="p">,</span> <span class="n">RelaxTask</span><span class="p">,</span> <span class="n">DdeTask</span><span class="p">,</span> <span class="n">BecTask</span><span class="p">,</span> <span class="n">ScrTask</span><span class="p">,</span> <span class="n">SigmaTask</span><span class="p">,</span> <span class="n">TaskManager</span><span class="p">,</span>
                     <span class="n">DteTask</span><span class="p">,</span> <span class="n">EphTask</span><span class="p">,</span> <span class="n">CollinearThenNonCollinearScfTask</span><span class="p">)</span>
 
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">Directory</span>
-<span class="kn">from</span> <span class="nn">.netcdf</span> <span class="k">import</span> <span class="n">ETSF_Reader</span><span class="p">,</span> <span class="n">NetcdfReader</span>
-<span class="kn">from</span> <span class="nn">.abitimer</span> <span class="k">import</span> <span class="n">AbinitTimerParser</span>
-
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">Directory</span>
+<span class="kn">from</span> <span class="nn">.netcdf</span> <span class="kn">import</span> <span class="n">ETSF_Reader</span><span class="p">,</span> <span class="n">NetcdfReader</span>
+<span class="kn">from</span> <span class="nn">.abitimer</span> <span class="kn">import</span> <span class="n">AbinitTimerParser</span>
 
 <span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Matteo Giantomassi&quot;</span>
 <span class="n">__copyright__</span> <span class="o">=</span> <span class="s2">&quot;Copyright 2013, The Materials Project&quot;</span>
@@ -180,7 +181,7 @@
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_node</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">work</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initialize an instance from a :class:`Work` instance.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Initialize an instance from a |Work| instance.&quot;&quot;&quot;</span>
         <span class="n">new</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">from_node</span><span class="p">(</span><span class="n">work</span><span class="p">)</span>
 
         <span class="c1"># Will put all files found in outdir in GridFs</span>
@@ -196,6 +197,10 @@
 
 
 <span class="k">class</span> <span class="nc">BaseWork</span><span class="p">(</span><span class="n">Node</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: BaseWork</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">Error</span> <span class="o">=</span> <span class="n">WorkError</span>
 
     <span class="n">Results</span> <span class="o">=</span> <span class="n">WorkResults</span>
@@ -284,7 +289,7 @@
 
         <span class="c1"># No task found, this usually happens when we have dependencies.</span>
         <span class="c1"># Beware of possible deadlocks here!</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Possible deadlock in fetch_task_to_run!&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Possible deadlock in fetch_task_to_run!&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">fetch_alltasks_to_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -304,7 +309,7 @@
     <span class="k">def</span> <span class="nf">connect_signals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Connect the signals within the work.</span>
-<span class="sd">        The :class:`Work` is responsible for catching the important signals raised from</span>
+<span class="sd">        The |Work| is responsible for catching the important signals raised from</span>
 <span class="sd">        its task and raise new signals when some particular condition occurs.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
@@ -318,7 +323,7 @@
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">dispatcher</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">on_ok</span><span class="p">,</span> <span class="n">signal</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">S_OK</span><span class="p">,</span> <span class="n">sender</span><span class="o">=</span><span class="n">task</span><span class="p">)</span>
             <span class="k">except</span> <span class="n">dispatcher</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">DispatcherKeyError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">))</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">all_ok</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -330,7 +335,7 @@
 <span class="sd">        This callback is called when one task reaches status `S_OK`.</span>
 <span class="sd">        It executes on_all_ok when all tasks in self have reached `S_OK`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;in on_ok with sender </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">sender</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;In on_ok with sender </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">sender</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_ok</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">finalized</span><span class="p">:</span>
@@ -357,15 +362,13 @@
     <span class="c1">#@check_spectator</span>
     <span class="k">def</span> <span class="nf">on_all_ok</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        This method is called once the `Work` is completed i.e. when all tasks</span>
-<span class="sd">        have reached status S_OK. Subclasses should provide their own implementation</span>
+<span class="sd">        This method is called once the `Work` is completed i.e. when all tasks have reached status S_OK.</span>
+<span class="sd">        Subclasses should provide their own implementation</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Dictionary that must contain at least the following entries:</span>
-<span class="sd">                returncode:</span>
-<span class="sd">                    0 on success.</span>
-<span class="sd">                message:</span>
-<span class="sd">                    a string that should provide a human-readable description of what has been performed.</span>
+<span class="sd">                returncode: 0 on success.</span>
+<span class="sd">                message: a string that should provide a human-readable description of what has been performed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">returncode</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;Calling on_all_ok of the base class!&quot;</span><span class="p">)</span>
 
@@ -389,7 +392,7 @@
 
 <span class="sd">        Returns: graphviz.Digraph &lt;https://graphviz.readthedocs.io/en/stable/api.html#digraph&gt;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">graphviz</span> <span class="k">import</span> <span class="n">Digraph</span>
+        <span class="kn">from</span> <span class="nn">graphviz</span> <span class="kn">import</span> <span class="n">Digraph</span>
         <span class="n">fg</span> <span class="o">=</span> <span class="n">Digraph</span><span class="p">(</span><span class="s2">&quot;work&quot;</span><span class="p">,</span> <span class="c1">#filename=&quot;work_%s.gv&quot; % os.path.basename(self.workdir),</span>
             <span class="n">engine</span><span class="o">=</span><span class="s2">&quot;fdp&quot;</span> <span class="k">if</span> <span class="n">engine</span> <span class="o">==</span> <span class="s2">&quot;automatic&quot;</span> <span class="k">else</span> <span class="n">engine</span><span class="p">)</span>
 
@@ -482,7 +485,7 @@
 <span class="sd">    to register tasks in the container. The helper function call the</span>
 <span class="sd">    `register` method of the container.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># TODO: Abstract protocol for containers</span>
+    <span class="c1"># Abstract protocol for containers</span>
 
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
     <span class="k">def</span> <span class="nf">register_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -491,7 +494,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># TODO: shall flow.register_task return a Task or a Work?</span>
 
-    <span class="c1"># Helper functions</span>
+    <span class="c1"># Helper functions to register Task subclasses.</span>
     <span class="k">def</span> <span class="nf">register_scf_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Register a Scf task.&quot;&quot;&quot;</span>
         <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;task_class&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ScfTask</span>
@@ -505,7 +508,23 @@
     <span class="k">def</span> <span class="nf">register_nscf_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Register a nscf task.&quot;&quot;&quot;</span>
         <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;task_class&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">NscfTask</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">register_task</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">task</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">register_task</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># Make sure parent producing DEN file is given</span>
+        <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">is_work</span><span class="p">:</span> <span class="n">task</span> <span class="o">=</span> <span class="n">task</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">den_parent</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">find_parent_with_ext</span><span class="p">(</span><span class="s2">&quot;DEN&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">den_parent</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;NSCF task </span><span class="si">%s</span><span class="se">\n</span><span class="s2">requires parent producing DEN file!&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">task</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;usekden&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># Meta-GGA calculation --&gt; Add KDEN if not explicitly given.</span>
+            <span class="c1"># Assuming prtkden already set to 1</span>
+            <span class="c1"># TODO: Abinit should automatically set it to 1 if usekden --&gt; I&#39;m not gonna fix the input at this level</span>
+            <span class="n">kden_parent</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">find_parent_with_ext</span><span class="p">(</span><span class="s2">&quot;KDEN&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">kden_parent</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">task</span><span class="o">.</span><span class="n">add_deps</span><span class="p">({</span><span class="n">den_parent</span><span class="p">:</span> <span class="s2">&quot;KDEN&quot;</span><span class="p">})</span>
+
+        <span class="k">return</span> <span class="n">task</span>
 
     <span class="k">def</span> <span class="nf">register_relax_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Register a task for structural optimization.&quot;&quot;&quot;</span>
@@ -523,8 +542,15 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">register_task</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">register_ddk_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Register a ddk task.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Register a DDK task.&quot;&quot;&quot;</span>
         <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;task_class&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">DdkTask</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">register_task</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">register_effmass_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Register a effective mass task.&quot;&quot;&quot;</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;task_class&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">EffMassTask</span>
+        <span class="c1"># FIXME: Hack to run it in sequential because effmass task does not support parallelism.</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;manager&quot;</span><span class="p">:</span> <span class="n">TaskManager</span><span class="o">.</span><span class="n">from_user_config</span><span class="p">()</span><span class="o">.</span><span class="n">new_with_fixed_mpi_omp</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)})</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">register_task</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">register_scr_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -560,6 +586,12 @@
     <span class="k">def</span> <span class="nf">register_eph_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Register an electron-phonon task.&quot;&quot;&quot;</span>
         <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;task_class&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">EphTask</span>
+        <span class="n">eph_inp</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">seq_manager</span> <span class="o">=</span> <span class="n">TaskManager</span><span class="o">.</span><span class="n">from_user_config</span><span class="p">()</span><span class="o">.</span><span class="n">new_with_fixed_mpi_omp</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">eph_inp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;eph_frohlichm&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">abs</span><span class="p">(</span><span class="n">eph_inp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;eph_task&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span> <span class="o">==</span> <span class="mi">15</span><span class="p">:</span>
+            <span class="c1"># FIXME: Hack to run task in sequential if calculation does not support MPI with nprocs &gt; 1.</span>
+            <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;manager&quot;</span><span class="p">:</span> <span class="n">seq_manager</span><span class="p">})</span>
+
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">register_task</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">walknset_vars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_class</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -595,12 +627,15 @@
 <div class="viewcode-block" id="Work"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.works.Work">[docs]</a><span class="k">class</span> <span class="nc">Work</span><span class="p">(</span><span class="n">BaseWork</span><span class="p">,</span> <span class="n">NodeContainer</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A Work is a list of (possibly connected) tasks.</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: Work</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            workdir: Path to the working directory.</span>
-<span class="sd">            manager: :class:`TaskManager` object.</span>
+<span class="sd">            manager: |TaskManager| object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
@@ -613,18 +648,18 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">set_manager</span><span class="p">(</span><span class="n">manager</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Work.set_manager"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.works.Work.set_manager">[docs]</a>    <span class="k">def</span> <span class="nf">set_manager</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">manager</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Set the :class:`TaskManager` to use to launch the :class:`Task`.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Set the |TaskManager| to use to launch the |Task|.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">manager</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
             <span class="n">task</span><span class="o">.</span><span class="n">set_manager</span><span class="p">(</span><span class="n">manager</span><span class="p">)</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">flow</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;The flow containing this :class:`Work`.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;The flow containing this |Work|.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flow</span>
 
 <div class="viewcode-block" id="Work.set_flow"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.works.Work.set_flow">[docs]</a>    <span class="k">def</span> <span class="nf">set_flow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flow</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Set the flow associated to this :class:`Work`.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Set the flow associated to this |Work|.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_flow&quot;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_flow</span> <span class="o">=</span> <span class="n">flow</span>
         <span class="k">else</span><span class="p">:</span>
@@ -633,7 +668,7 @@
 
 <div class="viewcode-block" id="Work.pos"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.works.Work.pos">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">pos</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;The position of self in the :class:`Flow`&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;The position of self in the |Flow|&quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">work</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="p">):</span>
             <span class="k">if</span> <span class="bp">self</span> <span class="o">==</span> <span class="n">work</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">i</span>
@@ -667,13 +702,13 @@
             <span class="n">new_tdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="s2">&quot;t&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
             <span class="n">task</span><span class="o">.</span><span class="n">set_workdir</span><span class="p">(</span><span class="n">new_tdir</span><span class="p">,</span> <span class="n">chroot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tasks</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tasks</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tasks</span><span class="p">[</span><span class="nb">slice</span><span class="p">]</span>
 
 <div class="viewcode-block" id="Work.chunks"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.works.Work.chunks">[docs]</a>    <span class="k">def</span> <span class="nf">chunks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">):</span>
@@ -701,7 +736,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">all_done</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;True if all the :class:`Task` objects in the :class:`Work` are done.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;True if all the |Task| objects in the |Work| are done.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">status</span> <span class="o">&gt;=</span> <span class="n">task</span><span class="o">.</span><span class="n">S_DONE</span> <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -730,11 +765,11 @@
 <div class="viewcode-block" id="Work.allocate"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.works.Work.allocate">[docs]</a>    <span class="k">def</span> <span class="nf">allocate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This function is called once we have completed the initialization</span>
-<span class="sd">        of the :class:`Work`. It sets the manager of each task (if not already done)</span>
+<span class="sd">        of the |Work|. It sets the manager of each task (if not already done)</span>
 <span class="sd">        and defines the working directories of the tasks.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            manager: :class:`TaskManager` object or None</span>
+<span class="sd">            manager: |TaskManager| object or None</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">task</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 
@@ -760,10 +795,10 @@
 
 <div class="viewcode-block" id="Work.register"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.works.Work.register">[docs]</a>    <span class="k">def</span> <span class="nf">register</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">required_files</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">task_class</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Registers a new :class:`Task` and add it to the internal list, taking into account possible dependencies.</span>
+<span class="sd">        Registers a new |Task| and add it to the internal list, taking into account possible dependencies.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            obj: :class:`AbinitInput` instance or `Task` object.</span>
+<span class="sd">            obj: |AbinitInput| instance or |Task| object.</span>
 <span class="sd">            deps: Dictionary specifying the dependency of this node or list of dependencies</span>
 <span class="sd">                  None means that this obj has no dependency.</span>
 <span class="sd">            required_files: List of strings with the path of the files used by the task.</span>
@@ -771,12 +806,11 @@
 <span class="sd">                Use the standard approach based on Works, Tasks and deps</span>
 <span class="sd">                if the files will be produced in the future.</span>
 <span class="sd">            manager:</span>
-<span class="sd">                The :class:`TaskManager` responsible for the submission of the task. If manager is None, we use</span>
-<span class="sd">                the `TaskManager` specified during the creation of the :class:`Work`.</span>
+<span class="sd">                The |TaskManager| responsible for the submission of the task. If manager is None, we use</span>
+<span class="sd">                the `TaskManager` specified during the creation of the |Work|.</span>
 <span class="sd">            task_class: Task subclass to instantiate. Default: :class:`AbinitTask`</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            :class:`Task` object</span>
+<span class="sd">        Returns: |Task| object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">task_workdir</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;workdir&quot;</span><span class="p">):</span>
@@ -992,16 +1026,21 @@
 
 
 <div class="viewcode-block" id="BandStructureWork"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.works.BandStructureWork">[docs]</a><span class="k">class</span> <span class="nc">BandStructureWork</span><span class="p">(</span><span class="n">Work</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Work for band structure calculations.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Work for band structure calculations.</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scf_input</span><span class="p">,</span> <span class="n">nscf_input</span><span class="p">,</span> <span class="n">dos_inputs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: BandStructureWork</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scf_input</span><span class="p">,</span> <span class="n">nscf_input</span><span class="p">,</span> <span class="n">dos_inputs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            scf_input: Input for the SCF run</span>
 <span class="sd">            nscf_input: Input for the NSCF run defining the band structure calculation.</span>
 <span class="sd">            dos_inputs: Input(s) for the DOS. DOS is computed only if dos_inputs is not None.</span>
 <span class="sd">            workdir: Working directory.</span>
-<span class="sd">            manager: :class:`TaskManager` object.</span>
+<span class="sd">            manager: |TaskManager| object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
 
@@ -1023,10 +1062,9 @@
 
 <div class="viewcode-block" id="BandStructureWork.plot_ebands"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.works.BandStructureWork.plot_ebands">[docs]</a>    <span class="k">def</span> <span class="nf">plot_ebands</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Plot the band structure. kwargs are passed to the plot method of :class:`ElectronBands`.</span>
+<span class="sd">        Plot the band structure. kwargs are passed to the plot method of |ElectronBands|.</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            `matplotlib` figure</span>
+<span class="sd">        Return: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">nscf_task</span><span class="o">.</span><span class="n">open_gsr</span><span class="p">()</span> <span class="k">as</span> <span class="n">gsr</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">gsr</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
@@ -1042,8 +1080,7 @@
 <span class="sd">            width: Standard deviation (eV) of the gaussian.</span>
 <span class="sd">            kwargs: Keyword arguments passed to `plot_with_edos` method to customize the plot.</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            `matplotlib` figure.</span>
+<span class="sd">        Return: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">nscf_task</span><span class="o">.</span><span class="n">open_gsr</span><span class="p">()</span> <span class="k">as</span> <span class="n">gsr</span><span class="p">:</span>
             <span class="n">gs_ebands</span> <span class="o">=</span> <span class="n">gsr</span><span class="o">.</span><span class="n">ebands</span>
@@ -1066,12 +1103,11 @@
 <span class="sd">            width: Standard deviation (eV) of the gaussian.</span>
 <span class="sd">            kwargs: Keyword arguments passed to `plot` method to customize the plot.</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            `matplotlib` figure.</span>
+<span class="sd">        Return: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">dos_pos</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dos_pos</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span> <span class="n">dos_pos</span> <span class="o">=</span> <span class="p">[</span><span class="n">dos_pos</span><span class="p">]</span>
 
-        <span class="kn">from</span> <span class="nn">abipy.electrons.ebands</span> <span class="k">import</span> <span class="n">ElectronDosPlotter</span>
+        <span class="kn">from</span> <span class="nn">abipy.electrons.ebands</span> <span class="kn">import</span> <span class="n">ElectronDosPlotter</span>
         <span class="n">plotter</span> <span class="o">=</span> <span class="n">ElectronDosPlotter</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">task</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dos_tasks</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">dos_pos</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dos_pos</span><span class="p">:</span> <span class="k">continue</span>
@@ -1089,14 +1125,17 @@
 <span class="sd">    while keeping the unit cell parameters fixed. The second task uses the final</span>
 <span class="sd">    structure to perform a structural relaxation in which both the atomic positions</span>
 <span class="sd">    and the lattice parameters are optimized.</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: RelaxWork</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ion_input</span><span class="p">,</span> <span class="n">ioncell_input</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_dilatmx</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ion_input</span><span class="p">,</span> <span class="n">ioncell_input</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_dilatmx</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            ion_input: Input for the relaxation of the ions (cell is fixed)</span>
 <span class="sd">            ioncell_input: Input for the relaxation of the ions and the unit cell.</span>
 <span class="sd">            workdir: Working directory.</span>
-<span class="sd">            manager: :class:`TaskManager` object.</span>
+<span class="sd">            manager: |TaskManager| object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
 
@@ -1128,7 +1167,7 @@
 <span class="sd">        If sender == self.ion_task, we update the initial structure</span>
 <span class="sd">        used by self.ioncell_task and we unlock it so that the job can be submitted.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;in on_ok with sender </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">sender</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;In on_ok with sender </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">sender</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">sender</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">ion_task</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">transfer_done</span><span class="p">:</span>
             <span class="c1"># Get the relaxed structure from ion_task</span>
@@ -1147,16 +1186,16 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">ioncell_task</span><span class="o">.</span><span class="n">reduce_dilatmx</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">target_dilatmx</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Converging dilatmx. Value reduce from </span><span class="si">{}</span><span class="s1"> to </span><span class="si">{}</span><span class="s1">.&#39;</span>
                             <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">actual_dilatmx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ioncell_task</span><span class="o">.</span><span class="n">get_inpvar</span><span class="p">(</span><span class="s1">&#39;dilatmx&#39;</span><span class="p">)))</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">ioncell_task</span><span class="o">.</span><span class="n">reset_from_scratch</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ioncell_task</span><span class="o">.</span><span class="n">restart</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">on_ok</span><span class="p">(</span><span class="n">sender</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="RelaxWork.plot_ion_relaxation"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.works.RelaxWork.plot_ion_relaxation">[docs]</a>    <span class="k">def</span> <span class="nf">plot_ion_relaxation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the history of the ion-cell relaxation.</span>
-<span class="sd">        kwargs are passed to the plot method of :class:`HistFile`</span>
+<span class="sd">        kwargs are passed to the plot method of |HistFile|</span>
 
-<span class="sd">        Return `matplotlib` figure or None if hist file is not found.</span>
+<span class="sd">        Return: |matplotlib-Figure| or None if hist file is not found.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">ion_task</span><span class="o">.</span><span class="n">open_hist</span><span class="p">()</span> <span class="k">as</span> <span class="n">hist</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">hist</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">if</span> <span class="n">hist</span> <span class="k">else</span> <span class="kc">None</span></div>
@@ -1164,9 +1203,9 @@
 <div class="viewcode-block" id="RelaxWork.plot_ioncell_relaxation"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.works.RelaxWork.plot_ioncell_relaxation">[docs]</a>    <span class="k">def</span> <span class="nf">plot_ioncell_relaxation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the history of the ion-cell relaxation.</span>
-<span class="sd">        kwargs are passed to the plot method of :class:`HistFile`</span>
+<span class="sd">        kwargs are passed to the plot method of |HistFile|</span>
 
-<span class="sd">        Return `matplotlib` figure or None if hist file is not found.</span>
+<span class="sd">        Return: |matplotlib-Figure| or None if hist file is not found.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">ioncell_task</span><span class="o">.</span><span class="n">open_hist</span><span class="p">()</span> <span class="k">as</span> <span class="n">hist</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">hist</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">if</span> <span class="n">hist</span> <span class="k">else</span> <span class="kc">None</span></div></div>
@@ -1176,8 +1215,11 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Work for general G0W0 calculations.</span>
 <span class="sd">    All input can be either single inputs or lists of inputs</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: G0W0Work</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scf_inputs</span><span class="p">,</span> <span class="n">nscf_inputs</span><span class="p">,</span> <span class="n">scr_inputs</span><span class="p">,</span> <span class="n">sigma_inputs</span><span class="p">,</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scf_inputs</span><span class="p">,</span> <span class="n">nscf_inputs</span><span class="p">,</span> <span class="n">scr_inputs</span><span class="p">,</span> <span class="n">sigma_inputs</span><span class="p">,</span>
                  <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
@@ -1186,11 +1228,11 @@
 <span class="sd">            nscf_inputs: Input(s) for the NSCF run, if it is a list add all but only</span>
 <span class="sd">                link to the last (i.e. addditiona DOS and BANDS)</span>
 <span class="sd">            scr_inputs: Input for the screening run</span>
-<span class="sd">            sigma_inputs: List of :class:AbinitInput`for the self-energy run.</span>
+<span class="sd">            sigma_inputs: List of |AbinitInput| for the self-energy run.</span>
 <span class="sd">                if scr and sigma are lists of the same length, every sigma gets its own screening.</span>
 <span class="sd">                if there is only one screening all sigma inputs are linked to this one</span>
 <span class="sd">            workdir: Working directory of the calculation.</span>
-<span class="sd">            manager: :class:`TaskManager` object.</span>
+<span class="sd">            manager: |TaskManager| object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
 
@@ -1238,15 +1280,18 @@
 <div class="viewcode-block" id="SigmaConvWork"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.works.SigmaConvWork">[docs]</a><span class="k">class</span> <span class="nc">SigmaConvWork</span><span class="p">(</span><span class="n">Work</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Work for self-energy convergence studies.</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: SigmaConvWork</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wfk_node</span><span class="p">,</span> <span class="n">scr_node</span><span class="p">,</span> <span class="n">sigma_inputs</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wfk_node</span><span class="p">,</span> <span class="n">scr_node</span><span class="p">,</span> <span class="n">sigma_inputs</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            wfk_node: The node who has produced the WFK file or filepath pointing to the WFK file.</span>
 <span class="sd">            scr_node: The node who has produced the SCR file or filepath pointing to the SCR file.</span>
-<span class="sd">            sigma_inputs: List of :class:`AbinitInput` for the self-energy runs.</span>
+<span class="sd">            sigma_inputs: List of |AbinitInput| for the self-energy runs.</span>
 <span class="sd">            workdir: Working directory of the calculation.</span>
-<span class="sd">            manager: :class:`TaskManager` object.</span>
+<span class="sd">            manager: |TaskManager| object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Cast to node instances.</span>
         <span class="n">wfk_node</span><span class="p">,</span> <span class="n">scr_node</span> <span class="o">=</span> <span class="n">Node</span><span class="o">.</span><span class="n">as_node</span><span class="p">(</span><span class="n">wfk_node</span><span class="p">),</span> <span class="n">Node</span><span class="o">.</span><span class="n">as_node</span><span class="p">(</span><span class="n">scr_node</span><span class="p">)</span>
@@ -1266,15 +1311,18 @@
 <span class="sd">    Work for simple BSE calculations in which the self-energy corrections</span>
 <span class="sd">    are approximated by the scissors operator and the screening is modeled</span>
 <span class="sd">    with the model dielectric function.</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: BseMdfWork</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scf_input</span><span class="p">,</span> <span class="n">nscf_input</span><span class="p">,</span> <span class="n">bse_inputs</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scf_input</span><span class="p">,</span> <span class="n">nscf_input</span><span class="p">,</span> <span class="n">bse_inputs</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            scf_input: Input for the SCF run.</span>
 <span class="sd">            nscf_input: Input for the NSCF run.</span>
 <span class="sd">            bse_inputs: List of Inputs for the BSE run.</span>
 <span class="sd">            workdir: Working directory of the calculation.</span>
-<span class="sd">            manager: :class:`TaskManager`.</span>
+<span class="sd">            manager: |TaskManager|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
 
@@ -1293,7 +1341,7 @@
 
 <div class="viewcode-block" id="BseMdfWork.get_mdf_robot"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.works.BseMdfWork.get_mdf_robot">[docs]</a>    <span class="k">def</span> <span class="nf">get_mdf_robot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Builds and returns a :class:`MdfRobot` for analyzing the results in the MDF files.&quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">abilab.robots</span> <span class="k">import</span> <span class="n">MdfRobot</span>
+        <span class="kn">from</span> <span class="nn">abilab.robots</span> <span class="kn">import</span> <span class="n">MdfRobot</span>
         <span class="n">robot</span> <span class="o">=</span> <span class="n">MdfRobot</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">[</span><span class="mi">2</span><span class="p">:]:</span>
             <span class="n">mdf_path</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">has_abiext</span><span class="p">(</span><span class="n">robot</span><span class="o">.</span><span class="n">EXT</span><span class="p">)</span>
@@ -1307,6 +1355,9 @@
 <span class="sd">    This work parallelizes the calculation of the q-points of the screening.</span>
 <span class="sd">    It also provides the callback `on_all_ok` that calls mrgscr to merge</span>
 <span class="sd">    all the partial screening files produced.</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: QptdmWork</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="QptdmWork.create_tasks"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.works.QptdmWork.create_tasks">[docs]</a>    <span class="k">def</span> <span class="nf">create_tasks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wfk_file</span><span class="p">,</span> <span class="n">scr_input</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1339,7 +1390,6 @@
         <span class="c1"># Parse the section with the q-points</span>
         <span class="k">with</span> <span class="n">NetcdfReader</span><span class="p">(</span><span class="n">fake_task</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">has_abiext</span><span class="p">(</span><span class="s2">&quot;qptdms.nc&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
             <span class="n">qpoints</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;reduced_coordinates_of_kpoints&quot;</span><span class="p">)</span>
-        <span class="c1">#print(&quot;qpoints)</span>
 
         <span class="c1"># Now we can register the task for the different q-points</span>
         <span class="k">for</span> <span class="n">qpoint</span> <span class="ow">in</span> <span class="n">qpoints</span><span class="p">:</span>
@@ -1390,18 +1440,18 @@
 
 
 <span class="k">class</span> <span class="nc">MergeDdb</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Mixin class for Works that have to merge the DDB files produced by the tasks.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mixin class for Works that have to merge the DDB files produced by the tasks.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">add_becs_from_scf_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scf_task</span><span class="p">,</span> <span class="n">ddk_tolerance</span><span class="p">,</span> <span class="n">ph_tolerance</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build tasks for the computation of Born effective charges and add them to the work.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            scf_task: ScfTask object.</span>
-<span class="sd">            ddk_tolerance: dict {&quot;varname&quot;: value} with the tolerance used in the DDK run.</span>
-<span class="sd">                None to use AbiPy default.</span>
-<span class="sd">            ph_tolerance: dict {&quot;varname&quot;: value} with the tolerance used in the phonon run.</span>
-<span class="sd">                None to use AbiPy default.</span>
+<span class="sd">            scf_task: |ScfTask| object.</span>
+<span class="sd">            ddk_tolerance: dict {&quot;varname&quot;: value} with the tolerance used in the DDK run. None to use AbiPy default.</span>
+<span class="sd">            ph_tolerance: dict {&quot;varname&quot;: value} with the tolerance used in the phonon run. None to use AbiPy default.</span>
 
 <span class="sd">        Return: (ddk_tasks, bec_tasks)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1490,8 +1540,7 @@
 <span class="sd">        Args:</span>
 <span class="sd">            delete_source: True if POT1 files should be removed after (successful) merge.</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            path to the output DVDB file. None if not DFPT POT file is found.</span>
+<span class="sd">        Returns: path to the output DVDB file. None if not DFPT POT file is found.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">natom</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
         <span class="n">max_pertcase</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">natom</span>
@@ -1535,18 +1584,21 @@
 <span class="sd">    It provides the callback method (on_all_ok) that calls mrgddb (mrgdv) to merge</span>
 <span class="sd">    all the partial DDB (POT) files produced. The two files are available in the</span>
 <span class="sd">    output directory of the Work.</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: PhononWork</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="PhononWork.from_scf_task"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.works.PhononWork.from_scf_task">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_scf_task</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">scf_task</span><span class="p">,</span> <span class="n">qpoints</span><span class="p">,</span> <span class="n">is_ngqpt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_becs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                       <span class="n">ddk_tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Construct a `PhononWork` from a :class:`ScfTask` object.</span>
+<span class="sd">        Construct a `PhononWork` from a |ScfTask| object.</span>
 <span class="sd">        The input file for phonons is automatically generated from the input of the ScfTask.</span>
 <span class="sd">        Each phonon task depends on the WFK file produced by the `scf_task`.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            scf_task: ScfTask object.</span>
+<span class="sd">            scf_task: |ScfTask| object.</span>
 <span class="sd">            qpoints: q-points in reduced coordinates. Accepts single q-point, list of q-points</span>
 <span class="sd">                or three integers defining the q-mesh if `is_ngqpt`.</span>
 <span class="sd">            is_ngqpt: True if `qpoints` should be interpreted as divisions instead of q-points.</span>
@@ -1555,7 +1607,7 @@
 <span class="sd">            with_becs: Activate calculation of Electric field and Born effective charges.</span>
 <span class="sd">            ddk_tolerance: dict {&quot;varname&quot;: value} with the tolerance used in the DDK run if with_becs.</span>
 <span class="sd">                None to use AbiPy default.</span>
-<span class="sd">            manager: :class:`TaskManager` object.</span>
+<span class="sd">            manager: |TaskManager| object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scf_task</span><span class="p">,</span> <span class="n">ScfTask</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;task `</span><span class="si">%s</span><span class="s2">` does not inherit from ScfTask&quot;</span> <span class="o">%</span> <span class="n">scf_task</span><span class="p">)</span>
@@ -1581,7 +1633,7 @@
                        <span class="n">with_becs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ddk_tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Similar to `from_scf_task`, the difference is that this method requires</span>
-<span class="sd">        an input for SCF calculation. A new ScfTask is created and added to the Work.</span>
+<span class="sd">        an input for SCF calculation. A new |ScfTask| is created and added to the Work.</span>
 <span class="sd">        This API should be used if the DDB of the GS task should be merged.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">is_ngqpt</span><span class="p">:</span>
@@ -1609,11 +1661,10 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This method is called when all the q-points have been computed.</span>
 <span class="sd">        Ir runs `mrgddb` in sequential on the local machine to produce</span>
-<span class="sd">        the final DDB file in the outdir of the `Work`.</span>
+<span class="sd">        the final DDB file in the outdir of the |Work|.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Merge DDB files.</span>
         <span class="n">out_ddb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">merge_ddb_files</span><span class="p">()</span>
-
         <span class="c1"># Merge DVDB files.</span>
         <span class="n">out_dvdb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">merge_pot1_files</span><span class="p">()</span>
 
@@ -1628,6 +1679,9 @@
 <span class="sd">    It provides the callback method (on_all_ok) that calls mrgddb (mrgdv) to merge</span>
 <span class="sd">    all the partial DDB (POT) files produced. The two files are available in the</span>
 <span class="sd">    output directory of the Work. The WKQ files are removed at runtime.</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: PhononWfkqWork</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="PhononWfkqWork.from_scf_task"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.works.PhononWfkqWork.from_scf_task">[docs]</a>    <span class="nd">@classmethod</span>
@@ -1635,12 +1689,12 @@
                       <span class="n">with_becs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ddk_tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shiftq</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">is_ngqpt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">remove_wfkq</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                       <span class="n">prepgkk</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Construct a `PhononWfkqWork` from a :class:`ScfTask` object.</span>
+<span class="sd">        Construct a `PhononWfkqWork` from a |ScfTask| object.</span>
 <span class="sd">        The input files for WFQ and phonons are automatically generated from the input of the ScfTask.</span>
 <span class="sd">        Each phonon task depends on the WFK file produced by scf_task and the associated WFQ file.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            scf_task: ScfTask object.</span>
+<span class="sd">            scf_task: |ScfTask| object.</span>
 <span class="sd">            ngqpt: three integers defining the q-mesh</span>
 <span class="sd">            with_becs: Activate calculation of Electric field and Born effective charges.</span>
 <span class="sd">            ph_tolerance: dict {&quot;varname&quot;: value} with the tolerance for the phonon run.</span>
@@ -1653,7 +1707,7 @@
 <span class="sd">                      is an explicit list of q-points</span>
 <span class="sd">            remove_wfkq: Remove WKQ files when the children are completed.</span>
 <span class="sd">            prepgkk: 1 to activate computation of all 3*natom perts (debugging option).</span>
-<span class="sd">            manager: :class:`TaskManager` object.</span>
+<span class="sd">            manager: |TaskManager| object.</span>
 
 <span class="sd">        .. note:</span>
 
@@ -1745,7 +1799,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This method is called when all the q-points have been computed.</span>
 <span class="sd">        Ir runs `mrgddb` in sequential on the local machine to produce</span>
-<span class="sd">        the final DDB file in the outdir of the `Work`.</span>
+<span class="sd">        the final DDB file in the outdir of the |Work|.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Merge DDB files.</span>
         <span class="n">out_ddb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">merge_ddb_files</span><span class="p">()</span>
@@ -1760,6 +1814,9 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This work computes electron-phonon matrix elements for all the q-points</span>
 <span class="sd">    present in a DVDB and DDB file</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: GKKPWork</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="GKKPWork.from_den_ddb_dvdb"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.works.GKKPWork.from_den_ddb_dvdb">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_den_ddb_dvdb</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">inp</span><span class="p">,</span> <span class="n">den_path</span><span class="p">,</span> <span class="n">ddb_path</span><span class="p">,</span> <span class="n">dvdb_path</span><span class="p">,</span> <span class="n">mpiprocs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">remove_wfkq</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -1831,7 +1888,7 @@
             <span class="k">if</span> <span class="n">is_gamma</span><span class="p">:</span>
                 <span class="c1"># Create a link from WFK to WFQ on_ok</span>
                 <span class="n">wfkq_task</span> <span class="o">=</span> <span class="n">wfk_task</span>
-                <span class="n">deps</span> <span class="o">=</span> <span class="p">{</span><span class="n">wfk_task</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;WFK&quot;</span><span class="p">,</span><span class="s2">&quot;WFQ&quot;</span><span class="p">],</span> <span class="n">ddb_file</span><span class="p">:</span> <span class="s2">&quot;DDB&quot;</span><span class="p">,</span> <span class="n">dvdb</span><span class="p">:</span> <span class="s2">&quot;DVDB&quot;</span><span class="p">}</span>
+                <span class="n">deps</span> <span class="o">=</span> <span class="p">{</span><span class="n">wfk_task</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;WFK&quot;</span><span class="p">,</span> <span class="s2">&quot;WFQ&quot;</span><span class="p">],</span> <span class="n">ddb_file</span><span class="p">:</span> <span class="s2">&quot;DDB&quot;</span><span class="p">,</span> <span class="n">dvdb</span><span class="p">:</span> <span class="s2">&quot;DVDB&quot;</span><span class="p">}</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># Create a WFQ task</span>
                 <span class="n">nscf_inp</span> <span class="o">=</span> <span class="n">nscf_inp</span><span class="o">.</span><span class="n">new_with_vars</span><span class="p">(</span><span class="n">kptopt</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">qpt</span><span class="o">=</span><span class="n">qpt</span><span class="p">,</span> <span class="n">nqpt</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -1841,7 +1898,7 @@
 
             <span class="c1"># Create a EPH task</span>
             <span class="n">eph_inp</span> <span class="o">=</span> <span class="n">inp</span><span class="o">.</span><span class="n">new_with_vars</span><span class="p">(</span><span class="n">optdriver</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">prtphdos</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">eph_task</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-                                        <span class="n">ddb_ngqpt</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">nqpt</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">qpt</span><span class="o">=</span><span class="n">qpt</span><span class="p">)</span>
+                                        <span class="n">ddb_ngqpt</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">nqpt</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">qpt</span><span class="o">=</span><span class="n">qpt</span><span class="p">)</span>
             <span class="n">t</span> <span class="o">=</span> <span class="n">new</span><span class="o">.</span><span class="n">register_eph_task</span><span class="p">(</span><span class="n">eph_inp</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="n">deps</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">tm</span><span class="p">)</span>
             <span class="n">new</span><span class="o">.</span><span class="n">wfkq_task_children</span><span class="p">[</span><span class="n">wfkq_task</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
 
@@ -1859,7 +1916,7 @@
         <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">phononwfkq_work</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">task</span><span class="p">,</span><span class="n">PhononTask</span><span class="p">):</span>
                 <span class="c1"># Store qpoints</span>
-                <span class="n">qpt</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;qpt&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">qpt</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;qpt&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
                 <span class="n">qpoints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qpt</span><span class="p">)</span>
                 <span class="c1"># Store dependencies</span>
                 <span class="n">qpoints_deps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">deps</span><span class="p">)</span>
@@ -1885,7 +1942,7 @@
         <span class="k">for</span> <span class="n">qpt</span><span class="p">,</span><span class="n">qpoint_deps</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qpoints</span><span class="p">,</span><span class="n">qpoints_deps</span><span class="p">):</span>
             <span class="c1"># Create eph task</span>
             <span class="n">eph_input</span> <span class="o">=</span> <span class="n">scf_task</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">new_with_vars</span><span class="p">(</span><span class="n">optdriver</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">prtphdos</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">eph_task</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span>
-                                                     <span class="n">ddb_ngqpt</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">nqpt</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">qpt</span><span class="o">=</span><span class="n">qpt</span><span class="p">)</span>
+                                                     <span class="n">ddb_ngqpt</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">nqpt</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">qpt</span><span class="o">=</span><span class="n">qpt</span><span class="p">)</span>
             <span class="n">deps</span> <span class="o">=</span> <span class="p">{</span><span class="n">ddb_file</span><span class="p">:</span> <span class="s2">&quot;DDB&quot;</span><span class="p">,</span> <span class="n">dvdb_file</span><span class="p">:</span> <span class="s2">&quot;DVDB&quot;</span><span class="p">}</span>
             <span class="k">for</span> <span class="n">dep</span> <span class="ow">in</span> <span class="n">qpoint_deps</span><span class="p">:</span>
                 <span class="n">deps</span><span class="p">[</span><span class="n">dep</span><span class="o">.</span><span class="n">node</span><span class="p">]</span> <span class="o">=</span> <span class="n">dep</span><span class="o">.</span><span class="n">exts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -1938,6 +1995,9 @@
 <span class="sd">    This work consists of DDK tasks and phonon + electric field perturbation</span>
 <span class="sd">    It provides the callback method (on_all_ok) that calls mrgddb to merge the</span>
 <span class="sd">    partial DDB files produced by the work.</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: BecWork</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="BecWork.from_scf_task"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.works.BecWork.from_scf_task">[docs]</a>    <span class="nd">@classmethod</span>
@@ -1946,11 +2006,11 @@
 <span class="sd">        Build tasks for the computation of Born effective charges from a ground-state task.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            scf_task: ScfTask object.</span>
+<span class="sd">            scf_task: |ScfTask| object.</span>
 <span class="sd">            ddk_tolerance: tolerance used in the DDK run if with_becs. None to use AbiPy default.</span>
 <span class="sd">            ph_tolerance: dict {&quot;varname&quot;: value} with the tolerance used in the phonon run.</span>
 <span class="sd">                None to use AbiPy default.</span>
-<span class="sd">            manager: :class:`TaskManager` object.</span>
+<span class="sd">            manager: |TaskManager| object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
         <span class="n">new</span><span class="o">.</span><span class="n">add_becs_from_scf_task</span><span class="p">(</span><span class="n">scf_task</span><span class="p">,</span> <span class="n">ddk_tolerance</span><span class="p">,</span> <span class="n">ph_tolerance</span><span class="p">)</span>
@@ -1960,7 +2020,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This method is called when all tasks reach S_OK</span>
 <span class="sd">        Ir runs `mrgddb` in sequential on the local machine to produce</span>
-<span class="sd">        the final DDB file in the outdir of the `Work`.</span>
+<span class="sd">        the final DDB file in the outdir of the |Work|.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Merge DDB files.</span>
         <span class="n">out_ddb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">merge_ddb_files</span><span class="p">()</span>
@@ -1973,6 +2033,9 @@
 
 <span class="sd">    This work consists of DDK tasks and electric field perturbation.</span>
 <span class="sd">    It provides the callback method (on_all_ok) that calls mrgddb to merge the partial DDB files produced</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: DteWork</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="DteWork.from_scf_task"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.works.DteWork.from_scf_task">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_scf_task</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">scf_task</span><span class="p">,</span> <span class="n">ddk_tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -1980,9 +2043,9 @@
 <span class="sd">        Build a DteWork from a ground-state task.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            scf_task: ScfTask object.</span>
+<span class="sd">            scf_task: |ScfTask| object.</span>
 <span class="sd">            ddk_tolerance: tolerance used in the DDK run if with_becs. None to use AbiPy default.</span>
-<span class="sd">            manager: :class:`TaskManager` object.</span>
+<span class="sd">            manager: |TaskManager| object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scf_task</span><span class="p">,</span> <span class="n">ScfTask</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;task `</span><span class="si">%s</span><span class="s2">` does not inherit from ScfTask&quot;</span> <span class="o">%</span> <span class="n">scf_task</span><span class="p">)</span>
@@ -2026,7 +2089,7 @@
 <div class="viewcode-block" id="DteWork.on_all_ok"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.works.DteWork.on_all_ok">[docs]</a>    <span class="k">def</span> <span class="nf">on_all_ok</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This method is called when all tasks reach S_OK</span>
-<span class="sd">        Ir runs `mrgddb` in sequential on the local machine to produce</span>
+<span class="sd">        It runs `mrgddb` in sequential on the local machine to produce</span>
 <span class="sd">        the final DDB file in the outdir of the `Work`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Merge DDB files.</span>
@@ -2046,7 +2109,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on May 29, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

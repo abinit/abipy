@@ -11,15 +11,23 @@ Flow Gallery
 
 This gallery contains python scripts to generate AbiPy flows from the command line.
 
-Run the scripts to generate the directory with the flow and then use :ref:`abirun.py` to execute the flow.
-Alternatively, one can use the ``-s`` option to generate the flow and run it immediately with the scheduler. 
+Run the scripts to generate the directory with the flow, then use the :ref:`abirun.py` script to execute the flow.
+Alternatively, one can use the ``-s`` option to generate the flow and run it immediately with the scheduler.
 Use ``--help`` for further information on the available options.
+
+Note that the figures can only show the initial configuration of the Flow.
+Additional Works generated at runtime won't be displayed.
+To visualize the entire Flow, you need to run the script and then use::
+
+    abirun.py FLOWDIR graphviz
+
+where `FLOWDIR` is the directory of the Flow.
 
 .. warning::
 
-    The following examples show how to use python and the AbiPy API to generate and run 
-    Abinit calculations in a semi-automatic way. 
-    These examples are not supposed to produce physically meaningful results 
+    The following examples show how to use python and the AbiPy API to generate and run
+    Abinit calculations in a semi-automatic way.
+    These examples are not supposed to produce physically meaningful results
     as input parameters are usually underconverged.
 
 
@@ -166,6 +174,66 @@ Use ``--help`` for further information on the available options.
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="This script compute the Grüneisen parameters (derivative of frequencies wrt Volume) using finit...">
+
+.. only:: html
+
+    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_gruneisen_abinit_thumb.png
+
+        :ref:`sphx_glr_flow_gallery_run_gruneisen_abinit.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_gruneisen_abinit
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Flow to estimate the zero-point renormalization at the band edges using the generalized Frohlic...">
+
+.. only:: html
+
+    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_frohlich_zpr_from_ddb_thumb.png
+
+        :ref:`sphx_glr_flow_gallery_run_frohlich_zpr_from_ddb.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_frohlich_zpr_from_ddb
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Flow to estimate the zero-point renormalization at the band edges using the generalized Frohlic...">
+
+.. only:: html
+
+    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_frohlich_zpr_thumb.png
+
+        :ref:`sphx_glr_flow_gallery_run_frohlich_zpr.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_frohlich_zpr
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="Flow to compute the band structure of silicon.">
 
 .. only:: html
@@ -183,6 +251,26 @@ Use ``--help`` for further information on the available options.
    :hidden:
 
    /flow_gallery/run_si_ebands
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the e-ph matrix elements in AlAs along a q-path with AbiPy fl...">
+
+.. only:: html
+
+    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_gkq_thumb.png
+
+        :ref:`sphx_glr_flow_gallery_run_gkq.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_gkq
 
 .. raw:: html
 
@@ -286,13 +374,13 @@ Use ``--help`` for further information on the available options.
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the phonon band structure of AlAs with AbiPy flows. The final...">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the Born effective charges and the dielectric tensors (e0, ei...">
 
 .. only:: html
 
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_gkq_thumb.png
+    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_becs_and_epsilon_vs_kpts_thumb.png
 
-        :ref:`sphx_glr_flow_gallery_run_gkq.py`
+        :ref:`sphx_glr_flow_gallery_run_becs_and_epsilon_vs_kpts.py`
 
 .. raw:: html
 
@@ -302,7 +390,7 @@ Use ``--help`` for further information on the available options.
 .. toctree::
    :hidden:
 
-   /flow_gallery/run_gkq
+   /flow_gallery/run_becs_and_epsilon_vs_kpts
 
 .. raw:: html
 
@@ -323,26 +411,6 @@ Use ``--help`` for further information on the available options.
    :hidden:
 
    /flow_gallery/run_phonons
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the Born effective charges and the dielectric tensors (e0, ei...">
-
-.. only:: html
-
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_becs_and_epsilon_vs_kpts_thumb.png
-
-        :ref:`sphx_glr_flow_gallery_run_becs_and_epsilon_vs_kpts.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /flow_gallery/run_becs_and_epsilon_vs_kpts
 
 .. raw:: html
 
@@ -426,6 +494,46 @@ Use ``--help`` for further information on the available options.
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="Flow to compute effective masses with finite difference method. Derivatives are computed along ...">
+
+.. only:: html
+
+    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_effmass_finitediff_thumb.png
+
+        :ref:`sphx_glr_flow_gallery_run_effmass_finitediff.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_effmass_finitediff
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Flow to compute effective masses with DFPT. Two options are available:">
+
+.. only:: html
+
+    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_effmass_dfpt_thumb.png
+
+        :ref:`sphx_glr_flow_gallery_run_effmass_dfpt.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_effmass_dfpt
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to use AbiPy to calculate physical properties related to strain for an i...">
 
 .. only:: html
@@ -463,6 +571,46 @@ Use ``--help`` for further information on the available options.
    :hidden:
 
    /flow_gallery/run_ldaus
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This flow computes the phonon linewidths and the Eliashberg function in Al.">
+
+.. only:: html
+
+    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_eph_al_thumb.png
+
+        :ref:`sphx_glr_flow_gallery_run_eph_al.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_eph_al
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute e-ph scattering potentials along a q-path, merge the POT file...">
+
+.. only:: html
+
+    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_eph_pot_thumb.png
+
+        :ref:`sphx_glr_flow_gallery_run_eph_pot.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_eph_pot
 
 .. raw:: html
 

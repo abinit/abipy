@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>abipy.data &#8212; abipy 0.7.0 documentation</title>
+    <title>abipy.data &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -39,7 +42,7 @@
         </button>
         <a class="navbar-brand" href="../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -62,6 +65,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -130,9 +134,9 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">os</span>
 
-<span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="n">Structure</span>
-<span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">Pseudo</span><span class="p">,</span> <span class="n">PseudoTable</span>
-<span class="kn">from</span> <span class="nn">abipy.data.ucells</span> <span class="k">import</span> <span class="n">structure_from_ucell</span>
+<span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="kn">import</span> <span class="n">Structure</span>
+<span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="kn">import</span> <span class="n">Pseudo</span><span class="p">,</span> <span class="n">PseudoTable</span>
+<span class="kn">from</span> <span class="nn">abipy.data.ucells</span> <span class="kn">import</span> <span class="n">structure_from_ucell</span>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -165,7 +169,7 @@
     <span class="k">global</span> <span class="n">_SCRIPTS</span>
     <span class="k">if</span> <span class="n">_SCRIPTS</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># Build mapping basename --&gt; path.</span>
-        <span class="kn">from</span> <span class="nn">monty.os.path</span> <span class="k">import</span> <span class="n">find_exts</span>
+        <span class="kn">from</span> <span class="nn">monty.os.path</span> <span class="kn">import</span> <span class="n">find_exts</span>
         <span class="n">pypaths</span> <span class="o">=</span> <span class="n">find_exts</span><span class="p">(</span><span class="n">_SCRIPTS_DIRPATH</span><span class="p">,</span> <span class="s2">&quot;.py&quot;</span><span class="p">,</span> <span class="n">exclude_dirs</span><span class="o">=</span><span class="s2">&quot;_*|.*|develop&quot;</span><span class="p">,</span> <span class="n">match_mode</span><span class="o">=</span><span class="s2">&quot;basename&quot;</span><span class="p">)</span>
         <span class="n">_SCRIPTS</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pypaths</span><span class="p">:</span>
@@ -173,7 +177,7 @@
             <span class="c1"># Ignore e.g. __init__.py and private scripts.</span>
             <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">):</span> <span class="k">continue</span>
             <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">_SCRIPTS</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Fond duplicated basenames with name </span><span class="si">%s</span><span class="se">\n</span><span class="s2">Previous </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">_SCRIPTS</span><span class="p">[</span><span class="n">k</span><span class="p">]))</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Fond duplicated basenames with name </span><span class="si">%s</span><span class="se">\n</span><span class="s2">Actual:</span><span class="si">%s</span><span class="se">\n</span><span class="s2">Previous: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">_SCRIPTS</span><span class="p">[</span><span class="n">k</span><span class="p">]))</span>
             <span class="n">_SCRIPTS</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span>
 
     <span class="k">return</span> <span class="n">_SCRIPTS</span><span class="p">[</span><span class="n">basename</span><span class="p">]</span>
@@ -257,7 +261,7 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="n">basename</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot find reference file </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">basename</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot find reference file `</span><span class="si">%s</span><span class="s2">`, at abs_path: `</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">basename</span><span class="p">,</span> <span class="n">path</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">path</span></div>
 
 
@@ -289,7 +293,7 @@
         <span class="k">return</span> <span class="n">_MP_STRUCT_DICT</span>
 
     <span class="kn">import</span> <span class="nn">json</span>
-    <span class="kn">from</span> <span class="nn">monty.json</span> <span class="k">import</span> <span class="n">MontyDecoder</span>
+    <span class="kn">from</span> <span class="nn">monty.json</span> <span class="kn">import</span> <span class="n">MontyDecoder</span>
 
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_MPDATA_DIRPATH</span><span class="p">,</span> <span class="s1">&#39;mp_structures.json&#39;</span><span class="p">),</span> <span class="s1">&#39;rt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">_MP_STRUCT_DICT</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">MontyDecoder</span><span class="p">)</span>
@@ -320,7 +324,7 @@
 <span class="k">class</span> <span class="nc">FilesGenerator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;This class generates the output files used in the unit tests and in the examples.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            workdir: Working directory.</span>
@@ -337,7 +341,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">files_to_keep</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;run.abi&quot;</span><span class="p">,</span> <span class="s2">&quot;run.abo&quot;</span><span class="p">]</span> <span class="o">+</span>
                 <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">files_to_save</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: workdir:</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">workdir</span><span class="p">))</span>
@@ -346,7 +350,7 @@
 
     <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Run Abinit and rename output files. Return 0 if success&quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">monty.os.path</span> <span class="k">import</span> <span class="n">which</span>
+        <span class="kn">from</span> <span class="nn">monty.os.path</span> <span class="kn">import</span> <span class="n">which</span>
         <span class="k">if</span> <span class="n">which</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">executable</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Cannot find </span><span class="si">%s</span><span class="s2"> in $PATH&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">executable</span><span class="p">)</span>
 
@@ -365,7 +369,7 @@
         <span class="k">return</span> <span class="mi">0</span>
 
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">subprocess</span> <span class="k">import</span> <span class="n">Popen</span><span class="p">,</span> <span class="n">PIPE</span>
+        <span class="kn">from</span> <span class="nn">subprocess</span> <span class="kn">import</span> <span class="n">Popen</span><span class="p">,</span> <span class="n">PIPE</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="s2">&quot;run.files&quot;</span><span class="p">),</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
             <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">make_filesfile_str</span><span class="p">())</span>
 
@@ -400,7 +404,7 @@
     <span class="c1">#}</span>
     <span class="n">executable</span> <span class="o">=</span> <span class="s2">&quot;abinit&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="c1"># Add Absolute paths for the pseudopotentials.</span>
@@ -437,7 +441,7 @@
 
     <span class="n">executable</span> <span class="o">=</span> <span class="s2">&quot;anaddb&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">in_ddb</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -482,7 +486,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on May 29, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

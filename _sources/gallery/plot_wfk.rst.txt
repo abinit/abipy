@@ -41,7 +41,7 @@ stored in the WFK.nc file.
     Name: si_nscf_WFK.nc
     Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/si_ebands
     Size: 389.84 kb
-    Access Time: Fri Oct 18 18:47:54 2019
+    Access Time: Sat Feb 22 16:03:04 2020
     Modification Time: Wed Mar 20 16:53:35 2019
     Change Time: Wed Mar 20 16:53:35 2019
 
@@ -63,17 +63,19 @@ stored in the WFK.nc file.
     smearing scheme: none, tsmear_eV: 0.272, occopt: 1
     Direct gap:
         Energy: 2.532 (eV)
-        Initial state: spin=0, kpt=[+0.000, +0.000, +0.000], name: $\Gamma$, weight: 0.000, band=3, eig=5.598, occ=2.000
-        Final state:   spin=0, kpt=[+0.000, +0.000, +0.000], name: $\Gamma$, weight: 0.000, band=4, eig=8.130, occ=0.000
+        Initial state: spin: 0, kpt: [+0.000, +0.000, +0.000], name: $\Gamma$, weight: 0.000, band: 3, eig: 5.598, occ: 2.000
+        Final state:   spin: 0, kpt: [+0.000, +0.000, +0.000], name: $\Gamma$, weight: 0.000, band: 4, eig: 8.130, occ: 0.000
     Fundamental gap:
         Energy: 0.524 (eV)
-        Initial state: spin=0, kpt=[+0.000, +0.000, +0.000], name: $\Gamma$, weight: 0.000, band=3, eig=5.598, occ=2.000
-        Final state:   spin=0, kpt=[+0.000, +0.429, +0.429], weight: 0.000, band=4, eig=6.123, occ=0.000
+        Initial state: spin: 0, kpt: [+0.000, +0.000, +0.000], name: $\Gamma$, weight: 0.000, band: 3, eig: 5.598, occ: 2.000
+        Final state:   spin: 0, kpt: [+0.000, +0.429, +0.429], weight: 0.000, band: 4, eig: 6.123, occ: 0.000
     Bandwidth: 11.856 (eV)
     Valence maximum located at:
-        spin=0, kpt=[+0.000, +0.000, +0.000], name: $\Gamma$, weight: 0.000, band=3, eig=5.598, occ=2.000
+        spin: 0, kpt: [+0.000, +0.000, +0.000], name: $\Gamma$, weight: 0.000, band: 3, eig: 5.598, occ: 2.000
     Conduction minimum located at:
-        spin=0, kpt=[+0.000, +0.429, +0.429], weight: 0.000, band=4, eig=6.123, occ=0.000
+        spin: 0, kpt: [+0.000, +0.429, +0.429], weight: 0.000, band: 4, eig: 6.123, occ: 0.000
+
+    TIP: Call set_fermie_to_vbm() to set the Fermi level to the VBM if this is a non-magnetic semiconductor
 
     PWWaveFunction: nspinor: 1, spin: 0, band: 0 
     <class 'abipy.core.gsphere.GSphere'>: kpoint: [+0.500, +0.000, +0.000], name: L, weight: 0.000, ecut: 6.000000, npw: 180, istwfk: 1
@@ -136,7 +138,7 @@ stored in the WFK.nc file.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.745 seconds)
+   **Total running time of the script:** ( 0 minutes  0.796 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_wfk.py:

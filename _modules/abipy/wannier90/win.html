@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>abipy.wannier90.win &#8212; abipy 0.7.0 documentation</title>
+    <title>abipy.wannier90.win &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -39,7 +42,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -62,6 +65,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -126,10 +130,10 @@
 <span class="sd">&quot;&quot;&quot;Interface to the win input file used by Wannier90.&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
-<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">Has_Structure</span>
-<span class="kn">from</span> <span class="nn">abipy.abio.variable</span> <span class="k">import</span> <span class="n">InputVariable</span>
-<span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="k">import</span> <span class="n">AbstractInput</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="kn">import</span> <span class="n">Has_Structure</span>
+<span class="kn">from</span> <span class="nn">abipy.abio.variable</span> <span class="kn">import</span> <span class="n">InputVariable</span>
+<span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="kn">import</span> <span class="n">AbstractInput</span>
 
 
 <div class="viewcode-block" id="structure2wannier90"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.win.structure2wannier90">[docs]</a><span class="k">def</span> <span class="nf">structure2wannier90</span><span class="p">(</span><span class="n">structure</span><span class="p">):</span>
@@ -173,7 +177,7 @@
 <span class="sd">        Build wannier90 template input file from Abinit input/output file.</span>
 <span class="sd">        Possibly with electron bands.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">abipy</span> <span class="k">import</span> <span class="n">abilab</span>
+        <span class="kn">from</span> <span class="nn">abipy</span> <span class="kn">import</span> <span class="n">abilab</span>
         <span class="k">with</span> <span class="n">abilab</span><span class="o">.</span><span class="n">abiopen</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">abifile</span><span class="p">:</span>
             <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">abifile</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;Automatically generated by AbiPy </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">abilab</span><span class="o">.</span><span class="n">__version__</span><span class="p">)</span>
             <span class="n">new</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">num_wann</span><span class="o">=</span><span class="s2">&quot;??&quot;</span><span class="p">,</span> <span class="n">num_bands</span><span class="o">=</span><span class="s2">&quot;??&quot;</span><span class="p">,</span> <span class="n">mp_grid</span><span class="o">=</span><span class="s2">&quot;?? ?? ??&quot;</span><span class="p">,</span> <span class="n">_kpoints</span><span class="o">=</span><span class="s2">&quot;?? ?? ??</span><span class="se">\n</span><span class="s2">?? ?? ??&quot;</span><span class="p">)</span>
@@ -204,7 +208,7 @@
             <span class="n">new</span><span class="o">.</span><span class="n">set_kpath</span><span class="p">()</span>
             <span class="k">return</span> <span class="n">new</span></div>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">win_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">win_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">spell_check</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">win_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">win_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">spell_check</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
@@ -412,7 +416,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on May 29, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

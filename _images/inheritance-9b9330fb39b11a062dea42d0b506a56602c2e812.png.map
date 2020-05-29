@@ -1,0 +1,5 @@
+<map id="inheritance9618d0f620" name="inheritance9618d0f620">
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for |AbinitNcFile| containing electron data." alt="" coords="5,5,250,29"/>
+<area shape="rect" id="node3" href="#abipy.electrons.effmass_analyzer.EffMassAnalyzer" target="_top" title="This objects provides a high&#45;level API to compute electronic effective masses" alt="" coords="298,29,619,53"/>
+<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for |AbinitNcFile| containing crystallographic data." alt="" coords="22,53,234,77"/>
+</map>

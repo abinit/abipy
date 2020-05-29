@@ -3,22 +3,25 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Band structure interpolation with Wannier functions &#8212; abipy 0.7.0 documentation</title>
+    <title>Band structure interpolation with Wannier functions &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Projected phonon DOS" href="plot_phonons_msqd.html" />
-    <link rel="prev" title="Phonon fatbands" href="plot_phonon_fatbands.html" />
+    <link rel="next" title="Optic results" href="plot_optic.html" />
+    <link rel="prev" title="Quasi-harmonic approximation (convergence wrt Q-mesh)" href="plot_qha_vs_qmesh.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
@@ -41,7 +44,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -64,6 +67,7 @@
 </ul>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -100,11 +104,11 @@
               
                 
   <li>
-    <a href="plot_phonon_fatbands.html" title="Previous Chapter: Phonon fatbands"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Phonon fatbands</span>
+    <a href="plot_qha_vs_qmesh.html" title="Previous Chapter: Quasi-harmonic approximation (convergence wrt Q-mesh)"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Quasi-harmoni...</span>
     </a>
   </li>
   <li>
-    <a href="plot_phonons_msqd.html" title="Next Chapter: Projected phonon DOS"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Projected phonon DOS &raquo;</span>
+    <a href="plot_optic.html" title="Next Chapter: Optic results"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Optic results &raquo;</span>
     </a>
   </li>
               
@@ -161,7 +165,7 @@ the <cite>–expose</cite> option to generate matplotlib figures automatically.<
 Name: tw90_4o_DS3_ABIWAN.nc
 Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/wannier90/tutoplugs_tw90_4
 Size: 205.47 kb
-Access Time: Fri Oct 18 18:47:42 2019
+Access Time: Sat Feb 22 16:02:53 2020
 Modification Time: Wed Mar 20 16:53:35 2019
 Change Time: Wed Mar 20 16:53:35 2019
 
@@ -184,17 +188,19 @@ nsppol: 1, nkpt: 64, mband: 14, nspinor: 1, nspden: 1
 smearing scheme: none, tsmear_eV: 0.272, occopt: 1
 Direct gap:
     Energy: 2.519 (eV)
-    Initial state: spin=0, kpt=[+0.000, +0.000, +0.000], weight: 0.016, band=3, eig=5.861, occ=2.000
-    Final state:   spin=0, kpt=[+0.000, +0.000, +0.000], weight: 0.016, band=4, eig=8.380, occ=0.000
+    Initial state: spin: 0, kpt: [+0.000, +0.000, +0.000], weight: 0.016, band: 3, eig: 5.861, occ: 2.000
+    Final state:   spin: 0, kpt: [+0.000, +0.000, +0.000], weight: 0.016, band: 4, eig: 8.380, occ: 0.000
 Fundamental gap:
     Energy: 0.635 (eV)
-    Initial state: spin=0, kpt=[+0.000, +0.000, +0.000], weight: 0.016, band=3, eig=5.861, occ=2.000
-    Final state:   spin=0, kpt=[+0.500, +0.500, +0.000], weight: 0.016, band=4, eig=6.496, occ=0.000
+    Initial state: spin: 0, kpt: [+0.000, +0.000, +0.000], weight: 0.016, band: 3, eig: 5.861, occ: 2.000
+    Final state:   spin: 0, kpt: [+0.500, +0.500, +0.000], weight: 0.016, band: 4, eig: 6.496, occ: 0.000
 Bandwidth: 11.953 (eV)
 Valence maximum located at:
-    spin=0, kpt=[+0.000, +0.000, +0.000], weight: 0.016, band=3, eig=5.861, occ=2.000
+    spin: 0, kpt: [+0.000, +0.000, +0.000], weight: 0.016, band: 3, eig: 5.861, occ: 2.000
 Conduction minimum located at:
-    spin=0, kpt=[+0.500, +0.500, +0.000], weight: 0.016, band=4, eig=6.496, occ=0.000
+    spin: 0, kpt: [+0.500, +0.500, +0.000], weight: 0.016, band: 4, eig: 6.496, occ: 0.000
+
+TIP: Call set_fermie_to_vbm() to set the Fermi level to the VBM if this is a non-magnetic semiconductor
 
 ================================== K-points ==================================
 K-mesh with divisions: [4, 4, 4], shifts: [0.0, 0.0, 0.0]
@@ -227,11 +233,15 @@ WF_index  Center                     Spread
 6         [2.47968 0.23579 2.47968]  2.767
 7         [2.47968 2.47968 0.23579]  2.767
 
-HWanR built in 0.009 (s)
+HWanR built in 0.006 (s)
 /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
   plt.show()
 Interpolation completed in 0.007 [s]
-Interpolation completed in 0.009 [s]
+/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+  plt.show()
+Interpolation completed in 0.002 [s]
+/Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+  plt.show()
 </pre></div>
 </div>
 <div class="line-block">
@@ -240,7 +250,7 @@ Interpolation completed in 0.009 [s]
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
 
-<span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="k">import</span> <span class="n">abiopen</span>
+<span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="kn">import</span> <span class="n">abiopen</span>
 
 <span class="c1"># Open the ABIWAN file</span>
 <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">dirpath</span><span class="p">,</span> <span class="s2">&quot;refs&quot;</span><span class="p">,</span> <span class="s2">&quot;wannier90&quot;</span><span class="p">,</span> <span class="s2">&quot;tutoplugs_tw90_4&quot;</span><span class="p">,</span> <span class="s2">&quot;tw90_4o_DS3_ABIWAN.nc&quot;</span><span class="p">)</span>
@@ -268,7 +278,7 @@ Interpolation completed in 0.009 [s]
 <span class="c1">#plotter.combiplot()</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  0.778 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  0.722 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-wannier90-abiwan-py">
 <div class="sphx-glr-download docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/6fae7c91760f9bb8e54a82803c888c48/plot_wannier90_abiwan.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_wannier90_abiwan.py</span></code></a></p>
@@ -293,7 +303,7 @@ Interpolation completed in 0.009 [s]
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on Feb 22, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

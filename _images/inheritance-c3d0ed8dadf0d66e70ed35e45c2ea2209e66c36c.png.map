@@ -1,8 +1,0 @@
-<map id="inheritancec955d9a210" name="inheritancec955d9a210">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="256,149,454,173"/>
-<area shape="rect" id="node6" href="#abipy.eph.sigeph.SigEPhFile" target="_top" title="This file contains the Fan&#45;Migdal Debye&#45;Waller self&#45;energy, the |ElectronBands| on the k&#45;mesh." alt="" coords="525,77,716,101"/>
-<area shape="rect" id="node2" title="Abstract base class defining the methods that must be implemented" alt="" coords="5,149,184,173"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for :class:`AbinitNcFile` containing electron data." alt="" coords="232,5,477,29"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for :class:`AbinitNcFile` containing crystallographic data." alt="" coords="249,53,461,77"/>
-<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="245,101,464,125"/>
-</map>

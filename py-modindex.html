@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Python Module Index &#8212; abipy 0.7.0 documentation</title>
+    <title>Python Module Index &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -42,7 +45,7 @@
         </button>
         <a class="navbar-brand" href="index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -65,6 +68,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -344,6 +348,11 @@
      <tr class="cg-1">
        <td></td>
        <td>&#160;&#160;&#160;
+       <a href="api/dfpt_api.html#module-abipy.dfpt.raman"><code class="xref">abipy.dfpt.raman</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
        <a href="api/dfpt_api.html#module-abipy.dfpt.vsound"><code class="xref">abipy.dfpt.vsound</code></a></td><td>
        <em></em></td></tr>
      <tr class="cg-1">
@@ -355,16 +364,6 @@
        <td></td>
        <td>&#160;&#160;&#160;
        <a href="api/display_api.html#module-abipy.display.mvtk"><code class="xref">abipy.display.mvtk</code></a></td><td>
-       <em></em></td></tr>
-     <tr class="cg-1">
-       <td></td>
-       <td>&#160;&#160;&#160;
-       <a href="api/display_api.html#module-abipy.display.pandasw"><code class="xref">abipy.display.pandasw</code></a></td><td>
-       <em></em></td></tr>
-     <tr class="cg-1">
-       <td></td>
-       <td>&#160;&#160;&#160;
-       <a href="api/display_api.html#module-abipy.display.seabornw"><code class="xref">abipy.display.seabornw</code></a></td><td>
        <em></em></td></tr>
      <tr class="cg-1">
        <td></td>
@@ -405,6 +404,11 @@
        <td></td>
        <td>&#160;&#160;&#160;
        <a href="api/electrons_api.html#module-abipy.electrons.ebands"><code class="xref">abipy.electrons.ebands</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="api/electrons_api.html#module-abipy.electrons.effmass_analyzer"><code class="xref">abipy.electrons.effmass_analyzer</code></a></td><td>
        <em></em></td></tr>
      <tr class="cg-1">
        <td></td>
@@ -494,6 +498,11 @@
      <tr class="cg-1">
        <td></td>
        <td>&#160;&#160;&#160;
+       <a href="api/eph_api.html#module-abipy.eph.wr"><code class="xref">abipy.eph.wr</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
        <a href="api/flowtk_api.html#module-abipy.flowtk"><code class="xref">abipy.flowtk</code></a></td><td>
        <em></em></td></tr>
      <tr class="cg-1">
@@ -520,6 +529,11 @@
        <td></td>
        <td>&#160;&#160;&#160;
        <a href="api/flowtk_api.html#module-abipy.flowtk.dfpt_works"><code class="xref">abipy.flowtk.dfpt_works</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="api/flowtk_api.html#module-abipy.flowtk.effmass_works"><code class="xref">abipy.flowtk.effmass_works</code></a></td><td>
        <em></em></td></tr>
      <tr class="cg-1">
        <td></td>
@@ -625,6 +639,41 @@
        <td></td>
        <td>&#160;&#160;&#160;
        <a href="api/iotools_api.html#module-abipy.iotools.xsf"><code class="xref">abipy.iotools.xsf</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="api/panels_api.html#module-abipy.panels"><code class="xref">abipy.panels</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="api/panels_api.html#module-abipy.panels.core"><code class="xref">abipy.panels.core</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="api/panels_api.html#module-abipy.panels.ddb"><code class="xref">abipy.panels.ddb</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="api/panels_api.html#module-abipy.panels.flows"><code class="xref">abipy.panels.flows</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="api/panels_api.html#module-abipy.panels.gsr"><code class="xref">abipy.panels.gsr</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="api/panels_api.html#module-abipy.panels.phonons"><code class="xref">abipy.panels.phonons</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="api/panels_api.html#module-abipy.panels.structure"><code class="xref">abipy.panels.structure</code></a></td><td>
        <em></em></td></tr>
      <tr class="cg-1">
        <td></td>
@@ -741,7 +790,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on May 29, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

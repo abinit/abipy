@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Electrons and Phonons from the materials project website &#8212; abipy 0.7.0 documentation</title>
+    <title>Electrons and Phonons from the materials project website &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -41,7 +44,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -64,6 +67,7 @@
 </ul>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -163,14 +167,14 @@ Downloading DDB for mpid mp-149 (Si2) ...
 Invoking anaddb to compute phonon bands...
 Downloading DDB for mpid mp-66 (C2) ...
 Invoking anaddb to compute phonon bands...
-/Users/gmatteo/git_repos/abipy/abipy/examples/plot/plot_eph_from_mp.py:54: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+/Users/gmatteo/git_repos/abipy/abipy/examples/plot/plot_eph_from_mp.py:55: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
   plt.show()
 </pre></div>
 </div>
 <div class="line-block">
 <div class="line"><br /></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">abipy</span> <span class="k">import</span> <span class="n">abilab</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">abipy</span> <span class="kn">import</span> <span class="n">abilab</span>
 
 <span class="c1"># List of mp ids for Si, Diamond</span>
 <span class="n">mpids</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;mp-149&quot;</span><span class="p">,</span> <span class="s2">&quot;mp-66&quot;</span><span class="p">]</span>
@@ -189,6 +193,7 @@ Invoking anaddb to compute phonon bands...
     <span class="n">phbst</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">ddb</span><span class="o">.</span><span class="n">anaget_phbst_and_phdos_files</span><span class="p">(</span><span class="n">nqsmall</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">phbands_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">phbst</span><span class="o">.</span><span class="n">phbands</span><span class="p">)</span>
     <span class="n">phbst</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">ddb</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
 <span class="c1"># The figure has [len(mpids), 2] subplots</span>
 <span class="c1"># The i-th row contains electrons and phonons for the i-th mp identifier.</span>
@@ -212,7 +217,7 @@ Invoking anaddb to compute phonon bands...
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  19.055 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  18.064 seconds)</p>
 <div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-eph-from-mp-py">
 <div class="sphx-glr-download docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/813cbdf6bf2f132d15d975f4bd484bb1/plot_eph_from_mp.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_eph_from_mp.py</span></code></a></p>
@@ -237,7 +242,7 @@ Invoking anaddb to compute phonon bands...
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on Feb 22, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

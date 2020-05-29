@@ -48,13 +48,19 @@ and --notebook to generate a jupyter notebook.
 
  .. code-block:: none
 
-    [33mCreating temporary file: /var/folders/nc/k69spyd12qv2tk3stk2xrxg40000gr/T/tmpkpe9l5jmGaAs_COHPCAR.lobster[0m
+    [33mCreating temporary file: /var/folders/nc/k69spyd12qv2tk3stk2xrxg40000gr/T/tmpbs3ipq8tGaAs_COHPCAR.lobster[0m
 
     COHP: Number of energies: 401, from -14.035 to 6.015 (eV) with E_fermi set 0 (was 2.298)
     has_partial_projections: True, nsppol: 1
     Number of pairs: 2
     [0] Ga@0 --> As@1
     [1] As@1 --> Ga@0
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+      plt.show()
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+      plt.show()
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+      plt.show()
     /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
       plt.show()
 
@@ -94,7 +100,7 @@ and --notebook to generate a jupyter notebook.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.560 seconds)
+   **Total running time of the script:** ( 0 minutes  1.280 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_lobster_cohp.py:

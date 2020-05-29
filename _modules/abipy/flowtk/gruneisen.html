@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>abipy.flowtk.gruneisen &#8212; abipy 0.7.0 documentation</title>
+    <title>abipy.flowtk.gruneisen &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -39,7 +42,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -62,6 +65,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -124,153 +128,153 @@
   <h1>Source code for abipy.flowtk.gruneisen</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding: utf-8</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Flow for the computation of Grunesein parameters with Abinit DFPT and finite differences.</span>
+<span class="sd">Work for computing Grüneisen parameters with finite differences on DFPT phonons</span>
 
 <span class="sd">WARNING: This code must be tested more carefully.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="n">Structure</span>
-<span class="kn">from</span> <span class="nn">.flows</span> <span class="k">import</span> <span class="n">Flow</span>
-<span class="kn">from</span> <span class="nn">.works</span> <span class="k">import</span> <span class="n">Work</span>
+<span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="kn">import</span> <span class="n">Structure</span>
+<span class="kn">from</span> <span class="nn">.works</span> <span class="kn">import</span> <span class="n">Work</span><span class="p">,</span> <span class="n">PhononWork</span>
 
 
-<div class="viewcode-block" id="GruneseinenFlow"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.gruneisen.GruneseinenFlow">[docs]</a><span class="k">class</span> <span class="nc">GruneseinenFlow</span><span class="p">(</span><span class="n">Flow</span><span class="p">):</span>
+<div class="viewcode-block" id="GruneisenWork"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.gruneisen.GruneisenWork">[docs]</a><span class="k">class</span> <span class="nc">GruneisenWork</span><span class="p">(</span><span class="n">Work</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This work compute the Grüneisen parameters with the DFPT part of Abinit and</span>
-<span class="sd">    finite differences in anaddb.</span>
+<span class="sd">    This work computes the Grüneisen parameters (derivative of frequencies wrt Volume)</span>
+<span class="sd">    using finite differences and the phonons obtained with the DFPT part of Abinit.</span>
+<span class="sd">    The Anaddb input file needed to compute Grüneisen parameters will be generated</span>
+<span class="sd">    in the outdata directory of the flow.</span>
 
-<span class="sd">    It is necessary to run three phonon calculations with DFPT.</span>
+<span class="sd">    It is necessary to run three DFPT phonon calculations.</span>
 <span class="sd">    One is calculated at the equilibrium volume and the remaining two are calculated</span>
 <span class="sd">    at the slightly larger volume and smaller volume than the equilibrium volume.</span>
 <span class="sd">    The unitcells at these volumes have to be fully relaxed under the constraint of each volume.</span>
+<span class="sd">    This Work automates the entire procedure starting from an input for GS calculations.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="GruneseinenFlow.from_gs_input"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.gruneisen.GruneseinenFlow.from_gs_input">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_gs_input</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">gsinp</span><span class="p">,</span> <span class="n">voldelta</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="GruneisenWork.from_gs_input"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.gruneisen.GruneisenWork.from_gs_input">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_gs_input</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">gs_inp</span><span class="p">,</span> <span class="n">voldelta</span><span class="p">,</span> <span class="n">ngqpt</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_becs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                      <span class="n">ddk_tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Build the work from an :class:`AbinitInput` object representing a GS calculations.</span>
+<span class="sd">        Build the work from an |AbinitInput| representing a GS calculations.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            gsinp: :class:`AbinitInput` object representing a GS calculation in the initial unit cell.</span>
+<span class="sd">            gs_inp: |AbinitInput| representing a GS calculation in the initial unit cell.</span>
 <span class="sd">            voldelta: Absolute increment for unit cell volume. The three volumes are:</span>
-<span class="sd">                [v0 - voldelta, v0, v0 + voldelta] where v0 is taken from gsinp.structure.</span>
+<span class="sd">                [v0 - voldelta, v0, v0 + voldelta] where v0 is taken from gs_inp.structure.</span>
+<span class="sd">            ngqpt: three integers defining the q-mesh for phonon calculations.</span>
+<span class="sd">            tolerance: dict {&quot;varname&quot;: value} with the tolerance to be used in the phonon run.</span>
+<span class="sd">                None to use AbiPy default.</span>
+<span class="sd">            with_becs: Activate calculation of Electric field and Born effective charges.</span>
+<span class="sd">            ddk_tolerance: dict {&quot;varname&quot;: value} with the tolerance used in the DDK run if with_becs.</span>
+<span class="sd">                None to use AbiPy default.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">ngqpt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">ngqpt</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,))</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">with_becs</span> <span class="o">=</span> <span class="n">with_becs</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">ddk_tolerance</span> <span class="o">=</span> <span class="n">ddk_tolerance</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">tolerance</span> <span class="o">=</span> <span class="n">tolerance</span>
 
-        <span class="c1"># Save arguments that will be used to call phonopy for creating</span>
-        <span class="c1"># the supercells with the displacements once the three volumes have been relaxed.</span>
-        <span class="c1">#new.scdims = np.array(scdims)</span>
-        <span class="c1">#if new.scdims.shape != (3,):</span>
-        <span class="c1">#    raise ValueError(&quot;Expecting 3 int in scdims but got %s&quot; % str(new.scdims))</span>
-        <span class="c1">#new.phonopy_kwargs = phonopy_kwargs if phonopy_kwargs is not None else {}</span>
-        <span class="c1">#new.displ_kwargs = displ_kwargs if displ_kwargs is not None else {}</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">gs_inp</span><span class="p">[</span><span class="s2">&quot;ngkpt&quot;</span><span class="p">]</span> <span class="o">%</span> <span class="n">new</span><span class="o">.</span><span class="n">ngqpt</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Kmesh and Qmesh must be commensurate.</span><span class="se">\n</span><span class="s2">Got ngkpt: `</span><span class="si">%s</span><span class="s2">`</span><span class="se">\n</span><span class="s2">and ngqpt: `</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                             <span class="nb">str</span><span class="p">(</span><span class="n">gs_inp</span><span class="p">[</span><span class="s2">&quot;ngkpt&quot;</span><span class="p">]),</span> <span class="nb">str</span><span class="p">(</span><span class="n">new</span><span class="o">.</span><span class="n">ngqpt</span><span class="p">)))</span>
 
         <span class="c1"># Build three tasks for structural optimization at constant volume.</span>
-        <span class="n">v0</span> <span class="o">=</span> <span class="n">gsinp</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">volume</span>
+        <span class="n">v0</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">volume</span>
         <span class="k">if</span> <span class="n">voldelta</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;voldelta must be &gt; 0 but got </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">voldelta</span><span class="p">)</span>
         <span class="n">volumes</span> <span class="o">=</span> <span class="p">[</span><span class="n">v0</span> <span class="o">-</span> <span class="n">voldelta</span><span class="p">,</span> <span class="n">v0</span><span class="p">,</span> <span class="n">v0</span> <span class="o">+</span> <span class="n">voldelta</span><span class="p">]</span>
         <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">v</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">volumes</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;volumes must be &gt; 0 but got </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">volumes</span><span class="p">))</span>
 
+        <span class="c1"># Keep a copy of the GS input that will be used to generate the Phonon Works</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">gs_inp</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
+
+        <span class="n">new</span><span class="o">.</span><span class="n">relax_tasks</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">vol</span> <span class="ow">in</span> <span class="n">volumes</span><span class="p">:</span>
             <span class="c1"># Build new structure</span>
-            <span class="n">new_lattice</span> <span class="o">=</span> <span class="n">gsinp</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">vol</span><span class="p">)</span>
-            <span class="n">new_structure</span> <span class="o">=</span> <span class="n">Structure</span><span class="p">(</span><span class="n">new_lattice</span><span class="p">,</span> <span class="n">gsinp</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">species</span><span class="p">,</span> <span class="n">gsinp</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">)</span>
-            <span class="n">new_input</span> <span class="o">=</span> <span class="n">gsinp</span><span class="o">.</span><span class="n">new_with_structure</span><span class="p">(</span><span class="n">new_structure</span><span class="p">)</span>
+            <span class="n">new_lattice</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">vol</span><span class="p">)</span>
+            <span class="n">new_structure</span> <span class="o">=</span> <span class="n">Structure</span><span class="p">(</span><span class="n">new_lattice</span><span class="p">,</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">species</span><span class="p">,</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">)</span>
+            <span class="n">new_input</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">new_with_structure</span><span class="p">(</span><span class="n">new_structure</span><span class="p">)</span>
             <span class="c1"># Set variables for structural optimization at constant volume.</span>
             <span class="n">new_input</span><span class="o">.</span><span class="n">pop_tolerances</span><span class="p">()</span>
             <span class="n">new_input</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">optcell</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">ionmov</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">tolvrs</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">,</span> <span class="n">toldff</span><span class="o">=</span><span class="mf">1.e-6</span><span class="p">)</span>
             <span class="n">new_input</span><span class="o">.</span><span class="n">set_vars_ifnotin</span><span class="p">(</span><span class="n">ecutsm</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">dilatmx</span><span class="o">=</span><span class="mf">1.05</span><span class="p">)</span>
-            <span class="n">new</span><span class="o">.</span><span class="n">register_relax_task</span><span class="p">(</span><span class="n">new_input</span><span class="p">)</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">new</span><span class="o">.</span><span class="n">register_relax_task</span><span class="p">(</span><span class="n">new_input</span><span class="p">)</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">relax_tasks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">new</span></div></div>
+        <span class="k">return</span> <span class="n">new</span></div>
 
-
-<div class="viewcode-block" id="GruneseinenWork"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.gruneisen.GruneseinenWork">[docs]</a><span class="k">class</span> <span class="nc">GruneseinenWork</span><span class="p">(</span><span class="n">Work</span><span class="p">):</span>
-
-<div class="viewcode-block" id="GruneseinenWork.on_all_ok"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.gruneisen.GruneseinenWork.on_all_ok">[docs]</a>    <span class="k">def</span> <span class="nf">on_all_ok</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="GruneisenWork.on_all_ok"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.gruneisen.GruneisenWork.on_all_ok">[docs]</a>    <span class="k">def</span> <span class="nf">on_all_ok</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        This method is called once the `Work` is completed i.e. when all the tasks</span>
-<span class="sd">        have reached status S_OK.</span>
+<span class="sd">        This method is called once the `Work` is completed i.e. when all the tasks have reached status S_OK.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">add_phonopy_works_and_build</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_phonon_works_and_build</span><span class="p">()</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">on_all_ok</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="GruneseinenWork.add_phonopy_works_and_build"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.gruneisen.GruneseinenWork.add_phonopy_works_and_build">[docs]</a>    <span class="k">def</span> <span class="nf">add_phonopy_works_and_build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="GruneisenWork.add_phonon_works_and_build"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.gruneisen.GruneisenWork.add_phonon_works_and_build">[docs]</a>    <span class="k">def</span> <span class="nf">add_phonon_works_and_build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get relaxed structures from the tasks, build Phonopy works with supercells</span>
-<span class="sd">        constructed from the new structures, add them to the flow and build new directories.</span>
+<span class="sd">        Get relaxed structures from the tasks, build Phonons works with new structures.</span>
+<span class="sd">        Add works to the flow and build new directories.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">task</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ddb_paths</span><span class="p">,</span> <span class="n">struct_middle</span><span class="p">,</span> <span class="n">middle_idx</span> <span class="o">=</span> <span class="p">[],</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="n">relaxed_structs</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">task</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">relax_tasks</span><span class="p">):</span>
             <span class="n">relaxed_structure</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">get_final_structure</span><span class="p">()</span>
-            <span class="n">gsinp</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">new_with_structure</span><span class="p">(</span><span class="n">relaxed_structure</span><span class="p">)</span>
+            <span class="n">relaxed_structs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">relaxed_structure</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">relax_tasks</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">middle_idx</span><span class="p">,</span> <span class="n">struct_middle</span> <span class="o">=</span> <span class="n">i</span><span class="p">,</span> <span class="n">relaxed_structure</span>
 
-            <span class="n">work</span> <span class="o">=</span> <span class="n">PhonopyWork</span><span class="o">.</span><span class="n">from_gs_input</span><span class="p">(</span><span class="n">gsinp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">scdims</span><span class="p">,</span>
-                                             <span class="n">phonopy_kwargs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">phonopy_kwargs</span><span class="p">,</span>
-                                             <span class="n">displ_kwargs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">displ_kwargs</span><span class="p">)</span>
-
+            <span class="c1"># work to compute phonons with new structure.</span>
+            <span class="n">gsinp_vol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gs_inp</span><span class="o">.</span><span class="n">new_with_structure</span><span class="p">(</span><span class="n">relaxed_structure</span><span class="p">)</span>
+            <span class="n">work</span> <span class="o">=</span> <span class="n">PhononWork</span><span class="o">.</span><span class="n">from_scf_input</span><span class="p">(</span><span class="n">gsinp_vol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ngqpt</span><span class="p">,</span> <span class="n">is_ngqpt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tolerance</span><span class="p">,</span>
+                                             <span class="n">with_becs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">with_becs</span><span class="p">,</span> <span class="n">ddk_tolerance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ddk_tolerance</span><span class="p">)</span>
+            <span class="c1"># Add it to the flow.</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">register_work</span><span class="p">(</span><span class="n">work</span><span class="p">)</span>
-            <span class="c1"># Tell the work to copy the results to e.g. `flow/outdir/w0/minus`</span>
-            <span class="n">dst</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pos_str</span><span class="p">,</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;minus&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;orig&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s2">&quot;plus&quot;</span><span class="p">}[</span><span class="n">i</span><span class="p">])</span>
-            <span class="n">work</span><span class="o">.</span><span class="n">cpdata2dst</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">path_in</span><span class="p">(</span><span class="n">dst</span><span class="p">)</span>
+
+            <span class="n">ddb_paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">work</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">path_in</span><span class="p">(</span><span class="s2">&quot;out_DDB&quot;</span><span class="p">))</span>
+
+        <span class="c1"># Write Anaddb input file to compute Gruneisen parameters in flow.outdata.</span>
+        <span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="kn">import</span> <span class="n">AnaddbInput</span>
+        <span class="n">anaddb_inp</span> <span class="o">=</span> <span class="n">AnaddbInput</span><span class="o">.</span><span class="n">phbands_and_dos</span><span class="p">(</span><span class="n">struct_middle</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ngqpt</span><span class="p">,</span> <span class="n">nqsmall</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+                                                 <span class="n">chneut</span><span class="o">=</span><span class="mi">1</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">with_becs</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+                                                 <span class="n">dipdip</span><span class="o">=</span><span class="mi">1</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">with_becs</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+                                                 <span class="n">lo_to_splitting</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">with_becs</span><span class="p">,</span>
+                                                 <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;Anaddb input file for Grunesein parameters&quot;</span><span class="p">)</span>
+        <span class="c1"># Add DDB files for Gruns</span>
+        <span class="n">anaddb_inp</span><span class="p">[</span><span class="s2">&quot;gruns_nddbs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ddb_paths</span><span class="p">)</span>
+        <span class="n">anaddb_inp</span><span class="p">[</span><span class="s2">&quot;gruns_ddbs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;&quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">ddb_paths</span><span class="p">)</span>
+        <span class="n">in_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">path_in</span><span class="p">(</span><span class="s2">&quot;anaddb_gruns.in&quot;</span><span class="p">)</span>
+        <span class="n">anaddb_inp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">in_path</span><span class="p">)</span>
+
+        <span class="n">files_file</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">app</span> <span class="o">=</span> <span class="n">files_file</span><span class="o">.</span><span class="n">append</span>
+        <span class="n">app</span><span class="p">(</span><span class="n">in_path</span><span class="p">)</span>                                        <span class="c1"># 1) Path of the input file</span>
+        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">path_in</span><span class="p">(</span><span class="s2">&quot;anaddb_gruns.out&quot;</span><span class="p">))</span>   <span class="c1"># 2) Path of the output file</span>
+        <span class="n">app</span><span class="p">(</span><span class="n">ddb_paths</span><span class="p">[</span><span class="n">middle_idx</span><span class="p">])</span>                          <span class="c1"># 3) Input derivative database (not used if Gruns)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;FOOBAR&quot;</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">path_in</span><span class="p">(</span><span class="s2">&quot;anaddb_gruns.files&quot;</span><span class="p">),</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">files_file</span><span class="p">))</span>
+
+        <span class="c1">#with_ebands = False</span>
+        <span class="c1">#if with_ebands:</span>
+        <span class="c1">#    bands_work = Work(manager=self.manager)</span>
+        <span class="c1">#    for i, structure in enumerate(relaxed_structs):</span>
+        <span class="c1">#        nscf_inp = self.gs_inp.new_with_structure(structure)</span>
+        <span class="c1">#        nscf_inp.pop_tolerances()</span>
+        <span class="c1">#        nscf_inp.set_kpath(ndivsm, kptbounds=None, iscf=-2)</span>
+        <span class="c1">#        nscf_inp[&quot;tolwfr&quot;] = 1e-18</span>
+        <span class="c1">#        work.register_nscf_task(nscf_inp, deps={self.relax_tasks[i]: &quot;DEN&quot;})</span>
+
+        <span class="c1">#    # Add it to the flow.</span>
+        <span class="c1">#    self.flow.register_work(work)</span>
 
         <span class="c1"># Allocate new works and update the pickle database.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">allocate</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">build_and_pickle_dump</span><span class="p">()</span></div></div>
-
-
-<span class="c1">#class RelaxAndAddPhGammaWork(RelaxWork):</span>
-<span class="c1">#    &quot;&quot;&quot;</span>
-<span class="c1">#    Work for structural relaxations. The first task relaxes the atomic position</span>
-<span class="c1">#    while keeping the unit cell parameters fixed. The second task uses the final</span>
-<span class="c1">#    structure to perform a structural relaxation in which both the atomic positions</span>
-<span class="c1">#    and the lattice parameters are optimized.</span>
-<span class="c1">#    &quot;&quot;&quot;</span>
-<span class="c1">#</span>
-<span class="c1">#    def on_all_ok(self):</span>
-<span class="c1">#        &quot;&quot;&quot;</span>
-<span class="c1">#        Here I extend the implementation of super in order to create a new workflow</span>
-<span class="c1">#        for phonons with the optimized structural parameters.</span>
-<span class="c1">#        &quot;&quot;&quot;</span>
-<span class="c1">#        results = super(RelaxAndAddPhGammaWork, self).on_all_ok()</span>
-<span class="c1">#</span>
-<span class="c1">#        # Get the relaxed structure.</span>
-<span class="c1">#        relax_task = self[1]</span>
-<span class="c1">#        final_structure = relax_task.get_final_structure()</span>
-<span class="c1">#</span>
-<span class="c1">#        # Use new structure in GS + DFPT runs and change some values.</span>
-<span class="c1">#        scf_input = relax_task.input.deepcopy()</span>
-<span class="c1">#        scf_input.set_structure(final_structure)</span>
-<span class="c1">#</span>
-<span class="c1">#        # Remove input variables that can enter into conflict with DFPT.</span>
-<span class="c1">#        scf_input.pop_tolerances()</span>
-<span class="c1">#        scf_input.pop_par_vars()</span>
-<span class="c1">#        scf_input.pop_irdvars()</span>
-<span class="c1">#        scf_input.pop_vars([&quot;ionmov&quot;, &quot;optcell&quot;, &quot;ntime&quot;, &quot;dilatmx&quot;])</span>
-<span class="c1">#        scf_input.set_vars(tolwfr=1e-20, nstep=80, nbdbuf=4)</span>
-<span class="c1">#        #nval = scf_input.num_valence_electrons</span>
-<span class="c1">#</span>
-<span class="c1">#        # Build GS work and Phonon Work</span>
-<span class="c1">#        work = PhononDojoWork.from_scf_input(scf_input, self.dojo_qpt)</span>
-<span class="c1">#        for task in work[1:]:</span>
-<span class="c1">#            task.set_vars(prtwf=-1)</span>
-<span class="c1">#</span>
-<span class="c1">#        # Monkey patch work</span>
-<span class="c1">#        work.dojo_kppa = self.dojo_kppa</span>
-<span class="c1">#        work.dojo_qpt = self.dojo_qpt</span>
-<span class="c1">#        work.ecut = self.ecut</span>
-<span class="c1">#        work.dojo_pawecutdg = self.dojo_pawecutdg</span>
-<span class="c1">#        work.dojo_include_soc = self.dojo_include_soc</span>
-<span class="c1">#        work._dojo_trial = &quot;phgamma&quot; if not self.dojo_include_soc else &quot;phgamma_soc&quot;</span>
-<span class="c1">#        work._pseudo = self.dojo_pseudo</span>
-<span class="c1">#</span>
-<span class="c1">#        self.flow.register_work(work)</span>
-<span class="c1">#        # Allocate new tasks and update the pickle database.</span>
-<span class="c1">#        self.flow.allocate()</span>
-<span class="c1">#        self.flow.build_and_pickle_dump()</span>
-<span class="c1">#</span>
-<span class="c1">#        return results</span>
 </pre></div>
 
     </div>
@@ -285,7 +289,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on May 29, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

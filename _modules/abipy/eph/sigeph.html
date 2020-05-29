@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>abipy.eph.sigeph &#8212; abipy 0.7.0 documentation</title>
+    <title>abipy.eph.sigeph &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -39,7 +42,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -62,6 +65,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -130,7 +134,7 @@
 
 <span class="sd">Warning:</span>
 
-<span class="sd">    Work in progress, DO NOT USE THIS CODE</span>
+<span class="sd">    This code is still work in progress, API may change...</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>
 <span class="kn">import</span> <span class="nn">pickle</span>
@@ -139,21 +143,21 @@
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">abipy.core.abinit_units</span> <span class="k">as</span> <span class="nn">abu</span>
 
-<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="n">namedtuple</span>
-<span class="kn">from</span> <span class="nn">collections.abc</span> <span class="k">import</span> <span class="n">Iterable</span>
-<span class="kn">from</span> <span class="nn">tabulate</span> <span class="k">import</span> <span class="n">tabulate</span>
-<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">marquee</span><span class="p">,</span> <span class="n">list_strings</span>
-<span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
-<span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
-<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_ElectronBands</span><span class="p">,</span> <span class="n">NotebookWriter</span>
-<span class="kn">from</span> <span class="nn">abipy.core.kpoints</span> <span class="k">import</span> <span class="n">Kpoint</span><span class="p">,</span> <span class="n">KpointList</span><span class="p">,</span> <span class="n">Kpath</span><span class="p">,</span> <span class="n">IrredZone</span><span class="p">,</span> <span class="n">has_timrev_from_kptopt</span>
-<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="p">(</span><span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span><span class="p">,</span> <span class="n">get_axarray_fig_plt</span><span class="p">,</span> <span class="n">set_axlims</span><span class="p">,</span> <span class="n">set_visible</span><span class="p">,</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Iterable</span>
+<span class="kn">from</span> <span class="nn">tabulate</span> <span class="kn">import</span> <span class="n">tabulate</span>
+<span class="kn">from</span> <span class="nn">monty.string</span> <span class="kn">import</span> <span class="n">marquee</span><span class="p">,</span> <span class="n">list_strings</span>
+<span class="kn">from</span> <span class="nn">monty.functools</span> <span class="kn">import</span> <span class="n">lazy_property</span>
+<span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="kn">import</span> <span class="n">cprint</span>
+<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="kn">import</span> <span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_ElectronBands</span><span class="p">,</span> <span class="n">NotebookWriter</span>
+<span class="kn">from</span> <span class="nn">abipy.core.kpoints</span> <span class="kn">import</span> <span class="n">Kpoint</span><span class="p">,</span> <span class="n">KpointList</span><span class="p">,</span> <span class="n">Kpath</span><span class="p">,</span> <span class="n">IrredZone</span><span class="p">,</span> <span class="n">has_timrev_from_kptopt</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="kn">import</span> <span class="p">(</span><span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span><span class="p">,</span> <span class="n">get_axarray_fig_plt</span><span class="p">,</span> <span class="n">set_axlims</span><span class="p">,</span> <span class="n">set_visible</span><span class="p">,</span>
     <span class="n">rotate_ticklabels</span><span class="p">,</span> <span class="n">ax_append_title</span><span class="p">,</span> <span class="n">set_ax_xylabels</span><span class="p">,</span> <span class="n">linestyles</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">abipy.tools</span> <span class="k">import</span> <span class="n">duck</span>
-<span class="kn">from</span> <span class="nn">abipy.tools.numtools</span> <span class="k">import</span> <span class="n">gaussian</span>
-<span class="kn">from</span> <span class="nn">abipy.electrons.ebands</span> <span class="k">import</span> <span class="n">ElectronBands</span><span class="p">,</span> <span class="n">ElectronDos</span><span class="p">,</span> <span class="n">RobotWithEbands</span><span class="p">,</span> <span class="n">ElectronBandsPlotter</span><span class="p">,</span> <span class="n">ElectronDosPlotter</span>
-<span class="kn">from</span> <span class="nn">abipy.abio.robots</span> <span class="k">import</span> <span class="n">Robot</span>
-<span class="kn">from</span> <span class="nn">abipy.eph.common</span> <span class="k">import</span> <span class="n">BaseEphReader</span>
+<span class="kn">from</span> <span class="nn">abipy.tools</span> <span class="kn">import</span> <span class="n">duck</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.numtools</span> <span class="kn">import</span> <span class="n">gaussian</span>
+<span class="kn">from</span> <span class="nn">abipy.electrons.ebands</span> <span class="kn">import</span> <span class="n">ElectronBands</span><span class="p">,</span> <span class="n">ElectronDos</span><span class="p">,</span> <span class="n">RobotWithEbands</span><span class="p">,</span> <span class="n">ElectronBandsPlotter</span><span class="p">,</span> <span class="n">ElectronDosPlotter</span>
+<span class="kn">from</span> <span class="nn">abipy.abio.robots</span> <span class="kn">import</span> <span class="n">Robot</span>
+<span class="kn">from</span> <span class="nn">abipy.eph.common</span> <span class="kn">import</span> <span class="n">BaseEphReader</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;QpTempState&quot;</span><span class="p">,</span>
@@ -244,7 +248,7 @@
         <span class="sd">&quot;&quot;&quot;Integration with jupyter_ notebooks.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dataframe</span><span class="p">()</span><span class="o">.</span><span class="n">_repr_html_</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
 <div class="viewcode-block" id="QpTempState.to_string"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.sigeph.QpTempState.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -382,7 +386,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A list of quasiparticle corrections (usually for a given spin).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">is_e0sorted</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;is_e0sorted&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
 
@@ -398,10 +402,10 @@
         <span class="sd">&quot;&quot;&quot;Number of temperatures.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tmesh</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;&lt;</span><span class="si">%s</span><span class="s2"> at </span><span class="si">%s</span><span class="s2">, len=</span><span class="si">%d</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
@@ -574,7 +578,7 @@
         <span class="n">spfunc</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$A(\omega)}$&quot;</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wmesh</span><span class="p">,</span> <span class="n">qp</span><span class="p">,</span> <span class="n">vals_e0ks</span><span class="p">,</span> <span class="n">dvals_de0ks</span><span class="p">,</span> <span class="n">dw_vals</span><span class="p">,</span> <span class="n">vals_wr</span><span class="p">,</span> <span class="n">spfunc_wr</span><span class="p">,</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wmesh</span><span class="p">,</span> <span class="n">qp</span><span class="p">,</span> <span class="n">vals_e0ks</span><span class="p">,</span> <span class="n">dvals_de0ks</span><span class="p">,</span> <span class="n">dw_vals</span><span class="p">,</span> <span class="n">vals_wr</span><span class="p">,</span> <span class="n">spfunc_wr</span><span class="p">,</span>
                  <span class="n">frohl_vals_e0ks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">frohl_dvals_de0ks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">frohl_spfunc_wr</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
@@ -609,7 +613,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">frohl_dvals_de0ks</span> <span class="o">=</span> <span class="n">frohl_dvals_de0ks</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">frohl_spfunc_wr</span> <span class="o">=</span> <span class="n">frohl_spfunc_wr</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
 <div class="viewcode-block" id="EphSelfEnergy.to_string"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.sigeph.EphSelfEnergy.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -818,7 +822,7 @@
         <span class="n">a2f</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$\alpha^2F_{n{\bf</span><span class="si">{k}</span><span class="s2">}}(\omega)$&quot;</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">gkq2</span><span class="p">,</span> <span class="n">fan</span><span class="p">,</span> <span class="n">dw</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">,</span> <span class="n">band</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">gkq2</span><span class="p">,</span> <span class="n">fan</span><span class="p">,</span> <span class="n">dw</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">,</span> <span class="n">band</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            mesh: Frequency mesh in eV</span>
@@ -865,7 +869,7 @@
             <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span> <span class="o">=</span> <span class="n">get_xy</span><span class="p">(</span><span class="n">wmesh</span><span class="p">,</span> <span class="n">sig_tot</span><span class="p">)</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">latex_symbol</span><span class="p">[</span><span class="s2">&quot;tot&quot;</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">with_ahc_zpr</span><span class="p">:</span>
-                <span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="k">import</span> <span class="n">cumtrapz</span>
+                <span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="kn">import</span> <span class="n">cumtrapz</span>
                 <span class="n">integral</span> <span class="o">=</span> <span class="n">cumtrapz</span><span class="p">(</span><span class="n">sig_tot</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">wmesh</span><span class="p">,</span> <span class="n">initial</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1">#/ 2.0</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ZPR: &quot;</span><span class="p">,</span> <span class="n">integral</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
                 <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span> <span class="o">=</span> <span class="n">get_xy</span><span class="p">(</span><span class="n">wmesh</span><span class="p">,</span> <span class="n">integral</span><span class="p">)</span>
@@ -919,7 +923,7 @@
         <span class="sd">&quot;&quot;&quot;Initialize the object from a netcdf file.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reader</span> <span class="o">=</span> <span class="n">r</span> <span class="o">=</span> <span class="n">SigmaPhReader</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
 
@@ -969,7 +973,7 @@
 <span class="sd">            qpes[spin, ik_lumo, ib_lumo].real</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
@@ -1141,10 +1145,6 @@
         <span class="n">fermie</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">fermie</span>
 
         <span class="k">return</span> <span class="n">ElectronDos</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">spin_dos</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">nelect</span><span class="p">,</span> <span class="n">fermie</span><span class="o">=</span><span class="n">fermie</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="SigEPhFile.get_bolztrap"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.sigeph.SigEPhFile.get_bolztrap">[docs]</a>    <span class="k">def</span> <span class="nf">get_bolztrap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">abipy.boltztrap</span> <span class="k">import</span> <span class="n">AbipyBoltztrap</span>
-        <span class="k">return</span> <span class="n">AbipyBoltztrap</span><span class="o">.</span><span class="n">from_sigeph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="SigEPhFile.sigkpt2index"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.sigeph.SigEPhFile.sigkpt2index">[docs]</a>    <span class="k">def</span> <span class="nf">sigkpt2index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1325,7 +1325,7 @@
         <span class="n">ntemp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ntemp</span>
         <span class="n">tmesh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tmesh</span>
 
-        <span class="c1">#Compute linear mesh</span>
+        <span class="c1"># Compute linear mesh</span>
         <span class="n">nelect</span> <span class="o">=</span> <span class="n">ebands</span><span class="o">.</span><span class="n">nelect</span>
         <span class="n">fermie</span> <span class="o">=</span> <span class="n">ebands</span><span class="o">.</span><span class="n">get_e0</span><span class="p">(</span><span class="n">e0</span><span class="p">)</span>
         <span class="n">epad</span> <span class="o">=</span> <span class="mf">3.0</span> <span class="o">*</span> <span class="n">width</span>
@@ -1336,7 +1336,7 @@
         <span class="n">nw</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">e_max</span> <span class="o">-</span> <span class="n">e_min</span><span class="p">)</span> <span class="o">/</span> <span class="n">step</span><span class="p">)</span>
         <span class="n">mesh</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">e_min</span><span class="p">,</span> <span class="n">e_max</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="n">nw</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">retstep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-        <span class="c1">#get dos</span>
+        <span class="c1"># get dos</span>
         <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;gaussian&quot;</span><span class="p">:</span>
             <span class="n">dos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">ntemp</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span><span class="n">nw</span><span class="p">))</span>
             <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">):</span>
@@ -1545,7 +1545,7 @@
         <span class="n">qpes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_qp_array</span><span class="p">(</span><span class="n">ks_ebands_kpath</span><span class="o">=</span><span class="n">ks_ebands_kpath</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
 
         <span class="c1"># Build interpolator for QP corrections.</span>
-        <span class="kn">from</span> <span class="nn">abipy.core.skw</span> <span class="k">import</span> <span class="n">SkwInterpolator</span>
+        <span class="kn">from</span> <span class="nn">abipy.core.skw</span> <span class="kn">import</span> <span class="n">SkwInterpolator</span>
         <span class="n">cell</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">matrix</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">atomic_numbers</span><span class="p">)</span>
         <span class="n">has_timrev</span> <span class="o">=</span> <span class="n">has_timrev_from_kptopt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;kptopt&quot;</span><span class="p">))</span>
 
@@ -1839,6 +1839,7 @@
         <span class="c1"># This is a bit slow if several k-points but data is scattered due to symsigma.</span>
         <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
         <span class="k">if</span> <span class="s2">&quot;markersize&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;markersize&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_qps_vs_e0</span><span class="p">(</span><span class="n">itemp_list</span><span class="o">=</span><span class="n">itemp_list</span><span class="p">,</span> <span class="n">with_fields</span><span class="o">=</span><span class="s2">&quot;fan0&quot;</span><span class="p">,</span> <span class="n">reim</span><span class="o">=</span><span class="s2">&quot;imag&quot;</span><span class="p">,</span>
                                    <span class="n">function</span><span class="o">=</span><span class="nb">abs</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="n">e0</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="n">colormap</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="n">xlims</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="n">ylims</span><span class="p">,</span>
                                    <span class="n">exchange_xy</span><span class="o">=</span><span class="n">exchange_xy</span><span class="p">,</span> <span class="n">ax_list</span><span class="o">=</span><span class="p">[</span><span class="n">ax</span><span class="p">],</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -2115,7 +2116,7 @@
     <span class="c1"># Try to have API similar to SigresRobot</span>
     <span class="n">EXT</span> <span class="o">=</span> <span class="s2">&quot;SIGEPH&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">abifiles</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span> <span class="k">return</span>
 
@@ -2629,7 +2630,7 @@
 
 <span class="sd">    Provides methods to plot renormalized band structures with linewidths.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tmesh</span><span class="p">,</span> <span class="n">ks_ebands_kpath</span><span class="p">,</span> <span class="n">qp_ebands_kpath_t</span><span class="p">,</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tmesh</span><span class="p">,</span> <span class="n">ks_ebands_kpath</span><span class="p">,</span> <span class="n">qp_ebands_kpath_t</span><span class="p">,</span>
                  <span class="n">ks_ebands_kmesh</span><span class="p">,</span> <span class="n">qp_ebands_kmesh_t</span><span class="p">,</span> <span class="n">interpolators_t</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
@@ -2665,7 +2666,7 @@
         <span class="sd">&quot;&quot;&quot;True if interpolated bands on the k-mesh are available.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qp_ebands_kmesh_t</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
 <div class="viewcode-block" id="TdepElectronBands.to_string"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.sigeph.TdepElectronBands.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
@@ -2719,7 +2720,7 @@
 <span class="sd">        Return: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-        <span class="kn">from</span> <span class="nn">matplotlib.gridspec</span> <span class="k">import</span> <span class="n">GridSpec</span>
+        <span class="kn">from</span> <span class="nn">matplotlib.gridspec</span> <span class="kn">import</span> <span class="n">GridSpec</span>
         <span class="k">if</span> <span class="n">ax_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># Build axes and align bands and DOS.</span>
             <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
@@ -2920,7 +2921,7 @@
 <span class="sd">    .. rubric:: Inheritance Diagram</span>
 <span class="sd">    .. inheritance-diagram:: SigmaPhReader</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_dimvalue</span><span class="p">(</span><span class="s2">&quot;nsppol&quot;</span><span class="p">)</span>
@@ -3182,7 +3183,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on May 29, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

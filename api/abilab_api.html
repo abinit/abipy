@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>abilab &#8212; abipy 0.7.0 documentation</title>
+    <title>abilab &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -41,7 +44,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -64,6 +67,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -202,6 +206,24 @@ Install it with <cite>pip install nbjsmol</cite>. See also <a class="reference e
 </dd></dl>
 
 <dl class="function">
+<dt id="abipy.abilab.mjson_load">
+<code class="sig-prename descclassname">abipy.abilab.</code><code class="sig-name descname">mjson_load</code><span class="sig-paren">(</span><em class="sig-param">filepath</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#mjson_load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.mjson_load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read JSON file in MSONable format with MontyDecoder. Return dict with python objects.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.abilab.mjson_loads">
+<code class="sig-prename descclassname">abipy.abilab.</code><code class="sig-name descname">mjson_loads</code><span class="sig-paren">(</span><em class="sig-param">string</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#mjson_loads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.mjson_loads" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read JSON string in MSONable format with MontyDecoder. Return dict with python objects.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.abilab.mjson_write">
+<code class="sig-prename descclassname">abipy.abilab.</code><code class="sig-name descname">mjson_write</code><span class="sig-paren">(</span><em class="sig-param">d</em>, <em class="sig-param">filepath</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#mjson_write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.mjson_write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write dictionary d to filepath in JSON format using MontyDecoder</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="abipy.abilab.software_stack">
 <code class="sig-prename descclassname">abipy.abilab.</code><code class="sig-name descname">software_stack</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#software_stack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.software_stack" title="Permalink to this definition">¶</a></dt>
 <dd><p>Import all the hard dependencies. Returns ordered dict: package –&gt; string with version info.</p>
@@ -213,6 +235,22 @@ Install it with <cite>pip install nbjsmol</cite>. See also <a class="reference e
 <dd><p>This function tests if the most important ABINIT executables
 can be found in $PATH and whether the python modules needed
 at run-time can be imported. Return string with error messages, empty if success.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.abilab.install_config_files">
+<code class="sig-prename descclassname">abipy.abilab.</code><code class="sig-name descname">install_config_files</code><span class="sig-paren">(</span><em class="sig-param">workdir=None</em>, <em class="sig-param">force_reinstall=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#install_config_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.install_config_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Install pre-defined configuration files for the TaskManager and the Scheduler
+in the workdir directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>workdir</strong> – Directory when configuration files should be produced. Use ~/abinit/abipy/ if None</p></li>
+<li><p><strong>force_reinstall</strong> – Allow overwrite pre-existent configuration files. By default, the function
+raises RuntimeError if configuration files are already present.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
@@ -249,7 +287,7 @@ at run-time can be imported. Return string with error messages, empty if success
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on May 29, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

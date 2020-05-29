@@ -41,7 +41,7 @@ This example shows how to plot the results produced by fold2bloch.
     Name: h6_FOLD2BLOCH.nc
     Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs
     Size: 35.26 kb
-    Access Time: Fri Oct 18 18:46:59 2019
+    Access Time: Sat Feb 22 16:01:48 2020
     Modification Time: Wed Mar 20 16:53:35 2019
     Change Time: Wed Mar 20 16:53:35 2019
 
@@ -69,7 +69,9 @@ This example shows how to plot the results produced by fold2bloch.
     WARNING: Cannot compute direct and fundamental gap.
     Bandwidth: 12.642 (eV)
     Valence maximum located at:
-        spin=0, kpt=[+0.000, +0.000, -0.500], weight: 0.000, band=3, eig=0.466, occ=0.000
+        spin: 0, kpt: [+0.000, +0.000, -0.500], weight: 0.000, band: 3, eig: 0.466, occ: 0.000
+    TIP: Call set_fermie_to_vbm() to set the Fermi level to the VBM if this is a non-magnetic semiconductor
+
     Direct lattice of the primitive cell:
     abc   :   1.587532   1.587532   1.587532
     angles:  90.000000  90.000000  90.000000
@@ -108,7 +110,7 @@ This example shows how to plot the results produced by fold2bloch.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.419 seconds)
+   **Total running time of the script:** ( 0 minutes  0.511 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_fold2bloch.py:

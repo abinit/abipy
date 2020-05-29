@@ -1,6 +1,0 @@
-<map id="inheritance3cb3580177" name="inheritance3cb3580177">
-<area shape="rect" id="node1" href="#abipy.abio.outputs.AbinitLogFile" target="_top" title="Class representing the Abinit log file." alt="" coords="592,24,764,44"/>
-<area shape="rect" id="node2" href="#abipy.abio.outputs.AbinitTextFile" target="_top" title="Class for the ABINIT main output file and the log file." alt="" coords="375,4,549,24"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="372,44,552,63"/>
-<area shape="rect" id="node5" title="Abstract base class defining the methods that must be implemented" alt="" coords="4,4,151,24"/>
-</map>

@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Overview: module code &#8212; abipy 0.7.0 documentation</title>
+    <title>Overview: module code &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -39,7 +42,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -62,6 +65,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -159,6 +163,7 @@
 <li><a href="abipy/dfpt/phonons.html">abipy.dfpt.phonons</a></li>
 <li><a href="abipy/dfpt/phtk.html">abipy.dfpt.phtk</a></li>
 <li><a href="abipy/dfpt/qha.html">abipy.dfpt.qha</a></li>
+<li><a href="abipy/dfpt/raman.html">abipy.dfpt.raman</a></li>
 <li><a href="abipy/dfpt/vsound.html">abipy.dfpt.vsound</a></li>
 <li><a href="abipy/display/mvtk.html">abipy.display.mvtk</a></li>
 <li><a href="abipy/display/utils.html">abipy.display.utils</a></li>
@@ -167,6 +172,7 @@
 <li><a href="abipy/electrons/charges.html">abipy.electrons.charges</a></li>
 <li><a href="abipy/electrons/denpot.html">abipy.electrons.denpot</a></li>
 <li><a href="abipy/electrons/ebands.html">abipy.electrons.ebands</a></li>
+<li><a href="abipy/electrons/effmass_analyzer.html">abipy.electrons.effmass_analyzer</a></li>
 <li><a href="abipy/electrons/eskw.html">abipy.electrons.eskw</a></li>
 <li><a href="abipy/electrons/fatbands.html">abipy.electrons.fatbands</a></li>
 <li><a href="abipy/electrons/fold2bloch.html">abipy.electrons.fold2bloch</a></li>
@@ -183,10 +189,12 @@
 <li><a href="abipy/eph/sigeph.html">abipy.eph.sigeph</a></li>
 <li><a href="abipy/eph/transportfile.html">abipy.eph.transportfile</a></li>
 <li><a href="abipy/eph/v1sym.html">abipy.eph.v1sym</a></li>
+<li><a href="abipy/eph/wr.html">abipy.eph.wr</a></li>
 <li><a href="abipy/flowtk.html">abipy.flowtk</a></li>
 <ul><li><a href="abipy/flowtk/abiobjects.html">abipy.flowtk.abiobjects</a></li>
 <li><a href="abipy/flowtk/abiphonopy.html">abipy.flowtk.abiphonopy</a></li>
 <li><a href="abipy/flowtk/dfpt_works.html">abipy.flowtk.dfpt_works</a></li>
+<li><a href="abipy/flowtk/effmass_works.html">abipy.flowtk.effmass_works</a></li>
 <li><a href="abipy/flowtk/eph_flows.html">abipy.flowtk.eph_flows</a></li>
 <li><a href="abipy/flowtk/events.html">abipy.flowtk.events</a></li>
 <li><a href="abipy/flowtk/flows.html">abipy.flowtk.flows</a></li>
@@ -206,7 +214,13 @@
 </ul><li><a href="abipy/iotools.html">abipy.iotools</a></li>
 <ul><li><a href="abipy/iotools/visualizer.html">abipy.iotools.visualizer</a></li>
 <li><a href="abipy/iotools/xsf.html">abipy.iotools.xsf</a></li>
-</ul><li><a href="abipy/tools/bessel.html">abipy.tools.bessel</a></li>
+</ul><li><a href="abipy/panels/core.html">abipy.panels.core</a></li>
+<li><a href="abipy/panels/ddb.html">abipy.panels.ddb</a></li>
+<li><a href="abipy/panels/flows.html">abipy.panels.flows</a></li>
+<li><a href="abipy/panels/gsr.html">abipy.panels.gsr</a></li>
+<li><a href="abipy/panels/phonons.html">abipy.panels.phonons</a></li>
+<li><a href="abipy/panels/structure.html">abipy.panels.structure</a></li>
+<li><a href="abipy/tools/bessel.html">abipy.tools.bessel</a></li>
 <li><a href="abipy/tools/decorators.html">abipy.tools.decorators</a></li>
 <li><a href="abipy/tools/derivatives.html">abipy.tools.derivatives</a></li>
 <li><a href="abipy/tools/devtools.html">abipy.tools.devtools</a></li>
@@ -224,11 +238,13 @@
 <li><a href="abipy/waves/pwwave.html">abipy.waves.pwwave</a></li>
 <li><a href="abipy/waves/wfkfile.html">abipy.waves.wfkfile</a></li>
 <li><a href="monty/dev.html">monty.dev</a></li>
+<li><a href="panel/widgets/button.html">panel.widgets.button</a></li>
+<li><a href="panel/widgets/input.html">panel.widgets.input</a></li>
+<li><a href="panel/widgets/select.html">panel.widgets.select</a></li>
+<li><a href="panel/widgets/slider.html">panel.widgets.slider</a></li>
+<li><a href="param/parameterized.html">param.parameterized</a></li>
 <li><a href="pymatgen/ext/matproj.html">pymatgen.ext.matproj</a></li>
 <li><a href="pymatgen/util/plotting.html">pymatgen.util.plotting</a></li>
-<li><a href="seaborn/axisgrid.html">seaborn.axisgrid</a></li>
-<li><a href="seaborn/categorical.html">seaborn.categorical</a></li>
-<li><a href="seaborn/regression.html">seaborn.regression</a></li>
 <li><a href="unittest/case.html">unittest.case</a></li>
 </ul>
 
@@ -244,7 +260,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on May 29, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

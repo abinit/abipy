@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>abipy.electrons.denpot &#8212; abipy 0.7.0 documentation</title>
+    <title>abipy.electrons.denpot &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -39,7 +42,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -62,6 +65,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -128,15 +132,15 @@
 <span class="kn">import</span> <span class="nn">tempfile</span>
 <span class="c1">#import numpy as np</span>
 
-<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">marquee</span>
-<span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
-<span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
-<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="p">(</span><span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Header</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_ElectronBands</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">,</span>
+<span class="kn">from</span> <span class="nn">monty.string</span> <span class="kn">import</span> <span class="n">marquee</span>
+<span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="kn">import</span> <span class="n">cprint</span>
+<span class="kn">from</span> <span class="nn">monty.functools</span> <span class="kn">import</span> <span class="n">lazy_property</span>
+<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="kn">import</span> <span class="p">(</span><span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Header</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_ElectronBands</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">,</span>
     <span class="n">AbinitFortranFile</span><span class="p">,</span> <span class="n">CubeFile</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">Cut3D</span>
-<span class="kn">from</span> <span class="nn">abipy.core.fields</span> <span class="k">import</span> <span class="n">FieldReader</span>
-<span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="k">import</span> <span class="n">Cut3DInput</span>
-<span class="kn">from</span> <span class="nn">abipy.electrons.ebands</span> <span class="k">import</span> <span class="n">ElectronsReader</span>
+<span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="kn">import</span> <span class="n">Cut3D</span>
+<span class="kn">from</span> <span class="nn">abipy.core.fields</span> <span class="kn">import</span> <span class="n">FieldReader</span>
+<span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="kn">import</span> <span class="n">Cut3DInput</span>
+<span class="kn">from</span> <span class="nn">abipy.electrons.ebands</span> <span class="kn">import</span> <span class="n">ElectronsReader</span>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -157,7 +161,7 @@
 <span class="sd">    .. rubric:: Inheritance Diagram</span>
 <span class="sd">    .. inheritance-diagram:: Cut3dDenPotNcFile</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reader</span> <span class="o">=</span> <span class="n">FieldReader</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">field</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_field</span><span class="p">()</span>
@@ -192,7 +196,7 @@
         <span class="sd">&quot;&quot;&quot;Initialize the object from a Netcdf file&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reader</span> <span class="o">=</span> <span class="n">_DenPotNcReader</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
 
@@ -230,7 +234,7 @@
         <span class="sd">&quot;&quot;&quot;Close the file.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
@@ -391,6 +395,8 @@
 
 <div class="viewcode-block" id="PotNcFile"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.PotNcFile">[docs]</a><span class="k">class</span> <span class="nc">PotNcFile</span><span class="p">(</span><span class="n">_NcFileWithField</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    POT file produced by the GS part containing the total KS potential in real space.</span>
+
 <span class="sd">    .. rubric:: Inheritance Diagram</span>
 <span class="sd">    .. inheritance-diagram:: PotNcFile</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -400,6 +406,26 @@
     <span class="k">def</span> <span class="nf">vks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Hartree + XC potential + sum of local pseudo-potential terms.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_vks</span><span class="p">()</span></div></div>
+
+
+<span class="k">class</span> <span class="nc">DfptPotNcFile</span><span class="p">(</span><span class="n">_NcFileWithField</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    POT file produced by the DFPT part containing the</span>
+<span class="sd">    first order derivative of the KS potential in real space.</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: DfptPotNcFile</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">field_name</span> <span class="o">=</span> <span class="s2">&quot;first_order_potential&quot;</span>
+
+    <span class="c1">#@lazy_property</span>
+    <span class="c1">#def vk1s(self):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    First order derivative of KS potential.</span>
+    <span class="c1">#    Includes derivative of Hartree + XC potential + sum of local pseudo-potential terms.</span>
+    <span class="c1">#    except derivative of non-local part.</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    return self.reader.read_vks1()</span>
 
 
 <span class="k">class</span> <span class="nc">DensityFortranFile</span><span class="p">(</span><span class="n">AbinitFortranFile</span><span class="p">):</span>
@@ -547,7 +573,7 @@
         <span class="n">cut3d</span> <span class="o">=</span> <span class="n">Cut3D</span><span class="p">()</span>
         <span class="n">outfile</span><span class="p">,</span> <span class="n">converted_file</span> <span class="o">=</span> <span class="n">cut3d</span><span class="o">.</span><span class="n">cut3d</span><span class="p">(</span><span class="n">cut3d_input</span><span class="p">,</span> <span class="n">workdir</span><span class="p">)</span>
 
-        <span class="kn">from</span> <span class="nn">abipy.electrons.charges</span> <span class="k">import</span> <span class="n">HirshfeldCharges</span>
+        <span class="kn">from</span> <span class="nn">abipy.electrons.charges</span> <span class="kn">import</span> <span class="n">HirshfeldCharges</span>
         <span class="k">return</span> <span class="n">HirshfeldCharges</span><span class="o">.</span><span class="n">from_cut3d_outfile</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="n">structure</span><span class="p">,</span> <span class="n">filepath</span><span class="o">=</span><span class="n">cut3d</span><span class="o">.</span><span class="n">stdout_fname</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_density</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -581,7 +607,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on May 29, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

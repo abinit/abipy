@@ -59,7 +59,7 @@ using the results stored in the FATBANDS.nc files produced with prtdos 3.
     Name: ni_kpath_FATBANDS.nc
     Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/ni_ebands
     Size: 619.35 kb
-    Access Time: Fri Oct 18 18:48:20 2019
+    Access Time: Sat Feb 22 16:03:31 2020
     Modification Time: Wed Mar 20 16:53:35 2019
     Change Time: Wed Mar 20 16:53:35 2019
 
@@ -99,6 +99,16 @@ using the results stored in the FATBANDS.nc files produced with prtdos 3.
       Idx  Symbol    Reduced_Coords             Lmax    Ratsph [Bohr]  Has_Atom
     -----  --------  -----------------------  ------  ---------------  ----------
         0  Ni        0.00000 0.00000 0.00000       4                2  Yes
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+      plt.show()
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+      plt.show()
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+      plt.show()
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+      plt.show()
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+      plt.show()
     /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
       plt.show()
 
@@ -165,7 +175,7 @@ using the results stored in the FATBANDS.nc files produced with prtdos 3.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  4.359 seconds)
+   **Total running time of the script:** ( 0 minutes  3.873 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_efatbands_spin.py:

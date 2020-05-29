@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>abipy.electrons.lobster &#8212; abipy 0.7.0 documentation</title>
+    <title>abipy.electrons.lobster &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -39,7 +42,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -62,6 +65,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -129,22 +133,22 @@
 <span class="kn">import</span> <span class="nn">glob</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">defaultdict</span><span class="p">,</span> <span class="n">OrderedDict</span>
-<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">marquee</span>
-<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">tree</span>
-<span class="kn">from</span> <span class="nn">monty.io</span> <span class="k">import</span> <span class="n">zopen</span>
-<span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
-<span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
-<span class="kn">from</span> <span class="nn">pymatgen.core.periodic_table</span> <span class="k">import</span> <span class="n">Element</span>
-<span class="kn">from</span> <span class="nn">pymatgen.electronic_structure.core</span> <span class="k">import</span> <span class="n">OrbitalType</span>
-<span class="kn">from</span> <span class="nn">pymatgen.io.vasp.outputs</span> <span class="k">import</span> <span class="n">Vasprun</span>
-<span class="kn">from</span> <span class="nn">pymatgen.io.vasp.inputs</span> <span class="k">import</span> <span class="n">Potcar</span>
-<span class="kn">from</span> <span class="nn">pymatgen.io.abinit.pseudos</span> <span class="k">import</span> <span class="n">Pseudo</span>
-<span class="kn">from</span> <span class="nn">abipy.core.func1d</span> <span class="k">import</span> <span class="n">Function1D</span>
-<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">BaseFile</span><span class="p">,</span> <span class="n">NotebookWriter</span>
-<span class="kn">from</span> <span class="nn">abipy.electrons.gsr</span> <span class="k">import</span> <span class="n">GsrFile</span>
-<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span><span class="p">,</span> <span class="n">get_axarray_fig_plt</span><span class="p">,</span> <span class="n">set_visible</span><span class="p">,</span> <span class="n">set_ax_xylabels</span>
-<span class="kn">from</span> <span class="nn">abipy.tools</span> <span class="k">import</span> <span class="n">duck</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span><span class="p">,</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">monty.string</span> <span class="kn">import</span> <span class="n">marquee</span>
+<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="kn">import</span> <span class="n">tree</span>
+<span class="kn">from</span> <span class="nn">monty.io</span> <span class="kn">import</span> <span class="n">zopen</span>
+<span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="kn">import</span> <span class="n">cprint</span>
+<span class="kn">from</span> <span class="nn">monty.functools</span> <span class="kn">import</span> <span class="n">lazy_property</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.periodic_table</span> <span class="kn">import</span> <span class="n">Element</span>
+<span class="kn">from</span> <span class="nn">pymatgen.electronic_structure.core</span> <span class="kn">import</span> <span class="n">OrbitalType</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.vasp.outputs</span> <span class="kn">import</span> <span class="n">Vasprun</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.vasp.inputs</span> <span class="kn">import</span> <span class="n">Potcar</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.abinit.pseudos</span> <span class="kn">import</span> <span class="n">Pseudo</span>
+<span class="kn">from</span> <span class="nn">abipy.core.func1d</span> <span class="kn">import</span> <span class="n">Function1D</span>
+<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="kn">import</span> <span class="n">BaseFile</span><span class="p">,</span> <span class="n">NotebookWriter</span>
+<span class="kn">from</span> <span class="nn">abipy.electrons.gsr</span> <span class="kn">import</span> <span class="n">GsrFile</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="kn">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span><span class="p">,</span> <span class="n">get_axarray_fig_plt</span><span class="p">,</span> <span class="n">set_visible</span><span class="p">,</span> <span class="n">set_ax_xylabels</span>
+<span class="kn">from</span> <span class="nn">abipy.tools</span> <span class="kn">import</span> <span class="n">duck</span>
 
 
 <span class="k">class</span> <span class="nc">_LobsterFile</span><span class="p">(</span><span class="n">BaseFile</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
@@ -185,7 +189,7 @@
       <span class="s2">&quot;4f_z(x^2-y^2)&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;style&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s2">&quot;orange&quot;</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="s2">&quot;latex&quot;</span><span class="p">:</span> <span class="s2">&quot;4f_{z(x^2-y^2)}&quot;</span><span class="p">},</span>
     <span class="p">}</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1133,7 +1137,7 @@
                                   <span class="s2">&quot;noSymmetryCorrection&quot;</span><span class="p">,</span> <span class="s2">&quot;symmetryDetectionPrecision&quot;</span><span class="p">,</span> <span class="s2">&quot;useOriginalTetrahedronMethod&quot;</span><span class="p">,</span>
                                   <span class="s2">&quot;useDecimalPlaces&quot;</span><span class="p">,</span> <span class="s2">&quot;forceEnergyRange&quot;</span><span class="p">}</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">basis_set</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">basis_functions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">include_orbitals</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">atom_pairs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dist_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">basis_set</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">basis_functions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">include_orbitals</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">atom_pairs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dist_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">orbitalwise</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">start_en</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">end_en</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">en_steps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gaussian_smearing</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">bwdf</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">advanced_options</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1223,7 +1227,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">basis_functions</span> <span class="o">=</span> <span class="n">basis_functions</span></div>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
 <div class="viewcode-block" id="LobsterInput.to_string"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.lobster.LobsterInput.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
@@ -1386,7 +1390,7 @@
 
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dirpath</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">coop_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cohp_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">icohp_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lobdos_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dirpath</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">coop_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cohp_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">icohp_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lobdos_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">coop</span> <span class="o">=</span> <span class="n">CoxpFile</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">coop_path</span><span class="p">)</span> <span class="k">if</span> <span class="n">coop_path</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cohp</span> <span class="o">=</span> <span class="n">CoxpFile</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">cohp_path</span><span class="p">)</span> <span class="k">if</span> <span class="n">cohp_path</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">icohp</span> <span class="o">=</span> <span class="n">ICoxpFile</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">icohp_path</span><span class="p">)</span> <span class="k">if</span> <span class="n">icohp_path</span> <span class="k">else</span> <span class="kc">None</span>
@@ -1400,7 +1404,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">nsppol</span>
                 <span class="k">break</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
 <div class="viewcode-block" id="LobsterAnalyzer.to_string"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.lobster.LobsterAnalyzer.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
@@ -1574,7 +1578,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on May 29, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

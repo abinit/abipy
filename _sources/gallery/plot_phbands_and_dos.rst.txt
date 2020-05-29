@@ -49,8 +49,14 @@ See tutorial/lesson_rf2.html
     Particular methods need them![0m
     /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
       plt.show()
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+      plt.show()
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+      plt.show()
     /Users/gmatteo/git_repos/abipy/abipy/dfpt/phtk.py:53: UserWarning: get_dyn_mat_eigenvec has been called with amu=None. Eigenvectors may not be orthonormal.
       warnings.warn("get_dyn_mat_eigenvec has been called with amu=None. Eigenvectors may not be orthonormal.")
+    /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+      plt.show()
 
 
 
@@ -90,7 +96,7 @@ See tutorial/lesson_rf2.html
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.980 seconds)
+   **Total running time of the script:** ( 0 minutes  1.116 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_phbands_and_dos.py:

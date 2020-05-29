@@ -26,7 +26,7 @@ WARNING: The API could change!
 
  .. code-block:: none
 
-    <ScfTask, node_id=97770, workdir=../../../../../../../var/folders/nc/k69spyd12qv2tk3stk2xrxg40000gr/T/tmpsx5p_bj0/w1/t0>: setting prtwf to -1
+    <ScfTask, node_id=196436, workdir=../../../../../../../var/folders/nc/k69spyd12qv2tk3stk2xrxg40000gr/T/tmpjsql7nix/w1/t0>: setting prtwf to -1
     /Users/gmatteo/git_repos/pymatgen/pymatgen/util/plotting.py:550: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
       plt.show()
 
@@ -39,7 +39,6 @@ WARNING: The API could change!
 
 .. code-block:: default
 
-    from __future__ import division, print_function, unicode_literals, absolute_import
 
     import sys
     import os
@@ -144,8 +143,7 @@ WARNING: The API could change!
     def build_flow(options):
         # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
         if not options.workdir:
-            if os.getenv("READTHEDOCS", False): __file__ = os.path.join(os.getcwd(), "run_relax_and_ebands.py")
-            options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
+            options.workdir = os.path.basename(sys.argv[0]).replace(".py", "").replace("run_", "flow_")
 
         # Create the flow
         flow = flowtk.Flow(options.workdir, manager=options.manager)
@@ -186,13 +184,12 @@ WARNING: The API could change!
         return flow
 
 
-    # This block generates the thumbnails in the Abipy gallery.
+    # This block generates the thumbnails in the AbiPy gallery.
     # You can safely REMOVE this part if you are using this script for production runs.
     if os.getenv("READTHEDOCS", False):
         __name__ = None
         import tempfile
         options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-        #build_flow(options).plot_networkx(with_edge_labels=True, tight_layout=True)
         build_flow(options).graphviz_imshow()
 
 
@@ -212,7 +209,7 @@ WARNING: The API could change!
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.491 seconds)
+   **Total running time of the script:** ( 0 minutes  0.558 seconds)
 
 
 .. _sphx_glr_download_flow_gallery_run_relax_and_ebands.py:

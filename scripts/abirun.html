@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>abirun.py &#8212; abipy 0.7.0 documentation</title>
+    <title>abirun.py &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -41,7 +44,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -64,6 +67,7 @@
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -154,122 +158,126 @@
 <li><a class="reference internal" href="#Named Arguments_repeat14">Named Arguments</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#panel">panel</a><ul>
+<li><a class="reference internal" href="#Named Arguments_repeat15">Named Arguments</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#new_manager">new_manager</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat4">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat15">Named Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat16">Named Arguments</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#tail">tail</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat5">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat16">Named Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat17">Named Arguments</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#deps">deps</a><ul>
-<li><a class="reference internal" href="#Named Arguments_repeat17">Named Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat18">Named Arguments</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#robot">robot</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat6">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat18">Named Arguments</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#cycles">cycles</a><ul>
 <li><a class="reference internal" href="#Named Arguments_repeat19">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#dims">dims</a><ul>
+<li><a class="reference internal" href="#cycles">cycles</a><ul>
 <li><a class="reference internal" href="#Named Arguments_repeat20">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#inspect">inspect</a><ul>
+<li><a class="reference internal" href="#dims">dims</a><ul>
 <li><a class="reference internal" href="#Named Arguments_repeat21">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#inputs">inputs</a><ul>
+<li><a class="reference internal" href="#inspect">inspect</a><ul>
 <li><a class="reference internal" href="#Named Arguments_repeat22">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#abivars">abivars</a><ul>
+<li><a class="reference internal" href="#inputs">inputs</a><ul>
 <li><a class="reference internal" href="#Named Arguments_repeat23">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#structures">structures</a><ul>
+<li><a class="reference internal" href="#abivars">abivars</a><ul>
 <li><a class="reference internal" href="#Named Arguments_repeat24">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#ebands">ebands</a><ul>
+<li><a class="reference internal" href="#structures">structures</a><ul>
 <li><a class="reference internal" href="#Named Arguments_repeat25">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#hist">hist</a><ul>
+<li><a class="reference internal" href="#ebands">ebands</a><ul>
 <li><a class="reference internal" href="#Named Arguments_repeat26">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#hist">hist</a><ul>
+<li><a class="reference internal" href="#Named Arguments_repeat27">Named Arguments</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#doc_manager">doc_manager</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat7">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat27">Named Arguments</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#events">events</a><ul>
 <li><a class="reference internal" href="#Named Arguments_repeat28">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#corrections">corrections</a><ul>
+<li><a class="reference internal" href="#events">events</a><ul>
 <li><a class="reference internal" href="#Named Arguments_repeat29">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#history">history</a><ul>
+<li><a class="reference internal" href="#corrections">corrections</a><ul>
 <li><a class="reference internal" href="#Named Arguments_repeat30">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#handlers">handlers</a><ul>
+<li><a class="reference internal" href="#history">history</a><ul>
 <li><a class="reference internal" href="#Named Arguments_repeat31">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#notebook">notebook</a><ul>
+<li><a class="reference internal" href="#handlers">handlers</a><ul>
 <li><a class="reference internal" href="#Named Arguments_repeat32">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#ipython">ipython</a><ul>
+<li><a class="reference internal" href="#notebook">notebook</a><ul>
 <li><a class="reference internal" href="#Named Arguments_repeat33">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#tar">tar</a><ul>
+<li><a class="reference internal" href="#ipython">ipython</a><ul>
 <li><a class="reference internal" href="#Named Arguments_repeat34">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#tricky">tricky</a><ul>
+<li><a class="reference internal" href="#tar">tar</a><ul>
 <li><a class="reference internal" href="#Named Arguments_repeat35">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#debug">debug</a><ul>
+<li><a class="reference internal" href="#tricky">tricky</a><ul>
 <li><a class="reference internal" href="#Named Arguments_repeat36">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#debug_reset">debug_reset</a><ul>
+<li><a class="reference internal" href="#debug">debug</a><ul>
 <li><a class="reference internal" href="#Named Arguments_repeat37">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#group">group</a><ul>
+<li><a class="reference internal" href="#debug_reset">debug_reset</a><ul>
 <li><a class="reference internal" href="#Named Arguments_repeat38">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#group">group</a><ul>
+<li><a class="reference internal" href="#Named Arguments_repeat39">Named Arguments</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#diff">diff</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat8">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat39">Named Arguments</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#networkx">networkx</a><ul>
 <li><a class="reference internal" href="#Named Arguments_repeat40">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#graphviz">graphviz</a><ul>
+<li><a class="reference internal" href="#networkx">networkx</a><ul>
 <li><a class="reference internal" href="#Named Arguments_repeat41">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#graphviz">graphviz</a><ul>
+<li><a class="reference internal" href="#Named Arguments_repeat42">Named Arguments</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#listext">listext</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat9">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat42">Named Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat43">Named Arguments</a></li>
 </ul>
 </li>
 </ul>
@@ -328,63 +336,317 @@
 <p>This script allows the user to submit the calculations contained in the AbiPy Flow
 (for further detail, consult the <a class="reference internal" href="../workflows/taskmanager.html#taskmanager"><span class="std std-ref">TaskManager</span></a> documentation).</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ abirun.py --help
-Traceback (most recent call last):
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/bin/abirun.py&quot;, line 4, in &lt;module&gt;
-    __import__(&#39;pkg_resources&#39;).require(&#39;abipy==0.7.0.dev0&#39;)
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3250, in &lt;module&gt;
-    @_call_aside
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3234, in _call_aside
-    f(*args, **kwargs)
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3263, in _initialize_master_working_set
-    working_set = WorkingSet._build_master()
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 583, in _build_master
-    ws.require(__requires__)
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 900, in require
-    needed = self.resolve(parse_requirements(requirements))
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 786, in resolve
-    raise DistributionNotFound(req, requirers)
-pkg_resources.DistributionNotFound: The &#39;abipy==0.7.0.dev0&#39; distribution was not found and is required by the application
+usage: abirun.py [-h] [-V]
+                 [flowdir]
+                 {single,rapid,scheduler,batch,status,set_status,cancel,restart,reset,move,open,abiopen,abibuild,doc_scheduler,panel,new_manager,tail,deps,robot,cycles,dims,inspect,inputs,abivars,structures,ebands,hist,doc_manager,events,corrections,history,handlers,notebook,ipython,tar,tricky,debug,debug_reset,group,diff,networkx,graphviz,listext}
+                 ...
+
+positional arguments:
+  flowdir               File or directory containing the ABINIT
+                        flow/work/task. If not given, the flow in the current
+                        workdir is selected.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -V, --version         show program&#39;s version number and exit
+
+subcommands:
+  Valid subcommands
+
+  {single,rapid,scheduler,batch,status,set_status,cancel,restart,reset,move,open,abiopen,abibuild,doc_scheduler,panel,new_manager,tail,deps,robot,cycles,dims,inspect,inputs,abivars,structures,ebands,hist,doc_manager,events,corrections,history,handlers,notebook,ipython,tar,tricky,debug,debug_reset,group,diff,networkx,graphviz,listext}
+                        sub-command help
+    single              Run single task and exit.
+    rapid               Run all tasks in rapidfire mode.
+    scheduler           Run all tasks with a Python scheduler. Requires
+                        scheduler.yml either in $PWD or ~/.abinit/abipy.
+    batch               Run scheduler in batch script.
+    status              Show status table.
+    set_status          Change the status of the task. WARNING: Option for
+                        developers!
+    cancel              Cancel the tasks in the queue. Not available if qtype
+                        is shell.
+    restart             Restart the tasks of the flow. By default, only the
+                        task whose status==Unconverged are restarted. Use -S
+                        `status` and/or -n node_ids to select particular
+                        tasks.
+    reset               Reset the tasks of the flow with the specified status.
+    move                Move the flow to a new directory and change the
+                        absolute paths.
+    open                Open files in $EDITOR, type `abirun.py FLOWDIR open
+                        --help` for help).
+    abiopen             Open FILE with abiopen. Same interface as abiopen.py
+    abibuild            Show ABINIT build information and exit.
+    doc_scheduler       Document the options available in scheduler.yml.
+    panel               Interact with the flow in the browser (requires panel
+                        package).
+    new_manager         Change the TaskManager.
+    tail                Use unix tail to follow the main output files of the
+                        flow.
+    deps                Show dependencies.
+    robot               Use a robot to analyze the results of multiple tasks
+                        (requires ipython).
+    cycles              Print self-consistent/relaxation cycles extracted from
+                        the output of the tasks.Use `-t ScfTask` or
+                        `FLOWDIR/w0/` or `FLOWDIR/w0/t1/` to select tasks by
+                        class, by work or by workdir.
+    dims                Print table with dimensions extracted from the output
+                        of the tasks.
+    inspect             Call matplotlib to inspect the tasks (execute
+                        task.inspect method)
+    inputs              Show the input files of the tasks.
+    abivars             Show pandas dataframe with Abinit input variables.
+    structures          Compare input/output structures of the tasks. Print
+                        max force and pressure if available.
+    ebands              Compare electronic bands produced by the tasks.
+    hist                Compare HIST.nc files produced by the tasks.
+    doc_manager         Document the TaskManager options.
+    events              Show ABINIT events (error messages, warnings,
+                        comments).
+    corrections         Show AbiPy corrections performed at runtime.
+    history             Show Node history.
+    handlers            Show event handlers installed in the flow.
+    notebook            Create and open an ipython notebook to interact with
+                        the flow.
+    ipython             Embed IPython. Useful for advanced operations or
+                        debugging purposes.
+    tar                 Create tarball file.
+    tricky              Show tricky tasks i.e. tasks that have been restarted,
+                        launched more than once or tasks that have been
+                        corrected.
+    debug               Analyze error files and log files for possible error
+                        messages.
+    debug_reset         Analyze error files and log files produced by reset
+                        tasks for possible error messages.
+    group               Group tasks according to property.
+    diff                Compare files produced by two or three nodes.
+    networkx            Draw flow and node dependencies with networkx package.
+    graphviz            Draw flow and node dependencies with graphviz package.
+                        Accept (FLOWDIR|WORKDIR|TASKDIR). See
+                        https://graphviz.readthedocs.io/.
+    listext             List all the output files with the given extension
+                        that have been produced by the nodes.
+
+Notes:
+
+    If FLOWDIR is not given, abirun.py automatically selects the database located within
+    the working directory. An Exception is raised if multiple databases are found.
+
+    Note, moreover, that one can replace FLOWDIR with the directory of a work/task
+    to make the command operate on this node of the flow without having to specify the node ids with --nids.
+    For example, to have the list of events of the task in `FLOWDIR/w0/t1` use:
+
+        abirun.py FLOWDIR/w0/t1 events
+
+    instead of:
+
+        abirun.py FLOWDIR events -n 123
+
+    where 123 is the node identifier associated to w0/t1.
+
+    To start the scheduler with a time interval of 30 seconds, use:
+
+        nohup abirun.py FLOWDIR scheduler -s 30 &gt; sched.log 2&gt; sched.err
+
+    Alternatively one can specify the scheduler options via the `scheduler.yml` file.
+    Remember that AbiPy will first look for `scheduler.yml` and `manager.yml` files
+    in the current working directory and then inside $HOME/.abinit/abipy/
+
+    Use `abirun.py --help` for help and `abirun.py COMMAND --help` to get the documentation for `COMMAND`.
+    Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
+
+Usage example:
+
+###########
+# Execution
+###########
+
+  abirun.py FLOWDIR rapid                 =&gt; Keep repeating, stop when no task can be executed.
+  abirun.py FLOWDIR scheduler             =&gt; Execute flow with the scheduler.
+  abirun.py FLOWDIR status                =&gt; Show status table.
+  abirun.py FLOWDIR events                =&gt; Print ABINIT events (Warnings/Errors/Comments) found in log files.
+  abirun.py FLOWDIR history               =&gt; Print Task histories.
+  abirun.py FLOWDIR cancel                =&gt; Cancel jobs in the queue.
+  abirun.py FLOWDIR debug                 =&gt; Analyze error files and log files for possible error messages.
+  abirun.py FLOWDIR corrections           =&gt; Show AbiPy corrections performed at runtime.
+  abirun.py FLOWDIR handlers              =&gt; Show event handlers installed in the flow.
+
+##########
+# Analysis
+##########
+
+  abirun.py FLOWDIR inputs                =&gt; Print input files.
+  abirun.py FLOWDIR abivars -vn ecut,nband  =&gt; Print table with these input variables.
+  abirun.py FLOWDIR structures            =&gt; Compare input/output structures of the tasks.
+  abirun.py FLOWDIR ebands -t NscfTask    =&gt; Print table with electronic properties computed in NscfTask
+  abirun.py FLOWDIR hist -p               =&gt; Print table with last iteration in hist files and plot results.
+  abirun.py FLOWDIR cycles -p             =&gt; Print (and plot) SCF/relaxation cycles extracted from the output of the tasks.
+  abirun.py FLOWDIR robot hist            =&gt; Build robot for HIST files, start ipython shell to interact with the robot.
+  abirun.py FLOWDIR dims                  =&gt; Print table with dimensions extracted from the output of the tasks.
+  abirun.py FLOWDIR group -g task_class   =&gt; Print table with node ids and tasks grouped by class
+  abirun.py FLOWDIR inspect               =&gt; Call matplotlib to inspect the tasks.
+  abirun.py FLOWDIR tail                  =&gt; Use Unix tail to follow the main output files of the flow.
+  abirun.py FLOWDIR deps                  =&gt; Show task dependencies.
+  abirun.py FLOWDIR listext GSR SIGRES    =&gt; Show output files with the given extension(s).
+  abirun.py FILE abiopen                  =&gt; Open FILE with abiopen. Same interface as abiopen.py
+
+###############
+# Miscelleanous
+###############
+
+  abirun.py FLOWDIR ipython               =&gt; Open flow in ipython terminal.
+  abirun.py FLOWDIR notebook              =&gt; Generate jupyter notebook.
+  abirun.py FLOWDIR networkx              =&gt; Plot flow graph with networkx.
+  abirun.py FLOWDIR graphviz              =&gt; Plot flow graph with graphviz
+                                            (can also select tasks/works and show files with -d).
+  abirun.py abibuild                      =&gt; Show ABINIT build information and exit.
+
+###############
+# Documentation
+###############
+
+  abirun.py FLOWDIR doc_manager slurm     =&gt; Document the TaskManager options availabe for Slurm.
+  abirun.py . doc_manager script          =&gt; Show the job script that will be produced with the current settings.
+  abirun.py . doc_scheduler               =&gt; Document the options available in scheduler.yml.
 </pre></div>
 </div>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ abirun.py doc_scheduler
-Traceback (most recent call last):
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/bin/abirun.py&quot;, line 4, in &lt;module&gt;
-    __import__(&#39;pkg_resources&#39;).require(&#39;abipy==0.7.0.dev0&#39;)
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3250, in &lt;module&gt;
-    @_call_aside
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3234, in _call_aside
-    f(*args, **kwargs)
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3263, in _initialize_master_working_set
-    working_set = WorkingSet._build_master()
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 583, in _build_master
-    ws.require(__requires__)
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 900, in require
-    needed = self.resolve(parse_requirements(requirements))
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 786, in resolve
-    raise DistributionNotFound(req, requirers)
-pkg_resources.DistributionNotFound: The &#39;abipy==0.7.0.dev0&#39; distribution was not found and is required by the application
+Options that can be specified in scheduler.yml:
+
+            weeks: number of weeks to wait (DEFAULT: 0).
+            days: number of days to wait (DEFAULT: 0).
+            hours: number of hours to wait (DEFAULT: 0).
+            minutes: number of minutes to wait (DEFAULT: 0).
+            seconds: number of seconds to wait (DEFAULT: 0).
+            mailto: The scheduler will send an email to `mailto` every `remindme_s` seconds.
+                (DEFAULT: None i.e. not used).
+            verbose: (int) verbosity level. (DEFAULT: 0)
+            use_dynamic_manager: &quot;yes&quot; if the |TaskManager| must be re-initialized from
+                file before launching the jobs. (DEFAULT: &quot;no&quot;)
+            max_njobs_inqueue: Limit on the number of jobs that can be present in the queue. (DEFAULT: 200)
+            max_ncores_used: Maximum number of cores that can be used by the scheduler.
+            remindme_s: The scheduler will send an email to the user specified
+                by `mailto` every `remindme_s` seconds. (int, DEFAULT: 1 day).
+            max_num_pyexcs: The scheduler will exit if the number of python exceptions is &gt; max_num_pyexcs
+                (int, DEFAULT: 0)
+            max_num_abierrs: The scheduler will exit if the number of errored tasks is &gt; max_num_abierrs
+                (int, DEFAULT: 0)
+            safety_ratio: The scheduler will exits if the number of jobs launched becomes greater than
+               `safety_ratio` * total_number_of_tasks_in_flow. (int, DEFAULT: 5)
+            max_nlaunches: Maximum number of tasks launched in a single iteration of the scheduler.
+                (DEFAULT: -1 i.e. no limit)
+            debug: Debug level. Use 0 for production (int, DEFAULT: 0)
+            fix_qcritical: &quot;yes&quot; if the launcher should try to fix QCritical Errors (DEFAULT: &quot;no&quot;)
+            rmflow: If &quot;yes&quot;, the scheduler will remove the flow directory if the calculation
+                completed successfully. (DEFAULT: &quot;no&quot;)
+            killjobs_if_errors: &quot;yes&quot; if the scheduler should try to kill all the runnnig jobs
+                before exiting due to an error. (DEFAULT: &quot;yes&quot;)
 </pre></div>
 </div>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ abirun.py . doc_manager
-Traceback (most recent call last):
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/bin/abirun.py&quot;, line 4, in &lt;module&gt;
-    __import__(&#39;pkg_resources&#39;).require(&#39;abipy==0.7.0.dev0&#39;)
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3250, in &lt;module&gt;
-    @_call_aside
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3234, in _call_aside
-    f(*args, **kwargs)
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3263, in _initialize_master_working_set
-    working_set = WorkingSet._build_master()
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 583, in _build_master
-    ws.require(__requires__)
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 900, in require
-    needed = self.resolve(parse_requirements(requirements))
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 786, in resolve
-    raise DistributionNotFound(req, requirers)
-pkg_resources.DistributionNotFound: The &#39;abipy==0.7.0.dev0&#39; distribution was not found and is required by the application
+
+# TaskManager configuration file (YAML Format)
+
+policy:
+    # Dictionary with options used to control the execution of the tasks.
+
+qadapters:
+    # List of qadapters objects (mandatory)
+    -  # qadapter_1
+    -  # qadapter_2
+
+db_connector:
+    # Connection to MongoDB database (optional)
+
+batch_adapter:
+    # Adapter used to submit flows with batch script. (optional)
+
+##########################################
+# Individual entries are documented below:
+##########################################
+
+policy: 
+    autoparal:                # (integer). 0 to disable the autoparal feature (DEFAULT: 1 i.e. autoparal is on)
+    condition:                # condition used to filter the autoparal configurations (Mongodb-like syntax).
+                              # DEFAULT: empty i.e. ignored.
+    vars_condition:           # Condition used to filter the list of ABINIT variables reported by autoparal
+                              # (Mongodb-like syntax). DEFAULT: empty i.e. ignored.
+    frozen_timeout:           # A job is considered frozen and its status is set to ERROR if no change to
+                              # the output file has been done for `frozen_timeout` seconds. Accepts int with seconds or
+                              # string in slurm form i.e. days-hours:minutes:seconds. DEFAULT: 1 hour.
+    precedence:               # Under development.
+    autoparal_priorities:     # Under development.
+
+qadapter: 
+# Dictionary with info on the hardware available on this queue.
+hardware:
+    num_nodes:           # Number of nodes available on this queue (integer, MANDATORY).
+    sockets_per_node:    # Number of sockets per node (integer, MANDATORY).
+    cores_per_socket:    # Number of cores per socket (integer, MANDATORY).
+                         # The total number of cores available on this queue is
+                         # `num_nodes * sockets_per_node * cores_per_socket`.
+
+# Dictionary with the options used to prepare the enviroment before submitting the job
+job:
+    setup:                # List of commands (strings) executed before running (DEFAULT: empty)
+    omp_env:              # Dictionary with OpenMP environment variables (DEFAULT: empty i.e. no OpenMP)
+    modules:              # List of modules to be imported before running the code (DEFAULT: empty).
+                          # NB: Error messages produced by module load are redirected to mods.err
+    shell_env:            # Dictionary with shell environment variables.
+    mpi_runner:           # MPI runner. Possible values in [&quot;mpirun&quot;, &quot;mpiexec&quot;, &quot;srun&quot;, None]
+                          # DEFAULT: None i.e. no mpirunner is used.
+    mpi_runner_options    # String with optional options passed to the `mpi_runner` e.g. &quot;--bind-to None&quot;
+    shell_runner:         # Used for running small sequential jobs on the front-end. Set it to None
+                          # if mpirun or mpiexec are not available on the fron-end. If not
+                          # given, small sequential jobs are executed with `mpi_runner`.
+    shell_runner_options  # Similar to mpi_runner_options but for the runner used on the front-end.
+    pre_run:              # List of commands (strings) executed before the run (DEFAULT: empty)
+    post_run:             # List of commands (strings) executed after the run (DEFAULT: empty)
+
+# dictionary with the name of the queue and optional parameters
+# used to build/customize the header of the submission script.
+queue:
+    qtype:                # String defining the qapapter type e.g. slurm, shell ...
+    qname:                # Name of the submission queue (string, MANDATORY)
+    qparams:              # Dictionary with values used to generate the header of the job script
+                          # We use the *normalized* version of the options i.e dashes in the official name
+                          # are replaced by underscores e.g. ``--mail-type`` becomes ``mail_type``
+                          # See pymatgen.io.abinit.qadapters.py for the list of supported values.
+                          # Use ``qverbatim`` to pass additional options that are not included in the template.
+
+# dictionary with the constraints that must be fulfilled in order to run on this queue.
+limits:
+    min_cores:             # Minimum number of cores (integer, DEFAULT: 1)
+    max_cores:             # Maximum number of cores (integer, MANDATORY). Hard limit to hint_cores:
+                           # it&#39;s the limit beyond which the scheduler will not accept the job (MANDATORY).
+    hint_cores:            # The limit used in the initial setup of jobs.
+                           # Fix_Critical method may increase this number until max_cores is reached
+    min_mem_per_proc:      # Minimum memory per MPI process in Mb, units can be specified e.g. 1.4 Gb
+                           # (DEFAULT: hardware.mem_per_core)
+    max_mem_per_proc:      # Maximum memory per MPI process in Mb, units can be specified e.g. `1.4Gb`
+                           # (DEFAULT: hardware.mem_per_node)
+    timelimit:             # Initial time-limit. Accepts time according to slurm-syntax i.e:
+                           # &quot;days-hours&quot; or &quot;days-hours:minutes&quot; or &quot;days-hours:minutes:seconds&quot; or
+                           # &quot;minutes&quot; or &quot;minutes:seconds&quot; or &quot;hours:minutes:seconds&quot;,
+    timelimit_hard:        # The hard time-limit for this queue. Same format as timelimit.
+                           # Error handlers could try to submit jobs with increased timelimit
+                           # up to timelimit_hard. If not specified, timelimit_hard == timelimit
+    condition:             # MongoDB-like condition (DEFAULT: empty, i.e. not used)
+    allocation:            # String defining the policy used to select the optimal number of CPUs.
+                           # possible values are in [&quot;nodes&quot;, &quot;force_nodes&quot;, &quot;shared&quot;]
+                           # &quot;nodes&quot; means that we should try to allocate entire nodes if possible.
+                           # This is a soft limit, in the sense that the qadapter may use a configuration
+                           # that does not fulfill this requirement. In case of failure, it will try to use the
+                           # smallest number of nodes compatible with the optimal configuration.
+                           # Use `force_nodes` to enfore entire nodes allocation.
+                           # `shared` mode does not enforce any constraint (DEFAULT: shared).
+    max_num_launches:      # Limit to the number of times a specific task can be restarted (integer, DEFAULT: 5)
+
+
+qtype supported: [&#39;bluegene&#39;, &#39;moab&#39;, &#39;pbspro&#39;, &#39;sge&#39;, &#39;shell&#39;, &#39;slurm&#39;, &#39;torque&#39;]
+Use `abirun.py . manager slurm` to have the list of qparams for slurm.
 </pre></div>
 </div>
-<p>At the time of writing (Oct 18, 2019), AbiPy supports the following resource managers:</p>
+<p>At the time of writing (Feb 22, 2020), AbiPy supports the following resource managers:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">shell</span></code></p></li>
 <li><p><a class="reference external" href="http://pbspro.org/">pbspro</a></p></li>
@@ -401,7 +663,7 @@ pkg_resources.DistributionNotFound: The &#39;abipy==0.7.0.dev0&#39; distribution
 <p>Complete command line reference</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">V</span><span class="p">]</span>
                  <span class="p">[</span><span class="n">flowdir</span><span class="p">]</span>
-                 <span class="p">{</span><span class="n">single</span><span class="p">,</span><span class="n">rapid</span><span class="p">,</span><span class="n">scheduler</span><span class="p">,</span><span class="n">batch</span><span class="p">,</span><span class="n">status</span><span class="p">,</span><span class="n">set_status</span><span class="p">,</span><span class="n">cancel</span><span class="p">,</span><span class="n">restart</span><span class="p">,</span><span class="n">reset</span><span class="p">,</span><span class="n">move</span><span class="p">,</span><span class="nb">open</span><span class="p">,</span><span class="n">abiopen</span><span class="p">,</span><span class="n">abibuild</span><span class="p">,</span><span class="n">doc_scheduler</span><span class="p">,</span><span class="n">new_manager</span><span class="p">,</span><span class="n">tail</span><span class="p">,</span><span class="n">deps</span><span class="p">,</span><span class="n">robot</span><span class="p">,</span><span class="n">cycles</span><span class="p">,</span><span class="n">dims</span><span class="p">,</span><span class="n">inspect</span><span class="p">,</span><span class="n">inputs</span><span class="p">,</span><span class="n">abivars</span><span class="p">,</span><span class="n">structures</span><span class="p">,</span><span class="n">ebands</span><span class="p">,</span><span class="n">hist</span><span class="p">,</span><span class="n">doc_manager</span><span class="p">,</span><span class="n">events</span><span class="p">,</span><span class="n">corrections</span><span class="p">,</span><span class="n">history</span><span class="p">,</span><span class="n">handlers</span><span class="p">,</span><span class="n">notebook</span><span class="p">,</span><span class="n">ipython</span><span class="p">,</span><span class="n">tar</span><span class="p">,</span><span class="n">tricky</span><span class="p">,</span><span class="n">debug</span><span class="p">,</span><span class="n">debug_reset</span><span class="p">,</span><span class="n">group</span><span class="p">,</span><span class="n">diff</span><span class="p">,</span><span class="n">networkx</span><span class="p">,</span><span class="n">graphviz</span><span class="p">,</span><span class="n">listext</span><span class="p">}</span>
+                 <span class="p">{</span><span class="n">single</span><span class="p">,</span><span class="n">rapid</span><span class="p">,</span><span class="n">scheduler</span><span class="p">,</span><span class="n">batch</span><span class="p">,</span><span class="n">status</span><span class="p">,</span><span class="n">set_status</span><span class="p">,</span><span class="n">cancel</span><span class="p">,</span><span class="n">restart</span><span class="p">,</span><span class="n">reset</span><span class="p">,</span><span class="n">move</span><span class="p">,</span><span class="nb">open</span><span class="p">,</span><span class="n">abiopen</span><span class="p">,</span><span class="n">abibuild</span><span class="p">,</span><span class="n">doc_scheduler</span><span class="p">,</span><span class="n">panel</span><span class="p">,</span><span class="n">new_manager</span><span class="p">,</span><span class="n">tail</span><span class="p">,</span><span class="n">deps</span><span class="p">,</span><span class="n">robot</span><span class="p">,</span><span class="n">cycles</span><span class="p">,</span><span class="n">dims</span><span class="p">,</span><span class="n">inspect</span><span class="p">,</span><span class="n">inputs</span><span class="p">,</span><span class="n">abivars</span><span class="p">,</span><span class="n">structures</span><span class="p">,</span><span class="n">ebands</span><span class="p">,</span><span class="n">hist</span><span class="p">,</span><span class="n">doc_manager</span><span class="p">,</span><span class="n">events</span><span class="p">,</span><span class="n">corrections</span><span class="p">,</span><span class="n">history</span><span class="p">,</span><span class="n">handlers</span><span class="p">,</span><span class="n">notebook</span><span class="p">,</span><span class="n">ipython</span><span class="p">,</span><span class="n">tar</span><span class="p">,</span><span class="n">tricky</span><span class="p">,</span><span class="n">debug</span><span class="p">,</span><span class="n">debug_reset</span><span class="p">,</span><span class="n">group</span><span class="p">,</span><span class="n">diff</span><span class="p">,</span><span class="n">networkx</span><span class="p">,</span><span class="n">graphviz</span><span class="p">,</span><span class="n">listext</span><span class="p">}</span>
                  <span class="o">...</span>
 </pre></div>
 </div>
@@ -426,7 +688,7 @@ pkg_resources.DistributionNotFound: The &#39;abipy==0.7.0.dev0&#39; distribution
 <p>Valid subcommands</p>
 <dl class="option-list">
 <dt><kbd>command</kbd></dt>
-<dd><p>Possible choices: single, rapid, scheduler, batch, status, set_status, cancel, restart, reset, move, open, abiopen, abibuild, doc_scheduler, new_manager, tail, deps, robot, cycles, dims, inspect, inputs, abivars, structures, ebands, hist, doc_manager, events, corrections, history, handlers, notebook, ipython, tar, tricky, debug, debug_reset, group, diff, networkx, graphviz, listext</p>
+<dd><p>Possible choices: single, rapid, scheduler, batch, status, set_status, cancel, restart, reset, move, open, abiopen, abibuild, doc_scheduler, panel, new_manager, tail, deps, robot, cycles, dims, inspect, inputs, abivars, structures, ebands, hist, doc_manager, events, corrections, history, handlers, notebook, ipython, tar, tricky, debug, debug_reset, group, diff, networkx, graphviz, listext</p>
 <p>sub-command help</p>
 </dd>
 </dl>
@@ -1092,6 +1354,39 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 </dl>
 </div>
 </div>
+<div class="section" id="panel">
+<h3>panel<a class="headerlink" href="#panel" title="Permalink to this headline">¶</a></h3>
+<p>Interact with the flow in the browser (requires panel package).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">panel</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
+                <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Named Arguments_repeat15">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat15" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>-v, --verbose</kbd></dt>
+<dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
+<p>Default: 0</p>
+</dd>
+<dt><kbd>--no-colors</kbd></dt>
+<dd><p>Disable ASCII colors.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--no-logo</kbd></dt>
+<dd><p>Disable AbiPy logo.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--loglevel</kbd></dt>
+<dd><p>Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.</p>
+<p>Default: “ERROR”</p>
+</dd>
+<dt><kbd>--remove-lock</kbd></dt>
+<dd><p>Remove the lock on the pickle file used to save the status of the flow.</p>
+<p>Default: False</p>
+</dd>
+</dl>
+</div>
+</div>
 <div class="section" id="new_manager">
 <h3>new_manager<a class="headerlink" href="#new_manager" title="Permalink to this headline">¶</a></h3>
 <p>Change the TaskManager.</p>
@@ -1110,8 +1405,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 </dd>
 </dl>
 </div>
-<div class="section" id="Named Arguments_repeat15">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat15" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat16">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat16" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -1169,8 +1464,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 </dd>
 </dl>
 </div>
-<div class="section" id="Named Arguments_repeat16">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat16" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat17">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat17" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -1216,8 +1511,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat17">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat17" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat18">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat18" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -1261,8 +1556,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 </dd>
 </dl>
 </div>
-<div class="section" id="Named Arguments_repeat18">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat18" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat19">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat19" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -1322,8 +1617,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                  <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="p">[{</span><span class="n">combiplot</span><span class="p">,</span><span class="n">slideshow</span><span class="p">}]]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat19">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat19" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat20">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat20" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -1378,8 +1673,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat20">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat20" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat21">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat21" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -1426,8 +1721,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                   <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat21">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat21" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat22">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat22" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -1475,8 +1770,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                  <span class="p">[</span><span class="o">-</span><span class="n">vn</span> <span class="p">[</span><span class="n">VARNAMES</span><span class="p">]]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat22">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat22" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat23">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat23" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -1527,8 +1822,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                   <span class="n">VARNAMES</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat23">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat23" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat24">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat24" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -1579,8 +1874,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                      <span class="p">[</span><span class="o">--</span><span class="n">what</span> <span class="n">WHAT</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat24">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat24" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat25">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat25" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -1632,8 +1927,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                  <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="p">[{</span><span class="n">gridplot</span><span class="p">,</span><span class="n">combiplot</span><span class="p">,</span><span class="n">boxplot</span><span class="p">,</span><span class="n">combiboxplot</span><span class="p">,</span><span class="n">animate</span><span class="p">}]]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat25">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat25" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat26">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat26" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -1685,8 +1980,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="p">[{</span><span class="n">gridplot</span><span class="p">,</span><span class="n">combiplot</span><span class="p">}]]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat26">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat26" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat27">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat27" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -1745,8 +2040,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 </dd>
 </dl>
 </div>
-<div class="section" id="Named Arguments_repeat27">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat27" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat28">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat28" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -1779,8 +2074,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                  <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat28">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat28" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat29">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat29" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -1827,8 +2122,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                       <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat29">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat29" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat30">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat30" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -1876,8 +2171,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                   <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat30">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat30" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat31">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat31" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -1931,8 +2226,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                    <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat31">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat31" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat32">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat32" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -1968,8 +2263,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                    <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat32">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat32" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat33">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat33" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -2005,8 +2300,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                   <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">argv</span> <span class="p">[</span><span class="n">ARGV</span><span class="p">]]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat33">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat33" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat34">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat34" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -2043,8 +2338,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
               <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">EXCLUDE_DIRS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">l</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat34">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat34" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat35">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat35" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -2089,8 +2384,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                  <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat35">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat35" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat36">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat36" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -2123,8 +2418,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                 <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat36">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat36" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat37">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat37" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -2171,8 +2466,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                       <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat37">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat37" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat38">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat38" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -2220,8 +2515,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                 <span class="p">[</span><span class="o">-</span><span class="n">g</span> <span class="p">{</span><span class="n">status</span><span class="p">,</span><span class="n">task_class</span><span class="p">}]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat38">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat38" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat39">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat39" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -2283,8 +2578,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 </dd>
 </dl>
 </div>
-<div class="section" id="Named Arguments_repeat39">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat39" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat40">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat40" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -2330,8 +2625,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                    <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">nxmode</span> <span class="n">NXMODE</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">edge</span><span class="o">-</span><span class="n">labels</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat40">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat40" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat41">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat41" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -2371,8 +2666,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                    <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">ENGINE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments_repeat41">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat41" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat42">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat42" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -2422,8 +2717,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 </dd>
 </dl>
 </div>
-<div class="section" id="Named Arguments_repeat42">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat42" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat43">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat43" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-v, --verbose</kbd></dt>
 <dd><p>verbose, can be supplied multiple times to increase verbosity.</p>
@@ -2464,7 +2759,7 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on Feb 22, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

@@ -3,21 +3,24 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>iotools Package &#8212; abipy 0.7.0 documentation</title>
+    <title>iotools Package &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="tools Package" href="tools_api.html" />
+    <link rel="next" title="panels Package" href="panels_api.html" />
     <link rel="prev" title="flowtk Package" href="flowtk_api.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
@@ -41,7 +44,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -64,6 +67,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -109,7 +113,7 @@
     </a>
   </li>
   <li>
-    <a href="tools_api.html" title="Next Chapter: tools Package"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">tools Package &raquo;</span>
+    <a href="panels_api.html" title="Next Chapter: panels Package"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">panels Package &raquo;</span>
     </a>
   </li>
               
@@ -162,7 +166,7 @@
 <span class="target" id="module-abipy.iotools"></span><dl class="class">
 <dt id="abipy.iotools.ETSF_Reader">
 <em class="property">class </em><code class="sig-prename descclassname">abipy.iotools.</code><code class="sig-name descname">ETSF_Reader</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/iotools.html#ETSF_Reader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.iotools.ETSF_Reader" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.netcdf.html#pymatgen.io.abinit.netcdf.ETSF_Reader" title="(in pymatgen v2019.10.16)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.netcdf.ETSF_Reader</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://pymatgen.org/pymatgen.io.abinit.netcdf.html#pymatgen.io.abinit.netcdf.ETSF_Reader" title="(in pymatgen v2020.4.29)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.abinit.netcdf.ETSF_Reader</span></code></a></p>
 <p>Provides high-level API to read data from netcdf files written
 following the ETSF-IO specifications described in <a class="reference internal" href="../zzbiblio.html#caliste2008" id="id2">[Caliste2008]</a></p>
 <dl class="method">
@@ -204,12 +208,18 @@ an instance of AbiPy <a class="reference internal" href="core_api.html#abipy.cor
 </div>
 </dd></dl>
 
+<dl class="method">
+<dt id="abipy.iotools.ETSF_Reader.read_ngfft3">
+<code class="sig-name descname">read_ngfft3</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/iotools.html#ETSF_Reader.read_ngfft3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.iotools.ETSF_Reader.read_ngfft3" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the number of FFT divisions.</p>
+</dd></dl>
+
 </dd></dl>
 
 </div>
 <div class="section" id="module-abipy.iotools.visualizer">
 <span id="visualizer-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal notranslate"><span class="pre">visualizer</span></code> Module</a><a class="headerlink" href="#module-abipy.iotools.visualizer" title="Permalink to this headline">¶</a></h2>
-<p>Define a class used to execute a visualizer within the Python interpreter.</p>
+<p>Classes used to execute a visualizer within the Python interpreter.</p>
 <dl class="class">
 <dt id="abipy.iotools.visualizer.Visualizer">
 <em class="property">class </em><code class="sig-prename descclassname">abipy.iotools.visualizer.</code><code class="sig-name descname">Visualizer</code><span class="sig-paren">(</span><em class="sig-param">filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/iotools/visualizer.html#Visualizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.iotools.visualizer.Visualizer" title="Permalink to this definition">¶</a></dt>
@@ -307,6 +317,12 @@ is chosen automatically depending on the file extension.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="abipy.iotools.xsf.xsf_write_structure_and_data_to_path">
+<code class="sig-prename descclassname">abipy.iotools.xsf.</code><code class="sig-name descname">xsf_write_structure_and_data_to_path</code><span class="sig-paren">(</span><em class="sig-param">filepath</em>, <em class="sig-param">structure</em>, <em class="sig-param">datar</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/iotools/xsf.html#xsf_write_structure_and_data_to_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.iotools.xsf.xsf_write_structure_and_data_to_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simplified interface to xsf routines to write structure and data to filepath.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="abipy.iotools.xsf.xsf_write_data">
 <code class="sig-prename descclassname">abipy.iotools.xsf.</code><code class="sig-name descname">xsf_write_data</code><span class="sig-paren">(</span><em class="sig-param">file</em>, <em class="sig-param">structure</em>, <em class="sig-param">data</em>, <em class="sig-param">add_replicas=True</em>, <em class="sig-param">cplx_mode=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/iotools/xsf.html#xsf_write_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.iotools.xsf.xsf_write_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write data in the Xcrysden format (XSF)</p>
@@ -315,9 +331,9 @@ is chosen automatically depending on the file extension.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>file</strong> – file-like object.</p></li>
 <li><p><strong>structure</strong> – <code class="xref py py-class docutils literal notranslate"><span class="pre">Structure</span></code> object.</p></li>
-<li><p><strong>data</strong> – array-like object in C-order, i.e data[nx,ny,nz]</p></li>
+<li><p><strong>data</strong> – array-like object in C-order, i.e data[nx, ny, nz]</p></li>
 <li><p><strong>add_replicas</strong> – If True, data is padded with redundant data points.
-in order to have a periodic 3D array of shape=(nx+1,ny+1,nz+1).</p></li>
+in order to have a periodic 3D array of shape: (nx+1, ny+1, nz+1).</p></li>
 <li><p><strong>cplx_mode</strong> – <p>string defining the data to print when data is a complex array.
 Possible choices are (case-insensitive):</p>
 <blockquote>
@@ -380,7 +396,7 @@ in the unic cell mesh in unit <cite>unit</cite>.</p></li>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on May 29, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

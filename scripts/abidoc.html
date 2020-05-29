@@ -3,17 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>abidoc.py &#8212; abipy 0.7.0 documentation</title>
+    <title>abidoc.py &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -41,7 +44,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -64,6 +67,7 @@
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -201,22 +205,45 @@ For example, the documentation for the <code class="docutils literal notranslate
 </div>
 <p>For the full list of commands use:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ abidoc.py --help
-Traceback (most recent call last):
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/bin/abidoc.py&quot;, line 4, in &lt;module&gt;
-    __import__(&#39;pkg_resources&#39;).require(&#39;abipy==0.7.0.dev0&#39;)
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3250, in &lt;module&gt;
-    @_call_aside
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3234, in _call_aside
-    f(*args, **kwargs)
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 3263, in _initialize_master_working_set
-    working_set = WorkingSet._build_master()
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 583, in _build_master
-    ws.require(__requires__)
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 900, in require
-    needed = self.resolve(parse_requirements(requirements))
-  File &quot;/Users/gmatteo/miniconda3/envs/env3.7/lib/python3.7/site-packages/pkg_resources/__init__.py&quot;, line 786, in resolve
-    raise DistributionNotFound(req, requirers)
-pkg_resources.DistributionNotFound: The &#39;abipy==0.7.0.dev0&#39; distribution was not found and is required by the application
+usage: abidoc.py [-h] [-V]
+                 {man,graphviz,browse,apropos,find,withdim,list,manager,scheduler,abibuild}
+                 ...
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -V, --version         show program&#39;s version number and exit
+
+subcommands:
+  Valid subcommands
+
+  {man,graphviz,browse,apropos,find,withdim,list,manager,scheduler,abibuild}
+                        sub-command help
+    man                 Show documentation for varname.
+    graphviz            Draw variable dependencies with graphviz package.See
+                        https://graphviz.readthedocs.io/.
+    browse              Open documentation in browser.
+    apropos             Find variables related to varname.
+    find                Find all variables whose name contains varname.
+    withdim             Find all arrays depending on the given dimension.
+    list                List all variables.
+    manager             Document the TaskManager options.
+    scheduler           Document the options available in scheduler.yml.
+    abibuild            Show ABINIT build information and exit.
+
+Usage example:
+
+    abidoc.py man ecut        --&gt; Show documentation for ecut input variable.
+    abidoc.py graphviz acell  --&gt; Draw parents and children of variable with graphviz package.
+    abidoc.py browse acell    --&gt; Open url in external browser.
+    abidoc.py apropos ecut    --&gt; To search in the database for the variables related to ecut.
+    abidoc.py find paw        --&gt; To search in the database for the variables whose name contains paw.
+    abidoc.py list            --&gt; Print full list of variables.
+    abidoc.py withdim natom   --&gt; Print arrays depending on natom.
+    abidoc.py scheduler       --&gt; Document scheduler options.
+    abidoc.py manager         --&gt; Document manager options.
+
+Use `abidoc.py --help` for help and `abidoc.py COMMAND --help` to get the documentation for `COMMAND`.
+Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 </pre></div>
 </div>
 <p>Complete command line reference</p>
@@ -566,7 +593,7 @@ pkg_resources.DistributionNotFound: The &#39;abipy==0.7.0.dev0&#39; distribution
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on Feb 22, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

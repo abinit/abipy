@@ -3,22 +3,25 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>tools Package &#8212; abipy 0.7.0 documentation</title>
+    <title>tools Package &#8212; abipy 0.8.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
     <link rel="stylesheet" type="text/css" href="../_static/my_style.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@jupyter-widgets/html-manager@^0.18.0/dist/embed-amd.js"></script>
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="waves Package" href="waves_api.html" />
-    <link rel="prev" title="iotools Package" href="iotools_api.html" />
+    <link rel="prev" title="panels Package" href="panels_api.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
@@ -41,7 +44,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.7.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.8.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -64,6 +67,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../graphical_interface.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
@@ -115,7 +119,7 @@
               
                 
   <li>
-    <a href="iotools_api.html" title="Previous Chapter: iotools Package"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; iotools Package</span>
+    <a href="panels_api.html" title="Previous Chapter: panels Package"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; panels Package</span>
     </a>
   </li>
   <li>
@@ -231,12 +235,11 @@ sets the timing of the routine as an attribute of the class</p>
 <p>Tools for computing derivatives by finite differences.</p>
 <dl class="function">
 <dt id="abipy.tools.derivatives.finite_diff">
-<code class="sig-prename descclassname">abipy.tools.derivatives.</code><code class="sig-name descname">finite_diff</code><span class="sig-paren">(</span><em class="sig-param">arr</em>, <em class="sig-param">h</em>, <em class="sig-param">order=1</em>, <em class="sig-param">acc=4</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/derivatives.html#finite_diff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.derivatives.finite_diff" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">abipy.tools.derivatives.</code><code class="sig-name descname">finite_diff</code><span class="sig-paren">(</span><em class="sig-param">arr</em>, <em class="sig-param">h</em>, <em class="sig-param">order=1</em>, <em class="sig-param">acc=4</em>, <em class="sig-param">index=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/derivatives.html#finite_diff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.derivatives.finite_diff" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the derivative of order <cite>order</cite> by finite difference.
 For each point in arr, the function tries to use central differences
 and fallbacks to forward/backward approximations for points that are close to the extrema.
-Note that high accuracy levels can fail and raise <cite>ValueError</cite> if not enough points
-are available in <cite>arr</cite>.</p>
+Note that high accuracy levels can fail and raise <cite>ValueError</cite> if not enough points are available in <cite>arr</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -244,10 +247,12 @@ are available in <cite>arr</cite>.</p>
 <li><p><strong>h</strong> – Spacing along x</p></li>
 <li><p><strong>order</strong> – Derivative order</p></li>
 <li><p><strong>acc</strong> – accuracy level.</p></li>
+<li><p><strong>index</strong> – If not None, gives the index of the single element in arr where the derivative is wanted.
+In this case a namedtuple with the derivative, the number of points used and the mode is returned</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>numpy array.</p>
+<dd class="field-even"><p>numpy array or (value, npts, mode) if index is not None .</p>
 </dd>
 </dl>
 </dd></dl>
@@ -454,6 +459,9 @@ Default: None i.e. fig is left unchanged.</p></td>
 <td><p>Add labels to  subplots e.g. (a), (b).
 Default: False</p></td>
 </tr>
+<tr class="row-odd"><td><p>fig_close</p></td>
+<td><p>Close figure. Default: False.</p></td>
+</tr>
 </tbody>
 </table>
 </dd></dl>
@@ -464,6 +472,28 @@ Default: False</p></td>
 <div class="section" id="module-abipy.tools.iotools">
 <span id="iotools-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal notranslate"><span class="pre">iotools</span></code> Module</a><a class="headerlink" href="#module-abipy.tools.iotools" title="Permalink to this headline">¶</a></h2>
 <p>IO related utilities.</p>
+<dl class="class">
+<dt id="abipy.tools.iotools.ExitStackWithFiles">
+<em class="property">class </em><code class="sig-prename descclassname">abipy.tools.iotools.</code><code class="sig-name descname">ExitStackWithFiles</code><a class="reference internal" href="../_modules/abipy/tools/iotools.html#ExitStackWithFiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.iotools.ExitStackWithFiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/contextlib.html#contextlib.ExitStack" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">contextlib.ExitStack</span></code></a></p>
+<p>Context manager for dynamic management of a stack of file-like objects.
+Mainly used in a callee that needs to return files to the caller</p>
+<p>Usage example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">exit_stack</span> <span class="o">=</span> <span class="n">ExitStackWithFiles</span><span class="p">()</span>
+<span class="n">exit_stack</span><span class="o">.</span><span class="n">enter_context</span><span class="p">(</span><span class="n">phbst_file</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">exit_stack</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="abipy.tools.iotools.ExitStackWithFiles.enter_context">
+<code class="sig-name descname">enter_context</code><span class="sig-paren">(</span><em class="sig-param">myfile</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/iotools.html#ExitStackWithFiles.enter_context"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.iotools.ExitStackWithFiles.enter_context" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enters the supplied context manager.</p>
+<p>If successful, also pushes its __exit__ method as a callback and
+returns the result of the __enter__ method.</p>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="function">
 <dt id="abipy.tools.iotools.ask_yes_no">
 <code class="sig-prename descclassname">abipy.tools.iotools.</code><code class="sig-name descname">ask_yes_no</code><span class="sig-paren">(</span><em class="sig-param">prompt</em>, <em class="sig-param">default=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/iotools.html#ask_yes_no"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.iotools.ask_yes_no" title="Permalink to this definition">¶</a></dt>
@@ -947,7 +977,7 @@ plt: matplotlib pyplot module.</p>
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.1.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.2.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <blockquote>
 <div><p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
@@ -984,6 +1014,9 @@ Default: None i.e. fig is left unchanged.</p></td>
 <tr class="row-even"><td><p>ax_annotate</p></td>
 <td><p>Add labels to  subplots e.g. (a), (b).
 Default: False</p></td>
+</tr>
+<tr class="row-odd"><td><p>fig_close</p></td>
+<td><p>Close figure. Default: False.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1036,7 +1069,7 @@ Default: False</p></td>
 </ul>
 </dd>
 </dl>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.1.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.2.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -1072,6 +1105,9 @@ Default: None i.e. fig is left unchanged.</p></td>
 <tr class="row-even"><td><p>ax_annotate</p></td>
 <td><p>Add labels to  subplots e.g. (a), (b).
 Default: False</p></td>
+</tr>
+<tr class="row-odd"><td><p>fig_close</p></td>
+<td><p>Close figure. Default: False.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1156,7 +1192,7 @@ If use_index is False, the x-values are the row index.</p></li>
 </ul>
 </dd>
 </dl>
-<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.1.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.2.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -1192,6 +1228,9 @@ Default: None i.e. fig is left unchanged.</p></td>
 <tr class="row-even"><td><p>ax_annotate</p></td>
 <td><p>Add labels to  subplots e.g. (a), (b).
 Default: False</p></td>
+</tr>
+<tr class="row-odd"><td><p>fig_close</p></td>
+<td><p>Close figure. Default: False.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1235,7 +1274,7 @@ If use_index is False, the x-values are the row index.</p></li>
 </ul>
 </dd>
 </dl>
-<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.1.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.2.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -1272,6 +1311,9 @@ Default: None i.e. fig is left unchanged.</p></td>
 <td><p>Add labels to  subplots e.g. (a), (b).
 Default: False</p></td>
 </tr>
+<tr class="row-odd"><td><p>fig_close</p></td>
+<td><p>Close figure. Default: False.</p></td>
+</tr>
 </tbody>
 </table>
 </dd></dl>
@@ -1285,7 +1327,7 @@ Default: False</p></td>
 <dl class="class">
 <dt id="abipy.tools.tensors.Stress">
 <em class="property">class </em><code class="sig-prename descclassname">abipy.tools.tensors.</code><code class="sig-name descname">Stress</code><a class="reference internal" href="../_modules/abipy/tools/tensors.html#Stress"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.tensors.Stress" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.stress.html#pymatgen.analysis.elasticity.stress.Stress" title="(in pymatgen v2019.10.16)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.analysis.elasticity.stress.Stress</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.tools.tensors._Tensor33</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://pymatgen.org/pymatgen.analysis.elasticity.stress.html#pymatgen.analysis.elasticity.stress.Stress" title="(in pymatgen v2020.4.29)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.analysis.elasticity.stress.Stress</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.tools.tensors._Tensor33</span></code></p>
 <p>Stress tensor. rank2 symmetric tensor with shape [3, 3].</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-bef67ce883d9a2caad752ac8cfa8b19f23a8586f.png" alt="Inheritance diagram of Stress" usemap="#inheritancee0818c4a88" class="inheritance graphviz" /></div>
@@ -1296,8 +1338,8 @@ Default: False</p></td>
 <dl class="class">
 <dt id="abipy.tools.tensors.DielectricTensor">
 <em class="property">class </em><code class="sig-prename descclassname">abipy.tools.tensors.</code><code class="sig-name descname">DielectricTensor</code><a class="reference internal" href="../_modules/abipy/tools/tensors.html#DielectricTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.tensors.DielectricTensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.core.tensors.html#pymatgen.core.tensors.SquareTensor" title="(in pymatgen v2019.10.16)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.core.tensors.SquareTensor</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.tools.tensors._Tensor33</span></code></p>
-<p>Subclass of <code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.analysis.elasticity.tensors.Tensor</span></code> describing a dielectric tensor.
+<dd><p>Bases: <a class="reference external" href="https://pymatgen.org/pymatgen.core.tensors.html#pymatgen.core.tensors.SquareTensor" title="(in pymatgen v2020.4.29)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.core.tensors.SquareTensor</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.tools.tensors._Tensor33</span></code></p>
+<p>Subclass of <a class="reference external" href="https://pymatgen.org/pymatgen.core.tensors.html#pymatgen.core.tensors.Tensor" title="(in pymatgen v2020.4.29)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.core.tensors.Tensor</span></code></a> describing a dielectric tensor.
 rank2 symmetric tensor with shape [3, 3].</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-f7360ca53631a096888f935eed846356cd5753b3.png" alt="Inheritance diagram of DielectricTensor" usemap="#inheritance9126c67f60" class="inheritance graphviz" /></div>
@@ -1318,7 +1360,7 @@ returns the three components of the reflectivity</p>
 <dl class="class">
 <dt id="abipy.tools.tensors.ZstarTensor">
 <em class="property">class </em><code class="sig-prename descclassname">abipy.tools.tensors.</code><code class="sig-name descname">ZstarTensor</code><a class="reference internal" href="../_modules/abipy/tools/tensors.html#ZstarTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.tensors.ZstarTensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.core.tensors.html#pymatgen.core.tensors.SquareTensor" title="(in pymatgen v2019.10.16)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.core.tensors.SquareTensor</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.tools.tensors._Tensor33</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://pymatgen.org/pymatgen.core.tensors.html#pymatgen.core.tensors.SquareTensor" title="(in pymatgen v2020.4.29)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.core.tensors.SquareTensor</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">abipy.tools.tensors._Tensor33</span></code></p>
 <p>Born effective charge tensor (for a single atom).</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-c7f774777ea559b20a078a8e5fc0b5038391950a.png" alt="Inheritance diagram of ZstarTensor" usemap="#inheritance44d2641f3b" class="inheritance graphviz" /></div>
@@ -1329,8 +1371,8 @@ returns the three components of the reflectivity</p>
 <dl class="class">
 <dt id="abipy.tools.tensors.NLOpticalSusceptibilityTensor">
 <em class="property">class </em><code class="sig-prename descclassname">abipy.tools.tensors.</code><code class="sig-name descname">NLOpticalSusceptibilityTensor</code><a class="reference internal" href="../_modules/abipy/tools/tensors.html#NLOpticalSusceptibilityTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.tensors.NLOpticalSusceptibilityTensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.core.tensors.html#pymatgen.core.tensors.Tensor" title="(in pymatgen v2019.10.16)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.core.tensors.Tensor</span></code></a></p>
-<p>Subclass of <code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.analysis.elasticity.tensors.Tensor</span></code> containing the non-linear optical susceptibility tensor.</p>
+<dd><p>Bases: <a class="reference external" href="https://pymatgen.org/pymatgen.core.tensors.html#pymatgen.core.tensors.Tensor" title="(in pymatgen v2020.4.29)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.core.tensors.Tensor</span></code></a></p>
+<p>Subclass of <a class="reference external" href="https://pymatgen.org/pymatgen.core.tensors.html#pymatgen.core.tensors.Tensor" title="(in pymatgen v2020.4.29)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.core.tensors.Tensor</span></code></a> containing the non-linear optical susceptibility tensor.</p>
 <p class="rubric">Inheritance Diagram</p>
 <div class="graphviz"><img src="../_images/inheritance-e110d9b3aeac9bdde731c4f32368a9db84f36f79.png" alt="Inheritance diagram of NLOpticalSusceptibilityTensor" usemap="#inheritance32ca961597" class="inheritance graphviz" /></div>
 <map id="inheritance32ca961597" name="inheritance32ca961597">
@@ -1390,7 +1432,7 @@ as replace does, starting from the end.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Oct 18, 2019.<br/>
+      Last updated on May 29, 2020.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.<br/>
     </p>
   </div>

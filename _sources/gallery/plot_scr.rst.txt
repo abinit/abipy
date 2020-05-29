@@ -44,7 +44,7 @@ computed in the GW code (optdriver 3)
     Name: sio2_SCR.nc
     Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/sio2_screening
     Size: 426.16 kb
-    Access Time: Fri Oct 18 18:47:03 2019
+    Access Time: Sat Feb 22 16:01:52 2020
     Modification Time: Wed Mar 20 16:53:35 2019
     Change Time: Wed Mar 20 16:53:35 2019
 
@@ -117,7 +117,7 @@ computed in the GW code (optdriver 3)
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.403 seconds)
+   **Total running time of the script:** ( 0 minutes  0.483 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_scr.py:

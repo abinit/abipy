@@ -227,26 +227,6 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot a phonon band structure with and without imposing the acoustic s...">
-
-.. only:: html
-
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_ddb_asr_thumb.png
-
-        :ref:`sphx_glr_gallery_plot_ddb_asr.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /gallery/plot_ddb_asr
-
-.. raw:: html
-
     <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the results of multiple structure relaxations with the HIST r...">
 
 .. only:: html
@@ -264,6 +244,26 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
    :hidden:
 
    /gallery/plot_multiple_hist
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot a phonon band structure with and without imposing the acoustic s...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_ddb_asr_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_ddb_asr.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_ddb_asr
 
 .. raw:: html
 
@@ -907,6 +907,26 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to use the GSR.nc and PHDOS.nc files computed with different volumes to ...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_qha_vs_qmesh_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_qha_vs_qmesh.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_qha_vs_qmesh
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the wannier90 results using the ABIWAN.nc netcdf file produce...">
 
 .. only:: html
@@ -927,26 +947,6 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the generalized phonon DOS with the mean square displacement ten...">
-
-.. only:: html
-
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_phonons_msqd_thumb.png
-
-        :ref:`sphx_glr_gallery_plot_phonons_msqd.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /gallery/plot_phonons_msqd
-
-.. raw:: html
-
     <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the optical properties computed by optic within the independent-...">
 
 .. only:: html
@@ -964,6 +964,26 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
    :hidden:
 
    /gallery/plot_optic
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the generalized phonon DOS with the mean square displacement ten...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_phonons_msqd_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_phonons_msqd.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_phonons_msqd
 
 .. raw:: html
 
@@ -1024,6 +1044,26 @@ to generate plots automatically or use one of the options of :ref:`abiview.py` t
    :hidden:
 
    /gallery/plot_wfk
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to use the GSR.nc and PHDOS.nc files computed with different volumes to ...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_qha_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_qha.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_qha
 
 .. raw:: html
 
