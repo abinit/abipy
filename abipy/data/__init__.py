@@ -49,7 +49,7 @@ def pyscript(basename):
             # Ignore e.g. __init__.py and private scripts.
             if k.startswith("_"): continue
             if k in _SCRIPTS:
-                raise ValueError("Fond duplicated basenames with name %s\nPrevious %s" % (k, _SCRIPTS[k]))
+                raise ValueError("Fond duplicated basenames with name %s\nActual:%s\nPrevious: %s" % (k, p, _SCRIPTS[k]))
             _SCRIPTS[k] = p
 
     return _SCRIPTS[basename]

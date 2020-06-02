@@ -186,7 +186,8 @@ class GkqPathFlow(Flow):
 
         flow.register_work(eph_work)
 
-        # Here we build another work to compute gkq matrix elements with interpolated potentials along the q-path.
+        # Here we build another work to compute the gkq matrix elements
+        # with interpolated potentials along the q-path.
         # The potentials are interpolated using the input ngqpt q-mesh.
         if test_ft_interpolation:
             inteph_work = Work()

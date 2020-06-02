@@ -39,29 +39,30 @@ class DdbFilePanel(AbipyParameterized):
     def __init__(self, ddb, **params):
         super().__init__(**params)
         self.ddb = ddb
-        #self.plot_phbands_btn.on_click(self.plot_phbands_and_phdos)
 
     @param.depends('get_epsinf_btn.clicks')
     def get_epsinf(self):
-        """Compute eps_infinity and Born effective charges."""
+        """Compute eps_infinity and Born effective charges from DDB."""
         if self.get_epsinf_btn.clicks == 0: return
 
         epsinf, becs = self.ddb.anaget_epsinf_and_becs(chneut=self.chneut,
                                                        mpi_procs=self.mpi_procs, verbose=self.verbose)
 
-        gen = self.ddb.anaget_dielectric_tensor_generator(asr=self.asr, chneut=self.chneut, dipdip=self.dipdip,
-                                                          mpi_procs=self.mpi_procs, verbose=self.verbose)
+        gen, inp = self.ddb.anaget_dielectric_tensor_generator(asr=self.asr, chneut=self.chneut, dipdip=self.dipdip,
+                                                               mpi_procs=self.mpi_procs, verbose=self.verbose,
+                                                               return_input=True)
 
         eps0 = gen.tensor_at_frequency(w=0, gamma_ev=self.gamma_ev)
         #eps0 = pnw.DataFrame(eps0.get_dataframe())
-        return pn.Column(epsinf, eps0, becs)
+        return pn.Column(epsinf, eps0, becs, pn.pane.HTML(inp._repr_html_()))
 
     @param.depends('plot_eps0w_btn.clicks')
     def plot_eps0w(self):
-        """Compute eps0(omega) and plot the results."""
+        """Compute eps0(omega) from DDB and plot the results."""
         if self.plot_eps0w_btn.clicks == 0: return
-        gen = self.ddb.anaget_dielectric_tensor_generator(asr=self.asr, chneut=self.chneut, dipdip=self.dipdip,
-                                                          mpi_procs=self.mpi_procs, verbose=self.verbose)
+        gen, inp = self.ddb.anaget_dielectric_tensor_generator(asr=self.asr, chneut=self.chneut, dipdip=self.dipdip,
+                                                               mpi_procs=self.mpi_procs, verbose=self.verbose,
+                                                               return_input=True)
         ws = self.w_range.value
         w_max = ws[1]
         if w_max == 1.0: w_max = None # Will compute w_max in plot routine from ph freqs.
@@ -77,12 +78,14 @@ class DdbFilePanel(AbipyParameterized):
         gspec[1, 0] = p("offdiag", "re")
         gspec[1, 1] = p("offdiag", "im")
         gspec[2, :] = gen.get_oscillator_dataframe(reim="all", tol=1e-6)
+        # Add HTML pane with input.
+        gspec[3, 0] = pn.pane.HTML(inp._repr_html_())
 
         return gspec
 
     @param.depends('plot_phbands_btn.clicks')
     def plot_phbands_and_phdos(self, event=None):
-        """Compute phonon bands and ph-DOSes and plot the results."""
+        """Compute phonon bands and ph-DOSes from DDB and plot the results."""
         if self.plot_phbands_btn.clicks == 0: return
         #self.plot_phbands_btn.button_type = "warning"
 
@@ -91,7 +94,7 @@ class DdbFilePanel(AbipyParameterized):
                 nqsmall=self.nqsmall, qppa=None, ndivsm=self.ndivsm,
                 line_density=None, asr=self.asr, chneut=self.chneut, dipdip=self.dipdip,
                 dos_method=self.dos_method, lo_to_splitting=self.lo_to_splitting,
-                verbose=self.verbose, mpi_procs=self.mpi_procs) as g:
+                verbose=self.verbose, mpi_procs=self.mpi_procs, return_input=True) as g:
 
             phbst_file, phdos_file = g
             phbands, phdos = phbst_file.phbands, phdos_file.phdos
@@ -105,8 +108,11 @@ class DdbFilePanel(AbipyParameterized):
             temps = self.temp_range.value
             gspec[1, 1] = phdos.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, **self.fig_kwargs)
             #msqd_dos.plot_tensor(**self.fig_kwargs)
-
             #self.plot_phbands_btn.button_type = "primary"
+
+            # Add HTML pane with input
+            gspec[2,:] = pn.pane.HTML(g.input._repr_html_())
+
         return gspec
 
     @param.depends('plot_vsound_btn.clicks')
@@ -150,7 +156,7 @@ class DdbFilePanel(AbipyParameterized):
                       self.w_range, self.plot_eps0w_btn),
             self.plot_eps0w)
         ))
-        app(("Speed of Sound", pn.Row(
+        app(("Speed of sound", pn.Row(
             pn.Column("# Speed of sound options",
                       *[self.param[k] for k in ("asr", "chneut", "dipdip")],
                       self.plot_vsound_btn),

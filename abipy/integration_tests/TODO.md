@@ -17,7 +17,7 @@ TODO list:
 
 * Improve exception handling in NetcdfReader
 
-* Read forces in read_structure ? Fix problem  MSONable and ArrayWithUnit
+* Read forces in read_structure ? Fix problem with  MSONable and ArrayWithUnit/complex numbers
 
 * Automate CHANGELOG creation.
 
@@ -30,6 +30,22 @@ TODO list:
 
 * BECS: 3x3 Tensor is not symmetric. Remove get_voigt_dataframe
 
+* Parse stderr to detect runtime errors such as 
+
+    forrtl: severe (24): end-of-file during read, unit 5, file /proc/59090/fd/0
+    Image              PC                Routine            Line        Source             
+    abinit             0000000008914AC2  for__io_return        Unknown  Unknown
+    abinit             000000000894378D  for_read_seq_fmt      Unknown  Unknown
+    abinit             000000000194409E  Unknown               Unknown  Unknown
+    abinit             000000000042C671  Unknown               Unknown  Unknown
+    abinit             000000000042C30E  Unknown               Unknown  Unknown
+    libc-2.17.so       00002AAAB5DD8505  __libc_start_main     Unknown  Unknown
+    abinit             000000000042C229  Unknown               Unknown  Unknown
+
+
+  and kill the scheduler else the code gets stuck here (issue reported on lemaitre3)
+
+
 ## Medium priority
 
 * Add support for PSML/UPF format
@@ -38,11 +54,11 @@ TODO list:
   but remember that strings in the input should not be too long. 
   Use common root for pseudos, what about getwfk_path? Need to refactor treatment of string lengths in Abinit!
 
-* Add DOS to GSR file (useful if tetra)  Create Dosfile ? Fortran exec?
+* Interface abitk with AbiPy to compute DOS with tetra.
 
 * videos in README (atom and hydrogen) or screenshot based on jupyterlab
 
-* Refactor/improve Visualizer
+* Refactor/improve Visualizer. See also jsmol, nglview and crystaltoolkit
 
 * add possibility of changing amu in anaddb/abinit and API to "mix" DDB files
   phonon group velocities (requires extension in netcdf files).
@@ -100,7 +116,7 @@ TODO list:
 * Add option max_num_launchers in scheduler.yml
 
 * Add extra metadata to netcdf files (try to propagate info on space group from parser to crystal_t
-  as well as Abinit input as string)
+  as well as Abinit input as string). Input file has been added in Abini9 (input_string)
 
 * Improvement in the dilatmx error handler:
 
@@ -120,11 +136,10 @@ TODO list:
 
 * Remove GUI code.
 
-* nbjsmol (build system, refactor API?)
-
 * fatbands with SOC (waiting for Matthieu's refactoring)
 
 * Improvements in SKW. Finalize baseclass for ElectronInterpolator
+  Average degenerate states.
 
 * context manager to change variables (e.g. autoparal)
 
@@ -132,7 +147,7 @@ TODO list:
 
 * Replace SIGRES with new fileformat based on SIGEPH (long-term project)
 
-* Update spack recipe, add support for EasyBuild, revamp homebrew (?)
+* Update spack recipe and EasyBuild
 
 * Classification of phonons/electrons
 

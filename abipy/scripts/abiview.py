@@ -141,7 +141,7 @@ def abiview_skw(options):
 
 def abiview_fs(options):
     """
-    Extract eigenvaleus in the IBZ from file and visualize Fermi surface with --appname
+    Extract eigenvalues in the IBZ from file and visualize Fermi surface with --appname
     """
     with abilab.abiopen(options.filepath) as abifile:
         eb3d = abifile.ebands.get_ebands3d()

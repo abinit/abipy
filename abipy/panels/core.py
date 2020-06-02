@@ -1,4 +1,5 @@
 """"Base classes and mixins for AbiPy panels."""
+
 #import abc
 import param
 import panel as pn
@@ -6,6 +7,32 @@ import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 
 from monty.functools import lazy_property
+
+
+def gen_id(n=1, pre="uuid-"):
+    """
+    Generate ``n`` universally unique identifiers prepended with ``pre`` string.
+    Return string if n == 1 or list of strings if n > 1
+    """
+    # The HTML4 spec says:
+    # ID and NAME tokens must begin with a letter ([A-Za-z]) and may be followed by any number of letters,
+    # digits ([0-9]), hyphens ("-"), underscores ("_"), colons (":"), and periods (".").
+    import uuid
+    if n == 1:
+        return pre + str(uuid.uuid4())
+    elif n > 1:
+        return [pre + str(uuid.uuid4()) for i in range(n)]
+    else:
+        raise ValueError("n must be > 0 but got %s" % str(n))
+
+
+def sizing_mode_select(name="sizing_mode", value="scale_both"):
+    """
+    Widget to select the value of sizing_mode. See https://panel.holoviz.org/user_guide/Customization.html
+    """
+    return pn.widgets.Select(name=name, value=value, options=["fixed",
+                 "stretch_width", "stretch_height", "stretch_both",
+                 "scale_height", "scale_width", "scale_both"])
 
 
 class AbipyParameterized(param.Parameterized):
@@ -19,8 +46,7 @@ class AbipyParameterized(param.Parameterized):
 
     @lazy_property
     def fig_kwargs(self):
-        #return dict(show=False)
-        #TODO requires new pymatgen
+        """Default arguments passed to AbiPy plot methods."""
         return dict(show=False, fig_close=True)
 
     @staticmethod
@@ -28,8 +54,9 @@ class AbipyParameterized(param.Parameterized):
         return pn.pane.Matplotlib(fig, sizing_mode="scale_width")
 
     @staticmethod
-    def _df(df):
-        return pn.widgets.DataFrame(df, disabled=True, sizing_mode="scale_width")
+    def _df(df, disabled=True, sizing_mode="scale_width"):
+        return pn.widgets.DataFrame(df, disabled=disabled, sizing_mode=sizing_mode)
+
 
 #class PanelWithNcFile(AbipyParameterized): #, metaclass=abc.ABCMeta):
 #    """

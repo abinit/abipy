@@ -59,3 +59,11 @@ eph Package
    :members:
    :undoc-members:
    :show-inheritance:
+
+:mod:`wr` Module
+----------------
+
+.. automodule:: abipy.eph.wr
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1059,7 +1059,7 @@ class RelaxWork(Work):
                 self.ioncell_task.reduce_dilatmx(target=self.target_dilatmx)
                 self.history.info('Converging dilatmx. Value reduce from {} to {}.'
                             .format(actual_dilatmx, self.ioncell_task.get_inpvar('dilatmx')))
-                self.ioncell_task.reset_from_scratch()
+                self.ioncell_task.restart()
 
         return super().on_ok(sender)
 

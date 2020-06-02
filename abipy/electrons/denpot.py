@@ -267,6 +267,8 @@ class VhxcNcFile(_NcFileWithField):
 
 class PotNcFile(_NcFileWithField):
     """
+    POT file produced by the GS part containing the total KS potential in real space.
+
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: PotNcFile
     """
@@ -276,6 +278,26 @@ class PotNcFile(_NcFileWithField):
     def vks(self):
         """Hartree + XC potential + sum of local pseudo-potential terms."""
         return self.reader.read_vks()
+
+
+class DfptPotNcFile(_NcFileWithField):
+    """
+    POT file produced by the DFPT part containing the
+    first order derivative of the KS potential in real space.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: DfptPotNcFile
+    """
+    field_name = "first_order_potential"
+
+    #@lazy_property
+    #def vk1s(self):
+    #    """
+    #    First order derivative of KS potential.
+    #    Includes derivative of Hartree + XC potential + sum of local pseudo-potential terms.
+    #    except derivative of non-local part.
+    #    """
+    #    return self.reader.read_vks1()
 
 
 class DensityFortranFile(AbinitFortranFile):

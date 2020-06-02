@@ -19,7 +19,7 @@ from abipy import abilab
 
 def make_and_open_notebook(options):
     """
-    Generate an jupyter notebook and open it in the browser.
+    Generate a jupyter notebook and open it in the browser.
     Return system exit code.
 
     Raise:
@@ -33,13 +33,14 @@ def make_and_open_notebook(options):
     nb.cells.extend([
         nbf.new_markdown_cell("## This is an auto-generated notebook for %s" % os.path.relpath(options.filepath)),
         nbf.new_code_cell("""\
-from __future__ import print_function, division, unicode_literals, absolute_import
+
 %matplotlib notebook
 import numpy as np
 #import seaborn as sns
 #sns.set(context='notebook', style='darkgrid', palette='deep',
 #        font='sans-serif', font_scale=1, color_codes=False, rc=None)
-from abipy import abilab\
+from abipy import abilab
+
 """),
         nbf.new_code_cell("abifile = abilab.abiopen('%s')" % options.filepath)
     ])
@@ -53,9 +54,12 @@ from abipy import abilab\
     if which("jupyter") is None:
         raise RuntimeError("Cannot find jupyter in PATH. Install it with `pip install`")
 
-    # Use jupyter-lab instead of classic notebook if possible.
-    has_jupyterlab = which("jupyter-lab") is not None
-    appname = "jupyter-lab" if has_jupyterlab else "jupyter notebook"
+    if not options.classic_notebook:
+        # Use jupyter-lab instead of classic notebook
+        has_jupyterlab = which("jupyter-lab") is not None
+        appname = "jupyter-lab" if has_jupyterlab else "jupyter notebook"
+    else:
+        appname = "jupyter notebook"
 
     if options.foreground:
         return os.system("%s %s" % (appname, nbpath))
@@ -108,10 +112,16 @@ def get_parser(with_epilog=False):
 
     parser.add_argument("filepath", help="File to open. See table below for the list of supported extensions.")
 
-    # notebook option
+    # notebook options.
     parser.add_argument('-nb', '--notebook', action='store_true', default=False, help="Open file in jupyter notebook")
+    parser.add_argument('--classic-notebook', action='store_true', default=False,
+                        help="Use classic notebook instead of jupyterlab.")
+    parser.add_argument('--no-browser', action='store_true', default=False,
+                        help=("Start the jupyter server to serve the notebook "
+                              "but don't open the notebook in the browser.\n"
+                              "Use this option to connect remotely from localhost to the machine running the kernel"))
     parser.add_argument('--foreground', action='store_true', default=False,
-        help="Run jupyter notebook in the foreground.")
+                        help="Run jupyter notebook in the foreground.")
 
     # print option
     parser.add_argument('-p', '--print', action='store_true', default=False, help="Print python object and return.")
@@ -179,13 +189,6 @@ def main():
     if not os.path.exists(options.filepath):
         raise RuntimeError("%s: no such file" % options.filepath)
 
-    #if options.filepath.endswith(".ipynb"):
-    #    import papermill as pm
-    #    nb = pm.read_notebook('notebook.ipynb')
-    #    import IPython
-    #    IPython.embed(header="The Abinit file is bound to the `nb` variable.\n")
-    #    return 0
-
     if options.filepath.endswith(".json"):
         return handle_json(options)
 
@@ -252,10 +255,14 @@ Use `print(abifile)` to print the object.
         if hasattr(cls, "make_and_open_notebook"):
             if hasattr(cls, "__exit__"):
                 with abilab.abiopen(options.filepath) as abifile:
-                    return abifile.make_and_open_notebook(foreground=options.foreground)
+                    return abifile.make_and_open_notebook(foreground=options.foreground,
+                                                          classic_notebook=options.classic_notebook,
+                                                          no_browser=options.no_browser)
             else:
                 abifile = abilab.abiopen(options.filepath)
-                return abifile.make_and_open_notebook(foreground=options.foreground)
+                return abifile.make_and_open_notebook(foreground=options.foreground,
+                                                      classic_notebook=options.classic_notebook,
+                                                      no_browser=options.no_browser)
         else:
             return make_and_open_notebook(options)
 

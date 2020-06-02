@@ -1,5 +1,7 @@
 # coding: utf-8
-"""DDB File."""
+"""
+Python API for the DDB file containing the derivatives of the total Energy wrt different perturbations.
+"""
 import sys
 import os
 import tempfile
@@ -29,6 +31,7 @@ from abipy.abio.inputs import AnaddbInput
 from abipy.dfpt.phonons import PhononDosPlotter, PhononBandsPlotter
 from abipy.dfpt.ifc import InteratomicForceConstants
 from abipy.dfpt.elastic import ElasticData
+from abipy.dfpt.raman import Raman
 from abipy.core.abinit_units import phfactor_ev2units, phunit_tag
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.tools import duck
@@ -878,7 +881,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     def anaget_phmodes_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, workdir=None, mpi_procs=1,
                                  manager=None, verbose=0, lo_to_splitting=False, spell_check=True,
-                                 directions=None, anaddb_kwargs=None):
+                                 directions=None, anaddb_kwargs=None, return_input=False):
         """
         Execute anaddb to compute phonon modes at the given q-point (without LO-TO splitting)
 
@@ -896,6 +899,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             directions: list of 3D directions along which the LO-TO splitting will be calculated. If None the three
                 cartesian direction will be used.
             anaddb_kwargs: additional kwargs for anaddb.
+            return_input: True if |AnaddbInput| object should be returned as 2nd argument
 
         Return: |PhononBands| object.
         """
@@ -930,12 +934,12 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             if lo_to_splitting and qpoint.is_gamma():
                 ncfile.phbands.read_non_anal_from_file(os.path.join(task.workdir, "anaddb.nc"))
 
-            return ncfile.phbands
+            return ncfile.phbands if not return_input else (ncfile.phbands, inp)
 
     def anaget_phbst_and_phdos_files(self, nqsmall=10, qppa=None, ndivsm=20, line_density=None, asr=2, chneut=1, dipdip=1,
                                      dos_method="tetra", lo_to_splitting="automatic", ngqpt=None, qptbounds=None,
                                      anaddb_kwargs=None, verbose=0, spell_check=True,
-                                     mpi_procs=1, workdir=None, manager=None):
+                                     mpi_procs=1, workdir=None, manager=None, return_input=False):
         """
         Execute anaddb to compute the phonon band structure and the phonon DOS.
         Return contex manager that closes the files automatically.
@@ -975,6 +979,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             mpi_procs: Number of MPI processes to use.
             workdir: Working directory. If None, a temporary directory is created.
             manager: |TaskManager| object. If None, the object is initialized from the configuration file.
+            return_input: True if |AnaddbInput| object should be attached to the Context manager.
 
         Returns: Context manager with two files:
             |PhbstFile| with the phonon band structure.
@@ -1014,6 +1019,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             #self._add_params(phdos_file.phdos)
 
         exit_stack.enter_context(phdos_file)
+        if return_input: exit_stack.input = inp
 
         return exit_stack
 
@@ -1339,7 +1345,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return InteratomicForceConstants.from_file(os.path.join(task.workdir, 'anaddb.nc'))
 
     def anaget_dielectric_tensor_generator(self, asr=2, chneut=1, dipdip=1, workdir=None, mpi_procs=1,
-                                           manager=None, verbose=0, anaddb_kwargs=None):
+                                           manager=None, verbose=0, anaddb_kwargs=None, return_input=False):
         """
         Execute anaddb to extract the quantities necessary to create a |DielectricTensorGenerator|.
         Requires phonon perturbations at Gamma and static electric field perturbations.
@@ -1351,6 +1357,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             manager: |TaskManager| object. If None, the object is initialized from the configuration file
             verbose: verbosity level. Set it to a value > 0 to get more information
             anaddb_kwargs: additional kwargs for anaddb
+            return_input: True if |AnaddbInput| object should be returned as 2nd argument
 
         Return: |DielectricTensorGenerator| object.
         """
@@ -1368,8 +1375,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose)
 
-        return DielectricTensorGenerator.from_files(os.path.join(task.workdir, "run.abo_PHBST.nc"),
-                                                    os.path.join(task.workdir, "anaddb.nc"))
+        gen = DielectricTensorGenerator.from_files(os.path.join(task.workdir, "run.abo_PHBST.nc"),
+                                                   os.path.join(task.workdir, "anaddb.nc"))
+
+        return gen if not return_input else (gen, inp)
 
     def anaget_elastic(self, relaxed_ion="automatic", piezo="automatic",
                        dde=False, stress_correction=False, asr=2, chneut=1,
@@ -1448,6 +1457,34 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         # Read data from the netcdf output file produced by anaddb.
         path = os.path.join(task.workdir, "anaddb.nc")
         return ElasticData.from_file(path) if not retpath else path
+
+    def anaget_raman(self, asr=2, chneut=1, ramansr=1, alphon=1, workdir=None, mpi_procs=1,
+                     manager=None, verbose=0, directions=None, anaddb_kwargs=None):
+        """
+        Execute anaddb to compute the Raman spectrum
+
+        Args:
+            qpoint: Reduced coordinates of the qpoint where phonon modes are computed.
+            asr, chneut, ramansr, alphon: Anaddb input variable. See official documentation.
+            workdir: Working directory. If None, a temporary directory is created.
+            mpi_procs: Number of MPI processes to use.
+            manager: |TaskManager| object. If None, the object is initialized from the configuration file
+            verbose: verbosity level. Set it to a value > 0 to get more information.
+            directions: list of 3D directions along which the non analytical contribution will be calculated.
+                If None the three cartesian direction will be used.
+            anaddb_kwargs: additional kwargs for anaddb.
+
+        Return: |Raman| object.
+        """
+
+        inp = AnaddbInput.dfpt(self.structure, raman=True, asr=asr, chneut=chneut, ramansr=ramansr,
+                               alphon=alphon, directions=directions, anaddb_kwargs=anaddb_kwargs)
+
+        task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose)
+
+        # Read data from the netcdf output file produced by anaddb.
+        path = os.path.join(task.workdir, "anaddb.nc")
+        return Raman.from_file(path)
 
     def _run_anaddb_task(self, anaddb_input, mpi_procs, workdir, manager, verbose):
         """
@@ -2245,7 +2282,7 @@ class DdbRobot(Robot):
         df_list, elastdata_list = [], []
         for label, ddb in self.items():
             # Invoke anaddb to compute elastic data.
-            edata = ddb.anaget_elastic(verbose=verbose, **kwargs)
+            edata = ddb.anaget_elastic(verbose=verbose, manager=manager, **kwargs)
             elastdata_list.append(edata)
 
             # Build daframe with properties derived from the elastic tensor.

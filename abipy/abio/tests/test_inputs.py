@@ -751,6 +751,10 @@ class AnaddbInputTest(AbipyTest):
         assert anaddb_input['nlflag'] == 3
         assert anaddb_input['alphon'] == 0
 
+        anaddb_input = AnaddbInput.dfpt(self.structure, raman=True)
+        assert anaddb_input['nlflag'] == 1
+        assert anaddb_input['ramansr'] == 1
+
 
 class TestCut3DInput(AbipyTest):
     """Unit tests for AbinitInput."""

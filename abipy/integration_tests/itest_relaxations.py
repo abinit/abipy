@@ -248,4 +248,9 @@ def itest_relaxation_with_target_dilatmx(fwp, tvars):
 
     assert relax_work[1].input["dilatmx"] == 1.03
 
+    # check that when decreasing the dilatmx it actually takes the previously relaxed
+    # structure and does not start from scratch again: the lattice should not be the same.
+    assert not np.allclose(relax_work.ion_task.get_final_structure().lattice_vectors(),
+                           relax_work.ioncell_task.input.structure.lattice_vectors())
+
     flow.rmtree()

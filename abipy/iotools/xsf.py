@@ -8,6 +8,7 @@ from abipy.tools.numtools import transpose_last3dims, add_periodic_replicas
 
 
 __all__ = [
+    "xsf_write_structure_and_data_to_path",
     "xsf_write_structure",
     "xsf_write_data",
     "bxsf_write",
@@ -64,6 +65,13 @@ def xsf_write_structure(file, structures):
                 fwrite(' %20.14f %20.14f %20.14f\n' % tuple(cart_forces[a]))
 
 
+def xsf_write_structure_and_data_to_path(filepath, structure, datar, **kwargs):
+    """Simplified interface to xsf routines to write structure and data to filepath."""
+    with open(filepath, mode="wt") as fh:
+        xsf_write_structure(fh, structure)
+        xsf_write_data(fh, structure, datar, **kwargs)
+
+
 def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None):
     """
     Write data in the Xcrysden format (XSF)
@@ -71,9 +79,9 @@ def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None):
     Args:
         file: file-like object.
         structure: :class:`Structure` object.
-        data: array-like object in C-order, i.e data[nx,ny,nz]
+        data: array-like object in C-order, i.e data[nx, ny, nz]
         add_replicas: If True, data is padded with redundant data points.
-            in order to have a periodic 3D array of shape=(nx+1,ny+1,nz+1).
+            in order to have a periodic 3D array of shape: (nx+1, ny+1, nz+1).
         cplx_mode: string defining the data to print when data is a complex array.
             Possible choices are (case-insensitive):
 
