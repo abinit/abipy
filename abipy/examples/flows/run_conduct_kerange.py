@@ -46,31 +46,29 @@ def build_flow(options):
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     # Get structure and pseudos from the abipy database
-    structure = abidata.structure_from_ucell("Al")
-    pseudos = abidata.pseudos("13al.pspnc")
+    structure = abidata.structure_from_ucell("GaAs")
+    pseudos = abidata.pseudos("31ga.pspnc","33as.pspnc")
 
     variables = dict(
-            ecut=20,
-            tsmear=0.05,
-            nband=12,
-            nbdbuf=2,
-            occopt=3,
+            ecut=35,
             iomode=1,
             nstep=20,
-            paral_kgb=1)
+            paral_kgb=1,
+            kptopt=1)
 
     ngkpt = [4, 4, 4]
-    ngkpt_fine = [12, 12, 12]
+    ngkpt_fine = [8, 8, 8]
+    ngkpt_sigma = [16, 16, 16]
     shiftk = [0.0, 0.0, 0.0]
 
     ngqpt = [2, 2, 2]
-    ngqpt_fine = [4, 4, 4]
+    ngqpt_fine = [16, 16, 16]
     tmesh = [0, 30, 11]
 
-    # Nom de mon flow
+    # Create Flow object
     flow = flowtk.Flow(workdir=options.workdir)
 
-    # Create inputs Object
+    # Create Inputs object
     scf_input = make_scf_input(structure, pseudos,
                                tolvrs=1e-12,
                                ngkpt=ngkpt,
@@ -83,22 +81,38 @@ def build_flow(options):
                                  shiftk=shiftk,
                                  **variables)
 
-    # Create multi which contains inputs for the 4 tasks: SCF, NSCF, Interpolation DVDB, Conductivity
-    multi = abilab.conduc_from_scf_nscf_inputs(
-        scf_input, nscf_input,
-        tmesh=tmesh,
-        ddb_ngqpt=ngqpt,
-        eph_ngqpt_fine=ngqpt_fine)
+    # Create multi which contains inputs for the 6 tasks: SCF, NSCF, K-Mesh Interpolation, generate transformed WFK
+    #                                                     Interpolation DVDB, Conductivity
+    multi = abilab.conduc_kerange_from_scf_nscf_inputs(scf_input,
+                                                       nscf_input,
+                                                       tmesh=tmesh,
+                                                       ddb_ngqpt=ngqpt,
+                                                       sigma_ngkpt=ngkpt_sigma,
+                                                       sigma_erange=[0,2, 0.2, 'eV'],
+                                                       eph_ngqpt_fine=[16,16,16],
+                                                       einterp=[1,5,0,0])
 
-    # Work 0 : Conduc Work
-    conduc_work = flowtk.Work()
-    conduc_work.set_flow(flow)
-    # Define filename : Example based on run_conduct_flow.py
-    ddb_file = "flow_conduct_flow/w1/outdata/out_DDB"
-    dvdb_file = "flow_conduct_flow/w1/outdata/out_DVDB"
+    # Create Work Object
+    # Work 0 : SCF Calculation
+    gs_work = flowtk.Work()
+    gs_work.register_scf_task(scf_input)
+
+    # Work 1 : DDB & DVDB Calculation
+    phwork = flowtk.PhononWork.from_scf_task(gs_work[0],
+                                             qpoints=ngqpt,
+                                             is_ngqpt=True,
+                                             tolerance={"tolvrs": 1e-8})
+
+    # Work 2 : Conduc Work
+    conduc_work = flowtk.ConducWork.from_phwork_and_scf_nscf_inp_with_kerange(phwork,
+                                                                              multi,
+                                                                              nbr_procs=4,
+                                                                              flow=flow,
+                                                                              skipInter=True)
 
     # Register Work
-    conduc_work = flowtk.ConducWork.from_multi_and_DDB_DVDB(multi, ddb_file, dvdb_file, nbr_procs=4, flow=flow)
+    flow.register_work(gs_work)
+    flow.register_work(phwork)
     flow.register_work(conduc_work)
 
     return flow.allocate(use_smartio=True)
