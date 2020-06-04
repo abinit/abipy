@@ -6,7 +6,7 @@ import abipy.core.abinit_units as abu
 
 from monty.functools import lazy_property
 from monty.string import marquee
-from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
+from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.electrons.ebands import ElectronsReader, RobotWithEbands
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.abio.robots import Robot
@@ -17,7 +17,7 @@ __all__ = [
 ]
 
 
-class TransportFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
+class TransportFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     @classmethod
     def from_file(cls, filepath):
@@ -31,6 +31,7 @@ class TransportFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, 
         #self.fermi = self.ebands.fermie * abu.eV_Ha
         #self.volume = self.ebands.structure.volume * abu.Ang_Bohr**3
         self.tmesh = self.reader.tmesh
+        #self.transport_ngkpt = self.reader.read_value("transport_ngkpt")
 
     @property
     def ntemp(self):
@@ -233,7 +234,7 @@ class TransportReader(ElectronsReader):
     def read_vvdos_tau(self, itemp, component='xx', spin=1):
         """
         Read the group velocity density of states times lifetime for different temperatures
-        The vvdos_tau array has 4 dimensions (ntemp,9,nsppolplus1,nw)
+        The vvdos_tau array has 4 dimensions (ntemp, 9, nsppolplus1, nw)
           1. the number of temperatures
           2. 3x3 components of the tensor
           3. the spin polarization + 1 for the sum
@@ -282,14 +283,14 @@ class TransportReader(ElectronsReader):
         mobility = self.read_variable("mobility")[eh,itemp,i,j,spin,:]
         return wvals, mobility
 
-    def read_evk_diagonal(self):
-        """
-        Read the group velocities i.e the diagonal matrix elements.
-        Return (nsppol, nkpt) |numpy-array| of real numbers.
-        """
-        vels = self.read_variable("vred_diagonal")
-        # Cartesian? Ha --> eV?
-        return vels * (abu.Ha_to_eV / abu.Bohr_Ang)
+    #def read_evk_diagonal(self):
+    #    """
+    #    Read the group velocities i.e the diagonal matrix elements.
+    #    Return (nsppol, nkpt) |numpy-array| of real numbers.
+    #    """
+    #    vels = self.read_variable("vred_diagonal")
+    #    # Cartesian? Ha --> eV?
+    #    return vels * (abu.Ha_to_eV / abu.Bohr_Ang)
 
 
 class TransportRobot(Robot, RobotWithEbands):
@@ -365,7 +366,7 @@ class TransportRobot(Robot, RobotWithEbands):
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         Used in abiview.py to get a quick look at the results.
         """
-        yield self.plot_lattice_convergence(show=False)
+        #yield self.plot_lattice_convergence(show=False)
         #yield self.plot_gsr_convergence(show=False)
         #for fig in self.get_ebands_plotter().yield_figs(): yield fig
         #self.plot_mobility_conv(eh=0, component='xx', itemp=0, spin=0, fontsize=14, ax=None, **kwargs):

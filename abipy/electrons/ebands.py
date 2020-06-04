@@ -384,15 +384,29 @@ class ElectronBands(Has_Structure):
                 with open(obj, "rb") as fh:
                     return cls.as_ebands(pickle.load(fh))
 
-            from abipy.abilab import abiopen
-            with abiopen(obj) as abifile:
-                return abifile.ebands
+            if obj.endswith("_EBANDS.nc"):
+                return cls.from_file(obj)
+
+            from abipy.abilab import abiopen, abifile_subclass_from_filename
+            try:
+                _ = abifile_subclass_from_filename(obj)
+                use_abiopen = True
+            except ValueError:
+                # This is needed to treat the case in which we are trying to read ElectronBands
+                # from a nc file that is not known to AbiPy.
+                use_abiopen = False
+
+            if use_abiopen:
+                with abiopen(obj) as abifile:
+                    return abifile.ebands
+            else:
+                return cls.from_file(obj)
 
         elif hasattr(obj, "ebands"):
             # object with ebands
             return obj.ebands
 
-        raise TypeError("Don't know how to extract ebands from object %s" % type(obj))
+        raise TypeError("Don't know how to extract ebands from object `%s`" % type(obj))
 
     @classmethod
     def from_mpid(cls, material_id, api_key=None, endpoint=None,
