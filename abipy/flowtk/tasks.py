@@ -582,7 +582,9 @@ batch_adapter:
                 "PLEASE READ THIS: !!!\n"
                 "To use AbiPy to run jobs this file must be present\n"
                 "It provides a description of the cluster/computer you are running on\n"
-                "Examples are provided in abipy/data/managers." % (cls.YAML_FILE, path), color="red"))
+                "Examples are provided in abipy/data/managers.\n"
+                "Use `abidoc.py manager` to access the documentation in the terminal.\n"
+                "See also: https://abinit.github.io/abipy/workflows/manager_examples.html\n" % (cls.YAML_FILE, path), color="red"))
 
         _USER_CONFIG_TASKMANAGER = cls.from_file(path)
         return _USER_CONFIG_TASKMANAGER

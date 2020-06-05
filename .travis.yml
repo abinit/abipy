@@ -3,7 +3,7 @@ language: python
 
 env:
   global:
-  - ABINIT_VERSION=8.10.1
+  - ABINIT_VERSION=9.0.4
   - ABIPY_PYTEST=yes
   - OPENBLAS_NUM_THREADS=1
   - OMP_NUM_THREADS=1
