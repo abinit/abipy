@@ -92,7 +92,7 @@ Create a new conda_ environment (let's call it ``abienv``) based on python3.6 wi
 
 and activate it with::
 
-    source activate abienv
+    conda activate abienv
 
 You should see the name of the conda environment in the shell prompt.
 
