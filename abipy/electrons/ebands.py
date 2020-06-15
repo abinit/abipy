@@ -265,7 +265,7 @@ class Smearing(AttrDict):
                 raise ValueError("Mandatory key %s must be provided" % str(mkey))
 
     def __str__(self):
-        return "smearing scheme: %s, tsmear_eV: %.3f, occopt: %d" % (self.scheme, self.tsmear_ev, self.occopt)
+        return "smearing scheme: %s (occopt %d), tsmear_eV: %.3f" % (self.scheme, self.occopt, self.tsmear_ev)
 
     @property
     def has_metallic_scheme(self):
@@ -2971,7 +2971,6 @@ class ElectronBandsPlotter(NotebookWriter):
         ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                 sharex=False, sharey=True, squeeze=False)
         ax_list = ax_list.ravel()
-
         # don't show the last ax if numeb is odd.
         if num_plots % ncols != 0: ax_list[-1].axis("off")
 

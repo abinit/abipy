@@ -3,10 +3,6 @@
 This module contains objects for the postprocessing of Sigma_eph calculations.
 
 For a theoretical introduction see :cite:`Giustino2017`
-
-Warning:
-
-    This code is still work in progress, API may change...
 """
 import tempfile
 import pickle
@@ -1737,7 +1733,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 # TODO: times conversion fact!
                 asimag = np.abs(vals_e0ks_var[spin, ikc, :nb, itemp, 1])
                 asimag = np.where(asimag > 1e-8, asimag, 1e-8)
-                print(asimag)
+                #print(asimag)
                 taus.extend(1.0 / (2.0 * asimag))
                 vels.extend(np.linalg.norm(v_var[spin, ikc, :nb, :], axis=-1))
 
@@ -2058,6 +2054,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
             df = ncfile.get_dataframe_sk(spin, kpoint, index=None,
                                          with_params=with_params, ignore_imag=ignore_imag)
             app(df)
+
         return pd.concat(df_list)
 
     def get_dataframe(self, with_params=True, with_spin="auto", ignore_imag=False):
