@@ -1869,7 +1869,6 @@ class PhononBands(object):
                 if np.dot(a, b) < threshold:
                     break
             else:
-                print(mode)
                 indices.append(mode)
 
         if len(indices) != 3:
