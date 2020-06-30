@@ -1855,7 +1855,7 @@ class PhononBands(object):
             qpoint: the qpoint. Accepts integer or reduced coordinates
             threshold: fractional value allowed for the matching of the displacements to identify acoustic modes.
             raise_on_no_indices: if True a RuntimeError will be raised if the acoustic mode will not be
-                correctly identified
+                correctly identified. If False [0, 1, 2] will be returned.
         """
         qindex = self.qindex(qpoint)
         phdispl = self.phdispl_cart[qindex]
@@ -1869,12 +1869,14 @@ class PhononBands(object):
                 if np.dot(a, b) < threshold:
                     break
             else:
+                print(mode)
                 indices.append(mode)
 
-        if len(indices) != 3 and raise_on_no_indices:
-            raise RuntimeError('wrong number of indices: {}'.format(indices))
-        else:
-            indices = [0, 1, 2]
+        if len(indices) != 3:
+            if raise_on_no_indices:
+                raise RuntimeError('wrong number of indices: {}'.format(indices))
+            else:
+                indices = [0, 1, 2]
 
         return indices
 
