@@ -128,7 +128,7 @@ class DdbTest(AbipyTest):
             assert qpoint in ddb.computed_dynmat
             assert len(ddb.computed_dynmat[qpoint].index[0]) == 4
 
-        assert ddb.has_bec_terms(select="at_least_one")
+        assert not ddb.has_bec_terms(select="at_least_one")
         assert not ddb.has_bec_terms(select="all")
         assert not ddb.has_epsinf_terms()
         assert not ddb.has_lo_to_data()
