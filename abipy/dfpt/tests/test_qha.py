@@ -29,7 +29,7 @@ class QhaTest(AbipyTest):
 
         f = qha.fit_energies(tstart=0, tstop=300, num=3)
         self.assertArrayEqual(f.tot_en.shape, (len(self.strains), 3))
-        self.assertAlmostEqual(f.min_en[0], -230.15471148501612, places=6)
+        self.assertAlmostEqual(f.min_en[0], -230.15471148501612, places=5)
 
         self.assertEqual(qha.eos._eos_name, "vinet")
         qha.set_eos("murnaghan")
@@ -112,7 +112,7 @@ class Qha3pfTest(AbipyTest):
 
         f = qha.fit_energies(tstart=0, tstop=300, num=3)
         self.assertArrayEqual(f.tot_en.shape, (len(self.strains), 3))
-        self.assertAlmostEqual(f.min_en[0], -230.15433223031306, places=6)
+        self.assertAlmostEqual(f.min_en[0], -230.15433223031306, places=5)
 
         self.assertEqual(qha.eos._eos_name, "vinet")
         qha.set_eos("murnaghan")
@@ -166,7 +166,7 @@ class Qha3pTest(AbipyTest):
 
         f = qha.fit_energies(tstart=0, tstop=300, num=3)
         self.assertArrayEqual(f.tot_en.shape, (len(self.strains), 3))
-        self.assertAlmostEqual(f.min_en[0], -230.15458036894498, places=6)
+        self.assertAlmostEqual(f.min_en[0], -230.15458036894498, places=5)
 
         self.assertEqual(qha.eos._eos_name, "vinet")
         qha.set_eos("murnaghan")

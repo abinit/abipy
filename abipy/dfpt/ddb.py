@@ -716,19 +716,37 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         ep_list = list(itertools.product(range(1, 4), [natom + 2]))
         ap_list = list(itertools.product(range(1, 4), range(1, natom + 1)))
 
+        # helper function to get the value, since has a cumbersome notation
+        # when dealing with tuples as indices
+        dmg = self.computed_dynmat[gamma]
+
+        def non_zero_value(ind):
+            if ind not in index_set:
+                return False
+            v = dmg.loc[[ind]].iloc[0].cvalue
+            return v != 0.0
+
+        # if the BECs perturbations are not calculated, abinit can set all
+        # of them to 0 and writes them in the DDB. To be considered
+        # as present at lest one should be different from zero.
+        not_all_zero = False
+
         for ap1 in ap_list:
             for ep2 in ep_list:
                 p12 = ap1 + ep2
                 p21 = ep2 + ap1
                 if select == "at_least_one":
-                    if p12 in index_set: return True
+                    if (p12 in index_set and non_zero_value(p12)) or \
+                            (p21 in index_set and non_zero_value(p21)):
+                        return True
                 elif select == "all":
                     if p12 not in index_set and p21 not in index_set:
                         return False
+                    not_all_zero = not_all_zero or non_zero_value(p12) or non_zero_value(p21)
                 else:
                     raise ValueError("Wrong select %s" % str(select))
 
-        return False if select == "at_least_one" else True
+        return False if select == "at_least_one" else not_all_zero
 
     @lru_cache(typed=True)
     def has_strain_terms(self, select="all"):
@@ -1823,6 +1841,9 @@ class DielectricTensorGenerator(Has_Structure):
         epsinf = anaddbnc.epsinf
         eps0 = anaddbnc.eps0
         oscillator_strength = anaddbnc.oscillator_strength
+        if epsinf is None or eps0 is None or oscillator_strength is None:
+            raise ValueError("Could not instantiate from the provided objects. "
+                             "Some information is missing.")
 
         return cls(phfreqs, oscillator_strength, eps0, epsinf, anaddbnc.structure)
 
