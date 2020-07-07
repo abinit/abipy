@@ -23,11 +23,14 @@ def eh2s(eh):
 
 
 def irta2s(irta):
+    """Return RTA type from irta index."""
     return {0: "SERTA", 1: "MRTA"}[irta]
 
 
 def style_for_irta(irta, with_marker=False):
-    """Line style for SERTA/MRTA"""
+    """
+    Return dict with linestyle to plot SERTA/MRTA results
+    """
     if irta == 0:
         opts = dict(linewidth=1.0, linestyle="dotted")
         if with_marker: opts["marker"] = "^"
@@ -46,7 +49,19 @@ def transptens2latex(what, component):
         "seebeck": "$S_{%s}$" % component,
         "kappa": r"$\kappa^{\mathcal{e}}_{%s}$" % component,
         "pi": r"$\Pi_{%s}$" % component,
+        "zte": r"$\text{ZT}^e_{%s}$" % component,
     }[what]
+
+
+def edos_infos(edos_intmeth, edos_broad):
+    s =  {
+        1: "Gaussian smearing Method",
+        2: "Linear Tetrahedron Method",
+       -2: "Linear Tetrahedron Method with Blochl's corrections",
+    }[edos_intmeth]
+    if (edos_intmeth == 1): s = "%s with broadening: %.1f (meV)" % edos_broad * abu.Ha_to_meV
+
+    return s
 
 
 def irta2latextau(irta, with_dollars=False):
@@ -56,7 +71,11 @@ def irta2latextau(irta, with_dollars=False):
 
 
 def x2_grid(what_list):
-    # Build grid of plots.
+    """
+    Build (x, 2) grid of plots or just (1, 1) depending of the Length of what_list.
+
+    Return: (num_plots, ncols, nrows, what_list)
+    """
     what_list = list_strings(what_list)
     num_plots, ncols, nrows = len(what_list), 1, 1
     if num_plots > 1:
@@ -83,6 +102,8 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         #self.transport_ngkpt = self.reader.read_value("transport_ngkpt")
         #self.transport_extrael = self.reader.read_value("transport_extrael")
         #self.transport_fermie = self.reader.read_value("transport_fermie")
+        #self.sigma_erange = self.reader.read_value("sigma_erange")
+        #self.ebands.kpoints.ksampling.mpdivs
 
         # Get position of CBM and VBM for each spin in eV
         # nctkarr_t('vb_max', "dp", "nsppol")
@@ -90,11 +111,11 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         self.cb_min_spin = self.reader.read_value("cb_min") * abu.Ha_to_eV
 
         # Get metadata for k-integration (coming from edos%ncwrite)
-        self.edos_intmeth = self.reader.read_value("edos_intmeth")
-        self.edos_broad_eV = self.reader.read_value("edos_broad") * abu.Ha_to_eV
+        self.edos_intmeth = int(self.reader.read_value("edos_intmeth"))
+        self.edos_broad = self.reader.read_value("edos_broad")
 
         # Store also the e-mesh n eV as it's often needed in the plotting routines.
-        # Several quantitiies are defined on this mesh.
+        # Several quantities are defined on this mesh.
         self.edos_mesh_eV = self.reader.read_value("edos_mesh") * abu.Ha_to_eV
 
     @property
@@ -124,11 +145,11 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return od
 
     def __str__(self):
-        """String representation"""
+        """String representation."""
         return self.to_string()
 
     def to_string(self, verbose=0):
-        """String representation"""
+        """String representation."""
         lines = []; app = lines.append
 
         app(marquee("File Info", mark="="))
@@ -142,8 +163,9 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         # Transport section.
         app(marquee("Transport calculation", mark="="))
         app("")
-        app("edos_intmeth: %d" % self.edos_intmeth)
-        app("edos_broad: %d (meV): " % (self.edos_broad_eV * 1000))
+        #app("edos_intmeth: %d" % self.edos_intmeth)
+        #app("edos_broad: %d (meV): " % (self.edos_broad * 1000))
+        app(edos_infos(self.edos_intmeth, self.edos_broad))
         app("mesh step for energy integrals: %.1f (meV) " % ((self.edos_mesh_eV[1] - self.edos_mesh_eV[0]) * 1000))
         app("")
 
@@ -180,10 +202,10 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         f = interpolate.interp1d(emesh, mobility)
         return f(ef)
 
+    #def get_mobility_mu_dataframe(self, eh=0, component='xx', itemp=0, spin=0, **kwargs):
+
     #def _select_itemps_labels(self, obj):
     #   for it, temp in enumerate(self.tmesh):
-
-    #def _select_irtas(self, obj):
 
     def _add_vline_at_bandedge(self, ax, spin, cbm_or_vbm, **kwargs):
         my_kwargs = dict(ymin=0, ymax=1, linewidth=1, linestyle="--")
@@ -212,7 +234,7 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
-        # Total DOS, spin up and spin down component.
+        # Total DOS, spin up and spin down components in nsppol_plus1.
         # nctkarr_t("edos_dos", "dp", "edos_nw, nsppol_plus1")
         dos = self.reader.read_value("edos_dos") / abu.Ha_to_eV
 
@@ -324,10 +346,11 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
                 if (irta == 0 and itemp > 0): label = None
                 ax.plot(self.edos_mesh_eV, vvtau_dos, c=cmap(itemp / self.ntemp), label=label, **style_for_irta(irta))
 
+                # This to plot the vv dos along without tau
                 #if itemp == 1:
-                #    #nctkarr_t('vv_dos', "dp", "edos_nw, three, three, nsppol"), &
-                #    var = self.reader.read_variable("vv_dos")
-                #    vv_dos = var[spin, j, i, :] # / (2 * abu.Ha_s)
+                #    # nctkarr_t('vv_dos', "dp", "edos_nw, three, three, nsppol"), &
+                #    vv_dos_var = self.reader.read_variable("vv_dos")
+                #    vv_dos = vv_dos_var[spin, j, i] # / (2 * abu.Ha_s)
                 #    ax.plot(self.edos_mesh_eV, vv_dos, c=cmap(itemp / self.ntemp), label='VVDOS' % temp)
 
         self._add_vline_at_bandedge(ax, spin, "both")
@@ -362,13 +385,13 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         cmap = plt.get_cmap(colormap)
 
-        # nctkarr_t('mobility',"dp", "edos_nw, three, three, ntemp, two, nsppol, nrta")
+        # nctkarr_t('mobility',"dp", "three, three, edos_nw, ntemp, two, nsppol, nrta")
         mu_var = self.reader.read_variable("mobility")
         i, j = abu.s2itup(component)
 
         for irta in range(self.nrta):
             for itemp, temp in enumerate(self.tmesh):
-                mu = mu_var[irta, spin, eh, itemp, j, i]
+                mu = mu_var[irta, spin, eh, itemp, :, j, i]
                 label = "T = %dK" % temp
                 if (itemp == 0): label = "%s (%s)" % (label, irta2s(irta))
                 if (irta == 0 and itemp > 0): label = None
@@ -385,7 +408,7 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_transport_tensors_mu(self, component="xx", irta=0, spin=0,
+    def plot_transport_tensors_mu(self, component="xx", spin=0,
                                   what_list=("sigma", "seebeck", "kappa", "pi"),
                                   colormap="jet", fontsize=8, **kwargs):
         """
@@ -411,11 +434,12 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         for iax, (what, ax) in enumerate(zip(what_list, ax_list)):
             irow, icol = divmod(iax, ncols)
+            # nctkarr_t('seebeck', "dp", "three, three, edos_nw, ntemp, nsppol, nrta")
             what_var = self.reader.read_variable(what)
 
             for irta in range(self.nrta):
                 for itemp, temp in enumerate(self.tmesh):
-                    ys = what_var[irta, spin, itemp, j, i]
+                    ys = what_var[irta, spin, itemp, :, j, i]
                     label = "T = %dK" % temp
                     if (itemp == 0): label = "%s (%s)" % (label, irta2s(irta))
                     if (irta == 0 and itemp > 0): label = None
@@ -440,8 +464,7 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         Return figures plotting the transport data
         """
         yield self.plot_tau_isoe(show=False)
-        #yield self.plot_transport_tensors_mu(irta=0, show=False)
-        yield self.plot_transport_tensors_mu(irta=1, show=False)
+        yield self.plot_transport_tensors_mu(show=False)
         yield self.plot_edos(show=False)
         yield self.plot_vvtau_dos(show=False)
         yield self.plot_mobility(show=False, title="Mobility")
@@ -459,10 +482,14 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         nb.cells.extend([
             nbv.new_code_cell("ncfile = abilab.abiopen('%s')" % self.filepath),
+            nbv.new_code_cell('components = ("xx", "yy", "zz", "xy", "xz", "yx")'),
             nbv.new_code_cell("print(ncfile)"),
             nbv.new_code_cell("ncfile.plot_edos();"),
             nbv.new_code_cell("ncfile.plot_vvtau_dos();"),
-            nbv.new_code_cell("ncfile.plot_mobility();"),
+            nbv.new_code_cell("""
+for component in components:
+    ncfile.plot_mobility(component=component, spin=0);
+"""),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
@@ -534,11 +561,11 @@ class RtaReader(ElectronsReader):
         Read mobility from the RTA.nc file
         The mobility is computed separately for electrons and holes.
         """
-        # nctkarr_t('mobility',"dp", "edos_nw, three, three, ntemp, two, nsppol, nrta")
+        # nctkarr_t('mobility',"dp", "three, three, edos_nw, ntemp, two, nsppol, nrta")
         i, j = abu.s2itup(component)
         wvals = self.read_variable("edos_mesh")
         #wvals = self.read_value("edos_mesh") * abu.Ha_eV
-        mobility = self.read_variable("mobility")[irta, spin, eh, itemp, j, i, :]
+        mobility = self.read_variable("mobility")[irta, spin, eh, itemp, :, j, i]
 
         return wvals, mobility
 
@@ -553,16 +580,17 @@ class RtaRobot(Robot, RobotWithEbands):
 
     EXT = "RTA"
 
+    #def get_mobility_mu_dataframe(self, eh=0, component='xx', itemp=0, spin=0, **kwargs):
+
     @add_fig_kwargs
-    def plot_mobility_conv(self, eh=0, component='xx', itemp=0, spin=0,
-                           fontsize=14, ax=None, **kwargs):
+    def plot_mobility_kconv(self, eh=0, component='xx', itemp=0, spin=0, fontsize=14, ax=None, **kwargs):
         """
-        Plot the convergence of the mobility obtained in a list of files
+        Plot the convergence of the mobility as a function of the number of k-points.
 
         Args:
-            eh: 0 for electrons, 1 for holes
-            component: Component to plot ('xx', 'xy', ...)
-            itemp: Index of the temperature.
+            eh: 0 for electrons, 1 for holes.
+            component: Cartesian component to plot ('xx', 'xy', ...)
+            itemp: temperature index.
             spin: Spin index.
             fontsize: fontsize for legends and titles
             ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -574,26 +602,30 @@ class RtaRobot(Robot, RobotWithEbands):
         i, j = abu.s2itup(component)
         irta = 0
 
-        res = []
+        res, temps = []
         for ncfile in self.abifiles:
+            #kptrlattx, kptrlatty, kptrlattz = ncfile.ngkpt
             kptrlatt  = ncfile.reader.read_value('kptrlatt')
             kptrlattx = kptrlatt[0, 0]
             kptrlatty = kptrlatt[1, 1]
             kptrlattz = kptrlatt[2, 2]
-            # nctkarr_t('mobility_mu',"dp", "two, three, three, ntemp, nsppol, nrta")]
-            mobility  = ncfile.reader.read_variable('mobility_mu')[irta, spin, itemp, j, i, eh]
+            # nctkarr_t('mobility_mu',"dp", "three, three, two, ntemp, nsppol, nrta")]
+            mobility  = ncfile.reader.read_variable('mobility_mu')[irta, spin, itemp, eh, j, i]
+            #print(mobility)
             res.append([kptrlattx, mobility])
+            temps.append(ncfile.tmesh[itemp])
 
         res.sort(key=lambda t: t[0])
         res = np.array(res)
+        #print(res)
 
         size = 14
-        if eh == 0:
-            ax.set_ylabel(r'Electron mobility (cm$^2$/(V$\cdot$s))', size=size)
-        elif eh == 1:
-            ax.set_ylabel(r'Hole mobility (cm$^2$/(V$\cdot$s))', size=size)
-        else:
-            raise ValueError("Invalid value for `eh` argument: %s" % eh)
+        ylabel = r"%s mobility (cm$^2$/(V$\cdot$s))" % {0: "Electron", 1: "Hole"}[eh]
+        ax.set_ylabel(ylabel, size=size)
+
+        #if "title" not in kwargs:
+        #    title = r"$\frac{1}{N_k} \sum_{nk} \delta(\epsilon - \epsilon_{nk})$"
+        #    ax.set_title(title, fontsize=fontsize)
 
         from fractions import Fraction
         ratio1 = Fraction(kptrlatty, kptrlattx)
@@ -607,20 +639,26 @@ class RtaRobot(Robot, RobotWithEbands):
                       size=size)
 
         ax.plot(res[:,0], res[:,1], **kwargs)
-
         ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
         return fig
+
+    #@add_fig_kwargs
+    #def plot_mobility_erange_conv(self, eh=0, component='xx', itemp=0, spin=0, fontsize=14, ax=None, **kwargs):
+
+    #@add_fig_kwargs
+    #def plot_transport_tensors_mu_kconv(self, eh=0, component='xx', itemp=0, spin=0, fontsize=14, ax=None, **kwargs):
+
+    #@add_fig_kwargs
+    #def plot_transport_tensors_mu_kconv(self, eh=0, component='xx', itemp=0, spin=0, fontsize=14, ax=None, **kwargs):
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         Used in abiview.py to get a quick look at the results.
         """
-        #yield self.plot_lattice_convergence(show=False)
-        #yield self.plot_gsr_convergence(show=False)
-        #for fig in self.get_ebands_plotter().yield_figs(): yield fig
-        #self.plot_mobility_conv(eh=0, component='xx', itemp=0, spin=0, fontsize=14, ax=None, **kwargs):
+        yield self.plot_lattice_convergence(show=False)
+        #self.plot_mobility_kconv(eh=0, component='xx', itemp=0, spin=0, fontsize=14, ax=None, **kwargs):
 
     #def get_panel(self):
     #    """
@@ -639,7 +677,7 @@ class RtaRobot(Robot, RobotWithEbands):
         args = [(l, f.filepath) for l, f in self.items()]
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("robot = abilab.GsrRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+            nbv.new_code_cell("robot = abilab.RtaRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
             #nbv.new_code_cell("ebands_plotter = robot.get_ebands_plotter()"),
         ])
 
@@ -660,19 +698,19 @@ if __name__ == "__main__":
     #plt.tick_params(labelsize=14)
     #ax = plt.gca()
 
-    robot.plot_mobility_conv(ax=None, color='k', label=r'$N_{{q_{{x,y,z}}}}$ = $N_{{k_{{x,y,z}}}}$')
+    robot.plot_mobility_kconv(ax=None, color='k', label=r'$N_{{q_{{x,y,z}}}}$ = $N_{{k_{{x,y,z}}}}$')
 
     #fileslist = ['conv_fine/k27x27x27/q27x27x27/Sio_DS1_TRANSPORT.nc',
     #             'conv_fine/k30x30x30/q30x30x30/Sio_DS1_TRANSPORT.nc',
     #             'conv_fine/k144x144x144/q144x144x144/Sio_DS1_TRANSPORT.nc',]
 
-    #plot_mobility_conv(ax, fileslist, color='k', marker='o', label=r'$N_{{q_{{x,y,z}}}}$ = $N_{{k_{{x,y,z}}}}$')
+    #plot_mobility_kconv(ax, fileslist, color='k', marker='o', label=r'$N_{{q_{{x,y,z}}}}$ = $N_{{k_{{x,y,z}}}}$')
 
     #fileslist = ['conv_fine/k27x27x27/q54x54x54/Sio_DS1_TRANSPORT.nc',
     #             'conv_fine/k66x66x66/q132x132x132/Sio_DS1_TRANSPORT.nc',
     #             'conv_fine/k72x72x72/q144x144x144/Sio_DS1_TRANSPORT.nc']
 
-    #plot_mobility_conv(ax, fileslist, color='r', marker='x', label=r'$N_{{q_{{x,y,z}}}}$ = $2 N_{{k_{{x,y,z}}}}$')
+    #plot_mobility_kconv(ax, fileslist, color='r', marker='x', label=r'$N_{{q_{{x,y,z}}}}$ = $2 N_{{k_{{x,y,z}}}}$')
 
     #plt.legend(loc='best',fontsize=14)
     #plt.show()

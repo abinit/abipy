@@ -15,6 +15,7 @@ Ha_cmm1 = 219474.6313705
 # 1 Hartree, in eV
 Ha_eV = 27.21138386
 Ha_to_eV = Ha_eV
+Ha_to_meV = Ha_eV * 1000
 # 1 eV in Hartree
 eV_Ha = 1. / Ha_eV
 # 1 eV in Rydberg
