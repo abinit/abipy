@@ -1073,7 +1073,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         try:
             kcoords = np.reshape([kname2frac[name] for name in list_strings(knames)], (-1, 3))
         except KeyError:
-            cprint("Internal list of high-symmetry k-points:\n" % str(self.hsym_kpoints))
+            cprint("Internal list of high-symmetry k-points:\n%s" % str(self.hsym_kpoints))
             raise
 
         if cart_coords:

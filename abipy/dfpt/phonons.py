@@ -133,13 +133,15 @@ class PhononBands(object):
                 amu = None
 
             non_anal_ph = None
-            # TODO: Reading NonAnalyticalPh here is not safe because
-            # it may happen that the netcdf file does not contain all the directions
-            # required by AbiPy. For the time being we read NonAnalyticalPh only
-            # if we know that calculation has been driven by AbiPy --> all directions are available.
-            #if "non_analytical_directions" in r.rootgrp.variables:
-            #    print("Found nonanal")
-            #    non_anal_ph = NonAnalyticalPh.from_file(filepath)
+
+            # Reading NonAnalyticalPh here is not 100% safe as it may happen that the netcdf file
+            # does not contain all the directions required by AbiPy.
+            # So we read NonAnalyticalPh only if we know that all directions are available.
+            # The flag has_abipy_non_anal_ph is set at the Fortran level. See e.g ifc_mkphbs
+            if ("non_analytical_directions" in r.rootgrp.variables and
+                "has_abipy_non_anal_ph" in r.rootgrp.variables):
+                #print("Found non_anal_ph term compatible with AbiPy plotter.")
+                non_anal_ph = NonAnalyticalPh.from_file(filepath)
 
             epsinf, zcart = r.read_epsinf_zcart()
 

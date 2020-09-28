@@ -115,6 +115,9 @@ class SigEPhFileTest(AbipyTest):
         assert sigma.wmesh.shape == (sigma.nwr,)
         if self.has_matplotlib():
             assert sigma.plot_tdep(show=False)
+            assert sieph.plot_qpsolution_skb(0, 0, 0, show=False)
+            assert sieph.plot_qpsolution_sk(0, [0.5, 0, 0], show=False)
+            assert sieph.plot_qpsolution_sklineb(0, ["G", [0.5, 0, 0]], show=False)
 
         # Test QpTempState
         qp = sigeph.reader.read_qp(spin=0, kpoint=0, band=3, ignore_imag=False)
@@ -232,11 +235,10 @@ class SigEPhFileTest(AbipyTest):
         sigeph.close()
 
     # TODO: Need new files with IBZ.
-    def test_sigeph_boltztrap(self):
-        """Test boltztrap interpolation"""
-        sigeph = abilab.abiopen(abidata.ref_file("diamond_444q_full_SIGEPH.nc"))
-        sigeph.get_lifetimes_boltztrap("diamond", workdir=self.mkdtemp())
-        sigeph.close()
+    #def test_sigeph_boltztrap(self):
+    #    """Test boltztrap interpolation"""
+    #    with abilab.abiopen(abidata.ref_file("diamond_444q_full_SIGEPH.nc")) as sigeph:
+    #       sigeph.get_lifetimes_boltztrap("diamond", workdir=self.mkdtemp())
 
     def test_sigeph_robot(self):
         """Tests for SigEPhRobot."""
@@ -262,10 +264,9 @@ class SigEPhFileTest(AbipyTest):
                 assert robot.plot_qpgaps_convergence(itemp=0, sortby="nbsum", show=False)
                 assert robot.plot_qpgaps_convergence(itemp=0, sortby="nbsum", hue="nqibz", show=False)
 
+                assert robot.plot_qpdata_conv_skb(spin=0, kpoint=(0, 0, 0), band=3, itemp=-1, show=False)
                 assert robot.plot_qpdata_conv_skb(spin=0, kpoint=(0, 0, 0), band=3,
-                        itemp=-1, show=False)
-                assert robot.plot_qpdata_conv_skb(spin=0, kpoint=(0, 0, 0), band=3,
-                        itemp=0, sortby="nbsum", hue="nqibz", show=False)
+                                                  itemp=0, sortby="nbsum", hue="nqibz", show=False)
 
                 # Test plot_qpfield_vs_e0
                 assert robot.plot_qpfield_vs_e0("qpeme0", itemp=1, sortby=None, hue=None,

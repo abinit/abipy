@@ -57,7 +57,7 @@ _cell_angle_gamma   120.00000000
 _symmetry_Int_Tables_number   1
 _chemical_formula_structural   SiO2
 _chemical_formula_sum   'Si3 O6'
-_cell_volume   115.45026866
+_cell_volume   115.45026881
 _cell_formula_units_Z   3
 loop_
  _symmetry_equiv_pos_site_id

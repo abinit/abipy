@@ -81,7 +81,7 @@ class TestKpoint(AbipyTest):
     """Unit tests for Kpoint object."""
 
     def setUp(self):
-        self.lattice = Lattice([0.5,0.5,0,0,0.5,0,0,0,0.4])
+        self.lattice = Lattice([0.5, 0.5, 0, 0, 0.5, 0, 0, 0, 0.4])
 
         # Test API to set tolerances.
 
@@ -282,6 +282,8 @@ class TestKpath(AbipyTest):
         #assert len(kpath.ds) == len(self) - 1
         #assert kpath.ksampling.kptopt == 1
         #self.assert_equal(kpath.ksampling.mpdivs, [4, 4, 4])
+
+        assert Kpoint.from_name_and_structure("Gamma", structure) == kpath[0]
 
         assert len(kpath.ds) == len(kpath) - 1
         assert len(kpath.versors) == len(kpath) - 1

@@ -2866,6 +2866,9 @@ class AbinitTask(Task):
                 self.history.critical("Error while parsing Autoparal section:\n%s" % straceback())
                 return 2
 
+        if "paral_kgb" not in self.input:
+            self.input.set_vars(paral_kgb=pconfs.info["paral_kgb"])
+
         ######################################################
         # Select the optimal configuration according to policy
         ######################################################

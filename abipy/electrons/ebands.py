@@ -3233,7 +3233,7 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
         """
         Returns an instance of |ElectronBands|. Main entry point for client code
         """
-        return ElectronBands(
+        ebands = ElectronBands(
             structure=self.read_structure(),
             kpoints=self.read_kpoints(),
             eigens=self.read_eigenvalues(),
@@ -3245,6 +3245,15 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
             nband_sk=self.read_nband_sk(),
             smearing=self.read_smearing(),
             )
+
+        # This is to solve the typical problem in semiconductors that shows up
+        # when the Fermi level from the GS run computed with a shifted k-mesh
+        # underestimates the CBM at Gamma.
+        #if ebands.nsppol == 1 and ebands.nspden == 1 and
+        if ebands.smearing.occopt == 1:
+            ebands.set_fermie_to_vbm()
+
+        return ebands
 
     def read_nband_sk(self):
         """|numpy-array| with the number of bands indexed by [s, k]."""

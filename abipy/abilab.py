@@ -70,6 +70,7 @@ from abipy.eph.rta import RtaFile, RtaRobot
 from abipy.eph.transportfile import TransportFile
 from abipy.wannier90 import WoutFile, AbiwanFile, AbiwanRobot
 from abipy.electrons.lobster import CoxpFile, ICoxpFile, LobsterDoscarFile, LobsterInput, LobsterAnalyzer
+#from abipy.electrons.abitk import ZinvConvFile, TetraTestFile
 
 # Abinit Documentation.
 from abipy.abio.abivars_db import get_abinit_variables, abinit_help, docvar
@@ -104,6 +105,9 @@ ext2file = collections.OrderedDict([
     ("COOPCAR.lobster", CoxpFile),
     ("ICOHPLIST.lobster", ICoxpFile),
     ("DOSCAR.lobster", LobsterDoscarFile),
+    #("ZINVCONV.nc", ZinvConvFile),
+    #("TETRATEST.nc", TetraTestFile),
+
 ])
 
 # Abinit files require a special treatment.

@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 """
 This script provides a simplified interface to the AbiPy factory functions.
-For a more flexible interface, please use the AbiPy objects to generate input files and workflows.
+For a more flexible interface, please use the AbiPy objects
+to generate input files and workflows.
 """
 import sys
 import os
@@ -279,13 +280,13 @@ Usage example:
 # Abinit Input Factories
 ########################
 
-    abinp.py gs si.cif > run.abi    # Build input for GS run for silicon structure read from CIF file.
+    abinp.py gs si.cif > run.abi    # Build input for GS run for structure read from CIF file.
                                     # Redirect output to run.abi.
     abinp.py ebands out_GSR.nc      # Build input for SCF + NSCF run with structure read from GSR.nc file.
     abinp.py ebands mp-149          # Build input for SCF+NSCF run with (relaxed) structure taken from the
                                     # materials project database. Requires internet connection and MAPI_KEY.
     abinp.py phonons POSCAR         # Build input for GS + DFPT calculation of phonons with DFPT.
-    abinp.py phonons out_HIST.nc    # Build input for G0W0 run with (relaxed) structure read from HIST.nc file.
+    abinp.py phonons out_HIST.nc    # Build input for phonons run with (relaxed) structure read from HIST.nc file.
                                     # Use e.g. --kppa=100 --spin-mode=polarized --smearing="gaussian: 0.3 eV"
                                     # to specify the k-points sampling, the treatment of spin and the occupation scheme.
 

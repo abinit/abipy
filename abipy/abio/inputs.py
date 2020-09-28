@@ -1839,6 +1839,9 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         except Exception as exc:
             # Sometimes the previous call raises: Cannot find next YAML document in /tmp/tmpskvdr_bo/run.log
             # perhaps because the log file is still being written (?) so let's wait a bit.
+            # On some machines, we found that the log file is truncated when MPI_ABORT is called and mpirun is used
+            # even to run simple tasks with 1 procs.
+            # In this case, one should try to use `shell_runner: ""` in manager.yaml to avoid using mpirun.
             time.sleep(5.0)
             try:
                 return yaml_read_irred_perts(task.log_file.path)

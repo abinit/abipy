@@ -74,18 +74,18 @@ class AnaddbError(DdbError):
 class DdbFile(TextFile, Has_Structure, NotebookWriter):
     """
     This object provides an interface to the DDB_ file produced by ABINIT
-    as well as methods to compute phonon band structures, phonon DOS, thermodinamical properties ...
+    as well as methods to compute phonon band structures, phonon DOS, thermodynamic properties etc.
 
     About the indices (idir, ipert) used by Abinit (Fortran notation):
 
     * idir in [1, 2, 3] gives the direction (usually reduced direction, cart for strain)
     * ipert in [1, 2, ..., mpert] where mpert = natom + 6
 
-        * ipert in [1, ..., natom] corresponds to atomic perturbations  (reduced dirs)
-        * ipert = natom + 1 gives d/dk  (reduced dirs)
-        * ipert = natom + 2 gives the electric field
-        * ipert = natom + 3 gives the uniaxial stress (cartesian dirs)
-        * ipert = natom + 4 gives the shear strees.   (cartesian dirs)
+        * ipert in [1, ..., natom] corresponds to atomic perturbations  (reduced directions)
+        * ipert = natom + 1 corresponds d/dk  (reduced directions)
+        * ipert = natom + 2 corresponds the electric field
+        * ipert = natom + 3 corresponds the uniaxial stress (Cartesian directions)
+        * ipert = natom + 4 corresponds the shear stress.   (Cartesian directions)
 
     .. rubric:: Inheritance
     .. inheritance-diagram:: DdbFile
@@ -1131,11 +1131,12 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                           verbose=0, mpi_procs=1):
         """
         Invoke anaddb to compute the phonon band structure and the phonon DOS with different
-        values of the ``asr`` input variable (acoustic sum rule treatment).
+        values of the ``dipdip`` input variable (dipole-dipole treatment).
         Build and return |PhononDosPlotter| object.
 
         Args:
             chneut_list: List of ``chneut`` values to test (used for dipdip == 1).
+            asr_list: Variable for acoustic sum rule treatment.
             lo_to_splitting: Allowed values are [True, False, "automatic"]. Defaults to "automatic"
                 If True the LO-TO splitting will be calculated if qpoint == Gamma and the non_anal_directions
                 non_anal_phfreqs attributes will be addeded to the phonon band structure.

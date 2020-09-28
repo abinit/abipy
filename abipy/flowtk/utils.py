@@ -310,27 +310,30 @@ class Directory(object):
         """
         infile = self.has_abiext(inext)
         if not infile:
-            raise RuntimeError('no file with extension %s in %s' % (inext, self))
+            raise RuntimeError('no file with extension `%s` in `%s`' % (inext, self))
 
         for i in range(len(infile) - 1, -1, -1):
             if infile[i] == '_':
                 break
         else:
-            raise RuntimeError('Extension %s could not be detected in file %s' % (inext, infile))
+            raise RuntimeError('Extension `%s` could not be detected in file `%s`' % (inext, infile))
 
         outfile = infile[:i] + '_' + outext
+        if infile.endswith(".nc") and not outfile.endswith(".nc"):
+            outfile = outfile + ".nc"
 
         if os.path.exists(outfile):
             if os.path.islink(outfile):
                 if os.path.realpath(outfile) == infile:
-                    logger.debug("link %s already exists but it's ok because it points to the correct file" % outfile)
+                    logger.debug("Link `%s` already exists but it's OK because it points to the correct file" % outfile)
                     return 0
                 else:
-                    raise RuntimeError("Expecting link at %s already exists but it does not point to %s" % (outfile, infile))
+                    raise RuntimeError("Expecting link at `%s` already exists but it does not point to `%s`" % (outfile, infile))
             else:
-                raise RuntimeError('Expecting link at %s but found file.' % outfile)
+                raise RuntimeError('Expecting link at `%s` but found file.' % outfile)
 
         os.symlink(infile, outfile)
+
         return 0
 
     def rename_abiext(self, inext, outext):
