@@ -821,9 +821,9 @@ class PhononBands(object):
             return h
 
         def reasonable_repetitions(natoms):
-            if (natoms < 4): return (3,3,3)
-            if (4 < natoms < 50): return (2,2,2)
-            if (50 < natoms): return (1,1,1)
+            if (natoms < 4): return (3, 3, 3)
+            if (4 < natoms < 50): return (2, 2, 2)
+            if (50 < natoms): return (1, 1, 1)
 
         # http://henriquemiranda.github.io/phononwebsite/index.html
         data = {}
@@ -892,10 +892,81 @@ class PhononBands(object):
         with open(filename, 'wt') as json_file:
             json.dump(data, json_file, indent=indent)
 
+    def make_isodistort_ph_dir(self, qpoint, select_modes=None, eta=1, workdir=None):
+        """
+        Compute ph-freqs for given q-point (default: Gamma),
+        produce CIF files for unperturbed and distorded structure
+        that can be used with ISODISTORT (https://stokes.byu.edu/iso/isodistort.php)
+        to analyze the symmetry of phonon modes.
+        See README.me file produced in output directory.
+
+        Args:
+            qpoint:
+            wordir:
+            select_modes:
+            eta: Amplitude of the displacement to be applied to the system. Will correspond to the
+                largest displacement of one atom in Angstrom.
+            scale_matrix: the scaling matrix of the supercell. If None a scaling matrix suitable for
+                the qpoint will be determined.
+            max_supercell: mandatory if scale_matrix is None, ignored otherwise. Defines the largest
+                supercell in the search for a scaling matrix suitable for the q point.
+        """
+        iq, qpoint = self.qindex_qpoint(qpoint)
+
+        scale_matrix = np.eye(3, 3, dtype=np.int)
+        important_fracs = (2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)
+        for i in range(3):
+            for comparison_frac in important_fracs:
+                if abs(1 - qpoint.frac_coords[i] * comparison_frac) < 1e-4:
+                    scale_matrix[i, i] = comparison_frac
+                    break
+        print(f"Using scale_matrix:\n {scale_matrix}")
+
+        select_modes = self.branches if select_modes is None else select_modes
+        if workdir is None:
+            workdir = "%s_qpt%s" % (self.structure.formula, repr(qpoint))
+            workdir = workdir.replace(" ", "_").replace("$", "").replace("\\", "").replace("[", "").replace("]", "")
+
+        if os.path.isdir(workdir):
+            cprint(f"Removing pre-existing directory: {workdir}", "yellow")
+            import shutil
+            shutil.rmtree(workdir)
+
+        os.mkdir(workdir)
+
+        print(f"\nCreating CIF files for ISODISTORT code in {workdir}. See README.md")
+        self.structure.write_cif_with_spglib_symms(filename=os.path.join(workdir, "parent_structure.cif"))
+
+        for imode in select_modes:
+            # A namedtuple with a structure with the displaced atoms, a numpy array containing the
+            # displacements applied to each atom and the scale matrix used to generate the supercell.
+            r = self.get_frozen_phonons(qpoint, imode,
+                                        eta=eta, scale_matrix=scale_matrix, max_supercell=None)
+
+            print("after scale_matrix:", r.scale_matrix)
+            r.structure.write_cif_with_spglib_symms(filename=os.path.join(workdir, "distorted_structure_mode_%d.cif" % (imode + 1)))
+
+        readme_string = """
+
+Use Harold Stokes' code, [ISODISTORT](https://stokes.byu.edu/iso/isodistort.php),
+loading in your structure that you did the DFPT calculation as the **parent**,
+then, select mode decompositional analysis and upload the cif file from step (3).
+
+Follow the on screen instructions.
+You will then be presented with the mode irrep and other important symmetry information.
+
+Thanks to Jack Baker for pointing out this approach.
+See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
+"""
+        with open(os.path.join(workdir, "README.md"), "wt") as fh:
+            fh.write(readme_string)
+
+        return workdir
+
     def decorate_ax(self, ax, units='eV', **kwargs):
         """
         Add q-labels, title and unit name to axis ax.
-        Use units = "" to add k-labels without adding unit name.
+        Use units="" to add k-labels without unit name.
 
         Args:
             title:
@@ -953,7 +1024,7 @@ class PhononBands(object):
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
-        # Decorate the axis (e.g add ticks and labels).
+        # Decorate the axis (e.g. add ticks and labels).
         self.decorate_ax(ax, units=units, qlabels=qlabels)
 
         if "color" not in kwargs: kwargs["color"] = "black"
@@ -1926,7 +1997,7 @@ class PhononBands(object):
             displacements applied to each atom and the scale matrix used to generate the supercell.
         """
         qind = self.qindex(qpoint)
-        displ = self.phdispl_cart[qind, nmode].reshape((-1,3))
+        displ = self.phdispl_cart[qind, nmode].reshape((-1, 3))
 
         return self.structure.frozen_phonon(qpoint=self.qpoints[qind].frac_coords, displ=displ, eta=eta,
                                             frac_coords=False, scale_matrix=scale_matrix, max_supercell=max_supercell)

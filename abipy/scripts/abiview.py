@@ -169,16 +169,16 @@ def abiview_ddb(options):
         nqsmall = 0 if options.phononwebsite else 10
         ndivsm = 20; asr = 2; chneut = 1; dipdip = 1; dos_method = "tetra"; lo_to_splitting = "automatic"
         print("""
-Computing phonon bands and DOS from DDB file with
-nqsmall = {nqsmall}, ndivsm = {ndivsm};
-asr = {asr}, chneut = {chneut}, dipdip = {dipdip}, lo_to_splitting = {lo_to_splitting}, dos_method = {dos_method}
+Computing phonon bands and DOS from DDB file with:
+nqsmall: {nqsmall}, ndivsm: {ndivsm},
+asr: {asr}, chneut: {chneut}, dipdip: {dipdip}, lo_to_splitting: {lo_to_splitting}, dos_method: {dos_method}
 """.format(**locals()))
 
         print("Invoking anaddb ...  ", end="")
         phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(
             nqsmall=nqsmall, ndivsm=ndivsm, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method,
             lo_to_splitting=lo_to_splitting, verbose=options.verbose, mpi_procs=1)
-        print("Calculation completed.\nResults available in", os.path.dirname(phbst_file.filepath))
+        print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
 
         phbands = phbst_file.phbands
 
@@ -225,13 +225,13 @@ def abiview_ddb_vs(options):
     num_points = 20; asr = 2; chneut = 1; dipdip = 1
     print("""
 Computing phonon frequencies for linear least-squares with:
-num_points= {num_points}, asr = {asr}, chneut = {chneut}, dipdip = {dipdip}
+num_points: {num_points}, asr: {asr}, chneut: {chneut}, dipdip: {dipdip}
 """.format(**locals()))
 
     print("Invoking anaddb ...  ")
     sv = abilab.SoundVelocity.from_ddb(options.filepath, num_points=num_points,
                                        asr=asr, chneut=chneut, dipdip=dipdip, verbose=options.verbose)
-    #print("Calculation completed.\nResults available in", os.path.dirname(phbst_file.filepath))
+    #print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
 
     df = sv.get_dataframe()
     abilab.print_dataframe(df, title="Speed of sound for different directions:")
@@ -248,7 +248,7 @@ def abiview_ddb_ir(options):
     asr = 2; chneut = 1; dipdip = 1
     print("""
 Computing phonon frequencies for infra-red spectrum with:
-asr = {asr}, chneut = {chneut}, dipdip = {dipdip}
+asr: {asr}, chneut: {chneut}, dipdip: {dipdip}
 """.format(**locals()))
 
     with abilab.abiopen(options.filepath) as ddb:
@@ -277,6 +277,7 @@ def abiview_ddb_asr(options):
 
     return 0
 
+
 def abiview_ddb_dipdip(options):
     """
     Compute phonon band structure from DDB with/without acoustic sum rule. Plot results.
@@ -292,6 +293,32 @@ def abiview_ddb_dipdip(options):
 
     return 0
 
+
+def abiview_ddb_isodistort_ph(options):
+    """
+    Compute ph-freqs for given q-point (default: Gamma), produce CIF files for unperturbed and distorded structure
+    that can be used with ISODISTORT (https://stokes.byu.edu/iso/isodistort.php) to analyze the symmetry of phonon modes.
+    See README.me file produced in output directory.
+    """
+    with abilab.abiopen(options.filepath) as ddb:
+        print(ddb.to_string(verbose=options.verbose))
+        qpoint = options.qpoint
+        asr = 2; chneut = 1; dipdip = 1; lo_to_splitting = False
+        print("""
+Computing phonon frequencies and eigenvectors with:
+asr: {asr}, chneut: {chneut}, dipdip: {dipdip}, lo_to_splitting: {lo_to_splitting}
+qpoint = {qpoint}
+""".format(**locals()))
+
+        print("Invoking anaddb ...  ", end="")
+        phbands = ddb.anaget_phmodes_at_qpoint(qpoint=qpoint, asr=asr, chneut=chneut, dipdip=dipdip,
+                                               verbose=options.verbose, lo_to_splitting=False)
+
+        phbands.make_isodistort_ph_dir(qpoint, select_modes=None, eta=1, workdir=None)
+
+    return 0
+
+
 def abiview_ddb_ifc(options):
     """
     Visualize interatomic force constants in real space.
@@ -299,7 +326,7 @@ def abiview_ddb_ifc(options):
     asr = 2; chneut = 1; dipdip = 1
     print("""
 Computing interatomic force constants with
-asr = {asr}, chneut = {chneut}, dipdip = {dipdip}
+asr: {asr}, chneut: {chneut}, dipdip: {dipdip}
 """.format(**locals()))
 
     with abilab.abiopen(options.filepath) as ddb:
@@ -414,10 +441,10 @@ Usage example:
     abiview.py ddb in_DDB                 ==>  Compute ph-bands and DOS from DDB, plot results.
     abiview.py ddb_vs                     ==>  Compute speed of sound from DDB by fitting phonon frequencies.
     abiview.py ddb_ir                     ==>  Compute infra-red spectrum from DDB. Plot results.
-    abiview.py ddb_asr                    ==>  Compute phonon spectrum from DDB with/wo acoustic rule. Plot results.
-    abiview.py ddb_dipdip                 ==>  Compute phonon spectrum from DDB with/wo dipole-dipole treatment. Plot results.
+    abiview.py ddb_asr                    ==>  Compute ph-bands from DDB with/wo acoustic rule. Plot results.
+    abiview.py ddb_dipdip                 ==>  Compute ph-bands from DDB with/wo dipole-dipole treatment. Plot results.
     abiview.py ddb_ifc                    ==>  Visualize interatomic force constants in real space.
-    abiview.py phbands out_PHBST.nc -web  ==>  Visualize phonon bands and displacements with phononwebsite.
+    abiview.py phbands out_PHBST.nc -web  ==>  Visualize ph-bands and displacements with phononwebsite.
 
 ###############
 # Miscelleanous
@@ -582,6 +609,12 @@ def get_parser(with_epilog=False):
     # Subparser for ddb_dipdip command.
     p_ddb_dipdip = subparsers.add_parser('ddb_dipdip', parents=[copts_parser, pandas_parser, slide_parser],
                                           help=abiview_ddb_dipdip.__doc__)
+
+    # Subparser for ddb_ph_isodistort command.
+    p_ddb_isodistort_ph = subparsers.add_parser('ddb_isodistort_ph', parents=[copts_parser],
+                                     help=abiview_ddb_isodistort_ph.__doc__)
+    p_ddb_isodistort_ph.add_argument("-q", "--qpoint", nargs=3, type=float,
+        help="q-point in reduced coordinates e.g. 0.25 0 0. Default: 0, 0, 0", default=[0, 0, 0])
 
     # Subparser for ddb_ifc command.
     p_ddb_ifc = subparsers.add_parser('ddb_ifc', parents=[copts_parser, pandas_parser, slide_parser],

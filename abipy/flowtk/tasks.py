@@ -2867,7 +2867,7 @@ class AbinitTask(Task):
                 return 2
 
         if "paral_kgb" not in self.input:
-            self.input.set_vars(paral_kgb=pconfs.info["paral_kgb"])
+            self.input.set_vars(paral_kgb=pconfs.info.get("paral_kgb", 0))
 
         ######################################################
         # Select the optimal configuration according to policy

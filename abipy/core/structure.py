@@ -567,6 +567,26 @@ class Structure(pymatgen.Structure, NotebookWriter):
         else:
             return super().to(fmt=fmt, filename=filename, **kwargs)
 
+    def write_cif_with_spglib_symms(self, filename, symprec=1e-3):
+        """
+        Args:
+            symprec (float): If not none, finds the symmetry of the structure
+                and writes the cif with symmetry information. Passes symprec
+                to the SpacegroupAnalyzer.
+            write_magmoms (bool): If True, will write magCIF file. Incompatible
+                with symprec
+            significant_figures (int): Specifies precision for formatting of floats.
+                Defaults to 8.
+            angle_tolerance (float): Angle tolerance for symmetry finding. Passes
+                angle_tolerance to the SpacegroupAnalyzer. Used only if symprec
+                is not None.
+        """
+        # TODO: Add options to avoid structure refinment in CifWriter
+        from pymatgen.io.cif import CifWriter
+        data = str(CifWriter(self, symprec=symprec, significant_figures=8, angle_tolerance=5.0))
+        with open(filename, "wt") as fh:
+            fh.write(data)
+
     def __mul__(self, scaling_matrix):
         """
         Makes a supercell. Allowing to have sites outside the unit cell
@@ -1602,35 +1622,35 @@ class Structure(pymatgen.Structure, NotebookWriter):
     def get_smallest_supercell(self, qpoint, max_supercell):
         """
         Args:
-            qpoint: q vector in reduced coordinate in reciprocal space
+            qpoint: q vector in reduced coordinates in reciprocal space
             max_supercell: vector with the maximum supercell size
 
         Returns: the scaling matrix of the supercell
         """
-        if np.allclose(qpoint, 0):
+        if np.allclose(qpoint, 0.0):
             scale_matrix = np.eye(3, 3)
             return scale_matrix
 
         l = max_supercell
 
         # Inspired from Exciting Fortran code phcell.F90
-        # It should be possible to improve this code taking advantage of python !
+        # It should be possible to improve this coding.
         scale_matrix = np.zeros((3, 3), dtype=np.int)
         dmin = np.inf
         found = False
 
         # Try to reduce the matrix
         rprimd = self.lattice.matrix
-        for l1 in np.arange(-l[0], l[0]+1):
-            for l2 in np.arange(-l[1], l[1]+1):
-                for l3 in np.arange(-l[2], l[2]+1):
+        for l1 in np.arange(-l[0], l[0] + 1):
+            for l2 in np.arange(-l[1], l[1] + 1):
+                for l3 in np.arange(-l[2], l[2] + 1):
                     lnew = np.array([l1, l2, l3])
                     ql = np.dot(lnew, qpoint)
                     # Check if integer and non zero !
                     if np.abs(ql - np.round(ql)) < 1e-6:
                         Rl = np.dot(lnew, rprimd)
                         # Normalize the displacement so that the maximum atomic displacement is 1 Angstrom.
-                        dnorm = np.sqrt(np.dot(Rl,Rl))
+                        dnorm = np.sqrt(np.dot(Rl, Rl))
                         if dnorm < (dmin-1e-6) and dnorm > 1e-6:
                             found = True
                             scale_matrix[:, 0] = lnew
@@ -1640,13 +1660,13 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         found = False
         dmin = np.inf
-        for l1 in np.arange(-l[0], l[0]+1):
-            for l2 in np.arange(-l[1], l[1]+1):
-                for l3 in np.arange(-l[2], l[2]+1):
+        for l1 in np.arange(-l[0], l[0] + 1):
+            for l2 in np.arange(-l[1], l[1] + 1):
+                for l3 in np.arange(-l[2], l[2] + 1):
                     lnew = np.array([l1, l2, l3])
                     # Check if not parallel !
                     cp = np.cross(lnew, scale_matrix[:,0])
-                    if np.dot(cp,cp) > 1e-6:
+                    if np.dot(cp, cp) > 1e-6:
                         ql = np.dot(lnew, qpoint)
                         # Check if integer and non zero !
                         if np.abs(ql - np.round(ql)) < 1e-6:
@@ -1661,16 +1681,16 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         dmin = np.inf
         found = False
-        for l1 in np.arange(-l[0], l[0]+1):
-            for l2 in np.arange(-l[1], l[1]+1):
-                for l3 in np.arange(-l[2], l[2]+1):
+        for l1 in np.arange(-l[0], l[0] + 1):
+            for l2 in np.arange(-l[1], l[1] + 1):
+                for l3 in np.arange(-l[2], l[2] + 1):
                     lnew = np.array([l1, l2, l3])
-                    # Check if not parallel !
+                    # Check if not parallel!
                     cp = np.dot(np.cross(lnew, scale_matrix[:, 0]), scale_matrix[:, 1])
                     if cp > 1e-6:
-                        # Should be positive as (R3 X R1).R2 > 0 for abinit !
+                        # Should be positive as (R3 X R1).R2 > 0 for abinit!
                         ql = np.dot(lnew, qpoint)
-                        # Check if integer and non zero !
+                        # Check if integer and non zero!
                         if np.abs(ql - np.round(ql)) < 1e-6:
                             Rl = np.dot(lnew, rprimd)
                             dnorm = np.sqrt(np.dot(Rl,Rl))
@@ -1717,6 +1737,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         # that are inside the unit cell defined by the scale matrix
         # we're using a slightly offset interval from 0 to 1 to avoid numerical
         # precision issues
+        #print(scale_matrix)
         inv_matrix = np.linalg.inv(scale_matrix)
 
         frac_points = np.dot(all_points, inv_matrix)
@@ -1742,7 +1763,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         """
         if scale_matrix is None:
             if max_supercell is None:
-                raise ValueError("If scale_matrix is not provided, please provide max_supercell !")
+                raise ValueError("If scale_matrix is not provided, please provide max_supercell!")
 
             scale_matrix = self.get_smallest_supercell(qpoint, max_supercell=max_supercell)
 
@@ -1875,18 +1896,20 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         if scale_matrix is None:
             if max_supercell is None:
-                raise ValueError("If scale_matrix is not provided, please provide max_supercell !")
+                raise ValueError("If scale_matrix is not provided, please provide max_supercell!")
 
             scale_matrix = self.get_smallest_supercell(qpoint, max_supercell=max_supercell)
 
         scale_matrix = np.array(scale_matrix, np.int16)
         if scale_matrix.shape != (3, 3):
             scale_matrix = np.array(scale_matrix * np.eye(3), np.int16)
+        print("scale_matrix:", scale_matrix)
 
         old_lattice = self._lattice
         new_lattice = Lattice(np.dot(scale_matrix, old_lattice.matrix))
 
         tvects = self.get_trans_vect(scale_matrix)
+        print("tvects", tvects)
 
         if frac_coords:
             displ = np.array((old_lattice.get_cartesian_coords(d) for d in displ))

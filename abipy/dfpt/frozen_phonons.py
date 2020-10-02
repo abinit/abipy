@@ -123,7 +123,6 @@ class FrozenPhonon(object):
         normalized_fp = phbands.get_frozen_phonons(qind, imode, 1, scale_matrix, max_supercell)
 
         structures = []
-
         for n in etas:
             structures.append(phbands.get_frozen_phonons(qind, imode, n, normalized_fp.scale_matrix).structure)
 

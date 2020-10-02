@@ -952,6 +952,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             if lo_to_splitting and qpoint.is_gamma():
                 ncfile.phbands.read_non_anal_from_file(os.path.join(task.workdir, "anaddb.nc"))
 
+            print("Calculation completed.\nAnaddb results available in dir:", task.workdir)
             return ncfile.phbands if not return_input else (ncfile.phbands, inp)
 
     def anaget_phbst_and_phdos_files(self, nqsmall=10, qppa=None, ndivsm=20, line_density=None, asr=2, chneut=1, dipdip=1,
