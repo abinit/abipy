@@ -554,7 +554,7 @@ class EphSelfEnergy(object):
                   what_list=("re", "im", "spfunc"), with_frohl=False, xlims=None, fontsize=8, **kwargs):
         """
         Plot the real/imaginary part of self-energy as well as the spectral function for
-        the different temperatures with a color map.
+        the different temperatures with a colormap.
 
         Args:
             itemps: List of temperature indices. "all" to plot'em all.
@@ -635,19 +635,19 @@ class EphSelfEnergy(object):
         xs, xlabel = self._get_wmesh_xlabel("e0")
         ax0, ax1 = ax_list
 
+        # Plot Sigma(w)
         ax0.grid(True)
         ax0.plot(xs, self.vals_wr[itemp].real, label=r"$\Re(\Sigma)$")
         ax0.plot(xs, self.vals_wr[itemp].imag, ls="--", label=r"$\Im(\Sigma)$")
-        ls = linestyles["dashed"]
-        ax0.plot(xs, self.wmesh - self.qp.e0, color="b", lw=1, ls=ls, label=r"$\omega - \epsilon^0$")
+        ax0.plot(xs, self.wmesh - self.qp.e0, color="b", lw=1,
+                 ls=linestyles["dashed"], label=r"$\omega - \epsilon^0$")
 
         # Add linearized solution
         sig0 = self.vals_wr[itemp][self.nwr // 2 + 1]
         aa = self.dvals_de0ks[itemp].real
         ze0 = self.qp.ze0[itemp].real
         line = sig0.real + aa * xs
-        ls = linestyles["densely_dotted"]
-        ax0.plot(xs, line, color="k", lw=1, ls=ls,
+        ax0.plot(xs, line, color="k", lw=1, ls=linestyles["densely_dotted"],
                  label=r"$\Re(\Sigma^0) + \dfrac{\partial\Sigma}{\partial\omega}(\omega - \epsilon^0$)")
 
         x0 = self.qp.qpe[itemp].real - self.qp.e0
@@ -667,10 +667,15 @@ class EphSelfEnergy(object):
         ymax = ymax + abs(ymax) * 0.2
         set_axlims(ax0, [ymin, ymax], "y")
 
-        # Plot A(w) and cumulative integral
+        # Plot Dyson-Migdal A(w)
         ax1.grid(True)
         ys = self.spfunc_wr[itemp]
         ax1.plot(xs, ys)
+
+        # Plot Linearized A(w) (Z factor)
+        #x0 = self.qp.qpe[itemp].real - self.qp.e0
+        #ys = ze0 / np.pi * np.abs(sig0.imag) / ((xs - x0) ** 2 + sig0.imag ** 2)
+        #ax1.plot(xs, ys)
 
         # Plot on mass shell energy as vertical line
         ax1.axvline(sig0.real, lw=1, color="red", ls="--")
@@ -1025,7 +1030,11 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         |numpy-array| of shape [nsppol, nkcalc, ntemp] with the QP direct gap in eV ordered as kcalc.
         QP energies are computed with the on-the-mass-shell approximation
         """
-        return self.reader.read_value("qpoms_gaps") * abu.Ha_to_eV
+        try:
+            return self.reader.read_value("qpoms_gaps") * abu.Ha_to_eV
+        except Exception:
+            #cprint("Reading old deprecated sigeph file!", "yellow")
+            return self.reader.read_value("qpadb_enes") * abu.Ha_to_eV
 
     @lazy_property
     def mu_e(self):
@@ -1942,7 +1951,6 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         for ib, band in enumerate(range(bmin ,bmax)):
             self.plot_qpsolution_skb(spin, ikc, band, itemp=itemp, with_int_aw=with_int_aw,
                                      ax_list=ax_mat[ib], xlims=xlims, fontsize=fontsize, show=False)
-
             if ib != 0:
                 for ax in ax_mat[ib]:
                     set_visible(ax, False, "legend", "xlabel", "ylabel")
@@ -1983,7 +1991,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 k = Kpoint.from_name_and_structure(kbounds[ik], self.structure)
             else:
                 # Assume frac_coords
-                k = Kpoint(self.structure, kbounds[ik])
+                k = Kpoint(kbounds[ik], self.structure.reciprocal_lattice)
             cart_bounds.append(k.cart_coords)
         cart_bounds = np.reshape(np.array(cart_bounds), (2, 3))
 
@@ -3318,7 +3326,7 @@ class SigmaPhReader(BaseEphReader):
         try:
             var = self.read_variable("qpoms_enes")
         except Exception:
-            cprint("Reading old deprecated sigeph file!", "yellow")
+            #cprint("Reading old deprecated sigeph file!", "yellow")
             var = self.read_variable("qpadb_enes")
 
         qpe_oms = var[spin, ikc, ibc, :, 0] * abu.Ha_eV

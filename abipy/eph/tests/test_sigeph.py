@@ -115,9 +115,9 @@ class SigEPhFileTest(AbipyTest):
         assert sigma.wmesh.shape == (sigma.nwr,)
         if self.has_matplotlib():
             assert sigma.plot_tdep(show=False)
-            assert sieph.plot_qpsolution_skb(0, 0, 0, show=False)
-            assert sieph.plot_qpsolution_sk(0, [0.5, 0, 0], show=False)
-            assert sieph.plot_qpsolution_sklineb(0, ["G", [0.5, 0, 0]], show=False)
+            assert sigeph.plot_qpsolution_skb(0, 0, 0, show=False)
+            assert sigeph.plot_qpsolution_sk(0, [0.5, 0, 0], show=False)
+            assert sigeph.plot_qpsolution_sklineb(spin=0, kbounds=["G", [0.5, 0, 0]], band=0, show=False)
 
         # Test QpTempState
         qp = sigeph.reader.read_qp(spin=0, kpoint=0, band=3, ignore_imag=False)

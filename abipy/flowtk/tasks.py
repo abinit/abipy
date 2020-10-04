@@ -4637,35 +4637,28 @@ class AnaddbTask(Task):
         hence we don't need to create symbolic links.
         """
 
+    def outpath_from_ext(self, ext):
+        if ext == "anaddb.nc":
+           path = os.path.join(self.workdir, "anaddb.nc")
+           if os.path.isfile(path): return path
+
+        path = self.wdir.has_abiext(ext)
+        if not path:
+            raise RuntimeError("Anaddb task `%s` didn't produce file with extenstion: `%s`" % (self, ext))
+
+        return path
+
     def open_phbst(self):
         """Open PHBST file produced by Anaddb and returns |PhbstFile| object."""
         from abipy.dfpt.phonons import PhbstFile
-        phbst_path = os.path.join(self.workdir, "run.abo_PHBST.nc")
-        if not phbst_path:
-            if self.status == self.S_OK:
-                self.history.critical("%s reached S_OK but didn't produce a PHBST file in %s" % (self, self.outdir))
-            return None
-
-        try:
-            return PhbstFile(phbst_path)
-        except Exception as exc:
-            self.history.critical("Exception while reading GSR file at %s:\n%s" % (phbst_path, str(exc)))
-            return None
+        phbst_path = self.outpath_from_ext("PHBST.nc")
+        return PhbstFile(phbst_path)
 
     def open_phdos(self):
         """Open PHDOS file produced by Anaddb and returns |PhdosFile| object."""
         from abipy.dfpt.phonons import PhdosFile
-        phdos_path = os.path.join(self.workdir, "run.abo_PHDOS.nc")
-        if not phdos_path:
-            if self.status == self.S_OK:
-                self.history.critical("%s reached S_OK but didn't produce a PHBST file in %s" % (self, self.outdir))
-            return None
-
-        try:
-            return PhdosFile(phdos_path)
-        except Exception as exc:
-            self.history.critical("Exception while reading GSR file at %s:\n%s" % (phdos_path, str(exc)))
-            return None
+        phdos_path = self.outpath_from_ext("PHDOS.nc")
+        return PhdosFile(phdos_path)
 
     def get_results(self, **kwargs):
         return super().get_results(**kwargs)

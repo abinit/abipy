@@ -577,7 +577,8 @@ class Kpoint(SlotPickleMixin):
             name: string with the name of the k-point (optional)
         """
         self._frac_coords = np.asarray(frac_coords)
-        assert len(self.frac_coords) == 3
+        if len(self.frac_coords) != 3:
+            raise TypeError("Expecting vector with 3 items, got `%s`" % str(self.frac_coords))
 
         self._lattice = lattice
         self.set_weight(weight)

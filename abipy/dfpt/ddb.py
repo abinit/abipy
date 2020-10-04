@@ -950,7 +950,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         with task.open_phbst() as ncfile:
             if lo_to_splitting and qpoint.is_gamma():
-                ncfile.phbands.read_non_anal_from_file(os.path.join(task.workdir, "anaddb.nc"))
+                anaddbnc_path = task.outpath_from_ext("anaddb.nc")
+                ncfile.phbands.read_non_anal_from_file(anaddbnc_path)
 
             print("Calculation completed.\nAnaddb results available in dir:", task.workdir)
             return ncfile.phbands if not return_input else (ncfile.phbands, inp)
@@ -1030,7 +1031,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         self._add_params(phbst_file.phbands)
         if lo_to_splitting:
-            phbst_file.phbands.read_non_anal_from_file(os.path.join(task.workdir, "anaddb.nc"))
+            anaddbnc_path = task.outpath_from_ext("anaddb.nc")
+            phbst_file.phbands.read_non_anal_from_file(anaddbnc_path)
 
         phdos_file = None
         if inp["prtdos"] != 0:
@@ -1324,9 +1326,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         inp = AnaddbInput(self.structure, anaddb_kwargs={"chneut": chneut})
 
         task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose)
+        anaddbnc_path = task.outpath_from_ext("anaddb.nc")
 
         # Read data from the netcdf output file produced by anaddb.
-        with ETSF_Reader(os.path.join(task.workdir, "anaddb.nc")) as r:
+        with ETSF_Reader(anaddbnc_path) as r:
             epsinf = DielectricTensor(r.read_value("emacro_cart").T.copy())
             structure = r.read_structure()
             becs = Becs(r.read_value("becs_cart"), structure, chneut=inp["chneut"], order="f")
@@ -1362,7 +1365,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose)
 
-        return InteratomicForceConstants.from_file(os.path.join(task.workdir, 'anaddb.nc'))
+        anaddbnc_path = task.outpath_from_ext("anaddb.nc")
+        return InteratomicForceConstants.from_file(anaddbnc_path)
 
     def anaget_dielectric_tensor_generator(self, asr=2, chneut=1, dipdip=1, workdir=None, mpi_procs=1,
                                            manager=None, verbose=0, anaddb_kwargs=None, return_input=False):
@@ -1395,8 +1399,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose)
 
-        gen = DielectricTensorGenerator.from_files(os.path.join(task.workdir, "run.abo_PHBST.nc"),
-                                                   os.path.join(task.workdir, "anaddb.nc"))
+        phbstnc_path = task.outpath_from_ext("PHBST.nc")
+        anaddbnc_path = task.outpath_from_ext("anaddb.nc")
+
+        gen = DielectricTensorGenerator.from_files(phbstnc_path, anaddbnc_path)
 
         return gen if not return_input else (gen, inp)
 
@@ -1475,8 +1481,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose)
 
         # Read data from the netcdf output file produced by anaddb.
-        path = os.path.join(task.workdir, "anaddb.nc")
-        return ElasticData.from_file(path) if not retpath else path
+        anaddbnc_path = task.outpath_from_ext("anaddb.nc")
+        return ElasticData.from_file(anaddbnc_path) if not retpath else anaddbnc_path
 
     def anaget_raman(self, asr=2, chneut=1, ramansr=1, alphon=1, workdir=None, mpi_procs=1,
                      manager=None, verbose=0, directions=None, anaddb_kwargs=None):
@@ -1496,15 +1502,14 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         Return: |Raman| object.
         """
-
         inp = AnaddbInput.dfpt(self.structure, raman=True, asr=asr, chneut=chneut, ramansr=ramansr,
                                alphon=alphon, directions=directions, anaddb_kwargs=anaddb_kwargs)
 
         task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose)
 
         # Read data from the netcdf output file produced by anaddb.
-        path = os.path.join(task.workdir, "anaddb.nc")
-        return Raman.from_file(path)
+        anaddbnc_path = task.outpath_from_ext("anaddb.nc")
+        return Raman.from_file(anaddbnc_path)
 
     def _run_anaddb_task(self, anaddb_input, mpi_procs, workdir, manager, verbose):
         """
