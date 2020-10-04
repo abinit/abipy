@@ -53,7 +53,7 @@ class LdauParams(object):
 
     @property
     def symbols_by_typat(self):
-        return [specie.symbol for specie in self.structure.types_of_specie]
+        return [specie.symbol for specie in self.structure.species_by_znucl]
 
     def luj_for_symbol(self, symbol, l, u, j, unit="eV"):
         """
@@ -124,7 +124,7 @@ class LexxParams(object):
 
     @property
     def symbols_by_typat(self):
-        return [specie.symbol for specie in self.structure.types_of_specie]
+        return [specie.symbol for specie in self.structure.species_by_znucl]
 
     def lexx_for_symbol(self, symbol, l):
         """

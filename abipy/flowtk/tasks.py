@@ -2734,8 +2734,7 @@ class AbinitTask(Task):
         # Here we reorder the pseudos if the order is wrong.
         ord_pseudos = []
 
-        znucl = [specie.number for specie in
-                 self.input.structure.types_of_specie]
+        znucl = [specie.number for specie in self.input.structure.species_by_znucl]
 
         for z in znucl:
             for p in self.pseudos:

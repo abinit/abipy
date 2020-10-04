@@ -272,6 +272,38 @@ xred       0.0000000000    0.0000000000    0.0000000000
         if self.has_nbformat():
             assert mgb2.write_notebook(nbpath=self.get_tmpname(text=True))
 
+    def test_znucl_typat(self):
+        """Test the order of typat and znucl in the Abinit input and enforce_typat, enforce_znucl."""
+
+        # Ga  Ga1  1  0.33333333333333  0.666666666666667  0.500880  1.0
+        # Ga  Ga2  1  0.66666666666667  0.333333333333333  0.000880  1.0
+        # N  N3  1  0.333333333333333  0.666666666666667  0.124120  1.0
+        # N  N4  1  0.666666666666667  0.333333333333333  0.624120  1.0
+        gan2 = Structure.from_file(abidata.cif_file("gan2.cif"))
+
+        # By default, znucl is filled using the first new type found in sites.
+        def_vars = gan2.to_abivars()
+        def_znucl = def_vars["znucl"]
+        self.assert_equal(def_znucl, [31, 7])
+        def_typat = def_vars["typat"]
+        self.assert_equal(def_typat, [1, 1, 2, 2])
+
+        # But it's possible to enforce a particular value of typat and znucl.
+        enforce_znucl = [7 ,31]
+        enforce_typat = [2, 2, 1, 1]
+        enf_vars = gan2.to_abivars(enforce_znucl=enforce_znucl, enforce_typat=enforce_typat)
+        self.assert_equal(enf_vars["znucl"], enforce_znucl)
+        self.assert_equal(enf_vars["typat"], enforce_typat)
+        self.assert_equal(def_vars["xred"], enf_vars["xred"])
+
+        assert [s.symbol for s in gan2.species_by_znucl] == ["Ga", "N"]
+
+        for itype1, itype2 in zip(def_typat, enforce_typat):
+            assert def_znucl[itype1 - 1] == enforce_znucl[itype2 -1]
+
+        with self.assertRaises(Exception):
+            gan2.to_abivars(enforce_znucl=enforce_znucl, enforce_typat=None)
+
     def test_dataframes_from_structures(self):
         """Testing dataframes from structures."""
         mgb2 = abidata.structure_from_ucell("MgB2")

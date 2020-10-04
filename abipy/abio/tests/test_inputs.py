@@ -1,4 +1,4 @@
-"""Tests for input  module"""
+"""Tests for inputs module"""
 import os
 import numpy as np
 import abipy.data as abidata
@@ -32,8 +32,8 @@ class TestAbinitInput(AbipyTest):
         }
 
         inp = AbinitInput(structure=unit_cell, pseudos=abidata.pseudos("14si.pspnc"))
-
         repr(inp), str(inp)
+
         assert len(inp) == 0 and not inp
         assert inp.get("foo", "bar") == "bar" and inp.pop("foo", "bar") == "bar"
         assert inp.comment is None
@@ -226,10 +226,8 @@ class TestAbinitInput(AbipyTest):
         inp["kptopt"] = 4
         assert not inp.uses_ktimereversal
 
-    # TODO
     def test_new_with_structure(self):
         """Testing new_with_structure."""
-
         si2_inp = AbinitInput(structure=abidata.cif_file("si.cif"), pseudos=abidata.pseudos("14si.pspnc"),
                 abi_kwargs={"ecut": 4, "toldfe": 1e-10, "nband": 6, "ngkpt": [12, 12, 12]})
 
@@ -350,6 +348,71 @@ class TestAbinitInput(AbipyTest):
         assert all(k in inp for k, _ in inp_dict["abi_args"])
         self.assertMSONable(inp)
 
+    def test_enforce_znucl_and_typat(self):
+        """Test the order of typat and znucl in the Abinit input when  enforce_typat, enforce_znucl are used."""
+
+        # Ga  Ga1  1  0.33333333333333  0.666666666666667  0.500880  1.0
+        # Ga  Ga2  1  0.66666666666667  0.333333333333333  0.000880  1.0
+        # N  N3  1  0.333333333333333  0.666666666666667  0.124120  1.0
+        # N  N4  1  0.666666666666667  0.333333333333333  0.624120  1.0
+        gan2 = Structure.from_file(abidata.cif_file("gan2.cif"))
+        pseudos = abidata.pseudos("31ga.pspnc", "7n.pspnc")
+
+        def_znucl = [31, 7]
+        def_typat = [1, 1, 2, 2]
+
+        # Build AbinitInput with default sorting algorithm for znucl and typat
+        def_inp = AbinitInput(gan2, pseudos)
+        def_dict = def_inp.as_dict()
+        assert def_dict["enforce_znucl"] is None
+        assert def_dict["enforce_typat"] is None
+
+        # Build AbinitInput with specific znucl and typat.
+        enforce_znucl = [7 ,31]
+        enforce_typat = [2, 2, 1, 1]
+        enf_inp = AbinitInput(gan2, pseudos, enforce_znucl=enforce_znucl, enforce_typat=enforce_typat)
+
+        enf_dict = enf_inp.as_dict()
+        self.assert_equal(enf_dict["enforce_znucl"], enforce_znucl)
+        self.assert_equal(enf_dict["enforce_typat"], enforce_typat)
+
+        # Parser the input string and make sure znucl and typat are what we expect.
+        from abipy.abio.abivars import AbinitInputFile
+        def_string = def_inp.to_string()
+        enf_string = enf_inp.to_string()
+        #print("\ndef_string\n", def_string, "\nenf_string:\n", enf_string)
+        assert def_string != enf_string
+        def_inpfile = AbinitInputFile.from_string(def_string)
+        enf_inpfile = AbinitInputFile.from_string(enf_string)
+        assert def_inpfile.structure == enf_inpfile.structure
+
+        self.assert_equal(def_inpfile.datasets[0]["znucl"], " ".join(str(e) for e in def_znucl))
+        self.assert_equal(def_inpfile.datasets[0]["typat"], " ".join(str(t) for t in def_typat))
+        self.assert_equal(enf_inpfile.datasets[0]["znucl"], " ".join(str(e) for e in enforce_znucl))
+        self.assert_equal(enf_inpfile.datasets[0]["typat"], " ".join(str(t) for t in enforce_typat))
+
+        other_enf_dict = AbinitInput.from_dict(enf_dict).as_dict()
+        self.assert_equal(other_enf_dict["enforce_znucl"], enforce_znucl)
+        self.assert_equal(other_enf_dict["enforce_typat"], enforce_typat)
+
+        # Make sure we detect wrong calls.
+        with self.assertRaises(ValueError):
+            AbinitInput(gan2, pseudos, enforce_znucl=[1,], enforce_typat=enforce_typat)
+        with self.assertRaises(ValueError):
+            AbinitInput(gan2, pseudos, enforce_znucl=enforce_znucl, enforce_typat=[1, 2])
+
+        # Make sure enforce flags are propagated in MultiDataset and other methods.
+        inputs = enf_inp.product("ngkpt", "tsmear", [[2, 2, 2], [4, 4, 4]], [0.1, 0.2, 0.3])
+        for inp in inputs:
+            self.assert_equal(inp.enforce_znucl, enforce_znucl)
+            self.assert_equal(inp.enforce_typat, enforce_typat)
+
+        multi = MultiDataset.from_inputs(inputs)
+        for znucl in multi.enforce_znucl:
+            self.assert_equal(znucl, enforce_znucl)
+        for typat in multi.enforce_typat:
+            self.assert_equal(typat, enforce_typat)
+
     def test_dfpt_methods(self):
         """Testing DFPT methods."""
         gs_inp = AbinitInput(structure=abidata.structure_from_ucell("AlAs"),
@@ -364,7 +427,6 @@ class TestAbinitInput(AbipyTest):
                     0.0, 0.5, 0.0,
                     0.5, 0.0, 0.0,
                     0.5, 0.5, 0.5],
-            #shiftk=[0, 0, 0],
             paral_kgb=1,
             nstep=25,
             tolvrs=1.0e-10,
@@ -757,7 +819,7 @@ class AnaddbInputTest(AbipyTest):
 
 
 class TestCut3DInput(AbipyTest):
-    """Unit tests for AbinitInput."""
+    """Unit tests for Cut3dInput."""
 
     def setUp(self):
         self.structure = abidata.structure_from_ucell("Si")

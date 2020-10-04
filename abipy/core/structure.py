@@ -26,7 +26,7 @@ from abipy.flowtk import PseudoTable
 from abipy.core.mixins import NotebookWriter
 from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.iotools import as_etsfreader, Visualizer
-from abipy.flowtk.abiobjects import structure_from_abivars, structure_to_abivars
+from abipy.flowtk.abiobjects import structure_from_abivars, structure_to_abivars, species_by_znucl
 
 
 __all__ = [
@@ -533,6 +533,24 @@ class Structure(pymatgen.Structure, NotebookWriter):
         """
         return structure_from_abivars(cls, *args, **kwargs)
 
+    @property
+    def species_by_znucl(self):
+        """
+        Return list of unique specie found in the structure **ordered according to sites**.
+
+        Example:
+
+            Site0: 0.5 0 0 O
+            Site1: 0   0 0 Si
+
+        produces [Specie_O, Specie_Si] and not set([Specie_O, Specie_Si]) as in `types_of_specie`.
+
+        Important:: We call this method `species_by_znucl` but this does not mean that the list can automagically
+        reproduce the value of `znucl(ntypat)` specified in an **arbitrary** ABINIT input file created by the user.
+        This array is ordered as the znucl list produced by AbiPy when writing the structure to the input file.
+        """
+        return species_by_znucl(self)
+
     def __str__(self):
         return self.to_string()
 
@@ -599,9 +617,14 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
     __rmul__ = __mul__
 
-    def to_abivars(self, **kwargs):
-        """Returns a dictionary with the ABINIT variables."""
-        return structure_to_abivars(self, **kwargs)
+    def to_abivars(self, enforce_znucl=None, enforce_typat=None, **kwargs):
+        """
+        Returns a dictionary with the ABINIT variables.
+
+        enforce_znucl[ntypat] =
+        enforce_typat[natom] = Fortran conventions. Start to count from 1.
+        """
+        return structure_to_abivars(self, enforce_znucl=enforce_znucl, enforce_typat=enforce_typat, **kwargs)
 
     @property
     def latex_formula(self):
@@ -2385,7 +2408,7 @@ def structure2siesta(structure, verbose=0):
     Return string with structural information in Siesta format from pymatgen structure
 
     Args:
-        structure: pymatgen structure.
+        structure: AbiPy structure.
         verbose: Verbosity level.
     """
 
@@ -2395,7 +2418,7 @@ Received disordered structure with partial occupancies that cannot be converted 
 Please use OrderDisorderedStructureTransformation or EnumerateStructureTransformation
 to build an appropriate supercell from partial occupancies or alternatively use the Virtual Crystal Approximation.""")
 
-    types_of_specie = structure.types_of_specie
+    species_by_znucl = structure.species_by_znucl
 
     lines = []
     app = lines.append
@@ -2405,7 +2428,7 @@ to build an appropriate supercell from partial occupancies or alternatively use 
     if verbose:
         app("# The species number followed by the atomic number, and then by the desired label")
     app("%block ChemicalSpeciesLabel")
-    for itype, specie in enumerate(types_of_specie):
+    for itype, specie in enumerate(species_by_znucl):
         app("    %d %d %s" % (itype + 1, specie.number, specie.symbol))
     app("%endblock ChemicalSpeciesLabel")
 
@@ -2427,7 +2450,7 @@ to build an appropriate supercell from partial occupancies or alternatively use 
     app("AtomicCoordinatesFormat Fractional")
     app("%block AtomicCoordinatesAndAtomicSpecies")
     for i, site in enumerate(structure):
-        itype = types_of_specie.index(site.specie)
+        itype = species_by_znucl.index(site.specie)
         fc = np.where(np.abs(site.frac_coords) > 1e-8, site.frac_coords, 0.0)
         app("    %.10f %.10f %.10f %d" % (fc[0], fc[1], fc[2], itype + 1))
     app("%endblock AtomicCoordinatesAndAtomicSpecies")
