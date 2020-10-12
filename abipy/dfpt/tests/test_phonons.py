@@ -129,8 +129,10 @@ class PhononBandsTest(AbipyTest):
         with self.assertRaises(ValueError):
             phdos = phbands.get_phdos()
 
-        # convert to pymatgen object
-        phbands.to_pymatgen()
+        # convert to pymatgen object and check that the opposite converted is consistent
+        pmg_bands = phbands.to_pymatgen()
+        phbands_from_pmg = PhononBands.from_pmg_bs(pmg_bands)
+        assert np.allclose(phbands.phfreqs, phbands_from_pmg.phfreqs)
 
         # get frozen phonons
         phbands.get_frozen_phonons((0.5, 0.5, 1.0), 1, eta=0.5, max_supercell=[5,5,5])

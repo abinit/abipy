@@ -430,6 +430,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         block_lines = []
         qpt = None
         dord = None
+        qpt3 = None
 
         for line in self:
             # skip empty lines
@@ -440,9 +441,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 # add last block when we reach the last part of the file.
                 # This line is present only if DDB has been produced by mrgddb
                 if block_lines:
-                    blocks.append({"data": block_lines, "qpt": qpt, "dord": dord})
+                    blocks.append({"data": block_lines, "qpt": qpt, "qpt3": qpt3, "dord": dord})
                     block_lines = []
                     qpt = None
+                    qpt3 = None
                 break
 
             # Don't use lstring because we may reuse block_lines to write new DDB.
@@ -451,7 +453,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             # new block --> detect order
             if "# elements" in line:
                 if block_lines:
-                    blocks.append({"data": block_lines, "qpt": qpt, "dord": dord})
+                    blocks.append({"data": block_lines, "qpt": qpt, "qpt3": qpt3, "dord": dord})
 
                 tokens = line.split()
                 num_elements = int(tokens[-1])
@@ -465,13 +467,21 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
                 block_lines = []
                 qpt = None
+                qpt3 = None
 
             block_lines.append(line)
-            if "qpt" in line:
+            if dord == 2 and "qpt" in line:
                 qpt = list(map(float, line.split()[1:4]))
 
+            # if needed accumulate the qpt coords in qpt3. stop when they reach 3.
+            if dord == 3:
+                if "qpt" in line:
+                    qpt3 = [list(map(float, line.split()[1:4]))]
+                elif qpt3 and len(qpt3) < 3:
+                    qpt3.append(list(map(float, line.split()[:3])))
+
         if block_lines:
-            blocks.append({"data": block_lines, "qpt": qpt, "dord": dord})
+            blocks.append({"data": block_lines, "qpt": qpt, "qpt3": qpt3, "dord": dord})
 
         return blocks
 
@@ -1583,6 +1593,101 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return False
 
+    def insert_block(self, data, replace=True):
+        """
+        Inserts a block in the list. Can replace a block if already present.
+
+        Args:
+            data: a dictionary with keys "dord" (the order of the perturbation),
+                "qpt" (the fractional coordinates of the qpoint if dord=2),
+                "qpt3" (the fractional coordinates of the qpoints if dord=3),
+                "data" (the lines of the block of data).
+            replace: if True and an equivalent block is already present it will be replaced,
+                otherwise the block will not be inserted.
+
+        Returns:
+            bool: True if the block was inserted.
+        """
+        dord = data["dord"]
+        for i, b in enumerate(self.blocks):
+            if dord == b["dord"] and \
+                    (dord in (0, 1) or
+                    (dord == 2 and np.allclose(b['qpt'], data["qpt"])) or
+                    (dord == 3 and np.allclose(b['qpt3'], data["qpt3"]))):
+                if replace:
+                    self.blocks[i] = data
+                    return True
+                else:
+                    return False
+
+        self.blocks.append(data)
+        return True
+
+    def remove_block(self, dord, qpt=None, qpt3=None):
+        """
+        Removes one block from the list of blocks in the ddb
+        Args:
+            dord: the order of the perturbation (from 0 to 3).
+            qpt: the fractional coordinates of the q point of the block to be
+                removed. Should be present if dord=2.
+            qpt3: a 3x3 matrix with the coordinates for the third order perturbations.
+                Should be present in dord=3.
+
+        Returns:
+            bool: True if a matching block was found and removed.
+        """
+        if dord == 2 and qpt is None:
+            raise ValueError("if dord==2 the qpt should be set")
+        if dord == 3 and qpt3 is None:
+            raise ValueError("if dord==3 the qpt3 should be set")
+
+        for i, b in enumerate(self.blocks):
+            if dord == b["dord"] and \
+                    (dord in (0, 1) or
+                    (dord == 2 and np.allclose(b['qpt'], qpt)) or
+                    (dord == 3 and np.allclose(b['qpt3'], qpt3))):
+                self.blocks.pop(i)
+                return True
+
+        return False
+
+    def get_2nd_ord_dict(self):
+        """
+        Generates an ordered dictionary with the second order derivative of the form
+        {qpt: {(idir1, ipert1, idir2, ipert2): complex value}}.
+
+        Returns:
+            OrderedDict: a dictionary with all the elements of a dynamical matrix
+        """
+        dynmat = self.computed_dynmat
+        d = OrderedDict()
+
+        for q, dm in dynmat.items():
+            dd = {}
+            for index, row in dm.iterrows():
+                dd[index] = row["cvalue"]
+            d[q] = dd
+
+        return d
+
+    def set_2nd_ord_data(self, data, replace=True):
+        """
+        Insert the blocks corresponding to the data provided for the second
+        order perturbations.
+
+        Args:
+            data: a dict of the form {qpt: {(idir1, ipert1, idir2, ipert2): complex value}}.
+            replace: if True and an equivalent block is already present it will be replaced,
+                otherwise the block will not be inserted.
+        """
+        for q, d in data.items():
+            if isinstance(q, Kpoint):
+                q = q.frac_coords
+            lines = get_2nd_ord_block_string(q, d)
+            block_data = {"qpt": q, "qpt3": None, "dord": 2, "data": lines}
+
+            self.insert_block(block_data, replace=replace)
+
     def get_panel(self):
         """Build panel with widgets to interact with the |DdbFile| either in a notebook or in panel app."""
         from abipy.panels.ddb import DdbFilePanel
@@ -2491,3 +2596,26 @@ class DdbRobot(Robot):
         nb.cells.extend(self.get_baserobot_code_cells())
 
         return self._write_nb_nbpath(nb, nbpath)
+
+
+def get_2nd_ord_block_string(qpt, data):
+    """
+    Helper function providing the lines required in a DDB file for a given
+    q point and second order derivatives.
+
+    Args:
+        qpt: the fractional coordinates of the q point.
+        data: a dictionary of the form {qpt: {(idir1, ipert1, idir2, ipert2): complex value}}
+            with the data that should be given in the string.
+
+    Returns:
+        list of str: the lines that can be added to the DDB file.
+    """
+    lines = []
+    lines.append(f" 2nd derivatives (non-stat.)  - # elements :{len(data):8}")
+    lines.append(" qpt {:.8E}  {:.8E}  {:.8E}   1.0".format(*qpt))
+    l_format = "{:4d}" * 4 + "  {:22.14E}" * 2
+    for p, v in data.items():
+        lines.append(l_format.format(*p, v.real, v.imag))
+
+    return lines
