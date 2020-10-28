@@ -62,6 +62,9 @@ class DdbTest(AbipyTest):
             with self.assertRaises(ValueError):
                 ddb.anaget_phmodes_at_qpoint(qpoint=(0, 0, 0), verbose=1)
 
+            with self.assertRaises(ValueError):
+                ddb.anaget_phmodes_at_qpoints(qpoints=[[0.1, 0.2, 0.3]], ifcflag=0)
+
             # Wrong ngqpt
             with self.assertRaises(ddb.AnaddbError):
                 try:
@@ -174,6 +177,14 @@ class DdbTest(AbipyTest):
         for qpoint in ddb.qpoints:
             phbands = ddb.anaget_phmodes_at_qpoint(qpoint=qpoint, verbose=1)
             assert phbands is not None and hasattr(phbands, "phfreqs")
+
+        phbands = ddb.anaget_phmodes_at_qpoints(verbose=1)
+        assert phbands is not None and hasattr(phbands, "phfreqs")
+
+        phbands = ddb.anaget_phmodes_at_qpoints(qpoints=[[0.1, 0.2, 0.3]], verbose=1, ifcflag=1)
+        assert phbands is not None and hasattr(phbands, "phfreqs")
+
+        assert ddb.anaget_interpolated_ddb(qpt_list=[[0.1, 0.2, 0.3]])
 
         assert np.all(ddb.guessed_ngqpt == [4, 4, 4])
 
