@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Benchmark paral_kgb=1 algorithm with wfoptalg in [default, 1].
-default correspongs to the lobpcg algorithm, 1 enables the Chebyschev solver.
+default corresponds to the lobpcg algorithm, 1 enables the Chebyschev solver.
 """
 import sys
 import operator

@@ -55,7 +55,7 @@ def abinit_to_phonopy(anaddbnc, supercell_matrix, symmetrize_tensors=False, outp
             It might be that the value should be tuned so that it leads to the the same symmetries
             as in the abinit calculation.
         set_masses: if True the atomic masses used by abinit will be added to the PhonopyAtoms
-            and will be present in the returned Phonopy object. This should improve compatbility
+            and will be present in the returned Phonopy object. This should improve compatibility
             among abinit and phonopy results if frequencies needs to be calculated.
 
     Returns:
@@ -92,7 +92,7 @@ def abinit_to_phonopy(anaddbnc, supercell_matrix, symmetrize_tensors=False, outp
     if abi_hall_num != spglib_hall_num:
         warnings.warn("The hall number obtained based on the DDB symmetries differs "
                       f"from the one calculated with spglib: {abi_hall_num} versus "
-                      f"{spglib_hall_num}. The convertion may be incorrect. Try changing symprec.")
+                      f"{spglib_hall_num}. The conversion may be incorrect. Try changing symprec.")
 
     # convert to phonopy units
     at_cart = ifc.atoms_cart_coord * abu.Bohr_Ang
@@ -185,7 +185,7 @@ def phonopy_to_abinit(unit_cell, supercell_matrix, out_ddb_path, ngqpt=None, qpt
 
     Phonopy is used to convert the IFC to the dynamical matrix. However, in order to
     determine the list of q-points in the irreducible Brillouin zone and to prepare the
-    base for the final DDB file abinit will be called for a very short and inexpensive run.
+    base for the final DDB file, abinit will be called for a very short and inexpensive run.
 
     Performs a check to verify if the two codes identify the same symmetries and it gives a
     warning in case of failure. Mismatching symmetries may lead to incorrect conversions.
@@ -300,7 +300,7 @@ def phonopy_to_abinit(unit_cell, supercell_matrix, out_ddb_path, ngqpt=None, qpt
     dm_list = get_dm(phonon, qpt_list, primitive)
 
     if born is not None:
-        # for the convertion of the BEC the zion (i.e. the ionic charge of the pseudo)
+        # for the conversion of the BEC the zion (i.e. the ionic charge of the pseudo)
         # it is an additive factor and should be the same that goes in the header of the DDB,
         # so take it from the pseudos used to generate it.
         zion = inp.valence_electrons_per_atom
@@ -315,8 +315,8 @@ def phonopy_to_abinit(unit_cell, supercell_matrix, out_ddb_path, ngqpt=None, qpt
 
     # use the output of abinit to check that the spacegroup identified by
     # phonopy and abinit are the same.
-    gsr = GsrFile(task.opath_from_ext("GSR.nc"))
-    abi_spg = gsr.structure.abi_spacegroup.spgid
+    with GsrFile(task.opath_from_ext("GSR.nc")) as gsr:
+        abi_spg = gsr.structure.abi_spacegroup.spgid
     spglib_spg = phonon.symmetry.dataset["number"]
     if abi_spg != spglib_spg:
         warnings.warn("The space group number obtained based on the DDB symmetries differs "

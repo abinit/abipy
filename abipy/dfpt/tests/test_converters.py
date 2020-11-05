@@ -23,6 +23,14 @@ except ImportError:
 test_dir = os.path.join(os.path.dirname(__file__), "..", "..", 'test_files')
 
 
+def find_anaddbnc_in_dir(dirpath):
+    for in ("anaddb.nc", "run_anaddb.nc"):
+        p = os.path.join(dirpath, "run_anaddb.nc")
+        if os.path.isfile(p): return p
+
+    raise RuntimeError(f"Cannot file anaddb.nc file in {dirpath}")
+
+
 class ConverterTest(AbipyTest):
 
     def test_ddb_phonopy_ddb_phfreqs(self):
@@ -79,7 +87,7 @@ class ConverterTest(AbipyTest):
 
             orig_phbands = ddb.anaget_phmodes_at_qpoints(qpoints=qpoints, asr=0, dipdip=0, chneut=0,
                                                          lo_to_splitting=False, workdir=orig_run_ana)
-            ananc_orig = abilab.abiopen(os.path.join(orig_run_ana, "anaddb.nc"))
+            ananc_orig = abilab.abiopen(find_anaddbnc_in_dir(orig_run_ana))
 
         nac = phonon.nac_params
         # remove nac_params to be sure that this does not enter into play.
@@ -95,7 +103,7 @@ class ConverterTest(AbipyTest):
 
         conv_phbands = ddb_conv.anaget_phmodes_at_qpoints(qpoints=qpoints, asr=0, dipdip=0, chneut=0,
                                                           lo_to_splitting=False, workdir=conv_run_ana)
-        ananc_conv = abilab.abiopen(os.path.join(conv_run_ana, "anaddb.nc"))
+        ananc_conv = abilab.abiopen(find_anaddbnc_in_dir(conv_run_ana))
 
         self.assertArrayAlmostEqual(orig_phbands.phfreqs, conv_phbands.phfreqs, decimal=5)
         self.assertArrayAlmostEqual(orig_phbands.phfreqs * abu.eV_to_THz, phfreqs_phonopy, decimal=3)
@@ -141,10 +149,10 @@ class ConverterTest(AbipyTest):
         phfreqs_phonopy_orig = np.array([phonon_orig.get_frequencies(q.frac_coords) for q in qpoints])
         phfreqs_phonopy_conv = np.array([phonon_conv.get_frequencies(q.frac_coords) for q in qpoints])
 
-        run_ana = os.path.join(tmp_dir, "anaddb")
+        run_ana = os.path.join(tmp_dir, "run_anaddb")
         phbands = ddb.anaget_phmodes_at_qpoints(qpoints=qpoints, asr=0, dipdip=0, chneut=0,
                                                 lo_to_splitting=False, workdir=run_ana)
-        ananc = abilab.abiopen(os.path.join(run_ana, "anaddb.nc"))
+        ananc = abilab.abiopen(find_anaddbnc_in_dir(run_ana))
 
         self.assertArrayAlmostEqual(phbands.phfreqs * abu.eV_to_THz, phfreqs_phonopy_orig, decimal=3)
         self.assertArrayAlmostEqual(phbands.phfreqs * abu.eV_to_THz, phfreqs_phonopy_conv, decimal=3)

@@ -1473,7 +1473,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         from abipy.dfpt.anaddbnc import AnaddbNcFile
         from abipy.dfpt.converters import abinit_to_phonopy
-        anaddbnc = AnaddbNcFile(os.path.join(task.workdir, 'anaddb.nc'))
+        anaddbnc_path = task.outpath_from_ext("anaddb.nc")
+        anaddbnc = AnaddbNcFile(anaddbnc_path)
         phon = abinit_to_phonopy(anaddbnc=anaddbnc, supercell_matrix=supercell_matrix,
                                  symmetrize_tensors=symmetrize_tensors, output_dir_path=output_dir_path,
                                  prefix_outfiles=prefix_outfiles, symprec=symprec, set_masses=set_masses)
@@ -2520,11 +2521,17 @@ class DdbRobot(Robot):
             # Invoke anaddb to get phonon bands and DOS.
             phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(**kwargs)
 
+            def find_anaddb_ncpath(filepath):
+              from abipy.flowtk.utils import Directory
+              directory = Directory(os.path.dirname(filepath))
+              return directoy.outpath_from_ext("anaddb.nc")
+
             # Phonon frequencies with non analytical contributions, if calculated, are saved in anaddb.nc
             # Those results should be fetched from there and added to the phonon bands.
             # lo_to_splitting in ["automatic", True, False] and defaults to automatic.
             if kwargs.get("lo_to_splitting", False):
-                anaddb_path = os.path.join(os.path.dirname(phbst_file.filepath), "anaddb.nc")
+                #anaddb_path = os.path.join(os.path.dirname(phbst_file.filepath), "anaddb.nc")
+                anaddb_path = find_anaddb_ncpath(phbst_file.filepath)
                 phbst_file.phbands.read_non_anal_from_file(anaddb_path)
 
             phbands_plotter.add_phbands(label, phbst_file, phdos=phdos_file)
