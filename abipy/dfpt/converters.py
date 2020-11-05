@@ -406,7 +406,7 @@ def get_dm(phonon, qpt_list, structure):
         a list of arrays with the dynamical matrices of the selected q-points.
     """
     natom = len(structure)
-    rprim = structure.lattice.matrix
+    rprim = structure.lattice.matrix  * abu.Ang_Bohr
     # assume acell is [1., 1., 1.]
     rprimd = rprim
     masses = phonon.masses
