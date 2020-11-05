@@ -570,6 +570,11 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             """Parse the line with space group info, return dict."""
             # Could use regular expressions ...
             i = line.find("space group")
+
+            if i == -1:
+                # the unit cell is not primitive
+                return {}
+
             spg_str, brav_str = line[i:].replace("space group", "").split(";")
             toks = spg_str.split()
             return {
