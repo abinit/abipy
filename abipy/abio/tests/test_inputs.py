@@ -248,6 +248,7 @@ class TestAbinitInput(AbipyTest):
         # Note: This will return a pymatgen structure, not an Abipy structure.
         super_structure = si2_inp.structure * scdims
         sc_inp = si2_inp.new_with_structure(super_structure, scdims=scdims)
+        sc_inp["chksymtnons"] = 0
         assert isinstance(sc_inp.structure, abilab.Structure)
         assert len(sc_inp.structure) == 2 * scdims.prod()
         self.assert_almost_equal(sc_inp.structure.volume, si2_inp.structure.volume * scdims.prod())
