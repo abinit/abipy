@@ -1419,9 +1419,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return InteratomicForceConstants.from_file(os.path.join(task.workdir, 'anaddb.nc'))
 
-    def anaget_phonopy_ifc(self, ngqpt=None, asr=0, chneut=0, dipdip=0, manager=None, workdir=None,
-                           mpi_procs=1, symmetrize_tensors=False, output_dir_path=None,
-                           prefix_outfiles="", symprec=1e-5, set_masses=False, verbose=0):
+    def anaget_phonopy_ifc(self, ngqpt=None, supercell_matrix=None, asr=0, chneut=0, dipdip=0,
+                           manager=None, workdir=None, mpi_procs=1, symmetrize_tensors=False,
+                           output_dir_path=None, prefix_outfiles="", symprec=1e-5, set_masses=False,
+                           verbose=0):
         """
         Runs anaddb to get the interatomic force constants(IFC), born effective charges(BEC) and dielectric
         tensor obtained and converts them to the phonopy format. Optionally writes the
@@ -1432,6 +1433,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             ngqpt: the ngqpt used to generate the anaddbnc. Will be used to determine the (diagonal)
                 supercell matrix in phonopy. A smaller value can be used, but some information will
                 be lost and inconsistencies in the convertion may occour.
+            supercell_matrix: the supercell matrix used for phonopy. if None it will be set to
+                a diagonal matrix with ngqpt on the diagonal. This should provide the best agreement between
+                the anaddb and phonopy results.
             asr, chneut, dipdip: Anaddb input variable. See official documentation.
             manager: |TaskManager| object. If None, the object is initialized from the configuration file
             workdir: Working directory. If None, a temporary directory is created.
@@ -1453,6 +1457,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """
 
         if ngqpt is None: ngqpt = self.guessed_ngqpt
+        if supercell_matrix is None:
+            supercell_matrix = np.eye(3) * ngqpt
 
         inp = AnaddbInput.ifc(self.structure, ngqpt=ngqpt, ifcout=None, q1shft=(0, 0, 0), asr=asr,
                               chneut=chneut, dipdip=dipdip)
@@ -1462,9 +1468,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         from abipy.dfpt.anaddbnc import AnaddbNcFile
         from abipy.dfpt.converters import abinit_to_phonopy
         anaddbnc = AnaddbNcFile(os.path.join(task.workdir, 'anaddb.nc'))
-        phon = abinit_to_phonopy(anaddbnc=anaddbnc, ngqpt=ngqpt, symmetrize_tensors=symmetrize_tensors,
-                                 output_dir_path=output_dir_path, prefix_outfiles=prefix_outfiles,
-                                 symprec=symprec, set_masses=set_masses)
+        phon = abinit_to_phonopy(anaddbnc=anaddbnc, supercell_matrix=supercell_matrix,
+                                 symmetrize_tensors=symmetrize_tensors, output_dir_path=output_dir_path,
+                                 prefix_outfiles=prefix_outfiles, symprec=symprec, set_masses=set_masses)
 
         return phon
 

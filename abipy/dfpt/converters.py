@@ -12,7 +12,6 @@ from monty.dev import requires
 
 from pymatgen.io.phonopy import get_phonopy_structure, get_pmg_structure
 from pymatgen.io.vasp.inputs import Poscar
-from pymatgen.core.periodic_table import Element
 import abipy.core.abinit_units as abu
 from abipy.dfpt.ddb import DdbFile
 from abipy.abio.factories import minimal_scf_input
@@ -26,7 +25,7 @@ except ImportError:
 
 
 @requires(Phonopy, "phonopy not installed!")
-def abinit_to_phonopy(anaddbnc, ngqpt=None, symmetrize_tensors=False, output_dir_path=None,
+def abinit_to_phonopy(anaddbnc, supercell_matrix, symmetrize_tensors=False, output_dir_path=None,
                       prefix_outfiles="", symprec=1e-5, set_masses=False):
     """
     Converts the interatomic force constants(IFC), born effective charges(BEC) and dielectric
@@ -45,9 +44,9 @@ def abinit_to_phonopy(anaddbnc, ngqpt=None, symmetrize_tensors=False, output_dir
     Args:
         anaddbnc: an instance of AnaddbNcFile. Should contain the output of the IFC analysis,
             the BEC and the dielectric tensor.
-        ngqpt: the ngqpt used to generate the anaddbnc. Will be used to determine the (diagonal)
-            supercell matrix in phonopy. A smaller value can be used, but some information will
-            be lost and inconsistencies in the convertion may occour.
+        supercell_matrix: the supercell matrix used for phonopy. Any choice is acceptable, however
+            the best agreement between the abinit and phonopy results is obtained if this is set to
+            a diagonal matrix with on the diagonal the ngqpt used to generate the anaddb.nc.
         symmetrize_tensors: if True the tensors will be symmetrized in the Phonopy object and
             in the output files. This will apply to IFC, BEC and dielectric tensor.
         output_dir_path: a path to a directory where the phonopy files will be created
@@ -74,9 +73,6 @@ def abinit_to_phonopy(anaddbnc, ngqpt=None, symmetrize_tensors=False, output_dir
         # according to the phonopy website 14.399652 is not the coefficient for abinit
         # probably it relies on the other conventions in the output.
         nac_params = {"born": becs, "dielectric": epsinf, "factor": 14.399652}
-
-    # here only simple multiples of the unit cell are allowed
-    supercell_matrix = np.eye(3) * ngqpt
 
     s = anaddbnc.structure
 
@@ -410,15 +406,10 @@ def get_dm(phonon, qpt_list, structure):
         a list of arrays with the dynamical matrices of the selected q-points.
     """
     natom = len(structure)
-    abivars = structure.to_abivars()
-    rprim = np.array(abivars["rprim"])
-    # rprim = structure.lattice.matrix
-    acell = np.array(abivars["acell"])
-    znucl = abivars["znucl"]
-    # put to 0-based to be used here.
-    typat = np.array(abivars["typat"]) - 1
-    masses = np.array([Element.from_Z(znucl[t]).atomic_mass for t in typat])
-    rprimd = rprim * acell[:, None]
+    rprim = structure.lattice.matrix
+    # assume acell is [1., 1., 1.]
+    rprimd = rprim
+    masses = phonon.masses
     dm_list = []
     mass_tile = np.tile(masses, (3, 1)).T
     mass_matrix = np.sqrt(np.einsum("ij,kl", mass_tile, mass_tile))
