@@ -19,7 +19,8 @@ from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
 from pymatgen.phonon.dos import CompletePhononDos as PmgCompletePhononDos, PhononDos as PmgPhononDos
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter
-from abipy.core.kpoints import Kpoint, Kpath
+from abipy.core.kpoints import Kpoint, Kpath, KpointList
+from abipy.core.structure import Structure
 from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
 from abipy.tools import duck
@@ -1822,20 +1823,22 @@ class PhononBands(object):
 
         ph_freqs, qpts, displ = [], [], []
         for split_q, split_phf, split_phdispl in zip(self.split_qpoints, self.split_phfreqs, self.split_phdispl_cart):
-            # for q, phf in zip(split_q, split_phf)[1:-1]:
-            for i, (q, phf, d) in enumerate(zip(split_q, split_phf, split_phdispl)):
+            # if the qpoint has a label it needs to be repeated. If it is one of the extrema either it should
+            # not be repeated (if they are the real first or last point) or they will be already repeated due
+            # to the split. Also they should not be repeated in case there are two consecutive labelled points.
+            # So first determine which ones have a label.
+            labelled = [any(np.allclose(q, labelled_q) for labelled_q in labelled_q_list) for q in split_q]
+
+            for i, (q, phf, d, l) in enumerate(zip(split_q, split_phf, split_phdispl, labelled)):
                 ph_freqs.append(phf)
                 qpts.append(q)
                 d = d.reshape(self.num_branches, self.num_atoms, 3)
                 displ.append(d)
-                # if the qpoint has a label it nees to be repeated. If it is one of the extrama either it should
-                # not be repeated (if they are the real first or last point) or they will be already reapeated due
-                # to the split.
-                if any(np.allclose(q, labelled_q) for labelled_q in labelled_q_list):
-                    if 0 < i < len(split_q) - 1:
-                        ph_freqs.append(phf)
-                        qpts.append(q)
-                        displ.append(d)
+
+                if 0 < i < len(split_q) - 1 and l and not labelled[i-1] and not labelled[i+1]:
+                    ph_freqs.append(phf)
+                    qpts.append(q)
+                    displ.append(d)
 
         ph_freqs = np.transpose(ph_freqs) * abu.eV_to_THz
         qpts = np.array(qpts)
@@ -1845,6 +1848,95 @@ class PhononBands(object):
                                            lattice=self.structure.reciprocal_lattice,
                                            has_nac=self.non_anal_ph is not None, eigendisplacements=displ,
                                            labels_dict=labels_dict, structure=self.structure)
+
+    @classmethod
+    def from_pmg_bs(cls, pmg_bs, structure=None):
+        """
+        Creates an instance of the object from a :class:`PhononBandStructureSymmLine` object.
+
+        Args:
+            pmg_bs: the instance of PhononBandStructureSymmLine.
+            structure: a |Structure| object. Should be present if the structure attribute is
+                not set in pmg_bs.
+        """
+
+        structure = structure or pmg_bs.structure
+        if not structure:
+            raise ValueError("The structure is needed to create the abipy object.")
+
+        structure = Structure.from_sites(structure)
+        structure.spgset_abi_spacegroup(has_timerev=False)
+
+        qpoints = []
+        phfreqs = []
+        phdispl_cart = []
+        names = []
+
+        prev_q = None
+        for b in pmg_bs.branches:
+            qname1, qname2 = b["name"].split("-")
+            start_index = b["start_index"]
+            if prev_q is not None and qname1 == prev_q:
+                start_index += 1
+
+            # it can happen depending on how the object was generated
+            if start_index >= b["end_index"]:
+                continue
+
+            prev_q = qname2
+
+            if start_index == b["start_index"]:
+                names.append(qname1)
+
+            names.extend([None] * (b["end_index"] - b["start_index"] - 1))
+            names.append(qname2)
+
+            for i in range(start_index, b["end_index"] + 1):
+                qpoints.append(pmg_bs.qpoints[i].frac_coords)
+            phfreqs.extend(pmg_bs.bands.T[start_index:b["end_index"] + 1])
+            if pmg_bs.has_eigendisplacements:
+                e = pmg_bs.eigendisplacements[:, start_index:b["end_index"] + 1]
+                e = np.transpose(e, [0, 1, 2, 3])
+                e = np.reshape(e, e.shape[:-2] + (-1,))
+                phdispl_cart.extend(e)
+
+        print(len(names), len(phfreqs))
+        qpoints_list = KpointList(reciprocal_lattice=structure.reciprocal_lattice,
+                                  frac_coords=qpoints, names=names)
+
+        phfreqs = np.array(phfreqs) / abu.eV_to_THz
+        n_modes = 3 * len(structure)
+        if not phdispl_cart:
+            phdispl_cart = np.zeros((len(phfreqs), n_modes, n_modes))
+        else:
+            phdispl_cart = np.array(phdispl_cart)
+
+        na = None
+        if pmg_bs.has_nac:
+            directions = []
+            nac_phreqs = []
+            nac_phdispl = []
+
+            for t in pmg_bs.nac_frequencies:
+                # directions in NonAnalyticalPh are given in cartesian coordinates
+                cart_direction = structure.lattice.reciprocal_lattice_crystallographic.get_cartesian_coords(t[0])
+                cart_direction = cart_direction / np.linalg.norm(cart_direction)
+
+                directions.append(cart_direction)
+                nac_phreqs.append(t[1])
+
+            nac_phreqs = np.array(nac_phreqs) / abu.eV_to_THz
+
+            for t in pmg_bs.nac_eigendisplacements:
+                nac_phdispl.append(t[1].reshape(n_modes, n_modes))
+
+            na = NonAnalyticalPh(structure=structure, directions=np.array(directions),
+                                 phfreqs=nac_phreqs, phdispl_cart=np.array(nac_phdispl))
+
+        phb = cls(structure=structure, qpoints=qpoints_list, phfreqs=phfreqs, phdispl_cart=phdispl_cart,
+                  non_anal_ph=na)
+
+        return phb
 
     def acoustic_indices(self, qpoint, threshold=0.95, raise_on_no_indices=True):
         """

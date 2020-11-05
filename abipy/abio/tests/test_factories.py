@@ -464,3 +464,12 @@ class FactoryTest(AbipyTest):
         self.assert_input_equality('dfpt_from_gsinput_ph_q_pert_2.json', inp_ph_q_pert_2)
         self.assert_input_equality('dfpt_from_gsinput_strain.json', inp_strain)
         self.assert_input_equality('dfpt_from_gsinput_dte.json', inp_dte)
+
+    def test_minimal_scf_input(self):
+        from abipy.abio.factories import minimal_scf_input
+        inp = minimal_scf_input(self.si_structure, self.si_pseudo)
+
+        self.abivalidate_input(inp)
+
+        self.assertEqual(inp["nband"], 1)
+        self.assertEqual(inp["nstep"], 0)

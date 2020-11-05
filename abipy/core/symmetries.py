@@ -886,6 +886,20 @@ class AbinitSpaceGroup(OpSequence):
         k_symmops = [self[i] for i in to_spgrp]
         return LittleGroup(kpoint, k_symmops, g0vecs)
 
+    def get_spglib_hall_number(self, symprec=1e-5):
+        """
+        Uses spglib.get_hall_number_from_symmetry to determine the hall number
+        based on the symmetry operations. Useful when the spece group number
+        is not available, but the symmetries are (e.g. the DDB file)
+
+        Args:
+            symprec: distance tolerance in fractional coordinates (not the standard
+                in cartesian coordinates). See spglib docs for more details.
+
+        Returns:
+            int: the hall number.
+        """
+        return spglib.get_hall_number_from_symmetry(self.symrel, self.tnons, symprec=symprec)
 
 # FIXME To maintain backward compatibility.
 SpaceGroup = AbinitSpaceGroup

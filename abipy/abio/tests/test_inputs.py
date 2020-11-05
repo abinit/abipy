@@ -340,6 +340,9 @@ class TestAbinitInput(AbipyTest):
         inp_si["paral_kgb"] = 1
         pconfs = inp_si.abiget_autoparal_pconfs(max_ncpus=5)
 
+        # Test run_in_shell
+        assert inp_si.run_in_shell()
+
     def test_dict_methods(self):
         """ Testing AbinitInput dict methods """
         inp = ebands_input(abidata.cif_file("si.cif"), abidata.pseudos("14si.pspnc"), kppa=10, ecut=2)[0]

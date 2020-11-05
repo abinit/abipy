@@ -430,6 +430,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         block_lines = []
         qpt = None
         dord = None
+        qpt3 = None
 
         for line in self:
             # skip empty lines
@@ -440,9 +441,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 # add last block when we reach the last part of the file.
                 # This line is present only if DDB has been produced by mrgddb
                 if block_lines:
-                    blocks.append({"data": block_lines, "qpt": qpt, "dord": dord})
+                    blocks.append({"data": block_lines, "qpt": qpt, "qpt3": qpt3, "dord": dord})
                     block_lines = []
                     qpt = None
+                    qpt3 = None
                 break
 
             # Don't use lstring because we may reuse block_lines to write new DDB.
@@ -451,7 +453,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             # new block --> detect order
             if "# elements" in line:
                 if block_lines:
-                    blocks.append({"data": block_lines, "qpt": qpt, "dord": dord})
+                    blocks.append({"data": block_lines, "qpt": qpt, "qpt3": qpt3, "dord": dord})
 
                 tokens = line.split()
                 num_elements = int(tokens[-1])
@@ -465,13 +467,21 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
                 block_lines = []
                 qpt = None
+                qpt3 = None
 
             block_lines.append(line)
-            if "qpt" in line:
+            if dord == 2 and "qpt" in line:
                 qpt = list(map(float, line.split()[1:4]))
 
+            # if needed accumulate the qpt coords in qpt3. stop when they reach 3.
+            if dord == 3:
+                if "qpt" in line:
+                    qpt3 = [list(map(float, line.split()[1:4]))]
+                elif qpt3 and len(qpt3) < 3:
+                    qpt3.append(list(map(float, line.split()[:3])))
+
         if block_lines:
-            blocks.append({"data": block_lines, "qpt": qpt, "dord": dord})
+            blocks.append({"data": block_lines, "qpt": qpt, "qpt3": qpt3, "dord": dord})
 
         return blocks
 
@@ -901,7 +911,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                                  manager=None, verbose=0, lo_to_splitting=False, spell_check=True,
                                  directions=None, anaddb_kwargs=None, return_input=False):
         """
-        Execute anaddb to compute phonon modes at the given q-point (without LO-TO splitting)
+        Execute anaddb to compute phonon modes at the given q-point. Non analytical contribution
+        can be added if qpoint is Gamma and required elements are present in the DDB.
 
         Args:
             qpoint: Reduced coordinates of the qpoint where phonon modes are computed.
@@ -927,29 +938,75 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 raise ValueError("%s contains %s qpoints and the choice is ambiguous.\n"
                                  "Please specify the qpoint." % (self, len(self.qpoints)))
 
-        # Check if qpoint is in the DDB.
-        try:
-            iq = self.qindex(qpoint)
-        except Exception:
-            raise ValueError("input qpoint %s not in %s.\nddb.qpoints:\n%s" % (
-                qpoint, self.filepath, self.qpoints))
+        return self.anaget_phmodes_at_qpoints(qpoints=[qpoint], asr=asr, chneut=chneut, dipdip=dipdip,
+                                              workdir=workdir, mpi_procs=mpi_procs, manager=manager,
+                                              verbose=verbose, lo_to_splitting=lo_to_splitting, spell_check=spell_check,
+                                              directions=directions, anaddb_kwargs=anaddb_kwargs, return_input=return_input)
 
-        qpoint = self.qpoints[iq]
+    def anaget_phmodes_at_qpoints(self, qpoints=None, asr=2, chneut=1, dipdip=1, ifcflag=0, ngqpt=None,
+                                  workdir=None, mpi_procs=1, manager=None, verbose=0, lo_to_splitting=False,
+                                  spell_check=True, directions=None, anaddb_kwargs=None, return_input=False):
+        """
+        Execute anaddb to compute phonon modes at the given list of q-points. Non analytical contribution
+        can be added if Gamma belongs to the list and required elements are present in the DDB.
+        If the list of q-points contains points that are not present in the DDB the values will be
+        interpolated and ifcflag should be set to 1.
+
+        Args:
+            qpoints: Reduced coordinates of a list of qpoints where phonon modes are computed.
+            asr, chneut, dipdip, ifcflag: Anaddb input variable. See official documentation.
+            ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default).
+            workdir: Working directory. If None, a temporary directory is created.
+            mpi_procs: Number of MPI processes to use.
+            manager: |TaskManager| object. If None, the object is initialized from the configuration file
+            verbose: verbosity level. Set it to a value > 0 to get more information.
+            lo_to_splitting: Allowed values are [True, False, "automatic"]. Defaults to False
+                If True the LO-TO splitting will be calculated if qpoint == Gamma and the non_anal_directions
+                non_anal_phfreqs attributes will be addeded to the phonon band structure.
+                "automatic" activates LO-TO if the DDB file contains the dielectric tensor and Born effective charges.
+            directions: list of 3D directions along which the LO-TO splitting will be calculated. If None the three
+                cartesian direction will be used.
+            anaddb_kwargs: additional kwargs for anaddb.
+            return_input: True if |AnaddbInput| object should be returned as 2nd argument
+
+        Return: |PhononBands| object.
+        """
+        if qpoints is None:
+            qpoints = self.qpoints
+
+        if ifcflag == 0:
+            try:
+                iqs = [self.qindex(q) for q in qpoints]
+            except Exception:
+                raise ValueError("input qpoint %s not in %s.\nddb.qpoints:\n%s" % (
+                    qpoints, self.filepath, self.qpoints))
+
+            qpoints = [self.qpoints[iq] for iq in iqs]
+        else:
+            rl = self.structure.lattice.reciprocal_lattice
+            qpoints = [Kpoint(qc, rl) for qc in qpoints]
+            if ngqpt is None:
+                ngqpt = self.guessed_ngqpt
+
+        gamma = None
+        for q in qpoints:
+            if q.is_gamma():
+                gamma = q
 
         if lo_to_splitting == "automatic":
-            lo_to_splitting = self.has_lo_to_data() and qpoint.is_gamma() and dipdip != 0
+            lo_to_splitting = self.has_lo_to_data() and gamma and dipdip != 0
 
-        if lo_to_splitting and qpoint.is_gamma() and not self.has_lo_to_data():
-            cprint("lo_to_splitting set to True but Eps_inf and Becs are not available in DDB %s:" % self.filepath)
+        # if lo_to_splitting and gamma and not self.has_lo_to_data():
+        #     cprint("lo_to_splitting set to True but Eps_inf and Becs are not available in DDB %s:" % self.filepath)
 
-        inp = AnaddbInput.modes_at_qpoint(self.structure, qpoint, asr=asr, chneut=chneut, dipdip=dipdip,
-                                          lo_to_splitting=lo_to_splitting, directions=directions,
-                                          anaddb_kwargs=anaddb_kwargs, spell_check=spell_check)
+        inp = AnaddbInput.modes_at_qpoints(self.structure, qpoints, asr=asr, chneut=chneut, dipdip=dipdip,
+                                           ifcflag=ifcflag, ngqpt=ngqpt, lo_to_splitting=lo_to_splitting, directions=directions,
+                                           anaddb_kwargs=anaddb_kwargs, spell_check=spell_check)
 
         task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose)
 
         with task.open_phbst() as ncfile:
-            if lo_to_splitting and qpoint.is_gamma():
+            if lo_to_splitting and gamma:
                 ncfile.phbands.read_non_anal_from_file(os.path.join(task.workdir, "anaddb.nc"))
 
             return ncfile.phbands if not return_input else (ncfile.phbands, inp)
@@ -1362,6 +1419,100 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return InteratomicForceConstants.from_file(os.path.join(task.workdir, 'anaddb.nc'))
 
+    def anaget_phonopy_ifc(self, ngqpt=None, supercell_matrix=None, asr=0, chneut=0, dipdip=0,
+                           manager=None, workdir=None, mpi_procs=1, symmetrize_tensors=False,
+                           output_dir_path=None, prefix_outfiles="", symprec=1e-5, set_masses=False,
+                           verbose=0):
+        """
+        Runs anaddb to get the interatomic force constants(IFC), born effective charges(BEC) and dielectric
+        tensor obtained and converts them to the phonopy format. Optionally writes the
+        standard phonopy files to a selected directory: FORCE_CONSTANTS, BORN (if BECs are available)
+        POSCAR of the unit cell, POSCAR of the supercell.
+
+        Args:
+            ngqpt: the ngqpt used to generate the anaddbnc. Will be used to determine the (diagonal)
+                supercell matrix in phonopy. A smaller value can be used, but some information will
+                be lost and inconsistencies in the convertion may occour.
+            supercell_matrix: the supercell matrix used for phonopy. if None it will be set to
+                a diagonal matrix with ngqpt on the diagonal. This should provide the best agreement between
+                the anaddb and phonopy results.
+            asr, chneut, dipdip: Anaddb input variable. See official documentation.
+            manager: |TaskManager| object. If None, the object is initialized from the configuration file
+            workdir: Working directory. If None, a temporary directory is created.
+            mpi_procs: Number of MPI processes to use.
+            symmetrize_tensors: if True the tensors will be symmetrized in the Phonopy object and
+                in the output files. This will apply to IFC, BEC and dielectric tensor.
+            output_dir_path: a path to a directory where the phonopy files will be created
+            prefix_outfiles: a string that will be added as a prefix to the name of the written files
+            symprec: distance tolerance in Cartesian coordinates to find crystal symmetry in phonopy.
+                It might be that the value should be tuned so that it leads to the the same symmetries
+                as in the abinit calculation.
+            set_masses: if True the atomic masses used by abinit will be added to the PhonopyAtoms
+                and will be present in the returned Phonopy object. This should improve compatbility
+                among abinit and phonopy results if frequencies needs to be calculated.
+            verbose: verbosity level. Set it to a value > 0 to get more information
+
+        Returns:
+            An instance of a Phonopy object that contains the IFC, BEC and dieletric tensor data.
+        """
+
+        if ngqpt is None: ngqpt = self.guessed_ngqpt
+        if supercell_matrix is None:
+            supercell_matrix = np.eye(3) * ngqpt
+
+        inp = AnaddbInput.ifc(self.structure, ngqpt=ngqpt, ifcout=None, q1shft=(0, 0, 0), asr=asr,
+                              chneut=chneut, dipdip=dipdip)
+
+        task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose=verbose)
+
+        from abipy.dfpt.anaddbnc import AnaddbNcFile
+        from abipy.dfpt.converters import abinit_to_phonopy
+        anaddbnc = AnaddbNcFile(os.path.join(task.workdir, 'anaddb.nc'))
+        phon = abinit_to_phonopy(anaddbnc=anaddbnc, supercell_matrix=supercell_matrix,
+                                 symmetrize_tensors=symmetrize_tensors, output_dir_path=output_dir_path,
+                                 prefix_outfiles=prefix_outfiles, symprec=symprec, set_masses=set_masses)
+
+        return phon
+
+    def anaget_interpolated_ddb(self, qpt_list, asr=2, chneut=1, dipdip=1, ngqpt=None, workdir=None,
+                                manager=None, mpi_procs=1, verbose=0, anaddb_kwargs=None):
+        """
+        Runs anaddb to generate an interpolated ddb on list of qpt.
+
+        Args:
+            qpt_list: list of fractional coordinates of qpoints where the ddb should be interpolated.
+            asr, chneut, dipdip: Anaddb input variable. See official documentation.
+            ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default).
+            workdir: Working directory. If None, a temporary directory is created.
+            mpi_procs: Number of MPI processes to use.
+            manager: |TaskManager| object. If None, the object is initialized from the configuration file
+            verbose: verbosity level. Set it to a value > 0 to get more information.
+            anaddb_kwargs: additional kwargs for anaddb.
+
+        """
+
+        if ngqpt is None: ngqpt = self.guessed_ngqpt
+
+        inp = AnaddbInput(self.structure, anaddb_kwargs=anaddb_kwargs)
+
+        q1shft = [[0, 0, 0]]
+        inp.set_vars(
+            ifcflag=1,
+            ngqpt=np.array(ngqpt),
+            q1shft=q1shft,
+            nqshft=len(q1shft),
+            asr=asr,
+            chneut=chneut,
+            dipdip=dipdip,
+            prtddb=1
+        )
+        inp['qph1l'] = [list(q) + [1] for q in qpt_list]
+        inp['nph1l'] = len(qpt_list)
+
+        task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose=verbose)
+
+        return self.__class__(os.path.join(task.workdir, "run.abo_DDB"))
+
     def anaget_dielectric_tensor_generator(self, asr=2, chneut=1, dipdip=1, workdir=None, mpi_procs=1,
                                            manager=None, verbose=0, anaddb_kwargs=None, return_input=False):
         """
@@ -1582,6 +1733,101 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 return True
 
         return False
+
+    def insert_block(self, data, replace=True):
+        """
+        Inserts a block in the list. Can replace a block if already present.
+
+        Args:
+            data: a dictionary with keys "dord" (the order of the perturbation),
+                "qpt" (the fractional coordinates of the qpoint if dord=2),
+                "qpt3" (the fractional coordinates of the qpoints if dord=3),
+                "data" (the lines of the block of data).
+            replace: if True and an equivalent block is already present it will be replaced,
+                otherwise the block will not be inserted.
+
+        Returns:
+            bool: True if the block was inserted.
+        """
+        dord = data["dord"]
+        for i, b in enumerate(self.blocks):
+            if dord == b["dord"] and \
+                    (dord in (0, 1) or
+                    (dord == 2 and np.allclose(b['qpt'], data["qpt"])) or
+                    (dord == 3 and np.allclose(b['qpt3'], data["qpt3"]))):
+                if replace:
+                    self.blocks[i] = data
+                    return True
+                else:
+                    return False
+
+        self.blocks.append(data)
+        return True
+
+    def remove_block(self, dord, qpt=None, qpt3=None):
+        """
+        Removes one block from the list of blocks in the ddb
+        Args:
+            dord: the order of the perturbation (from 0 to 3).
+            qpt: the fractional coordinates of the q point of the block to be
+                removed. Should be present if dord=2.
+            qpt3: a 3x3 matrix with the coordinates for the third order perturbations.
+                Should be present in dord=3.
+
+        Returns:
+            bool: True if a matching block was found and removed.
+        """
+        if dord == 2 and qpt is None:
+            raise ValueError("if dord==2 the qpt should be set")
+        if dord == 3 and qpt3 is None:
+            raise ValueError("if dord==3 the qpt3 should be set")
+
+        for i, b in enumerate(self.blocks):
+            if dord == b["dord"] and \
+                    (dord in (0, 1) or
+                    (dord == 2 and np.allclose(b['qpt'], qpt)) or
+                    (dord == 3 and np.allclose(b['qpt3'], qpt3))):
+                self.blocks.pop(i)
+                return True
+
+        return False
+
+    def get_2nd_ord_dict(self):
+        """
+        Generates an ordered dictionary with the second order derivative of the form
+        {qpt: {(idir1, ipert1, idir2, ipert2): complex value}}.
+
+        Returns:
+            OrderedDict: a dictionary with all the elements of a dynamical matrix
+        """
+        dynmat = self.computed_dynmat
+        d = OrderedDict()
+
+        for q, dm in dynmat.items():
+            dd = {}
+            for index, row in dm.iterrows():
+                dd[index] = row["cvalue"]
+            d[q] = dd
+
+        return d
+
+    def set_2nd_ord_data(self, data, replace=True):
+        """
+        Insert the blocks corresponding to the data provided for the second
+        order perturbations.
+
+        Args:
+            data: a dict of the form {qpt: {(idir1, ipert1, idir2, ipert2): complex value}}.
+            replace: if True and an equivalent block is already present it will be replaced,
+                otherwise the block will not be inserted.
+        """
+        for q, d in data.items():
+            if isinstance(q, Kpoint):
+                q = q.frac_coords
+            lines = get_2nd_ord_block_string(q, d)
+            block_data = {"qpt": q, "qpt3": None, "dord": 2, "data": lines}
+
+            self.insert_block(block_data, replace=replace)
 
     def get_panel(self):
         """Build panel with widgets to interact with the |DdbFile| either in a notebook or in panel app."""
@@ -2491,3 +2737,26 @@ class DdbRobot(Robot):
         nb.cells.extend(self.get_baserobot_code_cells())
 
         return self._write_nb_nbpath(nb, nbpath)
+
+
+def get_2nd_ord_block_string(qpt, data):
+    """
+    Helper function providing the lines required in a DDB file for a given
+    q point and second order derivatives.
+
+    Args:
+        qpt: the fractional coordinates of the q point.
+        data: a dictionary of the form {qpt: {(idir1, ipert1, idir2, ipert2): complex value}}
+            with the data that should be given in the string.
+
+    Returns:
+        list of str: the lines that can be added to the DDB file.
+    """
+    lines = []
+    lines.append(f" 2nd derivatives (non-stat.)  - # elements :{len(data):8}")
+    lines.append(" qpt{:16.8E}{:16.8E}{:16.8E}   1.0".format(*qpt))
+    l_format = "{:4d}" * 4 + "  {:22.14E}" * 2
+    for p, v in data.items():
+        lines.append(l_format.format(*p, v.real, v.imag))
+
+    return lines
