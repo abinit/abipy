@@ -62,6 +62,7 @@ class TestSymmetries(AbipyTest):
         assert spgrp.has_timerev
         assert len(spgrp) == 48 * 2
         assert spgrp.num_spatial_symmetries == 48
+        assert spgrp.get_spglib_hall_number() == 525
 
         assert spgrp.is_group()
         # TODO
