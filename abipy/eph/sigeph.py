@@ -303,7 +303,11 @@ class QpTempList(list):
 
     def get_field_itemp(self, field, itemp):
         """|numpy-array| containing the values of field at temperature ``itemp``"""
-        return np.array([getattr(qp, field)[itemp] for qp in self])
+        #return np.array([getattr(qp, field)[itemp] for qp in self])
+        if field in {"tmesh", "qpe", "ze0", "fan0", "dw", "qpe_oms"}:
+            return np.array([getattr(qp, field)[itemp] for qp in self])
+        else:
+            return np.array([getattr(qp, field) for qp in self])
 
     #def get_skb_field(self, skb, field):
     #    """Return the value of field for the given spin kp band tuple, None if not found"""
@@ -928,7 +932,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                         oms_gap = self.qp_dirgaps_otms_t[spin, ikc, it]
                         data.append([spin, repr(kpoint), ks_gap, qp_gap, qp_gap - ks_gap, oms_gap, oms_gap - ks_gap])
                 app(str(tabulate(data,
-                    headers=["Spin", "k-point", "KS_gap", "QPZ_gap", "QPZ - KS", "OTMS_gap", "OTMS - KS"],
+                    headers=["Spin", "k-point", "KS_gap", "QPZ0_gap", "QPZ0 - KS", "OTMS_gap", "OTMS - KS"],
                     floatfmt=".3f")))
                 app("")
         #else:
@@ -997,6 +1001,10 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         #assert np.all(kcalc2ibz == self.reader.read_value("kcalc2ibz")[0] - 1)
         return kcalc2ibz
+
+        # nctkarr_t("kcalc2ibz", "int", "nkcalc, six")
+        kcalc2ibz_map = self.reader.read_value("kcalc2ibz")
+        return kcalc2ibz_map[0] - 1
 
     @lazy_property
     def ibz2kcalc(self):
@@ -1253,24 +1261,39 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         # TODO: Specialized object with ElectronDos list?
         return [ElectronDos(mesh, dos_t, nelect, fermie=fermie) for dos_t in dos]
 
-    def get_qp_array(self, ks_ebands_kpath=None, mode="qp"):
+    def get_qp_array(self, ks_ebands_kpath=None, mode="qp", rta_type="mrta"):
         """
         Get the lifetimes in an array with spin, kpoint and band dimensions
+
+        Args:
+            rta_type: "serta" for SERTA linewidths or "mrta" for MRTA linewidths.
         """
         if mode == "qp":
             # Read QP energies from file (real + imag part) and compute corrections if ks_ebands_kpath.
             # nctkarr_t("qp_enes", "dp", "two, ntemp, max_nbcalc, nkcalc, nsppol")
             qpes = self.reader.read_value("qp_enes", cmode="c") * abu.Ha_eV
+
         elif mode == "ks+lifetimes":
-            qpes_im = self.reader.read_value("vals_e0ks", cmode="c").imag * abu.Ha_to_eV
+            # nctkarr_t("ks_enes", "dp", "max_nbcalc, nkcalc, nsppol")
+            # nctkarr_t("vals_e0ks", "dp", "two, ntemp, max_nbcalc, nkcalc, nsppol")
             qpes_re = self.reader.read_value("ks_enes") * abu.Ha_to_eV
+
+            if rta_type == "serta":
+                qpes_im = self.reader.read_value("vals_e0ks", cmode="c").imag * abu.Ha_to_eV
+            elif rta_type == "mrta":
+                qpes_im = self.reader.read_value("linewidth_mrta") * abu.Ha_to_eV
+            else:
+                raise ValueError("Invalid rta_type: `%s`" % rta_type)
+
             qpes = qpes_re[:,:,:,np.newaxis] + 1j * qpes_im
+
         else:
-            raise ValueError("Invalid interpolation mode: %s can be either 'qp' or 'ks+lifetimes'")
+            raise ValueError("Invalid interpolation mode: %s can be either 'qp' or 'ks+lifetimes'" % mode)
 
         if ks_ebands_kpath is not None:
             if ks_ebands_kpath.structure != self.structure:
                 cprint("sigres.structure and ks_ebands_kpath.structures differ. Check your files!", "red")
+            # MG FIXME: Not sure this part is OK
             # nctkarr_t("ks_enes", "dp", "max_nbcalc, nkcalc, nsppol")
             ks_enes = self.reader.read_value("ks_enes") * abu.Ha_to_eV
             for itemp in range(self.ntemp):
@@ -1279,79 +1302,81 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         # Note there's no guarantee that the sigma_kpoints and the corrections have the same k-point index.
         # Be careful because the order of the k-points and the band range stored in the SIGRES file may differ ...
         # HM: Map the bands from sigeph to the electron bandstructure
-        nkpoints = len(self.sigma_kpoints)
-        nbands = self.reader.bstop_sk.max()
-        qpes_new = np.zeros((self.nsppol,nkpoints,nbands,self.ntemp),dtype=np.complex)
+        nkibz = len(self.ebands.kpoints)
+        if nkibz != len(self.sigma_kpoints):
+            cprint("SIGPEH file does not contain QP data for all the k-points in the IBZ!", "yellow")
+
+        nband = self.reader.bstop_sk.max()
+        qpes_new = np.zeros((self.nsppol, nkibz, nband, self.ntemp), dtype=np.complex)
+
         for spin in range(self.nsppol):
-            for i,ik in enumerate(self.kcalc2ibz):
-                for nb,band in enumerate(range(self.bstart_sk[spin, i], self.bstop_sk[spin, i])):
-                    qpes_new[spin,ik,band] = qpes[spin,ik,nb]
+            for ikc, ikibz in enumerate(self.kcalc2ibz):
+                for ibc, band in enumerate(range(self.bstart_sk[spin, ikc], self.bstop_sk[spin, ikc])):
+                    qpes_new[spin, ikibz, band] = qpes[spin, ikc, ibc]
 
         return qpes_new
 
-    #def get_lifetimes_boltztrap(self, basename, workdir=None):
-    #    """
-    #    Get basename.tau and basename.energy text files to be used in Boltztrap code
-    #    for transport calculations
+    def get_lifetimes_boltztrap(self, basename, rta_type="mrta", workdir=None):
+        """
+        Produce basename.tau and basename.energy text files to be used
+        in Boltztrap code for transport calculations.
 
-    #    Args:
-    #        basename: The basename of the files to be produced
-    #        workdir: Directory where files will be produced. None for current working directory.
-    #    """
-    #    #TODO move this to AbipyBoltztrap class
-    #    workdir = os.getcwd() if workdir is None else str(workdir)
+        Args:
+            basename: The basename of the files to be produced
+            workdir: Directory where files will be produced. None for current working directory.
+        """
+        workdir = os.getcwd() if workdir is None else str(workdir)
 
-    #    # get the lifetimes as an array
-    #    qpes = self.get_qp_array(mode='ks+lifetimes')
+        # get the lifetimes as an array
+        qpes = self.get_qp_array(mode='ks+lifetimes', rta_type=rta_type)
 
-    #    # read from this class
-    #    nspn = self.nspden
-    #    nkpt = self.nkpt
-    #    kpoints = self.kpoints
-    #    bstart = self.reader.max_bstart
-    #    bstop = self.reader.min_bstop
-    #    ntemp = self.ntemp
-    #    tmesh = self.tmesh
-    #    fermie = self.ebands.fermie * abu.eV_Ry
-    #    struct = self.ebands.structure
+        # read from this class
+        nkibz = self.nkpt
+        kpoints = self.kpoints
+        bstart = self.reader.max_bstart
+        bstop = self.reader.min_bstop
+        ntemp = self.ntemp
+        tmesh = self.tmesh
+        fermie_ry = self.ebands.fermie * abu.eV_Ry
+        struct = self.ebands.structure
 
-    #    def write_file(filename, tag, function, T=None):
-    #        """Function to write files for BoltzTraP"""
-    #        with open(os.path.join(workdir, filename), 'wt') as f:
-    #            ttag = ' for T=%12.6lf' % T if T else ''
-    #            f.write('BoltzTraP %s file generated by abipy%s.\n' % (tag,ttag))
-    #            f.write('%5d %5d %20.12e ! nk, nspin : lifetimes below in s \n' % (nkpt, nspn, fermie))
-    #            for ispin in range(nspn):
-    #                for ik in range(nkpt):
-    #                    kpt = kpoints[ik]
-    #                    fmt = '%20.12e ' * 3 + '%d !kpt nband\n' % (bstop - bstart)
-    #                    f.write(fmt % tuple(kpt))
-    #                    for ibnd in range(bstart,bstop):
-    #                        f.write('%20.12e\n' % (function(qpes[ispin,ik,ibnd,itemp])))
+        def write_file(filename, tag, function, T=None):
+            """Function to write files for BoltzTraP"""
+            with open(os.path.join(workdir, filename), 'wt') as f:
+                ttag = ' for T=%12.6lf' % T if T else ''
+                f.write('BoltzTraP %s file generated by abipy%s.\n' % (tag, ttag))
+                f.write('%5d %5d %20.12e ! nk, nspin : lifetimes below in s \n' % (nkibz, self.nsppol, fermie_ry))
+                for ispin in range(self.nsppol):
+                    for ik in range(nkibz):
+                        kpt = kpoints[ik]
+                        fmt = '%20.12e ' * 3 + '%d !kpt nband\n' % (bstop - bstart)
+                        f.write(fmt % tuple(kpt))
+                        for ibnd in range(bstart, bstop):
+                            f.write('%20.12e\n' % (function(qpes[ispin, ik, ibnd, itemp])))
 
-    #    # write tau
-    #    for itemp in range(ntemp):
-    #        T = tmesh[itemp]
-    #        filename_tau = basename + '_%dK_BLZTRP.tau_k' % T
-    #        function = lambda x: 1.0 / (2 * abs(x.imag) * abu.eV_s)
-    #        write_file(filename_tau, 'tau_k', function,T)
+        # write tau
+        for itemp in range(ntemp):
+            T = tmesh[itemp]
+            filename_tau = basename + '_%dK_BLZTRP.tau_k' % T
+            function = lambda x: 1.0 / (2 * abs(x.imag) * abu.eV_s)
+            write_file(filename_tau, 'tau_k', function,T)
 
-    #    # write energies
-    #    filename_ene = basename + '_BLZTRP.energy'
-    #    function = lambda x: x.real * abu.eV_Ry
-    #    write_file(filename_ene, 'eigen-enegies', function)
+        # write energies
+        filename_ene = basename + '_BLZTRP.energy'
+        function = lambda x: x.real * abu.eV_Ry
+        write_file(filename_ene, 'eigen-enegies', function)
 
-    #    # write structure
-    #    fmt3 = "%20.12e "*3 + '\n'
-    #    path = os.path.join(workdir, basename + '_BLZTRP.structure')
-    #    with open(path, 'wt') as f:
-    #        f.write('BoltzTraP geometry file generated by abipy.\n')
-    #        f.write(fmt3 % tuple(struct.lattice.matrix[0] * abu.Ang_Bohr))
-    #        f.write(fmt3 % tuple(struct.lattice.matrix[1] * abu.Ang_Bohr))
-    #        f.write(fmt3 % tuple(struct.lattice.matrix[2] * abu.Ang_Bohr))
-    #        f.write("%d\n" % len(struct))
-    #        for atom in struct:
-    #            f.write("%s " % atom.specie + fmt3 % tuple(atom.coords * abu.Ang_Bohr))
+        # write structure
+        fmt3 = "%20.12e "*3 + '\n'
+        path = os.path.join(workdir, basename + '_BLZTRP.structure')
+        with open(path, 'wt') as f:
+            f.write('BoltzTraP geometry file generated by abipy.\n')
+            f.write(fmt3 % tuple(struct.lattice.matrix[0] * abu.Ang_Bohr))
+            f.write(fmt3 % tuple(struct.lattice.matrix[1] * abu.Ang_Bohr))
+            f.write(fmt3 % tuple(struct.lattice.matrix[2] * abu.Ang_Bohr))
+            f.write("%d\n" % len(struct))
+            for atom in struct:
+                f.write("%s " % atom.specie + fmt3 % tuple(atom.coords * abu.Ang_Bohr))
 
     def interpolate(self, itemp_list=None, lpratio=5, mode="qp", ks_ebands_kpath=None, ks_ebands_kmesh=None,
                     ks_degatol=1e-4, vertices_names=None, line_density=20, filter_params=None,
@@ -1441,7 +1466,8 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         # and re-apply them on top of the KS band structure.
         gw_kcoords = [k.frac_coords for k in self.sigma_kpoints]
 
-        qpes = self.get_qp_array(ks_ebands_kpath=ks_ebands_kpath,mode=mode)
+        # MG FIXME: Not sure this part is OK
+        qpes = self.get_qp_array(ks_ebands_kpath=ks_ebands_kpath)
 
         # Build interpolator for QP corrections.
         from abipy.core.skw import SkwInterpolator
@@ -1521,14 +1547,14 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                                  ks_ebands_kmesh, qp_ebands_kmesh_t, interpolators_t)
 
     @add_fig_kwargs
-    def plot_qpgaps_t(self, qp_kpoints=0, qp_type="qpz", ax_list=None, plot_qpmks=True, fontsize=8, **kwargs):
+    def plot_qpgaps_t(self, qp_kpoints=0, qp_type="qpz0", ax_list=None, plot_qpmks=True, fontsize=8, **kwargs):
         """
         Plot the KS and the QP(T) direct gaps for all the k-points available in the SIGEPH file.
 
         Args:
             qp_kpoints: List of k-points in self-energy. Accept integers (list or scalars), list of vectors,
                 or None to plot all k-points.
-            qp_type: "qpz" for linearized QP equations with Z factor,
+            qp_type: "qpz0" for linearized QP equation with Z factor at KS e0,
                      "otms" for on-the-mass-shell results.
             ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
             plot_qpmks: If False, plot QP_gap, KS_gap else (QP_gap - KS_gap)
@@ -1545,21 +1571,21 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         ax_list = np.array(ax_list).ravel()
         label = kwargs.pop("label", None)
 
-        if qp_type not in {"qpz", "otms"}:
+        if qp_type not in {"qpz0", "otms"}:
             raise ValueError("Invalid qp_type: `%s`" % qp_type)
 
         for ix, ((kpt, ikc), ax) in enumerate(zip(qpkinds, ax_list)):
             for spin in range(self.nsppol):
                 if not plot_qpmks:
                     # Plot QP_{spin,kpt}(T)
-                    if qp_type == "qpz": values = self.qp_dirgaps_t[spin, ikc]
+                    if qp_type == "qpz0": values = self.qp_dirgaps_t[spin, ikc]
                     if qp_type == "otms": values = self.qp_dirgaps_otms_t[spin, ikc]
                     ax.plot(self.tmesh, values, marker=self.marker_spin[spin], label=label, **kwargs)
                     # Add KS gap (assumed at T=0).
                     ax.scatter(0, self.ks_dirgaps[spin, ikc]) #, label="KS gap %s" % label)
                 else:
                     # Plot QP_{spin,kpt}(T) - KS_gap
-                    if qp_type == "qpz": values = self.qp_dirgaps_t[spin, ikc]
+                    if qp_type == "qpz0": values = self.qp_dirgaps_t[spin, ikc]
                     if qp_type == "otms": values = self.qp_dirgaps_otms_t[spin, ikc]
 
                     ax.plot(self.tmesh, values - self.ks_dirgaps[spin, ikc],
@@ -2166,6 +2192,13 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         return fig
 
+    def get_panel(self):
+        """
+        Build panel with widgets to interact with the |SigEPhFile| either in a notebook or in panel app.
+        """
+        from abipy.panels.sigeph import SigEPhFilePanel
+        return SigEPhFilePanel(self).get_panel()
+
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
@@ -2184,7 +2217,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 if i > 2 and not verbose:
                     print("File contains more than 3 k-points. Only the first three k-points are displayed.")
                     break
-                yield self.plot_qpgaps_t(qp_kpoints=qp_kpt, qp_type="qpz", show=False)
+                yield self.plot_qpgaps_t(qp_kpoints=qp_kpt, qp_type="qpz0", show=False)
                 yield self.plot_qpgaps_t(qp_kpoints=qp_kpt, qp_type="otms", show=False)
 
             yield self.plot_qps_vs_e0(show=False)
@@ -2205,7 +2238,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             nbv.new_code_cell("ncfile.ebands.plot(with_gaps=True);"),
             #nbv.new_code_cell("ncfile.get_dirgaps_dataframe(kpoint=0)"),
             #nbv.new_code_cell("ncfile.get_dataframe(kpoint=0)"),
-            nbv.new_code_cell("ncfile.plot_qpgaps_t(qptype='qpz');"),
+            nbv.new_code_cell("ncfile.plot_qpgaps_t(qptype='qpz0');"),
             nbv.new_code_cell("ncfile.plot_qpgaps_t(qptype='otms');"),
             nbv.new_code_cell("#ncfile.plot_qpgaps_t(plot_qpmks=True);"),
             nbv.new_code_cell("ncfile.plot_qps_vs_e0();"),
@@ -2406,14 +2439,14 @@ class SigEPhRobot(Robot, RobotWithEbands):
         return fig
 
     @add_fig_kwargs
-    def plot_qpgaps_t(self, qp_kpoints=0, qp_type="qpz", plot_qpmks=True, sortby=None, hue=None, fontsize=8, **kwargs):
+    def plot_qpgaps_t(self, qp_kpoints=0, qp_type="qpz0", plot_qpmks=True, sortby=None, hue=None, fontsize=8, **kwargs):
         """
         Compare the QP(T) direct gaps for all the k-points available in the robot.
 
         Args:
             qp_kpoints: List of k-points in self-energy. Accept integers (list or scalars), list of vectors,
                 or None to plot all k-points.
-            qp_type: "qpz" for linearized QP equation with Z factor,
+            qp_type: "qpz0" for linearized QP equation with Z factor compute at KS e0,
                      "otms" for on-the-mass-shell results.
             plot_qpmks: If False, plot QP_gap, KS_gap else (QP_gap - KS_gap)
             sortby: Define the convergence parameter, sort files and produce plot labels.
@@ -2464,7 +2497,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
         return fig
 
     @add_fig_kwargs
-    def plot_qpgaps_convergence(self, qp_kpoints="all", itemp=0, qp_type="qpz", sortby=None, hue=None,
+    def plot_qpgaps_convergence(self, qp_kpoints="all", itemp=0, qp_type="qpz0", sortby=None, hue=None,
                                 plot_qpmks=True, fontsize=8, **kwargs):
         """
         Plot the convergence of the direct QP gaps at given temperature
@@ -2474,7 +2507,8 @@ class SigEPhRobot(Robot, RobotWithEbands):
             qp_kpoints: List of k-points in self-energy. Accept integers (list or scalars), list of vectors,
                 or "all" to plot all k-points.
             itemp: Temperature index.
-            qp_type: "qpz" for linear qp equation with Z factor, "otms" for on-the-mass-shell values.
+            qp_type: "qpz0" for linear qp equation with Z factor computed at KS e0,
+                     "otms" for on-the-mass-shell values.
             sortby: Define the convergence parameter, sort files and produce plot labels.
                 Can be None, string or function. If None, no sorting is performed.
                 If string and not empty it's assumed that the abifile has an attribute
@@ -2510,7 +2544,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
         else:
             groups = self.group_and_sortby(hue, sortby)
 
-        if qp_type not in {"qpz", "otms"}:
+        if qp_type not in {"qpz0", "otms"}:
             raise ValueError("Invalid qp_type: %s" % qp_type)
 
         name = "QP dirgap" if not plot_qpmks else "QP - KS dirgap"
@@ -2523,7 +2557,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
 
                 # Extract QP dirgap for [spin, kpt, itemp]
                 if hue is None:
-                    if qp_type == "qpz": yvals = [ncfile.qp_dirgaps_t[spin, ikc, itemp] for ncfile in ncfiles]
+                    if qp_type == "qpz0": yvals = [ncfile.qp_dirgaps_t[spin, ikc, itemp] for ncfile in ncfiles]
                     if qp_type == "otms": yvals = [ncfile.qp_dirgaps_otms_t[spin, ikc, itemp] for ncfile in ncfiles]
                     if plot_qpmks:
                         yvals = np.array(yvals) - np.array([ncfile.ks_dirgaps[spin, ikc] for ncfile in ncfiles])
@@ -2539,7 +2573,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
 
                 else:
                     for g in groups:
-                        if qp_type == "qpz": yvals = [ncfile.qp_dirgaps_t[spin, ikc, itemp] for ncfile in g.abifiles]
+                        if qp_type == "qpz0": yvals = [ncfile.qp_dirgaps_t[spin, ikc, itemp] for ncfile in g.abifiles]
                         if qp_type == "otms": yvals = [ncfile.qp_dirgaps_otms_t[spin, ikc, itemp] for ncfile in g.abifiles]
                         if plot_qpmks:
                             yvals = np.array(yvals) - np.array([ncfile.ks_dirgaps[spin, ikc] for ncfile in g.abifiles])
@@ -2790,7 +2824,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
                 if i > enough and not verbose:
                     print(f"File contains more than {enough} k-points. Only the first {enough} k-points are displayed.")
                     break
-                for qp_type in ("qpz", "otms"):
+                for qp_type in ("qpz0", "otms"):
                     yield self.plot_qpgaps_convergence(qp_kpoints=qp_kpt, qp_type=qp_type, itemp=itemp, show=False)
                     yield self.plot_qpgaps_t(qp_kpoints=qp_kpt, qp_type=qp_type, show=False)
 

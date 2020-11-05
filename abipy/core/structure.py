@@ -585,25 +585,29 @@ class Structure(pymatgen.Structure, NotebookWriter):
         else:
             return super().to(fmt=fmt, filename=filename, **kwargs)
 
-    def write_cif_with_spglib_symms(self, filename, symprec=1e-3):
+    def write_cif_with_spglib_symms(self, filename, symprec=1e-3, angle_tolerance=5.0, significant_figures=8,
+                                    ret_string=False):
         """
         Args:
             symprec (float): If not none, finds the symmetry of the structure
                 and writes the cif with symmetry information. Passes symprec
                 to the SpacegroupAnalyzer.
-            write_magmoms (bool): If True, will write magCIF file. Incompatible
-                with symprec
             significant_figures (int): Specifies precision for formatting of floats.
                 Defaults to 8.
             angle_tolerance (float): Angle tolerance for symmetry finding. Passes
                 angle_tolerance to the SpacegroupAnalyzer. Used only if symprec
                 is not None.
         """
-        # TODO: Add options to avoid structure refinment in CifWriter
         from pymatgen.io.cif import CifWriter
-        data = str(CifWriter(self, symprec=symprec, significant_figures=8, angle_tolerance=5.0))
-        with open(filename, "wt") as fh:
-            fh.write(data)
+        cif_str = str(CifWriter(self,
+                      symprec=symprec, significant_figures=significant_figures, angle_tolerance=angle_tolerance,
+                      refine_struct=False))
+
+        if not ret_string:
+            with open(filename, "wt") as fh:
+                fh.write(cif_str)
+        else:
+            return cif_str
 
     def __mul__(self, scaling_matrix):
         """
@@ -1446,7 +1450,6 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         Returns: |matplotlib-Figure|
         """
-        atoms = self.to_ase_atoms()
         if rotations == "default":
             rotations = [
                 "", "90x", "90y",
@@ -1467,6 +1470,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         if num_plots % ncols != 0: ax_mat[-1, -1].axis("off")
 
         from ase.visualize.plot import plot_atoms
+        atoms = self.to_ase_atoms()
         for rotation, ax in zip(rotations, ax_list.flat):
             plot_atoms(atoms, ax=ax, rotation=rotation, **kwargs)
             ax.set_axis_off()
@@ -1514,8 +1518,9 @@ class Structure(pymatgen.Structure, NotebookWriter):
         except ImportError:
             raise ImportError("jupyter_jsmol is not installed. See https://github.com/fekad/jupyter-jsmol")
 
-        from pymatgen.io.cif import CifWriter
-        data = str(CifWriter(self, symprec=symprec))
+        cif_str = self.write_cif_with_spglib_symms(None, symprec=symprec, ret_string=True)
+        print("cif_str:\n", cif_str)
+        #return JsmolView.from_str(cif_str)
 
         from IPython.display import display, HTML
         # FIXME TEMPORARY HACK TO LOAD JSMOL.js
@@ -1525,7 +1530,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         jsmol = JsmolView(color='white')
         display(jsmol)
-        cmd = 'load inline "%s" {1 1 1}' % data
+        cmd = 'load inline "%s" {1 1 1}' % cif_str
         if verbose: print("executing cmd:", cmd)
         jsmol.script(cmd)
 
@@ -1579,34 +1584,6 @@ class Structure(pymatgen.Structure, NotebookWriter):
             return Poscar(self).get_string(significant_figures=12)
         else:
             return super().to(fmt=fmt, **kwargs)
-
-    #def get_max_overlap_and_sites(self, pseudos):
-    #    # For each site in self:
-    #    # 1) Get the radius of the pseudopotential sphere
-    #    # 2) Get the neighbors of the site (considering the periodic images).
-
-    #    pseudos = PseudoTable.as_table(pseudos)
-    #    max_overlap, ovlp_sites = 0.0, None
-    #    for site in self:
-    #        symbol = site.specie.symbol
-    #        pseudo = pseudos[symbol]
-    #        r1 = Length(pseudo.r_cut, "Bohr").to("ang")
-    #        sitedist_list = self.get_neighbors_old(site, r1, include_index=False)
-
-    #        if sitedist_list:
-    #            # Spheres are overlapping: compute overlap and update the return values
-    #            # if the new overlap is larger than the previous one.
-    #            for other_site, dist in sitedist_list:
-    #                other_symbol = other_site.specie.symbol
-    #                other_pseudo = pseudos[other_symbol]
-    #                r2 = Length(other_pseudo.r_cut, "Bohr").to("ang")
-    #                # Eq 16 of http://mathworld.wolfram.com/Sphere-SphereIntersection.html
-    #                overlap = sphere_overlap(site.coords, r1, other_site.coords, r2)
-    #                if overlap > max_overlap:
-    #                    max_overlap = overlap
-    #                    ovlp_sites = (site, other_site)
-
-    #    return max_overlap, ovlp_sites
 
     def displace(self, displ, eta, frac_coords=True, normalize=True):
         """

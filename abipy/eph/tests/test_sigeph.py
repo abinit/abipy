@@ -119,6 +119,9 @@ class SigEPhFileTest(AbipyTest):
             assert sigeph.plot_qpsolution_sk(0, [0.5, 0, 0], show=False)
             assert sigeph.plot_qpsolution_sklineb(spin=0, kbounds=["G", [0.5, 0, 0]], band=0, show=False)
 
+        if self.has_panel():
+            assert hasattr(sigeph.get_panel(), "show")
+
         # Test QpTempState
         qp = sigeph.reader.read_qp(spin=0, kpoint=0, band=3, ignore_imag=False)
         repr(qp); str(qp)

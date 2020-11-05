@@ -140,7 +140,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
             task = ddb._run_anaddb_task(inp, mpi_procs=mpi_procs, workdir=workdir, manager=manager,
                                         verbose=verbose)
 
-            phbst_path = os.path.join(task.workdir, "run.abo_PHBST.nc")
+            phbst_path = task.outpath_from_ext("PHBST")
 
             return cls.from_phbst(phbst_path, ignore_neg_freqs=ignore_neg_freqs, labels=labels)
 
