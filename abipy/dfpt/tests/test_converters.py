@@ -24,8 +24,8 @@ test_dir = os.path.join(os.path.dirname(__file__), "..", "..", 'test_files')
 
 
 def find_anaddbnc_in_dir(dirpath):
-    for in ("anaddb.nc", "run_anaddb.nc"):
-        p = os.path.join(dirpath, "run_anaddb.nc")
+    for n in ("anaddb.nc", "run_anaddb.nc"):
+        p = os.path.join(dirpath, n)
         if os.path.isfile(p): return p
 
     raise RuntimeError(f"Cannot file anaddb.nc file in {dirpath}")
