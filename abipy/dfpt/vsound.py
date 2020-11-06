@@ -254,8 +254,8 @@ class SoundVelocity(Has_Structure, NotebookWriter):
                 else:
                     mt.append(None)
 
-            # sort the lists based on the sound velocites
-            sv, mt, freqs = zip(*sorted(zip(sv, mt, acoustic_freqs.T)))
+            # sort the lists based on the sound velocities
+            sv, mt, freqs = zip(*sorted(zip(sv, mt, acoustic_freqs.T.tolist())))
 
             sound_velocities.append(sv)
             mode_types.append(mt)
