@@ -19,7 +19,7 @@ from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
 from pymatgen.phonon.dos import CompletePhononDos as PmgCompletePhononDos, PhononDos as PmgPhononDos
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter
-from abipy.core.kpoints import Kpoint, Kpath, KpointList
+from abipy.core.kpoints import Kpoint, Kpath, KpointList, kmesh_from_mpdivs
 from abipy.core.structure import Structure
 from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
@@ -2304,7 +2304,136 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
             width = np.array(width)
             for branch in branch_range:
-                ax.fill_between(xx, pf_l[:, branch] + width[:, branch], pf_l[:, branch] - width[:, branch], facecolor="r", alpha=0.4, linewidth=0)
+                ax.fill_between(xx, pf_l[:, branch] + width[:, branch], pf_l[:, branch] - width[:, branch],
+                                facecolor="r", alpha=0.4, linewidth=0)
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_qpt_distance(self, qpt_list=None, ngqpt=None, shiftq=(0, 0, 0), plot_distances=False,
+                          units="eV", qlabels=None, branch_range=None, colormap="viridis_r",
+                          match_bands=False, log_scale=False, **kwargs):
+        r"""
+        Plot the phonon band structure coloring the point according to the minimum distance of
+        the qpoints of the path from a list of qpoints. This can be for example defined as the
+        q-points effectively calculated in DFPT.
+        Optionally plot the explicit values.
+
+        Args:
+            qpt_list: list of fractional coordinates or KpointList of the qpoints from which the minimum
+                distance will be calculated.
+            ngqpt: the division of a regular grid of qpoints. Used to automatically fill in the qpt_list
+                based on abipy.core.kpoints.kmesh_from_mpdivs.
+            shiftq: the shifts of a regular grid of qpoints. Used to automatically fill in the qpt_list
+                based on abipy.core.kpoints.kmesh_from_mpdivs.
+            plot_distances: if True a second plot will be added with the explicit values of the distances.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
+            qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
+                The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
+            branch_range: Tuple specifying the minimum and maximum branch_i index to plot
+                (default: all branches are plotted).
+            colormap: matplotlib colormap to determine the colors available.
+                http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
+            match_bands: if True the bands will be matched based on the scalar product between the eigenvectors.
+            log_scale: if True the values will be plotted in a log scale.
+
+        Returns: |matplotlib-Figure|
+        """
+        from matplotlib.collections import LineCollection
+
+        if qpt_list is None:
+            if ngqpt is None:
+                raise ValueError("at least one among qpt_list and ngqpt should be provided")
+            qpt_list = kmesh_from_mpdivs(ngqpt, shiftq, pbc=False, order="bz")
+
+        if isinstance(qpt_list, KpointList):
+            qpt_list = qpt_list.frac_coords
+
+        # Select the band range.
+        if branch_range is None:
+            branch_range = range(self.num_branches)
+        else:
+            branch_range = range(branch_range[0], branch_range[1], 1)
+
+        nrows = 2 if plot_distances else 1
+        ncols = 1
+        ax_list, fig, plt = get_axarray_fig_plt(ax_array=None, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=False, squeeze=True)
+
+        # make a list in case of only one plot
+        if not plot_distances:
+            ax_list = [ax_list]
+
+        # Decorate the axis (e.g add ticks and labels).
+        self.decorate_ax(ax_list[-1], units=units, qlabels=qlabels)
+
+        first_xx = 0
+        factor = abu.phfactor_ev2units(units)
+
+        linewidth = 2
+        if "lw" in kwargs:
+            linewidth = kwargs.pop("lw")
+        elif "linewidth" in kwargs:
+            linewidth = kwargs.pop("linewidth")
+
+        rec_latt = self.structure.reciprocal_lattice
+
+        # calculate all the value to set the color normalization
+        split_min_dist = []
+        for i, q_l in enumerate(self.split_qpoints):
+            all_dist = rec_latt.get_all_distances(q_l, qpt_list)
+            split_min_dist.append(np.min(all_dist, axis=-1))
+
+        if log_scale:
+            import matplotlib
+            # find the minimum value larger than zero and set the 0 to that value
+            min_value = np.min([v for l in split_min_dist for v in l if v > 0])
+            for min_list in split_min_dist:
+                min_list[min_list==0] = min_value
+            norm = matplotlib.colors.LogNorm(min_value, np.max(split_min_dist), clip=True)
+        else:
+            norm = plt.Normalize(np.min(split_min_dist), np.max(split_min_dist))
+
+        segments = []
+        total_min_dist = []
+
+        for i, (pf, min_dist) in enumerate(zip(self.split_phfreqs, split_min_dist)):
+            if match_bands:
+                ind = self.split_matched_indices[i]
+                pf = pf[np.arange(len(pf))[:, None], ind]
+            pf = pf * factor
+            xx = range(first_xx, first_xx + len(pf))
+
+            for branch_i in branch_range:
+                points = np.array([xx, pf[:, branch_i]]).T.reshape(-1, 1, 2)
+                segments.append(np.concatenate([points[:-1], points[1:]], axis=1))
+                total_min_dist.extend(min_dist[:-1])
+
+            first_xx = xx[-1]
+
+        segments = np.concatenate(segments)
+        total_min_dist = np.array(total_min_dist)
+
+        lc = LineCollection(segments, cmap=colormap, norm=norm)
+        lc.set_array(total_min_dist)
+        lc.set_linewidth(linewidth)
+
+        line = ax_list[-1].add_collection(lc)
+
+        # line collection does not autoscale the plot
+        ax_list[-1].set_ylim(np.min(self.split_phfreqs), np.max(self.split_phfreqs))
+
+        fig.colorbar(line, ax=ax_list)
+
+        if plot_distances:
+            first_xx = 0
+            for i, (q_l, min_dist) in enumerate(zip(self.split_qpoints, split_min_dist)):
+                xx = list(range(first_xx, first_xx + len(q_l)))
+                ax_list[0].plot(xx, min_dist, linewidth=linewidth, **kwargs)
+
+                first_xx = xx[-1]
 
         return fig
 

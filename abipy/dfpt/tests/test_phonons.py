@@ -124,6 +124,8 @@ class PhononBandsTest(AbipyTest):
             assert phbands.plot_longitudinal_fatbands(show=False)
             assert phbands.plot_longitudinal_fatbands(sum_degenerate=True, show=False)
             assert phbands.plot_longitudinal_fraction([0.0375, 0.0375, 0.075], show=False)
+            assert phbands.plot_qpt_distance(ngqpt=[2,2,2], plot_distances=True, show=False)
+            assert phbands.plot_qpt_distance(qpt_list=[[0.1,0.1,0.1]], plot_distances=False, log_scale=True, show=False)
 
         # Cannot compute PHDOS with q-path
         with self.assertRaises(ValueError):
