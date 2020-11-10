@@ -2434,7 +2434,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
                 ax_list[0].plot(xx, min_dist, linewidth=linewidth, **kwargs)
 
                 first_xx = xx[-1]
-
+            ax_list[0].grid(True)
         return fig
 
 
