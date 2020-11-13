@@ -1559,7 +1559,7 @@ Variable(
     abivarname="chksymbreak",
     varset="gstate",
     vartype="integer",
-    topics=['k-points_basic'],
+    topics=['k-points_useful'],
     dimensions="scalar",
     defaultval=1,
     mnemonics="CHecK SYMmetry BREAKing",
@@ -1599,7 +1599,7 @@ Variable(
     defaultval=1,
     mnemonics="CHecK SYMmetry of TNONS",
     characteristics=['[[INPUT_ONLY]]'],
-    added_in_version="v9.2",
+    added_in_version="9.2.0",
     text=r"""
 This variable governs the behaviour of the code when there is a potential
 symmetry breaking, related to the presence
@@ -3308,10 +3308,10 @@ Variable(
 Defines the linear grid resolution (energy increment) to be used for the
 computation of the Density-Of-States, when [[prtdos]] is non-zero.
 If [[dosdeltae]] is set to zero (the default value), the actual increment is
-0.001 Ha if [[prtdos]] = 1, and the much smaller value 0.00005 Ha if
-[[prtdos]] = 2. This different default value arises because the [[prtdos]] = 1
-case, based on a smearing technique, gives a quite smooth DOS, while the DOS
-from the tetrahedron method, [[prtdos]] = 2, is rapidly varying.
+0.001 Ha if [[prtdos]] = 1 or 4 (smearing technique), and the much smaller value 0.00005 Ha if
+[[prtdos]] = 2, 3 or 5 (tetrahedron technique). This different default value arises because the
+smearing technique gives a quite smooth DOS, while the DOS
+from the tetrahedron method is rapidly varying.
 """,
 ),
 
@@ -4141,6 +4141,23 @@ If [[exchn2n3d]] is 1, the internal representation of the FFT arrays in
 reciprocal space will be array(n1,n3,n2), where the second and third
 dimensions have been switched. This is to allow to be coherent with the
 [[exchn2n3d]] = 4xx FFT treatment.
+""",
+),
+
+Variable(
+    abivarname="expert_user",
+    varset="gstate",
+    vartype="integer",
+    topics=['UnitCell_expert','crystal_expert','SmartSymm_expert','GeoOpt_expert','k-points_expert'],
+    dimensions="scalar",
+    defaultval=0,
+    mnemonics="EXPERTise of the USER",
+    added_in_version="9.2.2",
+    text=r"""
+If set to 0, the checking provided by ABINIT is maximum (default values of [[chkprim]], [[chksymbreak]], [[chksymtnons]], [[chkdilatmx]]).
+If non-zero (up to three), the above-mentioned checking input variables are all disabled (set to zero).
+(In the future, the level three will always be the maximum allowed value, with all checks set to zero, while a more refined behaviour
+might be implemented for [[expert_user]]==1 or 2).
 """,
 ),
 
@@ -5860,7 +5877,7 @@ Variable(
     defaultval=6,
     mnemonics="Integer that governs the CUT-off for COULomb interaction",
     requires="[[optdriver]] in [3,4]",
-    added_in_version="v9.1",
+    added_in_version="9.1",
     text=r"""
 Many-body calculations for fully periodic systems are problematic due to the
 presence of the integrable Coulomb singularity at $\mathbf{G}=0$ that hinders
@@ -6911,11 +6928,11 @@ Variable(
     dimensions=['[[natsph]]'],
     defaultval=Range(start=1, stop='[[natsph]]'),
     mnemonics="Index for the ATomic SPHeres of the atom-projected density-of-states",
-    requires="[[prtdos]] == 3 or [[pawfatbnd]] in [1,2]",
+    requires="[[prtdos]] == 3 or 4 or [[pawfatbnd]] in [1,2]",
     added_in_version="before_v9",
     text=r"""
 [[iatsph]] gives the number of the [[natsph]] atoms around which the sphere
-for atom-projected density-of-states will be build, in the [[prtdos]] = 3 case.
+for atom-projected density-of-states will be build, in the [[prtdos]] = 3 or 4 cases.
 The radius of these spheres is given by [[ratsph]].
 If [[pawfatbnd]] = 1 or 2, it gives the number of the [[natsph]] atoms around
 which atom-projected band structure will be built.
@@ -10097,11 +10114,11 @@ Variable(
     dimensions="scalar",
     defaultval="[[natom]]",
     mnemonics="Number of ATomic SPHeres for the atom-projected density-of-states",
-    requires="[[prtdos]] == 3 or [[pawfatbnd]] in [1,2]",
+    requires="[[prtdos]] == 3 or 4 or [[pawfatbnd]] in [1,2]",
     added_in_version="before_v9",
     text=r"""
 [[natsph]] gives the number of atoms around which the sphere for atom-projected
-density-of-states will be built, in the [[prtdos]] = 3 case. The
+density-of-states will be built, in the [[prtdos]] = 3 or 4 case. The
 indices of these atoms are given by [[iatsph]]. The radius of these spheres is given by [[ratsph]].
 If [[pawfatbnd]] = 1 or 2, it gives the number of atoms around which atom-projected
 band structure will be built (the indices of these atoms are given by [[iatsph]]).
@@ -10116,11 +10133,11 @@ Variable(
     dimensions="scalar",
     defaultval=0,
     mnemonics="Number of ATomic SPHeres for the l-projected density-of-states in EXTRA set",
-    requires="[[prtdos]] == 3 or [[pawfatbnd]] in [1,2]",
+    requires="[[prtdos]] == 3 or 4 or [[pawfatbnd]] in [1,2]",
     added_in_version="before_v9",
     text=r"""
 [[natsph_extra]] gives the number of extra spheres for which the angular-
-momentum-projected density-of-states will be built, in the [[prtdos]] = 3 case.
+momentum-projected density-of-states will be built, in the [[prtdos]] = 3 or 4 case.
 The radius of these spheres is given by [[ratsph_extra]]. This simulates the
 STS signal for an STM tip atom placed at the sphere position, according to the
 chemical nature of the tip (s- p- d- wave etc...).
@@ -14407,7 +14424,7 @@ Variable(
     defaultval=0,
     mnemonics="PREPAre LongWave calculation",
     characteristics=['[[DEVELOP]]'],
-    added_in_version="v9",
+    added_in_version="9.2.0",
     text=r"""
 The computation of spatial dispersion quantities from the longwave DFPT
 approach requires the first-order wavefunctions and densities obtained from
@@ -14713,11 +14730,13 @@ Variable(
     mnemonics="PRinT the Density Of States",
     added_in_version="before_v9",
     text=r"""
-Provide output of Density of States if set to 1, 2 or 3. Can either use a
-smearing technique ([[prtdos]] = 1), or the tetrahedron method ([[prtdos]] = 2).
-If [[prtdos]] = 3, provide output of Local Density of States inside a sphere
-centered on an atom, as well as the angular-momentum projected DOS, in the
-same sphere. The resolution of the linear grid of energies for which the DOS
+Provide output of Density of States if set to 1...5. Can either use a
+smearing technique ([[prtdos]] = 1 or 4), or the tetrahedron method ([[prtdos]] = 2, 3 or 5).
+If [[prtdos]] = 3 or 4, provide output of angular-momentum projected Local Density of States inside a sphere
+centered on different atoms (all or only those specified by [[iatsph]]),
+and possibly output m-decomposed LDOS if [[prtdosm]] is defined.
+
+The resolution of the linear grid of energies for which the DOS
 is computed can be tuned thanks to [[dosdeltae]].
 
 If [[prtdos]] = 1, the smeared density of states is obtained from the
@@ -14762,8 +14781,8 @@ step, with the name being made of
   * then followed by _DOS.
 
 If [[prtdos]] = 3, the same tetrahedron method as for [[prtdos]] = 2 is used, but
-the DOS inside a sphere centered on some atom is delivered, as well as the
-angular-momentum projected (l=0,1,2,3,4) DOS in the same sphere. The
+the angular-momentum projected (l=0,1,2,3,4) DOS in sphere centered on the atoms
+is computed (not directly the total atom-cenetered DOS). The
 preparation of this case, the parameters under which the computation is to be
 done, and the file denomination is similar to the [[prtdos]] = 2 case. However,
 three additional input variables might be provided, describing the atoms that
@@ -14773,19 +14792,14 @@ In case of PAW, [[ratsph]] radius has to be greater or equal to the largest PAW
 radius of the atom types considered (which is read from the PAW atomic data
 file; see rc_sph or r_paw). Additionally, printing and/or approximations in PAW
 mode can be controlled with [[pawprtdos]] keyword (in
-particular,[[pawprtdos]] = 2 can be used to compute quickly a very good
+particular, [[pawprtdos]] = 2 can be used to compute quickly a very good
 approximation of the DOS).
 
- * Note 1: when [[prtdos]] = 3, it is possible to output m-decomposed LDOS in _DOS
-file; simply use [[prtdosm]] keyword.
- * Note 2: the integrated total DOS in spheres around atoms can be obtained when
-[[prtdensph]] flag is activated. It can be compared to the integrated DOS
-provided in _DOS file when [[prtdos]] = 3.
+If [[prtdos]] = 4, delivers the sphere-projected DOS (like [[prtdos]] = 3), on the
+basis of a smearing approach (like [[prtdos]] = 1). See (like [[prtdos]] = 1
+for the additional input variables to be specified.
 
-[[prtdos]] = 4 delivers the sphere-projected DOS (like [[prtdos]] = 3), on the
-basis of a smearing approach (like [[prtdos]] = 1)
-
-[[prtdos]] = 5 delivers the spin-spin DOS in the [[nspinor]] == 2 case, using the
+If [[prtdos]] = 5, delivers the spin-spin DOS in the [[nspinor]] == 2 case, using the
 tetrahedron method (as [[prtdos]] = 2).
 """,
 ),
@@ -16172,7 +16186,7 @@ In case of PAW, [[ratsph]] radius has to be greater or equal to PAW radius of
 considered atom type (which is read from the PAW dataset file; see **rc_sph** or **r_paw**).
 In case of constrained DFT, note that the sphere for different atoms are not allowed to overlap.
 
-When [[prtdos]] = 3:
+When [[prtdos]] = 3 or 4 :
 
 Provides the radius of the spheres around the [[natsph]] atoms of indices
 [[iatsph]], in which the local DOS and its angular-momentum projections will
@@ -18735,19 +18749,22 @@ Variable(
     commentdefault="because it is not usually worth using it unless bandpp is large and it requires additional memory",
     added_in_version="before_v9",
     text=r"""
-This keyword tells abinit to use a BLAS routine to speed up the computation of
+This keyword tells abinit to use a BLAS3 routine to speed up the computation of
 the non-local operator. This requires the pre-computation of a large matrix,
 and has a significant memory overhead. In exchange, it provides improved
 performance when used on several bands at once (Chebyshev or LOBPCG algorithm
-with [[bandpp]]
+with [[bandpp] > 1]
 
 The memory overhead is proportional to the number of atoms, the number of
 plane waves, and the number of projectors per atom. It can be mitigated by
 distributing the array with [[npfft]]
-
 The performance depends crucially on having a good BLAS installed. Provided
 the BLAS supports OpenMP, this option also yields very good scaling for the
 nonlocal operator.
+
+This option is available only if [[useylm]] is 1. ABINIT will automatically set [[useylm]] to 1
+if [[use_gemm_nonlop]] is set to 1 in the input file (actually, this is only needed when NC pseudos are used as
+PAW already uses 1 for [[useylm]]).
 """,
 ),
 
@@ -21860,10 +21877,73 @@ Variable(
     topics=['TuningSpeed_expert'],
     dimensions="scalar",
     defaultval=0,
-    mnemonics="Activate RMM-DIIS eigensolver in the GS part.",
+    mnemonics="Activate the RMM-DIIS eigensolver for GS calculations.",
     added_in_version="9.3.0",
     text=r"""
-This variable is still under active development
+
+!!! warning
+
+    This variable is under active development so use it at your own risk!
+
+This variable activates the RMM-DIIS eigensolver to **accelerate**
+GS computations, structural relaxations and molecular-dynamics runs.
+The flag is compatible with NC and PAW as well as the [[paral_kgb]] distribution
+It has no meaning when [[optdriver]] > 0.
+
+The RMM-DIIS method is usually used in conjunction with another eigenvalue solvers (CG and LOBPC)
+that provide the initial guess for the KS eigenstates
+The accuracy and reliability of the RMM-DIIS method **strongly** depends on the quality of the input trial states
+as the algorithm find the closest eigenvector-eigevalue pair.
+The algorithm is inspired to XXX although the ABINIT implementation is not
+completely equivalent to the original formulation.
+
+RMM-DIIS can be used both with the conjugate-gradient and the LOBPCG solver although
+it is strongly suggested to use [[paral_kgb]] = 1 to take advantage of LOBPCG, its better efficiency
+and improved parallel MPI scalability.
+In a nutshell, to activate RMM-DIIS with LOBPCG it is sufficient to use:
+
+```
+paral_kgb 1
+rmm_diis  1
+```
+
+and then select the value of [[npband]], [[npkpt]], [[npfft]], [[npspinor]] according to your system.
+Note also [[bandpp]]
+
+If we are running a standard GS calculation. Abinit activates the RMM-DIIS solver after 3 + [[rmm_diis]] SCF iterations
+In the case of structural relaxations, the first SCF cycle is performed with 3 + [[rmm_diis]] as usual while
+the subsequent relaxation steps activate RMM-DIIS after 1 + [[rmm_diis]] SCF iterations.
+
+This means that using [[rmm_diis]] 1 for a structural relaxation leads to:
+
+    - 4 SCF iterations with the "standard" eigensolver followed by RMM-DIIS for the initial GS calculation.
+    - 2 SCF iterations with the "Standard" eigesolver followed by the RMM-DIIS when we start the relaxation process.
+
+The RMM-DIIS solver usually requires less wall-time per iteration when compared to other approches since the
+explicit orthogonalization of the trial states is avoided during the optimization step and
+a single full-band orthogonalization is performed only once per SCF cycle.
+On the other hand, RMM-DIIS usually leads to faster iterations especially for systems
+with relatively large [[mpw]], [[nband]]
+In some cases, RMM-DIIS can be twice as fast **per iteration** as other conventional methods.
+On the other hand, please keep in mind that RMM-DIIS is not guaranteed to find the correct ground-state.
+Moreover the algorith may have problems to converge and more iterations may be needed to reach a given precision.
+Also, the present implementation is optimized for converging occupied states so we do not recommend
+[[rmm_diis]] for highly-accurate calculations especially if KS states in the empty region are needed (e.g. GW calculations).
+Obviously, it is possible to use [[rmm_diis]] to perform initial GS or structural relaxations and
+then restart from the WFK file using e.g. the LOBPCG solver to reconverge the results with stricter tolerance.
+
+TIP:
+
+Don't try to reach the same precision as the other eigenvalue solvers.
+RMM-DIIS usually takes more iterations than other eigensolvers to reach the same precision.
+Use more permissive tolerances and then restart with tighter settings.
+Use [[tolwfr]] only if you are using RMM-DIIS for NSCF band structure calculations
+
+If the RMM-DIIS has troubles to converge:
+
+* Increase [[nband]] to enlarge the subspace used for the subspace rotation (Rayleigh-Ritz)
+* Increase [[rmm_diis]] so that more iterations are done with LOBPCG/CG
+* Play with the mixing algorithm
 """,
 ),
 
