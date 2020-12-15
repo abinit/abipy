@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Benchmark paral_kgb=1 algorithm with wfoptalg in [default, 1].
-default corresponds to the lobpcg algorithm, 1 enables the Chebyschev solver.
+default corresponds to the LOBPCG algorithm, 1 enables the Chebyschev solver.
 """
 import sys
 import operator
@@ -58,10 +58,10 @@ def build_flow(options):
 
     # Processor distribution.
     pconfs = [
-      dict(npkpt=64, npband=1, npfft=2), # 128
-      dict(npkpt=64, npband=2, npfft=2), # 256
-      dict(npkpt=64, npband=2, npfft=4), # 512
-      dict(npkpt=64, npband=4, npfft=4), # 1024
+       dict(npkpt=64, npband=1, npfft=2), # 128
+       dict(npkpt=64, npband=2, npfft=2), # 256
+       dict(npkpt=64, npband=2, npfft=4), # 512
+       dict(npkpt=64, npband=4, npfft=4), # 1024
     ]
 
     flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)

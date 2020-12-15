@@ -1961,10 +1961,10 @@ class Task(Node, metaclass=abc.ABCMeta):
                 return self.set_status(self.S_ABICRITICAL, msg=msg)
 
             if report is None:
-                return self.set_status(self.S_ERROR, msg="got None report!")
+                return self.set_status(self.S_ERROR, msg="Got None report!")
 
             if report.run_completed:
-                # Here we  set the correct timing data reported by Abinit
+                # Here we set the correct timing data reported by Abinit
                 self.datetimes.start = report.start_datetime
                 self.datetimes.end = report.end_datetime
 
