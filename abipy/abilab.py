@@ -39,7 +39,7 @@ from abipy.tools.notebooks import print_source, print_doc
 from abipy.tools.plotting import get_ax_fig_plt, get_axarray_fig_plt, get_ax3d_fig_plt
 from abipy.abio.factories import *
 from abipy.electrons.ebands import (ElectronBands, ElectronBandsPlotter, ElectronDos, ElectronDosPlotter,
-    dataframe_from_ebands)
+    dataframe_from_ebands, EdosFile)
 from abipy.electrons.gsr import GsrFile, GsrRobot
 from abipy.electrons.eskw import EskwFile
 from abipy.electrons.psps import PspsFile
@@ -107,7 +107,7 @@ ext2file = collections.OrderedDict([
     ("DOSCAR.lobster", LobsterDoscarFile),
     #("ZINVCONV.nc", ZinvConvFile),
     #("TETRATEST.nc", TetraTestFile),
-
+    ("EDOS", EdosFile),
 ])
 
 # Abinit files require a special treatment.

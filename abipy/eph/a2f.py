@@ -280,9 +280,9 @@ class A2f(object):
         for i, what in enumerate(["a2f", "lambda"]):
             this_ax = ax if i == 0 else ax.twinx()
             self.plot(what=what, ax=this_ax, units=units, fontsize=fontsize, xlims=xlims, show=False, **kwargs)
-            if i:
+            if i > 0:
                 this_ax.yaxis.set_label_position("right")
-                this_ax.grid(True)
+                this_ax.grid(False)
 
         return fig
 
@@ -909,11 +909,12 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         Used in abiview.py to get a quick look at the results.
         """
-        yield self.plot(show=False)
+        #yield self.plot(show=False)
         #yield self.plot_eph_strength(show=False)
-        yield self.plot_with_a2f(show=False)
+        #yield self.plot_with_a2f(show=False)
 
-        for qsamp in ["qcoarse", "qintp"]:
+        #for qsamp in ["qcoarse", "qintp"]:
+        for qsamp in ["qcoarse",]:
             a2f = self.get_a2f_qsamp(qsamp)
             yield a2f.plot_with_lambda(title="q-sampling: %s (%s)" % (str(a2f.ngqpt), qsamp), show=False)
 
@@ -963,7 +964,8 @@ class A2fRobot(Robot, RobotWithEbands, RobotWithPhbands):
     linestyle_qsamp = dict(qcoarse="--", qintp="-")
     marker_qsamp = dict(qcoarse="^", qintp="o")
 
-    all_qsamps = ["qcoarse", "qintp"]
+    #all_qsamps = ["qcoarse", "qintp"]
+    all_qsamps = ["qcoarse",]
 
     def get_dataframe(self, abspath=False, with_geo=False, with_params=True, funcs=None):
         """
@@ -1302,7 +1304,7 @@ class A2fRobot(Robot, RobotWithEbands, RobotWithPhbands):
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         """
-        yield self.plot_lambda_convergence(show=False)
+        #yield self.plot_lambda_convergence(show=False)
         yield self.plot_a2f_convergence(show=False)
         yield self.plot_a2fdata_convergence(show=False)
         yield self.gridplot_a2f(show=False)
