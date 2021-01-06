@@ -1,3 +1,6 @@
+# IDE files
+.vscode
+
 # abipy files
 abinit_vars.pickle
 Profile.prof

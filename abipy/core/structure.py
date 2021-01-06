@@ -26,7 +26,7 @@ from abipy.flowtk import PseudoTable
 from abipy.core.mixins import NotebookWriter
 from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.iotools import as_etsfreader, Visualizer
-from abipy.flowtk.abiobjects import structure_from_abivars, structure_to_abivars, species_by_znucl
+from abipy.flowtk.abiobjects import structure_from_abivars, structure_to_abivars
 
 
 __all__ = [
