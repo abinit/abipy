@@ -20,6 +20,14 @@ dfpt Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`converters` Module
+------------------------
+
+.. automodule:: abipy.dfpt.converters
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`ddb` Module
 -----------------
 

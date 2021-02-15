@@ -62,6 +62,9 @@ class DdbTest(AbipyTest):
             with self.assertRaises(ValueError):
                 ddb.anaget_phmodes_at_qpoint(qpoint=(0, 0, 0), verbose=1)
 
+            with self.assertRaises(ValueError):
+                ddb.anaget_phmodes_at_qpoints(qpoints=[[0.1, 0.2, 0.3]], ifcflag=0)
+
             # Wrong ngqpt
             with self.assertRaises(ddb.AnaddbError):
                 try:
@@ -84,6 +87,7 @@ class DdbTest(AbipyTest):
             assert len(blocks) == 1
             assert blocks[0]["qpt"] == [0.25, 0, 0]
             assert blocks[0]["dord"] == 2
+            assert blocks[0]["qpt3"] == None
 
             lines = blocks[0]["data"]
             assert lines[0].rstrip() == " 2nd derivatives (non-stat.)  - # elements :      36"
@@ -95,9 +99,27 @@ class DdbTest(AbipyTest):
                 assert ddb.get_block_for_qpoint(qpt.frac_coords)
 
             assert ddb.replace_block_for_qpoint(ddb.qpoints[0], blocks[0]["data"])
-
+            d_2ord = ddb.get_2nd_ord_dict()
+            assert ddb.qpoints[0] in d_2ord
+            new_qpt = [0.11, 0.22, 3.4]
+            new_block = {"data":
+                             [' 2nd derivatives (non-stat.)  - # elements :      1',
+                              ' qpt  1.10000000E-01  2.20000000E-01  3.40000000E+00   1.0',
+                              '   1   1   1   1  0.38964081001769D+01  0.51387831420710D-24'],
+                         "dord": 2, "qpt": new_qpt, "qpt3": None}
+            assert ddb.insert_block(new_block)
+            assert ddb.insert_block(new_block, replace=True)
+            assert not ddb.insert_block(new_block, replace=False)
             # Write new DDB file.
             tmp_file = self.get_tmpname(text=True)
+            ddb.write(tmp_file)
+            with DdbFile(tmp_file) as new_ddb:
+                # check that the new qpoint has been written to the file
+                assert new_qpt in new_ddb.qpoints
+
+            # remove the added block and write again to check that it is equivalent to the original
+            assert ddb.remove_block(dord=2, qpt=new_qpt)
+
             ddb.write(tmp_file)
             with DdbFile(tmp_file) as new_ddb:
                 assert ddb.qpoints == new_ddb.qpoints
@@ -128,7 +150,7 @@ class DdbTest(AbipyTest):
             assert qpoint in ddb.computed_dynmat
             assert len(ddb.computed_dynmat[qpoint].index[0]) == 4
 
-        assert ddb.has_bec_terms(select="at_least_one")
+        assert not ddb.has_bec_terms(select="at_least_one")
         assert not ddb.has_bec_terms(select="all")
         assert not ddb.has_epsinf_terms()
         assert not ddb.has_lo_to_data()
@@ -155,6 +177,14 @@ class DdbTest(AbipyTest):
         for qpoint in ddb.qpoints:
             phbands = ddb.anaget_phmodes_at_qpoint(qpoint=qpoint, verbose=1)
             assert phbands is not None and hasattr(phbands, "phfreqs")
+
+        phbands = ddb.anaget_phmodes_at_qpoints(verbose=1)
+        assert phbands is not None and hasattr(phbands, "phfreqs")
+
+        phbands = ddb.anaget_phmodes_at_qpoints(qpoints=[[0.1, 0.2, 0.3]], verbose=1, ifcflag=1)
+        assert phbands is not None and hasattr(phbands, "phfreqs")
+
+        assert ddb.anaget_interpolated_ddb(qpt_list=[[0.1, 0.2, 0.3]])
 
         assert np.all(ddb.guessed_ngqpt == [4, 4, 4])
 
@@ -390,6 +420,13 @@ class DdbTest(AbipyTest):
 
             raman = ddb.anaget_raman()
             self.assertAlmostEqual(raman.susceptibility[5, 0, 1], -0.0114683, places=5)
+
+            # Test block parsing.
+            blocks = ddb._read_blocks()
+            assert len(blocks) == 4
+            assert blocks[3]["qpt"] == None
+            assert blocks[3]["dord"] == 3
+            assert blocks[3]["qpt3"] == [[0.,] * 3] * 3
 
 
 class DielectricTensorGeneratorTest(AbipyTest):

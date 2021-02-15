@@ -3,7 +3,8 @@ Integration tests for flows (require pytest, ABINIT and a properly configured en
 """
 import os
 import unittest
-import numpy.testing.utils as nptu
+#import numpy.testing.utils as nptu
+import numpy.testing as nptu
 import abipy.data as abidata
 import abipy.flowtk as flowtk
 import abipy.flowtk.abiphonopy as abiph

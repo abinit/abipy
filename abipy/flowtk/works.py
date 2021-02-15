@@ -1404,7 +1404,7 @@ class MergeDdb(object):
 
         return out_ddb
 
-    def merge_pot1_files(self, delete_source=True):
+    def merge_pot1_files(self, delete_source=False):
         """
         This method is called when all the q-points have been computed.
         It runs `mrgdvdb` in sequential on the local machine to produce

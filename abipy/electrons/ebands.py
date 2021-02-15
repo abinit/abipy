@@ -265,7 +265,7 @@ class Smearing(AttrDict):
                 raise ValueError("Mandatory key %s must be provided" % str(mkey))
 
     def __str__(self):
-        return "smearing scheme: %s, tsmear_eV: %.3f, occopt: %d" % (self.scheme, self.tsmear_ev, self.occopt)
+        return "smearing scheme: %s (occopt %d), tsmear_eV: %.3f" % (self.scheme, self.occopt, self.tsmear_ev)
 
     @property
     def has_metallic_scheme(self):
@@ -2971,7 +2971,6 @@ class ElectronBandsPlotter(NotebookWriter):
         ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                 sharex=False, sharey=True, squeeze=False)
         ax_list = ax_list.ravel()
-
         # don't show the last ax if numeb is odd.
         if num_plots % ncols != 0: ax_list[-1].axis("off")
 
@@ -3234,7 +3233,7 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
         """
         Returns an instance of |ElectronBands|. Main entry point for client code
         """
-        return ElectronBands(
+        ebands = ElectronBands(
             structure=self.read_structure(),
             kpoints=self.read_kpoints(),
             eigens=self.read_eigenvalues(),
@@ -3246,6 +3245,15 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
             nband_sk=self.read_nband_sk(),
             smearing=self.read_smearing(),
             )
+
+        # This is to solve the typical problem in semiconductors that shows up
+        # when the Fermi level from the GS run computed with a shifted k-mesh
+        # underestimates the CBM at Gamma.
+        #if ebands.nsppol == 1 and ebands.nspden == 1 and
+        if ebands.smearing.occopt == 1:
+            ebands.set_fermie_to_vbm()
+
+        return ebands
 
     def read_nband_sk(self):
         """|numpy-array| with the number of bands indexed by [s, k]."""
@@ -3301,15 +3309,23 @@ class ElectronDos(object):
     It is usually created by calling the get_edos method of |ElectronBands|.
     """
 
-    def __init__(self, mesh, spin_dos, nelect, fermie=None):
+    def __init__(self, mesh, spin_dos, nelect, fermie=None, spin_idos=None):
         """
         Args:
             mesh: array-like object with the mesh points in eV.
-            spin_dos: array-like object with the DOS value for the different spins.
-                      spin_dos[1, nw] if spin-unpolarized.
-                      spin_dos[2, nw] if spin-polarized case.
+            spin_dos: array-like object with the DOS for the different spins (even if spin-unpolarized calculation).
+                Shape is:
+                      (1, nw) if spin-unpolarized.
+                      (2, nw) if spin-polarized.
             nelect: Number of electrons in the unit cell.
             fermie: Fermi level in eV. If None, fermie is obtained from the idos integral.
+            spin_idos: array-like object with the IDOS for the different spins (even if spin-unpolarized calculation).
+                Shape is:
+                      (1, nw) if spin-unpolarized.
+                      (2, nw) if spin-polarized case.
+
+                This argument is usually used when we have an IDOS computed with a more accurate method e.g.
+                tetrahedron integration so that we can use these values instead of integrating the input DOS.
 
         .. note::
 
@@ -3318,25 +3334,39 @@ class ElectronDos(object):
         spin_dos = np.atleast_2d(spin_dos)
         self.nsppol = len(spin_dos)
         self.nelect = nelect
+        if spin_idos is not None:
+            spin_idos = np.atleast_2d(spin_idos)
+            assert len(spin_idos) == self.nsppol
 
         # Save DOS and IDOS for each spin.
         sumv = np.zeros(len(mesh))
         self.spin_dos, self.spin_idos = [], []
-        for values in spin_dos:
+        for ispin, values in enumerate(spin_dos):
             sumv += values
             f = Function1D(mesh, values)
             self.spin_dos.append(f)
-            self.spin_idos.append(f.integral())
+            # Compute IDOS or take it from spin_idos.
+            if spin_idos is None:
+                self.spin_idos.append(f.integral())
+            else:
+                self.spin_idos.append(Function1D(mesh, spin_idos[ispin]))
 
         # Total DOS and IDOS.
         if self.nsppol == 1: sumv = 2 * sumv
         self.tot_dos = Function1D(mesh, sumv)
-        self.tot_idos = self.tot_dos.integral()
+        if spin_idos is None:
+            # Compute IDOS from DOS
+            self.tot_idos = self.tot_dos.integral()
+        else:
+            # Get IDOS from input (e.g. tetra)
+            if self.nsppol == 1: sumv = 2 * spin_idos[0]
+            if self.nsppol == 2: sumv = spin_idos[0] + spin_idos[1]
+            self.tot_idos = Function1D(mesh, sumv)
 
         if fermie is not None:
             self.fermie = float(fermie)
         else:
-            # *Compute* fermie from nelect. Note that this value could differ
+            # *Compute* fermie from nelect. Note that this value may differ
             # from the one stored in ElectronBands (coming from the SCF run)
             # The accuracy of self.fermie depends on the number of k-points used for the DOS
             # and the parameters used to call ebands.get_edos.
@@ -3381,9 +3411,17 @@ class ElectronDos(object):
 
             from abipy.abilab import abiopen
             with abiopen(obj) as abifile:
-                return abifile.ebands.get_edos(**edos_kwargs)
+                if hasattr(abifile, "ebands"):
+                    return abifile.ebands.get_edos(**edos_kwargs)
+                elif hasattr(abifile, "edos"):
+                    # This to handle e.g. the _EDOS file.
+                    return abifile.edos
+                else:
+                    raise TypeError("Don't know how to extract ElectronDos object from: `%s`" % str(obj))
+
         elif hasattr(obj, "ebands"):
             return obj.ebands.get_edos(**edos_kwargs)
+
         elif hasattr(obj, "get_edos"):
             return obj.get_edos(**edos_kwargs)
 
@@ -3594,7 +3632,7 @@ class ElectronDos(object):
     @add_fig_kwargs
     def plot_up_minus_down(self, e0="fermie", ax=None, xlims=None, **kwargs):
         """
-        Plot Dos_up -Dow_down
+        Plot Dos_up - Dow_down
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
@@ -4539,3 +4577,133 @@ class RobotWithEbands(object):
             set_axlims(ax, ylims, "y")
 
         return fig
+
+
+from abipy.core.mixins import TextFile #, AbinitNcFile, NotebookWriter
+from abipy.abio.robots import Robot
+
+
+def find_yaml_section_in_lines(lines, tag):
+
+    magic = f"--- !{tag}"
+    in_doc, buf = False, []
+
+    for line in lines:
+        if line.startswith("#"):
+            for i, c in enumerate(line):
+                if c != "#": break
+            line = line[i:]
+
+        if line.startswith(magic):
+            in_doc = True
+            continue
+
+        if in_doc and line.startswith("..."):
+            in_doc = False
+            break
+
+        if in_doc:
+            buf.append(line.strip())
+
+    if not buf:
+        raise ValueError(f"Cannot fine Yaml tag: `{magic}`")
+
+    import ruamel.yaml as yaml
+    return yaml.safe_load("\n".join(buf))
+
+
+class EdosFile(TextFile):
+    """
+    This object provides an interface to the _EDOS file
+    (electron DOS usually computed with the tetrahedron method).
+    The EdosFile has an ElectronDos edos object.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: EdosFile
+    """
+
+    def __init__(self, filepath):
+        """
+        Parses the EDOS file and construct self.edos object."""
+
+        super().__init__(filepath)
+
+        # Fortran implementation (eV units). See edos_write in m_ebands.F90.
+        #
+        # write(unt,"(a)")"# Energy           DOS_TOT          IDOS_TOT         DOS[spin=UP]     IDOS[spin=UP] ..."
+        # do iw=1,edos%nw
+        #   write(unt,'(es17.8)',advance='no')(edos%mesh(iw) - efermi) * cfact
+        #   do spin=0,edos%nsppol
+        #     write(unt,'(2es17.8)',advance='no')max(edos%dos(iw,spin) / cfact, tol30), max(edos%idos(iw,spin), tol30)
+        #   end do
+        #   write(unt,*)
+        # end do
+
+        header = []
+        data = []
+
+        for line in self:
+            if line.startswith("#"):
+                header.append(line)
+            else:
+                line = line.strip()
+                if not line: continue
+                data.append([float(v) for v in line.split()])
+
+
+        self.header_string = "".join(header)
+        self.edos_params = find_yaml_section_in_lines(header, "EDOS_PARAMS")
+        print(self.edos_params)
+        nelect = float(self.edos_params["nelect"])
+        data = np.array(data).T.copy()
+        mesh = data[0]
+
+        if len(data) == 5:
+            # Spin unpolarized case.
+            spin_dos = data[3]
+            spin_idos = data[4]
+        elif len(data) == 7:
+            # Spin unpolarized case.
+            spin_dos = data[[3, 5]]
+            spin_idos = data[[4, 6]]
+        else:
+            raise ValueError("Don't know how to interpret %d columns in %s" % (len(data), filepath))
+
+        #print(mesh.shape, spin_dos.shape, spin_idos.shape)
+        self.edos = ElectronDos(mesh, spin_dos, nelect, fermie=None, spin_idos=spin_idos)
+
+    def to_string(self, verbose=0):
+        """String representation."""
+        lines = [self.header_string]; app = lines.append
+        app(self.edos.to_string(verbose=verbose))
+
+        return "\n".join(lines)
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        yield self.edos.plot(show=False)
+        yield self.edos.plot_dos_idos(show=False)
+        if self.edos.nsppol == 2:
+            yield self.edos.plot_up_minus_down(show=False)
+
+
+
+class EdosRobot(Robot):
+    """
+    This robot analyzes the results contained in multiple EDOS files.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: EdosRobot
+    """
+    EXT = "EDOS"
+
+    #def yield_figs(self, **kwargs):  # pragma: no cover
+    #    """
+    #    This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+    #    Used in abiview.py to get a quick look at the results.
+    #    """
+    #    yield self.plot_lattice_convergence(show=False)
+    #    yield self.plot_gsr_convergence(show=False)
+    #    for fig in self.get_ebands_plotter().yield_figs(): yield fig

@@ -582,7 +582,9 @@ batch_adapter:
                 "PLEASE READ THIS: !!!\n"
                 "To use AbiPy to run jobs this file must be present\n"
                 "It provides a description of the cluster/computer you are running on\n"
-                "Examples are provided in abipy/data/managers." % (cls.YAML_FILE, path), color="red"))
+                "Examples are provided in abipy/data/managers.\n"
+                "Use `abidoc.py manager` to access the documentation in the terminal.\n"
+                "See also: https://abinit.github.io/abipy/workflows/manager_examples.html\n" % (cls.YAML_FILE, path), color="red"))
 
         _USER_CONFIG_TASKMANAGER = cls.from_file(path)
         return _USER_CONFIG_TASKMANAGER
@@ -1959,10 +1961,10 @@ class Task(Node, metaclass=abc.ABCMeta):
                 return self.set_status(self.S_ABICRITICAL, msg=msg)
 
             if report is None:
-                return self.set_status(self.S_ERROR, msg="got None report!")
+                return self.set_status(self.S_ERROR, msg="Got None report!")
 
             if report.run_completed:
-                # Here we  set the correct timing data reported by Abinit
+                # Here we set the correct timing data reported by Abinit
                 self.datetimes.start = report.start_datetime
                 self.datetimes.end = report.end_datetime
 
@@ -2732,8 +2734,7 @@ class AbinitTask(Task):
         # Here we reorder the pseudos if the order is wrong.
         ord_pseudos = []
 
-        znucl = [specie.number for specie in
-                 self.input.structure.types_of_specie]
+        znucl = [specie.number for specie in self.input.structure.species_by_znucl]
 
         for z in znucl:
             for p in self.pseudos:
@@ -2863,6 +2864,9 @@ class AbinitTask(Task):
             except parser.Error:
                 self.history.critical("Error while parsing Autoparal section:\n%s" % straceback())
                 return 2
+
+        if "paral_kgb" not in self.input:
+            self.input.set_vars(paral_kgb=pconfs.info.get("paral_kgb", 0))
 
         ######################################################
         # Select the optimal configuration according to policy
@@ -4633,35 +4637,28 @@ class AnaddbTask(Task):
         hence we don't need to create symbolic links.
         """
 
+    def outpath_from_ext(self, ext):
+        if ext == "anaddb.nc":
+           path = os.path.join(self.workdir, "anaddb.nc")
+           if os.path.isfile(path): return path
+
+        path = self.wdir.has_abiext(ext)
+        if not path:
+            raise RuntimeError("Anaddb task `%s` didn't produce file with extenstion: `%s`" % (self, ext))
+
+        return path
+
     def open_phbst(self):
         """Open PHBST file produced by Anaddb and returns |PhbstFile| object."""
         from abipy.dfpt.phonons import PhbstFile
-        phbst_path = os.path.join(self.workdir, "run.abo_PHBST.nc")
-        if not phbst_path:
-            if self.status == self.S_OK:
-                self.history.critical("%s reached S_OK but didn't produce a PHBST file in %s" % (self, self.outdir))
-            return None
-
-        try:
-            return PhbstFile(phbst_path)
-        except Exception as exc:
-            self.history.critical("Exception while reading GSR file at %s:\n%s" % (phbst_path, str(exc)))
-            return None
+        phbst_path = self.outpath_from_ext("PHBST.nc")
+        return PhbstFile(phbst_path)
 
     def open_phdos(self):
         """Open PHDOS file produced by Anaddb and returns |PhdosFile| object."""
         from abipy.dfpt.phonons import PhdosFile
-        phdos_path = os.path.join(self.workdir, "run.abo_PHDOS.nc")
-        if not phdos_path:
-            if self.status == self.S_OK:
-                self.history.critical("%s reached S_OK but didn't produce a PHBST file in %s" % (self, self.outdir))
-            return None
-
-        try:
-            return PhdosFile(phdos_path)
-        except Exception as exc:
-            self.history.critical("Exception while reading GSR file at %s:\n%s" % (phdos_path, str(exc)))
-            return None
+        phdos_path = self.outpath_from_ext("PHDOS.nc")
+        return PhdosFile(phdos_path)
 
     def get_results(self, **kwargs):
         return super().get_results(**kwargs)

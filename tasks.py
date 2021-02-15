@@ -74,6 +74,22 @@ def flows(ctx):
     with cd(os.path.join(ABIPY_ROOTDIR, "abipy", "examples")):
         ctx.run("_runflows.py", pty=True)
 
+
+@task
+def pygrep(ctx, pattern):
+    """
+    Grep for `pattern` in all py files contained in
+    """
+    # grep -r -i --include \*.h
+    # Syntax notes:
+    #    -r - search recursively
+    #    -i - case-insensitive search
+    #    --include=\*.${file_extension} - search files that match the extension(s) or file pattern only
+    with cd(os.path.join(ABIPY_ROOTDIR, "abipy",)):
+        cmd  = 'grep -r -i --color --include "*.py" "%s" .' % pattern
+        print("Executing:", cmd)
+        ctx.run(cmd, pty=True)
+
 #@task
 #def move_to_master(ctx):
 #    ctx.run("git tag -a v%s -m \"v%s release\"" % (NEW_VER, NEW_VER))

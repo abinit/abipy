@@ -124,13 +124,17 @@ class PhononBandsTest(AbipyTest):
             assert phbands.plot_longitudinal_fatbands(show=False)
             assert phbands.plot_longitudinal_fatbands(sum_degenerate=True, show=False)
             assert phbands.plot_longitudinal_fraction([0.0375, 0.0375, 0.075], show=False)
+            assert phbands.plot_qpt_distance(ngqpt=[2,2,2], plot_distances=True, show=False)
+            assert phbands.plot_qpt_distance(qpt_list=[[0.1,0.1,0.1]], plot_distances=False, log_scale=True, show=False)
 
         # Cannot compute PHDOS with q-path
         with self.assertRaises(ValueError):
             phdos = phbands.get_phdos()
 
-        # convert to pymatgen object
-        phbands.to_pymatgen()
+        # convert to pymatgen object and check that the opposite converted is consistent
+        pmg_bands = phbands.to_pymatgen()
+        phbands_from_pmg = PhononBands.from_pmg_bs(pmg_bands)
+        assert np.allclose(phbands.phfreqs, phbands_from_pmg.phfreqs)
 
         # get frozen phonons
         phbands.get_frozen_phonons((0.5, 0.5, 1.0), 1, eta=0.5, max_supercell=[5,5,5])

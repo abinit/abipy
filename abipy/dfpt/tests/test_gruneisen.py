@@ -34,17 +34,17 @@ class GrunsFileTest(AbipyTest):
             assert ncfile.phdos
 
             self.assertAlmostEqual(ncfile.average_gruneisen(t=None, squared=True, limit_frequencies=None),
-                                   1.4206573918609795)
+                                   1.4206573918609795, places=5)
             self.assertAlmostEqual(ncfile.average_gruneisen(t=None, squared=False, limit_frequencies="debye"),
-                                   1.2121437911186166)
+                                   1.2121437911186166, places=5)
             self.assertAlmostEqual(ncfile.average_gruneisen(t=None, squared=False, limit_frequencies="acoustic"),
-                                   1.213016691881557)
+                                   1.213016691881557, places=5)
             self.assertAlmostEqual(ncfile.thermal_conductivity_slack(squared=True, limit_frequencies=None),
-                                   14.553100876473687)
+                                   14.553100876473687, places=4)
             self.assertAlmostEqual(ncfile.thermal_conductivity_slack(squared=True, limit_frequencies=None, t=300),
-                                   14.43141396698724)
-            self.assertAlmostEqual(ncfile.debye_temp, 429.05702577371898)
-            self.assertAlmostEqual(ncfile.acoustic_debye_temp, 297.49152615955893)
+                                   14.43141396698724, places=4)
+            self.assertAlmostEqual(ncfile.debye_temp, 429.05702577371898, places=4)
+            self.assertAlmostEqual(ncfile.acoustic_debye_temp, 297.49152615955893, places=4)
 
             ncfile.grun_vals_finite_differences(match_eigv=False)
             ncfile.gvals_qibz_finite_differences(match_eigv=False)

@@ -14,10 +14,10 @@ def make_input():
     pseudos = abidata.pseudos("14si.pspnc", "8o.pspnc")
 
     structure = abidata.structure_from_ucell("SiO2-alpha")
-    #structure.make_supercell([3,3,3])
+    #structure.make_supercell([3, 3, 3])
 
     inp = abilab.AbinitInput(structure, pseudos)
-    inp.set_kmesh(ngkpt=[4,4,4], shiftk=[0,0,0])
+    inp.set_kmesh(ngkpt=[4, 4, 4], shiftk=[0, 0, 0])
 
     # Global variables
     ecut = 24

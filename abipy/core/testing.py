@@ -435,6 +435,17 @@ class AbipyTest(PymatgenTest):
         _, tmpname = tempfile.mkstemp(**kwargs)
         return tmpname
 
+    def tmpfile_write(self, string):
+        """
+        Write string to a temporary file. Returns the name of the temporary file.
+        """
+        fd, tmpfile = tempfile.mkstemp(text=True)
+
+        with open(tmpfile, "w") as fh:
+            fh.write(string)
+
+        return tmpfile
+
     @staticmethod
     def has_nbformat():
         """Return True if nbformat is available and we can test the generation of jupyter_ notebooks."""

@@ -70,6 +70,8 @@ def main():
             path = os.path.join(root, fname)
             if path != __file__:
                 scripts.append(path)
+    print("Executing: %d scripts with mode: `%s` and execute: `%s`" % (
+          len(scripts), options.mode, options.executed))
 
     # Run scripts according to mode.
     dirpaths, errors, retcode, cnt = [], [], 0, 0

@@ -1,4 +1,4 @@
-"""Panels for interacting with GSR files."""
+"""Panels to interact with GSR files."""
 import param
 import panel as pn
 import panel.widgets as pnw

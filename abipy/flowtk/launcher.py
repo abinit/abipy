@@ -609,7 +609,7 @@ class PyFlowScheduler(object):
         # Many sections of this code should be rewritten.
         #if self.max_ncores_used is not None and flow.ncores_used > self.max_ncores_used:
         if self.max_ncores_used is not None and flow.ncores_allocated > self.max_ncores_used:
-            print("Cannot exceed max_ncores_used %s" % self.max_ncores_used)
+            print("Cannot exceed max_ncores_used %s" % self.max_ncores_used, ", ncores_allocated:", flow.ncores_allocated)
             return
 
         # Try to restart the unconverged tasks
@@ -786,7 +786,6 @@ class PyFlowScheduler(object):
         """Shutdown the scheduler."""
         try:
             self.cleanup()
-
             self.history.append("Completed on: %s" % time.asctime())
             self.history.append("Elapsed time: %s" % self.get_delta_etime())
 
@@ -841,11 +840,13 @@ class PyFlowScheduler(object):
             # Unschedule all the jobs before calling shutdown
             #self.sched.print_jobs()
             if not has_sched_v3:
+                #self.sched.print_jobs()
                 for job in self.sched.get_jobs():
                     self.sched.unschedule_job(job)
-            #self.sched.print_jobs()
+                self.sched.shutdown()
+            else:
+                self.sched.shutdown(wait=False)
 
-            self.sched.shutdown()
             # Uncomment the line below if shutdown does not work!
             #os.system("kill -9 %d" % os.getpid())
 

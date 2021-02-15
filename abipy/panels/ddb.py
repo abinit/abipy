@@ -1,4 +1,5 @@
 """"Panels for DDB files."""
+
 import param
 import panel as pn
 import panel.widgets as pnw
@@ -16,7 +17,7 @@ class DdbFilePanel(AbipyParameterized):
     mpi_procs = param.Integer(1, bounds=(1, None), doc="Number of MPI processes used in anaddb")
 
     nqsmall = param.Integer(10, bounds=(1, None), doc="Number of divisions for smallest vector to generate Q-mesh")
-    ndivsm = param.Integer(2, bounds=(1, None), doc="Number of divisions for smallest segment in q-path")
+    ndivsm = param.Integer(5, bounds=(1, None), doc="Number of divisions for smallest segment in q-path")
     lo_to_splitting = param.ObjectSelector(default="automatic", objects=["automatic", True, False])
     chneut = param.ObjectSelector(default=1, objects=[0, 1, 2], doc="Abinit variable")
     dipdip = param.ObjectSelector(default=1, objects=[0, 1], doc="Abinit variable")
@@ -35,6 +36,8 @@ class DdbFilePanel(AbipyParameterized):
     plot_eps0w_btn = pnw.Button(name="Plot eps0(omega)", button_type='primary')
 
     plot_vsound_btn = pnw.Button(name="Calculate speed of sound", button_type='primary')
+    plot_check_asr_dipdip_btn = pnw.Button(name="Compute phonons with/wo ASR and DIPDIP", button_type='primary')
+    plot_ifc_btn = pnw.Button(name="Compute IFC(R)", button_type='primary')
 
     def __init__(self, ddb, **params):
         super().__init__(**params)
@@ -89,7 +92,7 @@ class DdbFilePanel(AbipyParameterized):
         if self.plot_phbands_btn.clicks == 0: return
         #self.plot_phbands_btn.button_type = "warning"
 
-        print("Computing phbands")
+        #print("Computing phbands")
         with self.ddb.anaget_phbst_and_phdos_files(
                 nqsmall=self.nqsmall, qppa=None, ndivsm=self.ndivsm,
                 line_density=None, asr=self.asr, chneut=self.chneut, dipdip=self.dipdip,
@@ -98,7 +101,7 @@ class DdbFilePanel(AbipyParameterized):
 
             phbst_file, phdos_file = g
             phbands, phdos = phbst_file.phbands, phdos_file.phdos
-            print("Computing phbands completed")
+            #print("Computing phbands completed")
 
             # Build grid
             gspec = pn.GridSpec(sizing_mode='scale_width')
@@ -134,6 +137,40 @@ class DdbFilePanel(AbipyParameterized):
 
         return gspec
 
+    @param.depends('plot_check_asr_dipdip_btn.clicks')
+    def plot_without_asr_dipdip(self):
+        if self.plot_check_asr_dipdip_btn.clicks == 0: return
+
+        # Insert results in grid.
+        gspec = pn.GridSpec(sizing_mode='scale_width')
+
+        asr_plotter =  self.ddb.anacompare_asr(asr_list=(0, 2), chneut_list=(1,), dipdip=1, lo_to_splitting=self.lo_to_splitting,
+                                               nqsmall=self.nqsmall, ndivsm=self.ndivsm,
+                                               dos_method=self.dos_method, ngqpt=None,
+                                               verbose=self.verbose, mpi_procs=self.mpi_procs)
+        gspec[0, :1] = asr_plotter.plot(**self.fig_kwargs)
+
+        dipdip_plotter = self.ddb.anacompare_dipdip(chneut_list=(1,), asr=2, lo_to_splitting=self.lo_to_splitting,
+                                                    nqsmall=self.nqsmall, ndivsm=self.ndivsm,
+                                                    dos_method=self.dos_method, ngqpt=None,
+                                                    verbose=self.verbose, mpi_procs=self.mpi_procs)
+        gspec[1, :1] = dipdip_plotter.plot(**self.fig_kwargs)
+        return gspec
+
+    @param.depends('plot_ifc_btn.clicks')
+    def plot_ifc(self):
+        if self.plot_ifc_btn.clicks == 0: return
+
+        ifc = self.ddb.anaget_ifc(asr=self.asr, chneut=self.chneut, dipdip=self.dipdip)
+
+        # Insert results in grid.
+        gspec = pn.GridSpec(sizing_mode='scale_width')
+        gspec[0, :1] = ifc.plot_longitudinal_ifc(title="Longitudinal IFCs", show=False)
+        gspec[1, :1] = ifc.plot_longitudinal_ifc_short_range(title="Longitudinal IFCs short range", show=False)
+        gspec[2, :1] = ifc.plot_longitudinal_ifc_ewald(title="Longitudinal IFCs Ewald", show=False)
+
+        return gspec
+
     def get_panel(self):
         """Return tabs with widgets to interact with the DDB file."""
         tabs = pn.Tabs(); app = tabs.append
@@ -141,7 +178,8 @@ class DdbFilePanel(AbipyParameterized):
         app(("Summary", row))
         app(("Ph-bands", pn.Row(
             pn.Column("# PH-bands options",
-                      *[self.param[k] for k in ("nqsmall", "ndivsm", "asr", "chneut", "dipdip", "lo_to_splitting")],
+                      *[self.param[k] for k in ("nqsmall", "ndivsm", "asr", "chneut", "dipdip",
+                                                "lo_to_splitting", "dos_method")],
                       self.temp_range, self.plot_phbands_btn),
             self.plot_phbands_and_phdos)
         ))
@@ -162,6 +200,20 @@ class DdbFilePanel(AbipyParameterized):
                       self.plot_vsound_btn),
             self.plot_vsound)
         ))
-        app(("Global", pn.Column("# Global parameters", *[self.param[k] for k in ("units", "mpi_procs", "verbose")])))
+        app(("Check ASR and DIPDIP", pn.Row(
+            pn.Column("# Options",
+                      *[self.param[k] for k in ("nqsmall", "ndivsm", "dos_method")],
+                      self.plot_check_asr_dipdip_btn),
+            self.plot_without_asr_dipdip)
+        ))
+
+        app(("IFCs", pn.Row(
+            pn.Column("# Options",
+                      *[self.param[k] for k in ("asr", "dipdip", "chneut")],
+                      self.plot_ifc_btn),
+            self.plot_ifc)
+        ))
+
+        app(("Global Opts", pn.Column("# Global Options", *[self.param[k] for k in ("units", "mpi_procs", "verbose")])))
 
         return tabs

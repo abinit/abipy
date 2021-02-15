@@ -19,7 +19,8 @@ from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
 from pymatgen.phonon.dos import CompletePhononDos as PmgCompletePhononDos, PhononDos as PmgPhononDos
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter
-from abipy.core.kpoints import Kpoint, Kpath
+from abipy.core.kpoints import Kpoint, Kpath, KpointList, kmesh_from_mpdivs
+from abipy.core.structure import Structure
 from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
 from abipy.tools import duck
@@ -133,13 +134,15 @@ class PhononBands(object):
                 amu = None
 
             non_anal_ph = None
-            # TODO: Reading NonAnalyticalPh here is not safe because
-            # it may happen that the netcdf file does not contain all the directions
-            # required by AbiPy. For the time being we read NonAnalyticalPh only
-            # if we know that calculation has been driven by AbiPy --> all directions are available.
-            #if "non_analytical_directions" in r.rootgrp.variables:
-            #    print("Found nonanal")
-            #    non_anal_ph = NonAnalyticalPh.from_file(filepath)
+
+            # Reading NonAnalyticalPh here is not 100% safe as it may happen that the netcdf file
+            # does not contain all the directions required by AbiPy.
+            # So we read NonAnalyticalPh only if we know that all directions are available.
+            # The flag has_abipy_non_anal_ph is set at the Fortran level. See e.g ifc_mkphbs
+            if ("non_analytical_directions" in r.rootgrp.variables and
+                "has_abipy_non_anal_ph" in r.rootgrp.variables):
+                #print("Found non_anal_ph term compatible with AbiPy plotter.")
+                non_anal_ph = NonAnalyticalPh.from_file(filepath)
 
             epsinf, zcart = r.read_epsinf_zcart()
 
@@ -819,9 +822,9 @@ class PhononBands(object):
             return h
 
         def reasonable_repetitions(natoms):
-            if (natoms < 4): return (3,3,3)
-            if (4 < natoms < 50): return (2,2,2)
-            if (50 < natoms): return (1,1,1)
+            if (natoms < 4): return (3, 3, 3)
+            if (4 < natoms < 50): return (2, 2, 2)
+            if (50 < natoms): return (1, 1, 1)
 
         # http://henriquemiranda.github.io/phononwebsite/index.html
         data = {}
@@ -890,10 +893,81 @@ class PhononBands(object):
         with open(filename, 'wt') as json_file:
             json.dump(data, json_file, indent=indent)
 
+    def make_isodistort_ph_dir(self, qpoint, select_modes=None, eta=1, workdir=None):
+        """
+        Compute ph-freqs for given q-point (default: Gamma),
+        produce CIF files for unperturbed and distorded structure
+        that can be used with ISODISTORT (https://stokes.byu.edu/iso/isodistort.php)
+        to analyze the symmetry of phonon modes.
+        See README.me file produced in output directory.
+
+        Args:
+            qpoint:
+            wordir:
+            select_modes:
+            eta: Amplitude of the displacement to be applied to the system. Will correspond to the
+                largest displacement of one atom in Angstrom.
+            scale_matrix: the scaling matrix of the supercell. If None a scaling matrix suitable for
+                the qpoint will be determined.
+            max_supercell: mandatory if scale_matrix is None, ignored otherwise. Defines the largest
+                supercell in the search for a scaling matrix suitable for the q point.
+        """
+        iq, qpoint = self.qindex_qpoint(qpoint)
+
+        scale_matrix = np.eye(3, 3, dtype=np.int)
+        important_fracs = (2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)
+        for i in range(3):
+            for comparison_frac in important_fracs:
+                if abs(1 - qpoint.frac_coords[i] * comparison_frac) < 1e-4:
+                    scale_matrix[i, i] = comparison_frac
+                    break
+        print(f"Using scale_matrix:\n {scale_matrix}")
+
+        select_modes = self.branches if select_modes is None else select_modes
+        if workdir is None:
+            workdir = "%s_qpt%s" % (self.structure.formula, repr(qpoint))
+            workdir = workdir.replace(" ", "_").replace("$", "").replace("\\", "").replace("[", "").replace("]", "")
+
+        if os.path.isdir(workdir):
+            cprint(f"Removing pre-existing directory: {workdir}", "yellow")
+            import shutil
+            shutil.rmtree(workdir)
+
+        os.mkdir(workdir)
+
+        print(f"\nCreating CIF files for ISODISTORT code in {workdir}. See README.md")
+        self.structure.write_cif_with_spglib_symms(filename=os.path.join(workdir, "parent_structure.cif"))
+
+        for imode in select_modes:
+            # A namedtuple with a structure with the displaced atoms, a numpy array containing the
+            # displacements applied to each atom and the scale matrix used to generate the supercell.
+            r = self.get_frozen_phonons(qpoint, imode,
+                                        eta=eta, scale_matrix=scale_matrix, max_supercell=None)
+
+            print("after scale_matrix:", r.scale_matrix)
+            r.structure.write_cif_with_spglib_symms(filename=os.path.join(workdir, "distorted_structure_mode_%d.cif" % (imode + 1)))
+
+        readme_string = """
+
+Use Harold Stokes' code, [ISODISTORT](https://stokes.byu.edu/iso/isodistort.php),
+loading in your structure that you did the DFPT calculation as the **parent**,
+then, select mode decompositional analysis and upload the cif file from step (3).
+
+Follow the on screen instructions.
+You will then be presented with the mode irrep and other important symmetry information.
+
+Thanks to Jack Baker for pointing out this approach.
+See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
+"""
+        with open(os.path.join(workdir, "README.md"), "wt") as fh:
+            fh.write(readme_string)
+
+        return workdir
+
     def decorate_ax(self, ax, units='eV', **kwargs):
         """
         Add q-labels, title and unit name to axis ax.
-        Use units = "" to add k-labels without adding unit name.
+        Use units="" to add k-labels without unit name.
 
         Args:
             title:
@@ -951,7 +1025,7 @@ class PhononBands(object):
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
-        # Decorate the axis (e.g add ticks and labels).
+        # Decorate the axis (e.g. add ticks and labels).
         self.decorate_ax(ax, units=units, qlabels=qlabels)
 
         if "color" not in kwargs: kwargs["color"] = "black"
@@ -1822,20 +1896,22 @@ class PhononBands(object):
 
         ph_freqs, qpts, displ = [], [], []
         for split_q, split_phf, split_phdispl in zip(self.split_qpoints, self.split_phfreqs, self.split_phdispl_cart):
-            # for q, phf in zip(split_q, split_phf)[1:-1]:
-            for i, (q, phf, d) in enumerate(zip(split_q, split_phf, split_phdispl)):
+            # if the qpoint has a label it needs to be repeated. If it is one of the extrema either it should
+            # not be repeated (if they are the real first or last point) or they will be already repeated due
+            # to the split. Also they should not be repeated in case there are two consecutive labelled points.
+            # So first determine which ones have a label.
+            labelled = [any(np.allclose(q, labelled_q) for labelled_q in labelled_q_list) for q in split_q]
+
+            for i, (q, phf, d, l) in enumerate(zip(split_q, split_phf, split_phdispl, labelled)):
                 ph_freqs.append(phf)
                 qpts.append(q)
                 d = d.reshape(self.num_branches, self.num_atoms, 3)
                 displ.append(d)
-                # if the qpoint has a label it nees to be repeated. If it is one of the extrama either it should
-                # not be repeated (if they are the real first or last point) or they will be already reapeated due
-                # to the split.
-                if any(np.allclose(q, labelled_q) for labelled_q in labelled_q_list):
-                    if 0 < i < len(split_q) - 1:
-                        ph_freqs.append(phf)
-                        qpts.append(q)
-                        displ.append(d)
+
+                if 0 < i < len(split_q) - 1 and l and not labelled[i-1] and not labelled[i+1]:
+                    ph_freqs.append(phf)
+                    qpts.append(q)
+                    displ.append(d)
 
         ph_freqs = np.transpose(ph_freqs) * abu.eV_to_THz
         qpts = np.array(qpts)
@@ -1846,6 +1922,95 @@ class PhononBands(object):
                                            has_nac=self.non_anal_ph is not None, eigendisplacements=displ,
                                            labels_dict=labels_dict, structure=self.structure)
 
+    @classmethod
+    def from_pmg_bs(cls, pmg_bs, structure=None):
+        """
+        Creates an instance of the object from a :class:`PhononBandStructureSymmLine` object.
+
+        Args:
+            pmg_bs: the instance of PhononBandStructureSymmLine.
+            structure: a |Structure| object. Should be present if the structure attribute is
+                not set in pmg_bs.
+        """
+
+        structure = structure or pmg_bs.structure
+        if not structure:
+            raise ValueError("The structure is needed to create the abipy object.")
+
+        structure = Structure.from_sites(structure)
+        structure.spgset_abi_spacegroup(has_timerev=False)
+
+        qpoints = []
+        phfreqs = []
+        phdispl_cart = []
+        names = []
+
+        prev_q = None
+        for b in pmg_bs.branches:
+            qname1, qname2 = b["name"].split("-")
+            start_index = b["start_index"]
+            if prev_q is not None and qname1 == prev_q:
+                start_index += 1
+
+            # it can happen depending on how the object was generated
+            if start_index >= b["end_index"]:
+                continue
+
+            prev_q = qname2
+
+            if start_index == b["start_index"]:
+                names.append(qname1)
+
+            names.extend([None] * (b["end_index"] - b["start_index"] - 1))
+            names.append(qname2)
+
+            for i in range(start_index, b["end_index"] + 1):
+                qpoints.append(pmg_bs.qpoints[i].frac_coords)
+            phfreqs.extend(pmg_bs.bands.T[start_index:b["end_index"] + 1])
+            if pmg_bs.has_eigendisplacements:
+                e = pmg_bs.eigendisplacements[:, start_index:b["end_index"] + 1]
+                e = np.transpose(e, [0, 1, 2, 3])
+                e = np.reshape(e, e.shape[:-2] + (-1,))
+                phdispl_cart.extend(e)
+
+        print(len(names), len(phfreqs))
+        qpoints_list = KpointList(reciprocal_lattice=structure.reciprocal_lattice,
+                                  frac_coords=qpoints, names=names)
+
+        phfreqs = np.array(phfreqs) / abu.eV_to_THz
+        n_modes = 3 * len(structure)
+        if not phdispl_cart:
+            phdispl_cart = np.zeros((len(phfreqs), n_modes, n_modes))
+        else:
+            phdispl_cart = np.array(phdispl_cart)
+
+        na = None
+        if pmg_bs.has_nac:
+            directions = []
+            nac_phreqs = []
+            nac_phdispl = []
+
+            for t in pmg_bs.nac_frequencies:
+                # directions in NonAnalyticalPh are given in cartesian coordinates
+                cart_direction = structure.lattice.reciprocal_lattice_crystallographic.get_cartesian_coords(t[0])
+                cart_direction = cart_direction / np.linalg.norm(cart_direction)
+
+                directions.append(cart_direction)
+                nac_phreqs.append(t[1])
+
+            nac_phreqs = np.array(nac_phreqs) / abu.eV_to_THz
+
+            for t in pmg_bs.nac_eigendisplacements:
+                nac_phdispl.append(t[1].reshape(n_modes, n_modes))
+
+            na = NonAnalyticalPh(structure=structure, directions=np.array(directions),
+                                 phfreqs=nac_phreqs, phdispl_cart=np.array(nac_phdispl))
+
+        phb = cls(structure=structure, qpoints=qpoints_list, phfreqs=phfreqs, phdispl_cart=phdispl_cart,
+                  non_anal_ph=na)
+
+        return phb
+
     def acoustic_indices(self, qpoint, threshold=0.95, raise_on_no_indices=True):
         """
         Extract the indices of the three acoustic modes for a qpoint.
@@ -1855,7 +2020,7 @@ class PhononBands(object):
             qpoint: the qpoint. Accepts integer or reduced coordinates
             threshold: fractional value allowed for the matching of the displacements to identify acoustic modes.
             raise_on_no_indices: if True a RuntimeError will be raised if the acoustic mode will not be
-                correctly identified
+                correctly identified. If False [0, 1, 2] will be returned.
         """
         qindex = self.qindex(qpoint)
         phdispl = self.phdispl_cart[qindex]
@@ -1871,10 +2036,11 @@ class PhononBands(object):
             else:
                 indices.append(mode)
 
-        if len(indices) != 3 and raise_on_no_indices:
-            raise RuntimeError('wrong number of indices: {}'.format(indices))
-        else:
-            indices = [0, 1, 2]
+        if len(indices) != 3:
+            if raise_on_no_indices:
+                raise RuntimeError('wrong number of indices: {}'.format(indices))
+            else:
+                indices = [0, 1, 2]
 
         return indices
 
@@ -1923,7 +2089,7 @@ class PhononBands(object):
             displacements applied to each atom and the scale matrix used to generate the supercell.
         """
         qind = self.qindex(qpoint)
-        displ = self.phdispl_cart[qind, nmode].reshape((-1,3))
+        displ = self.phdispl_cart[qind, nmode].reshape((-1, 3))
 
         return self.structure.frozen_phonon(qpoint=self.qpoints[qind].frac_coords, displ=displ, eta=eta,
                                             frac_coords=False, scale_matrix=scale_matrix, max_supercell=max_supercell)
@@ -2138,8 +2304,137 @@ class PhononBands(object):
 
             width = np.array(width)
             for branch in branch_range:
-                ax.fill_between(xx, pf_l[:, branch] + width[:, branch], pf_l[:, branch] - width[:, branch], facecolor="r", alpha=0.4, linewidth=0)
+                ax.fill_between(xx, pf_l[:, branch] + width[:, branch], pf_l[:, branch] - width[:, branch],
+                                facecolor="r", alpha=0.4, linewidth=0)
 
+        return fig
+
+    @add_fig_kwargs
+    def plot_qpt_distance(self, qpt_list=None, ngqpt=None, shiftq=(0, 0, 0), plot_distances=False,
+                          units="eV", qlabels=None, branch_range=None, colormap="viridis_r",
+                          match_bands=False, log_scale=False, **kwargs):
+        r"""
+        Plot the phonon band structure coloring the point according to the minimum distance of
+        the qpoints of the path from a list of qpoints. This can be for example defined as the
+        q-points effectively calculated in DFPT.
+        Optionally plot the explicit values.
+
+        Args:
+            qpt_list: list of fractional coordinates or KpointList of the qpoints from which the minimum
+                distance will be calculated.
+            ngqpt: the division of a regular grid of qpoints. Used to automatically fill in the qpt_list
+                based on abipy.core.kpoints.kmesh_from_mpdivs.
+            shiftq: the shifts of a regular grid of qpoints. Used to automatically fill in the qpt_list
+                based on abipy.core.kpoints.kmesh_from_mpdivs.
+            plot_distances: if True a second plot will be added with the explicit values of the distances.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
+            qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
+                The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
+            branch_range: Tuple specifying the minimum and maximum branch_i index to plot
+                (default: all branches are plotted).
+            colormap: matplotlib colormap to determine the colors available.
+                http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
+            match_bands: if True the bands will be matched based on the scalar product between the eigenvectors.
+            log_scale: if True the values will be plotted in a log scale.
+
+        Returns: |matplotlib-Figure|
+        """
+        from matplotlib.collections import LineCollection
+
+        if qpt_list is None:
+            if ngqpt is None:
+                raise ValueError("at least one among qpt_list and ngqpt should be provided")
+            qpt_list = kmesh_from_mpdivs(ngqpt, shiftq, pbc=False, order="bz")
+
+        if isinstance(qpt_list, KpointList):
+            qpt_list = qpt_list.frac_coords
+
+        # Select the band range.
+        if branch_range is None:
+            branch_range = range(self.num_branches)
+        else:
+            branch_range = range(branch_range[0], branch_range[1], 1)
+
+        nrows = 2 if plot_distances else 1
+        ncols = 1
+        ax_list, fig, plt = get_axarray_fig_plt(ax_array=None, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=False, squeeze=True)
+
+        # make a list in case of only one plot
+        if not plot_distances:
+            ax_list = [ax_list]
+
+        # Decorate the axis (e.g add ticks and labels).
+        self.decorate_ax(ax_list[-1], units=units, qlabels=qlabels)
+
+        first_xx = 0
+        factor = abu.phfactor_ev2units(units)
+
+        linewidth = 2
+        if "lw" in kwargs:
+            linewidth = kwargs.pop("lw")
+        elif "linewidth" in kwargs:
+            linewidth = kwargs.pop("linewidth")
+
+        rec_latt = self.structure.reciprocal_lattice
+
+        # calculate all the value to set the color normalization
+        split_min_dist = []
+        for i, q_l in enumerate(self.split_qpoints):
+            all_dist = rec_latt.get_all_distances(q_l, qpt_list)
+            split_min_dist.append(np.min(all_dist, axis=-1))
+
+        if log_scale:
+            import matplotlib
+            # find the minimum value larger than zero and set the 0 to that value
+            min_value = np.min([v for l in split_min_dist for v in l if v > 0])
+            for min_list in split_min_dist:
+                min_list[min_list==0] = min_value
+            norm = matplotlib.colors.LogNorm(min_value, np.max(split_min_dist), clip=True)
+        else:
+            norm = plt.Normalize(np.min(split_min_dist), np.max(split_min_dist))
+
+        segments = []
+        total_min_dist = []
+
+        for i, (pf, min_dist) in enumerate(zip(self.split_phfreqs, split_min_dist)):
+            if match_bands:
+                ind = self.split_matched_indices[i]
+                pf = pf[np.arange(len(pf))[:, None], ind]
+            pf = pf * factor
+            xx = range(first_xx, first_xx + len(pf))
+
+            for branch_i in branch_range:
+                points = np.array([xx, pf[:, branch_i]]).T.reshape(-1, 1, 2)
+                segments.append(np.concatenate([points[:-1], points[1:]], axis=1))
+                total_min_dist.extend(min_dist[:-1])
+
+            first_xx = xx[-1]
+
+        segments = np.concatenate(segments)
+        total_min_dist = np.array(total_min_dist)
+
+        lc = LineCollection(segments, cmap=colormap, norm=norm)
+        lc.set_array(total_min_dist)
+        lc.set_linewidth(linewidth)
+
+        line = ax_list[-1].add_collection(lc)
+
+        # line collection does not autoscale the plot
+        ax_list[-1].set_ylim(np.min(self.split_phfreqs), np.max(self.split_phfreqs))
+
+        fig.colorbar(line, ax=ax_list)
+
+        if plot_distances:
+            first_xx = 0
+            for i, (q_l, min_dist) in enumerate(zip(self.split_qpoints, split_min_dist)):
+                xx = list(range(first_xx, first_xx + len(q_l)))
+                ax_list[0].plot(xx, min_dist, linewidth=linewidth, **kwargs)
+
+                first_xx = xx[-1]
+            ax_list[0].grid(True)
         return fig
 
 

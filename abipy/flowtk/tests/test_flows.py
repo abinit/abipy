@@ -6,7 +6,7 @@ import abipy.data as abidata
 
 from monty.functools import lazy_property
 from pymatgen.core.lattice import Lattice
-from pymatgen.core.structure import Structure
+from abipy.core.structure import Structure
 from abipy.flowtk.launcher import BatchLauncher
 from abipy.flowtk.flows import *
 from abipy.flowtk.works import *

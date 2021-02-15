@@ -1,5 +1,9 @@
 # coding: utf-8
-"""TRANSPORT.nc file."""
+"""
+TRANSPORT.nc file.
+
+Warning: This fileformat is deprecated and will be removed when Abinit 9.2 is released
+"""
 
 import numpy as np
 import abipy.core.abinit_units as abu
@@ -29,9 +33,10 @@ class TransportFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrit
         self.reader = TransportReader(filepath)
 
         #self.fermi = self.ebands.fermie * abu.eV_Ha
-        #self.volume = self.ebands.structure.volume * abu.Ang_Bohr**3
         self.tmesh = self.reader.tmesh
         #self.transport_ngkpt = self.reader.read_value("transport_ngkpt")
+        #self.transport_extrael = self.reader.read_value("transport_extrael")
+        #self.transport_fermie = self.reader.read_value("transport_fermie")
 
     @property
     def ntemp(self):
@@ -54,10 +59,39 @@ class TransportFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrit
         od = self.get_ebands_params()
         return od
 
+    def __str__(self):
+        """String representation"""
+        return self.to_string()
+
+    def to_string(self, verbose=0):
+        """String representation"""
+        lines = []; app = lines.append
+
+        app(marquee("File Info", mark="="))
+        app(self.filestat(as_string=True))
+        app("")
+        app(self.structure.to_string(verbose=verbose, title="Structure"))
+        app("")
+        app(self.ebands.to_string(with_structure=False, verbose=verbose, title="KS Electron Bands"))
+        app("")
+
+        # Transport section.
+        app(marquee("Transport calculation", mark="="))
+        app("Number of temperatures: %d" % self.ntemp)
+        app("Mobility:")
+        app("Temperature [K]     Electrons [cm^2/Vs]     Holes [cm^2/Vs]")
+        for itemp in range(self.ntemp):
+            temp = self.tmesh[itemp]
+            mobility_mu_e = self.get_mobility_mu(0, itemp)
+            mobility_mu_h = self.get_mobility_mu(1, itemp)
+            app("%14.1lf %18.6lf %18.6lf" % (temp, mobility_mu_e, mobility_mu_h))
+
+        return "\n".join(lines)
+
     @add_fig_kwargs
-    def plot_dos(self, ax=None, **kwargs):
+    def plot_edos(self, ax=None, **kwargs):
         """
-        Plot the density of states
+        Plot the electronic density of states
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -74,7 +108,7 @@ class TransportFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrit
         return fig
 
     @add_fig_kwargs
-    def plot_vvdos(self, component='xx', ax=None, colormap='jet', fontsize=8, **kwargs):
+    def plot_vvtau_dos(self, component='xx', ax=None, colormap='jet', fontsize=8, **kwargs):
         """
         Plot velocity * lifetime density of states.
 
@@ -144,43 +178,28 @@ class TransportFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrit
         if ef is None: ef = self.reader.read_value('transport_mu_e')[itemp]
         wmesh, mobility = self.reader.read_mobility(eh, itemp, component, spin)
         f = interpolate.interp1d(wmesh, mobility)
+
         return f(ef)
 
-    def __str__(self):
-        """String representation"""
-        return self.to_string()
+    #@add_fig_kwargs
+    #def plot_onsanger(self, nn=0, ax=None, **kwargs):
+    #    """
+    #    Plot Onsanger
 
-    def to_string(self, verbose=0):
-        """String representation"""
-        lines = []; app = lines.append
+    #    Args:
+    #        ax: |matplotlib-Axes| or None if a new figure should be created.
 
-        app(marquee("File Info", mark="="))
-        app(self.filestat(as_string=True))
-        app("")
-        app(self.structure.to_string(verbose=verbose, title="Structure"))
-        app("")
-        app(self.ebands.to_string(with_structure=False, verbose=verbose, title="KS Electron Bands"))
-        app("")
-
-        # Transport section.
-        app(marquee("Transport calculation", mark="="))
-        app("Number of temperatures: %d" % self.ntemp)
-        app("Mobility:")
-        app("Temperature [K]     Electrons [cm^2/Vs]     Holes [cm^2/Vs]")
-        for itemp in range(self.ntemp):
-            temp = self.tmesh[itemp]
-            mobility_mu_e = self.get_mobility_mu(0, itemp)
-            mobility_mu_h = self.get_mobility_mu(1, itemp)
-            app("%14.1lf %18.6lf %18.6lf" % (temp, mobility_mu_e, mobility_mu_h))
-
-        return "\n".join(lines)
+    #    Return: |matplotlib-Figure|
+    #    """
+    #    ax, fig, plt = get_ax_fig_plt(ax=ax)
+    #    return fig
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
         Return figures plotting the transport data
         """
-        yield self.plot_dos(show=False, title="Density of states")
-        yield self.plot_vvdos(show=False, title="VVDOS")
+        yield self.plot_edos(show=False, title="Density of states")
+        yield self.plot_vvtau_dos(show=False, title="VVDOS")
         yield self.plot_mobility(show=False, title="Mobility")
 
     def close(self):
@@ -197,8 +216,8 @@ class TransportFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrit
         nb.cells.extend([
             nbv.new_code_cell("ncfile = abilab.abiopen('%s')" % self.filepath),
             nbv.new_code_cell("print(ncfile)"),
-            nbv.new_code_cell("ncfile.plot_dos();"),
-            nbv.new_code_cell("ncfile.plot_vvdos();"),
+            nbv.new_code_cell("ncfile.plot_edos();"),
+            nbv.new_code_cell("ncfile.plot_vvtau_dos();"),
             nbv.new_code_cell("ncfile.plot_mobility();"),
         ])
 
@@ -213,6 +232,7 @@ class TransportReader(ElectronsReader):
     def __init__(self, filepath):
         self.filepath = filepath
         super().__init__(filepath)
+
         ktmesh = self.read_value("kTmesh")
         self.tmesh = ktmesh / abu.kb_HaK
         self.nsppol = self.read_dimvalue('nsppol')
@@ -220,30 +240,40 @@ class TransportReader(ElectronsReader):
     def read_vvdos(self, component='xx', spin=1):
         """
         Read the group velocity density of states
-        The vvdos_vals array has 3 dimensions (9,nsppolplus1,nw)
+        The vvdos_vals array has 3 dimensions (3, 3, nsppolplus1, nw)
+
           1. 3x3 components of the tensor
           2. the spin polarization + 1 for the sum
           3. the number of frequencies
         """
-        i,j = abu.s2itup(component)
+        # nctkarr_t('vvdos_vals', "dp", "edos_nw, nsppol_plus1, three, three"), &
+        i, j = abu.s2itup(component)
         wmesh = self.read_variable("vvdos_mesh")[:] * abu.Ha_eV
         vals = self.read_variable("vvdos_vals")
         vvdos = vals[i,j,spin,:]
+
         return wmesh, vvdos
 
     def read_vvdos_tau(self, itemp, component='xx', spin=1):
         """
         Read the group velocity density of states times lifetime for different temperatures
+<<<<<<< HEAD
         The vvdos_tau array has 4 dimensions (ntemp, 9, nsppolplus1, nw)
+=======
+        The vvdos_tau array has 4 dimensions (ntemp, 3, 3, nsppolplus1, nw)
+
+>>>>>>> trunk/develop
           1. the number of temperatures
           2. 3x3 components of the tensor
           3. the spin polarization + 1 for the sum
           4. the number of frequencies
         """
+        # nctkarr_t('vvdos_tau', "dp", "edos_nw, nsppol_plus1, three, three, ntemp"), &
         i, j = abu.s2itup(component)
         wmesh = self.read_variable("vvdos_mesh")[:] * abu.Ha_eV
         vals = self.read_variable("vvdos_tau")
         vvdos_tau = vals[itemp,i,j,spin,:] / (2 * abu.Ha_s)
+
         return wmesh, vvdos_tau
 
     def read_dos(self):
@@ -261,16 +291,20 @@ class TransportReader(ElectronsReader):
         """
         Read the Onsager coefficients computed in the transport driver in Abinit
         """
+        # nctkarr_t('L0', "dp", "edos_nw, nsppol, three, three, ntemp"), &
         L0 = np.moveaxis(self.read_variable("L0")[itemp,:], [0,1,2,3], [3,2,0,1])
         L1 = np.moveaxis(self.read_variable("L1")[itemp,:], [0,1,2,3], [3,2,0,1])
         L2 = np.moveaxis(self.read_variable("L2")[itemp,:], [0,1,2,3], [3,2,0,1])
+
         return L0, L1, L2
 
     def read_transport(self, itemp):
-        sigma = np.moveaxis(self.read_variable("sigma")[itemp,:],     [0,1,2,3],[3,2,0,1])
-        kappa = np.moveaxis(self.read_variable("kappa")[itemp,:],     [0,1,2,3],[3,2,0,1])
-        seebeck = np.moveaxis(self.read_variable("seebeck")[itemp,:], [0,1,2,3],[3,2,0,1])
-        pi = np.moveaxis(self.read_variable("pi")[itemp,:],           [0,1,2,3],[3,2,0,1])
+        # nctkarr_t('sigma',   "dp", "edos_nw, nsppol, three, three, ntemp"), &
+        sigma = np.moveaxis(self.read_variable("sigma")[itemp,:],     [0,1,2,3], [3,2,0,1])
+        kappa = np.moveaxis(self.read_variable("kappa")[itemp,:],     [0,1,2,3], [3,2,0,1])
+        seebeck = np.moveaxis(self.read_variable("seebeck")[itemp,:], [0,1,2,3], [3,2,0,1])
+        pi = np.moveaxis(self.read_variable("pi")[itemp,:],           [0,1,2,3], [3,2,0,1])
+
         return sigma, kappa, seebeck, pi
 
     def read_mobility(self, eh, itemp, component, spin):
@@ -278,9 +312,11 @@ class TransportReader(ElectronsReader):
         Read mobility from the TRANSPORT.nc file
         The mobility is computed separately for electrons and holes.
         """
-        i,j = abu.s2itup(component)
+        # nctkarr_t('mobility',"dp", "edos_nw, nsppol, three, three, ntemp, two"), &
+        i, j = abu.s2itup(component)
         wvals = self.read_variable("vvdos_mesh")
         mobility = self.read_variable("mobility")[eh,itemp,i,j,spin,:]
+
         return wvals, mobility
 
     #def read_evk_diagonal(self):
@@ -321,7 +357,7 @@ class TransportRobot(Robot, RobotWithEbands):
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
 
-        i,j = abu.s2itup(component)
+        i, j = abu.s2itup(component)
 
         res = []
         for ncfile in self.abifiles:

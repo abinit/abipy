@@ -208,7 +208,7 @@ class GsrRobotTest(AbipyTest):
         df = robot.get_dataframe()
         assert "energy" in df
         self.assert_equal(df["ecut"].values, 6.0)
-        self.assert_almost_equal(df["energy"].values, -241.2364683)
+        self.assert_almost_equal(df["energy"].values, -241.2364683, decimal=4)
 
         df_params = robot.get_params_dataframe()
         assert "nband" in df_params

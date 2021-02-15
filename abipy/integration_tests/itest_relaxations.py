@@ -50,6 +50,7 @@ def itest_atomic_relaxation(fwp, tvars):
     flow = flowtk.Flow(fwp.workdir, manager=fwp.manager)
 
     ion_input = ion_relaxation(tvars, ntime=2)
+    ion_input["chksymtnons"] = 0
     work = flow.register_task(ion_input, task_class=flowtk.RelaxTask)
 
     flow.allocate()

@@ -559,16 +559,26 @@ class Kpoint(SlotPickleMixin):
         "_hash",
     ]
 
+    @classmethod
+    def from_name_and_structure(cls, name, structure):
+        """
+        Build Kpoint object from string with name and structure.
+        """
+        frac_coords = structure.get_kcoords_from_names(name)
+        frac_coords = np.reshape(frac_coords, (3,))
+        return cls(frac_coords, structure.reciprocal_lattice, weight=None, name=name)
+
     def __init__(self, frac_coords, lattice, weight=None, name=None):
         """
         Args:
-            frac_coords: Reduced coordinates.
+            frac_coords: Reduced coordinates of the k-point.
             lattice: |Lattice| object describing the reciprocal lattice.
             weights: k-point weight (optional, set to zero if not given).
             name: string with the name of the k-point (optional)
         """
         self._frac_coords = np.asarray(frac_coords)
-        assert len(self.frac_coords) == 3
+        if len(self.frac_coords) != 3:
+            raise TypeError("Expecting vector with 3 items, got `%s`" % str(self.frac_coords))
 
         self._lattice = lattice
         self.set_weight(weight)
@@ -1722,8 +1732,16 @@ class KpointsReaderMixin(object):
 
     def read_kmpdivs(self):
         """Returns the Monkhorst-Pack divisions defining the mesh. None if not found."""
-        #return self.read_value("monkhorst_pack_folding")
-        return self.none_if_masked_array(self.read_value("monkhorst_pack_folding"))
+
+        if "monkhorst_pack_folding" in self.rootgrp.variables:
+            return self.none_if_masked_array(self.read_value("monkhorst_pack_folding"))
+        else:
+            kptrlatt = self.read_kptrlatt()
+            kmpdivs = np.diag(kptrlatt)
+            for i in range(3):
+                for j in range(3):
+                    if i != j and kptrlatt[i, j] != 0: kmpdivs = None
+            return kmpdivs
 
     def read_kptrlatt(self):
         """Returns ABINIT variable kptrlatt. None if not found."""
@@ -1836,6 +1854,7 @@ def dist_point_from_line(x0, x1, x2):
 def find_points_along_path(cart_bounds, cart_coords, dist_tol):
     """
     Find points in ``cart_coords`` lying on the path defined by ``cart_bounds``.
+    Result are ordered according to distance along the path.
 
     Args:
         cart_bounds: [N, 3] array with the boundaries of the path in Cartesian coordinates.

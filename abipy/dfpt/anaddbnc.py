@@ -271,6 +271,20 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         return ElasticData.from_ncreader(self.reader)
 
+    @lazy_property
+    def amu(self):
+        """
+        Dictionary with atomic_number as keys and the atomic massu units as values.
+        """
+        amu_list = self.reader.read_value("atomic_mass_units", default=None)
+        if amu_list is not None:
+            atomic_numbers = self.reader.read_value("atomic_numbers")
+            amu = {at: a for at, a in zip(atomic_numbers, amu_list)}
+        else:
+            amu = None
+
+        return amu
+
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.

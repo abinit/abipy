@@ -140,7 +140,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
             task = ddb._run_anaddb_task(inp, mpi_procs=mpi_procs, workdir=workdir, manager=manager,
                                         verbose=verbose)
 
-            phbst_path = os.path.join(task.workdir, "run.abo_PHBST.nc")
+            phbst_path = task.outpath_from_ext("PHBST")
 
             return cls.from_phbst(phbst_path, ignore_neg_freqs=ignore_neg_freqs, labels=labels)
 
@@ -254,8 +254,8 @@ class SoundVelocity(Has_Structure, NotebookWriter):
                 else:
                     mt.append(None)
 
-            # sort the lists based on the sound velocites
-            sv, mt, freqs = zip(*sorted(zip(sv, mt, acoustic_freqs.T)))
+            # sort the lists based on the sound velocities
+            sv, mt, freqs = zip(*sorted(zip(sv, mt, acoustic_freqs.T.tolist())))
 
             sound_velocities.append(sv)
             mode_types.append(mt)

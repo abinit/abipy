@@ -537,17 +537,16 @@ def abicomp_gkq(options):
     """
     if options.diff:
         robot = _build_robot(options, trim_paths=True)
-
         robot.plot_gkq2_diff()
     else:
         return _invoke_robot(options)
 
 
-def abicomp_wrmax(options):
-    """
-    Compare multiple WRmax files with first order potential in real-space.
-    """
-    return _invoke_robot(options)
+#def abicomp_wrmax(options):
+#    """
+#    Compare multiple WRmax files with first order potential in real-space.
+#    """
+#    return _invoke_robot(options)
 
 
 def abicomp_v1qavg(options):
@@ -560,6 +559,13 @@ def abicomp_v1qavg(options):
 def abicomp_sigeph(options):
     """
     Compare multiple SIGEPH files storing the e-ph self-energy.
+    """
+    return _invoke_robot(options)
+
+
+def abicomp_rta(options):
+    """
+    Compare multiple RTA files.
     """
     return _invoke_robot(options)
 
@@ -1076,10 +1082,11 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
     p_optic = subparsers.add_parser('optic', parents=robot_parents, help=abicomp_optic.__doc__)
     p_a2f = subparsers.add_parser('a2f', parents=robot_parents, help=abicomp_a2f.__doc__)
     p_sigeph = subparsers.add_parser('sigeph', parents=robot_parents, help=abicomp_sigeph.__doc__)
+    p_rta = subparsers.add_parser('rta', parents=robot_parents, help=abicomp_rta.__doc__)
     p_gkq = subparsers.add_parser('gkq', parents=robot_parents, help=abicomp_gkq.__doc__)
     p_gkq.add_argument('-d', '--diff', default=False, action="store_true", help='Plot difference between eph matrix elements.')
     p_v1qavg = subparsers.add_parser('v1qavg', parents=robot_parents, help=abicomp_v1qavg.__doc__)
-    p_wrmax = subparsers.add_parser('wrmax', parents=robot_parents, help=abicomp_wrmax.__doc__)
+    #p_wrmax = subparsers.add_parser('wrmax', parents=robot_parents, help=abicomp_wrmax.__doc__)
     p_abiwan = subparsers.add_parser('abiwan', parents=robot_parents, help=abicomp_abiwan.__doc__)
 
     # Subparser for pseudos command.

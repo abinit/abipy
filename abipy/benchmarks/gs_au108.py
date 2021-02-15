@@ -192,10 +192,10 @@ def build_flow(options):
 
     # Processor distribution.
     pconfs = [
-      dict(npkpt=1, npband=13, npfft=10), # 130
-      dict(npkpt=1, npband=26, npfft=10), # 260
-      dict(npkpt=1, npband=65, npfft=8),  # 520
-      dict(npkpt=1, npband=65, npfft=16), # 1040
+       dict(npkpt=1, npband=13, npfft=10), # 130
+       dict(npkpt=1, npband=26, npfft=10), # 260
+       dict(npkpt=1, npband=65, npfft=8),  # 520
+       dict(npkpt=1, npband=65, npfft=16), # 1040
     ]
 
     for wfoptalg in [None, 1]:

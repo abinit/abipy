@@ -1,3 +1,5 @@
+"""Support for Abinit input variables."""
+
 import string
 import collections
 import numpy as np
@@ -29,6 +31,13 @@ class InputVariable(object):
     An Abinit input variable.
     """
     def __init__(self, name, value, units='', valperline=3):
+        """
+        Args:
+            name: Name of the variable.
+            value: Value of the variable.
+            units: String specifying one of the units supported by Abinit. Default: atomic units.
+            valperline: Number of items printed per line.
+        """
 
         self._name = name
         self.value = value
@@ -52,6 +61,7 @@ class InputVariable(object):
 
     @property
     def name(self):
+        """Name of the variable."""
         return self._name
 
     @property

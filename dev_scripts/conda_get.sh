@@ -20,7 +20,8 @@ conda config --add channels conda-forge
 echo "Installing abinit from abinit channel in abinit-environment..."
 conda create -q -n abinit-environment python=${TRAVIS_PYTHON_VERSION}
 source activate abinit-environment
-conda install -y -c abinit abinit=${ABINIT_VERSION}
+#conda install -y -c abinit abinit=${ABINIT_VERSION}
+conda install -y -c conda-forge abinit=${ABINIT_VERSION}
 abinit --version
 abinit --build
 

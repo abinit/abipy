@@ -39,7 +39,7 @@ from abipy.tools.notebooks import print_source, print_doc
 from abipy.tools.plotting import get_ax_fig_plt, get_axarray_fig_plt, get_ax3d_fig_plt
 from abipy.abio.factories import *
 from abipy.electrons.ebands import (ElectronBands, ElectronBandsPlotter, ElectronDos, ElectronDosPlotter,
-    dataframe_from_ebands)
+    dataframe_from_ebands, EdosFile)
 from abipy.electrons.gsr import GsrFile, GsrRobot
 from abipy.electrons.eskw import EskwFile
 from abipy.electrons.psps import PspsFile
@@ -65,11 +65,12 @@ from abipy.eph.eph_plotter import EphPlotter
 from abipy.eph.v1sym import V1symFile
 from abipy.eph.gkq import GkqFile, GkqRobot
 from abipy.eph.v1qnu import V1qnuFile
-#from abipy.eph.wr import WrNcFile
 from abipy.eph.v1qavg import V1qAvgFile
+from abipy.eph.rta import RtaFile, RtaRobot
 from abipy.eph.transportfile import TransportFile
 from abipy.wannier90 import WoutFile, AbiwanFile, AbiwanRobot
 from abipy.electrons.lobster import CoxpFile, ICoxpFile, LobsterDoscarFile, LobsterInput, LobsterAnalyzer
+#from abipy.electrons.abitk import ZinvConvFile, TetraTestFile
 
 # Abinit Documentation.
 from abipy.abio.abivars_db import get_abinit_variables, abinit_help, docvar
@@ -104,6 +105,9 @@ ext2file = collections.OrderedDict([
     ("COOPCAR.lobster", CoxpFile),
     ("ICOHPLIST.lobster", ICoxpFile),
     ("DOSCAR.lobster", LobsterDoscarFile),
+    #("ZINVCONV.nc", ZinvConvFile),
+    #("TETRATEST.nc", TetraTestFile),
+    ("EDOS", EdosFile),
 ])
 
 # Abinit files require a special treatment.
@@ -133,11 +137,11 @@ abiext2ncfile = collections.OrderedDict([
     ("A2F.nc", A2fFile),
     ("SIGEPH.nc", SigEPhFile),
     ("TRANSPORT.nc",TransportFile),
+    ("RTA.nc",RtaFile),
     ("V1SYM.nc", V1symFile),
     ("GKQ.nc", GkqFile),
     ("V1QNU.nc", V1qnuFile),
     ("V1QAVG.nc", V1qAvgFile),
-    #("WR.nc", WrNcFile),
     ("ABIWAN.nc", AbiwanFile),
 ])
 

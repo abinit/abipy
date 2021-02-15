@@ -56,6 +56,8 @@ def get_parser(with_epilog=False):
                         help='verbose, can be supplied multiple times to increase verbosity.')
     parser.add_argument('--no-colors', default=False, action="store_true", help='Disable ASCII colors.')
     parser.add_argument('--with-flow', default=False, action="store_true", help='Build and run small abipy flow for testing.')
+    parser.add_argument("-d", '--flow-dir', type=str, default=None,
+                        help='Create AbiPy flow in this directory. If None, a default directory is used,')
     parser.add_argument("-m", '--show-managers', default=False, action="store_true",
                         help="Print table with manager files provided by AbiPy.")
 
@@ -169,7 +171,7 @@ def make_scf_nscf_inputs(paral_kgb=0):
 def run_flow(options):
     """Run test flow, return exit code."""
     import tempfile
-    workdir = tempfile.mkdtemp()
+    workdir = tempfile.mkdtemp(dir=options.flow_dir)
     cprint("Running small flow in workdir: %s" % workdir, "yellow")
     print()
 

@@ -29,8 +29,7 @@ __all__ = [
     "scf_for_phonons",
     "dte_from_gsinput",
     "dfpt_from_gsinput",
-    "conduc_from_scf_nscf_inputs",
-    "conduc_kerange_from_scf_nscf_inputs"
+    "minimal_scf_input"
 ]
 
 
@@ -1505,6 +1504,35 @@ def conduc_kerange_from_scf_nscf_inputs(scf_inp, nscf_inp, tmesh, ddb_ngqpt, sig
                       ngkpt=sigma_ngkpt)
 
     return multi
+
+
+def minimal_scf_input(structure, pseudos):
+    """
+    Provides an input for a calculation with the minimum possible requirements.
+    Can be used to execute abinit with minimal requirements when needing files
+    that are produced only after a full calculation completes.
+    In general this will contain 1 kpt, 1 band, very low cutoff, no polarization,
+    no smearing. Disables checks on primitive cell and symmetries.
+    Even for large system it will require small memory allocations and few seconds
+    to execute.
+
+    Args:
+        structure: |Structure| object.
+        pseudos: List of filenames or list of |Pseudo| objects or |PseudoTable| object.
+    """
+
+    inp = scf_input(structure, pseudos, smearing=None, spin_mode="unpolarized")
+    inp["ngkpt"] = [1, 1, 1]
+    inp["nshiftk"] = 1
+    inp["shiftk"] = [[0, 0, 0]]
+    inp["nstep"] = 0
+    inp["ecut"] = 3  # should be reasonable, otherwise abinit raises an error
+    inp["nband"] = 1
+    inp["chkprim"] = 0
+    inp["chksymbreak"] = 0
+    inp["charge"] = structure.num_valence_electrons(inp.pseudos) - 1
+    inp["boxcutmin"] = 1.2
+    return inp
 
 
 #FIXME if the pseudos are passed as a PseudoTable the whole table will be serialized,
