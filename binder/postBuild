@@ -1,0 +1,15 @@
+# https://github.com/binder-examples/jupyter-extension/blob/master/postBuild
+
+#jupyter contrib nbextension install --user
+#jupyter nbextension enable --py widgetsnbextension
+#jupyter nbextension enable python-markdown/main
+
+# Notebooks w/ extensions that auto-run code must be "trusted" to work the first time
+#jupyter trust index.ipynb
+
+# Install abipy scripts and configuration files.
+python setup.py install
+mkdir -p ${HOME}/.abinit/abipy 
+cp abipy/data/managers/travis_scheduler.yml ${HOME}/.abinit/abipy/scheduler.yml
+cp abipy/data/managers/travis_manager.yml ${HOME}/.abinit/abipy/manager.yml
+#./dev_scripts/pyclean.py .

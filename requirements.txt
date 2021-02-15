@@ -1,0 +1,16 @@
+monty
+tabulate
+apscheduler==2.1.0
+pydispatcher>=2.0.5
+tqdm
+pyyaml>=3.11
+pandas
+numpy
+scipy
+sympy
+spglib
+#pymatgen>=2019.10.16
+pymatgen>=2019.12.22
+netCDF4
+matplotlib
+seaborn

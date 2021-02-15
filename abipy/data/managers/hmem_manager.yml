@@ -1,0 +1,63 @@
+# hmem hardware: http://www.ceci-hpc.be/clusters.html#hmem
+# See also http://www.cism.ucl.ac.be/faq/index.php#hmem_specifics
+high: &high
+   num_nodes: 2
+   sockets_per_node: 4
+   cores_per_socket: 12
+   mem_per_node: 512Gb
+
+middle: &middle
+   num_nodes: 7
+   sockets_per_node: 4
+   cores_per_socket: 12
+   mem_per_node: 256Gb
+
+low: &low
+   num_nodes: 7
+   sockets_per_node: 4
+   cores_per_socket: 12
+   mem_per_node: 128Gb
+
+job: &job
+    mpi_runner: mpirun
+    shell_env:
+        PATH: "$HOME/git_repos/abinit/_build_hmem_intel_openmpi-mkl.ac/src/98_main/:$PATH"
+    modules:
+        - openmpi/1.5.3/intel-12.0.0.084
+    pre_run: "ulimit -s unlimited"
+
+# queues 
+qadapters:
+  - priority: 3
+    #max_num_launches: 20
+    queue:
+       qname: High
+       qtype: slurm
+    limits:
+       timelimit: 10-0:0:0
+       min_cores: 1
+       max_cores: 48
+    hardware: *high
+    job: *job
+
+  - priority: 2
+    queue:
+       qname: Middle
+       qtype: slurm
+    limits:
+       timelimit: 5-0:0:0
+       min_cores: 1
+       max_cores: 48
+    hardware: *middle
+    job: *job
+
+  - priority: 1
+    queue:
+       qname: Low
+       qtype: slurm
+    limits:
+       timelimit: 5-0:0:0
+       min_cores: 1
+       max_cores: 48
+    hardware: *low
+    job: *job

@@ -1,0 +1,74 @@
+# Nickel ferromagnetic fcc structure with ONCVPSP pseudo including semi-core states.
+
+ndtset    2
+nsppol  2
+iomode    3
+
+# Print partial DOS
+prtdos    3
+prtdosm2  1
+
+#pawprtdos 0
+#pawprtdos 2
+#pawfatbnd 1
+#pawecutdg 15
+#prtebands 2
+
+# DATASET 1
+# Print potentials for tests and examples.
+prtpot1 1
+prtvha1 1 
+prtvhxc1 1 
+prtvxc1  1
+
+# DATASET 1
+# NSC run along path in reduced coordinates:
+iscf2 -2
+getden2 -1
+ndivsm2 5
+kptopt2 -11
+tolwfr2 1.e-16
+kptbounds2
+   0.00000  0.00000  0.00000   # $\Gamma$
+   0.50000  0.00000  0.50000   # X
+   0.50000  0.25000  0.75000   # W
+   0.37500  0.37500  0.75000   # K
+   0.00000  0.00000  0.00000   # $\Gamma$
+   0.50000  0.50000  0.50000   # L
+   0.62500  0.25000  0.62500   # U
+   0.50000  0.25000  0.75000   # W
+   0.50000  0.50000  0.50000   # L
+   0.37500  0.37500  0.75000   # K
+   0.62500  0.25000  0.62500   # U
+   0.50000  0.00000  0.50000   # X
+
+
+# Nickel ferromagnetic fcc structure. ONCVPSP pseudo with valence density.
+ecut      35
+nband     12
+spinat    0. 0. 4.
+
+# SCF cycle 
+tolvrs   1.0d-12
+
+# K-point sampling and smearing
+occopt   7
+tsmear   0.0075
+#ngkpt    4 4 4
+ngkpt    6 6 6
+nshiftk  4
+shiftk   1/2 1/2 1/2
+         1/2 0.0 0.0
+         0.0 1/2 0.0
+         0.0 0.0 1/2
+
+# Crystalline structure.
+ntypat  1
+acell   3*3.52 angstrom
+rprim   0.0 1/2 1/2
+        1/2 0.0 1/2
+        1/2 1/2 0.0
+natom   1
+typat   1
+xred    0.0  0.0  0.0
+znucl   28

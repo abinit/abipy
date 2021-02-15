@@ -1,0 +1,30 @@
+# vega hardware: http://www.ceci-hpc.be/clusters.html#vega
+hardware: &hardware
+   num_nodes: 44
+   sockets_per_node: 4
+   cores_per_socket: 16
+   mem_per_node: 256Gb
+
+job: &job
+    mpi_runner: mpirun
+    shell_env:
+        PATH: "$HOME/git_repos/abinit/_build_vega-intel-impi-mkl.ac/src/98_main/:$PATH"
+    modules:
+        - intel/2015a
+    #pre_run: "ulimit -s unlimited"
+
+# queues 
+qadapters:
+  - priority: 1
+    queue:
+       qtype: slurm
+       qname: defq
+    limits:
+       timelimit: 0-0:30:0
+       min_cores: 1
+       max_cores: 16
+       min_mem_per_proc: 1000
+       max_mem_per_proc: 2000
+       max_num_launches: 5
+    hardware: *hardware
+    job: *job

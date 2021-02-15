@@ -1,0 +1,9 @@
+ipython
+sphinx
+sphinxcontrib-napoleon
+sphinxcontrib-programoutput
+sphinx-gallery
+sphinx-argparse
+sphinx_bootstrap_theme
+sphinxcontrib-bibtex
+jupyter-sphinx

@@ -1,0 +1,30 @@
+# dragon hardware: http://www.ceci-hpc.be/clusters.html#dragon
+hardware: &hardware
+   num_nodes: 26
+   sockets_per_node: 2
+   cores_per_socket: 8
+   mem_per_node: 112Gb
+
+job: &job
+    mpi_runner: mpirun
+    shell_env:
+        PATH: "$HOME/git_repos/abinit/_build_dragon1-intel-mpich-mkl.ac/src/98_main:$PATH"
+    modules:
+        - mpich/3.0.4/intel-13.0.0
+    pre_run: "ulimit -s unlimited"
+
+# queues 
+qadapters:
+  - priority: 1
+    queue:
+       qtype: slurm
+       qname: Def
+    limits:
+       timelimit: 0-00:30:00
+       min_cores: 1
+       max_cores: 12
+       min_mem_per_proc: 1000
+       max_mem_per_proc: 2000
+       max_num_launches: 10
+    hardware: *hardware
+    job: *job

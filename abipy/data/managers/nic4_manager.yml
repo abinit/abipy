@@ -1,0 +1,39 @@
+# nic4 hardware. see http://www.ceci-hpc.be/clusters.html#nic4
+hardware: &hardware
+   num_nodes: 120
+   sockets_per_node: 2
+   cores_per_socket: 8
+   mem_per_node: 64Gb
+
+job: &job
+    mpi_runner: "mpirun"
+    mpi_runner_options: "--bind-to none"
+    shell_env:
+        PATH: "$HOME/git_repos/abinit/_build_nic4-intel-openmpi-mkl-hdf5.ac/src/98_main:$PATH"
+    pre_run: "ulimit -s unlimited"
+    modules:
+        - shared
+        - openmpi/1.7.5/intel2013_sp1.1.106
+        - intel/mkl/64/11.1/2013_sp1.1.106
+        - hdf5/1.8.13/openmpi-1.7.5-intel2013_sp1.1.106
+        - netcdf/4.3.2/openmpi-1.7.5-intel2013_sp1.1.106
+        - slurm/14.03.11
+
+# queues 
+qadapters:
+  - priority: 1
+    queue:
+       qtype: slurm
+       qname: defq
+       qparams:
+          mail_type: FAIL
+          #mail_user: # Othere slurm options ... 
+    limits:
+       timelimit: 0:30:0
+       min_cores: 1
+       max_cores: 16
+       min_mem_per_proc: 1000
+       max_mem_per_proc: 2000
+       max_num_launches: 5
+    hardware: *hardware
+    job: *job

@@ -1,0 +1,20 @@
+ipython
+jupyter
+nbformat
+pygments
+ipywidgets
+networkx
+scikit-image
+#graphviz or python-graphviz if conda
+phonopy
+ase
+param
+panel
+bokeh
+# Unit tests
+python-coveralls
+pytest
+pytest-cov
+pytest-xdist
+pytest-sugar
+scripttest

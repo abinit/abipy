@@ -1,0 +1,54 @@
+# Hardware specification.
+Def: &Def
+   num_nodes: 672
+   sockets_per_node: 2
+   cores_per_socket: 4
+   mem_per_node: 24 Gb
+
+ObanAMD: &ObanAMD
+   num_nodes: 6
+   sockets_per_node: 4
+   cores_per_socket: 8
+   mem_per_node: 128 Gb
+
+ObanIntel: &ObanIntel
+   num_nodes: 3
+   sockets_per_node: 4
+   cores_per_socket: 8
+   mem_per_node: 256 Gb 
+
+# Environment, modules, and parameters used to launch jobs.
+job: &job
+    mpi_runner: mpirun
+    shell_env:
+         PATH: "$HOME/git_repos/abinit/_build_manneback-gcc-openmpi.ac/src/98_main/:$PATH"
+    pre_run: 
+        - "ulimit -s unlimited" 
+        - "export OMP_NUM_THREADS=1"
+        - "unset SLURM_CPUS_PER_TASK"
+        - "module purge"
+        - "module load gompi/2016a FFTW/3.3.4-gompi-2016a"
+
+#policy:
+#   frozen_timeout: 0-12:0:0
+
+# List of qdapters. 
+qadapters:
+  - priority: 1
+    queue:
+       qname: Def
+       qtype: slurm
+       qparams: 
+                # This nodes must be excluded because they are not compatible with the Abinit build (SIGILL error).
+                exclude_nodes: mb-neh[070,201-212],mb-har[001-014],mb-har[101-116],mb-opt[111-116],mb-har[121-140],mb-sab[004,040,007,101-102],mb-wes[251-252],mb-ivy[205,206,208]
+    limits:
+       timelimit: 00:30:00
+       #timelimit_hard: 5-00:00:0
+       min_cores: 1
+       max_cores: 8
+       hint_cores: 4
+       min_mem_per_proc: 1000
+       max_mem_per_proc: 2000
+       max_num_launches: 5
+    job: *job
+    hardware: *Def

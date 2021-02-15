@@ -1,0 +1,27 @@
+hardware: &hardware
+   num_nodes: 1
+   sockets_per_node: 2
+   cores_per_socket: 4
+   mem_per_node: 32Gb
+
+job: &job
+    mpi_runner: ~/bin/mpirun.openmpi
+    # pre_run is a string in verbatim mode (note |)
+    pre_run: 
+        - "ulimit -s unlimited"
+        - "source ~/.bashrc"
+
+# queues 
+qadapters:
+  - priority: 1
+    queue:
+       qname: euspec.q
+       qtype: sge
+       qparams:
+           parallel_environment: slots
+    limits:
+       timelimit: 0:10:0
+       min_cores: 1
+       max_cores: 8
+    hardware: *hardware
+    job: *job

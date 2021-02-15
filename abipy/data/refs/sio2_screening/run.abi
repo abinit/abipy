@@ -1,0 +1,107 @@
+# Crystalline alpha-quartz
+iomode 3
+ndtset 3
+nband 50
+
+# DATASET 1 : GS calculation 
+tolvrs1     1d-12
+
+# K-path in reduced coordinates:
+nband2 28
+tolwfr2 1e-16 iscf2 -2 getden2 1 nbdbuf2 4
+ndivsm2 8
+kptopt2 -6
+kptbounds2
+    0.00000  0.00000  0.00000 # $\Gamma$
+    0.50000  0.00000  0.00000 # M
+    0.33333  0.33333  0.00000 # K
+    0.00000  0.00000  0.00000 # $\Gamma$
+    0.00000  0.00000  0.50000 # A
+    0.50000  0.00000  0.50000 # L
+    0.33333  0.33333  0.50000 # H
+    #0.00000  0.00000  0.50000 # A
+    #0.50000  0.00000  0.50000 # L
+    #0.50000  0.00000  0.00000 # M
+    #0.33333  0.33333  0.00000 # K
+
+# DATASET 3 : Screening calculation 
+optdriver3   3        # Screening run
+getwfk3      1        # To read the WFK file.
+symchi3      1        # Use symmetries to speedup the BZ integration
+ecutwfn3     8       # Cutoff for the wavefunctions.
+ecuteps3     0.4      # Cutoff for the polarizability.
+inclvkb3     2        # Correct treatment of the optical limit.
+
+gwcalctyp3   2        # Contour-deformation technique.
+spmeth3      1        # Enable the spectral method.
+nomegasf3  100        # Number of points for the spectral function. 
+gwpara3      2        # Parallelization over bands
+awtr3        1        # Take advantage of time-reversal. Mandatory when gwpara=2 is used.
+freqremax3  20 eV     # Frequency mesh for the polarizability
+nfreqre3    30
+nfreqim3     5
+
+timopt -1
+
+#################### COMMON PART #########################
+
+# energy cutoff [Ha]:
+ecut         8
+
+#Definition of the k-point grid
+occopt 1           # Semiconductor
+kptopt 1           # Option for the automatic generation of k points, taking
+                   # into account the symmetry
+
+ngkpt   4 4 3
+nshiftk  1
+shiftk  0.0 0.0 0.0
+istwfk  *1
+
+# Definition of the atom types
+npsp   2
+znucl  14  8
+ntypat 2
+
+# Definition of the atoms
+natom 9
+typat 3*1  6*2
+
+# Experimental parameters (Wyckoff pag 312)
+# u(Si)= 0.465
+# x= 0.415 ; y= 0.272 ; z= 0.120
+
+acell   2*4.91304  5.40463  Angstrom
+
+xred   0.465   0.000   0.000              #Si
+       0.000   0.465   2/3                #Si
+      -0.465  -0.465   1/3                #Si
+       0.415   0.272   0.120              #O
+      -0.143  -0.415   0.4533333333333333 #O
+      -0.272   0.143   0.7866666666666666 #O
+       0.143  -0.272  -0.120              #O
+       0.272   0.415   0.5466666666666666 #O
+      -0.415  -0.143   0.2133333333333333 #O
+
+rprim   5.0000000000e-01 -8.6602540378e-01  0.0000000000e+00
+        5.0000000000e-01  8.6602540378e-01  0.0000000000e+00
+        0.0000000000e+00  0.0000000000e+00  1.0000000000e+00
+
+## After modifying the following section, one might need to regenerate the pickle database with runtests.py -r
+#%%<BEGIN TEST_INFO>
+#%% [setup]
+#%% executable = abinit
+#%% test_chain = tmbt_1.in, tmbt_2.in, tmbt_3.in, tmbt_4.in
+#%% [files]
+#%% psp_files = 14si.pspnc, 8o.pspnc
+#%% [paral_info]
+#%% max_nprocs = 20
+#%% nprocs_to_test = 20
+#%% [NCPU_20]
+#%%   files_to_test = tmbt_3_MPI20.out, tolnlines = 10, tolabs = 1.100e-03, tolrel = 3.000e-03
+#%% [extra_info]
+#%% authors = M. Giantomassi
+#%% keywords =  GW
+#%% description = GW calculation for crystalline alpha-quartz. 
+#%% Screening calculation with Hilbert transform
+#%%<END TEST_INFO>

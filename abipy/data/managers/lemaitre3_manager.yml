@@ -1,0 +1,33 @@
+# lemaitre3 hardware: http://www.ceci-hpc.be/clusters.html#lemaitre3
+# For the configuration file see:
+#       https://github.com/abinit/abiconfig/blob/master/abiconfig/clusters/lemaitre3-intel-easybuild.ac
+hardware: &hardware
+   num_nodes: 80
+   sockets_per_node: 2
+   cores_per_socket: 12
+   mem_per_node: 95Gb
+
+job: &job
+    mpi_runner: mpirun
+    shell_env:  # Use your abinit exec
+        PATH: "$HOME/git_repos/abinit/_build_lemaitre3-intel-easybuild.ac/src/98_main/:$PATH"
+    modules: # Abinit compiled with abiconfig settings
+        - intel/2017b
+        - netCDF-Fortran/4.4.4-intel-2017b
+    pre_run: "ulimit -s unlimited"
+
+# queues 
+qadapters:
+  - priority: 1
+    queue:
+       qtype: slurm
+       #qname: Def
+    limits:
+       timelimit: 0-0:30:00
+       min_cores: 1
+       max_cores: 12
+       min_mem_per_proc: 1000
+       max_mem_per_proc: 2000
+       max_num_launches: 10
+    hardware: *hardware
+    job: *job

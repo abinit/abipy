@@ -1,0 +1,6 @@
+include *.rst LICENSE
+recursive-include abipy *.py *.json *.cfg
+recursive-include scripts *.py
+prune */*/tests
+prune */*/*/tests
+recursive-include cython *

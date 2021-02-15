@@ -1,0 +1,33 @@
+# hercules hardware: http://www.ceci-hpc.be/clusters.html#hercules
+hardware: &hardware
+   num_nodes: 65
+   sockets_per_node: 2
+   cores_per_socket: 8
+   mem_per_node: 54Gb
+
+job: &job
+    mpi_runner: mpirun
+    shell_env:
+        PATH: "$HOME/git_repos/abinit/_build_hercules.ac/src/98_main/:$PATH"
+    modules:
+        - impi/5.1.3.181-iccifort-2016.3.210-GCC-5.4.0-2.26
+        - imkl/11.3.3.210-iimpi-2016b
+    # here pre_run is a string in verbatim mode (note |)
+    pre_run: |
+        ulimit -s unlimited
+
+# queues 
+qadapters:
+  - priority: 1
+    queue:
+       qtype: slurm
+       #qname: defq
+    limits:
+       timelimit: 0-00:30:00
+       min_cores: 1
+       max_cores: 12
+       min_mem_per_proc: 1000
+       max_mem_per_proc: 2000
+       max_num_launches: 10
+    hardware: *hardware
+    job: *job

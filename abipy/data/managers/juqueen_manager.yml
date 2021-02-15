@@ -1,0 +1,57 @@
+batch: &batch
+   num_nodes: 128
+   sockets_per_node: 1
+   cores_per_socket: 16
+   mem_per_node: 128Gb
+
+job: &job
+    mpi_runner: runjob
+    shell_env:
+        PATH: $HOME/abinit/801-private/bgq_xlf_legacy/src/98_main/:$PATH
+
+# List of qadapters
+# Note that on the BlueGeneQ we need at least two qadapters
+# One for submitting jobs to the computing nodes and another
+# one for executing small sequential ABINIT jobs on the frontend
+# The two qadapters have different shell environments, module files and binaries.
+qadapters:
+
+  # adapter for submitting jobs to the BlueGene.
+  - priority: 1
+    queue:
+       #qname: batch
+       qtype: bluegene
+       qparams:
+         # Mandatory on juqueen.
+         notification: error
+         mail_user: john@nowhere.com
+         environment: COPY_ALL
+    limits:
+       timelimit: 00:20:00
+       min_cores: 1
+       max_cores: 1024
+    hardware: *batch
+    job: *job
+
+  # shell adapter for small sequential jobs (e.g. autoparal tasks).
+  # Note that we need an Abinit executable that can be executed on the frontend
+  # TODO check priority
+  - priority: 10
+    queue:
+       qname: shell_adapter
+       qtype: shell
+    limits:
+       timelimit: 00:10:00
+       min_cores: 1
+       max_cores: 1
+    hardware: 
+       num_nodes: 1
+       sockets_per_node: 1
+       cores_per_socket: 1
+       mem_per_node: 12Gb
+    job:
+        #mpi_runner: runjob
+        shell_env:
+            PATH: $HOME/abinit/801-private/bgq_frontend/src/98_main/:$PATH
+        modules:
+            gcc/4.8.3

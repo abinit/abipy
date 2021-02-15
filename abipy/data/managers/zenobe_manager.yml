@@ -1,0 +1,57 @@
+# Hardware specification.
+westmere: &westmere
+   num_nodes: 274
+   sockets_per_node: 2
+   cores_per_socket: 6
+   mem_per_node: 24 Gb
+
+ivybridge: &ivybridge
+   num_nodes: 342
+   sockets_per_node: 2
+   cores_per_socket: 12
+   mem_per_node: 64 Gb
+
+# Environment, modules, and parameters used to launch jobs.
+job: &job
+    mpi_runner: mpirun
+    shell_env:
+         PATH: $HOME/git_repos/abinit_build_impi/src/98_main:$PATH
+    modules:
+        - compiler/intel/composerxe/2013_sp1.1.106
+        - intelmpi
+        - python/2.7
+    pre_run: "ulimit -s unlimited"
+
+# List of qdapters. 
+qadapters:
+  # Westmere default.
+  - priority: 99
+    queue: 
+       qname: main
+       qtype: pbspro
+       qparams:
+         group_list: napsimu
+         #qverbatim: |
+         #  #PBS -r y
+    limits:
+       timelimit: 15:0
+       min_cores: 1
+       max_cores: 24
+    job: *job
+    hardware: *westmere 
+  
+  # Ivybridge large.
+  - priority: 1
+    queue: 
+       qname: large
+       qtype: pbspro
+       qparams:
+          group_list: napsimu
+          #qverbatim: |
+          #  #PBS -r y
+    limits:
+       timelimit: 1-0:0:0
+       min_cores: 96
+       max_cores: 3888
+    job: *job
+    hardware: *ivybridge

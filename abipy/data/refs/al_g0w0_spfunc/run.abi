@@ -1,0 +1,88 @@
+# Crystalline aluminum
+
+#Definition of occupation numbers
+occopt 3
+tsmear 0.05
+
+#Definition of the unit cell
+acell 3*7.652
+
+rprim  0.0  0.5  0.5   # FCC primitive vectors (to be scaled by acell)
+       0.5  0.0  0.5 
+       0.5  0.5  0.0
+
+#Definition of the atom types
+ntypat 1       
+znucl 13      
+
+#Definition of the atoms
+natom 1  
+typat 1  
+xred  0.0  0.0  0.0  
+
+#Definition of the planewave basis set
+ecut  8.0
+
+#Definition of the k-point grid
+ngkpt       4 4 4
+
+#64 k points
+ nshiftk     1      
+ shiftk      0.  0.  0. 
+ istwfk     8*1
+#256 k points
+#nshiftk 4
+#shiftk 0 0 0   1/2 1/2 0   1/2 0 1/2  0 1/2 1/2
+#istwfk     19*1
+
+#Definition of the SCF procedure
+nstep 50          
+#toldfe 1.0d-8     
+#
+ndtset    4
+
+# SCF
+nband1    6
+toldfe1   1.0d-8     
+ 
+# NSCF
+iscf2       -2
+getden2      1
+nband2      35
+nbdbuf2      5
+tolwfr2     1.0d-10
+
+#Parameter for the screening calculation
+optdriver3    3
+gwcalctyp3    2
+getwfk3       2
+nband3       30
+ecuteps3     4.0
+ecutwfn3     4.0
+
+nfreqim3      4
+nfreqre3     10
+freqremax3   1.
+symchi3      1
+
+# Crystalline aluminum : perform the GW calculation
+# at the bottom of the valence band
+# Obtain the corresponding spectral function
+
+#Parameters for the GW calculation
+optdriver4    4
+gwcalctyp4    2
+nband4       30
+ecutsigx4    4.0
+ecutwfn4     4.0
+getwfk4       2
+getscr4       3
+
+nfreqsp4    200
+freqspmax4    2.
+
+nkptgw4       1
+kptgw4
+             0.000000    0.000000    0.000000
+bdgw4
+             1 4

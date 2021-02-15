@@ -1,0 +1,82 @@
+# abipy files
+abinit_vars.pickle
+Profile.prof
+abipy/examples/flows/flow_*
+abipy/examples/flows/develop/flow_*
+_debug
+#__abinb_workdir__
+#abinb_*.ipynb
+$*.pickle
+
+# cython generated code
+abipy/extensions/*.c
+abipy/extensions/*.html
+
+
+# python object files.
+*.py[cod]
+
+# Temporary files or directories
+tmp_*
+tags
+
+# C extensions
+*.so
+
+# Packages
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+lib
+lib64
+
+# Installer logs
+pip-log.txt
+
+# Sphinx autodoc
+docs/_build
+docs/gallery
+docs/flow_gallery
+
+# MacOSX stuff
+.DS_Store
+
+# Pycharm
+.idea/
+
+# vim files
+*.swp
+*.swo
+*.swn
+
+# Unit test / coverage reports
+.coverage
+coverage_html
+.tox
+.cache
+nosetests.xml
+_integration_tests_
+.pytest_cache
+
+# ipython notebooks
+.ipynb*
+Untitled.ipynb
+
+# Translations
+*.mo
+
+# Mr Developer
+.mr.developer.cfg
+.project
+.pydevproject
+gallery/
+modules/
+style.log
