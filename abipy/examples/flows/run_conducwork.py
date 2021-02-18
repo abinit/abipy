@@ -6,6 +6,7 @@ import sys
 import abipy.data as abidata
 import abipy.abilab as abilab
 from abipy import flowtk
+import abipy.abio.factories as factory
 
 
 def make_scf_input(structure, pseudos, ngkpt=(2,2,2), shiftk=(0,0,0),
@@ -49,6 +50,7 @@ def build_flow(options):
     structure = abidata.structure_from_ucell("Al")
     pseudos = abidata.pseudos("13al.pspnc")
 
+    # Variables
     variables = dict(
             ecut=20,
             tsmear=0.05,
@@ -56,16 +58,20 @@ def build_flow(options):
             nbdbuf=2,
             occopt=3,
             iomode=1,
-            nstep=20,
-            paral_kgb=1)
+            nstep=20)
 
     ngkpt = [4, 4, 4]
-    ngkpt_fine = [12, 12, 12]
+    ngkpt_fine = [8, 8, 8]
     shiftk = [0.0, 0.0, 0.0]
-
     ngqpt = [2, 2, 2]
-    ngqpt_fine = [4, 4, 4]
     tmesh = [0, 30, 11]
+
+    #Kerange Variables
+    nbr_proc = 4
+    ngqpt_fine = [16, 16, 16] # The kpt grid must be divisible by the qpt grid
+    sigma_ngkpt = [16, 16, 16]
+    einterp = [1, 5, 0, 0]
+    sigma_erange = [-0.3, -0.3, "eV"]
 
     # Nom de mon flow
     flow = flowtk.Flow(workdir=options.workdir)
@@ -83,30 +89,35 @@ def build_flow(options):
                                  shiftk=shiftk,
                                  **variables)
 
-    # Create multi which contains inputs for the 4 tasks: SCF, NSCF, Interpolation DVDB, Conductivity
-    multi = abilab.conduc_from_scf_nscf_inputs(
-        scf_input, nscf_input,
-        tmesh=tmesh,
-        ddb_ngqpt=ngqpt,
-        eph_ngqpt_fine=ngqpt_fine)
-
     # Create Work Object
     # Work 0 : Calcul SCF
     gs_work = flowtk.Work()
     gs_work.register_scf_task(scf_input)
+    flow.register_work(gs_work)
 
     # Work 1 : Calcul DDB et DVDB
     ph_work = flowtk.PhononWork.from_scf_task(gs_work[0],
                                               qpoints=ngqpt, is_ngqpt=True,
                                               tolerance={"tolvrs": 1e-8})
-
-    # Work 2 : Conduc Work
-    conduc_work = flowtk.ConducWork.from_phwork_and_scf_nscf_inp(
-        phwork=ph_work, multi=multi, nbr_procs=4, flow=flow)
-
-    # Register Work
-    flow.register_work(gs_work)
     flow.register_work(ph_work)
+
+    # Work 2 : Conduc with Kerange
+    multi = factory.conduc_kerange_from_inputs(scf_input=scf_input,
+                               nscf_input=nscf_input,
+                               tmesh=tmesh,
+                               ddb_ngqpt=ngqpt,
+                               eph_ngqpt_fine=ngqpt_fine,
+                               sigma_ngkpt=sigma_ngkpt,
+                               sigma_erange=sigma_erange,
+                               einterp=einterp)
+
+    conduc_work = flowtk.ConducWork.from_phwork(phwork=ph_work,
+                                                multi=multi,
+                                                nbr_proc=nbr_proc,
+                                                flow=flow,
+                                                withKerange=True,
+                                                skipInter=False,
+                                                omp_nbr_thread=1)
     flow.register_work(conduc_work)
 
     return flow.allocate(use_smartio=True)

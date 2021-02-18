@@ -1435,7 +1435,7 @@ def conduc_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqpt_fine, 
     multi = MultiDataset.from_inputs([scf_input])
 
     # Add 3 times the nscf input at the end of the MultiDataset
-    extension = MultiDataset.replicate_input(nscf_input, 3) 
+    extension = MultiDataset.replicate_input(nscf_input, 3)
     multi.extend(extension)
 
     # Modify the second nscf input to get a task that interpolate the DVDB

@@ -1973,14 +1973,14 @@ class DteWork(Work, MergeDdb):
 class ConducWork(Work):
     """
     Workflow for the computation of electrical conductivity.
-    
+
     Can be called from :
         1. MultiDataset and PhononWork
         2. MultiDataset, DDB filepath and DVDB filepath.
-    Can use Kerange Capability using withKerange=True 
-    
-    This work consists of 3-4 tasks or 5-6 tasks with kerange : 
-        1. SCF GS 
+    Can use Kerange Capability using withKerange=True
+
+    This work consists of 3-4 tasks or 5-6 tasks with kerange :
+        1. SCF GS
         2. NSCF
         3. Kerange (Kerange only)
         4. WFK Interpolation (Kerange only)
@@ -1989,7 +1989,8 @@ class ConducWork(Work):
     """
 
     @classmethod
-    def from_phwork(cls, phwork, multi, nbr_proc=None, flow=None, withKerange=False, skipInter=True, omp_nbr_thread=1, manager=None):
+    def from_phwork(cls, phwork, multi, nbr_proc=None, flow=None, withKerange=False,
+                    skipInter=True, omp_nbr_thread=1, manager=None):
         """
         Construct a |ConducWork| from a |PhononWork| and |MultiDataset|.
 
@@ -1997,7 +1998,7 @@ class ConducWork(Work):
             phwork: a |PhononWork| object calculating the DDB and DVDB files.
             multi: a |MultiDataset| object containing a list of 4 datasets or 6 with Kerange.
                        See abipy/abio/factories.py -> conduc_from_scf_nscf_inputs for details about multi.
-            nbr_proc: Number of processors used after scf and nscf task. Required since autoparal isn't yet implemented with optdriver=7
+            nbr_proc: Required if withKerange since autoparal doesn't work with optdriver=8.
             flow: The flow calling the work. Used for  with_fixed_mpi_omp.
             withKerange: True if using Kerange.
             skipInter: Used to skip the interpolation task and compute the fine DVDB during the conductivity task.
@@ -2009,15 +2010,15 @@ class ConducWork(Work):
             raise TypeError("Work `%s` does not inherit from PhononWork" % phwork)
         # Verify Multi
         if (not withKerange) and (multi.ndtset != 4): #Without kerange, multi should contain 4 datasets
-            raise ValueError("""The |MultiDataset| object does not contain the expected number of dataset. 
-                                It should have 4 datasets and it had `%s`. 
-                                You should generate the multidataset with the function conduc_from_scf_nscf_inputs""" % multi.ndtset)
+            raise ValueError("""The |MultiDataset| object does not contain the expected number of dataset.
+                                It should have 4 datasets and it had `%s`. You should generate
+                                multi with the factory function conduc_from_scf_nscf_inputs""" % multi.ndtset)
         if (withKerange) and (multi.ndtset != 6): # With Kerange, multi should contain 6 datasets
-            raise ValueError("""The |MultiDataset| object does not contain the expected number of dataset. 
-                              It should have 6 datasets and it had `%s`. 
-                              You should generate the multidataset with the function conduc_kerange_from_scf_nscf_inputs""" % multi.ndtset)
+            raise ValueError("""The |MultiDataset| object does not contain the expected number of dataset.
+                              It should have 6 datasets and it had `%s`. You should generate
+                              multi with the factory function conduc_from_scf_nscf_inputs""" % multi.ndtset)
         # Verify nbr_proc and flow are defined if withKerange
-        if withKerange and (flow==None or nbr_proc==None):
+        if withKerange and (flow is None or nbr_proc is None):
             raise ValueError("""When using kerange, the argument flow and nbr_proc must be passed to the function from_filepath
                                 flow = {}\n nbr_proc = {}""".format(flow, nbr_proc))
 
@@ -2025,12 +2026,12 @@ class ConducWork(Work):
 
         new.register_task(multi[0])
         new.register_task(multi[1], deps={new[0]: "DEN"})
-        taskNumber=2 # To keep track of the task in new and multi
+        taskNumber = 2 # To keep track of the task in new and multi
 
         if(withKerange): # Using Kerange
             new.register_task(multi[2], deps={new[1]: "WFK"})
             new.register_task(multi[3], deps={new[0]: "DEN", new[1]: "WFK", new[2]: "KERANGE.nc"})
-            taskNumber=4 # We have 2 more dataset
+            taskNumber = 4 # We have 2 more dataset
 
         if skipInter: # Without separate task for DVDB interpolation
             new.register_task(multi[taskNumber+1], deps={new[taskNumber-1]: "WFK", phwork: ["DDB","DVDB"]})
@@ -2043,15 +2044,16 @@ class ConducWork(Work):
             task.set_work(new)
 
         # Manual Paralellization since autoparal doesn't work with optdriver=8 (t2)
-        if flow!=None :
+        if flow is not None :
             new.set_flow(flow)
-            if nbr_proc!=None:
+            if nbr_proc is not None:
                 for task in new[2:]:
                     task.with_fixed_mpi_omp(nbr_proc, omp_nbr_thread)
         return new
 
     @classmethod
-    def from_filepath(cls, multi, DDB, DVDB, nbr_proc=None, flow=None, withKerange=False, skipInter=True, omp_nbr_thread=1, manager=None):
+    def from_filepath(cls, multi, DDB, DVDB, nbr_proc=None, flow=None, withKerange=False,
+                      skipInter=True, omp_nbr_thread=1, manager=None):
         """
         Construct a |ConducWork| from previously calculated DDB/DVDB file and |MultiDataset|.
 
@@ -2060,7 +2062,7 @@ class ConducWork(Work):
                        See abipy/abio/factories.py -> conduc_from_scf_nscf_inputs for details about multi.
             DDB: a string containing the path to the DDB file.
             DVDB: a string containing the path to the DVDB file.
-            nbr_proc: Required since autoparal doesn't work with optdriver=8, only needed if withKerange.
+            nbr_proc: Required if withKerange since autoparal doesn't work with optdriver=8.
             flow: The flow calling the work, only needed if withKerange.
             withKerange: True if using Kerange.
             skipInter: Used to skip the interpolation task and compute the fine DVDB during the conductivity task.
@@ -2069,20 +2071,20 @@ class ConducWork(Work):
         """
         # Verify Multi
         if (not withKerange) and (multi.ndtset != 4): #Without kerange, multi should contain 4 datasets
-            raise ValueError("""The |MultiDataset| object does not contain the expected number of dataset. 
-                                It should have 4 datasets and it had `%s`. 
-                                You should generate the multidataset with the function conduc_from_scf_nscf_inputs""" % multi.ndtset)
+            raise ValueError("""The |MultiDataset| object does not contain the expected number of dataset.
+                                It should have 4 datasets and it had `%s`. You should generate
+                                multi with the factory function conduc_from_scf_nscf_inputs""" % multi.ndtset)
         if (withKerange) and (multi.ndtset != 6): # With Kerange, multi should contain 6 datasets
-            raise ValueError("""The |MultiDataset| object does not contain the expected number of dataset. 
-                              It should have 6 datasets and it had `%s`. 
-                              You should generate the multidataset with the function conduc_kerange_from_scf_nscf_inputs""" % multi.ndtset)
+            raise ValueError("""The |MultiDataset| object does not contain the expected number of dataset.
+                              It should have 6 datasets and it had `%s`.You should generate
+                                multi with the factory function conduc_from_scf_nscf_inputs""" % multi.ndtset)
         # Make sure both file exists
-        if not os.path.exists(DDB): 
+        if not os.path.exists(DDB):
             raise ValueError("The DDB file doesn't exists : `%s`" % DDB)
         if not os.path.exists(DVDB):
             raise ValueError("The DVDB file doesn't exists : `%s`" % DVDB)
         # Verify nbr_proc and flow are defined if withKerange
-        if withKerange and (flow==None or nbr_proc==None):
+        if withKerange and (flow is None or nbr_proc is None):
             raise ValueError("""When using kerange, the argument flow and nbr_proc must be passed to the function from_filepath
                                 flow = {}, nbr_proc = {}""".format(flow, nbr_proc))
 
@@ -2090,15 +2092,15 @@ class ConducWork(Work):
 
         new.register_task(multi[0])
         new.register_task(multi[1], deps={new[0]: "DEN"})
-        taskNumber=2 # To keep track of the task in new and multi
+        taskNumber = 2 # To keep track of the task in new and multi
 
         if(withKerange): # Using Kerange
-            new.register_task(multi[2], deps={new[1]: "WFK"}) 
+            new.register_task(multi[2], deps={new[1]: "WFK"})
             new.register_task(multi[3], deps={new[0]: "DEN", new[1]: "WFK", new[2]: "KERANGE.nc"})
-            taskNumber=4 # We have 2 more task
+            taskNumber = 4 # We have 2 more task
 
         if skipInter: # Without separate task for DVDB interpolation
-            new.register_task(multi[taskNumber+1], deps=[Dependency(new[taskNumber-1], "WFK"), 
+            new.register_task(multi[taskNumber+1], deps=[Dependency(new[taskNumber-1], "WFK"),
                                                          Dependency(DDB, "DDB"),
                                                          Dependency(DVDB, "DVDB")])
 
@@ -2108,15 +2110,14 @@ class ConducWork(Work):
             new.register_task(multi[taskNumber+1], deps=[Dependency(new[taskNumber-1], "WFK"),
                                                          Dependency(DDB, "DDB"),
                                                          Dependency(new[taskNumber], "DVDB")])
-        
+
         for task in new:
             task.set_work(new)
-        
+
         # Manual Paralellization since autoparal doesn't work with optdriver=8 (t2)
-        if flow!=None :
+        if flow is not None :
             new.set_flow(flow)
-            if nbr_proc!=None: 
+            if nbr_proc is not None:
                 for task in new[2:]:
                     task.with_fixed_mpi_omp(nbr_proc, omp_nbr_thread)
         return new
-    
