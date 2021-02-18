@@ -1972,190 +1972,151 @@ class DteWork(Work, MergeDdb):
 
 class ConducWork(Work):
     """
-    Work for the computation of electrical conductivity.
-    This work consists of 4 tasks : SCF GS, NSCF, DVDB Interpolation and Electrical Conductivity Calculation.
+    Workflow for the computation of electrical conductivity.
+    
+    Can be called from :
+        1. MultiDataset and PhononWork
+        2. MultiDataset, DDB filepath and DVDB filepath.
+    Can use Kerange Capability using withKerange=True 
+    
+    This work consists of 3-4 tasks or 5-6 tasks with kerange : 
+        1. SCF GS 
+        2. NSCF
+        3. Kerange (Kerange only)
+        4. WFK Interpolation (Kerange only)
+        5. DVDB Interpolation (Optional)
+        6. Electrical Conductivity Calculation.
     """
 
     @classmethod
-    def from_phwork_and_scf_nscf_inp(cls, phwork, multi, nbr_procs, flow, skipInter=True, manager=None):
+    def from_phwork(cls, phwork, multi, nbr_proc=None, flow=None, withKerange=False, skipInter=True, omp_nbr_thread=1, manager=None):
         """
         Construct a |ConducWork| from a |PhononWork| and |MultiDataset|.
 
         Args:
             phwork: a |PhononWork| object calculating the DDB and DVDB files.
-
-            multi: a |MultiDataset| object containing a list of 4 inputs respectively :
-                   SCF GS, NSCF GS, DVDB Interpolation and Conductivity.
-                   See abipy/abio/factories.py -> conduc_from_scf_nscf_inputs for details about multi.
-
-            nbr_procs: Number of processors used for t2 and t3. Required since autoparal isn't yet implemented with optdriver=7
-
-            flow: The flow calling the work. Used for  with_fixed_mpi_omp.
-
-            skipInter: Used to skip the interpolation task and compute the fine DVDB during the conductivity task.
-
-            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
-        """
-        if not isinstance(phwork, PhononWork):
-            raise TypeError("Work `%s` does not inherit from PhononWork" % phwork)
-
-        new = cls(manager=manager)
-        new.set_flow(flow)
-
-        new.register_task(multi[0])
-        new.register_task(multi[1], deps={new[0]: "DEN"})
-
-        if(skipInter):
-            new.register_task(multi[3], deps={new[1]: "WFK", phwork: ["DDB","DVDB"]})
-
-        else:
-            new.register_task(multi[2], deps={phwork: ["DDB","DVDB"]})
-            new.register_task(multi[3], deps={new[1]: "WFK", phwork: "DDB", new[2]: "DVDB"})
-
-        for task in new:
-            task.set_work(new)
-
-        for task in new[2:]:
-            task.with_fixed_mpi_omp(nbr_procs, 1)
-        return new
-
-    @classmethod
-    def from_phwork_and_scf_nscf_inp_with_kerange(cls, phwork, multi, nbr_procs, flow, skipInter=True, manager=None):
-        """
-        Construct a |ConducWork| from a |PhononWork| and |MultiDataset|.
-
-        Args:
-            phwork: a |PhononWork| object calculating the DDB and DVDB files.
-
-            multi: a |MultiDataset| object containing a list of 4 inputs respectively :
-                   SCF GS, NSCF GS, DVDB Interpolation and Conductivity.
-                   See abipy/abio/factories.py -> conduc_from_scf_nscf_inputs for details about multi.
-
-            nbr_procs: Number of processors used for t2 and t3. Required since autoparal isn't yet implemented with optdriver=7
-
-            flow: The flow calling the work. Used for  with_fixed_mpi_omp.
-
-            skipInter: Used to skip the interpolation task and compute the fine DVDB during the conductivity task.
-
-            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
-        """
-        if not isinstance(phwork, PhononWork):
-            raise TypeError("Work `%s` does not inherit from PhononWork" % phwork)
-
-        new = cls(manager=manager)
-        new.set_flow(flow)
-
-        new.register_task(multi[0])
-        new.register_task(multi[1], deps={new[0]: "DEN"})
-        new.register_task(multi[2], deps={new[1]: "WFK"})
-        new.register_task(multi[3], deps={new[0]: "DEN", new[1]: "WFK", new[2]: "KERANGE.nc"})
-
-        if(skipInter):
-            new.register_task(multi[5], deps={new[3]: "WFK", phwork: ["DDB","DVDB"]})
-
-        else:
-            new.register_task(multi[4], deps={phwork: ["DDB","DVDB"]})
-            new.register_task(multi[5], deps={new[3]: "WFK", phwork: "DDB", new[2]: "DVDB"})
-
-        for task in new:
-            task.set_work(new)
-
-        for task in new[2:]:
-            task.with_fixed_mpi_omp(nbr_procs, 1)
-        return new
-
-    @classmethod
-    def from_multi_and_DDB_DVDB(cls, multi, ddb_file, dvdb_file, nbr_procs, flow, skipInter=True, manager=None):
-        """
-        Construct a |ConducWork| from previously calculated |PhononWork| and |MultiDataset|.
-
-        Args:
-            multi: a |MultiDataset| object containing a list of 4 inputs respectively :
-                       SCF GS, NSCF GS, DVDB Interpolation and Conductivity.
+            multi: a |MultiDataset| object containing a list of 4 datasets or 6 with Kerange.
                        See abipy/abio/factories.py -> conduc_from_scf_nscf_inputs for details about multi.
-            ddb_file: a string containing the path to the DDB file
-
-            dvdb_file: a string containing the path to the DVDB file
-
-            nbr_procs: Number of processors used for t2 and t3. Required since autoparal isn't yet implemented with optdriver=7
-
+            nbr_proc: Number of processors used after scf and nscf task. Required since autoparal isn't yet implemented with optdriver=7
             flow: The flow calling the work. Used for  with_fixed_mpi_omp.
-
+            withKerange: True if using Kerange.
             skipInter: Used to skip the interpolation task and compute the fine DVDB during the conductivity task.
-
+            omp_nbr_thread : Number of omp_thread to use.
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
         """
+        # Verify phwork
+        if not isinstance(phwork, PhononWork):
+            raise TypeError("Work `%s` does not inherit from PhononWork" % phwork)
+        # Verify Multi
+        if (not withKerange) and (multi.ndtset != 4): #Without kerange, multi should contain 4 datasets
+            raise ValueError("""The |MultiDataset| object does not contain the expected number of dataset. 
+                                It should have 4 datasets and it had `%s`. 
+                                You should generate the multidataset with the function conduc_from_scf_nscf_inputs""" % multi.ndtset)
+        if (withKerange) and (multi.ndtset != 6): # With Kerange, multi should contain 6 datasets
+            raise ValueError("""The |MultiDataset| object does not contain the expected number of dataset. 
+                              It should have 6 datasets and it had `%s`. 
+                              You should generate the multidataset with the function conduc_kerange_from_scf_nscf_inputs""" % multi.ndtset)
+        # Verify nbr_proc and flow are defined if withKerange
+        if withKerange and (flow==None or nbr_proc==None):
+            raise ValueError("""When using kerange, the argument flow and nbr_proc must be passed to the function from_filepath
+                                flow = {}\n nbr_proc = {}""".format(flow, nbr_proc))
 
         new = cls(manager=manager)
-        new.set_flow(flow)
 
         new.register_task(multi[0])
         new.register_task(multi[1], deps={new[0]: "DEN"})
+        taskNumber=2 # To keep track of the task in new and multi
 
-        if(skipInter):
-            new.register_task(multi[3], deps=[Dependency(new[1], "WFK"),
-                                          Dependency(ddb_file, "DDB"),
-                                          Dependency(dvdb_file, "DVDB")])
+        if(withKerange): # Using Kerange
+            new.register_task(multi[2], deps={new[1]: "WFK"})
+            new.register_task(multi[3], deps={new[0]: "DEN", new[1]: "WFK", new[2]: "KERANGE.nc"})
+            taskNumber=4 # We have 2 more dataset
 
-        else:
-            new.register_task(multi[2], deps=[Dependency(ddb_file, "DDB"),
-                                          Dependency(dvdb_file, "DVDB")])
-            new.register_task(multi[3], deps=[Dependency(new[1], "WFK"),
-                                          Dependency(ddb_file, "DDB"),
-                                          Dependency(new[2], "DVDB")])
+        if skipInter: # Without separate task for DVDB interpolation
+            new.register_task(multi[taskNumber+1], deps={new[taskNumber-1]: "WFK", phwork: ["DDB","DVDB"]})
+
+        else: # Separate task for DVDB interpolation
+            new.register_task(multi[taskNumber], deps={phwork: ["DDB","DVDB"]})
+            new.register_task(multi[taskNumber+1], deps={new[taskNumber-1]: "WFK", phwork: "DDB", new[taskNumber]: "DVDB"})
+
         for task in new:
             task.set_work(new)
 
-        for task in new[2:]:
-            task.with_fixed_mpi_omp(nbr_procs, 1)
+        # Manual Paralellization since autoparal doesn't work with optdriver=8 (t2)
+        if flow!=None :
+            new.set_flow(flow)
+            if nbr_proc!=None:
+                for task in new[2:]:
+                    task.with_fixed_mpi_omp(nbr_proc, omp_nbr_thread)
+        return new
 
+    @classmethod
+    def from_filepath(cls, multi, DDB, DVDB, nbr_proc=None, flow=None, withKerange=False, skipInter=True, omp_nbr_thread=1, manager=None):
+        """
+        Construct a |ConducWork| from previously calculated DDB/DVDB file and |MultiDataset|.
+
+        Args:
+            multi: a |MultiDataset| object containing a list of 4 datasets or 6 with Kerange.
+                       See abipy/abio/factories.py -> conduc_from_scf_nscf_inputs for details about multi.
+            DDB: a string containing the path to the DDB file.
+            DVDB: a string containing the path to the DVDB file.
+            nbr_proc: Required since autoparal doesn't work with optdriver=8, only needed if withKerange.
+            flow: The flow calling the work, only needed if withKerange.
+            withKerange: True if using Kerange.
+            skipInter: Used to skip the interpolation task and compute the fine DVDB during the conductivity task.
+            omp_nbr_thread : Number of omp_thread to use.
+            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
+        """
+        # Verify Multi
+        if (not withKerange) and (multi.ndtset != 4): #Without kerange, multi should contain 4 datasets
+            raise ValueError("""The |MultiDataset| object does not contain the expected number of dataset. 
+                                It should have 4 datasets and it had `%s`. 
+                                You should generate the multidataset with the function conduc_from_scf_nscf_inputs""" % multi.ndtset)
+        if (withKerange) and (multi.ndtset != 6): # With Kerange, multi should contain 6 datasets
+            raise ValueError("""The |MultiDataset| object does not contain the expected number of dataset. 
+                              It should have 6 datasets and it had `%s`. 
+                              You should generate the multidataset with the function conduc_kerange_from_scf_nscf_inputs""" % multi.ndtset)
+        # Make sure both file exists
+        if not os.path.exists(DDB): 
+            raise ValueError("The DDB file doesn't exists : `%s`" % DDB)
+        if not os.path.exists(DVDB):
+            raise ValueError("The DVDB file doesn't exists : `%s`" % DVDB)
+        # Verify nbr_proc and flow are defined if withKerange
+        if withKerange and (flow==None or nbr_proc==None):
+            raise ValueError("""When using kerange, the argument flow and nbr_proc must be passed to the function from_filepath
+                                flow = {}, nbr_proc = {}""".format(flow, nbr_proc))
+
+        new = cls(manager=manager)
+
+        new.register_task(multi[0])
+        new.register_task(multi[1], deps={new[0]: "DEN"})
+        taskNumber=2 # To keep track of the task in new and multi
+
+        if(withKerange): # Using Kerange
+            new.register_task(multi[2], deps={new[1]: "WFK"}) 
+            new.register_task(multi[3], deps={new[0]: "DEN", new[1]: "WFK", new[2]: "KERANGE.nc"})
+            taskNumber=4 # We have 2 more task
+
+        if skipInter: # Without separate task for DVDB interpolation
+            new.register_task(multi[taskNumber+1], deps=[Dependency(new[taskNumber-1], "WFK"), 
+                                                         Dependency(DDB, "DDB"),
+                                                         Dependency(DVDB, "DVDB")])
+
+        else: # Separate task for DVDB interpolation
+            new.register_task(multi[taskNumber], deps=[Dependency(DDB, "DDB"),
+                                                       Dependency(DVDB, "DVDB")])
+            new.register_task(multi[taskNumber+1], deps=[Dependency(new[taskNumber-1], "WFK"),
+                                                         Dependency(DDB, "DDB"),
+                                                         Dependency(new[taskNumber], "DVDB")])
+        
+        for task in new:
+            task.set_work(new)
+        
+        # Manual Paralellization since autoparal doesn't work with optdriver=8 (t2)
+        if flow!=None :
+            new.set_flow(flow)
+            if nbr_proc!=None: 
+                for task in new[2:]:
+                    task.with_fixed_mpi_omp(nbr_proc, omp_nbr_thread)
         return new
     
-    @classmethod
-    def from_DDB_DVDB_kerange_metal(cls, multi, ddb_file, dvdb_file, nbr_procs, flow, skipInter=True, manager=None):
-        """
-        Construct a |ConducWork| to calculate metal with kerange using previously calculated DDB, DVDB and multi.
-
-        Args:
-            multi: a |MultiDataset| object containing a list of 4 inputs respectively :
-                       SCF GS, NSCF GS, DVDB Interpolation and Conductivity.
-                       See abipy/abio/factories.py -> conduc_from_scf_nscf_inputs for details about multi.
-            ddb_file: a string containing the path to the DDB file
-
-            dvdb_file: a string containing the path to the DVDB file
-
-            nbr_procs: Number of processors used for t2 and t3. Required since autoparal isn't yet implemented with optdriver=7
-
-            flow: The flow calling the work. Used for  with_fixed_mpi_omp.
-
-            skipInter: Used to skip the interpolation task and compute the fine DVDB during the conductivity task.
-
-            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
-        """
-
-        multi[3].set_vars(paral_kgb=0)
-        sigmarange = multi[2].get("sigma_erange")
-        multi[5].set_vars(sigma_erange=sigmarange)
-
-        new = cls(manager=manager)
-        new.set_flow(flow)
-
-        new.register_task(multi[0])
-        new.register_task(multi[1], deps={new[0]: "DEN"})
-        new.register_task(multi[2], deps={new[1]: "WFK"})
-        new.register_task(multi[3], deps={new[0]: "DEN", new[1]: "WFK", new[2]: "KERANGE.nc"})
-
-        if skipInter:
-            new.register_task(multi[5], deps=[Dependency(new[3], "WFK"), Dependency(ddb_file, "DDB"), Dependency(dvdb_file, "DVDB")])
-        else:
-            new.register_task(multi[4], deps=[Dependency(ddb_file, "DDB"), Dependency(dvdb_file, "DVDB")])
-            new.register_task(multi[5], deps=[Dependency(new[3], "WFK"), Dependency(ddb_file, "DDB"), Dependency(new[4], "DVDB")])
-
-        for task in new:
-            task.set_work(new)
-
-        for task in new[2:]:
-            task.with_fixed_mpi_omp(nbr_procs, 1)
-
-        return new
-

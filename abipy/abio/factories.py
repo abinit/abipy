@@ -1413,87 +1413,96 @@ def dfpt_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, do_ddk=True, do_dde=T
     return multi
 
 
-def conduc_from_scf_nscf_inputs(scf_inp, nscf_inp, tmesh, ddb_ngqpt, eph_ngqpt_fine=None):
+def conduc_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqpt_fine, sigma_erange):
     """
     Returns a list of inputs in the form of a MultiDataset to perform a set of calculations to determine conductivity.
     This part require a ground state |AbinitInput| and a non self-consistent |AbinitInput|. You will also need
     a work to get DDB and DVDB since |ConducWork| needs these files.
 
     Args:
-        scf_inp: an |AbinitInput| representing a ground state calculation, the SCF performed to get the WFK.
+        scf_input: |AbinitInput| representing a ground state calculation, the SCF performed to get the WFK.
 
-        nscf_inp: an |AbinitInput| representing a nscf ground state calculation, the NSCF performed to get the WFK.
+        nscf_input: |AbinitInput| representing a nscf ground state calculation, the NSCF performed to get the WFK.
             most parameters for subsequent tasks will be taken from this inputs.
+
+        tmesh : The mesh of temperature where we calculate the conductivity
 
         ddb_ngqpt: the coarse grid of qpoints used to get the DDB and DVDB files in the previously made phonon_work.
 
         eph_ngqpt_fine: the fine grid of qpoints that will be interpolated.
     """
-    if eph_ngqpt_fine is None:
-        eph_ngqpt_fine = ddb_ngqpt
+    # Create a MultiDataset from scf input
+    multi = MultiDataset.from_inputs([scf_input])
 
-    multi = MultiDataset.from_inputs([scf_inp])
-    extension = MultiDataset.replicate_input(nscf_inp, 3)
+    # Add 3 times the nscf input at the end of the MultiDataset
+    extension = MultiDataset.replicate_input(nscf_input, 3) 
     multi.extend(extension)
 
+    # Modify the second nscf input to get a task that interpolate the DVDB
     multi[2].pop_vars("iscf")
     multi[2].set_vars(irdden=0, optdriver=7,
                       ddb_ngqpt=ddb_ngqpt,
                       eph_task=5,
                       eph_ngqpt_fine=eph_ngqpt_fine)
 
+    # Modify the third nscf input to get a conductivity task
     multi[3].pop_vars("iscf")
     multi[3].set_vars(irdden=0, optdriver=7,
                       ddb_ngqpt=ddb_ngqpt,
                       eph_ngqpt_fine=eph_ngqpt_fine,
                       eph_task=-4,
                       tmesh=tmesh,
-                      symsigma=1)
+                      symsigma=1,
+                      sigma_erange=sigma_erange)
 
     return multi
 
 
-def conduc_kerange_from_scf_nscf_inputs(scf_inp, nscf_inp, tmesh, ddb_ngqpt, sigma_ngkpt,
-                                        sigma_erange, einterp=[1,5,0,0], eph_ngqpt_fine=None):
+def conduc_kerange_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqpt_fine,
+                               sigma_ngkpt, sigma_erange, einterp=[1,5,0,0]):
     """
-    Returns a list of inputs in the form of a MultiDataset to perform a set of calculations to determine conductivity.
+    Returns a list of inputs in the form of a MultiDataset to perform a set of calculations to determine the conductivity.
     This part require a ground state |AbinitInput| and a non self-consistent |AbinitInput|. You will also need
     a work to get DDB and DVDB since |ConducWork| needs these files.
 
     Args:
-        scf_inp: an |AbinitInput| representing a ground state calculation, the SCF performed to get the WFK.
+        scf_input: |AbinitInput| representing a ground state calculation, the SCF performed to get the WFK.
 
-        nscf_inp: an |AbinitInput| representing a nscf ground state calculation, the NSCF performed to get the WFK.
+        nscf_input: |AbinitInput| representing a nscf ground state calculation, the NSCF performed to get the WFK.
             most parameters for subsequent tasks will be taken from this inputs.
 
-        ddb_ngqpt: the coarse grid of qpoints used to get the DDB and DVDB files in the previously made phonon_work.
+        ddb_ngqpt: the coarse qpoints grid used to get the DDB and DVDB files.
 
-        eph_ngqpt_fine: the fine grid of qpoints that will be interpolated. In the interpolation Task that can be skipped
+        eph_ngqpt_fine: the fine qpoints grid that will be interpolated.
 
-        sigma_ngkpt: The fine grid of kpt inside the sigma intervall
+        sigma_ngkpt: The fine grid of kpt inside the sigma interval
 
-        sigma_erange: The range of the sigma intervall
+        sigma_erange: The range of the sigma interval
 
         einterp: The interpolation used. By default it is a star-functions interpolation
     """
-    if eph_ngqpt_fine is None:
-        eph_ngqpt_fine = sigma_ngkpt
+    # Create a MultiDataset from scf input
+    multi = MultiDataset.from_inputs([scf_input])
 
-    multi = MultiDataset.from_inputs([scf_inp])
-    extension = MultiDataset.replicate_input(nscf_inp, 5)
+    # Add 5 times the nscf input at the end of the MultiDataset
+    extension = MultiDataset.replicate_input(nscf_input, 5)
     multi.extend(extension)
 
+    # Modify the second nscf input to get a task that calculate the kpt in the sigma interval (Kerange.nc file)
     multi[2].set_vars(optdriver=8, wfk_task='"wfk_kpts_erange"', kptopt=1,
                       sigma_ngkpt=sigma_ngkpt, einterp=einterp, sigma_erange=sigma_erange)
 
+    # Modify the third nscf input to get a task that add the kpt of Kerange.nc to the WFK file
     multi[3].set_vars(optdriver=0, symsigma=1, iscf=-2, kptopt=0, ddb_ngqpt=ddb_ngqpt)
 
+    # Modify the fourth nscf input to get a task that interpolate the DVDB
     multi[4].pop_vars("iscf")
     multi[4].set_vars(irdden=0, optdriver=7,
                       ddb_ngqpt=ddb_ngqpt,
                       eph_task=5,
                       eph_ngqpt_fine=eph_ngqpt_fine)
 
+    # Modify the third nscf input to get a conductivity task
     multi[5].pop_vars("iscf")
     multi[5].set_vars(irdden=0, optdriver=7,
                       ddb_ngqpt=ddb_ngqpt,
@@ -1501,6 +1510,7 @@ def conduc_kerange_from_scf_nscf_inputs(scf_inp, nscf_inp, tmesh, ddb_ngqpt, sig
                       eph_task=-4,
                       tmesh=tmesh,
                       symsigma=1,
+                      sigma_erange=sigma_erange,
                       ngkpt=sigma_ngkpt)
 
     return multi
