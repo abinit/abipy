@@ -64,14 +64,14 @@ def build_flow(options):
     ngkpt_fine = [8, 8, 8]
     shiftk = [0.0, 0.0, 0.0]
     ngqpt = [2, 2, 2]
-    tmesh = [0, 30, 11]
+    tmesh = [0, 30, 11] # Conductivity at temp from 0K to 300K by increment of 30
 
     #Kerange Variables
     nbr_proc = 4
-    ngqpt_fine = [16, 16, 16] # The kpt grid must be divisible by the qpt grid
+    ngqpt_fine = [16, 16, 16] # The sigma_ngkpt grid must be divisible by the qpt grid
     sigma_ngkpt = [16, 16, 16]
-    einterp = [1, 5, 0, 0]
-    sigma_erange = [-0.3, -0.3, "eV"]
+    einterp = [1, 5, 0, 0] # Star functions Interpolation
+    sigma_erange = [-0.3, -0.3, "eV"] # Negative value for metals
 
     # Nom de mon flow
     flow = flowtk.Flow(workdir=options.workdir)
@@ -111,13 +111,17 @@ def build_flow(options):
                                sigma_erange=sigma_erange,
                                einterp=einterp)
 
-    conduc_work = flowtk.ConducWork.from_phwork(phwork=ph_work,
-                                                multi=multi,
-                                                nbr_proc=nbr_proc,
+    # Here we can change multi to change the variable of a particular dataset
+
+    conduc_work = flowtk.ConducWork.from_phwork(phwork=ph_work, # Linking the DDB and DVDB via a PhononWork
+                                                multi=multi, # The multidataset object
+                                                nbr_proc=nbr_proc, # Needed to parallelize the calculation
                                                 flow=flow,
-                                                withKerange=True,
-                                                skipInter=False,
-                                                omp_nbr_thread=1)
+                                                withKerange=True, # Using Kerange
+                                                skipInter=True, # Doing DVDB interpolation during the conductivity task
+                                                omp_nbr_thread=1) # The default value, no need to specify it in this case
+    # If you already have the DDB and DVDB, use from_filepath(DDB, DVDB, multi, ...) instead of from_phwork
+
     flow.register_work(conduc_work)
 
     return flow.allocate(use_smartio=True)

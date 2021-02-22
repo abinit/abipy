@@ -2052,7 +2052,7 @@ class ConducWork(Work):
         return new
 
     @classmethod
-    def from_filepath(cls, multi, DDB, DVDB, nbr_proc=None, flow=None, withKerange=False,
+    def from_filepath(cls, DDB, DVDB, multi, nbr_proc=None, flow=None, withKerange=False,
                       skipInter=True, omp_nbr_thread=1, manager=None):
         """
         Construct a |ConducWork| from previously calculated DDB/DVDB file and |MultiDataset|.
