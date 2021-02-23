@@ -65,6 +65,8 @@ def build_flow(options):
     shiftk = [0.0, 0.0, 0.0]
     ngqpt = [2, 2, 2]
     tmesh = [0, 30, 11] # Conductivity at temp from 0K to 300K by increment of 30
+    boxcutmin = 1.1
+    mixprec = 1
 
     #Kerange Variables
     nbr_proc = 4
@@ -109,18 +111,20 @@ def build_flow(options):
                                eph_ngqpt_fine=ngqpt_fine,
                                sigma_ngkpt=sigma_ngkpt,
                                sigma_erange=sigma_erange,
-                               einterp=einterp)
+                               einterp=einterp,
+                               boxcutmin=boxcutmin, # 1.1 is the default value of the function
+                               mixprec=mixprec # 1 is the default value of the function
+                               )
 
     # Here we can change multi to change the variable of a particular dataset
 
-    conduc_work = flowtk.ConducWork.from_phwork(phwork=ph_work, # Linking the DDB and DVDB via a PhononWork
+    conduc_work = flowtk.ConducWork.from_phwork(phwork=ph_work, # Linking the DDB and DVDB via a |PhononWork|
                                                 multi=multi, # The multidataset object
                                                 nbr_proc=nbr_proc, # Needed to parallelize the calculation
                                                 flow=flow,
-                                                withKerange=True, # Using Kerange
-                                                skipInter=True, # Doing DVDB interpolation during the conductivity task
-                                                omp_nbr_thread=1) # The default value, no need to specify it in this case
-    # If you already have the DDB and DVDB, use from_filepath(DDB, DVDB, multi, ...) instead of from_phwork
+                                                with_kerange=True, # Using Kerange
+                                                omp_nbr_thread=1) # 1 is the default value of the function
+    # If you already have the DDB and DVDB, use from_filepath(ddb_path, dvdb_path, multi, ...) instead of from_phwork
 
     flow.register_work(conduc_work)
 

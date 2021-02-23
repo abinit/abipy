@@ -256,17 +256,12 @@ class TransportReader(ElectronsReader):
 
     def read_vvdos_tau(self, itemp, component='xx', spin=1):
         """
-        Read the group velocity density of states times lifetime for different temperatures
-<<<<<<< HEAD
-        The vvdos_tau array has 4 dimensions (ntemp, 9, nsppolplus1, nw)
-=======
-        The vvdos_tau array has 4 dimensions (ntemp, 3, 3, nsppolplus1, nw)
+        Read the group velocity density of states
+        The vvdos_vals array has 3 dimensions (3, 3, nsppolplus1, nw)
 
->>>>>>> trunk/develop
-          1. the number of temperatures
-          2. 3x3 components of the tensor
-          3. the spin polarization + 1 for the sum
-          4. the number of frequencies
+          1. 3x3 components of the tensor
+          2. the spin polarization + 1 for the sum
+          3. the number of frequencies
         """
         # nctkarr_t('vvdos_tau', "dp", "edos_nw, nsppol_plus1, three, three, ntemp"), &
         i, j = abu.s2itup(component)

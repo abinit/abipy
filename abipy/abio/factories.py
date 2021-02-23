@@ -1413,7 +1413,7 @@ def dfpt_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, do_ddk=True, do_dde=T
     return multi
 
 
-def conduc_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqpt_fine, sigma_erange):
+def conduc_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqpt_fine, sigma_erange, boxcutmin=1.1, mixprec=1):
     """
     Returns a list of inputs in the form of a MultiDataset to perform a set of calculations to determine conductivity.
     This part require a ground state |AbinitInput| and a non self-consistent |AbinitInput|. You will also need
@@ -1430,36 +1430,41 @@ def conduc_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqpt_fine, 
         ddb_ngqpt: the coarse grid of qpoints used to get the DDB and DVDB files in the previously made phonon_work.
 
         eph_ngqpt_fine: the fine grid of qpoints that will be interpolated.
+
+        boxcutmin : For the last task only, 1.1 is often used to decrease memory and is faster over the Abinit default of 2
+
+        mixprec : For the last task only, 1 is often used to decrease memory and is faster over the Abinit default of 0
     """
     # Create a MultiDataset from scf input
     multi = MultiDataset.from_inputs([scf_input])
 
-    # Add 3 times the nscf input at the end of the MultiDataset
-    extension = MultiDataset.replicate_input(nscf_input, 3)
+    # Add 2 times the nscf input at the end of the MultiDataset
+    extension = MultiDataset.replicate_input(nscf_input, 2)
     multi.extend(extension)
 
     # Modify the second nscf input to get a task that interpolate the DVDB
-    multi[2].pop_vars("iscf")
-    multi[2].set_vars(irdden=0, optdriver=7,
-                      ddb_ngqpt=ddb_ngqpt,
-                      eph_task=5,
-                      eph_ngqpt_fine=eph_ngqpt_fine)
+    #multi[2].pop_vars("iscf")
+    #multi[2].set_vars(irdden=0, optdriver=7,
+    #                  ddb_ngqpt=ddb_ngqpt,
+    #                  eph_task=5,
+    #                  eph_ngqpt_fine=eph_ngqpt_fine)
 
     # Modify the third nscf input to get a conductivity task
-    multi[3].pop_vars("iscf")
-    multi[3].set_vars(irdden=0, optdriver=7,
+    multi[2].pop_vars("iscf")
+    multi[2].set_vars(irdden=0, optdriver=7,
                       ddb_ngqpt=ddb_ngqpt,
                       eph_ngqpt_fine=eph_ngqpt_fine,
                       eph_task=-4,
                       tmesh=tmesh,
-                      symsigma=1,
-                      sigma_erange=sigma_erange)
+                      sigma_erange=sigma_erange,
+                      boxcutmin=boxcutmin,
+                      mixprec=mixprec)
 
     return multi
 
 
 def conduc_kerange_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqpt_fine,
-                               sigma_ngkpt, sigma_erange, einterp=[1,5,0,0]):
+                               sigma_ngkpt, sigma_erange, einterp=[1,5,0,0], boxcutmin=1.1, mixprec=1):
     """
     Returns a list of inputs in the form of a MultiDataset to perform a set of calculations to determine the conductivity.
     This part require a ground state |AbinitInput| and a non self-consistent |AbinitInput|. You will also need
@@ -1480,12 +1485,16 @@ def conduc_kerange_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqp
         sigma_erange: The range of the sigma interval
 
         einterp: The interpolation used. By default it is a star-functions interpolation
+
+        boxcutmin : For the last task only, 1.1 is often used to decrease memory and is faster over the Abinit default of 2
+
+        mixprec : For the last task only, 1 is often used to decrease memory and is faster over the Abinit default of 0
     """
     # Create a MultiDataset from scf input
     multi = MultiDataset.from_inputs([scf_input])
 
-    # Add 5 times the nscf input at the end of the MultiDataset
-    extension = MultiDataset.replicate_input(nscf_input, 5)
+    # Add 4 times the nscf input at the end of the MultiDataset
+    extension = MultiDataset.replicate_input(nscf_input, 4)
     multi.extend(extension)
 
     # Modify the second nscf input to get a task that calculate the kpt in the sigma interval (Kerange.nc file)
@@ -1493,25 +1502,26 @@ def conduc_kerange_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqp
                       sigma_ngkpt=sigma_ngkpt, einterp=einterp, sigma_erange=sigma_erange)
 
     # Modify the third nscf input to get a task that add the kpt of Kerange.nc to the WFK file
-    multi[3].set_vars(optdriver=0, symsigma=1, iscf=-2, kptopt=0, ddb_ngqpt=ddb_ngqpt)
+    multi[3].set_vars(optdriver=0, iscf=-2, kptopt=0, ddb_ngqpt=ddb_ngqpt)
 
     # Modify the fourth nscf input to get a task that interpolate the DVDB
-    multi[4].pop_vars("iscf")
-    multi[4].set_vars(irdden=0, optdriver=7,
-                      ddb_ngqpt=ddb_ngqpt,
-                      eph_task=5,
-                      eph_ngqpt_fine=eph_ngqpt_fine)
+    #multi[4].pop_vars("iscf")
+    #multi[4].set_vars(irdden=0, optdriver=7,
+    #                  ddb_ngqpt=ddb_ngqpt,
+    #                  eph_task=5,
+    #                  eph_ngqpt_fine=eph_ngqpt_fine)
 
     # Modify the third nscf input to get a conductivity task
-    multi[5].pop_vars("iscf")
-    multi[5].set_vars(irdden=0, optdriver=7,
+    multi[4].pop_vars("iscf")
+    multi[4].set_vars(irdden=0, optdriver=7,
                       ddb_ngqpt=ddb_ngqpt,
                       eph_ngqpt_fine=eph_ngqpt_fine,
                       eph_task=-4,
                       tmesh=tmesh,
-                      symsigma=1,
                       sigma_erange=sigma_erange,
-                      ngkpt=sigma_ngkpt)
+                      ngkpt=sigma_ngkpt,
+                      boxcutmin=boxcutmin,
+                      mixprec=mixprec)
 
     return multi
 
