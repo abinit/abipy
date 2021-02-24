@@ -45,6 +45,7 @@ __all__ = [
     "GKKPWork",
     "BecWork",
     "DteWork",
+    "ConducWork",
 ]
 
 
@@ -1967,3 +1968,142 @@ class DteWork(Work, MergeDdb):
         # Merge DDB files.
         out_ddb = self.merge_ddb_files()
         return self.Results(node=self, returncode=0, message="DDB merge done")
+
+
+class ConducWork(Work):
+    """
+    Workflow for the computation of electrical conductivity.
+
+    Can be called from :
+        1. MultiDataset and PhononWork
+        2. MultiDataset, DDB filepath and DVDB filepath.
+    Can use Kerange Capability using withKerange=True
+
+    This work consists of 3 tasks or 5 tasks with kerange :
+        1. SCF GS
+        2. NSCF
+        3. Kerange (Kerange only)
+        4. WFK Interpolation (Kerange only)
+        5. Electrical Conductivity Calculation.
+    """
+
+    @classmethod
+    def from_phwork(cls, phwork, multi, nbr_proc=None, flow=None, with_kerange=False,
+                    omp_nbr_thread=1, manager=None):
+        """
+        Construct a |ConducWork| from a |PhononWork| and |MultiDataset|.
+
+        Args:
+            phwork: a |PhononWork| object calculating the DDB and DVDB files.
+            multi: a |MultiDataset| object containing a list of 3 datasets or 5 with Kerange.
+                       See abipy/abio/factories.py -> conduc_from_scf_nscf_inputs for details about multi.
+            nbr_proc: Required if with_kerange since autoparal doesn't work with optdriver=8.
+            flow: The flow calling the work. Used for  with_fixed_mpi_omp.
+            with_kerange: True if using Kerange.
+            omp_nbr_thread : Number of omp_thread to use.
+            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
+        """
+        # Verify phwork
+        if not isinstance(phwork, PhononWork):
+            raise TypeError("Work `%s` does not inherit from PhononWork" % phwork)
+        # Verify Multi
+        if (not with_kerange) and (multi.ndtset != 3): #Without kerange, multi should contain 3 datasets
+            raise ValueError("""The |MultiDataset| object does not contain the expected number of dataset.
+                                It should have 3 datasets and it had `%s`. You should generate
+                                multi with the factory function conduc_from_scf_nscf_inputs""" % multi.ndtset)
+        if (with_kerange) and (multi.ndtset != 5): # With Kerange, multi should contain 5 datasets
+            raise ValueError("""The |MultiDataset| object does not contain the expected number of dataset.
+                              It should have 5 datasets and it had `%s`. You should generate
+                              multi with the factory function conduc_from_scf_nscf_inputs""" % multi.ndtset)
+        # Verify nbr_proc and flow are defined if with_kerange
+        if with_kerange and (flow is None or nbr_proc is None):
+            raise ValueError("""When using kerange, the argument flow and nbr_proc must be passed to the function from_filepath
+                                flow = {}\n nbr_proc = {}""".format(flow, nbr_proc))
+
+        new = cls(manager=manager)
+
+        new.register_task(multi[0])
+        new.register_task(multi[1], deps={new[0]: "DEN"})
+        taskNumber = 2 # To keep track of the task in new and multi
+
+        if(with_kerange): # Using Kerange
+            new.register_task(multi[2], deps={new[1]: "WFK"})
+            new.register_task(multi[3], deps={new[0]: "DEN", new[1]: "WFK", new[2]: "KERANGE.nc"})
+            taskNumber = 4 # We have 2 more dataset
+
+        new.register_task(multi[taskNumber], deps={new[taskNumber-1]: "WFK", phwork: ["DDB","DVDB"]})
+
+        for task in new:
+            task.set_work(new)
+
+        # Manual Paralellization since autoparal doesn't work with optdriver=8 (t2)
+        if flow is not None :
+            new.set_flow(flow)
+            if nbr_proc is not None:
+                for task in new[2:]:
+                    task.with_fixed_mpi_omp(nbr_proc, omp_nbr_thread)
+        return new
+
+    @classmethod
+    def from_filepath(cls, ddb_path, dvdb_path, multi, nbr_proc=None, flow=None,
+                      with_kerange=False, omp_nbr_thread=1, manager=None):
+        """
+        Construct a |ConducWork| from previously calculated DDB/DVDB file and |MultiDataset|.
+
+        Args:
+            multi: a |MultiDataset| object containing a list of 3 datasets or 5 with Kerange.
+                       See abipy/abio/factories.py -> conduc_from_scf_nscf_inputs for details about multi.
+            ddb_path: a string containing the path to the DDB file.
+            dvdb_path: a string containing the path to the DVDB file.
+            nbr_proc: Required if with_kerange since autoparal doesn't work with optdriver=8.
+            flow: The flow calling the work, only needed if with_kerange.
+            with_kerange: True if using Kerange.
+            omp_nbr_thread : Number of omp_thread to use.
+            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
+        """
+        # Verify Multi
+        if (not with_kerange) and (multi.ndtset != 3): #Without kerange, multi should contain 4 datasets
+            raise ValueError("""The |MultiDataset| object does not contain the expected number of dataset.
+                                It should have 4 datasets and it had `%s`. You should generate
+                                multi with the factory function conduc_from_scf_nscf_inputs""" % multi.ndtset)
+        if (with_kerange) and (multi.ndtset != 5): # With Kerange, multi should contain 6 datasets
+            raise ValueError("""The |MultiDataset| object does not contain the expected number of dataset.
+                              It should have 6 datasets and it had `%s`.You should generate
+                                multi with the factory function conduc_from_scf_nscf_inputs""" % multi.ndtset)
+        # Make sure both file exists
+        if not os.path.exists(ddb_path):
+            raise ValueError("The DDB file doesn't exists : `%s`" % ddb_path)
+        if not os.path.exists(dvdb_path):
+            raise ValueError("The DVDB file doesn't exists : `%s`" % dvdb_path)
+        # Verify nbr_proc and flow are defined if with_kerange
+        if with_kerange and (flow is None or nbr_proc is None):
+            raise ValueError("""When using kerange, the argument flow and nbr_proc must be passed to the function from_filepath
+                                flow = {}, nbr_proc = {}""".format(flow, nbr_proc))
+
+        new = cls(manager=manager)
+
+        new.register_task(multi[0])
+        new.register_task(multi[1], deps={new[0]: "DEN"})
+        taskNumber = 2 # To keep track of the task in new and multi
+
+        if(with_kerange): # Using Kerange
+            new.register_task(multi[2], deps={new[1]: "WFK"})
+            new.register_task(multi[3], deps={new[0]: "DEN", new[1]: "WFK", new[2]: "KERANGE.nc"})
+            taskNumber = 4 # We have 2 more task
+
+        #new.register_task(multi[taskNumber], deps=[Dependency(new[taskNumber-1], "WFK"),
+        #                                             Dependency(ddb_path, "DDB"),
+        #                                             Dependency(dvdb_path, "DVDB")])
+        #new.register_task(multi[taskNumber], deps=[{new[taskNumber-1]: "WFK"},(ddb_path, "DDB"),(dvdb_path, "DVDB")])
+        new.register_task(multi[taskNumber], deps={new[taskNumber-1]: "WFK", ddb_path: "DDB", dvdb_path: "DVDB"})
+
+        for task in new:
+            task.set_work(new)
+
+        # Manual Paralellization since autoparal doesn't work with optdriver=8 (t2)
+        if flow is not None :
+            new.set_flow(flow)
+            if nbr_proc is not None:
+                for task in new[2:]:
+                    task.with_fixed_mpi_omp(nbr_proc, omp_nbr_thread)
+        return new
