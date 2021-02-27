@@ -2633,8 +2633,10 @@ class AbinitTask(Task):
             mpi_procs: Number of MPI processes to use.
         """
         # Build a simple manager to run the job in a shell subprocess
+        # Allow users to specify the temporary directory via env variable.
+        dir = os.getenv("ABIPY_TMPDIR", default=None)
         import tempfile
-        workdir = tempfile.mkdtemp() if workdir is None else workdir
+        workdir = tempfile.mkdtemp(dir=dir) if workdir is None else workdir
         if manager is None: manager = TaskManager.from_user_config()
 
         # Construct the task and run it

@@ -340,7 +340,7 @@ def map_kpoints(other_kpoints, other_lattice, ref_lattice, ref_kpoints, ref_symr
     kmap = collections.namedtuple("kmap", "ik_ref, tsign, isym, g0")
 
     for ik_oth, okpt in enumerate(other_kpoints):
-        # Get other k-point in reduced coordinates in the referece lattice.
+        # Get other k-point in reduced coordinates in the reference lattice.
         okpt_red = np.matmul(ref_gprimd_inv, np.matmul(other_gprimd, okpt))
 
         # k_other = TS k_ref + G0
