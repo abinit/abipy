@@ -1003,7 +1003,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         Returns: |matplotlib-Figure|
         """
         # Map sigma_kpoints to ebands.kpoints
-        kcalc2ibz = np.empty(self.nkcalc, dtype=np.int)
+        kcalc2ibz = np.empty(self.nkcalc, dtype=int)
         for ikc, sigkpt in enumerate(self.sigma_kpoints):
             kcalc2ibz[ikc] = self.ebands.kpoints.index(sigkpt)
 

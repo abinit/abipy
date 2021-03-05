@@ -1270,7 +1270,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return nscf_input
 
-    def make_dfpt_effmass_input(self, kpts, effmass_bands_f90, tolwfr=1e-20, iscf=-2):
+    def make_dfpt_effmass_inputs(self, kpts, effmass_bands_f90, tolwfr=1e-20, iscf=-2):
         """
         Return a |MultiDataset| object with 2 inputs for the calculation of effective masses with DFPT
         The first input in a standard NSCF run, the second input computes the effective masses.
@@ -1371,7 +1371,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 rfdir=rfdir,
                 kptopt=kptopt,
             )
-            #if "prtwf" not in  ph_input: ph_input["prtwf"] = prtwf
+            #if "prtwf" not in ph_input: ph_input["prtwf"] = prtwf
             ph_input.pop_tolerances()
             ph_input.set_vars(tolerance)
 
@@ -1605,9 +1605,9 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         Args:
             tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.
                 Defaults to {"tolvrs": 1.0e-12}.
-            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
-            phonon_pert: is True also the phonon perturbations will be considered. Default False.
+            phonon_pert: isf True also the phonon perturbations are considered. Default False.
             kptopt: 2 to take into account time-reversal symmetry.
+            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
         """
         if tolerance is None:
             tolerance = {"tolvrs": 1.0e-12}
@@ -1660,6 +1660,64 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             inp.set_vars(tolerance)
 
         return multi
+
+    #def make_eph_transport_input(self, ddb_ngqpt, sigma_erange, tmesh, eph_ngqpt_fine=None,,
+    #                             mixprec=1, boxcutmin=1.1, ibte_prep=0):
+    #    """
+    #    Return an |AbinitInput| to perform phonon-limited transport calculations.
+    #    This method is usually called with with the input associated to the NSCF run that produces
+    #    the WFK file used to start the EPH run so that we can directly inherit the k-mesh
+
+    #    Args:
+    #        ddb_ngqpt: the coarse qpt grid used to compute the DDB and DVDB files in the phonon_work.
+    #        eph_ngqpt_fine: the fine qpt grid used for the Fourier interpolation.
+    #        sigma_erange: Energy window for k-states (see Abinit variable)
+    #        tmesh: The mesh of temperatures (in Kelvin)
+    #        boxcutmin: For the last task only, 1.1 is often used to decrease memory and is faster over the Abinit default of 2.
+    #        mixprec: For the last task only, 1 is often used to make the EPH calculation faster. Note that Abinit default is 0.
+    #        ibte_prep: Set it to 1 to activate the iterative Boltzmann equation. Default is RTA.
+    #    """
+    #    eph_ngqpt_fine = self.get("ngkpt") if eph_ngqpt_fine is None else eph_ngqpt_fine
+    #    new = self.new_with_vars(
+    #        optdriver=7,                    # Enter EPH driver.
+    #        eph_task=-4,                    # Compute imag part of sigma_eph.
+    #        ddb_ngqpt=ddb_ngqpt,            # Ab-initio coarse q-mesh used to produce the DDB/DVDB files.
+    #        eph_ngqpt_fine=eph_ngqpt_fine,  # Interpolate DFPT potentials on this denser q-mesh.
+    #        sigma_erange=sigma_erange,
+    #        tmesh=tmesh,
+    #        mixprec=mixprec,
+    #        boxcutmin=boxcutmin,
+    #        ibte_prep=ibte_prep,
+    #    )
+    #    #new.add_phbbands_vars()
+    #    return new
+
+    #def make_eph_isotc_input(self, ddb_ngqpt, eph_fsewin, eph_ngqpt_fine=None,,
+    #                          mixprec=1, boxcutmin=1.1):
+    #    """
+    #    Return an |AbinitInput| to perform phonon-limited transport calculations.
+    #    This method is usually called with with the input associated to the NSCF run that produces
+    #    the WFK file used to start the EPH run so that we can directly inherit the k-mesh
+
+    #    Args:
+    #        ddb_ngqpt: the coarse qpt grid used to compute the DDB and DVDB files in the phonon_work.
+    #        eph_fsewin:
+    #        eph_ngqpt_fine: the fine qpt grid used for the Fourier interpolation.
+    #        boxcutmin: For the last task only, 1.1 is often used to decrease memory and is faster over the Abinit default of 2.
+    #        mixprec: For the last task only, 1 is often used to make the EPH calculation faster. Note that Abinit default is 0.
+    #    """
+    #    eph_ngqpt_fine = self.get("ngkpt") if eph_ngqpt_fine is None else eph_ngqpt_fine
+    #    new = self.new_with_vars(
+    #        optdriver=7,                    # Enter EPH driver.
+    #        eph_task=-4,                    # Compute imag part of Phi phonon self-energy due to to electrons.
+    #        ddb_ngqpt=ddb_ngqpt,            # Ab-initio coarse q-mesh used to produce the DDB/DVDB files.
+    #        eph_ngqpt_fine=eph_ngqpt_fine,  # Interpolate DFPT potentials on this denser q-mesh.
+    #        eph_fsewin=eph_fsewin,
+    #        mixprec=mixprec,
+    #        boxcutmin=boxcutmin,
+    #    )
+    #    #new.add_phbbands_vars()
+    #    return new
 
     def abivalidate(self, workdir=None, manager=None):
         """

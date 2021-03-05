@@ -140,7 +140,7 @@ class Robot(NotebookWriter):
         items = []
         if walk:
             for dirpath, dirnames, filenames in os.walk(top):
-                filenames = [f for f in filenames if cls.class_handles_filename(f)]
+                filenames = sorted([f for f in filenames if cls.class_handles_filename(f)])
                 for f in filenames:
                     abifile = abiopen(os.path.join(dirpath, f))
                     if abifile is not None: items.append((abifile.filepath, abifile))
@@ -477,6 +477,11 @@ class Robot(NotebookWriter):
 
     @property
     def labels(self):
+        """
+        List of strings used to create labels in matplotlib figures when plotting results
+        taked from multiple files. By default, labels is initialized with the path of the files in the robot.
+        Use change_labels to change the list.
+        """
         return list(self._abifiles.keys())
 
     def get_label_files_str(self):

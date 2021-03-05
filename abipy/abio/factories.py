@@ -1421,19 +1421,13 @@ def conduc_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqpt_fine, 
 
     Args:
         scf_input: |AbinitInput| representing a ground state calculation, the SCF performed to get the WFK.
-
         nscf_input: |AbinitInput| representing a nscf ground state calculation, the NSCF performed to get the WFK.
             most parameters for subsequent tasks will be taken from this inputs.
-
-        tmesh : The mesh of temperature where we calculate the conductivity
-
-        ddb_ngqpt: the coarse grid of qpoints used to get the DDB and DVDB files in the previously made phonon_work.
-
-        eph_ngqpt_fine: the fine grid of qpoints that will be interpolated.
-
-        boxcutmin : For the last task only, 1.1 is often used to decrease memory and is faster over the Abinit default of 2
-
-        mixprec : For the last task only, 1 is often used to decrease memory and is faster over the Abinit default of 0
+        tmesh: The mesh of temperature (in Kelvin) where we calculate the conductivity.
+        ddb_ngqpt: the coarse grid of q-points used to compute the DDB and DVDB files in the previous phonon_work.
+        eph_ngqpt_fine: the fine grid of q-points used for the Fourier nterpolation.
+        boxcutmin: For the last task only, 1.1 is often used to decrease memory and is faster over the Abinit default of 2.
+        mixprec: For the last task only, 1 is often used to make the EPH calculation faster. Note that Abinit default is 0.
     """
     # Create a MultiDataset from scf input
     multi = MultiDataset.from_inputs([scf_input])
@@ -1451,7 +1445,8 @@ def conduc_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqpt_fine, 
 
     # Modify the third nscf input to get a conductivity task
     multi[2].pop_vars("iscf")
-    multi[2].set_vars(irdden=0, optdriver=7,
+    multi[2].set_vars(irdden=0,
+                      optdriver=7,
                       ddb_ngqpt=ddb_ngqpt,
                       eph_ngqpt_fine=eph_ngqpt_fine,
                       eph_task=-4,
@@ -1464,7 +1459,7 @@ def conduc_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqpt_fine, 
 
 
 def conduc_kerange_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqpt_fine,
-                               sigma_ngkpt, sigma_erange, einterp=[1,5,0,0], boxcutmin=1.1, mixprec=1):
+                               sigma_ngkpt, sigma_erange, einterp=(1, 5, 0, 0), boxcutmin=1.1, mixprec=1):
     """
     Returns a list of inputs in the form of a MultiDataset to perform a set of calculations to determine the conductivity.
     This part require a ground state |AbinitInput| and a non self-consistent |AbinitInput|. You will also need
@@ -1472,23 +1467,15 @@ def conduc_kerange_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqp
 
     Args:
         scf_input: |AbinitInput| representing a ground state calculation, the SCF performed to get the WFK.
-
         nscf_input: |AbinitInput| representing a nscf ground state calculation, the NSCF performed to get the WFK.
             most parameters for subsequent tasks will be taken from this inputs.
-
-        ddb_ngqpt: the coarse qpoints grid used to get the DDB and DVDB files.
-
+        ddb_ngqpt: the coarse q-point grid used to get the DDB and DVDB files.
         eph_ngqpt_fine: the fine qpoints grid that will be interpolated.
-
         sigma_ngkpt: The fine grid of kpt inside the sigma interval
-
-        sigma_erange: The range of the sigma interval
-
-        einterp: The interpolation used. By default it is a star-functions interpolation
-
-        boxcutmin : For the last task only, 1.1 is often used to decrease memory and is faster over the Abinit default of 2
-
-        mixprec : For the last task only, 1 is often used to decrease memory and is faster over the Abinit default of 0
+        sigma_erange: The energy range for Sigma_nk
+        einterp: The interpolation used. By default it is a star-function interpolation.
+        boxcutmin: For the last task only, 1.1 is often used to decrease memory and is faster over the Abinit default of 2.
+        mixprec: For the last task only, 1 is often used to make the EPH calculation faster. Note that Abinit default is 0.
     """
     # Create a MultiDataset from scf input
     multi = MultiDataset.from_inputs([scf_input])
@@ -1513,7 +1500,8 @@ def conduc_kerange_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqp
 
     # Modify the third nscf input to get a conductivity task
     multi[4].pop_vars("iscf")
-    multi[4].set_vars(irdden=0, optdriver=7,
+    multi[4].set_vars(irdden=0,
+                      optdriver=7,
                       ddb_ngqpt=ddb_ngqpt,
                       eph_ngqpt_fine=eph_ngqpt_fine,
                       eph_task=-4,

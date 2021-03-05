@@ -306,23 +306,23 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         # to avoid problems with pymatgen routines that expect integer Z
         # This of course will break any code for alchemical mixing.
         arrays = {
-            "acell": dict(shape=(3, ), dtype=np.double),
-            "amu": dict(shape=(h.ntypat, ), dtype=np.double),
-            "kpt": dict(shape=(h.nkpt, 3), dtype=np.double),
-            "ngfft": dict(shape=(3, ), dtype=np.int),
+            "acell": dict(shape=(3, ), dtype=float),
+            "amu": dict(shape=(h.ntypat, ), dtype=float),
+            "kpt": dict(shape=(h.nkpt, 3), dtype=float),
+            "ngfft": dict(shape=(3, ), dtype=int),
             # This is problematic because not all occupation factors are written
-            #"occ": dict(shape=(h.nsppol, h.nkpt, h.nband), dtype=np.double),
-            "rprim": dict(shape=(3, 3), dtype=np.double),
-            "spinat": dict(shape=(h.natom, 3), dtype=np.double),
-            "symrel": dict(shape=(h.nsym, 3, 3), dtype=np.int),
-            "tnons": dict(shape=(h.nsym, 3), dtype=np.double),
-            "xred":  dict(shape=(h.natom, 3), dtype=np.double),
+            #"occ": dict(shape=(h.nsppol, h.nkpt, h.nband), dtype=float),
+            "rprim": dict(shape=(3, 3), dtype=float),
+            "spinat": dict(shape=(h.natom, 3), dtype=float),
+            "symrel": dict(shape=(h.nsym, 3, 3), dtype=int),
+            "tnons": dict(shape=(h.nsym, 3), dtype=float),
+            "xred":  dict(shape=(h.natom, 3), dtype=float),
             # In principle these two quantities are double but here we convert to int
             # Alchemical mixing is therefore ignored.
-            "znucl": dict(shape=(h.ntypat,), dtype=np.int),
-            "zion": dict(shape=(h.ntypat,), dtype=np.int),
-            "symafm": dict(shape=(h.nsym,), dtype=np.int),
-            "wtk": dict(shape=(h.nkpt,), dtype=np.double),
+            "znucl": dict(shape=(h.ntypat,), dtype=int),
+            "zion": dict(shape=(h.ntypat,), dtype=int),
+            "symafm": dict(shape=(h.nsym,), dtype=int),
+            "wtk": dict(shape=(h.nkpt,), dtype=float),
         }
 
         for k, ainfo in arrays.items():
@@ -546,7 +546,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         ngqpt = np.rint(1 / smalls)
         ngqpt[ngqpt == 0] = 1
 
-        return np.array(ngqpt, dtype=np.int)
+        return np.array(ngqpt, dtype=int)
 
     @lazy_property
     def params(self):

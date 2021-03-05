@@ -6,6 +6,7 @@ import numpy as np
 import abipy.core.abinit_units as abu
 
 from monty.functools import lazy_property
+from monty.termcolor import cprint
 from monty.string import marquee, list_strings
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.electrons.ebands import ElectronsReader, RobotWithEbands
@@ -72,7 +73,7 @@ def irta2latextau(irta, with_dollars=False):
 
 def x2_grid(what_list):
     """
-    Build (x, 2) grid of plots or just (1, 1) depending of the Length of what_list.
+    Build (x, 2) grid of plots or just (1, 1) depending of the length of what_list.
 
     Return: (num_plots, ncols, nrows, what_list)
     """
@@ -102,7 +103,7 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         #self.transport_ngkpt = self.reader.read_value("transport_ngkpt")
         #self.transport_extrael = self.reader.read_value("transport_extrael")
         #self.transport_fermie = self.reader.read_value("transport_fermie")
-        #self.sigma_erange = self.reader.read_value("sigma_erange")
+        self.sigma_erange = self.reader.read_value("sigma_erange")
         #self.ebands.kpoints.ksampling.mpdivs
 
         # Get position of CBM and VBM for each spin in eV
@@ -125,8 +126,18 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     @property
     def tmesh(self):
-        """Mesh of Temperatures in Kelvin."""
+        """Mesh with Temperatures in Kelvin."""
         return self.reader.tmesh
+
+    @lazy_property
+    def assume_gap(self):
+        """True if we are dealing with a semiconductor. More precisely if all(sigma_erange) > 0."""
+        return bool(self.reader.rootgrp.variables["assume_gap"])
+
+    @lazy_property
+    def has_ibte(self):
+        """True if file contains IBTE results."""
+        return "ibte_sigma" in self.reader.rootgrp.variables
 
     @lazy_property
     def ebands(self):
@@ -225,10 +236,11 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     @add_fig_kwargs
     def plot_edos(self, ax=None, fontsize=8, **kwargs):
         """
-        Plot the electronic DOS
+        Plot electron DOS
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize (int): fontsize for titles and legend
 
         Return: |matplotlib-Figure|
         """
@@ -273,6 +285,8 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         Args:
             ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
+            colormap:
+            fontsize (int): fontsize for titles and legend
 
         Return: |matplotlib-Figure|
         """
@@ -312,12 +326,10 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return fig
 
     #@add_fig_kwargs
-    #def plot_vv_dos(self, component="xx", spin=0,
-    #                 ax=None, fontsize=8, **kwargs):
+    #def plot_vv_dos(self, component="xx", spin=0, ax=None, fontsize=8, **kwargs):
 
     @add_fig_kwargs
-    def plot_vvtau_dos(self, component="xx", spin=0,
-                       ax=None, colormap="jet", fontsize=8, **kwargs):
+    def plot_vvtau_dos(self, component="xx", spin=0, ax=None, colormap="jet", fontsize=8, **kwargs):
         r"""
         Plot (v_i * v_j * tau) DOS.
 
@@ -441,16 +453,16 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
                 for itemp, temp in enumerate(self.tmesh):
                     ys = what_var[irta, spin, itemp, :, j, i]
                     label = "T = %dK" % temp
-                    if (itemp == 0): label = "%s (%s)" % (label, irta2s(irta))
-                    if (irta == 0 and itemp > 0): label = None
+                    if itemp == 0: label = "%s (%s)" % (label, irta2s(irta))
+                    if irta == 0 and itemp > 0: label = None
                     ax.plot(self.edos_mesh_eV, ys, c=cmap(itemp / self.ntemp), label=label, **style_for_irta(irta))
 
             ax.grid(True)
             ax.set_ylabel(transptens2latex(what, component))
 
-            ax.legend(loc='best', fontsize=fontsize, shadow=True)
+            ax.legend(loc="best", fontsize=fontsize, shadow=True)
             if irow == nrows - 1:
-                ax.set_xlabel("$\mu$ (eV)")
+                ax.set_xlabel(r"$\mu$ (eV)")
 
             self._add_vline_at_bandedge(ax, spin, "both")
 
@@ -459,15 +471,45 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         return fig
 
+    @add_fig_kwargs
+    def plot_ibte_vs_rta_rho(self, component="xx", fontsize=8, ax=None, **kwargs):
+        """
+        Plot resistivity computed with SERTA, MRTA and IBTE
+        """
+        #if not self.has_ibte:
+        #    cprint("Netcdf file does not contain IBTE results", "magenta")
+        #    return None
+
+        i = j = 0
+        rta_vals = self.reader.read_value("resistivity")
+        serta_t = rta_vals[0, :, j, i]
+        mrta_t = rta_vals[1, :, j, i]
+        ibte_vals = self.reader.read_value("ibte_rho")
+        ibte_t = ibte_vals[:, j, i]
+
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        ax.grid(True)
+        ax.plot(self.tmesh, serta_t, label="serta")
+        ax.plot(self.tmesh, mrta_t, label="mrta")
+        ax.plot(self.tmesh, ibte_t, label="ibte")
+        ax.set_xlabel("Temperature (K)")
+        ax.set_ylabel(r"Resistivity ($\mu\Omega\;cm$)")
+        ax.legend(loc="best", shadow=True, fontsize=fontsize)
+
+        return fig
+
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
         Return figures plotting the transport data
         """
-        yield self.plot_tau_isoe(show=False)
-        yield self.plot_transport_tensors_mu(show=False)
-        yield self.plot_edos(show=False)
-        yield self.plot_vvtau_dos(show=False)
-        yield self.plot_mobility(show=False, title="Mobility")
+        yield self.plot_ibte_vs_rta_rho(show=False)
+        #yield self.plot_tau_isoe(show=False)
+        #yield self.plot_transport_tensors_mu(show=False)
+        #yield self.plot_edos(show=False)
+        #yield self.plot_vvtau_dos(show=False)
+        #yield self.plot_mobility(show=False, title="Mobility")
+        #if self.has_ibte:
+        #    yield self.plot_ibte_vs_rta_rho(show=False)
 
     def close(self):
         """Close the file."""
@@ -605,12 +647,12 @@ class RtaRobot(Robot, RobotWithEbands):
         res, temps = []
         for ncfile in self.abifiles:
             #kptrlattx, kptrlatty, kptrlattz = ncfile.ngkpt
-            kptrlatt  = ncfile.reader.read_value('kptrlatt')
+            kptrlatt  = ncfile.reader.read_value("kptrlatt")
             kptrlattx = kptrlatt[0, 0]
             kptrlatty = kptrlatt[1, 1]
             kptrlattz = kptrlatt[2, 2]
             # nctkarr_t('mobility_mu',"dp", "three, three, two, ntemp, nsppol, nrta")]
-            mobility  = ncfile.reader.read_variable('mobility_mu')[irta, spin, itemp, eh, j, i]
+            mobility  = ncfile.reader.read_variable("mobility_mu")[irta, spin, itemp, eh, j, i]
             #print(mobility)
             res.append([kptrlattx, mobility])
             temps.append(ncfile.tmesh[itemp])
@@ -643,26 +685,99 @@ class RtaRobot(Robot, RobotWithEbands):
 
         return fig
 
-    #@add_fig_kwargs
-    #def plot_mobility_erange_conv(self, eh=0, component='xx', itemp=0, spin=0, fontsize=14, ax=None, **kwargs):
+    @lazy_property
+    def assume_gap(self):
+        """True if we are dealing with a semiconductor. More precisely if all(sigma_erange) > 0."""
+        return all(abifile.assume_gap for abifile in self.abifiles)
+
+    @lazy_property
+    def all_have_ibte(self):
+        """True if all files contain IBTE results."""
+        return all(abifile.has_ibte for abifile in self.abifiles)
+
+    def get_same_tmesh(self):
+        """
+        Check whether all files have the same T-mesh. Return common tmesh else raise RuntimeError.
+        """
+        for i in range(len(self)):
+            if not np.all(self.abifiles[0].tmesh == self.abifiles[i].tmesh):
+                raise RuntimeError("Found different T-mesh in RTA files.")
+
+        return self.abifiles[0].tmesh
 
     #@add_fig_kwargs
-    #def plot_transport_tensors_mu_kconv(self, eh=0, component='xx', itemp=0, spin=0, fontsize=14, ax=None, **kwargs):
+    #def plot_mobility_erange_conv(self, eh=0, component='xx', itemp=0, spin=0, fontsize=8, ax=None, **kwargs):
 
     #@add_fig_kwargs
-    #def plot_transport_tensors_mu_kconv(self, eh=0, component='xx', itemp=0, spin=0, fontsize=14, ax=None, **kwargs):
+    #def plot_transport_tensors_mu_kconv(self, eh=0, component='xx', itemp=0, spin=0, fontsize=8, ax=None, **kwargs):
+
+    #@add_fig_kwargs
+    #def plot_transport_tensors_mu_kconv(self, eh=0, component='xx', itemp=0, spin=0, fontsize=8, ax=None, **kwargs):
+
+    def plot_ibte_vs_rta_rho(self, component="xx", fontsize=8, **kwargs):
+        """
+        """
+        nrows = 1 # xx
+        ncols = len(self) # SERTA, MRTA, IBTE
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=True, squeeze=False)
+        ax_list = ax_list.ravel()
+
+        for abifile, ax in zip(self.abifiles, ax_list):
+            abifile.plot_ibte_vs_rta_rho(component="xx", fontsize=fontsize, ax=ax, show=False)
+
+        return fig
+
+    def plot_ibte_mrta_serta_conv(self,  what="resistivity", fontsize=8, **kwargs):
+        """
+        """
+        #num_plots, ncols, nrows, what_list = x2_grid(what_list)
+        nrows = 1 # xx
+        ncols = 3 # SERTA, MRTA, IBTE
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=True, squeeze=False)
+        ax_list = ax_list.ravel()
+        # don't show the last ax if numeb is odd.
+        #if num_plots % ncols != 0: ax_list[-1].axis("off")
+
+        i = j = 0
+        from collections import defaultdict
+        data = defaultdict(list)
+        for abifile in self.abifiles:
+            rta_vals = abifile.reader.read_value("resistivity")
+            data["serta"].append(rta_vals[0, :, j, i])
+            data["mrta"].append(rta_vals[1, :, j, i])
+            ibte_vals = abifile.reader.read_value("ibte_rho")
+            data["ibte"].append(ibte_vals[:, j, i])
+
+        tmesh = self.get_same_tmesh()
+        keys = ["serta", "mrta", "ibte"]
+        for ix, (key, ax) in enumerate(zip(keys, ax_list)):
+            ax.grid(True)
+            ax.set_title(key.upper(), fontsize=fontsize)
+            for ifile, ys in enumerate(data[key]):
+                ax.plot(tmesh, ys, marker="o", label=self.labels[ifile])
+            ax.set_xlabel("Temperature (K)")
+            if ix == 0:
+                ax.set_ylabel(r"Resistivity ($\mu\Omega\;cm$)")
+                ax.legend(loc="best", shadow=True, fontsize=fontsize)
+
+        return fig
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         Used in abiview.py to get a quick look at the results.
         """
-        yield self.plot_lattice_convergence(show=False)
+        #yield self.plot_lattice_convergence(show=False)
+        #if self.all_have_ibte:
+        yield self.plot_ibte_mrta_serta_conv(show=False)
+        yield self.plot_ibte_vs_rta_rho(show=False)
         #self.plot_mobility_kconv(eh=0, component='xx', itemp=0, spin=0, fontsize=14, ax=None, **kwargs):
 
     #def get_panel(self):
     #    """
-    #    Build panel with widgets to interact with the |GsrRobot| either in a notebook or in panel app.
+    #    Build panel with widgets to interact with the |RtaRobot| either in a notebook or in a panel app.
     #    """
     #    from abipy.panels.transportfile import TransportRobotPanel
     #    return TransportRobotPanel(self).get_panel()

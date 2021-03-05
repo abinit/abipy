@@ -362,7 +362,7 @@ class GsrReader(ElectronsReader):
         # Abinit stores 6 unique components of this symmetric 3x3 tensor:
         # Given in order (1,1), (2,2), (3,3), (3,2), (3,1), (2,1).
         c = self.read_value("cartesian_stress_tensor")
-        tensor = np.empty((3, 3), dtype=np.float)
+        tensor = np.empty((3, 3), dtype=float)
 
         if np.ma.is_masked(c[()]):
             # NSCF

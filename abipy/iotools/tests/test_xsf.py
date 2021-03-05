@@ -78,7 +78,7 @@ END_BLOCK_DATAGRID_3D
         self.assertMultiLineEqual(tmp_file.read(), xsf_string)
 
         # Complex array will raise TypeError since we should specify the type.
-        cplx_data = np.array(data, dtype=np.complex)
+        cplx_data = np.array(data, dtype=complex)
 
         # cplx_mode must be specified when data is a complex array
         with self.assertRaises(TypeError):

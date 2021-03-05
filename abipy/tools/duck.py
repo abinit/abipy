@@ -65,7 +65,7 @@ def list_ints(arg):
     >>> list_ints(1)
     [1]
     """
-    l = np.array(arg, dtype=np.int)
+    l = np.array(arg, dtype=int)
     return [int(l)] if l.size == 1 else l.tolist()
 
 

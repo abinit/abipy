@@ -128,7 +128,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             self.lmax_type[:] = self.mbesslang - 1
 
         self.typat = r.read_value("atom_species") - 1 # F --> C
-        self.lmax_atom = np.empty(self.natom, dtype=np.int)
+        self.lmax_atom = np.empty(self.natom, dtype=int)
         for iat in range(self.natom):
             self.lmax_atom[iat] = self.lmax_type[self.typat[iat]]
         # lsize is used to dimension arrays that depend on L.

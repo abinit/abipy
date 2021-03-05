@@ -8,7 +8,9 @@ from collections import OrderedDict
 from pprint import pprint
 from monty.functools import lazy_property
 from monty.string import marquee
-from pymatgen import SETTINGS
+
+
+
 from pymatgen.ext.matproj import MPRester, MPRestError
 from abipy.tools.printing import print_dataframe
 from abipy.core.mixins import NotebookWriter
@@ -39,6 +41,10 @@ def get_mprester(api_key=None, endpoint=None):
             can be changed to other urls implementing a similar interface.
     """
     if api_key is None:
+        try:
+            from pymatgen import SETTINGS
+        except ImportError:
+            from pymatgen.settings import SETTINGS
         api_key = SETTINGS.get("PMG_MAPI_KEY")
         if api_key is None:
             raise RuntimeError("Cannot find PMG_MAPI_KEY in pymatgen settings. Add it to $HOME/.pmgrc.yaml")

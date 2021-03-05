@@ -90,7 +90,7 @@ class PhononBandsTest(AbipyTest):
         eig = phbands.dyn_mat_eigenvect
         assert len(eig) == phbands.nqpt
 
-        cidentity = np.eye(len(eig[0]), dtype=np.complex)
+        cidentity = np.eye(len(eig[0]), dtype=complex)
         for iq in range(len(eig)):
             #print("About to test iq", iq, np.dot(eig[iq], eig[iq].T))
             #assert np.allclose(np.dot(eig[iq], eig[iq].T), cidentity , atol=1e-5, rtol=1e-3)

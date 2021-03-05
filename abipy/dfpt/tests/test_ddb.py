@@ -567,7 +567,7 @@ class PhononComputationTest(AbipyTest):
             self.assert_almost_equal(phdos.integral_value, natom3, decimal=1)
 
             # Test convertion to eigenvectors. Verify that they are orthonormal
-            cidentity = np.eye(natom3, dtype=np.complex)
+            cidentity = np.eye(natom3, dtype=complex)
             eig = phbands.dyn_mat_eigenvect
             for iq in range(phbands.nqpt):
                 #print("About to test iq", iq, np.dot(eig[iq].T.conjugate(), eig[iq]))

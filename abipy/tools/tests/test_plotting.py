@@ -33,10 +33,10 @@ class TestPlotting(AbipyTest):
 
     def test_data_from_cplx_mode(self):
         """Testing plot_array."""
-        carr = np.empty((2, 4), dtype=np.complex)
+        carr = np.empty((2, 4), dtype=complex)
         if self.has_matplotlib():
             assert plot_array(carr, cplx_mode="abs", show=False)
-            cvec = np.empty(10, dtype=np.complex)
+            cvec = np.empty(10, dtype=complex)
             assert plot_array(cvec, cplx_mode="im", show=False)
 
     def test_plot_xy_with_hue(self):
@@ -77,7 +77,7 @@ class TestPlotting(AbipyTest):
         """Testing array plotter."""
         plotter = ArrayPlotter()
         assert len(plotter) == 0
-        hello = np.ones((5, 2), dtype=np.complex)
+        hello = np.ones((5, 2), dtype=complex)
         plotter.add_array("hello", hello)
         assert "hello" in plotter.keys()
         with self.assertRaises(ValueError):

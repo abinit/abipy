@@ -302,7 +302,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                         raise ValueError("Don't know how to handle unit: %s" % unit)
 
                 s = " ".join(tokens)
-                dtype = np.float if key not in ("ntypat", "typat", "natom") else np.int
+                dtype = float if key not in ("ntypat", "typat", "natom") else int
                 try:
                     #print(key, s)
                     value = np.fromstring(s, sep=" ", dtype=dtype)
@@ -325,23 +325,23 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
 
             spgid = int(spgd.get("spgroup", 0))
             if "symrel" not in spgd:
-                symrel = np.reshape(np.eye(3, 3, dtype=np.int), (1, 3, 3))
+                symrel = np.reshape(np.eye(3, 3, dtype=int), (1, 3, 3))
                 spgd["symrel"] = " ".join((str(i) for i in symrel.flatten()))
             else:
-                symrel = np.reshape(np.array([int(n) for n in spgd["symrel"].split()], dtype=np.int), (-1, 3, 3))
+                symrel = np.reshape(np.array([int(n) for n in spgd["symrel"].split()], dtype=int), (-1, 3, 3))
             nsym = len(symrel)
             assert nsym == spgd.get("nsym", nsym) #; print(symrel.shape)
 
             if "tnons" in spgd:
-                tnons = np.reshape(np.array([float(t) for t in spgd["tnons"].split()], dtype=np.float), (nsym, 3))
+                tnons = np.reshape(np.array([float(t) for t in spgd["tnons"].split()], dtype=float), (nsym, 3))
             else:
                 tnons = np.zeros((nsym, 3))
 
             if "symafm" in spgd:
-                symafm = np.array([int(n) for n in spgd["symafm"].split()], dtype=np.int)
+                symafm = np.array([int(n) for n in spgd["symafm"].split()], dtype=int)
                 symafm.shape = (nsym,)
             else:
-                symafm = np.ones(nsym, dtype=np.int)
+                symafm = np.ones(nsym, dtype=int)
 
             try:
                 has_timerev = has_timrev_from_kptopt(vars_dataset[i].get("kptopt", global_kptopt))

@@ -545,7 +545,7 @@ class EphSelfEnergy(object):
             else:
                 raise ValueError("Invalid value for itemps: `%s`" % str(itemps))
         else:
-            itemps = np.array(itemps, dtype=np.int)
+            itemps = np.array(itemps, dtype=int)
             itemps = [itemps] if itemps.size == 1 else itemps.tolist()
             if not all(self.ntemp > it >= 0 for it in itemps):
                 raise ValueError("Invalid list of temperature indices. ntemp is %d, received itemps:\n\t%s" % (
@@ -995,7 +995,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         # Generic case
         # Map sigma_kpoints to ebands.kpoints
-        kcalc2ibz = np.empty(self.nkcalc, dtype=np.int)
+        kcalc2ibz = np.empty(self.nkcalc, dtype=int)
         for ikc, sigkpt in enumerate(self.sigma_kpoints):
             kcalc2ibz[ikc] = self.ebands.kpoints.index(sigkpt)
 
@@ -1012,7 +1012,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         Mapping IBZ --> K-points in self-energy.
         Set to -1 if IBZ k-point not present.
         """
-        ibz2kcalc = np.ones(len(self.ebands.kpoints), dtype=np.int)
+        ibz2kcalc = np.ones(len(self.ebands.kpoints), dtype=int)
         for ikc, ik_ibz in enumerate(self.kcalc2ibz):
             ibz2kcalc[ik_ibz] = ikc
         return ibz2kcalc
@@ -1307,7 +1307,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             cprint("SIGPEH file does not contain QP data for all the k-points in the IBZ!", "yellow")
 
         nband = self.reader.bstop_sk.max()
-        qpes_new = np.zeros((self.nsppol, nkibz, nband, self.ntemp), dtype=np.complex)
+        qpes_new = np.zeros((self.nsppol, nkibz, nband, self.ntemp), dtype=complex)
 
         for spin in range(self.nsppol):
             for ikc, ikibz in enumerate(self.kcalc2ibz):

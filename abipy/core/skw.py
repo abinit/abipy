@@ -70,7 +70,7 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
             is_shift=is_shift, is_time_reversal=self.has_timrev, symprec=self.symprec)
 
         uniq, weights = np.unique(mapping, return_counts=True)
-        weights = np.asarray(weights, dtype=np.float) / len(grid)
+        weights = np.asarray(weights, dtype=float) / len(grid)
         nkibz = len(uniq)
         ibz = grid[uniq] / mesh
         if self.verbose:
@@ -80,7 +80,7 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
         bz = (grid + kshift) / mesh
 
         # All k-points and mapping to ir-grid points
-        bz2ibz = np.empty(len(bz), dtype=np.int)
+        bz2ibz = np.empty(len(bz), dtype=int)
         for i, (ir_gp_id, gp) in enumerate(zip(mapping, grid)):
             inds = np.where(uniq == ir_gp_id)
             #print("inds", inds, "inds[0]", inds[0])
@@ -453,7 +453,7 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
-        kmeshes = np.reshape(np.asarray(kmeshes, dtype=np.int), (-1, 3))
+        kmeshes = np.reshape(np.asarray(kmeshes, dtype=int), (-1, 3))
         for kmesh in kmeshes:
             edos = self.get_edos(kmesh, is_shift=is_shift, method=method, step=step, width=width)
             for spin in range(self.nsppol):
@@ -487,7 +487,7 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
     #    Returns: |matplotlib-Figure|
     #    """
     #    ax, fig, plt = get_ax_fig_plt(ax=ax)
-    #    kmeshes = np.reshape(np.asarray(kmeshes, dtype=np.int), (-1, 3))
+    #    kmeshes = np.reshape(np.asarray(kmeshes, dtype=int), (-1, 3))
     #    for kmesh in kmeshes:
     #        jdos = self.get_jdos_q0(kmesh, is_shift=is_shift, method=method, step=step, width=width)
     #        for spin in range(self.nsppol):
@@ -560,7 +560,7 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
     #    ax, fig, plt = get_ax_fig_plt(ax=ax)
     #    qpoints = self._get_kpts_kticks_klabels(ax, qvertices_names, line_density)
 
-    #    kmeshes = np.reshape(np.asarray(kmeshes, dtype=np.int), (-1, 3))
+    #    kmeshes = np.reshape(np.asarray(kmeshes, dtype=int), (-1, 3))
     #    e0 = self.interpolated_fermie if e0 is None else e0
     #    for kmesh in kmeshes:
     #        nest_sq = self.get_nesting_at_e0(qpoints, kmesh, e0, width=width, is_shift=is_shift)
@@ -779,8 +779,8 @@ class SkwInterpolator(ElectronInterpolator):
 
         nrwant = lpratio * self.nkpt
         fact = 1/2 if has_inversion else 1
-        rmax = int((1.0 + (lpratio * self.nkpt * self.ptg_nsym * fact) / 2.0) ** (1/3.)) * np.ones(3, dtype=np.int)
-        #rmax = int((1.0 + (lpratio * self.nkpt) / 2.0) ** (1/3.)) * np.ones(3, dtype=np.int)
+        rmax = int((1.0 + (lpratio * self.nkpt * self.ptg_nsym * fact) / 2.0) ** (1/3.)) * np.ones(3, dtype=int)
+        #rmax = int((1.0 + (lpratio * self.nkpt) / 2.0) ** (1/3.)) * np.ones(3, dtype=int)
 
         while True:
             self.rpts, r2vals, ok = self._find_rstar_gen(nrwant, rmax)
@@ -801,12 +801,12 @@ class SkwInterpolator(ElectronInterpolator):
 
         # Construct star functions for the ab-initio k-points.
         nsppol, nband, nkpt, nr = self.nsppol, self.nband, self.nkpt, self.nr
-        self.skr = np.empty((nkpt, nr), dtype=np.complex)
+        self.skr = np.empty((nkpt, nr), dtype=complex)
         for ik, kpt in enumerate(kpts):
             self.skr[ik] = self.get_stark(kpt)
 
         # Build H(k,k') matrix (Hermitian)
-        hmat = np.empty((nkpt-1, nkpt-1), dtype=np.complex)
+        hmat = np.empty((nkpt-1, nkpt-1), dtype=complex)
         for jk in range(nkpt-1):
             v_jkr = self.skr[jk, 1:] - self.skr[nkpt-1, 1:]
             #for ik in range(jk + 1):
@@ -816,7 +816,7 @@ class SkwInterpolator(ElectronInterpolator):
                 if ik == jk: hmat[ik, jk] = hmat[ik, jk].real
 
         # Solving system of linear equations to get lambda coeffients (eq. 10 of PRB 38 2721)..."
-        de_kbs = np.empty((nkpt-1, nband, nsppol), dtype=np.complex)
+        de_kbs = np.empty((nkpt-1, nband, nsppol), dtype=complex)
         for spin in range(nsppol):
             for ib in range(nband):
                 de_kbs[:, ib, spin] = eigens[spin, 0:nkpt-1, ib] - eigens[spin, nkpt-1, ib]
@@ -842,7 +842,7 @@ class SkwInterpolator(ElectronInterpolator):
         lmb_kbs = np.reshape(lmb_kbs, (-1, nband, nsppol))
 
         # Compute coefficients.
-        self.coefs = np.empty((nsppol, nband, nr), dtype=np.complex)
+        self.coefs = np.empty((nsppol, nband, nr), dtype=complex)
         for spin in range(nsppol):
             for ib in range(nband):
                 for ir in range(1, nr):
@@ -1003,7 +1003,7 @@ class SkwInterpolator(ElectronInterpolator):
             complex array of shape [self.nr]
         """
         two_pi = 2.0 * np.pi
-        skr = np.zeros(self.nr, dtype=np.complex)
+        skr = np.zeros(self.nr, dtype=complex)
         _np_exp = np.exp
         for omat in self.ptg_symrel:
             sk = two_pi * np.matmul(omat.T, kpt)
@@ -1023,7 +1023,7 @@ class SkwInterpolator(ElectronInterpolator):
             complex array [3, self.nr]  with the derivative of the
             star function wrt k in reduced coordinates.
         """
-        srk_dk1 = np.zeros((3, self.nr), dtype=np.complex)
+        srk_dk1 = np.zeros((3, self.nr), dtype=complex)
         two_pi = 2.0 * np.pi
         rpts_t = self.rpts.T
 
@@ -1049,7 +1049,7 @@ class SkwInterpolator(ElectronInterpolator):
             Complex numpy array of shape [3, 3, self.nr] with the 2nd-order derivatives
             of the star function wrt k in reduced coordinates.
         """
-        srk_dk2 = np.zeros((3, 3, self.nr), dtype=np.complex)
+        srk_dk2 = np.zeros((3, 3, self.nr), dtype=complex)
         raise NotImplementedError()
         #work = zero
         #do isym=1,self.ptg_nsym
@@ -1100,7 +1100,7 @@ class SkwInterpolator(ElectronInterpolator):
             tuple: (rpts, r2vals, ok)
         """
         msize = (2 * rmax + 1).prod()
-        rtmp = np.empty((msize, 3), dtype=np.int)
+        rtmp = np.empty((msize, 3), dtype=int)
         r2tmp = np.empty(msize)
         if self.verbose: print("rmax", rmax, "msize:", msize)
 
@@ -1121,8 +1121,8 @@ class SkwInterpolator(ElectronInterpolator):
         #return rtmp, r2tmp, True
 
         # Find shells
-        r2sh = np.empty(msize, dtype=np.int)    # Correspondence between R and shell index.
-        shlim = np.empty(msize, dtype=np.int)   # For each shell, the index of the initial G-vector.
+        r2sh = np.empty(msize, dtype=int)    # Correspondence between R and shell index.
+        shlim = np.empty(msize, dtype=int)   # For each shell, the index of the initial G-vector.
         nsh = 1
         r2sh[0] = 0
         shlim[0] = 0
@@ -1173,7 +1173,7 @@ class SkwInterpolator(ElectronInterpolator):
         if self.verbose: print("stars", time.time() - start)
 
         start = time.time()
-        rgen = np.array(rgen, dtype=np.int)
+        rgen = np.array(rgen, dtype=int)
         nstars = len(rgen)
 
         # Store rpts and compute ||R||**2.
@@ -1205,7 +1205,7 @@ def extract_point_group(symrel, has_timrev):
     """
     nsym = len(symrel)
     tmp_nsym = 1
-    work_symrel = np.empty((2*nsym, 3, 3), dtype=np.int)
+    work_symrel = np.empty((2*nsym, 3, 3), dtype=int)
     work_symrel[0] = symrel[0]
 
     for isym in range(1, nsym):
@@ -1214,13 +1214,13 @@ def extract_point_group(symrel, has_timrev):
             work_symrel[tmp_nsym] = symrel[isym]
             tmp_nsym += 1
 
-    inversion_3d = -np.eye(3, dtype=np.int)
+    inversion_3d = -np.eye(3, dtype=int)
     has_inversion = any(np.all(w == inversion_3d) for w in work_symrel[:tmp_nsym])
 
     # Now we know the symmetries of the point group.
     ptg_nsym = 2 * tmp_nsym if not has_inversion and has_timrev else tmp_nsym
-    ptg_symrel = np.empty((ptg_nsym, 3, 3), dtype=np.int)
-    ptg_symrec = np.empty((ptg_nsym, 3, 3), dtype=np.int)
+    ptg_symrel = np.empty((ptg_nsym, 3, 3), dtype=int)
+    ptg_symrec = np.empty((ptg_nsym, 3, 3), dtype=int)
 
     ptg_symrel[:tmp_nsym] = work_symrel[:tmp_nsym]
     for isym in range(tmp_nsym):

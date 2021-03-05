@@ -444,7 +444,7 @@ class _AwggMatrix(object):
             inord: storage order of ``wggmat``. If inord == "F", ``wggmat`` is in
                 in Fortran column-major order. Default: "C" i.e. C row-major order.
         """
-        self.wpoints = np.array(wpoints, dtype=np.complex)
+        self.wpoints = np.array(wpoints, dtype=complex)
         self.gsphere = gsphere
         self.wggmat = np.reshape(wggmat, (self.nw, self.ng, self.ng))
 
