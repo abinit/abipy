@@ -192,7 +192,7 @@ class StructurePanel(AbipyParameterized):
         #show(ly)
         #curdoc().add_root(ly)
 
-        return pn.Row(applet)
+        #return pn.Row(applet)
         return self.structure.visualize(appname=self.viewer.value)
 
     @param.depends("gs_input_btn.clicks")
