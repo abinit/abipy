@@ -306,23 +306,23 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         # to avoid problems with pymatgen routines that expect integer Z
         # This of course will break any code for alchemical mixing.
         arrays = {
-            "acell": dict(shape=(3, ), dtype=np.double),
-            "amu": dict(shape=(h.ntypat, ), dtype=np.double),
-            "kpt": dict(shape=(h.nkpt, 3), dtype=np.double),
-            "ngfft": dict(shape=(3, ), dtype=np.int),
+            "acell": dict(shape=(3, ), dtype=float),
+            "amu": dict(shape=(h.ntypat, ), dtype=float),
+            "kpt": dict(shape=(h.nkpt, 3), dtype=float),
+            "ngfft": dict(shape=(3, ), dtype=int),
             # This is problematic because not all occupation factors are written
-            #"occ": dict(shape=(h.nsppol, h.nkpt, h.nband), dtype=np.double),
-            "rprim": dict(shape=(3, 3), dtype=np.double),
-            "spinat": dict(shape=(h.natom, 3), dtype=np.double),
-            "symrel": dict(shape=(h.nsym, 3, 3), dtype=np.int),
-            "tnons": dict(shape=(h.nsym, 3), dtype=np.double),
-            "xred":  dict(shape=(h.natom, 3), dtype=np.double),
+            #"occ": dict(shape=(h.nsppol, h.nkpt, h.nband), dtype=float),
+            "rprim": dict(shape=(3, 3), dtype=float),
+            "spinat": dict(shape=(h.natom, 3), dtype=float),
+            "symrel": dict(shape=(h.nsym, 3, 3), dtype=int),
+            "tnons": dict(shape=(h.nsym, 3), dtype=float),
+            "xred":  dict(shape=(h.natom, 3), dtype=float),
             # In principle these two quantities are double but here we convert to int
             # Alchemical mixing is therefore ignored.
-            "znucl": dict(shape=(h.ntypat,), dtype=np.int),
-            "zion": dict(shape=(h.ntypat,), dtype=np.int),
-            "symafm": dict(shape=(h.nsym,), dtype=np.int),
-            "wtk": dict(shape=(h.nkpt,), dtype=np.double),
+            "znucl": dict(shape=(h.ntypat,), dtype=int),
+            "zion": dict(shape=(h.ntypat,), dtype=int),
+            "symafm": dict(shape=(h.nsym,), dtype=int),
+            "wtk": dict(shape=(h.nkpt,), dtype=float),
         }
 
         for k, ainfo in arrays.items():
@@ -546,7 +546,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         ngqpt = np.rint(1 / smalls)
         ngqpt[ngqpt == 0] = 1
 
-        return np.array(ngqpt, dtype=np.int)
+        return np.array(ngqpt, dtype=int)
 
     @lazy_property
     def params(self):
@@ -1484,7 +1484,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     def anaget_interpolated_ddb(self, qpt_list, asr=2, chneut=1, dipdip=1, ngqpt=None, workdir=None,
                                 manager=None, mpi_procs=1, verbose=0, anaddb_kwargs=None):
         """
-        Runs anaddb to generate an interpolated ddb on list of qpt.
+        Runs anaddb to generate an interpolated DDB file on a list of qpt.
 
         Args:
             qpt_list: list of fractional coordinates of qpoints where the ddb should be interpolated.
@@ -1495,7 +1495,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             manager: |TaskManager| object. If None, the object is initialized from the configuration file
             verbose: verbosity level. Set it to a value > 0 to get more information.
             anaddb_kwargs: additional kwargs for anaddb.
-
         """
 
         if ngqpt is None: ngqpt = self.guessed_ngqpt
@@ -1518,7 +1517,12 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose=verbose)
 
-        return self.__class__(os.path.join(task.workdir, "run.abo_DDB"))
+        new_ddb_path = os.path.join(task.workdir, "run.abo_DDB")
+        if not os.path.exists(new_ddb_path):
+            new_ddb_path = os.path.join(task.workdir, "run_DDB")
+
+        return self.__class__(new_ddb_path)
+
 
     def anaget_dielectric_tensor_generator(self, asr=2, chneut=1, dipdip=1, workdir=None, mpi_procs=1,
                                            manager=None, verbose=0, anaddb_kwargs=None, return_input=False):

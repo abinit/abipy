@@ -41,7 +41,7 @@ def get_dyn_mat_eigenvec(phdispl, structure, amu=None, amu_symbol=None):
     Returns:
         A |numpy-array| of the same shape as phdispl containing the eigenvectors of the dynamical matrix
     """
-    eigvec = np.zeros(np.shape(phdispl), dtype=np.complex)
+    eigvec = np.zeros(np.shape(phdispl), dtype=complex)
 
     if amu is not None and amu_symbol is not None:
         raise ValueError("Only one between amu and amu_symbol should be provided!")
@@ -66,7 +66,7 @@ def match_eigenvectors(v1, v2):
     """
     prod = np.absolute(np.dot(v1, v2.transpose().conjugate()))
 
-    indices = np.zeros(len(v1), dtype=np.int)
+    indices = np.zeros(len(v1), dtype=int)
     missing_v1 = [True] * len(v1)
     missing_v2 = [True] * len(v1)
     for m in reversed(np.argsort(prod, axis=None)):

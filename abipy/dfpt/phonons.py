@@ -731,7 +731,7 @@ class PhononBands(object):
         for iqpt in iqpts:
             q = self.qpoints[iqpt].frac_coords
 
-            displ_list = np.zeros((self.num_branches, self.num_atoms, 3), dtype=np.complex)
+            displ_list = np.zeros((self.num_branches, self.num_atoms, 3), dtype=complex)
             for i in range(self.num_atoms):
                 displ_list[:,i,:] = self.phdispl_cart[iqpt,:,3*i:3*(i+1)] * \
                     np.exp(-2*np.pi*1j*np.dot(structure[i].frac_coords, self.qpoints[iqpt].frac_coords))
@@ -914,7 +914,7 @@ class PhononBands(object):
         """
         iq, qpoint = self.qindex_qpoint(qpoint)
 
-        scale_matrix = np.eye(3, 3, dtype=np.int)
+        scale_matrix = np.eye(3, 3, dtype=int)
         important_fracs = (2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)
         for i in range(3):
             for comparison_frac in important_fracs:
@@ -1018,10 +1018,8 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         Returns: |matplotlib-Figure|
         """
         # Select the band range.
-        if branch_range is None:
-            branch_range = range(self.num_branches)
-        else:
-            branch_range = range(branch_range[0], branch_range[1], 1)
+        branch_range = range(self.num_branches) if branch_range is None else \
+                       range(branch_range[0], branch_range[1], 1)
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
@@ -1087,7 +1085,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
     def plot_colored_matched(self, ax=None, units="eV", qlabels=None, branch_range=None,
                              colormap="rainbow", max_colors=None, **kwargs):
         r"""
-        Plot the phonon band structure with different color for each line.
+        Plot the phonon band structure with different colors for each line.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -1303,7 +1301,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             #TODO remove after verifying the other method currently in use
             # for i, displ in enumerate(self.split_phdispl_cart):
             #     eigenvectors = get_dyn_mat_eigenvec(displ, self.structure, amu=self.amu)
-            #     ind_block = np.zeros((len(displ), self.num_branches), dtype=np.int)
+            #     ind_block = np.zeros((len(displ), self.num_branches), dtype=int)
             #     # if it's not the first block, match with the last of the previous block. Should give a match in case
             #     # of LO-TO splitting
             #     if i == 0:
@@ -1331,7 +1329,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
             for i, displ in enumerate(self.split_phdispl_cart):
                 eigenvectors = get_dyn_mat_eigenvec(displ, self.structure, amu=self.amu)
-                ind_block = np.zeros((len(displ), self.num_branches), dtype=np.int)
+                ind_block = np.zeros((len(displ), self.num_branches), dtype=int)
                 # if it's not the first block, match the first two points with the last of the previous block.
                 # Should give a match in case of LO-TO splitting
                 if i == 0:
@@ -2943,7 +2941,7 @@ class PhononDos(Function1D):
         """
         factor = abu.phfactor_ev2units("thz")
 
-        return PmgPhononDos(self.mesh*factor, self.values/factor)
+        return PmgPhononDos(self.mesh * factor, self.values / factor)
 
     @property
     def debye_temp(self):
@@ -4275,7 +4273,6 @@ class PhononDosPlotter(NotebookWriter):
             if iax == 0:
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
-        #fig.tight_layout()
         return fig
 
     def ipw_select_plot(self): # pragma: no cover

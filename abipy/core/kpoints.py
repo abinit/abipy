@@ -214,7 +214,7 @@ def map_grid2ibz(structure, ibz, ngkpt, has_timrev, pbc=False):
     Returns:
         bz2ibz: 1d array with BZ --> IBZ mapping
     """
-    ngkpt = np.asarray(ngkpt, dtype=np.int)
+    ngkpt = np.asarray(ngkpt, dtype=int)
 
     # Extract (FM) symmetry operations in reciprocal space.
     abispg = structure.abi_spacegroup
@@ -225,10 +225,10 @@ def map_grid2ibz(structure, ibz, ngkpt, has_timrev, pbc=False):
     symrec_fm = [o.rot_g for o in abispg.fm_symmops]
 
     # Compute TS k_ibz.
-    bzgrid2ibz = -np.ones(ngkpt, dtype=np.int)
+    bzgrid2ibz = -np.ones(ngkpt, dtype=int)
 
     for ik_ibz, kibz in enumerate(ibz):
-        gp_ibz = np.array(np.rint(kibz * ngkpt), dtype=np.int)
+        gp_ibz = np.array(np.rint(kibz * ngkpt), dtype=int)
         for rot in symrec_fm:
             rot_gp = np.matmul(rot, gp_ibz)
             gp_bz = rot_gp % ngkpt
@@ -340,7 +340,7 @@ def map_kpoints(other_kpoints, other_lattice, ref_lattice, ref_kpoints, ref_symr
     kmap = collections.namedtuple("kmap", "ik_ref, tsign, isym, g0")
 
     for ik_oth, okpt in enumerate(other_kpoints):
-        # Get other k-point in reduced coordinates in the referece lattice.
+        # Get other k-point in reduced coordinates in the reference lattice.
         okpt_red = np.matmul(ref_gprimd_inv, np.matmul(other_gprimd, okpt))
 
         # k_other = TS k_ref + G0
@@ -457,7 +457,7 @@ def find_irred_kpoints_generic(structure, kfrac_coords, verbose=1):
         print("Entered with ", len(uc_kcoords), "k-points")
         print("Found ", len(irred_map), "irred k-points")
 
-    return dict2namedtuple(irred_map=np.array(irred_map, dtype=np.int))
+    return dict2namedtuple(irred_map=np.array(irred_map, dtype=int))
 
 
 def kpath_from_bounds_and_ndivsm(bounds, ndivsm, structure):
@@ -487,7 +487,7 @@ def kpath_from_bounds_and_ndivsm(bounds, ndivsm, structure):
         raise ValueError("Found two equivalent consecutive points in bounds!")
 
     minlen = minlen / ndivsm
-    ndivs = np.rint(lens / minlen).astype(np.int)
+    ndivs = np.rint(lens / minlen).astype(int)
     path = []
     for i in range(nbounds - 1):
         for j in range(ndivs[i]):
@@ -1127,7 +1127,7 @@ class KpointList(collections.abc.Sequence):
         k2kqg = collections.OrderedDict()
         if np.all(np.abs(qfrac_coords) <= 1e-6):
             # Gamma point, DOH!
-            g0 = np.zeros(3, dtype=np.int)
+            g0 = np.zeros(3, dtype=int)
             for ik, _ in enumerate(self):
                 k2kqg[ik] = (ik, g0)
         else:
@@ -1201,7 +1201,7 @@ class Kpath(KpointList):
         """
         gmet = structure.lattice.reciprocal_lattice.metric_tensor
         vnames = [str(vn[1]) for vn in vertices_names]
-        vertices = np.array([vn[0] for vn in vertices_names], dtype=np.float)
+        vertices = np.array([vn[0] for vn in vertices_names], dtype=float)
         vertices.shape = (-1, 3)
 
         dl_vals = []
@@ -1798,7 +1798,7 @@ class Ktables(object):
             is_shift=self.is_shift, is_time_reversal=self.has_timrev, symprec=_SPGLIB_SYMPREC)
 
         uniq, self.weights = np.unique(mapping, return_counts=True)
-        self.weights = np.asarray(self.weights, dtype=np.float) / len(self.grid)
+        self.weights = np.asarray(self.weights, dtype=float) / len(self.grid)
         self.nibz = len(uniq)
         self.kshift = [0., 0., 0.] if is_shift is None else 0.5 * np.asarray(is_shift)
         self.ibz = (self.grid[uniq] + self.kshift) / self.mesh
@@ -1807,7 +1807,7 @@ class Ktables(object):
 
         # All k-points and mapping to ir-grid points.
         # FIXME This is slow.
-        self.bz2ibz = np.empty(len(self.bz), dtype=np.int)
+        self.bz2ibz = np.empty(len(self.bz), dtype=int)
         for ik_bz, ir_gp_id in enumerate(mapping):
             inds = np.where(uniq == ir_gp_id)
             assert len(inds) == 1

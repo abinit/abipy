@@ -269,7 +269,7 @@ class Has_Structure(metaclass=abc.ABCMeta):
         if select_symbols is not None:
             select_symbols = set(list_strings(select_symbols))
             iatom_list = [i for i in iatom_list if self.structure[i].specie.symbol in select_symbols]
-            iatom_list = np.array(iatom_list, dtype=np.int)
+            iatom_list = np.array(iatom_list, dtype=int)
 
         # Slice full arrays.
         wyckoffs = ea.wyckoffs[iatom_list]

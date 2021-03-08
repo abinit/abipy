@@ -71,7 +71,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         [nsppol, mband] logical array. Set to True if (spin, band) is included
         in the calculation. Set by exclude_bands
         """
-        return self.reader.read_value("band_in_int").astype(np.bool)
+        return self.reader.read_value("band_in_int").astype(bool)
 
     @lazy_property
     def lwindow(self):
@@ -79,7 +79,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         [nsppol, nkpt, max_num_bands] array. Only if disentanglement.
         True if this band at this k-point lies within the outer window
         """
-        return self.reader.read_value("lwindow_int").astype(np.bool)
+        return self.reader.read_value("lwindow_int").astype(bool)
 
     #@lazy_property
     #def ndimwin(self):
@@ -91,7 +91,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
     @lazy_property
     def have_disentangled_spin(self):
         """[nsppol] bool array. Whether disentanglement has been performed."""
-        #return self.reader.read_value("have_disentangled_spin").astype(np.bool)
+        #return self.reader.read_value("have_disentangled_spin").astype(bool)
         # TODO: Exclude bands
         return self.nwan_spin != self.num_bands_spin
 
@@ -235,7 +235,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
 
             # Real-space Hamiltonian H(R) is calculated by Fourier
             # transforming H(q) defined on the ab-initio reciprocal mesh
-            HH_q = np.zeros((num_kpts, num_wan, num_wan), dtype=np.complex)
+            HH_q = np.zeros((num_kpts, num_wan, num_wan), dtype=complex)
 
             for ik in range(num_kpts):
                 eigs_k = self.ebands.eigens[spin, ik]
@@ -264,7 +264,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
 
             # Fourier transform Hamiltonian in the wannier-gauge representation.
             # O_ij(R) = (1/N_kpts) sum_q e^{-iqR} O_ij(q)
-            rmn = np.zeros((nrpts, num_wan, num_wan), dtype=np.complex)
+            rmn = np.zeros((nrpts, num_wan, num_wan), dtype=complex)
             j2pi = 2.0j * np.pi
 
             #for ir in range(nrpts):
@@ -441,7 +441,7 @@ class HWanR(ElectronInterpolator):
         j2pi = 2.0j * np.pi
         """
         num_wan = self.nwan_spin[spin]
-        hk_ij = np.zeros((num_wan, num_wan), dtype=np.complex)
+        hk_ij = np.zeros((num_wan, num_wan), dtype=complex)
         for ir in range(self.nrpts):
             jrk = j2pi * np.dot(kpt, self.irvec[ir])
             hk_ij += self.spin_rmn[spin][ir] * (np.exp(jrk) / self.ndegen[ir])

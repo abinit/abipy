@@ -204,7 +204,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
             # matching bands
             dir_eigv = get_dyn_mat_eigenvec(dir_displ, structure, amu=phb.amu)
             n_freqs = 3 * len(structure)
-            ind_match = np.zeros((n_points, n_freqs), dtype=np.int)
+            ind_match = np.zeros((n_points, n_freqs), dtype=int)
             ind_match[0] = range(n_freqs)
 
             for j in range(1, n_points):

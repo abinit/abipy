@@ -4,6 +4,7 @@ apscheduler==2.1.0
 pydispatcher>=2.0.5
 tqdm
 pyyaml>=3.11
+ruamel.yaml>=0.16.12
 pandas
 numpy
 scipy

@@ -99,7 +99,7 @@ class EffMassDFPTWork(Work):
                 If None, a GS calculation is performed.
             manager: |TaskManager| instance. Use default if None.
         """
-        multi = scf_input.make_dfpt_effmass_input(k0_list, effmass_bands_f90)
+        multi = scf_input.make_dfpt_effmass_inputs(k0_list, effmass_bands_f90)
         nscf_input, effmass_input = multi[0], multi[1]
 
         new = cls(manager=manager)

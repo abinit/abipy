@@ -1914,7 +1914,6 @@ class ElectronBands(Has_Structure):
             band_list = list(range(band_range[0], band_range[1], 1))
 
         e0 = self.get_e0(e0)
-
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         # Decorate the axis (e.g add ticks and labels).

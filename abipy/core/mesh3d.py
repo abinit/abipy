@@ -54,7 +54,7 @@ class Mesh3D(object):
         ``dv``      Volume per grid point.
         ==========  ========================================================
         """
-        self.shape = tuple(np.asarray(shape, np.int))
+        self.shape = tuple(np.asarray(shape, int))
         self.size = np.prod(self.shape)
         self.vectors = np.reshape(vectors, (3, 3))
 
@@ -91,7 +91,7 @@ class Mesh3D(object):
             for iy in range(self.ny):
                 for iz in range(self.nz):
                     rr = ix * self.dvx + iy * self.dvy + iz * self.dvz
-                    yield np.array((ix, iy, iz), dtype=np.int), rr
+                    yield np.array((ix, iy, iz), dtype=int), rr
 
     def rpoint(self, ix, iy, iz):
         """The vector corresponding to the (ix, iy, iz) indices"""
@@ -120,7 +120,7 @@ class Mesh3D(object):
     def inv_vectors(self):
         return np.linalg.inv(self.vectors)
 
-    def _new_array(self, dtype=np.float, zero=True, extra_dims=()):
+    def _new_array(self, dtype=float, zero=True, extra_dims=()):
         shape = self.shape
 
         if duck.is_intlike(extra_dims):
@@ -133,7 +133,7 @@ class Mesh3D(object):
         else:
             return np.empty(shape, dtype)
 
-    def zeros(self, dtype=np.float, extra_dims=()):
+    def zeros(self, dtype=float, extra_dims=()):
         """
         Returns new zeroed 3D array for this domain.
 
@@ -144,9 +144,9 @@ class Mesh3D(object):
 
     def czeros(self, extra_dims=()):
         """Returns new zeroed 3D complex array for this domain."""
-        return self._new_array(dtype=np.complex, zero=True, extra_dims=extra_dims)
+        return self._new_array(dtype=complex, zero=True, extra_dims=extra_dims)
 
-    def empty(self, dtype=np.float, extra_dims=()):
+    def empty(self, dtype=float, extra_dims=()):
         """
         Returns new uninitialized 3D |numpy-array| for this domain.
 
@@ -157,9 +157,9 @@ class Mesh3D(object):
 
     def cempty(self, extra_dims=()):
         """Returns new uninitialized 3D complex |numpy-array| for this domain."""
-        return self._new_array(dtype=np.complex, zero=False, extra_dims=extra_dims)
+        return self._new_array(dtype=complex, zero=False, extra_dims=extra_dims)
 
-    def random(self, dtype=np.float, extra_dims=()):
+    def random(self, dtype=float, extra_dims=()):
         """Returns random real |numpy-array| for this domain with val in [0.0, 1.0)."""
         shape = self.shape
         if duck.is_intlike(extra_dims):
@@ -168,9 +168,9 @@ class Mesh3D(object):
         shape = extra_dims + tuple(shape)
 
         re = np.random.random(shape)
-        if dtype == np.float:
+        if dtype == float:
             return re
-        elif dtype == np.complex:
+        elif dtype == complex:
             im = self.random(extra_dims=extra_dims)
             return re + 1j*im
         else:
@@ -178,7 +178,7 @@ class Mesh3D(object):
 
     def crandom(self, extra_dims=()):
         """Returns random complex |numpy-array| for this domain with val in [0.0, 1.0)."""
-        return self.random(dtype=np.complex, extra_dims=extra_dims)
+        return self.random(dtype=complex, extra_dims=extra_dims)
 
     def reshape(self, arr):
         """
@@ -299,7 +299,7 @@ class Mesh3D(object):
         gz_list = np.rint(fftfreq(self.nz) * self.nz)
         #print(gz_list, gy_list, gx_list)
 
-        gvecs = np.empty((self.size, 3), dtype=np.int)
+        gvecs = np.empty((self.size, 3), dtype=int)
 
         idx = -1
         for gx in gx_list:
@@ -404,7 +404,7 @@ class Mesh3D(object):
     #        tnons_fft[isym] = np.dot(red2fft, tau)
 
     #    # Indeces of $R^{-1}(r-\tau)$ in the FFT box.
-    #    irottable = np.empty((nsym, nx*ny*nz), dtype=np.int)
+    #    irottable = np.empty((nsym, nx*ny*nz), dtype=int)
 
     #    #max_err = 0.0
     #    nxyz = np.array((nx, ny, nz), np.int)

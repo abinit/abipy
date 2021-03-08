@@ -100,7 +100,7 @@ class GSphere(collections.abc.Sequence):
         s = name + ": kpoint: %(kpoint)s, ecut: %(ecut)f, npw: %(npw)d, istwfk: %(istwfk)d" % self.__dict__
         return s
 
-    def _new_array(self, dtype=np.float, zero=True, extra_dims=()):
+    def _new_array(self, dtype=float, zero=True, extra_dims=()):
         """Returns a numpy array defined on the sphere."""
         shape = (self.npw,)
 
@@ -114,7 +114,7 @@ class GSphere(collections.abc.Sequence):
         else:
             return np.empty(shape, dtype)
 
-    def zeros(self, dtype=np.float, extra_dims=()):
+    def zeros(self, dtype=float, extra_dims=()):
         """
         Returns new zeroed 1D |numpy-array|.
 
@@ -125,9 +125,9 @@ class GSphere(collections.abc.Sequence):
 
     def czeros(self, extra_dims=()):
         """New zeroed 1D complex |numpy-array|."""
-        return self._new_array(dtype=np.complex, zero=True, extra_dims=extra_dims)
+        return self._new_array(dtype=complex, zero=True, extra_dims=extra_dims)
 
-    def empty(self, dtype=np.float, extra_dims=()):
+    def empty(self, dtype=float, extra_dims=()):
         """
         Returns new uninitialized 1D |numpy-array|.
 
@@ -138,7 +138,7 @@ class GSphere(collections.abc.Sequence):
 
     def cempty(self, extra_dims=()):
         """Returns new uninitialized 1D complex |numpy-array|."""
-        return self._new_array(dtype=np.complex, zero=False, extra_dims=extra_dims)
+        return self._new_array(dtype=complex, zero=False, extra_dims=extra_dims)
 
     #def build_fftbox(self, boxsph_ratio=1.05):
     #  """Returns the number of divisions of the FFT box enclosing the sphere."""

@@ -279,6 +279,7 @@ class TestAbinitInput(AbipyTest):
         inp_gan = AbinitInput(structure=abidata.cif_file("gan.cif"),
                               pseudos=abidata.pseudos("31ga.pspnc", "7n.pspnc"))
         inp_gan.set_kmesh(ngkpt=(2, 2, 2), shiftk=(0, 0, 0))
+        inp_gan["ecut"] = 2
 
         # The code below invokes Abinit (the test must fail because of wrong input)
         inp_si.set_vars(ecut=-1)
@@ -458,7 +459,7 @@ class TestAbinitInput(AbipyTest):
         assert dos_input["nband"] == 9
 
         # Test make_dfpt_effmass_input
-        multi =  gs_inp.make_dfpt_effmass_input(kpts=[0, 0, 0, 0.5, 0, 0], effmass_bands_f90=[1, 4, 5, 5])
+        multi =  gs_inp.make_dfpt_effmass_inputs(kpts=[0, 0, 0, 0.5, 0, 0], effmass_bands_f90=[1, 4, 5, 5])
         assert len(multi) == 3
         assert all(inp["kptopt"] == 0 for inp in multi)
         assert all(inp["nkpt"] == 2 for inp in multi)

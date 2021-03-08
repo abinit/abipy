@@ -1413,6 +1413,107 @@ def dfpt_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, do_ddk=True, do_dde=T
     return multi
 
 
+def conduc_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqpt_fine, sigma_erange, boxcutmin=1.1, mixprec=1):
+    """
+    Returns a list of inputs in the form of a MultiDataset to perform a set of calculations to determine conductivity.
+    This part require a ground state |AbinitInput| and a non self-consistent |AbinitInput|. You will also need
+    a work to get DDB and DVDB since |ConducWork| needs these files.
+
+    Args:
+        scf_input: |AbinitInput| representing a ground state calculation, the SCF performed to get the WFK.
+        nscf_input: |AbinitInput| representing a nscf ground state calculation, the NSCF performed to get the WFK.
+            most parameters for subsequent tasks will be taken from this inputs.
+        tmesh: The mesh of temperature (in Kelvin) where we calculate the conductivity.
+        ddb_ngqpt: the coarse grid of q-points used to compute the DDB and DVDB files in the previous phonon_work.
+        eph_ngqpt_fine: the fine grid of q-points used for the Fourier nterpolation.
+        boxcutmin: For the last task only, 1.1 is often used to decrease memory and is faster over the Abinit default of 2.
+        mixprec: For the last task only, 1 is often used to make the EPH calculation faster. Note that Abinit default is 0.
+    """
+    # Create a MultiDataset from scf input
+    multi = MultiDataset.from_inputs([scf_input])
+
+    # Add 2 times the nscf input at the end of the MultiDataset
+    extension = MultiDataset.replicate_input(nscf_input, 2)
+    multi.extend(extension)
+
+    # Modify the second nscf input to get a task that interpolate the DVDB
+    #multi[2].pop_vars("iscf")
+    #multi[2].set_vars(irdden=0, optdriver=7,
+    #                  ddb_ngqpt=ddb_ngqpt,
+    #                  eph_task=5,
+    #                  eph_ngqpt_fine=eph_ngqpt_fine)
+
+    # Modify the third nscf input to get a conductivity task
+    multi[2].pop_vars("iscf")
+    multi[2].set_vars(irdden=0,
+                      optdriver=7,
+                      ddb_ngqpt=ddb_ngqpt,
+                      eph_ngqpt_fine=eph_ngqpt_fine,
+                      eph_task=-4,
+                      tmesh=tmesh,
+                      sigma_erange=sigma_erange,
+                      boxcutmin=boxcutmin,
+                      mixprec=mixprec)
+
+    return multi
+
+
+def conduc_kerange_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqpt_fine,
+                               sigma_ngkpt, sigma_erange, einterp=(1, 5, 0, 0), boxcutmin=1.1, mixprec=1):
+    """
+    Returns a list of inputs in the form of a MultiDataset to perform a set of calculations to determine the conductivity.
+    This part require a ground state |AbinitInput| and a non self-consistent |AbinitInput|. You will also need
+    a work to get DDB and DVDB since |ConducWork| needs these files.
+
+    Args:
+        scf_input: |AbinitInput| representing a ground state calculation, the SCF performed to get the WFK.
+        nscf_input: |AbinitInput| representing a nscf ground state calculation, the NSCF performed to get the WFK.
+            most parameters for subsequent tasks will be taken from this inputs.
+        ddb_ngqpt: the coarse q-point grid used to get the DDB and DVDB files.
+        eph_ngqpt_fine: the fine qpoints grid that will be interpolated.
+        sigma_ngkpt: The fine grid of kpt inside the sigma interval
+        sigma_erange: The energy range for Sigma_nk
+        einterp: The interpolation used. By default it is a star-function interpolation.
+        boxcutmin: For the last task only, 1.1 is often used to decrease memory and is faster over the Abinit default of 2.
+        mixprec: For the last task only, 1 is often used to make the EPH calculation faster. Note that Abinit default is 0.
+    """
+    # Create a MultiDataset from scf input
+    multi = MultiDataset.from_inputs([scf_input])
+
+    # Add 4 times the nscf input at the end of the MultiDataset
+    extension = MultiDataset.replicate_input(nscf_input, 4)
+    multi.extend(extension)
+
+    # Modify the second nscf input to get a task that calculate the kpt in the sigma interval (Kerange.nc file)
+    multi[2].set_vars(optdriver=8, wfk_task='"wfk_kpts_erange"', kptopt=1,
+                      sigma_ngkpt=sigma_ngkpt, einterp=einterp, sigma_erange=sigma_erange)
+
+    # Modify the third nscf input to get a task that add the kpt of Kerange.nc to the WFK file
+    multi[3].set_vars(optdriver=0, iscf=-2, kptopt=0, ddb_ngqpt=ddb_ngqpt)
+
+    # Modify the fourth nscf input to get a task that interpolate the DVDB
+    #multi[4].pop_vars("iscf")
+    #multi[4].set_vars(irdden=0, optdriver=7,
+    #                  ddb_ngqpt=ddb_ngqpt,
+    #                  eph_task=5,
+    #                  eph_ngqpt_fine=eph_ngqpt_fine)
+
+    # Modify the third nscf input to get a conductivity task
+    multi[4].pop_vars("iscf")
+    multi[4].set_vars(irdden=0,
+                      optdriver=7,
+                      ddb_ngqpt=ddb_ngqpt,
+                      eph_ngqpt_fine=eph_ngqpt_fine,
+                      eph_task=-4,
+                      tmesh=tmesh,
+                      sigma_erange=sigma_erange,
+                      ngkpt=sigma_ngkpt,
+                      boxcutmin=boxcutmin,
+                      mixprec=mixprec)
+
+    return multi
+
+
 def minimal_scf_input(structure, pseudos):
     """
     Provides an input for a calculation with the minimum possible requirements.

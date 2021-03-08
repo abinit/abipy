@@ -61,9 +61,9 @@ def mati3inv(mat3, trans=True):
        Used for symmetry operations. This function applies to *ORTHOGONAL* matrices only.
        Since these form a group, inverses are also integer arrays.
     """
-    mat3 = np.reshape(np.array(mat3, dtype=np.int), (3, 3))
+    mat3 = np.reshape(np.array(mat3, dtype=int), (3, 3))
 
-    mit = np.empty((3, 3), dtype=np.int)
+    mit = np.empty((3, 3), dtype=int)
     mit[0,0] = mat3[1,1] * mat3[2,2] - mat3[2,1] * mat3[1,2]
     mit[1,0] = mat3[2,1] * mat3[0,2] - mat3[0,1] * mat3[2,2]
     mit[2,0] = mat3[0,1] * mat3[1,2] - mat3[1,1] * mat3[0,2]
@@ -318,7 +318,7 @@ class SymmOp(Operation, SlotPickleMixin):
     @lazy_property
     def isE(self):
         """True if identity operator."""
-        return (np.all(self.rot_r == np.eye(3, dtype=np.int)) and
+        return (np.all(self.rot_r == np.eye(3, dtype=int)) and
                 is_integer(self.tau, atol=self._ATOL_TAU) and
                 self.time_sign == 1 and
                 self.afm_sign == 1)
@@ -416,7 +416,7 @@ class SymmOp(Operation, SlotPickleMixin):
         sk = self.rotate_k(frac_coords, wrap_tows=False)
 
         if ret_g0:
-            return issamek(sk, frac_coords), np.array(np.round(sk - frac_coords), dtype=np.int)
+            return issamek(sk, frac_coords), np.array(np.round(sk - frac_coords), dtype=int)
         else:
             return issamek(sk, frac_coords)
 
@@ -561,7 +561,7 @@ class OpSequence(collections.abc.Sequence):
         this routine constructs the multiplication table of the group.
         mtable[i,j] gives the index of the product S_i * S_j.
         """
-        mtable = np.empty((len(self), len(self)), dtype=np.int)
+        mtable = np.empty((len(self), len(self)), dtype=int)
 
         d = self.asdict()
         for i, op1 in enumerate(self):
@@ -1023,10 +1023,10 @@ class LatticeRotation(Operation):
 
         This object is immutable and therefore we do not inherit from |numpy-array|.
     """
-    _E3D = np.identity(3,  np.int)
+    _E3D = np.identity(3,  int)
 
     def __init__(self, mat):
-        self.mat = np.asarray(mat, dtype=np.int)
+        self.mat = np.asarray(mat, dtype=int)
         self.mat.shape = (3, 3)
 
     def _find_order_and_rootinv(self):

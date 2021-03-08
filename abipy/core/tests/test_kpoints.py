@@ -41,9 +41,9 @@ class TestHelperFunctions(AbipyTest):
     def test_is_diagonal(self):
         """Testing is_diagonal"""
         from abipy.core.kpoints import is_diagonal
-        assert is_diagonal(np.eye(3, dtype=np.int))
-        assert is_diagonal(np.eye(3, dtype=np.float))
-        a = np.eye(3, dtype=np.float)
+        assert is_diagonal(np.eye(3, dtype=int))
+        assert is_diagonal(np.eye(3, dtype=float))
+        a = np.eye(3, dtype=float)
         atol = 1e-12
         a[1, 2] = atol
         assert is_diagonal(a, atol=atol)

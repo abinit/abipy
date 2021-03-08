@@ -225,7 +225,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
             group_ids = []
             for pos_list in symb2pos.values():
                 group_ids.extend(pos_list)
-            group_ids = np.array(group_ids, dtype=np.int)
+            group_ids = np.array(group_ids, dtype=int)
 
         comment = " %s\n" % self.initial_structure.formula
         with open(filepath, "wt") as fh:
@@ -810,7 +810,7 @@ class HistReader(ETSF_Reader):
         # Abinit stores 6 unique components of this symmetric 3x3 tensor:
         # Given in order (1,1), (2,2), (3,3), (3,2), (3,1), (2,1).
         c = self.read_value("strten")
-        tensors = np.empty((self.num_steps, 3, 3), dtype=np.float)
+        tensors = np.empty((self.num_steps, 3, 3), dtype=float)
 
         for step in range(self.num_steps):
             for i in range(3): tensors[step, i,i] = c[step, i]

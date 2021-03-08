@@ -18,6 +18,7 @@ from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.string import is_string, marquee, list_strings
 from monty.termcolor import cprint
+from pymatgen.core.structure import Structure as pmg_Structure
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.lattice import Lattice
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
@@ -55,7 +56,7 @@ def mp_match_structure(obj, api_key=None, endpoint=None, final=True):
     """
     structure = Structure.as_structure(obj)
     # Must use pymatgen structure else server does not know how to handle the JSON doc.
-    structure.__class__ = pymatgen.Structure
+    structure.__class__ = pmg_Structure
 
     from abipy.core import restapi
     structures = []
@@ -144,7 +145,7 @@ def cod_search(formula, primitive=False):
     return restapi.CodStructures(structures, cod_ids, data=data)
 
 
-class Structure(pymatgen.Structure, NotebookWriter):
+class Structure(pmg_Structure, NotebookWriter):
     """
     Extends :class:`pymatgen.core.structure.Structure` with Abinit-specific methods.
 
@@ -167,7 +168,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             - Objects with a ``structure`` attribute.
         """
         if isinstance(obj, cls): return obj
-        if isinstance(obj, pymatgen.Structure):
+        if isinstance(obj, pmg_Structure):
             obj.__class__ = cls
             return obj
 
@@ -262,11 +263,11 @@ class Structure(pymatgen.Structure, NotebookWriter):
             # From pickle.
             with open(filepath, "rb") as fh:
                 new = pickle.load(fh)
-                if not isinstance(new, pymatgen.Structure):
+                if not isinstance(new, pmg_Structure):
                     # Is it a object with a structure property?
                     if hasattr(new, "structure"): new = new.structure
 
-                if not isinstance(new, pymatgen.Structure):
+                if not isinstance(new, pmg_Structure):
                     raise TypeError("Don't know how to extract a Structure from file %s, received type %s" %
                         (filepath, type(new)))
 
@@ -355,8 +356,9 @@ class Structure(pymatgen.Structure, NotebookWriter):
             cart_coords: Cartesian coordinates
             acell: Lengths of the box in *Bohr*
         """
+        from pymatgen.core.structure import Molecule
         cart_coords = np.atleast_2d(cart_coords)
-        molecule = pymatgen.Molecule([p.symbol for p in pseudos], cart_coords)
+        molecule = Molecule([p.symbol for p in pseudos], cart_coords)
         l = pmg_units.ArrayWithUnit(acell, "bohr").to("ang")
 
         new = molecule.get_boxed_structure(l[0], l[1], l[2])
@@ -569,7 +571,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         return "\n".join(lines)
 
     def to(self, fmt=None, filename=None, **kwargs):
-        __doc__ = pymatgen.Structure.to.__doc__ + \
+        __doc__ = pmg_Structure.to.__doc__ + \
             "\n Accepts also fmt=`abinit` or `abivars` or `.abi` as Abinit input file extension"
 
         filename = filename or ""
@@ -721,6 +723,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             structure = structure.refine(symprec=symprec, angle_tolerance=angle_tolerance)
 
         # Convert to primitive structure.
+        #primitive_standard = False
         if primitive:
             if primitive_standard:
                 # Setyawan, W., & Curtarolo, S.
@@ -735,6 +738,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         m = structure.lattice.matrix
         x_prod = np.dot(np.cross(m[0], m[1]), m[2])
         if x_prod < 0:
+            #print("Negative triple product --> exchanging last two lattice vectors.")
             trans = SupercellTransformation(((1, 0, 0), (0, 0, 1), (0, 1, 0)))
             structure = trans.apply_transformation(structure)
             m = structure.lattice.matrix
@@ -833,7 +837,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         wyckoffs = np.array(spgdata["wyckoffs"])
 
         wyck_mult = [np.count_nonzero(equivalent_atoms == equivalent_atoms[i]) for i in range(natom)]
-        wyck_mult = np.array(wyck_mult, dtype=np.int)
+        wyck_mult = np.array(wyck_mult, dtype=int)
 
         irred_pos = []
         eqmap = collections.defaultdict(list)
@@ -845,7 +849,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         # Convert to numpy arrays
         irred_pos = np.array(irred_pos)
         for eqpos in eqmap:
-            eqmap[eqpos] = np.array(eqmap[eqpos], dtype=np.int)
+            eqmap[eqpos] = np.array(eqmap[eqpos], dtype=int)
 
         if printout:
             print("Found %d inequivalent position(s):" % len(irred_pos))
@@ -1635,7 +1639,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         # Inspired from Exciting Fortran code phcell.F90
         # It should be possible to improve this coding.
-        scale_matrix = np.zeros((3, 3), dtype=np.int)
+        scale_matrix = np.zeros((3, 3), dtype=int)
         dmin = np.inf
         found = False
 
@@ -1772,7 +1776,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         tvects = self.get_trans_vect(scale_matrix)
 
-        new_displ = np.zeros(3, dtype=np.float)
+        new_displ = np.zeros(3, dtype=float)
 
         fmtstr = "{{}} {{:.{0}f}} {{:.{0}f}} {{:.{0}f}} {{:.{0}f}} {{:.{0}f}} {{:.{0}f}}\n".format(6)
 
@@ -1851,8 +1855,8 @@ class Structure(pymatgen.Structure, NotebookWriter):
         displ1 = eta * displ1 / norm_factor
         displ2 = eta * displ2 / norm_factor
 
-        new_displ1 = np.zeros(3, dtype=np.float)
-        new_displ2 = np.zeros(3, dtype=np.float)
+        new_displ1 = np.zeros(3, dtype=float)
+        new_displ2 = np.zeros(3, dtype=float)
         new_sites = []
         displ_list = []
         for at,site in enumerate(self):
@@ -1919,7 +1923,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         displ = eta * displ / np.linalg.norm(displ, axis=1).max()
 
-        new_displ = np.zeros(3, dtype=np.float)
+        new_displ = np.zeros(3, dtype=float)
         new_sites = []
         displ_list = []
         for at, site in enumerate(self):
@@ -2011,7 +2015,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         lengths = self.lattice.reciprocal_lattice.abc
         lmin = np.min(lengths)
 
-        ngkpt = np.ones(3, dtype=np.int)
+        ngkpt = np.ones(3, dtype=int)
         for i in range(3):
             ngkpt[i] = int(round(nksmall * lengths[i] / lmin))
             if ngkpt[i] == 0:

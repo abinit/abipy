@@ -8,7 +8,8 @@ from collections import OrderedDict
 from pprint import pprint
 from monty.functools import lazy_property
 from monty.string import marquee
-from pymatgen import SETTINGS
+
+
 from pymatgen.ext.matproj import MPRester, MPRestError
 from abipy.tools.printing import print_dataframe
 from abipy.core.mixins import NotebookWriter
@@ -39,6 +40,12 @@ def get_mprester(api_key=None, endpoint=None):
             can be changed to other urls implementing a similar interface.
     """
     if api_key is None:
+        try:
+            from pymatgen.core import SETTINGS
+            #from pymatgen.settings import SETTINGS
+        except ImportError:
+            from pymatgen import SETTINGS
+
         api_key = SETTINGS.get("PMG_MAPI_KEY")
         if api_key is None:
             raise RuntimeError("Cannot find PMG_MAPI_KEY in pymatgen settings. Add it to $HOME/.pmgrc.yaml")
@@ -80,9 +87,10 @@ class PhaseDiagramResults(object):
     """
     def __init__(self, entries):
         self.entries = entries
+        # Convert pymatgen structure to Abipy.
         from abipy.core.structure import Structure
         for e in entries:
-            e.structure = Structure.as_structure(e.structure)
+            e.structure.__class__ = Structure
 
         self.structures = [e.structure for e in entries]
         self.mpids = [e.entry_id for e in entries]

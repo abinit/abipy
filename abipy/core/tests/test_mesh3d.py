@@ -41,19 +41,19 @@ class TestMesh3D(AbipyTest):
         assert rpoints is mesh_444.rpoints
 
         empty = mesh_444.empty()
-        assert empty.shape == mesh_444.shape and empty.dtype == np.float
+        assert empty.shape == mesh_444.shape and empty.dtype == float
         cempty = mesh_444.cempty()
-        assert cempty.shape == mesh_444.shape and cempty.dtype == np.complex
+        assert cempty.shape == mesh_444.shape and cempty.dtype == complex
         rand_vas = mesh_443.random()
-        assert rand_vas.shape == mesh_443.shape and rand_vas.dtype == np.float
+        assert rand_vas.shape == mesh_443.shape and rand_vas.dtype == float
         crand_vas = mesh_443.crandom()
-        assert crand_vas.shape == mesh_443.shape and crand_vas.dtype == np.complex
+        assert crand_vas.shape == mesh_443.shape and crand_vas.dtype == complex
 
         zeros = mesh_444.zeros()
-        assert zeros.shape == mesh_444.shape and np.all(zeros == 0) and zeros.dtype == np.float
+        assert zeros.shape == mesh_444.shape and np.all(zeros == 0) and zeros.dtype == float
 
         czeros = mesh_444.czeros()
-        assert czeros.shape == mesh_444.shape and np.all(czeros == 0) and czeros.dtype == np.complex
+        assert czeros.shape == mesh_444.shape and np.all(czeros == 0) and czeros.dtype == complex
 
         # Iteration
         # i = iz + iy * nz + ix * ny * nz
@@ -84,7 +84,7 @@ class TestMesh3D(AbipyTest):
         mesh = Mesh3D( (12, 3, 5), rprimd)
 
         extra_dims = [(), 1, (2,), (3, 1)]
-        types = [np.float, np.complex]
+        types = [float, complex]
 
         for exdim in extra_dims:
             for typ in types:

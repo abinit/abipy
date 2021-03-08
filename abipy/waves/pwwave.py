@@ -459,7 +459,10 @@ class PWWaveFunction(WaveFunction):
 
         # For each neighbor, plot psi along the line connecting site to nn.
         for i, (nn, ax) in enumerate(zip(nn_list, ax_list)):
-            nn_site, nn_dist, nn_sc_index = nn
+            #nn_site, nn_dist, nn_sc_index = nn
+            nn_site = nn
+            nn_dist = nn.nn_distance
+            nn_sc_index = nn.index
             title = "%s, %s, dist=%.3f A" % (nn_site.species_string, str(nn_site.frac_coords), nn_dist)
 
             r = interpolator.eval_line(site.frac_coords, nn_site.frac_coords, num=num, kpoint=kpoint)
