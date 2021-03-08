@@ -2941,7 +2941,7 @@ class PhononDos(Function1D):
         """
         factor = abu.phfactor_ev2units("thz")
 
-        return PmgPhononDos(self.mesh*factor, self.values/factor)
+        return PmgPhononDos(self.mesh * factor, self.values / factor)
 
     @property
     def debye_temp(self):
@@ -4273,7 +4273,6 @@ class PhononDosPlotter(NotebookWriter):
             if iax == 0:
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
-        #fig.tight_layout()
         return fig
 
     def ipw_select_plot(self): # pragma: no cover

@@ -58,9 +58,9 @@ class TestScissors(AbipyTest):
         builder.build(domains_spin=[[-10, 6.02], [6.1, 20]])
 
         # Test pickle.
-        tmp_path = self.get_tmpname(suffix=".pickle")
-        builder.pickle_dump(tmp_path)
-        new = ScissorsBuilder.pickle_load(tmp_path)
+        #tmp_path = self.get_tmpname(suffix=".pickle")
+        #builder.pickle_dump(tmp_path)
+        #new = ScissorsBuilder.pickle_load(tmp_path)
 
         if self.has_matplotlib():
             # To plot the QP results as function of the KS energy:

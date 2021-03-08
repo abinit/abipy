@@ -86,9 +86,10 @@ class PhaseDiagramResults(object):
     """
     def __init__(self, entries):
         self.entries = entries
+        # Convert pymatgen structure to Abipy.
         from abipy.core.structure import Structure
         for e in entries:
-            e.structure = Structure.as_structure(e.structure)
+            e.structure.__class__ = Structure
 
         self.structures = [e.structure for e in entries]
         self.mpids = [e.entry_id for e in entries]

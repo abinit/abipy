@@ -1484,7 +1484,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     def anaget_interpolated_ddb(self, qpt_list, asr=2, chneut=1, dipdip=1, ngqpt=None, workdir=None,
                                 manager=None, mpi_procs=1, verbose=0, anaddb_kwargs=None):
         """
-        Runs anaddb to generate an interpolated ddb on list of qpt.
+        Runs anaddb to generate an interpolated DDB file on a list of qpt.
 
         Args:
             qpt_list: list of fractional coordinates of qpoints where the ddb should be interpolated.
@@ -1495,7 +1495,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             manager: |TaskManager| object. If None, the object is initialized from the configuration file
             verbose: verbosity level. Set it to a value > 0 to get more information.
             anaddb_kwargs: additional kwargs for anaddb.
-
         """
 
         if ngqpt is None: ngqpt = self.guessed_ngqpt
@@ -1518,7 +1517,12 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose=verbose)
 
-        return self.__class__(os.path.join(task.workdir, "run.abo_DDB"))
+        new_ddb_path = os.path.join(task.workdir, "run.abo_DDB")
+        if not os.path.exists(new_ddb_path):
+            new_ddb_path = os.path.join(task.workdir, "run_DDB")
+
+        return self.__class__(new_ddb_path)
+
 
     def anaget_dielectric_tensor_generator(self, asr=2, chneut=1, dipdip=1, workdir=None, mpi_procs=1,
                                            manager=None, verbose=0, anaddb_kwargs=None, return_input=False):

@@ -415,7 +415,7 @@ class _Field(Has_Structure):
             cprint("Zero neighbors found for radius %s Ang. Returning None." % radius, "yellow")
             return None
         # Sorte sites by distance.
-        nn_list = list(sorted(nn_list, key=lambda t: t[1]))
+        nn_list = list(sorted(nn_list, key=lambda t: t.nn_distance))
 
         if max_nn is not None and len(nn_list) > max_nn:
             cprint("For radius %s, found %s neighbors but only max_nn %s sites are show." %
@@ -431,7 +431,10 @@ class _Field(Has_Structure):
         interpolator = self.get_interpolator()
 
         for i, (nn, ax) in enumerate(zip(nn_list, ax_list)):
-            nn_site, nn_dist, nn_sc_index = nn
+            #nn_site, nn_dist, nn_sc_index = nn
+            nn_site = nn
+            nn_dist = nn.nn_distance
+            nn_sc_index = nn.index
             title = "%s, %s, dist=%.3f A" % (nn_site.species_string, str(nn_site.frac_coords), nn_dist)
 
             r = interpolator.eval_line(site.frac_coords, nn_site.frac_coords, num=num, kpoint=None)
@@ -739,7 +742,9 @@ class Density(_DensityField):
                     for iz in range(valence_density.mesh.nz):
                         rpoint = valence_density.mesh.rpoint(ix=ix, iy=iy, iz=iz)
                         sites = structure.get_sites_in_sphere(pt=rpoint, r=maxr, include_index=True)
-                        for site, dist, site_index in sites:
+                        #for site, dist, site_index in sites:
+                        for site in sites:
+                            dist, site_index = site.nn_distance, site.index
                             if dist > smallradius:
                                 core_den[0, ix, iy, iz] += rhoc_atom_splines[site_index](dist)
                             # For small distances, integrate over the small volume dv around the point as the core

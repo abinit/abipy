@@ -279,6 +279,7 @@ class TestAbinitInput(AbipyTest):
         inp_gan = AbinitInput(structure=abidata.cif_file("gan.cif"),
                               pseudos=abidata.pseudos("31ga.pspnc", "7n.pspnc"))
         inp_gan.set_kmesh(ngkpt=(2, 2, 2), shiftk=(0, 0, 0))
+        inp_gan["ecut"] = 2
 
         # The code below invokes Abinit (the test must fail because of wrong input)
         inp_si.set_vars(ecut=-1)

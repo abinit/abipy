@@ -1,12 +1,19 @@
 #!/usr/bin/env python
-from __future__ import print_function, division, unicode_literals, absolute_import
+r"""
+Effective masses with finite difference
+=======================================
+
+Flow to compute effective masses with finite difference method.
+Derivatives are computed along lines in k-space.
+"""
 
 import os
 import sys
 import abipy.data as abidata
 import abipy.abilab as abilab
+
 from abipy import flowtk
-import abipy.abio.factories as factory
+from abipy.abio.factories import conduc_kerange_from_inputs
 
 
 def make_scf_input(structure, pseudos, ngkpt=(2,2,2), shiftk=(0,0,0),
@@ -92,29 +99,29 @@ def build_flow(options):
                                  **variables)
 
     # Create Work Object
-    # Work 0 : Calcul SCF
+    # Work 0:  SCF run
     gs_work = flowtk.Work()
     gs_work.register_scf_task(scf_input)
     flow.register_work(gs_work)
 
-    # Work 1 : Calcul DDB et DVDB
+    # Work 1: Compute DDB et DVDB
     ph_work = flowtk.PhononWork.from_scf_task(gs_work[0],
                                               qpoints=ngqpt, is_ngqpt=True,
                                               tolerance={"tolvrs": 1e-8})
     flow.register_work(ph_work)
 
-    # Work 2 : Conduc with Kerange
-    multi = factory.conduc_kerange_from_inputs(scf_input=scf_input,
-                               nscf_input=nscf_input,
-                               tmesh=tmesh,
-                               ddb_ngqpt=ngqpt,
-                               eph_ngqpt_fine=ngqpt_fine,
-                               sigma_ngkpt=sigma_ngkpt,
-                               sigma_erange=sigma_erange,
-                               einterp=einterp,
-                               boxcutmin=boxcutmin, # 1.1 is the default value of the function
-                               mixprec=mixprec # 1 is the default value of the function
-                               )
+    # Work 2: Conduc with Kerange
+    multi = conduc_kerange_from_inputs(scf_input=scf_input,
+                                       nscf_input=nscf_input,
+                                       tmesh=tmesh,
+                                       ddb_ngqpt=ngqpt,
+                                       eph_ngqpt_fine=ngqpt_fine,
+                                       sigma_ngkpt=sigma_ngkpt,
+                                       sigma_erange=sigma_erange,
+                                       einterp=einterp,
+                                       boxcutmin=boxcutmin, # 1.1 is the default value of the function
+                                       mixprec=mixprec # 1 is the default value of the function
+                                       )
 
     # Here we can change multi to change the variable of a particular dataset
 
@@ -129,6 +136,15 @@ def build_flow(options):
     flow.register_work(conduc_work)
 
     return flow.allocate(use_smartio=True)
+
+
+# This block generates the thumbnails in the Abipy gallery.
+# You can safely REMOVE this part if you are using this script for production runs.
+if os.getenv("READTHEDOCS", False):
+    __name__ = None
+    import tempfile
+    options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
+    build_flow(options).graphviz_imshow()
 
 
 @flowtk.flow_main
