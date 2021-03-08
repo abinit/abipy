@@ -322,6 +322,12 @@ def software_stack():
     # These packages are required
     import numpy, scipy, netCDF4, pymatgen, apscheduler, pydispatch, yaml
 
+    try:
+        from pymatgen.core import __version__ as pmg_version
+        #from pymatgen.settings import __version__ as pmg_version
+    except AttributeError:
+        pmg_version = pymatgen.__version__
+
     d = collections.OrderedDict([
         ("system", system),
         ("python_version", platform.python_version()),
@@ -331,7 +337,7 @@ def software_stack():
         ("apscheduler", apscheduler.version),
         ("pydispatch", pydispatch.__version__),
         ("yaml", yaml.__version__),
-        ("pymatgen", pymatgen.__version__),
+        ("pymatgen", pmg_version),
     ])
 
     # Optional but strongly suggested.
