@@ -1138,7 +1138,7 @@ class FieldReader(ETSF_Reader):
                 assert dims.nsppol == 1
 
             elif dims.nspden == 2:
-                assert dims.nsppol == 2
+                # assert dims.nsppol == 2
                 if issubclass(field_cls, _DensityField):
                     # If Density: store rho_up, rho_down instead of rho_total, rho_up.
                     total = datar[0].copy()

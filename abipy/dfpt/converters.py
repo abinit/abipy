@@ -20,6 +20,8 @@ from monty.os import makedirs_p
 try:
     from phonopy import Phonopy
     from phonopy.file_IO import write_FORCE_CONSTANTS, parse_FORCE_CONSTANTS, parse_BORN, parse_FORCE_SETS
+    from phonopy.interface.phonopy_yaml import PhonopyYaml
+    from phonopy.interface.calculator import get_default_physical_units, get_force_constant_conversion_factor
 except ImportError:
     Phonopy = None
 
@@ -170,7 +172,7 @@ def abinit_to_phonopy(anaddbnc, supercell_matrix, symmetrize_tensors=False, outp
 def phonopy_to_abinit(unit_cell, supercell_matrix, out_ddb_path, ngqpt=None, qpt_list=None,
                       force_constants=None, force_sets=None, born=None,
                       primitive_matrix="auto", symprec=1e-5, tolsym=None, supercell=None,
-                      manager=None, workdir=None, pseudos=None, verbose=False):
+                      calculator=None, manager=None, workdir=None, pseudos=None, verbose=False):
     """
     Converts the data from phonopy to an abinit DDB file. The data can be provided
     in form of arrays or paths to the phonopy files that should be parsed.
@@ -208,7 +210,7 @@ def phonopy_to_abinit(unit_cell, supercell_matrix, out_ddb_path, ngqpt=None, qpt
             should be defined.
         born: a dictionary with "dielectric" and "born" keywords as obtained from the nac_params
             in phonopy. Alternatively a string with the path to the BORN file. Notice that
-            the "factor" attribute is not taken into account, so the the values should be in
+            the "factor" attribute is not taken into account, so the values should be in
             default phonopy units.
         primitive_matrix: a 3x3 array with the primitive matrix passed to Phonopy. "auto" will
             use spglib to try to determine it automatically. If the DDB file should contain the
@@ -221,6 +223,8 @@ def phonopy_to_abinit(unit_cell, supercell_matrix, out_ddb_path, ngqpt=None, qpt
         supercell: if given it should represent the supercell used to get the force constants,
             without any perturbation. It will be used to match it to the phonopy supercell
             and sort the IFC in the correct order.
+        calculator: a string with the name of the calculator. Will be used to set the conversion
+            factor for the force constants coming from phonopy.
         manager: |TaskManager| object. If None, the object is initialized from the configuration file
         pseudos: List of filenames or list of |Pseudo| objects or |PseudoTable| object. It will be
             used by abinit to generate the base DDB file. If None the abipy.data.hgh_pseudos.HGH_TABLE
@@ -241,17 +245,17 @@ def phonopy_to_abinit(unit_cell, supercell_matrix, out_ddb_path, ngqpt=None, qpt
     phon_at = get_phonopy_structure(unit_cell)
 
     if isinstance(force_constants, str):
-        force_constants = parse_FORCE_CONSTANTS(force_constants)
+        force_constants = parse_FORCE_CONSTANTS(filename=force_constants)
     elif force_constants is not None:
         force_constants = np.array(force_constants)
         force_sets = None
 
     if isinstance(force_sets, str):
-        force_sets = parse_FORCE_SETS(force_sets)
+        force_sets = parse_FORCE_SETS(filename=force_sets)
 
     # no nac_params here, otherwise they will be used for the interpolation
     phonon = Phonopy(phon_at, supercell_matrix, primitive_matrix=primitive_matrix, nac_params=None,
-                     symprec=symprec)
+                     symprec=symprec, calculator=calculator)
 
     primitive = get_pmg_structure(phonon.primitive)
 
@@ -283,8 +287,13 @@ def phonopy_to_abinit(unit_cell, supercell_matrix, out_ddb_path, ngqpt=None, qpt
     if force_constants is not None:
         phonon.set_force_constants(force_constants)
     else:
-        phonon.set_forces(force_sets)
+        phonon.dataset = force_sets
         phonon.produce_force_constants()
+
+    if calculator:
+        units = get_default_physical_units(calculator)
+        fc_factor = get_force_constant_conversion_factor(units["force_constants_unit"], None)
+        phonon.set_force_constants(phonon.force_constants * fc_factor)
 
     if pseudos is None:
         from abipy.data.hgh_pseudos import HGH_TABLE
