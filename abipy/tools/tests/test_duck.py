@@ -36,7 +36,7 @@ class DuckTest(AbipyTest):
         assert not duck.is_intlike("1")
         assert not duck.is_intlike([1, 2, 3])
 
-        for t in (int, np.int64_, np.float64_):
+        for t in (int, np.int64, np.float64):
             assert duck.is_intlike(t(123))
 
         assert duck.is_intlike(complex(123))

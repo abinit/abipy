@@ -4649,10 +4649,9 @@ class EdosFile(TextFile):
                 if not line: continue
                 data.append([float(v) for v in line.split()])
 
-
         self.header_string = "".join(header)
         self.edos_params = find_yaml_section_in_lines(header, "EDOS_PARAMS")
-        print(self.edos_params)
+        #print(self.edos_params)
         nelect = float(self.edos_params["nelect"])
         data = np.array(data).T.copy()
         mesh = data[0]
@@ -4686,7 +4685,6 @@ class EdosFile(TextFile):
         yield self.edos.plot_dos_idos(show=False)
         if self.edos.nsppol == 2:
             yield self.edos.plot_up_minus_down(show=False)
-
 
 
 class EdosRobot(Robot):

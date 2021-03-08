@@ -945,7 +945,8 @@ class PhononBands(object):
                                         eta=eta, scale_matrix=scale_matrix, max_supercell=None)
 
             print("after scale_matrix:", r.scale_matrix)
-            r.structure.write_cif_with_spglib_symms(filename=os.path.join(workdir, "distorted_structure_mode_%d.cif" % (imode + 1)))
+            r.structure.write_cif_with_spglib_symms(filename=os.path.join(workdir,
+                                                    "distorted_structure_mode_%d.cif" % (imode + 1)))
 
         readme_string = """
 
@@ -2389,7 +2390,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             # find the minimum value larger than zero and set the 0 to that value
             min_value = np.min([v for l in split_min_dist for v in l if v > 0])
             for min_list in split_min_dist:
-                min_list[min_list==0] = min_value
+                min_list[min_list == 0] = min_value
             norm = matplotlib.colors.LogNorm(min_value, np.max(split_min_dist), clip=True)
         else:
             norm = plt.Normalize(np.min(split_min_dist), np.max(split_min_dist))

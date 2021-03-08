@@ -1523,7 +1523,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return self.__class__(new_ddb_path)
 
-
     def anaget_dielectric_tensor_generator(self, asr=2, chneut=1, dipdip=1, workdir=None, mpi_procs=1,
                                            manager=None, verbose=0, anaddb_kwargs=None, return_input=False):
         """
@@ -2726,9 +2725,9 @@ class DdbRobot(Robot):
             phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(**kwargs)
 
             def find_anaddb_ncpath(filepath):
-              from abipy.flowtk.utils import Directory
-              directory = Directory(os.path.dirname(filepath))
-              return directoy.outpath_from_ext("anaddb.nc")
+                from abipy.flowtk.utils import Directory
+                directory = Directory(os.path.dirname(filepath))
+                return directory.outpath_from_ext("anaddb.nc")
 
             # Phonon frequencies with non analytical contributions, if calculated, are saved in anaddb.nc
             # Those results should be fetched from there and added to the phonon bands.

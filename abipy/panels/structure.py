@@ -17,6 +17,7 @@ pn.config.js_files["ngl"] = "https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33
 
 _html_with_copy_to_clipboard_ncalls = 0
 
+
 def html_with_copy_to_clipboard(html, btn_cls="btn-primary btn-sm"):
     global _html_with_copy_to_clipboard_ncalls
     _html_with_copy_to_clipboard_ncalls += 1
@@ -155,7 +156,6 @@ class StructurePanel(AbipyParameterized):
         #return self.structure.crystaltoolkitview()
         #import nglview as nv
         #view = nv.demo(gui=False)
-
 
         #from bokeh.models import ColumnDataSource
         #from bokeh.io import show, curdoc

@@ -1,10 +1,11 @@
 """Panels for interacting with FATBANDS.nc files."""
-import param
+
+#import param
 import panel as pn
-import panel.widgets as pnw
+#import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 
-from .core import PanelWithElectronBands, PanelWithEbandsRobot
+from .core import PanelWithElectronBands #, PanelWithEbandsRobot
 
 
 class FatBandsFilePanel(PanelWithElectronBands):

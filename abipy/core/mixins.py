@@ -125,7 +125,6 @@ class TextFile(BaseFile):
         self._file.seek(offset, whence)
 
 
-
 class AbinitNcFile(BaseFile):
     """
     Abstract class representing a Netcdf file with data saved
@@ -527,7 +526,7 @@ or:
 
 See also https://jupyter.readthedocs.io/en/latest/install.html
 """)
-            app_path = app_path  + " notebook "
+            app_path = app_path + " notebook "
 
         if not no_browser:
 
@@ -550,6 +549,7 @@ See also https://jupyter.readthedocs.io/en/latest/install.html
             print("nbpath:", nbpath)
 
             import socket
+
             def find_free_port():
                 """https://stackoverflow.com/questions/1365265/on-localhost-how-do-i-pick-a-free-port-number"""
                 from contextlib import closing
@@ -578,9 +578,9 @@ Using port: {port}
 http://localhost:{port}/notebooks/{notebook_name}
 """)
             if not classic_notebook:
-              cmd = f'{app_path} {notebook_name} --no-browser --port {port} --notebook-dir {dirname}'
+                cmd = f'{app_path} {notebook_name} --no-browser --port {port} --notebook-dir {dirname}'
             else:
-              cmd = f'{app_path} notebook {notebook_name} --no-browser --port {port} --notebook-dir {dirname}'
+                cmd = f'{app_path} notebook {notebook_name} --no-browser --port {port} --notebook-dir {dirname}'
 
             print("Executing:", cmd)
             print('NOTE: make sure to open `{}` in your local machine\n'.format(notebook_name))

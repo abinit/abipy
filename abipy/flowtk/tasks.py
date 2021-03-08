@@ -584,7 +584,8 @@ batch_adapter:
                 "It provides a description of the cluster/computer you are running on\n"
                 "Examples are provided in abipy/data/managers.\n"
                 "Use `abidoc.py manager` to access the documentation in the terminal.\n"
-                "See also: https://abinit.github.io/abipy/workflows/manager_examples.html\n" % (cls.YAML_FILE, path), color="red"))
+                "See also: https://abinit.github.io/abipy/workflows/manager_examples.html\n" % (
+                    cls.YAML_FILE, path), color="red"))
 
         _USER_CONFIG_TASKMANAGER = cls.from_file(path)
         return _USER_CONFIG_TASKMANAGER
@@ -4641,8 +4642,8 @@ class AnaddbTask(Task):
 
     def outpath_from_ext(self, ext):
         if ext == "anaddb.nc":
-           path = os.path.join(self.workdir, "anaddb.nc")
-           if os.path.isfile(path): return path
+            path = os.path.join(self.workdir, "anaddb.nc")
+            if os.path.isfile(path): return path
 
         path = self.wdir.has_abiext(ext)
         if not path:

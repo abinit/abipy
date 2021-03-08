@@ -4,14 +4,14 @@ Object to plot DFPT potentials in the phonon mode representation.
 """
 import numpy as np
 
-from collections import OrderedDict
+#from collections import OrderedDict
 from monty.string import marquee
 from monty.functools import lazy_property
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
+#from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
-from abipy.core.kpoints import KpointList, Kpoint
-from abipy.tools import duck
-from abipy.iotools import Visualizer, xsf, ETSF_Reader #, cube
+#from abipy.core.kpoints import Kpoint #KpointList,
+#from abipy.tools import duck
+from abipy.iotools import xsf, ETSF_Reader #, cube Visualizer,
 
 
 class V1qnuFile(AbinitNcFile, Has_Structure, NotebookWriter):
@@ -96,7 +96,6 @@ class V1qnuFile(AbinitNcFile, Has_Structure, NotebookWriter):
         #from abipy.core.globals import abinb_mkstemp
         #_, filename = abinb_mkstemp(suffix="." + ext, text=True)
 
-
     #@add_fig_kwargs
     #def plot_v1qnu_vs_lr(self, ax=None, fontsize=8, **kwargs):
     #    """
@@ -145,7 +144,6 @@ class V1qnuFile(AbinitNcFile, Has_Structure, NotebookWriter):
     #    ax.legend(loc="best", fontsize=fontsize, shadow=True)
     #    #title = "band_kq: %s, band_k: %s, kpoint: %s" % (band_kq, band_k, repr(kpoint))
     #    #ax.set_title(title, fontsize=fontsize)
-
     #    return fig
 
     def yield_figs(self, **kwargs):  # pragma: no cover

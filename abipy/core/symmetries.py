@@ -172,7 +172,7 @@ def indsym_from_symrel(symrel, tnons, structure, tolsym=1e-8):
         difmax = np.abs(difmin).max()
         err = max(err, difmax)
         if difmax > tolsym:
-            cprint("""
+            cprint(f"""
 Trouble finding symmetrically equivalent atoms.
 Applying inverse of symm number {isym} to atom number {iatom} of typat',typat(iatom) gives tratom=',tratom(1:3)
 This is further away from every atom in crystal than the allowed tolerance.
@@ -185,7 +185,7 @@ The nearest coordinate differs by',difmin(1:3) for indsym(nearest atom)=',indsym
 This indicates that when symatm attempts to find atoms symmetrically
 related to a given atom, the nearest candidate is further away than some tolerance.
 Should check atomic coordinates and symmetry group input data.
-""".format(), "red")
+""", color="red")
 
     if err > tolsym:
         raise ValueError("maximum err %s is larger than tolsym: %s" % (err, tolsym))
@@ -900,6 +900,7 @@ class AbinitSpaceGroup(OpSequence):
             int: the hall number.
         """
         return spglib.get_hall_number_from_symmetry(self.symrel, self.tnons, symprec=symprec)
+
 
 # FIXME To maintain backward compatibility.
 SpaceGroup = AbinitSpaceGroup

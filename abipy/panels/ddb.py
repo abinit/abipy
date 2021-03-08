@@ -144,10 +144,11 @@ class DdbFilePanel(AbipyParameterized):
         # Insert results in grid.
         gspec = pn.GridSpec(sizing_mode='scale_width')
 
-        asr_plotter =  self.ddb.anacompare_asr(asr_list=(0, 2), chneut_list=(1,), dipdip=1, lo_to_splitting=self.lo_to_splitting,
-                                               nqsmall=self.nqsmall, ndivsm=self.ndivsm,
-                                               dos_method=self.dos_method, ngqpt=None,
-                                               verbose=self.verbose, mpi_procs=self.mpi_procs)
+        asr_plotter = self.ddb.anacompare_asr(asr_list=(0, 2), chneut_list=(1, ), dipdip=1,
+                                              lo_to_splitting=self.lo_to_splitting,
+                                              nqsmall=self.nqsmall, ndivsm=self.ndivsm,
+                                              dos_method=self.dos_method, ngqpt=None,
+                                              verbose=self.verbose, mpi_procs=self.mpi_procs)
         gspec[0, :1] = asr_plotter.plot(**self.fig_kwargs)
 
         dipdip_plotter = self.ddb.anacompare_dipdip(chneut_list=(1,), asr=2, lo_to_splitting=self.lo_to_splitting,

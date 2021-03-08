@@ -6,7 +6,7 @@ import numpy as np
 
 from monty.string import marquee
 from monty.functools import lazy_property
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt #, get_axarray_fig_plt
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
 from abipy.iotools import ETSF_Reader
 
@@ -68,8 +68,8 @@ class WrNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             #  gc = ig - ng -1
             #else
             #  gc = ig -1
-
-            return gc
+            #return gc
+            raise NotImplementedError("Foo")
 
         # Find index of (r, R) in the bigbox
         # Use C notation (z runs faster)

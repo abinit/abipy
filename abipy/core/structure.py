@@ -8,11 +8,9 @@ import collections
 import tempfile
 import numpy as np
 import pickle
-import pymatgen
 import pymatgen.core.units as pmg_units
 
 from pprint import pformat
-from warnings import warn
 from collections import OrderedDict
 from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
@@ -1467,7 +1465,7 @@ class Structure(pmg_Structure, NotebookWriter):
             ncols = 3
             nrows = num_plots // ncols + num_plots % ncols
 
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                 sharex=False, sharey=True, squeeze=False)
 
         # don't show the last ax if num_plots is odd.
@@ -1475,7 +1473,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         from ase.visualize.plot import plot_atoms
         atoms = self.to_ase_atoms()
-        for rotation, ax in zip(rotations, ax_list.flat):
+        for rotation, ax in zip(rotations, ax_mat.flat):
             plot_atoms(atoms, ax=ax, rotation=rotation, **kwargs)
             ax.set_axis_off()
             if rotation:
@@ -1518,7 +1516,7 @@ class Structure(pmg_Structure, NotebookWriter):
             verbose: Verbosity level.
         """
         try:
-          from jupyter_jsmol import JsmolView
+            from jupyter_jsmol import JsmolView
         except ImportError:
             raise ImportError("jupyter_jsmol is not installed. See https://github.com/fekad/jupyter-jsmol")
 

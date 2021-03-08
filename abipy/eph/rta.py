@@ -6,7 +6,7 @@ import numpy as np
 import abipy.core.abinit_units as abu
 
 from monty.functools import lazy_property
-from monty.termcolor import cprint
+#from monty.termcolor import cprint
 from monty.string import marquee, list_strings
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.electrons.ebands import ElectronsReader, RobotWithEbands
@@ -18,6 +18,7 @@ __all__ = [
     "RtaFile",
     "RtaRobot",
 ]
+
 
 def eh2s(eh):
     return {0: "n", 1: "p"}[eh]
@@ -55,10 +56,9 @@ def transptens2latex(what, component):
 
 
 def edos_infos(edos_intmeth, edos_broad):
-    s =  {
-        1: "Gaussian smearing Method",
-        2: "Linear Tetrahedron Method",
-       -2: "Linear Tetrahedron Method with Blochl's corrections",
+    s = {1: "Gaussian smearing Method",
+         2: "Linear Tetrahedron Method",
+        -2: "Linear Tetrahedron Method with Blochl's corrections",
     }[edos_intmeth]
     if (edos_intmeth == 1): s = "%s with broadening: %.1f (meV)" % edos_broad * abu.Ha_to_meV
 
@@ -67,7 +67,7 @@ def edos_infos(edos_intmeth, edos_broad):
 
 def irta2latextau(irta, with_dollars=False):
     s = r"\tau^{\mathbf{%s}}}" % irta2s(irta)
-    if with_dollars: s = "$%s$" %s
+    if with_dollars: s = "$%s$" % s
     return s
 
 
@@ -309,7 +309,7 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
             ax.grid(True)
             ax.legend(loc="best", shadow=True, fontsize=fontsize)
-            if irta  == (len(ax_list) - 1):
+            if irta == (len(ax_list) - 1):
                 ax.set_xlabel('Energy (eV)')
                 ax.set_ylabel(r"$\tau(\epsilon)\, (fms)$")
 
@@ -647,12 +647,12 @@ class RtaRobot(Robot, RobotWithEbands):
         res, temps = []
         for ncfile in self.abifiles:
             #kptrlattx, kptrlatty, kptrlattz = ncfile.ngkpt
-            kptrlatt  = ncfile.reader.read_value("kptrlatt")
+            kptrlatt = ncfile.reader.read_value("kptrlatt")
             kptrlattx = kptrlatt[0, 0]
             kptrlatty = kptrlatt[1, 1]
             kptrlattz = kptrlatt[2, 2]
             # nctkarr_t('mobility_mu',"dp", "three, three, two, ntemp, nsppol, nrta")]
-            mobility  = ncfile.reader.read_variable("mobility_mu")[irta, spin, itemp, eh, j, i]
+            mobility = ncfile.reader.read_variable("mobility_mu")[irta, spin, itemp, eh, j, i]
             #print(mobility)
             res.append([kptrlattx, mobility])
             temps.append(ncfile.tmesh[itemp])
@@ -672,12 +672,12 @@ class RtaRobot(Robot, RobotWithEbands):
         from fractions import Fraction
         ratio1 = Fraction(kptrlatty, kptrlattx)
         ratio2 = Fraction(kptrlattz, kptrlattx)
-        text1  = '' if ratio1.numerator == ratio1.denominator else \
-                 r'$\frac{{{0}}}{{{1}}}$'.format(ratio1.numerator, ratio1.denominator)
-        text2  = '' if ratio2.numerator == ratio2.denominator else \
-                 r'$\frac{{{0}}}{{{1}}}$'.format(ratio2.numerator, ratio2.denominator)
+        text1 = '' if ratio1.numerator == ratio1.denominator else \
+                r'$\frac{{{0}}}{{{1}}}$'.format(ratio1.numerator, ratio1.denominator)
+        text2 = '' if ratio2.numerator == ratio2.denominator else \
+                r'$\frac{{{0}}}{{{1}}}$'.format(ratio2.numerator, ratio2.denominator)
 
-        ax.set_xlabel(r'Homogeneous $N_k \times$ '+ text1 + r'$N_k \times$ '+ text2 + r'$N_k$ $\mathbf{k}$-point grid',
+        ax.set_xlabel(r'Homogeneous $N_k \times$ ' + text1 + r'$N_k \times$ ' + text2 + r'$N_k$ $\mathbf{k}$-point grid',
                       size=size)
 
         ax.plot(res[:,0], res[:,1], **kwargs)

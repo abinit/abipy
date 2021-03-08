@@ -2722,7 +2722,6 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return new
 
-
     @classmethod
     def piezo_elastic(cls, structure, relaxed_ion=True, stress_correction=False,
                       asr=2, chneut=1, dipdip=1, anaddb_args=None, anaddb_kwargs=None):

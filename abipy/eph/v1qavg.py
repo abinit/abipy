@@ -258,7 +258,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
                 # plot difference.
                 ys = (data["v1scf_gsmall"][:, iat, idir, ispden, reim]
-                     -data["v1lr_gsmall"][:, iat, idir, ispden, reim]) # * 10
+                     - data["v1lr_gsmall"][:, iat, idir, ispden, reim]) # * 10
                 ax.plot(xs, ys, **_get_style(reim, "v1scfmlr_gsmall"))
 
             ax.grid(True)

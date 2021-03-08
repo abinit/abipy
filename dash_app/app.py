@@ -1,9 +1,10 @@
 #!/usr/bin/env python
+# flake8: noqa
 
 import base64
 import datetime
 import tempfile
-import io
+#import io
 import os
 import dash
 import dash_core_components as dcc
@@ -406,6 +407,7 @@ For a more flexible interface, please use the AbiPy objects to generate input fi
 Any uploaded files is analyzed and the results presented immediately.
 """)
 ])
+
 
 @app.callback(Output("page-content", "children"),
               [Input("url", "pathname")])

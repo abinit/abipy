@@ -4,6 +4,7 @@ import abipy.data as abidata
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk
 
+
 def itest_tolsymerror_handler(fwp):
     """
     Test the handler of TolSymError. The test triggers:

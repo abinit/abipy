@@ -694,7 +694,7 @@ class EphSelfEnergy(object):
             ax2 = ax1.twinx()
             from scipy.integrate import cumtrapz
             integral = cumtrapz(ys, x=xs, initial=0.0)
-            color= "black"
+            color = "black"
             ax2.plot(xs, integral, color=color, ls="-.", lw=1)
             ax2.set_ylabel(r"$\int^{\omega - \epsilon^0} A(\omega')\,d\omega'$", color=color)
             set_axlims(ax2, xlims, "x")
@@ -2034,8 +2034,8 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                                                sharex=True, sharey=False, squeeze=False)
 
         for ix, ikcalc in enumerate(r.ikfound):
-           self.plot_qpsolution_skb(spin, ikcalc, band, itemp=itemp, with_int_aw=with_int_aw,
-                                    ax_list=ax_mat[ix], xlims=xlims, fontsize=fontsize, show=False)
+            self.plot_qpsolution_skb(spin, ikcalc, band, itemp=itemp, with_int_aw=with_int_aw,
+                                     ax_list=ax_mat[ix], xlims=xlims, fontsize=fontsize, show=False)
 
         return fig
 

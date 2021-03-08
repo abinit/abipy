@@ -356,12 +356,12 @@ class TransportRobot(Robot, RobotWithEbands):
 
         res = []
         for ncfile in self.abifiles:
-            kptrlatt  = ncfile.reader.read_value('kptrlatt')
+            kptrlatt = ncfile.reader.read_value('kptrlatt')
             kptrlattx = kptrlatt[0, 0]
             kptrlatty = kptrlatt[1, 1]
             kptrlattz = kptrlatt[2, 2]
-            #nkpt      = ncfile.nkpt
-            mobility  = ncfile.reader.read_value('mobility_mu')[itemp][i,j][spin][eh]
+            #nkpt = ncfile.nkpt
+            mobility = ncfile.reader.read_value('mobility_mu')[itemp][i,j][spin][eh]
             res.append([kptrlattx, mobility])
 
         res.sort(key=lambda t: t[0])
@@ -378,12 +378,12 @@ class TransportRobot(Robot, RobotWithEbands):
         from fractions import Fraction
         ratio1 = Fraction(kptrlatty, kptrlattx)
         ratio2 = Fraction(kptrlattz, kptrlattx)
-        text1  = '' if ratio1.numerator == ratio1.denominator else \
-                 r'$\frac{{{0}}}{{{1}}}$'.format(ratio1.numerator, ratio1.denominator)
-        text2  = '' if ratio2.numerator == ratio2.denominator else \
-                 r'$\frac{{{0}}}{{{1}}}$'.format(ratio2.numerator, ratio2.denominator)
+        text1 = '' if ratio1.numerator == ratio1.denominator else \
+                r'$\frac{{{0}}}{{{1}}}$'.format(ratio1.numerator, ratio1.denominator)
+        text2 = '' if ratio2.numerator == ratio2.denominator else \
+                r'$\frac{{{0}}}{{{1}}}$'.format(ratio2.numerator, ratio2.denominator)
 
-        ax.set_xlabel(r'Homogeneous $N_k \times$ '+ text1 + r'$N_k \times$ '+ text2 + r'$N_k$ $\mathbf{k}$-point grid',
+        ax.set_xlabel(r'Homogeneous $N_k \times$ ' + text1 + r'$N_k \times$ ' + text2 + r'$N_k$ $\mathbf{k}$-point grid',
                       size=size)
 
         ax.plot(res[:,0], res[:,1], **kwargs)

@@ -20,7 +20,7 @@ from monty.os import makedirs_p
 try:
     from phonopy import Phonopy
     from phonopy.file_IO import write_FORCE_CONSTANTS, parse_FORCE_CONSTANTS, parse_BORN, parse_FORCE_SETS
-    from phonopy.interface.phonopy_yaml import PhonopyYaml
+    #from phonopy.interface.phonopy_yaml import PhonopyYaml
     from phonopy.interface.calculator import get_default_physical_units, get_force_constant_conversion_factor
 except ImportError:
     Phonopy = None
@@ -415,7 +415,7 @@ def get_dm(phonon, qpt_list, structure):
         a list of arrays with the dynamical matrices of the selected q-points.
     """
     natom = len(structure)
-    rprim = structure.lattice.matrix  * abu.Ang_Bohr
+    rprim = structure.lattice.matrix * abu.Ang_Bohr
     # assume acell is [1., 1., 1.]
     rprimd = rprim
     masses = phonon.masses
