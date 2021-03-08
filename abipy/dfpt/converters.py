@@ -357,7 +357,7 @@ def generate_born_deriv(born, zion, structure):
     """
     natoms = len(structure)
     mpert = natoms + 2 # only these perturbations are needed here
-    born_data = np.zeros((3, mpert, 3, mpert), dtype=np.complex)
+    born_data = np.zeros((3, mpert, 3, mpert), dtype=complex)
 
     eps_e = born["dielectric"]
     bec = np.array(born["born"]).transpose((0, 2, 1))

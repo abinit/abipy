@@ -93,4 +93,4 @@ class ETSF_Reader(ionc.ETSF_Reader):
         ngfft3[0] = self.read_dimvalue("number_of_grid_points_vector1")
         ngfft3[1] = self.read_dimvalue("number_of_grid_points_vector2")
         ngfft3[2] = self.read_dimvalue("number_of_grid_points_vector3")
-        return np.array(ngfft3, np.int)
+        return np.array(ngfft3, int)

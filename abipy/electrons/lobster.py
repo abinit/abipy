@@ -248,7 +248,7 @@ class CoxpFile(_LobsterFile):
 
             spins = [0, 1][:n_spin]
 
-            data = np.fromstring(f.read(), dtype=np.float, sep=' ').reshape([n_en_steps, 1+n_spin*n_column_groups*2])
+            data = np.fromstring(f.read(), dtype=float, sep=' ').reshape([n_en_steps, 1+n_spin*n_column_groups*2])
 
             # Initialize and fill results
             new.energies = data[:, 0]
@@ -844,7 +844,7 @@ class LobsterDoscarFile(_LobsterFile):
 
         # extract np array for total dos
         tdos_data = np.fromiter((d for l in dos_data[6:6+n_energies] for d in l.split()),
-                                dtype=np.float).reshape((n_energies, 1+2*n_spin))
+                                dtype=float).reshape((n_energies, 1+2*n_spin))
 
         new.energies = tdos_data[:,0].copy()
         new.total_dos = {}
@@ -867,7 +867,7 @@ class LobsterDoscarFile(_LobsterFile):
 
             # extract np array for partial dos
             pdos_data = np.fromiter((d for l in dos_data[i_first_line+1:i_first_line+1+n_energies] for d in l.split()),
-                dtype=np.float).reshape((n_energies, 1+n_spin*len(orbitals)))
+                dtype=float).reshape((n_energies, 1+n_spin*len(orbitals)))
 
             for i_orb, orb in enumerate(orbitals):
                 for i_spin, spin in enumerate(spins):

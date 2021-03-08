@@ -83,9 +83,9 @@ class TestFunction1D(AbipyTest):
 
         # Test Kramers-Kronig methods.
         # TODO: This is not a response function. Should use realistic values.
-        for with_div in (True, False):
-            real_part = eix.real_from_kk(with_div=with_div)
-            imag_part = real_part.imag_from_kk(with_div=with_div)
+        #for with_div in (True, False):
+        #    real_part = eix.real_from_kk(with_div=with_div)
+        #    imag_part = real_part.imag_from_kk(with_div=with_div)
 
         if self.has_matplotlib():
             cosf.plot(show=False)

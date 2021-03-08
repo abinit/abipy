@@ -181,7 +181,7 @@ class DielectricFunction(object):
         assert len(self.qpoints) == len(emacros_q)
         self.info = info
 
-        self.emacros_q, em_avg = [], np.zeros(len(wmesh), dtype=np.complex)
+        self.emacros_q, em_avg = [], np.zeros(len(wmesh), dtype=complex)
         for emq in emacros_q:
             em_avg += emq
             self.emacros_q.append(Function1D(wmesh, emq))

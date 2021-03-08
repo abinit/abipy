@@ -183,7 +183,7 @@ class Function1D(object):
 
     def has_same_mesh(self, other):
         """True if self and other have the same mesh."""
-        if (self.h, other.h) is (None, None):
+        if self.h is None and other.h is None:
             # Generic meshes.
             return np.allclose(self.mesh, other.mesh)
         else:
@@ -378,85 +378,85 @@ class Function1D(object):
     #    smooth_vals = smooth(self.values, window_len=window_len, window=window)
     #    return self.__class__(self.mesh, smooth_vals)
 
-    def real_from_kk(self, with_div=True):
-        """
-        Compute the Kramers-Kronig transform of the imaginary part
-        to get the real part. Assume self represents the Fourier
-        transform of a response function.
+    #def real_from_kk(self, with_div=True):
+    #    """
+    #    Compute the Kramers-Kronig transform of the imaginary part
+    #    to get the real part. Assume self represents the Fourier
+    #    transform of a response function.
 
-        Args:
-            with_div: True if the divergence should be treated numerically.
-                If False, the divergence is ignored, results are less accurate
-                but the calculation is faster.
+    #    Args:
+    #        with_div: True if the divergence should be treated numerically.
+    #            If False, the divergence is ignored, results are less accurate
+    #            but the calculation is faster.
 
-        .. seealso:: <https://en.wikipedia.org/wiki/Kramers%E2%80%93Kronig_relations>
-        """
-        from scipy.integrate import cumtrapz, quad
-        from scipy.interpolate import UnivariateSpline
-        wmesh = self.mesh
-        num = np.array(self.values.imag * wmesh, dtype=np.double)
+    #    .. seealso:: <https://en.wikipedia.org/wiki/Kramers%E2%80%93Kronig_relations>
+    #    """
+    #    from scipy.integrate import cumtrapz, quad
+    #    from scipy.interpolate import UnivariateSpline
+    #    wmesh = self.mesh
+    #    num = np.array(self.values.imag * wmesh, dtype=np.double)
 
-        if with_div:
-            spline = UnivariateSpline(self.mesh, num, s=0)
+    #    if with_div:
+    #        spline = UnivariateSpline(self.mesh, num, s=0)
 
-        kk_values = np.empty(len(self))
-        for i, w in enumerate(wmesh):
-            den = wmesh**2 - w**2
-            # Singularity is treated below.
-            den[i] = 1
-            f = num / den
-            f[i] = 0
-            integ = cumtrapz(f, x=wmesh)
-            kk_values[i] = integ[-1]
+    #    kk_values = np.empty(len(self))
+    #    for i, w in enumerate(wmesh):
+    #        den = wmesh**2 - w**2
+    #        # Singularity is treated below.
+    #        den[i] = 1
+    #        f = num / den
+    #        f[i] = 0
+    #        integ = cumtrapz(f, x=wmesh)
+    #        kk_values[i] = integ[-1]
 
-            if with_div:
-                func = lambda x: spline(x) / (x**2 - w**2)
-                w0 = w - self.h
-                w1 = w + self.h
-                y, abserr = quad(func, w0, w1, points=[w])
-                kk_values[i] += y
+    #        if with_div:
+    #            func = lambda x: spline(x) / (x**2 - w**2)
+    #            w0 = w - self.h
+    #            w1 = w + self.h
+    #            y, abserr = quad(func, w0, w1, points=[w])
+    #            kk_values[i] += y
 
-        return self.__class__(self.mesh, (2 / np.pi) * kk_values)
+    #    return self.__class__(self.mesh, (2 / np.pi) * kk_values)
 
-    def imag_from_kk(self, with_div=True):
-        """
-        Compute the Kramers-Kronig transform of the real part
-        to get the imaginary part. Assume self represents the Fourier
-        transform of a response function.
+    #def imag_from_kk(self, with_div=True):
+    #    """
+    #    Compute the Kramers-Kronig transform of the real part
+    #    to get the imaginary part. Assume self represents the Fourier
+    #    transform of a response function.
 
-        Args:
-            with_div: True if the divergence should be treated numerically.
-                If False, the divergence is ignored, results are less accurate
-                but the calculation is faster.
+    #    Args:
+    #        with_div: True if the divergence should be treated numerically.
+    #            If False, the divergence is ignored, results are less accurate
+    #            but the calculation is faster.
 
-        .. seealso:: <https://en.wikipedia.org/wiki/Kramers%E2%80%93Kronig_relations>
-        """
-        from scipy.integrate import cumtrapz, quad
-        from scipy.interpolate import UnivariateSpline
-        wmesh = self.mesh
-        num = np.array(self.values.real, dtype=np.double)
+    #    .. seealso:: <https://en.wikipedia.org/wiki/Kramers%E2%80%93Kronig_relations>
+    #    """
+    #    from scipy.integrate import cumtrapz, quad
+    #    from scipy.interpolate import UnivariateSpline
+    #    wmesh = self.mesh
+    #    num = np.array(self.values.real, dtype=np.double)
 
-        if with_div:
-            spline = UnivariateSpline(self.mesh, num, s=0)
+    #    if with_div:
+    #        spline = UnivariateSpline(self.mesh, num, s=0)
 
-        kk_values = np.empty(len(self))
-        for i, w in enumerate(wmesh):
-            den = wmesh**2 - w**2
-            # Singularity is treated below.
-            den[i] = 1
-            f = num / den
-            f[i] = 0
-            integ = cumtrapz(f, x=wmesh)
-            kk_values[i] = integ[-1]
+    #    kk_values = np.empty(len(self))
+    #    for i, w in enumerate(wmesh):
+    #        den = wmesh**2 - w**2
+    #        # Singularity is treated below.
+    #        den[i] = 1
+    #        f = num / den
+    #        f[i] = 0
+    #        integ = cumtrapz(f, x=wmesh)
+    #        kk_values[i] = integ[-1]
 
-            if with_div:
-                func = lambda x: spline(x) / (x**2 - w**2)
-                w0 = w - self.h
-                w1 = w + self.h
-                y, abserr = quad(func, w0, w1, points=[w])
-                kk_values[i] += y
+    #        if with_div:
+    #            func = lambda x: spline(x) / (x**2 - w**2)
+    #            w0 = w - self.h
+    #            w1 = w + self.h
+    #            y, abserr = quad(func, w0, w1, points=[w])
+    #            kk_values[i] += y
 
-        return self.__class__(self.mesh, -(2 / np.pi) * wmesh * kk_values)
+    #    return self.__class__(self.mesh, -(2 / np.pi) * wmesh * kk_values)
 
     def plot_ax(self, ax, exchange_xy=False, xfactor=1, yfactor=1, *args, **kwargs):
         """

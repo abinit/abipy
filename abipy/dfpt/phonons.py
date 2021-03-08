@@ -1971,7 +1971,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
                 e = np.reshape(e, e.shape[:-2] + (-1,))
                 phdispl_cart.extend(e)
 
-        print(len(names), len(phfreqs))
+        #print(len(names), len(phfreqs))
         qpoints_list = KpointList(reciprocal_lattice=structure.reciprocal_lattice,
                                   frac_coords=qpoints, names=names)
 

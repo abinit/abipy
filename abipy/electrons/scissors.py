@@ -88,7 +88,7 @@ class Scissors(object):
             raise NotImplementedError("Only constant boundaries are implemented")
 
         # This counter stores the number of points that are out of bounds.
-        self.out_bounds = np.zeros(3, np.int)
+        self.out_bounds = np.zeros(3, dtype=int)
 
     def apply(self, eig):
         """Correct the eigenvalue eig (eV units)."""

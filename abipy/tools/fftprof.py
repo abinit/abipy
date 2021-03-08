@@ -63,7 +63,7 @@ class FFT_Test(object):
         """
         self.ecut = np.asarray(ecut)
         self.necut = len(ecut)
-        self.ngfft = np.asarray(ngfft, np.int)
+        self.ngfft = np.asarray(ngfft, int)
         self.wall_time = np.asarray(wall_time)
 
         self._info = info
