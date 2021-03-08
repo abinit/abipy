@@ -456,6 +456,7 @@ class DielectricTensorGeneratorTest(AbipyTest):
                                                    AnaddbNcFile.from_file(anaddbnc_fname))
 
         self.assertAlmostEqual(d.tensor_at_frequency(0.001, units='Ha', gamma_ev=0.0)[0, 0], 11.917178540635028)
+        self.assertAlmostEqual(d.reflectivity([1, 0, 0], 0.045), 0.59389746, places=5)
 
         if self.has_matplotlib():
             assert d.plot_vs_w(w_min=0.0001, w_max=0.01, num=10, units="Ha", show=False)
@@ -463,6 +464,8 @@ class DielectricTensorGeneratorTest(AbipyTest):
             for comp in ["diag", "all", "diag_av"]:
                 assert d.plot_vs_w(num=10, component=comp, units="cm-1", show=False)
             assert d.plot_all(units="mev", show=False)
+            assert d.plot_e0w_qdirs()
+            assert d.plot_reflectivity()
 
 
 class DdbRobotTest(AbipyTest):

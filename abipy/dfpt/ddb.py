@@ -2338,8 +2338,8 @@ class DielectricTensorGenerator(Has_Structure):
         return fig
 
     @add_fig_kwargs
-    def plot_qdirs(self, qdirs=None, w_min=0, w_max=None, gamma_ev=1e-4, num=500, reim="reim", func="direct",
-                   units='eV', with_phfreqs=True, ax=None, fontsize=12, **kwargs):
+    def plot_e0w_qdirs(self, qdirs=None, w_min=0, w_max=None, gamma_ev=1e-4, num=500, reim="reim", func="direct",
+                       units='eV', with_phfreqs=True, ax=None, fontsize=12, **kwargs):
         """
         Plots the dielectric tensor and/or -epsinf_q**2 / \epsilon_q along a set of specified directions.
         With \epsilon_q as defined in eq. (56) in :cite:`Gonze1997` PRB55, 10355 (1997).
