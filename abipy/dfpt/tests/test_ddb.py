@@ -419,7 +419,9 @@ class DdbTest(AbipyTest):
                 assert qpoint in ddb.computed_dynmat
 
             raman = ddb.anaget_raman()
-            self.assertAlmostEqual(raman.susceptibility[5, 0, 1], -0.0114683, places=5)
+            # take the mean to avoid potential changes in the order of degenerate modes.
+            sus_mean = raman.susceptibility[3:, 0, 1].mean()
+            self.assertAlmostEqual(sus_mean, -0.002829737, places=5)
 
             # Test block parsing.
             blocks = ddb._read_blocks()

@@ -889,7 +889,7 @@ class AbinitSpaceGroup(OpSequence):
     def get_spglib_hall_number(self, symprec=1e-5):
         """
         Uses spglib.get_hall_number_from_symmetry to determine the hall number
-        based on the symmetry operations. Useful when the spece group number
+        based on the symmetry operations. Useful when the space group number
         is not available, but the symmetries are (e.g. the DDB file)
 
         Args:

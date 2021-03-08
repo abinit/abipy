@@ -1454,7 +1454,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 It might be that the value should be tuned so that it leads to the the same symmetries
                 as in the abinit calculation.
             set_masses: if True the atomic masses used by abinit will be added to the PhonopyAtoms
-                and will be present in the returned Phonopy object. This should improve compatbility
+                and will be present in the returned Phonopy object. This should improve compatibility
                 among abinit and phonopy results if frequencies needs to be calculated.
             verbose: verbosity level. Set it to a value > 0 to get more information
 
@@ -2185,7 +2185,7 @@ class DielectricTensorGenerator(Has_Structure):
         in atomic units at the specified frequency w. Eq.(53-54) in PRB55, 10355 (1997).
 
         Args:
-            w: Frequency in eV
+            w: Frequency.
             gamma_ev: Phonon damping factor in eV (full width). Poles are shifted by phfreq * gamma_ev.
                 Accept scalar or [nfreq] array.
             units: string specifying the units used for phonon frequencies. Possible values in
@@ -2242,10 +2242,7 @@ class DielectricTensorGenerator(Has_Structure):
 
         Return: |matplotlib-Figure|
         """
-        if w_max is None:
-            w_max = (np.max(self.phfreqs) + gamma_ev * 10) * phfactor_ev2units(units)
-
-        wmesh = np.linspace(w_min, w_max, num, endpoint=True)
+        wmesh = self._get_wmesh(gamma_ev, num, units, w_min, w_max)
         t = np.zeros((num, 3, 3), dtype=complex)
 
         for i, w in enumerate(wmesh):
@@ -2285,14 +2282,33 @@ class DielectricTensorGenerator(Has_Structure):
             else:
                 raise ValueError('Unkwnown component {}'.format(component))
 
-        # Add points showing phonon energies.
-        if with_phfreqs:
-            wvals = self.phfreqs[3:] * phfactor_ev2units(units)
-            ax.scatter(wvals, np.zeros_like(wvals), s=30, marker="o", c="blue")
+        self._add_phfreqs(ax, units, with_phfreqs)
 
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
+
+    def _get_wmesh(self, gamma_ev, num, units, w_min, w_max):
+        """
+        Helper function to get the wmesh for the plots.
+
+        Args:
+            gamma_ev: Phonon damping factor in eV (full width). Poles are shifted by phfreq * gamma_ev.
+                Accept scalar or [nfreq] array.
+            num: number of values of the frequencies between w_min and w_max.
+            units: string specifying the units used for phonon frequencies. Possible values in
+                ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            w_min: minimum frequency in units `units`.
+            w_max: maximum frequency. If None it will be set to the value of the maximum frequency + 5*gamma_ev.
+
+        Returns:
+            a numpy array with the frequencies.
+        """
+        if w_max is None:
+            w_max = (np.max(self.phfreqs) + gamma_ev * 10) * phfactor_ev2units(units)
+
+        wmesh = np.linspace(w_min, w_max, num, endpoint=True)
+        return wmesh
 
     # To maintain backward compatibility.
     plot_vs_w = plot
@@ -2314,6 +2330,190 @@ class DielectricTensorGenerator(Has_Structure):
             for icol in range(2):
                 reim = {0: "re", 1: "im"}[icol]
                 self.plot(component=component, reim=reim, ax=axmat[irow, icol], fontsize=fontsize, show=False, **kwargs)
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_qdirs(self, qdirs=None, w_min=0, w_max=None, gamma_ev=1e-4, num=500, reim="reim", func="direct",
+                   units='eV', with_phfreqs=True, ax=None, fontsize=12, **kwargs):
+        """
+        Plots the dielectric tensor and/or -epsinf_q**2 / \epsilon_q along a set of specified directions.
+        With \epsilon_q as defined in eq. (56) in :cite:`Gonze1997` PRB55, 10355 (1997).
+
+        Args:
+            qdirs: a list of directions along which to plot the dielectric tensor. They will be normalized
+                internally. If None the three cartesian directions will be shown.
+            w_min: minimum frequency in units `units`.
+            w_max: maximum frequency. If None it will be set to the value of the maximum frequency + 5*gamma_ev.
+            gamma_ev: Phonon damping factor in eV (full width). Poles are shifted by phfreq * gamma_ev.
+                Accept scalar or [nfreq] array.
+            num: number of values of the frequencies between w_min and w_max.
+            reim: a string with "re" will plot the real part, with "im" selects the imaginary part.
+            func: determines which functional form will be plot. Can be:
+                * "direct": plot of \epsilon_q
+                * "inverse": plot of -epsinf_q**2 / \epsilon_q
+                * "both": both plots.
+            units: string specifying the units used for phonon frequencies. Possible values in
+                ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            with_phfreqs: True to show phonon frequencies with dots.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: Legend and label fontsize.
+
+        Return: |matplotlib-Figure|
+        """
+        wmesh = self._get_wmesh(gamma_ev, num, units, w_min, w_max)
+        t = np.zeros((num, 3, 3), dtype=complex)
+
+        for i, w in enumerate(wmesh):
+            t[i] = self.tensor_at_frequency(w, units=units, gamma_ev=gamma_ev)
+
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+
+        if 'linewidth' not in kwargs:
+            kwargs['linewidth'] = 2
+
+        ax.set_xlabel('Frequency {}'.format(phunit_tag(units)))
+        ax.set_ylabel(r'$\epsilon(\omega)$')
+        ax.grid(True)
+
+        reimfs = []
+        if 're' in reim: reimfs.append((np.real, "Re{%s}"))
+        if 'im' in reim: reimfs.append((np.imag, "Im{%s}"))
+
+        if func == "both":
+            func = ["direct", "inverse"]
+        elif func not in ("direct", "inverse"):
+            raise ValueError(f"unknown value for func: {func}")
+        else:
+            func = [func]
+
+        func_label = {"direct": r"$\epsilon_{{q{ind}}}$",
+                      "inverse": r"$-(\epsilon^{{\infty}}_{{q{ind}}})^2 / \epsilon_{{q{ind}}}$"}
+
+        if qdirs is None:
+            qdirs = np.eye(3)
+        elif len(np.shape(qdirs)) < 2:
+            qdirs = [qdirs]
+
+        qdirs = np.array(qdirs, dtype=np.float)
+
+        for reimf, reims in reimfs:
+            for func_form in func:
+                for i, q in enumerate(qdirs):
+                    q /= np.linalg.norm(q)
+                    tt = np.einsum("i,kij,j->k", q, t, q)
+                    if func_form == "inverse":
+                        tt = -1 / tt * (np.einsum("i,ij,j", q, self.epsinf, q)) ** 2
+
+                    label = reims % func_label[func_form].format(ind=i)
+                    ax.plot(wmesh, reimf(tt), label=label, **kwargs)
+
+        self._add_phfreqs(ax, units, with_phfreqs)
+
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        return fig
+
+    def _add_phfreqs(self, ax, units, with_phfreqs):
+        """
+        Helper functions to add the phonon frequencies to the x axis.
+        Args:
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            units: string specifying the units used for phonon frequencies. Possible values in
+                ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            with_phfreqs: True to show phonon frequencies with dots.
+        """
+        # Add points showing phonon energies.
+        if with_phfreqs:
+            wvals = self.phfreqs[3:] * phfactor_ev2units(units)
+            ax.scatter(wvals, np.zeros_like(wvals), s=30, marker="o", c="blue")
+
+    def reflectivity(self, qdir, w, gamma_ev=1e-4, units='eV'):
+        """
+        Calculates the reflectivity from the dielectric tensor along the specified direction
+        according to eq. (58) in :cite:`Gonze1997` PRB55, 10355 (1997).
+
+        Args:
+            qdir: a list with three components defining the direction.
+                It will be normalized internally.
+            w: frequency.
+            gamma_ev: Phonon damping factor in eV (full width). Poles are shifted by phfreq * gamma_ev.
+                Accept scalar or [nfreq] array.
+            units: string specifying the units used for phonon frequencies. Possible values in
+                ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+
+        Returns:
+            the value of the reflectivity.
+        """
+
+        qdir = np.array(qdir) / np.linalg.norm(qdir)
+        t = self.tensor_at_frequency(w, units=units, gamma_ev=gamma_ev)
+
+        n = np.einsum("i,ij,j", qdir, t, qdir) ** 0.5
+
+        r = (n - 1) / (n + 1)
+
+        return (r * r.conjugate()).real
+
+    @add_fig_kwargs
+    def plot_reflectivity(self, qdirs=None, w_min=0, w_max=None, gamma_ev=1e-4, num=500,
+                          units='eV', with_phfreqs=True, ax=None, fontsize=12, **kwargs):
+        """
+        Plots the reflectivity from the dielectric tensor along the specified directions,
+        according to eq. (58) in :cite:`Gonze1997` PRB55, 10355 (1997).
+
+        Args:
+            qdirs: a list of directions along which to plot the dielectric tensor. They will be normalized
+                internally. If None the three cartesian directions will be shown.
+            w_min: minimum frequency in units `units`.
+            w_max: maximum frequency. If None it will be set to the value of the maximum frequency + 5*gamma_ev.
+            gamma_ev: Phonon damping factor in eV (full width). Poles are shifted by phfreq * gamma_ev.
+                Accept scalar or [nfreq] array.
+            num: number of values of the frequencies between w_min and w_max.
+            units: string specifying the units used for phonon frequencies. Possible values in
+                ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            with_phfreqs: True to show phonon frequencies with dots.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: Legend and label fontsize.
+
+        Return: |matplotlib-Figure|
+        """
+
+        wmesh = self._get_wmesh(gamma_ev, num, units, w_min, w_max)
+        t = np.zeros((num, 3, 3), dtype=complex)
+
+        for i, w in enumerate(wmesh):
+            t[i] = self.tensor_at_frequency(w, units=units, gamma_ev=gamma_ev)
+
+        if qdirs is None:
+            qdirs = np.eye(3)
+        elif len(np.shape(qdirs)) < 2:
+            qdirs = [qdirs]
+
+        qdirs = np.array(qdirs, dtype=np.float)
+
+        qdirs /= np.linalg.norm(qdirs, axis=1)[:, None]
+
+        n = np.einsum("li,kij,lj->lk", qdirs, t, qdirs) ** 0.5
+
+        r = np.abs((n - 1) / (n + 1)) ** 2
+
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+
+        if 'linewidth' not in kwargs:
+            kwargs['linewidth'] = 2
+
+        ax.set_xlabel('Frequency {}'.format(phunit_tag(units)))
+        ax.set_ylabel(r'$R(\omega)$')
+        ax.grid(True)
+
+        for i in range(len(qdirs)):
+            label = f"$R_{{q{i}}}$"
+            ax.plot(wmesh, r[i], label=label, **kwargs)
+
+        self._add_phfreqs(ax, units, with_phfreqs)
+
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 

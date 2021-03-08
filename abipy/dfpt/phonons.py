@@ -2140,7 +2140,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
     def plot_longitudinal_fraction(self, qpoint, idir=None, ax_list=None, units="eV", branches=None,
                                    format_w="%.3f", fontsize=10, **kwargs):
         """
-        Plots an instogram "longitudinal" fraction of the eigendisplacements.
+        Plots an histogram "longitudinal" fraction of the eigendisplacements.
 
         Args:
             qpoint: q vector in reduced coordinate in reciprocal space or index of the qpoint.
