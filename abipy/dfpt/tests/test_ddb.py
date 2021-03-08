@@ -464,8 +464,8 @@ class DielectricTensorGeneratorTest(AbipyTest):
             for comp in ["diag", "all", "diag_av"]:
                 assert d.plot_vs_w(num=10, component=comp, units="cm-1", show=False)
             assert d.plot_all(units="mev", show=False)
-            assert d.plot_e0w_qdirs()
-            assert d.plot_reflectivity()
+            assert d.plot_e0w_qdirs(show=False)
+            assert d.plot_reflectivity(show=False)
 
 
 class DdbRobotTest(AbipyTest):

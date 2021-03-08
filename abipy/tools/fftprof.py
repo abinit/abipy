@@ -342,9 +342,7 @@ class FFTProf(object):
         cmd_str = " ".join(args)
 
         p = Popen(cmd_str, shell=True, stdout=PIPE, stderr=PIPE, cwd=self.workdir)
-
-        (self.stdout_data, self.stderr_data) = p.communicate()
-
+        self.stdout_data, self.stderr_data = p.communicate()
         self.returncode = p.returncode
 
         if self.returncode != 0:
