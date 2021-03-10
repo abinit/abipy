@@ -35,7 +35,6 @@ def make_scf_input(structure, pseudos, ngkpt=(2,2,2), shiftk=(0,0,0),
 def make_nscf_input(structure, pseudos, ngkpt=(2,2,2), shiftk=(0,0,0),
                     **variables):
     """Build and return NSCF input given the structure and pseudopotentials"""
-
     scf_inp = abilab.AbinitInput(structure, pseudos=pseudos)
 
     # Global variables

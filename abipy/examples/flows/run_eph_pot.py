@@ -43,6 +43,7 @@ def make_scf_input(ngkpt):
         shiftk=[0, 0, 0],
         tolvrs=1.0e-8,
         nstep=150,
+        paral_kgb=0,
     )
 
     return gs_inp
@@ -70,7 +71,7 @@ def build_flow(options):
     # corresponding to a [4, 4, 4] q-mesh.
     # Electric field and Born effective charges are also computed.
     from abipy.flowtk.eph_flows import EphPotFlow
-    ngqpt = (2, 2, 2)
+    ngqpt = [2, 2, 2]
 
     qpath_list = [
         +0.10000,  +0.10000,  +0.10000,  # L -> G

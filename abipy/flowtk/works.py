@@ -1548,7 +1548,7 @@ class PhononWfkqWork(Work, MergeDdb):
     """
     This work computes phonons with DFPT on an arbitrary q-mesh (usually denser than the k-mesh for electrons)
     by computing WKQ files for each q-point.
-    The number of irreducible atomic perturbations for each q-point are taken into account.
+    The number of irreducible atomic perturbations for each q-point is taken into account.
     It provides the callback method (on_all_ok) that calls mrgddb (mrgdv) to merge
     all the partial DDB (POT) files produced. The two files are available in the
     output directory of the Work. The WKQ files are removed at runtime.
@@ -1590,7 +1590,8 @@ class PhononWfkqWork(Work, MergeDdb):
         if not isinstance(scf_task, ScfTask):
             raise TypeError("task `%s` does not inherit from ScfTask" % scf_task)
 
-        shiftq = np.reshape(shiftq, (3,))
+        shiftq = np.reshape(shiftq, (3, ))
+        #print("ngqpt", ngqpt, "\nshiftq", shiftq)
         if is_ngqpt:
             qpoints = scf_task.input.abiget_ibz(ngkpt=ngqpt, shiftk=shiftq, kptopt=1).points
         else:
@@ -1609,9 +1610,10 @@ class PhononWfkqWork(Work, MergeDdb):
         # Get ngkpt, shift for electrons from input.
         # Won't try to skip WFQ if multiple shifts or off-diagonal kptrlatt
         ngkpt, shiftk = scf_task.input.get_ngkpt_shiftk()
-        try_to_skip_wfkq = True
-        if ngkpt is None or len(shiftk) > 1 and is_ngqpt:
-            try_to_skip_wfkq = True
+        #try_to_skip_wfkq = True
+        #if ngkpt is not None and len(shiftk) == 1 and not is_ngqpt:
+        #    try_to_skip_wfkq = True
+        try_to_skip_wfkq = False
 
         # TODO: One could avoid kptopt 3 by computing WFK in the IBZ and then rotating.
         # but this has to be done inside Abinit.
@@ -1626,6 +1628,7 @@ class PhononWfkqWork(Work, MergeDdb):
             elif try_to_skip_wfkq:
                 # k = (i + shiftk) / ngkpt
                 qinds = np.rint(qpt * ngqpt - shiftq)
+                #print("qpt", qpt, "\nqinds", qinds, "\nngkpt", ngkpt, "\nngqpt", ngqpt)
                 f = (qinds * ngkpt) % ngqpt
                 need_wfkq = np.any(f != 0)
 

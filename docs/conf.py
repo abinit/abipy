@@ -52,7 +52,8 @@ extensions = [
     'sphinx_gallery.gen_gallery',
     "sphinxarg.ext",         # CLI doc
     'sphinxcontrib.bibtex',
-    "jupyter_sphinx.execute",
+    "jupyter_sphinx",
+    #"jupyter_sphinx.execute",
     #'nbsphinx',
     #"releases",
     #'sphinx.ext.coverage',
@@ -129,7 +130,7 @@ sphinx_gallery_conf = {
     'filename_pattern': "(/plot_*|/run_*)",
     'default_thumb_file': '_static/abipy_logo.png',
     'within_subsection_order': NumberOfCodeLinesSortKey,
-    'backreferences_dir': False,
+    'backreferences_dir': None,
     #'reset_modules': (reset_mpl,),
     #'find_mayavi_figures': True,
     'reference_url': {
@@ -307,7 +308,8 @@ def setup(app):
     http://www.sphinx-doc.org/en/stable/extdev/appapi.html
     """
     # Add custom css in _static
-    app.add_stylesheet("my_style.css")
+    #app.add_stylesheet("my_style.css")
+    app.add_css_file("my_style.css")
 
 
 # The name for this set of Sphinx documents.  If None, it defaults to
@@ -494,8 +496,10 @@ class AbiPyLabelStyle(LabelStyle):
     def format_label(self, entry):
         return entry.key
 
+
 class AbiPyStyle(Style):
     default_label_style = 'abipy'
+
 
 from pybtex.plugin import register_plugin
 register_plugin('pybtex.style.labels', 'abipy', AbiPyLabelStyle)
