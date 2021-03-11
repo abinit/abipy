@@ -2936,6 +2936,64 @@ class PhononDos(Function1D):
 
         return fig
 
+    def plot_interact_harmonic_thermo(self, tstart=5, tstop=300, num=50, units="eV", formula_units=None,
+                                      quantities=None, fontsize=16):  #, **kwargs):
+        """
+        Plot thermodynamic properties from the phonon DOSes within the harmonic approximation.
+        Args:
+            tstart: The starting value (in Kelvin) of the temperature mesh.
+            tstop: The end value (in Kelvin) of the mesh.
+            num: int, optional Number of samples to generate. Default is 50.
+            quantities: List of strings specifying the thermodynamic quantities to plot.
+                Possible values: ["internal_energy", "free_energy", "entropy", "c_v"].
+                None means all.
+            units: eV for energies in ev/unit_cell, Jmol for results in J/mole.
+            formula_units: the number of formula units per unit cell. If unspecified, the
+                thermodynamic quantities will be given on a per-unit-cell basis.
+            fontsize: Legend and title fontsize.
+
+
+        Returns |plotly.graph_objects.Figure|
+       """
+        _THERMO_YLABELS = {  # [name][units] --> string
+            "internal_energy": {"eV": "U(T) (eV/cell)", "Jmol": "U(T) (J/mole)"},
+            "free_energy": {"eV": "F(T) + ZPE (eV/cell)", "Jmol": "F(T) + ZPE (J/mole)"},
+            "entropy": {"eV": "S(T) (eV/cell)", "Jmol": "S(T) (J/mole)"},
+            "cv": {"eV": "C_V(T) (eV/cell)", "Jmol": "C_V(T) (J/mole)"},
+        }
+
+        from plotly.subplots import make_subplots
+        import plotly.graph_objects as go
+        quantities = list_strings(quantities) if quantities is not None else \
+            ["internal_energy", "free_energy", "entropy", "cv"]
+
+        # Build grid of plots.
+        ncols, nrows = 1, 1
+        num_plots = len(quantities)
+        if num_plots > 1:
+            ncols = 2
+            nrows = num_plots // ncols + num_plots % ncols
+
+        fig = make_subplots(rows=nrows, cols=ncols, subplot_titles=quantities)
+
+        for iq, qname in enumerate(quantities):
+            irow, icol = divmod(iq, ncols)
+            # Compute thermodynamic quantity associated to qname.
+            f1d = getattr(self, "get_" + qname)(tstart=tstart, tstop=tstop, num=num)
+            ys = f1d.values
+            if formula_units is not None: ys /= formula_units
+            if units == "Jmol": ys = ys * abu.e_Cb * abu.Avogadro
+            fig.add_trace(go.Scatter(x=f1d.mesh, y=ys, mode="lines", name=qname), row=irow + 1, col=icol + 1)
+            fig.layout.annotations[iq].font.size=fontsize
+            iax = iq + 1
+            fig.layout['yaxis%u' % iax].title= {'text': _THERMO_YLABELS[qname][units], 'font_size': fontsize}
+            fig.layout['xaxis%u' % iax].title= {'text': 'Temperature(K)', 'font_size': fontsize}
+
+        # fig.show()
+        # return type(fig)    # <class 'plotly.graph_objs._figure.Figure'>
+        return fig
+
+
     def to_pymatgen(self):
         """
         Creates a pymatgen :class:`PmgPhononDos` object
