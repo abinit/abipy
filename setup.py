@@ -140,7 +140,8 @@ def cleanup():
 install_requires = [
     "monty",
     "tabulate",
-    "apscheduler==2.1.0",
+    #"apscheduler==2.1.0",
+    "apscheduler",
     "pydispatcher>=2.0.5",
     "tqdm",
     "pyyaml>=3.11",
@@ -148,8 +149,8 @@ install_requires = [
     "numpy",
     "scipy",
     "spglib",
-    #"pymatgen>=2019.12.22",
-    "pymatgen>=2020.11.11",
+    #"pymatgen>=2020.11.11",
+    "pymatgen>=2022.0.4",
     "netCDF4",
     "matplotlib",
     "seaborn",
@@ -200,15 +201,15 @@ if __name__ == "__main__":
     print("""
 Please read the following if you are about to use AbiPy for the first time:
 
-Abipy needs to know about the cluster/computer you are running on. This information
-is provided via the manager.yml and scheduler.yml files.
-These files must be located in ~/.abinit/abipy or in the working directory in which you execute the flow.
+Abipy needs to know about the cluster/computer you are running on.
+This information is provided via two Yaml configuration files: manager.yml and scheduler.yml.
+These files must be located either in ~/.abinit/abipy or in the working directory in which you execute the flow.
 Examples are provided in abipy/data/managers.
 See also the HTML page:
 
     http://abinit.github.io/abipy/workflows/manager_examples.html
 
-TIP: Use abicheck.py to validate the final configuration.
+TIP: Use `abicheck.py --with-flow` to validate the final configuration before running large calculations.
 
 Have fun!
 """)
