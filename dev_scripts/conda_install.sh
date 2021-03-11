@@ -3,7 +3,7 @@ set -e  # exit on first error
 
 echo "Installing bader executable (http://theory.cm.utexas.edu/henkelman/code/bader/) from matsci ..."
 conda install -y -c matsci bader
-conda install -c abinit apscheduler==2.1.0
+#conda install -c abinit apscheduler==2.1.0
 #pip install apscheduler==2.1.0
 
 echo "Installing requirements listed requirements.txt and requirements-optional.txt ..."
