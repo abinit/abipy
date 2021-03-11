@@ -1,4 +1,21 @@
-Release 0.8.0: xxxx-xx-xx
+Release 0.9.0: 
+
+    * Require pymatgen >= 2019.12.22
+    * Integration with abinit 9.4.0
+    * Support for py3.8 and py3.9
+    * Converters for phonopy and tdep plus some related tools
+    * Preliminary support for panel dashboards.
+    * Introduce ABIPY_TMPDIR environment variable to specify the workdir of the temporary tasks at runtime.
+    * Use last version of apscheduler.
+    * Minor bug fixes
+    * New tools for Phonon and EPH calculations
+    * Note that this is last AbiPy version supporting Abinit8.
+      AbiPy version 1.0 will start to take advantage of features and ameliorations introduced in Abinit9
+      We will also take the opportunity to refactor the code base so backward incompatibe changes in the API
+      are expected in the next major version.
+
+
+Release 0.8.0: 
 
     * Add abicheck.py --create-config option to install predefined yaml configuration files
     * Add support for NSCF calculations with meta-GGA.

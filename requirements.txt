@@ -1,6 +1,7 @@
 monty
 tabulate
-apscheduler==2.1.0
+#apscheduler==2.1.0
+apscheduler
 pydispatcher>=2.0.5
 tqdm
 pyyaml>=3.11
@@ -10,8 +11,8 @@ numpy
 scipy
 sympy
 spglib
-#pymatgen>=2019.10.16
-pymatgen>=2019.12.22
+#pymatgen>=2019.12.22
+pymatgen>=2022.0.4
 netCDF4
 matplotlib
 seaborn
